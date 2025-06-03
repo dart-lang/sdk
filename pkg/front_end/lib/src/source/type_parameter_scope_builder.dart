@@ -56,7 +56,7 @@ enum _PropertyKind {
   FinalField,
 }
 
-enum _FragmentKind {
+enum _DeclarationKind {
   Constructor,
   Factory,
   Class,
@@ -70,23 +70,238 @@ enum _FragmentKind {
   Property,
 }
 
-class _FragmentName {
-  final _FragmentKind kind;
-  final Fragment fragment;
+abstract class _Declaration {
+  final _DeclarationKind kind;
+  final Fragment _fragment;
   final String name;
   final bool isAugment;
   final bool inPatch;
   final bool inLibrary;
   final bool isStatic;
-  final _PropertyKind? propertyKind;
 
-  _FragmentName(this.kind, this.fragment,
+  _Declaration(this.kind, this._fragment,
       {required this.name,
       required this.isAugment,
       required this.inPatch,
       required this.inLibrary,
-      this.propertyKind,
       this.isStatic = true});
+
+  UriOffsetLength get uriOffset;
+
+  /// Adds this declaration to [thesePreBuilders] and checks it against the
+  /// [otherPreBuilders].
+  ///
+  /// If this declaration can be absorbed into an existing declaration in
+  /// [thesePreBuilders], it is added to the corresponding [_PreBuilder].
+  /// Otherwise a new [_PreBuilder] is created and added to [thesePreBuilders].
+  void _addPreBuilder(ProblemReporting problemReporting,
+      List<_PreBuilder> thesePreBuilders, List<_PreBuilder> otherPreBuilders) {
+    for (_PreBuilder existingPreBuilder in thesePreBuilders) {
+      if (existingPreBuilder.absorbFragment(problemReporting, this)) {
+        return;
+      }
+    }
+    _checkAugmentation(problemReporting, this);
+    thesePreBuilders.add(_createPreBuilder());
+    if (otherPreBuilders.isNotEmpty) {
+      otherPreBuilders.first.checkFragment(problemReporting, this);
+    }
+  }
+
+  /// Creates the [_PreBuilder] for this [_Declaration].
+  ///
+  /// This is called for the declarations that aren't absorbed into a
+  /// pre-existing declaration.
+  _PreBuilder _createPreBuilder();
+
+  void registerPreBuilder(
+      ProblemReporting problemReporting,
+      List<_PreBuilder> nonConstructorPreBuilders,
+      List<_PreBuilder> constructorPreBuilders);
+}
+
+mixin _FragmentDeclarationMixin implements _Declaration {
+  @override
+  Fragment get _fragment;
+
+  @override
+  UriOffsetLength get uriOffset => _fragment.uriOffset;
+
+  @override
+  String toString() => _fragment.toString();
+}
+
+abstract class _NonConstructorDeclaration extends _Declaration {
+  _NonConstructorDeclaration(super.kind, super.fragment,
+      {required super.name,
+      required super.isAugment,
+      required super.inPatch,
+      required super.inLibrary,
+      super.isStatic});
+
+  @override
+  void registerPreBuilder(
+      ProblemReporting problemReporting,
+      List<_PreBuilder> nonConstructorPreBuilders,
+      List<_PreBuilder> constructorPreBuilders) {
+    _addPreBuilder(
+        problemReporting, nonConstructorPreBuilders, constructorPreBuilders);
+  }
+}
+
+mixin _PropertyFragmentDeclarationMixin implements _PropertyDeclaration {
+  @override
+  Fragment get _fragment;
+
+  @override
+  _PropertyDeclarations createDeclarations() {
+    Fragment fragment = _fragment;
+    switch (fragment) {
+      case FieldFragment():
+        RegularFieldDeclaration declaration =
+            new RegularFieldDeclaration(fragment);
+        return new _PropertyDeclarations(
+            field: declaration,
+            getter: declaration,
+            setter: fragment.hasSetter ? declaration : null);
+      case PrimaryConstructorFieldFragment():
+        PrimaryConstructorFieldDeclaration declaration =
+            new PrimaryConstructorFieldDeclaration(fragment);
+        return new _PropertyDeclarations(
+            field: declaration, getter: declaration);
+      case EnumElementFragment():
+        EnumElementDeclaration declaration =
+            new EnumElementDeclaration(fragment);
+        return new _PropertyDeclarations(
+            field: declaration, getter: declaration);
+      case GetterFragment():
+        return new _PropertyDeclarations(
+            getter: new RegularGetterDeclaration(fragment));
+      case SetterFragment():
+        return new _PropertyDeclarations(
+            setter: new RegularSetterDeclaration(fragment));
+      // Coverage-ignore(suite): Not run.
+      default:
+        throw new UnsupportedError("Unexpected property fragment $fragment");
+    }
+  }
+}
+
+abstract class _PropertyDeclaration extends _NonConstructorDeclaration {
+  final _PropertyKind propertyKind;
+
+  _PropertyDeclaration(super.kind, super.fragment,
+      {required super.name,
+      required super.isAugment,
+      required super.inPatch,
+      required super.inLibrary,
+      required this.propertyKind,
+      super.isStatic});
+
+  _PropertyDeclarations createDeclarations();
+}
+
+class _FieldDeclaration extends _PropertyDeclaration
+    with _FragmentDeclarationMixin, _PropertyFragmentDeclarationMixin {
+  _FieldDeclaration(super.kind, super.fragment,
+      {required super.name,
+      required super.isAugment,
+      required super.inPatch,
+      required super.inLibrary,
+      required super.propertyKind,
+      super.isStatic});
+
+  @override
+  _PreBuilder _createPreBuilder() => new _PropertyPreBuilder.forField(this);
+}
+
+class _GetterDeclaration extends _PropertyDeclaration
+    with _FragmentDeclarationMixin, _PropertyFragmentDeclarationMixin {
+  _GetterDeclaration(super.kind, super.fragment,
+      {required super.name,
+      required super.isAugment,
+      required super.inPatch,
+      required super.inLibrary,
+      required super.propertyKind,
+      super.isStatic});
+
+  @override
+  _PreBuilder _createPreBuilder() => new _PropertyPreBuilder.forGetter(this);
+}
+
+class _SetterDeclaration extends _PropertyDeclaration
+    with _FragmentDeclarationMixin, _PropertyFragmentDeclarationMixin {
+  _SetterDeclaration(super.kind, super.fragment,
+      {required super.name,
+      required super.isAugment,
+      required super.inPatch,
+      required super.inLibrary,
+      required super.propertyKind,
+      super.isStatic});
+
+  @override
+  _PreBuilder _createPreBuilder() => new _PropertyPreBuilder.forSetter(this);
+}
+
+mixin _StandardFragmentDeclarationMixin implements _StandardDeclaration {
+  @override
+  Fragment get _fragment;
+}
+
+abstract class _StandardDeclaration extends _NonConstructorDeclaration {
+  _StandardDeclaration(super.kind, super.fragment,
+      {required super.name,
+      required super.isAugment,
+      required super.inPatch,
+      required super.inLibrary,
+      super.isStatic});
+
+  @override
+  _PreBuilder _createPreBuilder() => new _DeclarationPreBuilder(this);
+}
+
+class _StandardFragmentDeclaration extends _StandardDeclaration
+    with _FragmentDeclarationMixin, _StandardFragmentDeclarationMixin {
+  _StandardFragmentDeclaration(super.kind, super.fragment,
+      {required super.name,
+      required super.isAugment,
+      required super.inPatch,
+      required super.inLibrary,
+      super.isStatic});
+}
+
+mixin _ConstructorFragmentDeclarationMixin implements _ConstructorDeclaration {
+  @override
+  Fragment get _fragment;
+}
+
+abstract class _ConstructorDeclaration extends _Declaration {
+  _ConstructorDeclaration(super.kind, super.fragment,
+      {required super.name,
+      required super.isAugment,
+      required super.inPatch,
+      required super.inLibrary});
+
+  @override
+  _PreBuilder _createPreBuilder() => new _ConstructorPreBuilder(this);
+
+  @override
+  void registerPreBuilder(
+      ProblemReporting problemReporting,
+      List<_PreBuilder> nonConstructorPreBuilders,
+      List<_PreBuilder> constructorPreBuilders) {
+    _addPreBuilder(
+        problemReporting, constructorPreBuilders, nonConstructorPreBuilders);
+  }
+}
+
+class _ConstructorFragmentDeclaration extends _ConstructorDeclaration
+    with _FragmentDeclarationMixin, _ConstructorFragmentDeclarationMixin {
+  _ConstructorFragmentDeclaration(super.kind, super.fragment,
+      {required super.name,
+      required super.isAugment,
+      required super.inPatch,
+      required super.inLibrary});
 }
 
 typedef _CreateBuilderFunction = void Function(Fragment,
@@ -106,20 +321,20 @@ typedef _CreatePropertyFunction = void Function(
 /// A [_PreBuilder] is a precursor to a [Builder] with subclasses for
 /// properties, constructors, and other declarations.
 sealed class _PreBuilder {
-  /// Tries to include [fragmentName] in this [_PreBuilder].
+  /// Tries to include [declaration] in this [_PreBuilder].
   ///
-  /// If [fragmentName] can be absorbed, `true` is returned. Otherwise an error
+  /// If [declaration] can be absorbed, `true` is returned. Otherwise an error
   /// is reported and `false` is returned.
   bool absorbFragment(
-      ProblemReporting problemReporting, _FragmentName fragmentName);
+      ProblemReporting problemReporting, _Declaration declaration);
 
-  /// Checks with [fragmentName] conflicts with this [_PreBuilder].
+  /// Checks with [declaration] conflicts with this [_PreBuilder].
   ///
   /// This is called between constructors and non-constructors which do not
   /// occupy the same name space but can only co-exist if the non-constructor
   /// is not static.
   void checkFragment(
-      ProblemReporting problemReporting, _FragmentName fragmentName);
+      ProblemReporting problemReporting, _Declaration declaration);
 
   /// Creates [Builder]s for the fragments absorbed into this [_PreBuilder],
   /// using [createBuilder] to create a [Builder] for a single [Fragment].
@@ -149,55 +364,55 @@ class _PropertyPreBuilder extends _PreBuilder {
   List<SetterDeclaration> _setterAugmentations = [];
 
   // TODO(johnniwinther): Report error if [getter] is augmenting.
-  _PropertyPreBuilder.forGetter(_FragmentName getter)
+  _PropertyPreBuilder.forGetter(_PropertyDeclaration getter)
       : isStatic = getter.isStatic,
         inPatch = getter.inPatch,
         name = getter.name,
-        uriOffset = getter.fragment.uriOffset,
+        uriOffset = getter.uriOffset,
         _getterPropertyKind = getter.propertyKind {
-    _Declarations declarations = _createDeclarations(getter.fragment);
+    _PropertyDeclarations declarations = getter.createDeclarations();
     assert(declarations.field == null,
-        "Unexpected field declaration from getter ${getter.fragment}.");
+        "Unexpected field declaration from getter ${getter}.");
     assert(declarations.getter != null,
-        "Unexpected getter declaration from getter ${getter.fragment}.");
+        "Unexpected getter declaration from getter ${getter}.");
     assert(declarations.setter == null,
-        "Unexpected setter declaration from getter ${getter.fragment}.");
+        "Unexpected setter declaration from getter ${getter}.");
     _getter = declarations.getter;
   }
 
   // TODO(johnniwinther): Report error if [setter] is augmenting.
-  _PropertyPreBuilder.forSetter(_FragmentName setter)
+  _PropertyPreBuilder.forSetter(_PropertyDeclaration setter)
       : isStatic = setter.isStatic,
         inPatch = setter.inPatch,
         name = setter.name,
-        uriOffset = setter.fragment.uriOffset,
+        uriOffset = setter.uriOffset,
         _setterPropertyKind = setter.propertyKind {
-    _Declarations declarations = _createDeclarations(setter.fragment);
+    _PropertyDeclarations declarations = setter.createDeclarations();
     assert(declarations.field == null,
-        "Unexpected field declaration from setter ${setter.fragment}.");
+        "Unexpected field declaration from setter ${setter}.");
     assert(declarations.getter == null,
-        "Unexpected getter declaration from setter ${setter.fragment}.");
+        "Unexpected getter declaration from setter ${setter}.");
     assert(declarations.setter != null,
-        "Unexpected setter declaration from setter ${setter.fragment}.");
+        "Unexpected setter declaration from setter ${setter}.");
     _setter = declarations.setter;
   }
 
   // TODO(johnniwinther): Report error if [field] is augmenting.
-  _PropertyPreBuilder.forField(_FragmentName field)
+  _PropertyPreBuilder.forField(_PropertyDeclaration field)
       : isStatic = field.isStatic,
         inPatch = field.inPatch,
         name = field.name,
-        uriOffset = field.fragment.uriOffset,
+        uriOffset = field.uriOffset,
         _getterPropertyKind = field.propertyKind {
-    _Declarations declarations = _createDeclarations(field.fragment);
+    _PropertyDeclarations declarations = field.createDeclarations();
     assert(declarations.field != null,
-        "Unexpected field declaration from field ${field.fragment}.");
+        "Unexpected field declaration from field ${field}.");
     assert(declarations.getter != null,
-        "Unexpected getter declaration from field ${field.fragment}.");
+        "Unexpected getter declaration from field ${field}.");
     assert(
         (declarations.setter != null) ==
             (_getterPropertyKind == _PropertyKind.Field),
-        "Unexpected setter declaration from field ${field.fragment}.");
+        "Unexpected setter declaration from field ${field}.");
     _field = declarations.field;
     _getter = declarations.getter;
     _setter = declarations.setter;
@@ -209,468 +424,8 @@ class _PropertyPreBuilder extends _PreBuilder {
 
   @override
   bool absorbFragment(
-      ProblemReporting problemReporting, _FragmentName fragmentName) {
-    _PropertyKind? propertyKind = fragmentName.propertyKind;
-    if (propertyKind != null) {
-      switch (propertyKind) {
-        case _PropertyKind.Getter:
-          if (_getter == null) {
-            // Example:
-            //
-            //    void set foo(_) {}
-            //    int get foo => 42;
-            //
-            if (fragmentName.isAugment) {
-              // Example:
-              //
-              //    void set foo(_) {}
-              //    augment int get foo => 42;
-              //
-              // TODO(johnniwinther): Report error.
-            }
-            if (fragmentName.isStatic != isStatic) {
-              if (fragmentName.isStatic) {
-                // Coverage-ignore-block(suite): Not run.
-                // Example:
-                //
-                //    class A {
-                //      void set foo(_) {}
-                //      static int get foo => 42;
-                //    }
-                //
-                problemReporting.addProblem2(
-                    templateStaticConflictsWithInstance.withArguments(name),
-                    fragmentName.fragment.uriOffset,
-                    context: [
-                      templateStaticConflictsWithInstanceCause
-                          .withArguments(name)
-                          .withLocation2(_setter!.uriOffset)
-                    ]);
-              } else {
-                // Example:
-                //
-                //    class A {
-                //      static void set foo(_) {}
-                //      int get foo => 42;
-                //    }
-                //
-                problemReporting.addProblem2(
-                    templateInstanceConflictsWithStatic.withArguments(name),
-                    fragmentName.fragment.uriOffset,
-                    context: [
-                      templateInstanceConflictsWithStaticCause
-                          .withArguments(name)
-                          .withLocation2(_setter!.uriOffset)
-                    ]);
-              }
-              return false;
-            } else {
-              _Declarations declarations =
-                  _createDeclarations(fragmentName.fragment);
-              assert(
-                  declarations.field == null,
-                  "Unexpected field declaration from getter "
-                  "${fragmentName.fragment}.");
-              assert(
-                  declarations.setter == null,
-                  "Unexpected setter declaration from getter "
-                  "${fragmentName.fragment}.");
-              _getter = declarations.getter;
-              assert(_getterPropertyKind == null,
-                  "Unexpected setter property kind for $_setter");
-              _getterPropertyKind == propertyKind;
-              return true;
-            }
-          } else {
-            if (fragmentName.isAugment) {
-              // Example:
-              //
-              //    int get foo => 42;
-              //    augment int get foo => 87;
-              //
-              _Declarations declarations =
-                  _createDeclarations(fragmentName.fragment);
-              assert(
-                  declarations.field == null,
-                  "Unexpected field declaration from getter "
-                  "${fragmentName.fragment}.");
-              assert(
-                  declarations.setter == null,
-                  "Unexpected setter declaration from getter "
-                  "${fragmentName.fragment}.");
-              _getterAugmentations.add(declarations.getter!);
-              return true;
-            } else {
-              // Example:
-              //
-              //    int get foo => 42;
-              //    int get foo => 87;
-              //
-              problemReporting.addProblem2(
-                  templateDuplicatedDeclaration.withArguments(name),
-                  fragmentName.fragment.uriOffset,
-                  context: <LocatedMessage>[
-                    templateDuplicatedDeclarationCause
-                        .withArguments(name)
-                        .withLocation2(_getter!.uriOffset)
-                  ]);
-              return false;
-            }
-          }
-        case _PropertyKind.Setter:
-          if (_setter == null) {
-            // Examples:
-            //
-            //    int get foo => 42;
-            //    void set foo(_) {}
-            //
-            //    final int bar = 42;
-            //    void set bar(_) {}
-            //
-            if (fragmentName.isAugment) {
-              // Example:
-              //
-              //    int get foo => 42;
-              //    augment void set foo(_) {}
-              //
-              // TODO(johnniwinther): Report error.
-            }
-            if (fragmentName.isStatic != isStatic) {
-              if (fragmentName.isStatic) {
-                // Example:
-                //
-                //    class A {
-                //      int get foo => 42;
-                //      static void set foo(_) {}
-                //    }
-                //
-                problemReporting.addProblem2(
-                    templateStaticConflictsWithInstance.withArguments(name),
-                    fragmentName.fragment.uriOffset,
-                    context: [
-                      templateStaticConflictsWithInstanceCause
-                          .withArguments(name)
-                          .withLocation2(_getter!.uriOffset)
-                    ]);
-                return false;
-              } else {
-                // Example:
-                //
-                //    class A {
-                //      static int get foo => 42;
-                //      void set foo(_) {}
-                //    }
-                //
-                problemReporting.addProblem2(
-                    templateInstanceConflictsWithStatic.withArguments(name),
-                    fragmentName.fragment.uriOffset,
-                    context: [
-                      templateInstanceConflictsWithStaticCause
-                          .withArguments(name)
-                          .withLocation2(_getter!.uriOffset)
-                    ]);
-                return false;
-              }
-            } else {
-              _Declarations declarations =
-                  _createDeclarations(fragmentName.fragment);
-              assert(
-                  declarations.field == null,
-                  "Unexpected field declaration from setter "
-                  "${fragmentName.fragment}.");
-              assert(
-                  declarations.getter == null,
-                  "Unexpected getter declaration from setter "
-                  "${fragmentName.fragment}.");
-              _setter = declarations.setter;
-              assert(_setterPropertyKind == null,
-                  "Unexpected setter property kind for $_getter");
-              _setterPropertyKind == propertyKind;
-              return true;
-            }
-          } else {
-            if (fragmentName.isAugment) {
-              // Example:
-              //
-              //    void set foo(_) {}
-              //    augment void set foo(_) {}
-              //
-              _Declarations declarations =
-                  _createDeclarations(fragmentName.fragment);
-              assert(
-                  declarations.field == null,
-                  "Unexpected field declaration from setter "
-                  "${fragmentName.fragment}.");
-              assert(
-                  declarations.getter == null,
-                  "Unexpected getter declaration from setter "
-                  "${fragmentName.fragment}.");
-              _setterAugmentations.add(declarations.setter!);
-              return true;
-            } else {
-              if (_setterPropertyKind == _PropertyKind.Field) {
-                // Example:
-                //
-                //    int? foo;
-                //    void set foo(_) {}
-                //
-                problemReporting.addProblem2(
-                    templateConflictsWithImplicitSetter.withArguments(name),
-                    fragmentName.fragment.uriOffset,
-                    context: [
-                      templateConflictsWithImplicitSetterCause
-                          .withArguments(name)
-                          .withLocation2(_setter!.uriOffset)
-                    ]);
-                return false;
-              } else {
-                // Example:
-                //
-                //    void set foo(_) {}
-                //    void set foo(_) {}
-                //
-                problemReporting.addProblem2(
-                    templateDuplicatedDeclaration.withArguments(name),
-                    fragmentName.fragment.uriOffset,
-                    context: <LocatedMessage>[
-                      templateDuplicatedDeclarationCause
-                          .withArguments(name)
-                          .withLocation2(_setter!.uriOffset)
-                    ]);
-                return false;
-              }
-            }
-          }
-        case _PropertyKind.Field:
-          if (_getter == null) {
-            // Example:
-            //
-            //    void set foo(_) {}
-            //    int? foo;
-            //
-            assert(_getter == null && _setter != null);
-            // We have an explicit setter.
-            problemReporting.addProblem2(
-                templateConflictsWithSetter.withArguments(name),
-                fragmentName.fragment.uriOffset,
-                context: [
-                  templateConflictsWithSetterCause
-                      .withArguments(name)
-                      .withLocation2(_setter!.uriOffset)
-                ]);
-            return false;
-          } else if (_setter != null) {
-            // Examples:
-            //
-            //    int? foo;
-            //    int? foo;
-            //
-            //    int get bar => 42;
-            //    void set bar(_) {}
-            //    int bar = 87;
-            //
-            //    final int baz = 42;
-            //    void set baz(_) {}
-            //    int baz = 87;
-            //
-            assert(_getter != null && _setter != null);
-            // We have both getter and setter
-            if (fragmentName.isAugment) {
-              // Coverage-ignore-block(suite): Not run.
-              if (_getterPropertyKind == fragmentName.propertyKind) {
-                // Example:
-                //
-                //    int foo = 42;
-                //    augment int foo = 87;
-                //
-                _Declarations declarations =
-                    _createDeclarations(fragmentName.fragment);
-                // TODO(johnniwinther): Handle field augmentation.
-                _getterAugmentations.add(declarations.getter!);
-                _setterAugmentations.add(declarations.setter!);
-                return true;
-              } else {
-                // Example:
-                //
-                //    final int foo = 42;
-                //    void set foo(_) {}
-                //    augment int foo = 87;
-                //
-                // TODO(johnniwinther): Report error.
-                // TODO(johnniwinther): Should the augment be absorbed in this
-                //  case, as an erroneous augmentation?
-                return false;
-              }
-            } else {
-              // Examples:
-              //
-              //    int? foo;
-              //    int? foo;
-              //
-              //    int? get bar => null;
-              //    void set bar(_) {}
-              //    int? bar;
-              //
-              problemReporting.addProblem2(
-                  templateDuplicatedDeclaration.withArguments(name),
-                  fragmentName.fragment.uriOffset,
-                  context: <LocatedMessage>[
-                    templateDuplicatedDeclarationCause
-                        .withArguments(name)
-                        .withLocation2(_getter!.uriOffset)
-                  ]);
-
-              return false;
-            }
-          } else {
-            // Examples:
-            //
-            //    int get foo => 42;
-            //    int? foo;
-            //
-            //    final int bar = 42;
-            //    int? bar;
-            //
-            assert(_getter != null && _setter == null);
-            problemReporting.addProblem2(
-                templateDuplicatedDeclaration.withArguments(name),
-                fragmentName.fragment.uriOffset,
-                context: <LocatedMessage>[
-                  templateDuplicatedDeclarationCause
-                      .withArguments(name)
-                      .withLocation2(_getter!.uriOffset)
-                ]);
-            return false;
-          }
-        case _PropertyKind.FinalField:
-          if (_getter == null) {
-            // Example:
-            //
-            //    void set foo(_) {}
-            //    final int foo = 42;
-            //
-            assert(_getter == null && _setter != null);
-            // We have an explicit setter.
-            if (fragmentName.isAugment) {
-              // Example:
-              //
-              //    void set foo(_) {}
-              //    augment final int foo = 42;
-              //
-              // TODO(johnniwinther): Report error.
-            }
-            if (fragmentName.isStatic != isStatic) {
-              // Coverage-ignore-block(suite): Not run.
-              if (fragmentName.isStatic) {
-                // Example:
-                //
-                //    class A {
-                //      void set foo(_) {}
-                //      static final int foo = 42;
-                //    }
-                //
-                problemReporting.addProblem2(
-                    templateStaticConflictsWithInstance.withArguments(name),
-                    fragmentName.fragment.uriOffset,
-                    context: [
-                      templateStaticConflictsWithInstanceCause
-                          .withArguments(name)
-                          .withLocation2(_setter!.uriOffset)
-                    ]);
-                return false;
-              } else {
-                // Example:
-                //
-                //    class A {
-                //      static void set foo(_) {}
-                //      final int foo = 42;
-                //    }
-                //
-                problemReporting.addProblem2(
-                    templateInstanceConflictsWithStatic.withArguments(name),
-                    fragmentName.fragment.uriOffset,
-                    context: [
-                      templateInstanceConflictsWithStaticCause
-                          .withArguments(name)
-                          .withLocation2(_setter!.uriOffset)
-                    ]);
-                return false;
-              }
-            } else {
-              _Declarations declarations =
-                  _createDeclarations(fragmentName.fragment);
-              assert(
-                  declarations.setter == null,
-                  "Unexpected setter declaration from field "
-                  "${fragmentName.fragment}.");
-              _field = declarations.field;
-              _getter = declarations.getter;
-              assert(
-                  _getterPropertyKind == null,
-                  "Unexpected getter property kind $_getterPropertyKind for "
-                  "$_setter.");
-              _getterPropertyKind = propertyKind;
-              return true;
-            }
-          } else {
-            // Examples:
-            //
-            //    final int foo = 42;
-            //    final int foo = 87;
-            //
-            //    int get bar => 42;
-            //    final int bar = 87;
-            //
-            if (fragmentName.isAugment) {
-              // Coverage-ignore-block(suite): Not run.
-              if (_getterPropertyKind == fragmentName.propertyKind) {
-                // Example:
-                //
-                //    final int foo = 42;
-                //    augment final int foo = 87;
-                //
-                _Declarations declarations =
-                    _createDeclarations(fragmentName.fragment);
-                assert(
-                    declarations.setter == null,
-                    "Unexpected setter declaration from final field "
-                    "${fragmentName.fragment}.");
-                // TODO(johnniwinther): Handle field augmentation.
-                _getterAugmentations.add(declarations.getter!);
-                return true;
-              } else {
-                // Example:
-                //
-                //    int foo = 42;
-                //    augment final int foo = 87;
-                //
-                // TODO(johnniwinther): Report error.
-                // TODO(johnniwinther): Should the augment be absorbed in this
-                //  case, as an erroneous augmentation?
-                return false;
-              }
-            } else {
-              // Examples:
-              //
-              //    final int foo = 42;
-              //    final int foo = 87;
-              //
-              //    int get bar => 42;
-              //    final int bar = 87;
-              //
-              problemReporting.addProblem2(
-                  templateDuplicatedDeclaration.withArguments(name),
-                  fragmentName.fragment.uriOffset,
-                  context: <LocatedMessage>[
-                    templateDuplicatedDeclarationCause
-                        .withArguments(name)
-                        .withLocation2(_getter!.uriOffset)
-                  ]);
-              return false;
-            }
-          }
-      }
-    } else {
+      ProblemReporting problemReporting, _Declaration declaration) {
+    if (declaration is! _PropertyDeclaration) {
       if (_getter != null) {
         // Example:
         //
@@ -679,7 +434,7 @@ class _PropertyPreBuilder extends _PreBuilder {
         //
         problemReporting.addProblem2(
             templateDuplicatedDeclaration.withArguments(name),
-            fragmentName.fragment.uriOffset,
+            declaration.uriOffset,
             context: <LocatedMessage>[
               templateDuplicatedDeclarationCause
                   .withArguments(name)
@@ -694,7 +449,7 @@ class _PropertyPreBuilder extends _PreBuilder {
         //
         problemReporting.addProblem2(
             templateDeclarationConflictsWithSetter.withArguments(name),
-            fragmentName.fragment.uriOffset,
+            declaration.uriOffset,
             context: <LocatedMessage>[
               templateDeclarationConflictsWithSetterCause
                   .withArguments(name)
@@ -703,15 +458,475 @@ class _PropertyPreBuilder extends _PreBuilder {
       }
       return false;
     }
+    _PropertyKind? propertyKind = declaration.propertyKind;
+
+    switch (propertyKind) {
+      case _PropertyKind.Getter:
+        if (_getter == null) {
+          // Example:
+          //
+          //    void set foo(_) {}
+          //    int get foo => 42;
+          //
+          if (declaration.isAugment) {
+            // Example:
+            //
+            //    void set foo(_) {}
+            //    augment int get foo => 42;
+            //
+            // TODO(johnniwinther): Report error.
+          }
+          if (declaration.isStatic != isStatic) {
+            if (declaration.isStatic) {
+              // Coverage-ignore-block(suite): Not run.
+              // Example:
+              //
+              //    class A {
+              //      void set foo(_) {}
+              //      static int get foo => 42;
+              //    }
+              //
+              problemReporting.addProblem2(
+                  templateStaticConflictsWithInstance.withArguments(name),
+                  declaration.uriOffset,
+                  context: [
+                    templateStaticConflictsWithInstanceCause
+                        .withArguments(name)
+                        .withLocation2(_setter!.uriOffset)
+                  ]);
+            } else {
+              // Example:
+              //
+              //    class A {
+              //      static void set foo(_) {}
+              //      int get foo => 42;
+              //    }
+              //
+              problemReporting.addProblem2(
+                  templateInstanceConflictsWithStatic.withArguments(name),
+                  declaration.uriOffset,
+                  context: [
+                    templateInstanceConflictsWithStaticCause
+                        .withArguments(name)
+                        .withLocation2(_setter!.uriOffset)
+                  ]);
+            }
+            return false;
+          } else {
+            _PropertyDeclarations declarations =
+                declaration.createDeclarations();
+            assert(
+                declarations.field == null,
+                "Unexpected field declaration from getter "
+                "${declaration}.");
+            assert(
+                declarations.setter == null,
+                "Unexpected setter declaration from getter "
+                "${declaration}.");
+            _getter = declarations.getter;
+            assert(_getterPropertyKind == null,
+                "Unexpected setter property kind for $_setter");
+            _getterPropertyKind == propertyKind;
+            return true;
+          }
+        } else {
+          if (declaration.isAugment) {
+            // Example:
+            //
+            //    int get foo => 42;
+            //    augment int get foo => 87;
+            //
+            _PropertyDeclarations declarations =
+                declaration.createDeclarations();
+            assert(
+                declarations.field == null,
+                "Unexpected field declaration from getter "
+                "${declaration}.");
+            assert(
+                declarations.setter == null,
+                "Unexpected setter declaration from getter "
+                "${declaration}.");
+            _getterAugmentations.add(declarations.getter!);
+            return true;
+          } else {
+            // Example:
+            //
+            //    int get foo => 42;
+            //    int get foo => 87;
+            //
+            problemReporting.addProblem2(
+                templateDuplicatedDeclaration.withArguments(name),
+                declaration.uriOffset,
+                context: <LocatedMessage>[
+                  templateDuplicatedDeclarationCause
+                      .withArguments(name)
+                      .withLocation2(_getter!.uriOffset)
+                ]);
+            return false;
+          }
+        }
+      case _PropertyKind.Setter:
+        if (_setter == null) {
+          // Examples:
+          //
+          //    int get foo => 42;
+          //    void set foo(_) {}
+          //
+          //    final int bar = 42;
+          //    void set bar(_) {}
+          //
+          if (declaration.isAugment) {
+            // Example:
+            //
+            //    int get foo => 42;
+            //    augment void set foo(_) {}
+            //
+            // TODO(johnniwinther): Report error.
+          }
+          if (declaration.isStatic != isStatic) {
+            if (declaration.isStatic) {
+              // Example:
+              //
+              //    class A {
+              //      int get foo => 42;
+              //      static void set foo(_) {}
+              //    }
+              //
+              problemReporting.addProblem2(
+                  templateStaticConflictsWithInstance.withArguments(name),
+                  declaration.uriOffset,
+                  context: [
+                    templateStaticConflictsWithInstanceCause
+                        .withArguments(name)
+                        .withLocation2(_getter!.uriOffset)
+                  ]);
+              return false;
+            } else {
+              // Example:
+              //
+              //    class A {
+              //      static int get foo => 42;
+              //      void set foo(_) {}
+              //    }
+              //
+              problemReporting.addProblem2(
+                  templateInstanceConflictsWithStatic.withArguments(name),
+                  declaration.uriOffset,
+                  context: [
+                    templateInstanceConflictsWithStaticCause
+                        .withArguments(name)
+                        .withLocation2(_getter!.uriOffset)
+                  ]);
+              return false;
+            }
+          } else {
+            _PropertyDeclarations declarations =
+                declaration.createDeclarations();
+            assert(
+                declarations.field == null,
+                "Unexpected field declaration from setter "
+                "${declaration}.");
+            assert(
+                declarations.getter == null,
+                "Unexpected getter declaration from setter "
+                "${declaration}.");
+            _setter = declarations.setter;
+            assert(_setterPropertyKind == null,
+                "Unexpected setter property kind for $_getter");
+            _setterPropertyKind == propertyKind;
+            return true;
+          }
+        } else {
+          if (declaration.isAugment) {
+            // Example:
+            //
+            //    void set foo(_) {}
+            //    augment void set foo(_) {}
+            //
+            _PropertyDeclarations declarations =
+                declaration.createDeclarations();
+            assert(
+                declarations.field == null,
+                "Unexpected field declaration from setter "
+                "${declaration}.");
+            assert(
+                declarations.getter == null,
+                "Unexpected getter declaration from setter "
+                "${declaration}.");
+            _setterAugmentations.add(declarations.setter!);
+            return true;
+          } else {
+            if (_setterPropertyKind == _PropertyKind.Field) {
+              // Example:
+              //
+              //    int? foo;
+              //    void set foo(_) {}
+              //
+              problemReporting.addProblem2(
+                  templateConflictsWithImplicitSetter.withArguments(name),
+                  declaration.uriOffset,
+                  context: [
+                    templateConflictsWithImplicitSetterCause
+                        .withArguments(name)
+                        .withLocation2(_setter!.uriOffset)
+                  ]);
+              return false;
+            } else {
+              // Example:
+              //
+              //    void set foo(_) {}
+              //    void set foo(_) {}
+              //
+              problemReporting.addProblem2(
+                  templateDuplicatedDeclaration.withArguments(name),
+                  declaration.uriOffset,
+                  context: <LocatedMessage>[
+                    templateDuplicatedDeclarationCause
+                        .withArguments(name)
+                        .withLocation2(_setter!.uriOffset)
+                  ]);
+              return false;
+            }
+          }
+        }
+      case _PropertyKind.Field:
+        if (_getter == null) {
+          // Example:
+          //
+          //    void set foo(_) {}
+          //    int? foo;
+          //
+          assert(_getter == null && _setter != null);
+          // We have an explicit setter.
+          problemReporting.addProblem2(
+              templateConflictsWithSetter.withArguments(name),
+              declaration.uriOffset,
+              context: [
+                templateConflictsWithSetterCause
+                    .withArguments(name)
+                    .withLocation2(_setter!.uriOffset)
+              ]);
+          return false;
+        } else if (_setter != null) {
+          // Examples:
+          //
+          //    int? foo;
+          //    int? foo;
+          //
+          //    int get bar => 42;
+          //    void set bar(_) {}
+          //    int bar = 87;
+          //
+          //    final int baz = 42;
+          //    void set baz(_) {}
+          //    int baz = 87;
+          //
+          assert(_getter != null && _setter != null);
+          // We have both getter and setter
+          if (declaration.isAugment) {
+            // Coverage-ignore-block(suite): Not run.
+            if (_getterPropertyKind == declaration.propertyKind) {
+              // Example:
+              //
+              //    int foo = 42;
+              //    augment int foo = 87;
+              //
+              _PropertyDeclarations declarations =
+                  declaration.createDeclarations();
+              // TODO(johnniwinther): Handle field augmentation.
+              _getterAugmentations.add(declarations.getter!);
+              _setterAugmentations.add(declarations.setter!);
+              return true;
+            } else {
+              // Example:
+              //
+              //    final int foo = 42;
+              //    void set foo(_) {}
+              //    augment int foo = 87;
+              //
+              // TODO(johnniwinther): Report error.
+              // TODO(johnniwinther): Should the augment be absorbed in this
+              //  case, as an erroneous augmentation?
+              return false;
+            }
+          } else {
+            // Examples:
+            //
+            //    int? foo;
+            //    int? foo;
+            //
+            //    int? get bar => null;
+            //    void set bar(_) {}
+            //    int? bar;
+            //
+            problemReporting.addProblem2(
+                templateDuplicatedDeclaration.withArguments(name),
+                declaration.uriOffset,
+                context: <LocatedMessage>[
+                  templateDuplicatedDeclarationCause
+                      .withArguments(name)
+                      .withLocation2(_getter!.uriOffset)
+                ]);
+
+            return false;
+          }
+        } else {
+          // Examples:
+          //
+          //    int get foo => 42;
+          //    int? foo;
+          //
+          //    final int bar = 42;
+          //    int? bar;
+          //
+          assert(_getter != null && _setter == null);
+          problemReporting.addProblem2(
+              templateDuplicatedDeclaration.withArguments(name),
+              declaration.uriOffset,
+              context: <LocatedMessage>[
+                templateDuplicatedDeclarationCause
+                    .withArguments(name)
+                    .withLocation2(_getter!.uriOffset)
+              ]);
+          return false;
+        }
+      case _PropertyKind.FinalField:
+        if (_getter == null) {
+          // Example:
+          //
+          //    void set foo(_) {}
+          //    final int foo = 42;
+          //
+          assert(_getter == null && _setter != null);
+          // We have an explicit setter.
+          if (declaration.isAugment) {
+            // Example:
+            //
+            //    void set foo(_) {}
+            //    augment final int foo = 42;
+            //
+            // TODO(johnniwinther): Report error.
+          }
+          if (declaration.isStatic != isStatic) {
+            // Coverage-ignore-block(suite): Not run.
+            if (declaration.isStatic) {
+              // Example:
+              //
+              //    class A {
+              //      void set foo(_) {}
+              //      static final int foo = 42;
+              //    }
+              //
+              problemReporting.addProblem2(
+                  templateStaticConflictsWithInstance.withArguments(name),
+                  declaration.uriOffset,
+                  context: [
+                    templateStaticConflictsWithInstanceCause
+                        .withArguments(name)
+                        .withLocation2(_setter!.uriOffset)
+                  ]);
+              return false;
+            } else {
+              // Example:
+              //
+              //    class A {
+              //      static void set foo(_) {}
+              //      final int foo = 42;
+              //    }
+              //
+              problemReporting.addProblem2(
+                  templateInstanceConflictsWithStatic.withArguments(name),
+                  declaration.uriOffset,
+                  context: [
+                    templateInstanceConflictsWithStaticCause
+                        .withArguments(name)
+                        .withLocation2(_setter!.uriOffset)
+                  ]);
+              return false;
+            }
+          } else {
+            _PropertyDeclarations declarations =
+                declaration.createDeclarations();
+            assert(
+                declarations.setter == null,
+                "Unexpected setter declaration from field "
+                "${declaration}.");
+            _field = declarations.field;
+            _getter = declarations.getter;
+            assert(
+                _getterPropertyKind == null,
+                "Unexpected getter property kind $_getterPropertyKind for "
+                "$_setter.");
+            _getterPropertyKind = propertyKind;
+            return true;
+          }
+        } else {
+          // Examples:
+          //
+          //    final int foo = 42;
+          //    final int foo = 87;
+          //
+          //    int get bar => 42;
+          //    final int bar = 87;
+          //
+          if (declaration.isAugment) {
+            // Coverage-ignore-block(suite): Not run.
+            if (_getterPropertyKind == declaration.propertyKind) {
+              // Example:
+              //
+              //    final int foo = 42;
+              //    augment final int foo = 87;
+              //
+              _PropertyDeclarations declarations =
+                  declaration.createDeclarations();
+              assert(
+                  declarations.setter == null,
+                  "Unexpected setter declaration from final field "
+                  "${declaration}.");
+              // TODO(johnniwinther): Handle field augmentation.
+              _getterAugmentations.add(declarations.getter!);
+              return true;
+            } else {
+              // Example:
+              //
+              //    int foo = 42;
+              //    augment final int foo = 87;
+              //
+              // TODO(johnniwinther): Report error.
+              // TODO(johnniwinther): Should the augment be absorbed in this
+              //  case, as an erroneous augmentation?
+              return false;
+            }
+          } else {
+            // Examples:
+            //
+            //    final int foo = 42;
+            //    final int foo = 87;
+            //
+            //    int get bar => 42;
+            //    final int bar = 87;
+            //
+            problemReporting.addProblem2(
+                templateDuplicatedDeclaration.withArguments(name),
+                declaration.uriOffset,
+                context: <LocatedMessage>[
+                  templateDuplicatedDeclarationCause
+                      .withArguments(name)
+                      .withLocation2(_getter!.uriOffset)
+                ]);
+            return false;
+          }
+        }
+    }
   }
 
   @override
   void checkFragment(
-      ProblemReporting problemReporting, _FragmentName constructorFragment) {
+      ProblemReporting problemReporting, _Declaration constructorDeclaration) {
     // Check conflict with constructor.
     if (isStatic) {
       if (_getter != null) {
-        if (constructorFragment.kind == _FragmentKind.Constructor) {
+        if (constructorDeclaration.kind == _DeclarationKind.Constructor) {
           // Example:
           //
           //    class A {
@@ -721,7 +936,7 @@ class _PropertyPreBuilder extends _PreBuilder {
           //
           problemReporting.addProblem2(
               templateConstructorConflictsWithMember.withArguments(name),
-              constructorFragment.fragment.uriOffset,
+              constructorDeclaration.uriOffset,
               context: [
                 templateConstructorConflictsWithMemberCause
                     .withArguments(name)
@@ -729,8 +944,8 @@ class _PropertyPreBuilder extends _PreBuilder {
               ]);
         } else {
           // Coverage-ignore-block(suite): Not run.
-          assert(constructorFragment.kind == _FragmentKind.Factory,
-              "Unexpected constructor kind $constructorFragment");
+          assert(constructorDeclaration.kind == _DeclarationKind.Factory,
+              "Unexpected constructor kind $constructorDeclaration");
           // Example:
           //
           //    class A {
@@ -740,7 +955,7 @@ class _PropertyPreBuilder extends _PreBuilder {
           //
           problemReporting.addProblem2(
               templateFactoryConflictsWithMember.withArguments(name),
-              constructorFragment.fragment.uriOffset,
+              constructorDeclaration.uriOffset,
               context: [
                 templateFactoryConflictsWithMemberCause
                     .withArguments(name)
@@ -749,7 +964,7 @@ class _PropertyPreBuilder extends _PreBuilder {
         }
       } else {
         // Coverage-ignore-block(suite): Not run.
-        if (constructorFragment.kind == _FragmentKind.Constructor) {
+        if (constructorDeclaration.kind == _DeclarationKind.Constructor) {
           // Example:
           //
           //    class A {
@@ -759,15 +974,15 @@ class _PropertyPreBuilder extends _PreBuilder {
           //
           problemReporting.addProblem2(
               templateConstructorConflictsWithMember.withArguments(name),
-              constructorFragment.fragment.uriOffset,
+              constructorDeclaration.uriOffset,
               context: [
                 templateConstructorConflictsWithMemberCause
                     .withArguments(name)
                     .withLocation2(_setter!.uriOffset)
               ]);
         } else {
-          assert(constructorFragment.kind == _FragmentKind.Factory,
-              "Unexpected constructor kind $constructorFragment");
+          assert(constructorDeclaration.kind == _DeclarationKind.Factory,
+              "Unexpected constructor kind $constructorDeclaration");
           // Example:
           //
           //    class A {
@@ -777,7 +992,7 @@ class _PropertyPreBuilder extends _PreBuilder {
           //
           problemReporting.addProblem2(
               templateFactoryConflictsWithMember.withArguments(name),
-              constructorFragment.fragment.uriOffset,
+              constructorDeclaration.uriOffset,
               context: [
                 templateFactoryConflictsWithMemberCause
                     .withArguments(name)
@@ -785,35 +1000,6 @@ class _PropertyPreBuilder extends _PreBuilder {
               ]);
         }
       }
-    }
-  }
-
-  _Declarations _createDeclarations(Fragment fragment) {
-    switch (fragment) {
-      case FieldFragment():
-        RegularFieldDeclaration declaration =
-            new RegularFieldDeclaration(fragment);
-        return new _Declarations(
-            field: declaration,
-            getter: declaration,
-            setter: fragment.hasSetter ? declaration : null);
-      case PrimaryConstructorFieldFragment():
-        PrimaryConstructorFieldDeclaration declaration =
-            new PrimaryConstructorFieldDeclaration(fragment);
-        return new _Declarations(field: declaration, getter: declaration);
-      case EnumElementFragment():
-        EnumElementDeclaration declaration =
-            new EnumElementDeclaration(fragment);
-        return new _Declarations(field: declaration, getter: declaration);
-      case GetterFragment():
-        return new _Declarations(
-            getter: new RegularGetterDeclaration(fragment));
-      case SetterFragment():
-        return new _Declarations(
-            setter: new RegularSetterDeclaration(fragment));
-      // Coverage-ignore(suite): Not run.
-      default:
-        throw new UnsupportedError("Unexpected property fragment $fragment");
     }
   }
 
@@ -835,17 +1021,18 @@ class _PropertyPreBuilder extends _PreBuilder {
 
 /// [_PreBuilder] for generative and factory constructors.
 class _ConstructorPreBuilder extends _PreBuilder {
-  final _FragmentName fragment;
-  final List<_FragmentName> augmentations = [];
+  final _ConstructorDeclaration _declaration;
+  final List<_ConstructorDeclaration> _augmentations = [];
 
   // TODO(johnniwinther): Report error if [fragment] is augmenting.
-  _ConstructorPreBuilder(this.fragment);
+  _ConstructorPreBuilder(this._declaration);
 
   @override
   bool absorbFragment(
-      ProblemReporting problemReporting, _FragmentName fragmentName) {
-    if (fragmentName.isAugment) {
-      if (fragmentName.kind == fragment.kind) {
+      ProblemReporting problemReporting, _Declaration declaration) {
+    if (declaration.isAugment) {
+      if (declaration is _ConstructorDeclaration &&
+          declaration.kind == _declaration.kind) {
         // Example:
         //
         //    class A {
@@ -853,7 +1040,7 @@ class _ConstructorPreBuilder extends _PreBuilder {
         //      augment A();
         //    }
         //
-        augmentations.add(fragmentName);
+        _augmentations.add(declaration);
         return true;
       } else {
         // Example:
@@ -875,24 +1062,24 @@ class _ConstructorPreBuilder extends _PreBuilder {
       //    }
       //
       problemReporting.addProblem2(
-          templateDuplicatedDeclaration.withArguments(fragmentName.name),
-          fragmentName.fragment.uriOffset,
+          templateDuplicatedDeclaration.withArguments(declaration.name),
+          declaration.uriOffset,
           context: <LocatedMessage>[
             templateDuplicatedDeclarationCause
-                .withArguments(fragment.name)
-                .withLocation2(fragment.fragment.uriOffset)
+                .withArguments(_declaration.name)
+                .withLocation2(_declaration.uriOffset)
           ]);
       return false;
     }
   }
 
   @override
-  void checkFragment(
-      ProblemReporting problemReporting, _FragmentName nonConstructorFragment) {
+  void checkFragment(ProblemReporting problemReporting,
+      _Declaration nonConstructorDeclaration) {
     // Check conflict with non-constructor.
-    if (nonConstructorFragment.isStatic) {
+    if (nonConstructorDeclaration.isStatic) {
       // Coverage-ignore-block(suite): Not run.
-      if (fragment.kind == _FragmentKind.Constructor) {
+      if (_declaration.kind == _DeclarationKind.Constructor) {
         // Example:
         //
         //    class A {
@@ -901,16 +1088,17 @@ class _ConstructorPreBuilder extends _PreBuilder {
         //    }
         //
         problemReporting.addProblem2(
-            templateMemberConflictsWithConstructor.withArguments(fragment.name),
-            nonConstructorFragment.fragment.uriOffset,
+            templateMemberConflictsWithConstructor
+                .withArguments(_declaration.name),
+            nonConstructorDeclaration.uriOffset,
             context: [
               templateMemberConflictsWithConstructorCause
-                  .withArguments(fragment.name)
-                  .withLocation2(fragment.fragment.uriOffset)
+                  .withArguments(_declaration.name)
+                  .withLocation2(_declaration.uriOffset)
             ]);
       } else {
-        assert(fragment.kind == _FragmentKind.Factory,
-            "Unexpected constructor kind $fragment");
+        assert(_declaration.kind == _DeclarationKind.Factory,
+            "Unexpected constructor kind $_declaration");
         // Example:
         //
         //    class A {
@@ -919,12 +1107,12 @@ class _ConstructorPreBuilder extends _PreBuilder {
         //    }
         //
         problemReporting.addProblem2(
-            templateMemberConflictsWithFactory.withArguments(fragment.name),
-            nonConstructorFragment.fragment.uriOffset,
+            templateMemberConflictsWithFactory.withArguments(_declaration.name),
+            nonConstructorDeclaration.uriOffset,
             context: [
               templateMemberConflictsWithFactoryCause
-                  .withArguments(fragment.name)
-                  .withLocation2(fragment.fragment.uriOffset)
+                  .withArguments(_declaration.name)
+                  .withLocation2(_declaration.uriOffset)
             ]);
       }
     }
@@ -933,30 +1121,30 @@ class _ConstructorPreBuilder extends _PreBuilder {
   @override
   void createBuilders(_CreateBuilderFunction createBuilder,
       _CreatePropertyFunction createProperty) {
-    createBuilder(fragment.fragment,
-        augmentations: augmentations.map((f) => f.fragment).toList());
+    createBuilder(_declaration._fragment,
+        augmentations: _augmentations.map((f) => f._fragment).toList());
   }
 }
 
 /// [_PreBuilder] for non-constructor, non-property declarations.
 class _DeclarationPreBuilder extends _PreBuilder {
-  final _FragmentName fragment;
-  final List<_FragmentName> augmentations = [];
+  final _Declaration _declaration;
+  final List<_Declaration> _augmentations = [];
 
   // TODO(johnniwinther): Report error if [fragment] is augmenting.
-  _DeclarationPreBuilder(this.fragment);
+  _DeclarationPreBuilder(this._declaration);
 
   @override
   bool absorbFragment(
-      ProblemReporting problemReporting, _FragmentName fragmentName) {
-    if (fragmentName.isAugment) {
-      if (fragmentName.kind == fragment.kind) {
+      ProblemReporting problemReporting, _Declaration declaration) {
+    if (declaration.isAugment) {
+      if (declaration.kind == _declaration.kind) {
         // Example:
         //
         //    class Foo {}
         //    augment class Foo {}
         //
-        augmentations.add(fragmentName);
+        _augmentations.add(declaration);
         return true;
       } else {
         // Example:
@@ -968,19 +1156,21 @@ class _DeclarationPreBuilder extends _PreBuilder {
         return false;
       }
     } else {
-      if (fragmentName.propertyKind == _PropertyKind.Setter) {
+      if (declaration is _PropertyDeclaration &&
+          declaration.propertyKind == _PropertyKind.Setter) {
         // Example:
         //
         //    class Foo {}
         //    set Foo(_) {}
         //
         problemReporting.addProblem2(
-            templateSetterConflictsWithDeclaration.withArguments(fragment.name),
-            fragmentName.fragment.uriOffset,
+            templateSetterConflictsWithDeclaration
+                .withArguments(_declaration.name),
+            declaration.uriOffset,
             context: [
               templateSetterConflictsWithDeclarationCause
-                  .withArguments(fragment.name)
-                  .withLocation2(fragment.fragment.uriOffset)
+                  .withArguments(_declaration.name)
+                  .withLocation2(_declaration.uriOffset)
             ]);
       } else {
         // Example:
@@ -989,12 +1179,12 @@ class _DeclarationPreBuilder extends _PreBuilder {
         //    class Foo {}
         //
         problemReporting.addProblem2(
-            templateDuplicatedDeclaration.withArguments(fragmentName.name),
-            fragmentName.fragment.uriOffset,
+            templateDuplicatedDeclaration.withArguments(declaration.name),
+            declaration.uriOffset,
             context: <LocatedMessage>[
               templateDuplicatedDeclarationCause
-                  .withArguments(fragment.name)
-                  .withLocation2(fragment.fragment.uriOffset)
+                  .withArguments(_declaration.name)
+                  .withLocation2(_declaration.uriOffset)
             ]);
       }
       return false;
@@ -1003,10 +1193,10 @@ class _DeclarationPreBuilder extends _PreBuilder {
 
   @override
   void checkFragment(
-      ProblemReporting problemReporting, _FragmentName constructorFragment) {
+      ProblemReporting problemReporting, _Declaration constructorDeclaration) {
     // Check conflict with constructor.
-    if (fragment.isStatic) {
-      if (constructorFragment.kind == _FragmentKind.Constructor) {
+    if (_declaration.isStatic) {
+      if (constructorDeclaration.kind == _DeclarationKind.Constructor) {
         // Example:
         //
         //    class A {
@@ -1015,16 +1205,17 @@ class _DeclarationPreBuilder extends _PreBuilder {
         //    }
         //
         problemReporting.addProblem2(
-            templateConstructorConflictsWithMember.withArguments(fragment.name),
-            constructorFragment.fragment.uriOffset,
+            templateConstructorConflictsWithMember
+                .withArguments(_declaration.name),
+            constructorDeclaration.uriOffset,
             context: [
               templateConstructorConflictsWithMemberCause
-                  .withArguments(fragment.name)
-                  .withLocation2(fragment.fragment.uriOffset)
+                  .withArguments(_declaration.name)
+                  .withLocation2(_declaration.uriOffset)
             ]);
       } else {
-        assert(constructorFragment.kind == _FragmentKind.Factory,
-            "Unexpected constructor kind $constructorFragment");
+        assert(constructorDeclaration.kind == _DeclarationKind.Factory,
+            "Unexpected constructor kind $constructorDeclaration");
         // Example:
         //
         //    class A {
@@ -1033,12 +1224,12 @@ class _DeclarationPreBuilder extends _PreBuilder {
         //    }
         //
         problemReporting.addProblem2(
-            templateFactoryConflictsWithMember.withArguments(fragment.name),
-            constructorFragment.fragment.uriOffset,
+            templateFactoryConflictsWithMember.withArguments(_declaration.name),
+            constructorDeclaration.uriOffset,
             context: [
               templateFactoryConflictsWithMemberCause
-                  .withArguments(fragment.name)
-                  .withLocation2(fragment.fragment.uriOffset)
+                  .withArguments(_declaration.name)
+                  .withLocation2(_declaration.uriOffset)
             ]);
       }
     }
@@ -1047,8 +1238,8 @@ class _DeclarationPreBuilder extends _PreBuilder {
   @override
   void createBuilders(_CreateBuilderFunction createBuilder,
       _CreatePropertyFunction createProperty) {
-    createBuilder(fragment.fragment,
-        augmentations: augmentations.map((f) => f.fragment).toList());
+    createBuilder(_declaration._fragment,
+        augmentations: _augmentations.map((f) => f._fragment).toList());
   }
 }
 
@@ -1057,10 +1248,10 @@ class _DeclarationPreBuilder extends _PreBuilder {
 /// This is called when the first [_PreBuilder] is created, meaning that the
 /// augmentation didn't correspond to an introductory declaration.
 void _checkAugmentation(
-    ProblemReporting problemReporting, _FragmentName fragmentName) {
+    ProblemReporting problemReporting, _Declaration fragmentName) {
   if (fragmentName.isAugment) {
     Message message;
-    switch (fragmentName.fragment) {
+    switch (fragmentName._fragment) {
       case ClassFragment():
         message = fragmentName.inPatch
             ? templateUnmatchedPatchClass.withArguments(fragmentName.name)
@@ -1111,34 +1302,7 @@ void _checkAugmentation(
             templateUnmatchedAugmentationDeclaration
                 .withArguments(fragmentName.name);
     }
-    problemReporting.addProblem2(message, fragmentName.fragment.uriOffset);
-  }
-}
-
-_PreBuilder _createPreBuilder(_FragmentName fragmentName) {
-  switch (fragmentName.fragment) {
-    case ClassFragment():
-    case EnumFragment():
-    case ExtensionFragment():
-    case ExtensionTypeFragment():
-    case MethodFragment():
-    case MixinFragment():
-    case NamedMixinApplicationFragment():
-    case TypedefFragment():
-      return new _DeclarationPreBuilder(fragmentName);
-    case ConstructorFragment():
-    case FactoryFragment():
-    case PrimaryConstructorFragment():
-      return new _ConstructorPreBuilder(fragmentName);
-    case FieldFragment():
-    case PrimaryConstructorFieldFragment():
-      return new _PropertyPreBuilder.forField(fragmentName);
-    case GetterFragment():
-      return new _PropertyPreBuilder.forGetter(fragmentName);
-    case SetterFragment():
-      return new _PropertyPreBuilder.forSetter(fragmentName);
-    case EnumElementFragment():
-      return new _PropertyPreBuilder.forField(fragmentName);
+    problemReporting.addProblem2(message, fragmentName.uriOffset);
   }
 }
 
@@ -1158,80 +1322,39 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
   List<_PreBuilder> constructorPreBuilders = [];
   List<Fragment> unnamedFragments = [];
 
-  void addPreBuilder(_FragmentName fragmentName,
-      List<_PreBuilder> thesePreBuilders, List<_PreBuilder> otherPreBuilders) {
-    for (_PreBuilder existingPreBuilder in thesePreBuilders) {
-      if (existingPreBuilder.absorbFragment(problemReporting, fragmentName)) {
-        return;
-      }
-    }
-    _checkAugmentation(problemReporting, fragmentName);
-    thesePreBuilders.add(_createPreBuilder(fragmentName));
-    if (otherPreBuilders.isNotEmpty) {
-      otherPreBuilders.first.checkFragment(problemReporting, fragmentName);
-    }
-  }
-
-  void addNonConstructorPreBuilder(_FragmentName fragmentName) {
-    addPreBuilder(
-        fragmentName, nonConstructorPreBuilders, constructorPreBuilders);
-  }
-
-  void addConstructorPreBuilder(_FragmentName fragmentName) {
-    addPreBuilder(
-        fragmentName, constructorPreBuilders, nonConstructorPreBuilders);
-  }
-
-  void addFragment(_FragmentName fragmentName) {
-    switch (fragmentName.kind) {
-      case _FragmentKind.Constructor:
-      case _FragmentKind.Factory:
-        addConstructorPreBuilder(fragmentName);
-      case _FragmentKind.Class:
-      case _FragmentKind.Mixin:
-      case _FragmentKind.NamedMixinApplication:
-      case _FragmentKind.Enum:
-      case _FragmentKind.Extension:
-      case _FragmentKind.ExtensionType:
-      case _FragmentKind.Typedef:
-      case _FragmentKind.Method:
-      case _FragmentKind.Property:
-        addNonConstructorPreBuilder(fragmentName);
-    }
-  }
-
   for (Fragment fragment in fragments) {
+    _Declaration? fragmentName;
     switch (fragment) {
       case ClassFragment():
-        addFragment(new _FragmentName(
-          _FragmentKind.Class,
+        fragmentName = new _StandardFragmentDeclaration(
+          _DeclarationKind.Class,
           fragment,
           name: fragment.name,
           isAugment: fragment.modifiers.isAugment,
           inPatch: fragment.enclosingCompilationUnit.isPatch,
           inLibrary: true,
-        ));
+        );
       case EnumFragment():
-        addFragment(new _FragmentName(
-          _FragmentKind.Enum, fragment,
+        fragmentName = new _StandardFragmentDeclaration(
+          _DeclarationKind.Enum, fragment,
           name: fragment.name,
           // TODO(johnniwinther): Support enum augmentations.
           isAugment: false,
           inPatch: fragment.enclosingCompilationUnit.isPatch,
           inLibrary: true,
-        ));
+        );
       case ExtensionTypeFragment():
-        addFragment(new _FragmentName(
-          _FragmentKind.ExtensionType,
+        fragmentName = new _StandardFragmentDeclaration(
+          _DeclarationKind.ExtensionType,
           fragment,
           name: fragment.name,
           isAugment: fragment.modifiers.isAugment,
           inPatch: fragment.enclosingCompilationUnit.isPatch,
           inLibrary: true,
-        ));
+        );
       case MethodFragment():
-        addFragment(new _FragmentName(
-          _FragmentKind.Method,
+        fragmentName = new _StandardFragmentDeclaration(
+          _DeclarationKind.Method,
           fragment,
           name: fragment.name,
           isAugment: fragment.modifiers.isAugment,
@@ -1239,77 +1362,77 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
           inPatch: fragment.enclosingDeclaration?.isPatch ??
               fragment.enclosingCompilationUnit.isPatch,
           inLibrary: declarationBuilder == null,
-        ));
+        );
       case MixinFragment():
-        addFragment(new _FragmentName(
-          _FragmentKind.Mixin,
+        fragmentName = new _StandardFragmentDeclaration(
+          _DeclarationKind.Mixin,
           fragment,
           name: fragment.name,
           isAugment: fragment.modifiers.isAugment,
           inPatch: fragment.enclosingCompilationUnit.isPatch,
           inLibrary: true,
-        ));
+        );
       case NamedMixinApplicationFragment():
-        addFragment(new _FragmentName(
-          _FragmentKind.NamedMixinApplication,
+        fragmentName = new _StandardFragmentDeclaration(
+          _DeclarationKind.NamedMixinApplication,
           fragment,
           name: fragment.name,
           isAugment: fragment.modifiers.isAugment,
           inPatch: fragment.enclosingCompilationUnit.isPatch,
           inLibrary: true,
-        ));
+        );
       case TypedefFragment():
-        addFragment(new _FragmentName(
-          _FragmentKind.Typedef, fragment,
+        fragmentName = new _StandardFragmentDeclaration(
+          _DeclarationKind.Typedef, fragment,
           name: fragment.name,
           // TODO(johnniwinther): Support typedef augmentations.
           isAugment: false,
           inPatch: fragment.enclosingCompilationUnit.isPatch,
           inLibrary: true,
-        ));
+        );
       case ExtensionFragment():
         if (!fragment.isUnnamed) {
-          addFragment(new _FragmentName(
-            _FragmentKind.Extension,
+          fragmentName = new _StandardFragmentDeclaration(
+            _DeclarationKind.Extension,
             fragment,
             name: fragment.name,
             isAugment: fragment.modifiers.isAugment,
             inPatch: fragment.enclosingCompilationUnit.isPatch,
             inLibrary: true,
-          ));
+          );
         } else {
           unnamedFragments.add(fragment);
         }
       case FactoryFragment():
-        addFragment(new _FragmentName(
-          _FragmentKind.Factory,
+        fragmentName = new _ConstructorFragmentDeclaration(
+          _DeclarationKind.Factory,
           fragment,
           name: fragment.constructorName.fullName,
           isAugment: fragment.modifiers.isAugment,
           inPatch: fragment.enclosingDeclaration.isPatch,
           inLibrary: declarationBuilder == null,
-        ));
+        );
       case ConstructorFragment():
-        addFragment(new _FragmentName(
-          _FragmentKind.Constructor,
+        fragmentName = new _ConstructorFragmentDeclaration(
+          _DeclarationKind.Constructor,
           fragment,
           name: fragment.constructorName.fullName,
           isAugment: fragment.modifiers.isAugment,
           inPatch: fragment.enclosingDeclaration.isPatch,
           inLibrary: declarationBuilder == null,
-        ));
+        );
       case PrimaryConstructorFragment():
-        addFragment(new _FragmentName(
-          _FragmentKind.Constructor,
+        fragmentName = new _ConstructorFragmentDeclaration(
+          _DeclarationKind.Constructor,
           fragment,
           name: fragment.constructorName.fullName,
           isAugment: fragment.modifiers.isAugment,
           inPatch: fragment.enclosingDeclaration.isPatch,
           inLibrary: declarationBuilder == null,
-        ));
+        );
       case FieldFragment():
-        _FragmentName fragmentName = new _FragmentName(
-          _FragmentKind.Property,
+        fragmentName = new _FieldDeclaration(
+          _DeclarationKind.Property,
           fragment,
           name: fragment.name,
           isAugment: fragment.modifiers.isAugment,
@@ -1321,10 +1444,9 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
               fragment.enclosingCompilationUnit.isPatch,
           inLibrary: declarationBuilder == null,
         );
-        addFragment(fragmentName);
       case PrimaryConstructorFieldFragment():
-        _FragmentName fragmentName = new _FragmentName(
-          _FragmentKind.Property,
+        fragmentName = new _FieldDeclaration(
+          _DeclarationKind.Property,
           fragment,
           name: fragment.name,
           isAugment: false,
@@ -1333,10 +1455,9 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
           inPatch: fragment.enclosingDeclaration.isPatch,
           inLibrary: false,
         );
-        addFragment(fragmentName);
       case GetterFragment():
-        _FragmentName fragmentName = new _FragmentName(
-          _FragmentKind.Property,
+        fragmentName = new _GetterDeclaration(
+          _DeclarationKind.Property,
           fragment,
           name: fragment.name,
           isAugment: fragment.modifiers.isAugment,
@@ -1346,10 +1467,9 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
               fragment.enclosingCompilationUnit.isPatch,
           inLibrary: declarationBuilder == null,
         );
-        addFragment(fragmentName);
       case SetterFragment():
-        _FragmentName fragmentName = new _FragmentName(
-          _FragmentKind.Property,
+        fragmentName = new _SetterDeclaration(
+          _DeclarationKind.Property,
           fragment,
           name: fragment.name,
           isAugment: fragment.modifiers.isAugment,
@@ -1359,10 +1479,9 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
               fragment.enclosingCompilationUnit.isPatch,
           inLibrary: declarationBuilder == null,
         );
-        addFragment(fragmentName);
       case EnumElementFragment():
-        _FragmentName fragmentName = new _FragmentName(
-          _FragmentKind.Property,
+        fragmentName = new _FieldDeclaration(
+          _DeclarationKind.Property,
           fragment,
           name: fragment.name,
           isAugment: false,
@@ -1371,8 +1490,10 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
           inPatch: fragment.enclosingDeclaration.isPatch,
           inLibrary: declarationBuilder == null,
         );
-        addFragment(fragmentName);
     }
+
+    fragmentName?.registerPreBuilder(
+        problemReporting, nonConstructorPreBuilders, constructorPreBuilders);
   }
 
   void createBuilder(Fragment fragment,
@@ -3047,10 +3168,10 @@ _AddBuilder _createFactoryBuilder(
       inPatch: fragment.enclosingDeclaration.isPatch);
 }
 
-class _Declarations {
+class _PropertyDeclarations {
   final FieldDeclaration? field;
   final GetterDeclaration? getter;
   final SetterDeclaration? setter;
 
-  _Declarations({this.field, this.getter, this.setter});
+  _PropertyDeclarations({this.field, this.getter, this.setter});
 }
