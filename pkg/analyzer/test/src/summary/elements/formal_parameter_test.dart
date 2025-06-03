@@ -668,7 +668,7 @@ library
           fields
             x @16
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
               setter2: <testLibraryFragment>::@class::C::@setter::x
           constructors

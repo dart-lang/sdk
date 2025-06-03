@@ -39,7 +39,7 @@ library
           fields
             hasInitializer aaa @11
               reference: <testLibraryFragment>::@enum::E::@field::aaa
-              element: <testLibraryFragment>::@enum::E::@field::aaa#element
+              element: <testLibrary>::@enum::E::@field::aaa
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -55,7 +55,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::aaa
             hasInitializer bbb @16
               reference: <testLibraryFragment>::@enum::E::@field::bbb
-              element: <testLibraryFragment>::@enum::E::@field::bbb#element
+              element: <testLibrary>::@enum::E::@field::bbb
               initializer: expression_1
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -71,7 +71,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::bbb
             hasInitializer ccc @21
               reference: <testLibraryFragment>::@enum::E::@field::ccc
-              element: <testLibraryFragment>::@enum::E::@field::ccc#element
+              element: <testLibrary>::@enum::E::@field::ccc
               initializer: expression_2
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -87,7 +87,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::ccc
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_3
                 ListLiteral
                   leftBracket: [ @0
@@ -201,7 +201,7 @@ library
           fields
             hasInitializer int @14
               reference: <testLibraryFragment>::@enum::E::@field::int
-              element: <testLibraryFragment>::@enum::E::@field::int#element
+              element: <testLibrary>::@enum::E::@field::int
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -223,7 +223,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::int
             hasInitializer string @22
               reference: <testLibraryFragment>::@enum::E::@field::string
-              element: <testLibraryFragment>::@enum::E::@field::string#element
+              element: <testLibrary>::@enum::E::@field::string
               initializer: expression_1
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -244,7 +244,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::string
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_2
                 ListLiteral
                   leftBracket: [ @0
@@ -347,7 +347,7 @@ library
           fields
             hasInitializer _name @11
               reference: <testLibraryFragment>::@enum::E::@field::_name
-              element: <testLibraryFragment>::@enum::E::@field::_name#element
+              element: <testLibrary>::@enum::E::@field::_name
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -363,7 +363,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::_name
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
@@ -443,7 +443,7 @@ library
           fields
             hasInitializer v @14
               reference: <testLibraryFragment>::@enum::E::@field::v
-              element: <testLibraryFragment>::@enum::E::@field::v#element
+              element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -473,7 +473,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::v
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
@@ -558,7 +558,7 @@ library
           fields
             hasInitializer _ @11
               reference: <testLibraryFragment>::@enum::E::@field::_
-              element: <testLibraryFragment>::@enum::E::@field::_#element
+              element: <testLibrary>::@enum::E::@field::_
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -574,7 +574,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::_
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
@@ -651,7 +651,7 @@ library
           fields
             hasInitializer v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
-              element: <testLibraryFragment>::@enum::E::@field::v#element
+              element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -667,7 +667,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::v
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
@@ -752,7 +752,7 @@ library
           fields
             hasInitializer v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
-              element: <testLibraryFragment>::@enum::E::@field::v#element
+              element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -768,7 +768,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::v
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
@@ -847,7 +847,7 @@ library
           fields
             hasInitializer v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
-              element: <testLibraryFragment>::@enum::E::@field::v#element
+              element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -863,7 +863,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::v
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
@@ -877,7 +877,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::values
             x @22
               reference: <testLibraryFragment>::@enum::E::@field::x
-              element: <testLibraryFragment>::@enum::E::@field::x#element
+              element: <testLibrary>::@enum::E::@field::x
               getter2: <testLibraryFragment>::@enum::E::@getter::x
           constructors
             const new
@@ -967,7 +967,7 @@ library
           fields
             hasInitializer v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
-              element: <testLibraryFragment>::@enum::E::@field::v#element
+              element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -983,7 +983,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::v
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
@@ -997,11 +997,11 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::values
             x @26
               reference: <testLibraryFragment>::@enum::E::@field::x::@def::0
-              element: <testLibraryFragment>::@enum::E::@field::x::@def::0#element
+              element: <testLibrary>::@enum::E::@field::x::@def::0
               getter2: <testLibraryFragment>::@enum::E::@getter::x::@def::0
             x @44
               reference: <testLibraryFragment>::@enum::E::@field::x::@def::1
-              element: <testLibraryFragment>::@enum::E::@field::x::@def::1#element
+              element: <testLibrary>::@enum::E::@field::x::@def::1
               getter2: <testLibraryFragment>::@enum::E::@getter::x::@def::1
           constructors
             const new
@@ -1095,7 +1095,7 @@ library
           fields
             hasInitializer v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
-              element: <testLibraryFragment>::@enum::E::@field::v#element
+              element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -1111,7 +1111,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::v
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
@@ -1196,7 +1196,7 @@ library
           fields
             hasInitializer v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
-              element: <testLibraryFragment>::@enum::E::@field::v#element
+              element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -1212,7 +1212,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::v
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
@@ -1226,7 +1226,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::values
             x @26
               reference: <testLibraryFragment>::@enum::E::@field::x
-              element: <testLibraryFragment>::@enum::E::@field::x#element
+              element: <testLibrary>::@enum::E::@field::x
               getter2: <testLibraryFragment>::@enum::E::@getter::x
           constructors
             const new
@@ -1328,7 +1328,7 @@ library
           fields
             hasInitializer v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
-              element: <testLibraryFragment>::@enum::E::@field::v#element
+              element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -1344,7 +1344,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::v
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
@@ -1358,7 +1358,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::values
             x @26
               reference: <testLibraryFragment>::@enum::E::@field::x
-              element: <testLibraryFragment>::@enum::E::@field::x#element
+              element: <testLibrary>::@enum::E::@field::x
               getter2: <testLibraryFragment>::@enum::E::@getter::x
           constructors
             const new
@@ -1443,7 +1443,7 @@ library
           fields
             hasInitializer v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
-              element: <testLibraryFragment>::@enum::E::@field::v#element
+              element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -1459,7 +1459,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::v
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
@@ -1473,7 +1473,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::values
             x @22
               reference: <testLibraryFragment>::@enum::E::@field::x
-              element: <testLibraryFragment>::@enum::E::@field::x#element
+              element: <testLibrary>::@enum::E::@field::x
               getter2: <testLibraryFragment>::@enum::E::@getter::x
           constructors
             new
@@ -1558,7 +1558,7 @@ library
           fields
             hasInitializer v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
-              element: <testLibraryFragment>::@enum::E::@field::v#element
+              element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -1574,7 +1574,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::v
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
@@ -1588,7 +1588,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::values
             x @22
               reference: <testLibraryFragment>::@enum::E::@field::x
-              element: <testLibraryFragment>::@enum::E::@field::x#element
+              element: <testLibrary>::@enum::E::@field::x
               getter2: <testLibraryFragment>::@enum::E::@getter::x
           constructors
             new
@@ -1672,7 +1672,7 @@ library
           fields
             hasInitializer v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
-              element: <testLibraryFragment>::@enum::E::@field::v#element
+              element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -1697,7 +1697,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::v
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
@@ -1782,7 +1782,7 @@ library
           fields
             hasInitializer v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
-              element: <testLibraryFragment>::@enum::E::@field::v#element
+              element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -1802,7 +1802,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::v
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
@@ -1890,7 +1890,7 @@ library
           fields
             hasInitializer v @14
               reference: <testLibraryFragment>::@enum::E::@field::v
-              element: <testLibraryFragment>::@enum::E::@field::v#element
+              element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -1908,7 +1908,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::v
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
@@ -1922,7 +1922,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::values
             x @29
               reference: <testLibraryFragment>::@enum::E::@field::x
-              element: <testLibraryFragment>::@enum::E::@field::x#element
+              element: <testLibrary>::@enum::E::@field::x
               getter2: <testLibraryFragment>::@enum::E::@getter::x
           constructors
             const new
@@ -1994,7 +1994,7 @@ library
             ConstructorFieldInitializer
               fieldName: SimpleIdentifier
                 token: x @66
-                element: <testLibraryFragment>::@enum::E::@field::x#element
+                element: <testLibrary>::@enum::E::@field::x
                 staticType: null
               equals: = @68
               expression: IntegerLiteral
@@ -2033,7 +2033,7 @@ library
           fields
             hasInitializer v @69
               reference: <testLibraryFragment>::@enum::E::@field::v
-              element: <testLibraryFragment>::@enum::E::@field::v#element
+              element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -2049,7 +2049,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::v
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
@@ -2127,7 +2127,7 @@ library
           fields
             hasInitializer v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
-              element: <testLibraryFragment>::@enum::E::@field::v#element
+              element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -2143,7 +2143,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::v
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
@@ -2157,7 +2157,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::values
             hasInitializer foo @22
               reference: <testLibraryFragment>::@enum::E::@field::foo
-              element: <testLibraryFragment>::@enum::E::@field::foo#element
+              element: <testLibrary>::@enum::E::@field::foo
               initializer: expression_2
                 IntegerLiteral
                   literal: 42 @28
@@ -2266,7 +2266,7 @@ library
           fields
             hasInitializer v @10
               reference: <testLibraryFragment>::@enum::E::@field::v
-              element: <testLibraryFragment>::@enum::E::@field::v#element
+              element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -2282,7 +2282,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::v
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
@@ -2296,7 +2296,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::values
             synthetic foo
               reference: <testLibraryFragment>::@enum::E::@field::foo
-              element: <testLibraryFragment>::@enum::E::@field::foo#element
+              element: <testLibrary>::@enum::E::@field::foo
               getter2: <testLibraryFragment>::@enum::E::@getter::foo
           constructors
             synthetic const new
@@ -2382,7 +2382,7 @@ library
           fields
             hasInitializer v @35
               reference: <testLibraryFragment>::@enum::E::@field::v
-              element: <testLibraryFragment>::@enum::E::@field::v#element
+              element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -2398,7 +2398,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::v
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
@@ -2494,7 +2494,7 @@ library
           fields
             hasInitializer v @78
               reference: <testLibraryFragment>::@enum::E::@field::v
-              element: <testLibraryFragment>::@enum::E::@field::v#element
+              element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -2510,7 +2510,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::v
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
@@ -2536,7 +2536,7 @@ library
           fields
             it @32
               reference: <testLibraryFragment>::@extensionType::B::@field::it
-              element: <testLibraryFragment>::@extensionType::B::@field::it#element
+              element: <testLibrary>::@extensionType::B::@field::it
               getter2: <testLibraryFragment>::@extensionType::B::@getter::it
           getters
             synthetic get it
@@ -2583,7 +2583,7 @@ library
     extension type B
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
-      representation: <testLibraryFragment>::@extensionType::B::@field::it#element
+      representation: <testLibrary>::@extensionType::B::@field::it
       primaryConstructor: <testLibrary>::@extensionType::B::@constructor::B
       typeErasure: int
       fields
@@ -2633,7 +2633,7 @@ library
           fields
             hasInitializer v @44
               reference: <testLibraryFragment>::@enum::E::@field::v
-              element: <testLibraryFragment>::@enum::E::@field::v#element
+              element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -2651,7 +2651,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::v
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
@@ -2759,7 +2759,7 @@ library
           fields
             hasInitializer v @52
               reference: <testLibraryFragment>::@enum::E::@field::v
-              element: <testLibraryFragment>::@enum::E::@field::v#element
+              element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -2775,7 +2775,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::v
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
@@ -2871,7 +2871,7 @@ library
           fields
             hasInitializer v @14
               reference: <testLibraryFragment>::@enum::E::@field::v
-              element: <testLibraryFragment>::@enum::E::@field::v#element
+              element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -2889,7 +2889,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::v
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
@@ -2993,7 +2993,7 @@ library
           fields
             hasInitializer v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
-              element: <testLibraryFragment>::@enum::E::@field::v#element
+              element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -3009,7 +3009,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::v
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
@@ -3092,7 +3092,7 @@ library
           fields
             hasInitializer v @6
               reference: <testLibraryFragment>::@enum::0::@field::v
-              element: <testLibraryFragment>::@enum::0::@field::v#element
+              element: <testLibrary>::@enum::0::@field::v
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -3108,7 +3108,7 @@ library
               getter2: <testLibraryFragment>::@enum::0::@getter::v
             synthetic values
               reference: <testLibraryFragment>::@enum::0::@field::values
-              element: <testLibraryFragment>::@enum::0::@field::values#element
+              element: <testLibrary>::@enum::0::@field::values
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
@@ -3185,7 +3185,7 @@ library
           fields
             hasInitializer v @29
               reference: <testLibraryFragment>::@enum::E::@field::v
-              element: <testLibraryFragment>::@enum::E::@field::v#element
+              element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -3201,7 +3201,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::v
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
@@ -3300,7 +3300,7 @@ library
           fields
             hasInitializer v @72
               reference: <testLibraryFragment>::@enum::E::@field::v
-              element: <testLibraryFragment>::@enum::E::@field::v#element
+              element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -3316,7 +3316,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::v
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
@@ -3342,7 +3342,7 @@ library
           fields
             it @32
               reference: <testLibraryFragment>::@extensionType::B::@field::it
-              element: <testLibraryFragment>::@extensionType::B::@field::it#element
+              element: <testLibrary>::@extensionType::B::@field::it
               getter2: <testLibraryFragment>::@extensionType::B::@getter::it
           getters
             synthetic get it
@@ -3389,7 +3389,7 @@ library
     extension type B
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
-      representation: <testLibraryFragment>::@extensionType::B::@field::it#element
+      representation: <testLibrary>::@extensionType::B::@field::it
       primaryConstructor: <testLibrary>::@extensionType::B::@constructor::B
       typeErasure: int
       fields
@@ -3425,7 +3425,7 @@ library
           fields
             hasInitializer v @67
               reference: <testLibraryFragment>::@enum::E::@field::v
-              element: <testLibraryFragment>::@enum::E::@field::v#element
+              element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -3441,7 +3441,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::v
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
@@ -3549,7 +3549,7 @@ library
           fields
             hasInitializer v @10
               reference: <testLibraryFragment>::@enum::E::@field::v
-              element: <testLibraryFragment>::@enum::E::@field::v#element
+              element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -3565,7 +3565,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::v
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
@@ -3579,7 +3579,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::values
             synthetic foo
               reference: <testLibraryFragment>::@enum::E::@field::foo
-              element: <testLibraryFragment>::@enum::E::@field::foo#element
+              element: <testLibrary>::@enum::E::@field::foo
               setter2: <testLibraryFragment>::@enum::E::@setter::foo
           constructors
             synthetic const new
@@ -3666,7 +3666,7 @@ library
           fields
             hasInitializer v @14
               reference: <testLibraryFragment>::@enum::E::@field::v
-              element: <testLibraryFragment>::@enum::E::@field::v#element
+              element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -3684,7 +3684,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::v
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
@@ -3767,7 +3767,7 @@ library
           fields
             hasInitializer v @39
               reference: <testLibraryFragment>::@enum::E::@field::v
-              element: <testLibraryFragment>::@enum::E::@field::v#element
+              element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -3785,7 +3785,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::v
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
@@ -3867,7 +3867,7 @@ library
           fields
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_0
                 ListLiteral
                   leftBracket: [ @0
@@ -3933,7 +3933,7 @@ library
           fields
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_0
                 ListLiteral
                   leftBracket: [ @0
@@ -3999,7 +3999,7 @@ library
           fields
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_0
                 ListLiteral
                   leftBracket: [ @0
@@ -4061,7 +4061,7 @@ library
           fields
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_0
                 ListLiteral
                   leftBracket: [ @0
@@ -4122,7 +4122,7 @@ library
           fields
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_0
                 ListLiteral
                   leftBracket: [ @0
@@ -4183,7 +4183,7 @@ library
           fields
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_0
                 ListLiteral
                   leftBracket: [ @0
@@ -4248,7 +4248,7 @@ library
           fields
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_0
                 ListLiteral
                   leftBracket: [ @0
@@ -4314,7 +4314,7 @@ library
           fields
             hasInitializer a @32
               reference: <testLibraryFragment>::@enum::E::@field::a
-              element: <testLibraryFragment>::@enum::E::@field::a#element
+              element: <testLibrary>::@enum::E::@field::a
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -4330,7 +4330,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::a
             hasInitializer b @47
               reference: <testLibraryFragment>::@enum::E::@field::b
-              element: <testLibraryFragment>::@enum::E::@field::b#element
+              element: <testLibrary>::@enum::E::@field::b
               initializer: expression_1
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -4346,7 +4346,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::b
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_2
                 ListLiteral
                   leftBracket: [ @0
@@ -4448,7 +4448,7 @@ library
           fields
             hasInitializer a @46
               reference: <testLibraryFragment>::@enum::E::@field::a
-              element: <testLibraryFragment>::@enum::E::@field::a#element
+              element: <testLibrary>::@enum::E::@field::a
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -4464,7 +4464,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::a
             hasInitializer b @75
               reference: <testLibraryFragment>::@enum::E::@field::b
-              element: <testLibraryFragment>::@enum::E::@field::b#element
+              element: <testLibrary>::@enum::E::@field::b
               initializer: expression_1
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -4480,7 +4480,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::b
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_2
                 ListLiteral
                   leftBracket: [ @0
@@ -4597,7 +4597,7 @@ library
           fields
             hasInitializer v @8
               reference: <testLibraryFragment>::@enum::E::@field::v
-              element: <testLibraryFragment>::@enum::E::@field::v#element
+              element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -4613,7 +4613,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::v
             hasInitializer <null-name> (offset=10)
               reference: <testLibraryFragment>::@enum::E::@field::0
-              element: <testLibraryFragment>::@enum::E::@field::0#element
+              element: <testLibrary>::@enum::E::@field::0
               initializer: expression_1
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -4629,7 +4629,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::0
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_2
                 ListLiteral
                   leftBracket: [ @0
@@ -4718,7 +4718,7 @@ library
           fields
             hasInitializer v1 @9
               reference: <testLibraryFragment>::@enum::E::@field::v1
-              element: <testLibraryFragment>::@enum::E::@field::v1#element
+              element: <testLibrary>::@enum::E::@field::v1
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -4734,7 +4734,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::v1
             hasInitializer v2 @13
               reference: <testLibraryFragment>::@enum::E::@field::v2
-              element: <testLibraryFragment>::@enum::E::@field::v2#element
+              element: <testLibrary>::@enum::E::@field::v2
               initializer: expression_1
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -4750,7 +4750,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::v2
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_2
                 ListLiteral
                   leftBracket: [ @0
@@ -4839,7 +4839,7 @@ library
           fields
             hasInitializer v1 @10
               reference: <testLibraryFragment>::@enum::E1::@field::v1
-              element: <testLibraryFragment>::@enum::E1::@field::v1#element
+              element: <testLibrary>::@enum::E1::@field::v1
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -4855,7 +4855,7 @@ library
               getter2: <testLibraryFragment>::@enum::E1::@getter::v1
             synthetic values
               reference: <testLibraryFragment>::@enum::E1::@field::values
-              element: <testLibraryFragment>::@enum::E1::@field::values#element
+              element: <testLibrary>::@enum::E1::@field::values
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
@@ -4885,7 +4885,7 @@ library
           fields
             hasInitializer v2 @25
               reference: <testLibraryFragment>::@enum::E2::@field::v2
-              element: <testLibraryFragment>::@enum::E2::@field::v2#element
+              element: <testLibrary>::@enum::E2::@field::v2
               initializer: expression_2
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -4901,7 +4901,7 @@ library
               getter2: <testLibraryFragment>::@enum::E2::@getter::v2
             synthetic values
               reference: <testLibraryFragment>::@enum::E2::@field::values
-              element: <testLibraryFragment>::@enum::E2::@field::values#element
+              element: <testLibrary>::@enum::E2::@field::values
               initializer: expression_3
                 ListLiteral
                   leftBracket: [ @0
@@ -5073,7 +5073,7 @@ library
           fields
             hasInitializer a @8
               reference: <testLibraryFragment>::@enum::E::@field::a
-              element: <testLibraryFragment>::@enum::E::@field::a#element
+              element: <testLibrary>::@enum::E::@field::a
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -5089,7 +5089,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::a
             hasInitializer b @11
               reference: <testLibraryFragment>::@enum::E::@field::b
-              element: <testLibraryFragment>::@enum::E::@field::b#element
+              element: <testLibrary>::@enum::E::@field::b
               initializer: expression_1
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -5105,7 +5105,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::b
             hasInitializer c @14
               reference: <testLibraryFragment>::@enum::E::@field::c
-              element: <testLibraryFragment>::@enum::E::@field::c#element
+              element: <testLibrary>::@enum::E::@field::c
               initializer: expression_2
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -5121,7 +5121,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::c
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_3
                 ListLiteral
                   leftBracket: [ @0
@@ -5288,7 +5288,7 @@ library
           fields
             hasInitializer v @26
               reference: <testLibraryFragment>::@enum::E::@field::v
-              element: <testLibraryFragment>::@enum::E::@field::v#element
+              element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -5304,7 +5304,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::v
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
@@ -5413,7 +5413,7 @@ library
           fields
             value @26
               reference: <testLibraryFragment>::@class::A::@field::value
-              element: <testLibraryFragment>::@class::A::@field::value#element
+              element: <testLibrary>::@class::A::@field::value
               getter2: <testLibraryFragment>::@class::A::@getter::value
           constructors
             const new
@@ -5435,7 +5435,7 @@ library
           fields
             hasInitializer a @78
               reference: <testLibraryFragment>::@enum::E::@field::a
-              element: <testLibraryFragment>::@enum::E::@field::a#element
+              element: <testLibrary>::@enum::E::@field::a
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -5451,7 +5451,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::a
             hasInitializer b @83
               reference: <testLibraryFragment>::@enum::E::@field::b
-              element: <testLibraryFragment>::@enum::E::@field::b#element
+              element: <testLibrary>::@enum::E::@field::b
               initializer: expression_1
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -5467,7 +5467,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::b
             hasInitializer c @96
               reference: <testLibraryFragment>::@enum::E::@field::c
-              element: <testLibraryFragment>::@enum::E::@field::c#element
+              element: <testLibrary>::@enum::E::@field::c
               initializer: expression_2
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -5483,7 +5483,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::c
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_3
                 ListLiteral
                   leftBracket: [ @0
@@ -5613,7 +5613,7 @@ library
           fields
             hasInitializer v @16
               reference: <testLibraryFragment>::@enum::E::@field::v
-              element: <testLibraryFragment>::@enum::E::@field::v#element
+              element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -5629,7 +5629,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::v
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
@@ -5708,7 +5708,7 @@ library
           fields
             hasInitializer v @25
               reference: <testLibraryFragment>::@enum::E::@field::v
-              element: <testLibraryFragment>::@enum::E::@field::v#element
+              element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -5724,7 +5724,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::v
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
@@ -5846,7 +5846,7 @@ library
           fields
             hasInitializer v @25
               reference: <testLibraryFragment>::@enum::E::@field::v
-              element: <testLibraryFragment>::@enum::E::@field::v#element
+              element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -5862,7 +5862,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::v
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
@@ -6006,7 +6006,7 @@ library
           fields
             hasInitializer v @40
               reference: <testLibraryFragment>::@enum::E::@field::v
-              element: <testLibraryFragment>::@enum::E::@field::v#element
+              element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -6024,7 +6024,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::v
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
@@ -6038,7 +6038,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::values
             hasInitializer foo @58
               reference: <testLibraryFragment>::@enum::E::@field::foo
-              element: <testLibraryFragment>::@enum::E::@field::foo#element
+              element: <testLibrary>::@enum::E::@field::foo
               initializer: expression_2
                 IntegerLiteral
                   literal: 1 @64
@@ -6194,7 +6194,7 @@ library
           fields
             hasInitializer v @31
               reference: <testLibraryFragment>::@enum::E::@field::v
-              element: <testLibraryFragment>::@enum::E::@field::v#element
+              element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -6212,7 +6212,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::v
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
@@ -6320,7 +6320,7 @@ library
           fields
             hasInitializer v @26
               reference: <testLibraryFragment>::@enum::E::@field::v
-              element: <testLibraryFragment>::@enum::E::@field::v#element
+              element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -6336,7 +6336,7 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::v
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0

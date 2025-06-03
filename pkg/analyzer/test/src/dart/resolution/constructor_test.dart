@@ -69,7 +69,7 @@ class A {
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
     token: v
-    element: <testLibraryFragment>::@class::A::@field::v#element
+    element: <testLibrary>::@class::A::@field::v
     staticType: null
   equals: =
   expression: SimpleIdentifier

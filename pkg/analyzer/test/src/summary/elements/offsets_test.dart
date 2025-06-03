@@ -916,27 +916,27 @@ library
           fields
             hasInitializer withInit @16
               reference: <testLibraryFragment>::@class::C::@field::withInit
-              element: <testLibraryFragment>::@class::C::@field::withInit#element
+              element: <testLibrary>::@class::C::@field::withInit
               getter2: <testLibraryFragment>::@class::C::@getter::withInit
               setter2: <testLibraryFragment>::@class::C::@setter::withInit
             withoutInit @37
               reference: <testLibraryFragment>::@class::C::@field::withoutInit
-              element: <testLibraryFragment>::@class::C::@field::withoutInit#element
+              element: <testLibrary>::@class::C::@field::withoutInit
               getter2: <testLibraryFragment>::@class::C::@getter::withoutInit
               setter2: <testLibraryFragment>::@class::C::@setter::withoutInit
             hasInitializer multiWithInit @57
               reference: <testLibraryFragment>::@class::C::@field::multiWithInit
-              element: <testLibraryFragment>::@class::C::@field::multiWithInit#element
+              element: <testLibrary>::@class::C::@field::multiWithInit
               getter2: <testLibraryFragment>::@class::C::@getter::multiWithInit
               setter2: <testLibraryFragment>::@class::C::@setter::multiWithInit
             multiWithoutInit @76
               reference: <testLibraryFragment>::@class::C::@field::multiWithoutInit
-              element: <testLibraryFragment>::@class::C::@field::multiWithoutInit#element
+              element: <testLibrary>::@class::C::@field::multiWithoutInit
               getter2: <testLibraryFragment>::@class::C::@getter::multiWithoutInit
               setter2: <testLibraryFragment>::@class::C::@setter::multiWithoutInit
             hasInitializer multiWithInit2 @94
               reference: <testLibraryFragment>::@class::C::@field::multiWithInit2
-              element: <testLibraryFragment>::@class::C::@field::multiWithInit2#element
+              element: <testLibrary>::@class::C::@field::multiWithInit2
               getter2: <testLibraryFragment>::@class::C::@getter::multiWithInit2
               setter2: <testLibraryFragment>::@class::C::@setter::multiWithInit2
           constructors
@@ -1114,52 +1114,52 @@ library
           fields
             hasDocComment @50
               reference: <testLibraryFragment>::@class::C::@field::hasDocComment
-              element: <testLibraryFragment>::@class::C::@field::hasDocComment#element
+              element: <testLibrary>::@class::C::@field::hasDocComment
               getter2: <testLibraryFragment>::@class::C::@getter::hasDocComment
               setter2: <testLibraryFragment>::@class::C::@setter::hasDocComment
             hasDocComment2 @65
               reference: <testLibraryFragment>::@class::C::@field::hasDocComment2
-              element: <testLibraryFragment>::@class::C::@field::hasDocComment2#element
+              element: <testLibrary>::@class::C::@field::hasDocComment2
               getter2: <testLibraryFragment>::@class::C::@getter::hasDocComment2
               setter2: <testLibraryFragment>::@class::C::@setter::hasDocComment2
             hasAnnotation @100
               reference: <testLibraryFragment>::@class::C::@field::hasAnnotation
-              element: <testLibraryFragment>::@class::C::@field::hasAnnotation#element
+              element: <testLibrary>::@class::C::@field::hasAnnotation
               getter2: <testLibraryFragment>::@class::C::@getter::hasAnnotation
               setter2: <testLibraryFragment>::@class::C::@setter::hasAnnotation
             hasAnnotation2 @115
               reference: <testLibraryFragment>::@class::C::@field::hasAnnotation2
-              element: <testLibraryFragment>::@class::C::@field::hasAnnotation2#element
+              element: <testLibrary>::@class::C::@field::hasAnnotation2
               getter2: <testLibraryFragment>::@class::C::@getter::hasAnnotation2
               setter2: <testLibraryFragment>::@class::C::@setter::hasAnnotation2
             annotationThenComment @184
               reference: <testLibraryFragment>::@class::C::@field::annotationThenComment
-              element: <testLibraryFragment>::@class::C::@field::annotationThenComment#element
+              element: <testLibrary>::@class::C::@field::annotationThenComment
               getter2: <testLibraryFragment>::@class::C::@getter::annotationThenComment
               setter2: <testLibraryFragment>::@class::C::@setter::annotationThenComment
             annotationThenComment2 @207
               reference: <testLibraryFragment>::@class::C::@field::annotationThenComment2
-              element: <testLibraryFragment>::@class::C::@field::annotationThenComment2#element
+              element: <testLibrary>::@class::C::@field::annotationThenComment2
               getter2: <testLibraryFragment>::@class::C::@getter::annotationThenComment2
               setter2: <testLibraryFragment>::@class::C::@setter::annotationThenComment2
             commentThenAnnotation @284
               reference: <testLibraryFragment>::@class::C::@field::commentThenAnnotation
-              element: <testLibraryFragment>::@class::C::@field::commentThenAnnotation#element
+              element: <testLibrary>::@class::C::@field::commentThenAnnotation
               getter2: <testLibraryFragment>::@class::C::@getter::commentThenAnnotation
               setter2: <testLibraryFragment>::@class::C::@setter::commentThenAnnotation
             commentThenAnnotation2 @307
               reference: <testLibraryFragment>::@class::C::@field::commentThenAnnotation2
-              element: <testLibraryFragment>::@class::C::@field::commentThenAnnotation2#element
+              element: <testLibrary>::@class::C::@field::commentThenAnnotation2
               getter2: <testLibraryFragment>::@class::C::@getter::commentThenAnnotation2
               setter2: <testLibraryFragment>::@class::C::@setter::commentThenAnnotation2
             commentAroundAnnotation @384
               reference: <testLibraryFragment>::@class::C::@field::commentAroundAnnotation
-              element: <testLibraryFragment>::@class::C::@field::commentAroundAnnotation#element
+              element: <testLibrary>::@class::C::@field::commentAroundAnnotation
               getter2: <testLibraryFragment>::@class::C::@getter::commentAroundAnnotation
               setter2: <testLibraryFragment>::@class::C::@setter::commentAroundAnnotation
             commentAroundAnnotation2 @409
               reference: <testLibraryFragment>::@class::C::@field::commentAroundAnnotation2
-              element: <testLibraryFragment>::@class::C::@field::commentAroundAnnotation2#element
+              element: <testLibrary>::@class::C::@field::commentAroundAnnotation2
               getter2: <testLibraryFragment>::@class::C::@getter::commentAroundAnnotation2
               setter2: <testLibraryFragment>::@class::C::@setter::commentAroundAnnotation2
           constructors
@@ -2772,7 +2772,7 @@ library
           fields
             hasInitializer foo @16
               reference: <testLibraryFragment>::@class::A::@field::foo
-              element: <testLibraryFragment>::@class::A::@field::foo#element
+              element: <testLibrary>::@class::A::@field::foo
               getter2: <testLibraryFragment>::@class::A::@getter::foo
               setter2: <testLibraryFragment>::@class::A::@setter::foo
           constructors
@@ -2837,7 +2837,7 @@ library
           fields
             synthetic foo
               reference: <testLibraryFragment>::@class::A::@field::foo
-              element: <testLibraryFragment>::@class::A::@field::foo#element
+              element: <testLibrary>::@class::A::@field::foo
               getter2: <testLibraryFragment>::@class::A::@getter::foo
           constructors
             synthetic new
@@ -2937,7 +2937,7 @@ library
           fields
             synthetic foo
               reference: <testLibraryFragment>::@class::A::@field::foo
-              element: <testLibraryFragment>::@class::A::@field::foo#element
+              element: <testLibrary>::@class::A::@field::foo
               setter2: <testLibraryFragment>::@class::A::@setter::foo
           constructors
             synthetic new

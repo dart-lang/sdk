@@ -173,7 +173,7 @@ library
           fields
             synthetic f
               reference: <testLibraryFragment>::@class::C::@field::f
-              element: <testLibraryFragment>::@class::C::@field::f#element
+              element: <testLibrary>::@class::C::@field::f
               getter2: <testLibraryFragment>::@class::C::@getter::f
           constructors
             synthetic new
@@ -190,7 +190,7 @@ library
           fields
             synthetic f
               reference: <testLibraryFragment>::@class::D::@field::f
-              element: <testLibraryFragment>::@class::D::@field::f#element
+              element: <testLibrary>::@class::D::@field::f
               getter2: <testLibraryFragment>::@class::D::@getter::f
           constructors
             synthetic new

@@ -61,7 +61,7 @@ library
           fields
             hasInitializer x @36
               reference: <testLibraryFragment>::@extension::E::@field::x
-              element: <testLibraryFragment>::@extension::E::@field::x#element
+              element: <testLibrary>::@extension::E::@field::x
               initializer: expression_0
                 IntegerLiteral
                   literal: 0 @40
@@ -166,7 +166,7 @@ library
           fields
             synthetic foo
               reference: <testLibraryFragment>::@extension::E::@field::foo
-              element: <testLibraryFragment>::@extension::E::@field::foo#element
+              element: <testLibrary>::@extension::E::@field::foo
               getter2: <testLibraryFragment>::@extension::E::@getter::foo
           getters
             get foo @38
@@ -213,7 +213,7 @@ library
           fields
             synthetic foo
               reference: <testLibraryFragment>::@extension::E::@field::foo
-              element: <testLibraryFragment>::@extension::E::@field::foo#element
+              element: <testLibrary>::@extension::E::@field::foo
               getter2: <testLibraryFragment>::@extension::E::@getter::foo
           getters
             get foo @36
@@ -274,7 +274,7 @@ library
           fields
             hasInitializer foo @65
               reference: <testLibraryFragment>::@extension::E::@field::foo
-              element: <testLibraryFragment>::@extension::E::@field::foo#element
+              element: <testLibrary>::@extension::E::@field::foo
               initializer: expression_0
                 IntegerLiteral
                   literal: 1 @71
@@ -533,7 +533,7 @@ library
           fields
             synthetic foo
               reference: <testLibraryFragment>::@extension::E::@field::foo
-              element: <testLibraryFragment>::@extension::E::@field::foo#element
+              element: <testLibrary>::@extension::E::@field::foo
               getter2: <testLibraryFragment>::@extension::E::@getter::foo
           getters
             get foo @31
@@ -575,7 +575,7 @@ library
           fields
             synthetic foo
               reference: <testLibraryFragment>::@extension::E::@field::foo
-              element: <testLibraryFragment>::@extension::E::@field::foo#element
+              element: <testLibrary>::@extension::E::@field::foo
               setter2: <testLibraryFragment>::@extension::E::@setter::foo
           setters
             set foo @27

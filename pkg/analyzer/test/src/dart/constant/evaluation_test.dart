@@ -124,9 +124,9 @@ E
     _name: String v1
     a: int 42
     index: int 0
-    variable: <testLibraryFragment>::@enum::E::@field::v1#element
+    variable: <testLibrary>::@enum::E::@field::v1
   index: int 1
-  variable: <testLibraryFragment>::@enum::E::@field::v2#element
+  variable: <testLibrary>::@enum::E::@field::v2
 ''');
   }
 
@@ -3741,7 +3741,7 @@ void Function(int, {int? b})
   element: <testLibrary>::@function::f
   typeArguments
     int
-  variable: <testLibraryFragment>::@class::C::@field::h#element
+  variable: <testLibrary>::@class::C::@field::h
 ''');
   }
 

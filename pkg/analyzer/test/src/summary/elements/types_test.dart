@@ -715,7 +715,7 @@ library
           fields
             hasInitializer v @16
               reference: <testLibraryFragment>::@class::C::@field::v
-              element: <testLibraryFragment>::@class::C::@field::v#element
+              element: <testLibrary>::@class::C::@field::v
               getter2: <testLibraryFragment>::@class::C::@getter::v
               setter2: <testLibraryFragment>::@class::C::@setter::v
           constructors
@@ -1024,7 +1024,7 @@ library
           fields
             hasInitializer c3 @66
               reference: <testLibraryFragment>::@class::B::@field::c3
-              element: <testLibraryFragment>::@class::B::@field::c3#element
+              element: <testLibrary>::@class::B::@field::c3
               getter2: <testLibraryFragment>::@class::B::@getter::c3
               setter2: <testLibraryFragment>::@class::B::@setter::c3
           constructors
@@ -1533,7 +1533,7 @@ library
           fields
             hasInitializer values @31
               reference: <testLibraryFragment>::@class::A::@field::values
-              element: <testLibraryFragment>::@class::A::@field::values#element
+              element: <testLibrary>::@class::A::@field::values
               getter2: <testLibraryFragment>::@class::A::@getter::values
           constructors
             synthetic new
@@ -1682,7 +1682,7 @@ library
           fields
             v @50
               reference: <testLibraryFragment>::@class::C::@field::v
-              element: <testLibraryFragment>::@class::C::@field::v#element
+              element: <testLibrary>::@class::C::@field::v
               getter2: <testLibraryFragment>::@class::C::@getter::v
               setter2: <testLibraryFragment>::@class::C::@setter::v
           constructors
@@ -2401,7 +2401,7 @@ library
           fields
             hasInitializer v @22
               reference: <testLibraryFragment>::@class::C::@field::v
-              element: <testLibraryFragment>::@class::C::@field::v#element
+              element: <testLibrary>::@class::C::@field::v
               getter2: <testLibraryFragment>::@class::C::@getter::v
               setter2: <testLibraryFragment>::@class::C::@setter::v
           constructors

@@ -35,7 +35,7 @@ library
           fields
             x @32
               reference: <testLibraryFragment>::@class::A::@field::x
-              element: <testLibraryFragment>::@class::A::@field::x#element
+              element: <testLibrary>::@class::A::@field::x
               getter2: <testLibraryFragment>::@class::A::@getter::x
           constructors
             synthetic new
@@ -84,7 +84,7 @@ library
           fields
             hasInitializer x @18
               reference: <testLibraryFragment>::@class::A::@field::x
-              element: <testLibraryFragment>::@class::A::@field::x#element
+              element: <testLibrary>::@class::A::@field::x
               getter2: <testLibraryFragment>::@class::A::@getter::x
           constructors
             synthetic new

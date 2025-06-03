@@ -74,6 +74,8 @@ class ElementPrinter {
         writelnReference(element.reference);
       case DynamicElementImpl2():
         _sink.writeln('dynamic');
+      case FieldElementImpl2 element:
+        writelnReference(element.reference);
       case FormalParameterElementImpl():
         var firstFragment = element.firstFragment;
         var referenceStr = _elementToReferenceString(firstFragment);

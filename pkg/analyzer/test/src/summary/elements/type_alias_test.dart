@@ -1709,7 +1709,7 @@ library
           fields
             f @58
               reference: <testLibraryFragment>::@class::A::@field::f
-              element: <testLibraryFragment>::@class::A::@field::f#element
+              element: <testLibrary>::@class::A::@field::f
               getter2: <testLibraryFragment>::@class::A::@getter::f
               setter2: <testLibraryFragment>::@class::A::@setter::f
           constructors

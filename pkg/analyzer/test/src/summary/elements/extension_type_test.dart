@@ -41,7 +41,7 @@ library
           fields
             it @22
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <testLibraryFragment>::@extensionType::A::@field::it#element
+              element: <testLibrary>::@extensionType::A::@field::it
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             synthetic get it
@@ -53,7 +53,7 @@ library
           fields
             it @50
               reference: <testLibraryFragment>::@extensionType::B::@field::it
-              element: <testLibraryFragment>::@extensionType::B::@field::it#element
+              element: <testLibrary>::@extensionType::B::@field::it
               getter2: <testLibraryFragment>::@extensionType::B::@getter::it
           getters
             synthetic get it
@@ -63,7 +63,7 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
-      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
       typeErasure: int?
       fields
@@ -78,7 +78,7 @@ library
     extension type B
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
-      representation: <testLibraryFragment>::@extensionType::B::@field::it#element
+      representation: <testLibrary>::@extensionType::B::@field::it
       primaryConstructor: <testLibrary>::@extensionType::B::@constructor::B
       typeErasure: int
       interfaces
@@ -119,7 +119,7 @@ library
           fields
             it @27
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <testLibraryFragment>::@extensionType::A::@field::it#element
+              element: <testLibrary>::@extensionType::A::@field::it
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             const new
@@ -138,7 +138,7 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
-      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
       typeErasure: int
       fields
@@ -178,7 +178,7 @@ library
           fields
             it @27
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <testLibraryFragment>::@extensionType::A::@field::it#element
+              element: <testLibrary>::@extensionType::A::@field::it
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             named @17
@@ -200,7 +200,7 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
-      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
       typeErasure: int
       fields
@@ -241,7 +241,7 @@ library
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <testLibraryFragment>::@extensionType::A::@field::it#element
+              element: <testLibrary>::@extensionType::A::@field::it
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new
@@ -269,7 +269,7 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
-      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
       typeErasure: num
       fields
@@ -315,7 +315,7 @@ library
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <testLibraryFragment>::@extensionType::A::@field::it#element
+              element: <testLibrary>::@extensionType::A::@field::it
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new
@@ -343,7 +343,7 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
-      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
       typeErasure: num
       fields
@@ -389,7 +389,7 @@ library
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <testLibraryFragment>::@extensionType::A::@field::it#element
+              element: <testLibrary>::@extensionType::A::@field::it
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new
@@ -417,7 +417,7 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
-      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
       typeErasure: num
       fields
@@ -440,7 +440,7 @@ library
             ConstructorFieldInitializer
               fieldName: SimpleIdentifier
                 token: it @52
-                element: <testLibraryFragment>::@extensionType::A::@field::it#element
+                element: <testLibrary>::@extensionType::A::@field::it
                 staticType: null
               equals: = @55
               expression: SimpleIdentifier
@@ -473,7 +473,7 @@ library
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <testLibraryFragment>::@extensionType::A::@field::it#element
+              element: <testLibrary>::@extensionType::A::@field::it
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new
@@ -494,7 +494,7 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
-      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
       typeErasure: int
       fields
@@ -535,7 +535,7 @@ library
           fields
             it @30
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <testLibraryFragment>::@extensionType::A::@field::it#element
+              element: <testLibrary>::@extensionType::A::@field::it
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new
@@ -555,7 +555,7 @@ library
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       documentationComment: /// Docs
-      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
       typeErasure: int
       fields
@@ -597,11 +597,11 @@ library
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <testLibraryFragment>::@extensionType::A::@field::it#element
+              element: <testLibrary>::@extensionType::A::@field::it
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
             hasInitializer foo @46
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
-              element: <testLibraryFragment>::@extensionType::A::@field::foo#element
+              element: <testLibrary>::@extensionType::A::@field::foo
               initializer: expression_0
                 IntegerLiteral
                   literal: 0 @52
@@ -618,7 +618,7 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
-      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
       typeErasure: int
       fields
@@ -664,11 +664,11 @@ library
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <testLibraryFragment>::@extensionType::A::@field::it#element
+              element: <testLibrary>::@extensionType::A::@field::it
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
             hasInitializer foo @42
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
-              element: <testLibraryFragment>::@extensionType::A::@field::foo#element
+              element: <testLibrary>::@extensionType::A::@field::foo
               initializer: expression_0
                 IntegerLiteral
                   literal: 0 @48
@@ -685,7 +685,7 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
-      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
       typeErasure: int
       fields
@@ -731,11 +731,11 @@ library
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <testLibraryFragment>::@extensionType::A::@field::it#element
+              element: <testLibrary>::@extensionType::A::@field::it
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
             hasInitializer foo @35
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
-              element: <testLibraryFragment>::@extensionType::A::@field::foo#element
+              element: <testLibrary>::@extensionType::A::@field::foo
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
           getters
             synthetic get it
@@ -748,7 +748,7 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
-      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
       typeErasure: int
       fields
@@ -795,7 +795,7 @@ library
           fields
             it @43
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <testLibraryFragment>::@extensionType::A::@field::it#element
+              element: <testLibrary>::@extensionType::A::@field::it
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new
@@ -814,7 +814,7 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
-      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
       typeErasure: int
       fields
@@ -856,11 +856,11 @@ library
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <testLibraryFragment>::@extensionType::A::@field::it#element
+              element: <testLibrary>::@extensionType::A::@field::it
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
             synthetic foo
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
-              element: <testLibraryFragment>::@extensionType::A::@field::foo#element
+              element: <testLibrary>::@extensionType::A::@field::foo
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
           getters
             synthetic get it
@@ -873,7 +873,7 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
-      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
       typeErasure: int
       fields
@@ -927,7 +927,7 @@ library
           fields
             it @68
               reference: <testLibraryFragment>::@extensionType::X::@field::it
-              element: <testLibraryFragment>::@extensionType::X::@field::it#element
+              element: <testLibrary>::@extensionType::X::@field::it
               getter2: <testLibraryFragment>::@extensionType::X::@getter::it
           getters
             synthetic get it
@@ -950,7 +950,7 @@ library
     extension type X
       reference: <testLibrary>::@extensionType::X
       firstFragment: <testLibraryFragment>::@extensionType::X
-      representation: <testLibraryFragment>::@extensionType::X::@field::it#element
+      representation: <testLibrary>::@extensionType::X::@field::it
       primaryConstructor: <testLibrary>::@extensionType::X::@constructor::X
       typeErasure: C
       interfaces
@@ -988,7 +988,7 @@ library
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <testLibraryFragment>::@extensionType::A::@field::it#element
+              element: <testLibrary>::@extensionType::A::@field::it
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             synthetic get it
@@ -1000,7 +1000,7 @@ library
           fields
             it @62
               reference: <testLibraryFragment>::@extensionType::B::@field::it
-              element: <testLibraryFragment>::@extensionType::B::@field::it#element
+              element: <testLibrary>::@extensionType::B::@field::it
               getter2: <testLibraryFragment>::@extensionType::B::@getter::it
           getters
             synthetic get it
@@ -1010,7 +1010,7 @@ library
     hasImplementsSelfReference extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
-      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
       typeErasure: int
       interfaces
@@ -1027,7 +1027,7 @@ library
     hasImplementsSelfReference extension type B
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
-      representation: <testLibraryFragment>::@extensionType::B::@field::it#element
+      representation: <testLibrary>::@extensionType::B::@field::it
       primaryConstructor: <testLibrary>::@extensionType::B::@constructor::B
       typeErasure: int
       interfaces
@@ -1063,7 +1063,7 @@ library
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <testLibraryFragment>::@extensionType::A::@field::it#element
+              element: <testLibrary>::@extensionType::A::@field::it
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             synthetic get it
@@ -1073,7 +1073,7 @@ library
     hasImplementsSelfReference extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
-      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
       typeErasure: int
       interfaces
@@ -1110,7 +1110,7 @@ library
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <testLibraryFragment>::@extensionType::A::@field::it#element
+              element: <testLibrary>::@extensionType::A::@field::it
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             synthetic get it
@@ -1122,7 +1122,7 @@ library
           fields
             it @49
               reference: <testLibraryFragment>::@extensionType::B::@field::it
-              element: <testLibraryFragment>::@extensionType::B::@field::it#element
+              element: <testLibrary>::@extensionType::B::@field::it
               getter2: <testLibraryFragment>::@extensionType::B::@getter::it
           getters
             synthetic get it
@@ -1132,7 +1132,7 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
-      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
       typeErasure: num
       fields
@@ -1147,7 +1147,7 @@ library
     extension type B
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
-      representation: <testLibraryFragment>::@extensionType::B::@field::it#element
+      representation: <testLibrary>::@extensionType::B::@field::it
       primaryConstructor: <testLibrary>::@extensionType::B::@constructor::B
       typeErasure: int
       interfaces
@@ -1183,7 +1183,7 @@ library
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <testLibraryFragment>::@extensionType::A::@field::it#element
+              element: <testLibrary>::@extensionType::A::@field::it
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             synthetic get it
@@ -1193,7 +1193,7 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
-      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
       typeErasure: int
       interfaces
@@ -1229,7 +1229,7 @@ library
           fields
             it @22
               reference: <testLibraryFragment>::@extensionType::X::@field::it
-              element: <testLibraryFragment>::@extensionType::X::@field::it#element
+              element: <testLibrary>::@extensionType::X::@field::it
               getter2: <testLibraryFragment>::@extensionType::X::@getter::it
           getters
             synthetic get it
@@ -1239,7 +1239,7 @@ library
     extension type X
       reference: <testLibrary>::@extensionType::X
       firstFragment: <testLibraryFragment>::@extensionType::X
-      representation: <testLibraryFragment>::@extensionType::X::@field::it#element
+      representation: <testLibrary>::@extensionType::X::@field::it
       primaryConstructor: <testLibrary>::@extensionType::X::@constructor::X
       typeErasure: int?
       fields
@@ -1276,7 +1276,7 @@ library
           fields
             it @22
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <testLibraryFragment>::@extensionType::A::@field::it#element
+              element: <testLibrary>::@extensionType::A::@field::it
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             synthetic get it
@@ -1288,7 +1288,7 @@ library
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeParameters
         T
-      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
       typeErasure: T
       fields
@@ -1325,7 +1325,7 @@ library
           fields
             it @39
               reference: <testLibraryFragment>::@extensionType::X::@field::it
-              element: <testLibraryFragment>::@extensionType::X::@field::it#element
+              element: <testLibrary>::@extensionType::X::@field::it
               getter2: <testLibraryFragment>::@extensionType::X::@getter::it
           getters
             synthetic get it
@@ -1339,7 +1339,7 @@ library
     extension type X
       reference: <testLibrary>::@extensionType::X
       firstFragment: <testLibraryFragment>::@extensionType::X
-      representation: <testLibraryFragment>::@extensionType::X::@field::it#element
+      representation: <testLibrary>::@extensionType::X::@field::it
       primaryConstructor: <testLibrary>::@extensionType::X::@constructor::X
       typeErasure: int
       interfaces
@@ -1383,7 +1383,7 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
-      representation: <testLibraryFragment>::@extensionType::A::@field::_it#element
+      representation: <testLibrary>::@extensionType::A::@field::_it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
       typeErasure: int?
       fields
@@ -1394,7 +1394,7 @@ library
   fieldNameNonPromotabilityInfo
     _it
       conflictingFields
-        <testLibraryFragment>::@class::B::@field::_it#element
+        <testLibrary>::@class::B::@field::_it
       conflictingGetters
         <testLibraryFragment>::@class::C::@getter::_it#element
 ''');
@@ -1426,7 +1426,7 @@ library
           fields
             it @43
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <testLibraryFragment>::@extensionType::A::@field::it#element
+              element: <testLibrary>::@extensionType::A::@field::it
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new
@@ -1445,7 +1445,7 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
-      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
       typeErasure: int
       fields
@@ -1487,7 +1487,7 @@ library
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <testLibraryFragment>::@extensionType::A::@field::it#element
+              element: <testLibrary>::@extensionType::A::@field::it
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             synthetic get it
@@ -1504,7 +1504,7 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
-      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
       typeErasure: int
       fields
@@ -1548,7 +1548,7 @@ library
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <testLibraryFragment>::@extensionType::A::@field::it#element
+              element: <testLibrary>::@extensionType::A::@field::it
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             synthetic get it
@@ -1570,7 +1570,7 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
-      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
       typeErasure: int
       fields
@@ -1616,7 +1616,7 @@ library
           fields
             it @20
               reference: <testLibraryFragment>::@extensionType::0::@field::it
-              element: <testLibraryFragment>::@extensionType::0::@field::it#element
+              element: <testLibrary>::@extensionType::0::@field::it
               getter2: <testLibraryFragment>::@extensionType::0::@getter::it
           getters
             synthetic get it
@@ -1626,7 +1626,7 @@ library
     extension type <null-name>
       reference: <testLibrary>::@extensionType::0
       firstFragment: <testLibraryFragment>::@extensionType::0
-      representation: <testLibraryFragment>::@extensionType::0::@field::it#element
+      representation: <testLibrary>::@extensionType::0::@field::it
       primaryConstructor: <testLibrary>::@extensionType::0::@constructor::new
       typeErasure: int
       fields
@@ -1660,7 +1660,7 @@ library
           fields
             <null-name> (offset=17)
               reference: <testLibraryFragment>::@extensionType::A::@field::<empty>
-              element: <testLibraryFragment>::@extensionType::A::@field::<empty>#element
+              element: <testLibrary>::@extensionType::A::@field::<empty>
               getter2: <testLibraryFragment>::@extensionType::A::@getter::<empty>
           constructors
             new
@@ -1681,7 +1681,7 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
-      representation: <testLibraryFragment>::@extensionType::A::@field::<empty>#element
+      representation: <testLibrary>::@extensionType::A::@field::<empty>
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
       typeErasure: InvalidType
       fields
@@ -1724,7 +1724,7 @@ library
           fields
             it @34
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <testLibraryFragment>::@extensionType::A::@field::it#element
+              element: <testLibrary>::@extensionType::A::@field::it
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             synthetic get it
@@ -1737,7 +1737,7 @@ library
       typeParameters
         T
           bound: A<dynamic>
-      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
       typeErasure: int
       fields
@@ -1773,11 +1773,11 @@ library
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <testLibraryFragment>::@extensionType::A::@field::it#element
+              element: <testLibrary>::@extensionType::A::@field::it
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
             synthetic foo
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
-              element: <testLibraryFragment>::@extensionType::A::@field::foo#element
+              element: <testLibrary>::@extensionType::A::@field::foo
               setter2: <testLibraryFragment>::@extensionType::A::@setter::foo
           getters
             synthetic get it
@@ -1794,7 +1794,7 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
-      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
       typeErasure: int
       fields
@@ -1841,7 +1841,7 @@ library
           fields
             it @19
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <testLibraryFragment>::@extensionType::A::@field::it#element
+              element: <testLibrary>::@extensionType::A::@field::it
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             synthetic get it
@@ -1853,7 +1853,7 @@ library
           fields
             it @46
               reference: <testLibraryFragment>::@extensionType::B::@field::it
-              element: <testLibraryFragment>::@extensionType::B::@field::it#element
+              element: <testLibrary>::@extensionType::B::@field::it
               getter2: <testLibraryFragment>::@extensionType::B::@getter::it
           getters
             synthetic get it
@@ -1863,7 +1863,7 @@ library
     hasRepresentationSelfReference extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
-      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
       typeErasure: InvalidType
       fields
@@ -1878,7 +1878,7 @@ library
     hasRepresentationSelfReference extension type B
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
-      representation: <testLibraryFragment>::@extensionType::B::@field::it#element
+      representation: <testLibrary>::@extensionType::B::@field::it
       primaryConstructor: <testLibrary>::@extensionType::B::@constructor::B
       typeErasure: InvalidType
       fields
@@ -1914,7 +1914,7 @@ library
           fields
             it @19
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <testLibraryFragment>::@extensionType::A::@field::it#element
+              element: <testLibrary>::@extensionType::A::@field::it
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             synthetic get it
@@ -1926,7 +1926,7 @@ library
           fields
             it @52
               reference: <testLibraryFragment>::@extensionType::B::@field::it
-              element: <testLibraryFragment>::@extensionType::B::@field::it#element
+              element: <testLibrary>::@extensionType::B::@field::it
               getter2: <testLibraryFragment>::@extensionType::B::@getter::it
           getters
             synthetic get it
@@ -1936,7 +1936,7 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
-      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
       typeErasure: InvalidType
       fields
@@ -1951,7 +1951,7 @@ library
     hasRepresentationSelfReference extension type B
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
-      representation: <testLibraryFragment>::@extensionType::B::@field::it#element
+      representation: <testLibrary>::@extensionType::B::@field::it
       primaryConstructor: <testLibrary>::@extensionType::B::@constructor::B
       typeErasure: InvalidType
       fields
@@ -1985,7 +1985,7 @@ library
           fields
             it @19
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <testLibraryFragment>::@extensionType::A::@field::it#element
+              element: <testLibrary>::@extensionType::A::@field::it
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             synthetic get it
@@ -1995,7 +1995,7 @@ library
     hasRepresentationSelfReference extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
-      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
       typeErasure: InvalidType
       fields
@@ -2031,7 +2031,7 @@ library
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <testLibraryFragment>::@extensionType::A::@field::it#element
+              element: <testLibrary>::@extensionType::A::@field::it
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             synthetic get it
@@ -2043,7 +2043,7 @@ library
           fields
             it @62
               reference: <testLibraryFragment>::@extensionType::B::@field::it
-              element: <testLibraryFragment>::@extensionType::B::@field::it#element
+              element: <testLibrary>::@extensionType::B::@field::it
               getter2: <testLibraryFragment>::@extensionType::B::@getter::it
           getters
             synthetic get it
@@ -2053,7 +2053,7 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
-      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
       typeErasure: int
       fields
@@ -2068,7 +2068,7 @@ library
     extension type B
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
-      representation: <testLibraryFragment>::@extensionType::B::@field::it#element
+      representation: <testLibrary>::@extensionType::B::@field::it
       primaryConstructor: <testLibrary>::@extensionType::B::@constructor::B
       typeErasure: int Function(int)
       fields
@@ -2107,7 +2107,7 @@ library
           fields
             it @22
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <testLibraryFragment>::@extensionType::A::@field::it#element
+              element: <testLibrary>::@extensionType::A::@field::it
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             synthetic get it
@@ -2119,7 +2119,7 @@ library
           fields
             it @57
               reference: <testLibraryFragment>::@extensionType::B::@field::it
-              element: <testLibraryFragment>::@extensionType::B::@field::it#element
+              element: <testLibrary>::@extensionType::B::@field::it
               getter2: <testLibraryFragment>::@extensionType::B::@getter::it
           getters
             synthetic get it
@@ -2131,7 +2131,7 @@ library
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeParameters
         T
-      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
       typeErasure: T
       fields
@@ -2148,7 +2148,7 @@ library
     extension type B
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
-      representation: <testLibraryFragment>::@extensionType::B::@field::it#element
+      representation: <testLibrary>::@extensionType::B::@field::it
       primaryConstructor: <testLibrary>::@extensionType::B::@constructor::B
       typeErasure: double
       fields
@@ -2184,7 +2184,7 @@ library
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <testLibraryFragment>::@extensionType::A::@field::it#element
+              element: <testLibrary>::@extensionType::A::@field::it
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             synthetic get it
@@ -2196,7 +2196,7 @@ library
           fields
             it @54
               reference: <testLibraryFragment>::@extensionType::B::@field::it
-              element: <testLibraryFragment>::@extensionType::B::@field::it#element
+              element: <testLibrary>::@extensionType::B::@field::it
               getter2: <testLibraryFragment>::@extensionType::B::@getter::it
           getters
             synthetic get it
@@ -2206,7 +2206,7 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
-      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
       typeErasure: int
       fields
@@ -2221,7 +2221,7 @@ library
     extension type B
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
-      representation: <testLibraryFragment>::@extensionType::B::@field::it#element
+      representation: <testLibrary>::@extensionType::B::@field::it
       primaryConstructor: <testLibrary>::@extensionType::B::@constructor::B
       typeErasure: List<int>
       fields
@@ -2255,7 +2255,7 @@ library
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <testLibraryFragment>::@extensionType::A::@field::it#element
+              element: <testLibrary>::@extensionType::A::@field::it
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             synthetic get it
@@ -2265,7 +2265,7 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
-      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
       typeErasure: int
       fields
@@ -2303,7 +2303,7 @@ library
           fields
             it @45
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <testLibraryFragment>::@extensionType::A::@field::it#element
+              element: <testLibrary>::@extensionType::A::@field::it
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new
@@ -2326,7 +2326,7 @@ library
         T
           bound: num
         U
-      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
       typeErasure: Map<T, U>
       fields

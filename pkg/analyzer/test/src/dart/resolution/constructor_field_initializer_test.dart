@@ -66,7 +66,7 @@ class A {
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
     token: f
-    element: <testLibraryFragment>::@class::A::@field::f#element
+    element: <testLibrary>::@class::A::@field::f
     staticType: null
   equals: =
   expression: SimpleIdentifier
@@ -89,7 +89,7 @@ class A {
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@class::A::@field::x#element
+    element: <testLibrary>::@class::A::@field::x
     staticType: null
   equals: =
   expression: FunctionExpressionInvocation
@@ -147,7 +147,7 @@ class A {
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@class::A::@field::x#element
+    element: <testLibrary>::@class::A::@field::x
     staticType: null
   equals: =
   expression: FunctionExpressionInvocation
@@ -209,7 +209,7 @@ const a = 0;
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@class::A::@field::x#element
+    element: <testLibrary>::@class::A::@field::x
     staticType: null
   equals: =
   expression: SimpleIdentifier
@@ -263,7 +263,7 @@ const a = 0;
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@class::A::@field::x#element
+    element: <testLibrary>::@class::A::@field::x
     staticType: null
   equals: =
   expression: SimpleIdentifier
@@ -347,7 +347,7 @@ const a = 0;
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@class::A::@field::x#element
+    element: <testLibrary>::@class::A::@field::x
     staticType: null
   equals: =
   expression: SimpleIdentifier

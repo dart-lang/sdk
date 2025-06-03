@@ -85,16 +85,16 @@ library
           fields
             f @101
               reference: <testLibraryFragment>::@mixin::M::@field::f
-              element: <testLibraryFragment>::@mixin::M::@field::f#element
+              element: <testLibrary>::@mixin::M::@field::f
               getter2: <testLibraryFragment>::@mixin::M::@getter::f
               setter2: <testLibraryFragment>::@mixin::M::@setter::f
             synthetic g
               reference: <testLibraryFragment>::@mixin::M::@field::g
-              element: <testLibraryFragment>::@mixin::M::@field::g#element
+              element: <testLibrary>::@mixin::M::@field::g
               getter2: <testLibraryFragment>::@mixin::M::@getter::g
             synthetic s
               reference: <testLibraryFragment>::@mixin::M::@field::s
-              element: <testLibraryFragment>::@mixin::M::@field::s#element
+              element: <testLibrary>::@mixin::M::@field::s
               setter2: <testLibraryFragment>::@mixin::M::@setter::s
           getters
             synthetic get f
@@ -253,7 +253,7 @@ library
           fields
             hasInitializer x @18
               reference: <testLibraryFragment>::@mixin::M::@field::x
-              element: <testLibraryFragment>::@mixin::M::@field::x#element
+              element: <testLibrary>::@mixin::M::@field::x
               getter2: <testLibraryFragment>::@mixin::M::@getter::x
           getters
             synthetic get x
@@ -310,7 +310,7 @@ library
           fields
             synthetic foo
               reference: <testLibraryFragment>::@mixin::M::@field::foo
-              element: <testLibraryFragment>::@mixin::M::@field::foo#element
+              element: <testLibrary>::@mixin::M::@field::foo
               getter2: <testLibraryFragment>::@mixin::M::@getter::foo
           getters
             get foo @25
@@ -355,7 +355,7 @@ library
           fields
             synthetic foo
               reference: <testLibraryFragment>::@mixin::M::@field::foo
-              element: <testLibraryFragment>::@mixin::M::@field::foo#element
+              element: <testLibrary>::@mixin::M::@field::foo
               getter2: <testLibraryFragment>::@mixin::M::@getter::foo
           getters
             get foo @25
@@ -400,7 +400,7 @@ library
           fields
             synthetic foo
               reference: <testLibraryFragment>::@mixin::M::@field::foo
-              element: <testLibraryFragment>::@mixin::M::@field::foo#element
+              element: <testLibrary>::@mixin::M::@field::foo
               getter2: <testLibraryFragment>::@mixin::M::@getter::foo
           getters
             get foo @25
@@ -1204,7 +1204,7 @@ library
           fields
             it @32
               reference: <testLibraryFragment>::@extensionType::B::@field::it
-              element: <testLibraryFragment>::@extensionType::B::@field::it#element
+              element: <testLibrary>::@extensionType::B::@field::it
               getter2: <testLibraryFragment>::@extensionType::B::@getter::it
           getters
             synthetic get it
@@ -1225,7 +1225,7 @@ library
     extension type B
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
-      representation: <testLibraryFragment>::@extensionType::B::@field::it#element
+      representation: <testLibrary>::@extensionType::B::@field::it
       primaryConstructor: <testLibrary>::@extensionType::B::@constructor::B
       typeErasure: int
       fields
@@ -1467,7 +1467,7 @@ library
           fields
             synthetic foo
               reference: <testLibraryFragment>::@mixin::M::@field::foo
-              element: <testLibraryFragment>::@mixin::M::@field::foo#element
+              element: <testLibrary>::@mixin::M::@field::foo
               setter2: <testLibraryFragment>::@mixin::M::@setter::foo
           setters
             set foo @21
@@ -1518,7 +1518,7 @@ library
           fields
             synthetic foo
               reference: <testLibraryFragment>::@mixin::M::@field::foo
-              element: <testLibraryFragment>::@mixin::M::@field::foo#element
+              element: <testLibrary>::@mixin::M::@field::foo
               setter2: <testLibraryFragment>::@mixin::M::@setter::foo
           setters
             set foo @21
@@ -1576,7 +1576,7 @@ library
           fields
             it @32
               reference: <testLibraryFragment>::@extensionType::B::@field::it
-              element: <testLibraryFragment>::@extensionType::B::@field::it#element
+              element: <testLibrary>::@extensionType::B::@field::it
               getter2: <testLibraryFragment>::@extensionType::B::@getter::it
           getters
             synthetic get it
@@ -1597,7 +1597,7 @@ library
     extension type B
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
-      representation: <testLibraryFragment>::@extensionType::B::@field::it#element
+      representation: <testLibrary>::@extensionType::B::@field::it
       primaryConstructor: <testLibrary>::@extensionType::B::@constructor::B
       typeErasure: int
       fields

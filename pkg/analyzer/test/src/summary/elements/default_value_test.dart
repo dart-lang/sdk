@@ -103,7 +103,7 @@ library
           fields
             f @71
               reference: <testLibraryFragment>::@class::X::@field::f
-              element: <testLibraryFragment>::@class::X::@field::f#element
+              element: <testLibrary>::@class::X::@field::f
               getter2: <testLibraryFragment>::@class::X::@getter::f
           constructors
             const new

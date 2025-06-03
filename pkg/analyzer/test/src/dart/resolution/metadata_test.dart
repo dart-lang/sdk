@@ -112,7 +112,7 @@ Annotation
 E
   _name: String v
   index: int 0
-  variable: <testLibraryFragment>::@enum::E::@field::v#element
+  variable: <testLibrary>::@enum::E::@field::v
 ''');
   }
 
@@ -533,7 +533,7 @@ Annotation
 ''');
     _assertAnnotationValueText(annotation, '''
 int 42
-  variable: <testLibraryFragment>::@class::A::@field::foo#element
+  variable: <testLibrary>::@class::A::@field::foo
 ''');
   }
 
@@ -1633,7 +1633,7 @@ Annotation
 
     _assertAnnotationValueText(node, '''
 int 42
-  variable: package:test/a.dart::<fragment>::@class::A::@field::foo#element
+  variable: package:test/a.dart::@class::A::@field::foo
 ''');
   }
 
@@ -1762,7 +1762,7 @@ Annotation
 ''');
     _assertAnnotationValueText(annotation, '''
 int 42
-  variable: package:test/a.dart::<fragment>::@class::A::@field::foo#element
+  variable: package:test/a.dart::@class::A::@field::foo
 ''');
   }
 
@@ -2047,7 +2047,7 @@ Annotation
 ''');
     _assertAnnotationValueText(annotation, '''
 int 42
-  variable: <testLibraryFragment>::@class::A::@field::foo#element
+  variable: <testLibrary>::@class::A::@field::foo
 ''');
   }
 

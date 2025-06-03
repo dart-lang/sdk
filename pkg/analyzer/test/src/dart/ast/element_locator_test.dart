@@ -196,7 +196,7 @@ enum E {
     var node = findNode.enumConstantDeclaration('one');
     var element = ElementLocator.locate2(node);
     _assertElement(element, r'''
-<testLibraryFragment>::@enum::E::@field::one#element
+<testLibrary>::@enum::E::@field::one
 ''');
   }
 
@@ -321,7 +321,7 @@ class A {
     var node = findNode.variableDeclaration('x;');
     var element = ElementLocator.locate2(node);
     _assertElement(element, r'''
-<testLibraryFragment>::@class::A::@field::x#element
+<testLibrary>::@class::A::@field::x
 ''');
   }
 
@@ -556,7 +556,7 @@ dart:core::@class::num::@method::+
     var node = findNode.singleRepresentationDeclaration;
     var element = ElementLocator.locate2(node);
     _assertElement(element, r'''
-<testLibraryFragment>::@extensionType::A::@field::it#element
+<testLibrary>::@extensionType::A::@field::it
 ''');
   }
 

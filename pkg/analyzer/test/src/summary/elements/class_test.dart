@@ -332,7 +332,7 @@ library
           fields
             x @18
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
               setter2: <testLibraryFragment>::@class::C::@setter::x
           constructors
@@ -400,7 +400,7 @@ library
           fields
             x @18
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
               setter2: <testLibraryFragment>::@class::C::@setter::x
           constructors
@@ -468,7 +468,7 @@ library
           fields
             x @18
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
               setter2: <testLibraryFragment>::@class::C::@setter::x
           constructors
@@ -541,7 +541,7 @@ library
           fields
             x @16
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
               setter2: <testLibraryFragment>::@class::C::@setter::x
           constructors
@@ -617,7 +617,7 @@ library
           fields
             x @16
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
               setter2: <testLibraryFragment>::@class::C::@setter::x
           constructors
@@ -693,7 +693,7 @@ library
           fields
             f @23
               reference: <testLibraryFragment>::@class::C::@field::f
-              element: <testLibraryFragment>::@class::C::@field::f#element
+              element: <testLibrary>::@class::C::@field::f
               getter2: <testLibraryFragment>::@class::C::@getter::f
               setter2: <testLibraryFragment>::@class::C::@setter::f
           constructors
@@ -766,12 +766,12 @@ library
           fields
             x @25
               reference: <testLibraryFragment>::@class::C::@field::x::@def::0
-              element: <testLibraryFragment>::@class::C::@field::x::@def::0#element
+              element: <testLibrary>::@class::C::@field::x::@def::0
               getter2: <testLibraryFragment>::@class::C::@getter::x::@def::0
               setter2: <testLibraryFragment>::@class::C::@setter::x::@def::0
             x @35
               reference: <testLibraryFragment>::@class::C::@field::x::@def::1
-              element: <testLibraryFragment>::@class::C::@field::x::@def::1#element
+              element: <testLibrary>::@class::C::@field::x::@def::1
               getter2: <testLibraryFragment>::@class::C::@getter::x::@def::1
               setter2: <testLibraryFragment>::@class::C::@setter::x::@def::1
           constructors
@@ -897,7 +897,7 @@ library
           fields
             x @14
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
               setter2: <testLibraryFragment>::@class::C::@setter::x
           constructors
@@ -965,7 +965,7 @@ library
           fields
             x @14
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
               setter2: <testLibraryFragment>::@class::C::@setter::x
           constructors
@@ -1033,7 +1033,7 @@ library
           fields
             x @14
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
               setter2: <testLibraryFragment>::@class::C::@setter::x
           constructors
@@ -1101,7 +1101,7 @@ library
           fields
             x @14
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
               setter2: <testLibraryFragment>::@class::C::@setter::x
           constructors
@@ -1169,7 +1169,7 @@ library
           fields
             x @14
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
               setter2: <testLibraryFragment>::@class::C::@setter::x
           constructors
@@ -1237,7 +1237,7 @@ library
           fields
             x @14
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
               setter2: <testLibraryFragment>::@class::C::@setter::x
           constructors
@@ -1305,7 +1305,7 @@ library
           fields
             x @14
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
               setter2: <testLibraryFragment>::@class::C::@setter::x
           constructors
@@ -1375,7 +1375,7 @@ library
           fields
             x @14
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
               setter2: <testLibraryFragment>::@class::C::@setter::x
           constructors
@@ -1452,7 +1452,7 @@ library
           fields
             x @14
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
               setter2: <testLibraryFragment>::@class::C::@setter::x
           constructors
@@ -1520,7 +1520,7 @@ library
           fields
             x @14
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
               setter2: <testLibraryFragment>::@class::C::@setter::x
           constructors
@@ -1747,7 +1747,7 @@ library
           fields
             x @18
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
           constructors
             const new
@@ -1775,7 +1775,7 @@ library
             ConstructorFieldInitializer
               fieldName: SimpleIdentifier
                 token: x @35
-                element: <testLibraryFragment>::@class::C::@field::x#element
+                element: <testLibrary>::@class::C::@field::x
                 staticType: null
               equals: = @37
               expression: IntegerLiteral
@@ -1810,7 +1810,7 @@ library
           fields
             x @18
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
           constructors
             const new
@@ -1842,7 +1842,7 @@ library
             ConstructorFieldInitializer
               fieldName: SimpleIdentifier
                 token: x @35
-                element: <testLibraryFragment>::@class::C::@field::x#element
+                element: <testLibrary>::@class::C::@field::x
                 staticType: null
               equals: = @37
               expression: MethodInvocation
@@ -1887,7 +1887,7 @@ library
           fields
             _f @22
               reference: <testLibraryFragment>::@class::A::@field::_f
-              element: <testLibraryFragment>::@class::A::@field::_f#element
+              element: <testLibrary>::@class::A::@field::_f
               getter2: <testLibraryFragment>::@class::A::@getter::_f
           constructors
             const new
@@ -1927,7 +1927,7 @@ library
             ConstructorFieldInitializer
               fieldName: SimpleIdentifier
                 token: _f @51
-                element: <testLibraryFragment>::@class::A::@field::_f#element
+                element: <testLibrary>::@class::A::@field::_f
                 staticType: null
               equals: = @54
               expression: SimpleIdentifier
@@ -1961,7 +1961,7 @@ library
           fields
             x @25
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
           constructors
             const new
@@ -1995,7 +1995,7 @@ library
             ConstructorFieldInitializer
               fieldName: SimpleIdentifier
                 token: x @47
-                element: <testLibraryFragment>::@class::C::@field::x#element
+                element: <testLibrary>::@class::C::@field::x
                 staticType: null
               equals: = @49
               expression: RecordLiteral
@@ -2037,7 +2037,7 @@ library
           fields
             x @18
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
           constructors
             const new
@@ -2071,7 +2071,7 @@ library
             ConstructorFieldInitializer
               fieldName: SimpleIdentifier
                 token: x @40
-                element: <testLibraryFragment>::@class::C::@field::x#element
+                element: <testLibrary>::@class::C::@field::x
                 staticType: null
               equals: = @42
               expression: BinaryExpression
@@ -6104,7 +6104,7 @@ library
           fields
             x @18
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
           constructors
             const new
@@ -6122,7 +6122,7 @@ library
           fields
             x @70
               reference: <testLibraryFragment>::@class::D::@field::x
-              element: <testLibraryFragment>::@class::D::@field::x#element
+              element: <testLibrary>::@class::D::@field::x
               getter2: <testLibraryFragment>::@class::D::@getter::x
           constructors
             const new
@@ -6150,7 +6150,7 @@ library
             ConstructorFieldInitializer
               fieldName: SimpleIdentifier
                 token: x @35
-                element: <testLibraryFragment>::@class::C::@field::x#element
+                element: <testLibrary>::@class::C::@field::x
                 staticType: null
               equals: = @37
               expression: InstanceCreationExpression
@@ -6184,7 +6184,7 @@ library
             ConstructorFieldInitializer
               fieldName: SimpleIdentifier
                 token: x @87
-                element: <testLibraryFragment>::@class::D::@field::x#element
+                element: <testLibrary>::@class::D::@field::x
                 staticType: null
               equals: = @89
               expression: InstanceCreationExpression
@@ -6230,7 +6230,7 @@ library
           fields
             x @18
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
           constructors
             new
@@ -6248,7 +6248,7 @@ library
           fields
             x @62
               reference: <testLibraryFragment>::@class::D::@field::x
-              element: <testLibraryFragment>::@class::D::@field::x#element
+              element: <testLibrary>::@class::D::@field::x
               getter2: <testLibraryFragment>::@class::D::@getter::x
           constructors
             new
@@ -6867,7 +6867,7 @@ library
           fields
             i @34
               reference: <testLibraryFragment>::@class::C::@field::i
-              element: <testLibraryFragment>::@class::C::@field::i#element
+              element: <testLibrary>::@class::C::@field::i
               getter2: <testLibraryFragment>::@class::C::@getter::i
               setter2: <testLibraryFragment>::@class::C::@setter::i
           constructors
@@ -6928,7 +6928,7 @@ library
           fields
             hasInitializer i @27
               reference: <testLibraryFragment>::@class::C::@field::i
-              element: <testLibraryFragment>::@class::C::@field::i#element
+              element: <testLibrary>::@class::C::@field::i
               initializer: expression_0
                 IntegerLiteral
                   literal: 0 @31
@@ -6982,7 +6982,7 @@ library
           fields
             hasInitializer i @32
               reference: <testLibraryFragment>::@class::C::@field::i
-              element: <testLibraryFragment>::@class::C::@field::i#element
+              element: <testLibrary>::@class::C::@field::i
               initializer: expression_0
                 IntegerLiteral
                   literal: 0 @36
@@ -7037,7 +7037,7 @@ library
           fields
             x @26
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
               setter2: <testLibraryFragment>::@class::C::@setter::x
           constructors
@@ -7104,7 +7104,7 @@ library
           fields
             x @38
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
               setter2: <testLibraryFragment>::@class::C::@setter::x
           constructors
@@ -7173,12 +7173,12 @@ library
           fields
             hasInitializer foo @16
               reference: <testLibraryFragment>::@class::C::@field::foo::@def::0
-              element: <testLibraryFragment>::@class::C::@field::foo::@def::0#element
+              element: <testLibrary>::@class::C::@field::foo
               getter2: <testLibraryFragment>::@class::C::@getter::foo::@def::0
               setter2: <testLibraryFragment>::@class::C::@setter::foo
             synthetic foo
               reference: <testLibraryFragment>::@class::C::@field::foo::@def::1
-              element: <testLibraryFragment>::@class::C::@field::foo::@def::1#element
+              element: <testLibrary>::@class::C::@field::foo
               getter2: <testLibraryFragment>::@class::C::@getter::foo::@def::1
           constructors
             synthetic new
@@ -7256,12 +7256,12 @@ library
           fields
             hasInitializer foo @16
               reference: <testLibraryFragment>::@class::C::@field::foo::@def::0
-              element: <testLibraryFragment>::@class::C::@field::foo::@def::0#element
+              element: <testLibrary>::@class::C::@field::foo
               getter2: <testLibraryFragment>::@class::C::@getter::foo
               setter2: <testLibraryFragment>::@class::C::@setter::foo::@def::0
             synthetic foo
               reference: <testLibraryFragment>::@class::C::@field::foo::@def::1
-              element: <testLibraryFragment>::@class::C::@field::foo::@def::1#element
+              element: <testLibrary>::@class::C::@field::foo
               setter2: <testLibraryFragment>::@class::C::@setter::foo::@def::1
           constructors
             synthetic new
@@ -7341,7 +7341,7 @@ library
           fields
             i @34
               reference: <testLibraryFragment>::@class::C::@field::i
-              element: <testLibraryFragment>::@class::C::@field::i#element
+              element: <testLibrary>::@class::C::@field::i
               getter2: <testLibraryFragment>::@class::C::@getter::i
               setter2: <testLibraryFragment>::@class::C::@setter::i
           constructors
@@ -7407,7 +7407,7 @@ library
           fields
             hasInitializer x @18
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               initializer: expression_0
                 IntegerLiteral
                   literal: 42 @22
@@ -7480,7 +7480,7 @@ library
           fields
             hasInitializer f @46
               reference: <testLibraryFragment>::@class::B::@field::f
-              element: <testLibraryFragment>::@class::B::@field::f#element
+              element: <testLibrary>::@class::B::@field::f
               initializer: expression_0
                 InstanceCreationExpression
                   keyword: const @50
@@ -7585,7 +7585,7 @@ library
           fields
             hasInitializer x @18
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
           constructors
             synthetic new
@@ -7637,7 +7637,7 @@ library
           fields
             foo @22
               reference: <testLibraryFragment>::@class::A::@field::foo
-              element: <testLibraryFragment>::@class::A::@field::foo#element
+              element: <testLibrary>::@class::A::@field::foo
               getter2: <testLibraryFragment>::@class::A::@getter::foo
               setter2: <testLibraryFragment>::@class::A::@setter::foo
           constructors
@@ -7708,7 +7708,7 @@ library
           fields
             v @24
               reference: <testLibraryFragment>::@class::C::@field::v
-              element: <testLibraryFragment>::@class::C::@field::v#element
+              element: <testLibrary>::@class::C::@field::v
               getter2: <testLibraryFragment>::@class::C::@getter::v
               setter2: <testLibraryFragment>::@class::C::@setter::v
           constructors
@@ -7737,7 +7737,7 @@ library
           fields
             synthetic v
               reference: <testLibraryFragment>::@class::D::@field::v
-              element: <testLibraryFragment>::@class::D::@field::v#element
+              element: <testLibrary>::@class::D::@field::v
               getter2: <testLibraryFragment>::@class::D::@getter::v
           constructors
             synthetic new
@@ -7810,7 +7810,7 @@ library
           fields
             x @14
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
               setter2: <testLibraryFragment>::@class::C::@setter::x
           constructors
@@ -7871,7 +7871,7 @@ library
           fields
             x @19
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
               setter2: <testLibraryFragment>::@class::C::@setter::x
           constructors
@@ -7932,7 +7932,7 @@ library
           fields
             hasInitializer v @14
               reference: <testLibraryFragment>::@class::C::@field::v
-              element: <testLibraryFragment>::@class::C::@field::v#element
+              element: <testLibrary>::@class::C::@field::v
               getter2: <testLibraryFragment>::@class::C::@getter::v
               setter2: <testLibraryFragment>::@class::C::@setter::v
           constructors
@@ -7993,7 +7993,7 @@ library
           fields
             hasInitializer v @14
               reference: <testLibraryFragment>::@class::C::@field::v
-              element: <testLibraryFragment>::@class::C::@field::v#element
+              element: <testLibrary>::@class::C::@field::v
               getter2: <testLibraryFragment>::@class::C::@getter::v
               setter2: <testLibraryFragment>::@class::C::@setter::v
           constructors
@@ -8056,7 +8056,7 @@ library
           fields
             v @24
               reference: <testLibraryFragment>::@class::C::@field::v
-              element: <testLibraryFragment>::@class::C::@field::v#element
+              element: <testLibrary>::@class::C::@field::v
               getter2: <testLibraryFragment>::@class::C::@getter::v
               setter2: <testLibraryFragment>::@class::C::@setter::v
           constructors
@@ -8081,7 +8081,7 @@ library
           fields
             synthetic v
               reference: <testLibraryFragment>::@class::D::@field::v
-              element: <testLibraryFragment>::@class::D::@field::v#element
+              element: <testLibrary>::@class::D::@field::v
               getter2: <testLibraryFragment>::@class::D::@getter::v
           constructors
             synthetic new
@@ -8161,7 +8161,7 @@ library
           fields
             synthetic f
               reference: <testLibraryFragment>::@class::A::@field::f
-              element: <testLibraryFragment>::@class::A::@field::f#element
+              element: <testLibrary>::@class::A::@field::f
               getter2: <testLibraryFragment>::@class::A::@getter::f
           constructors
             const new
@@ -8179,7 +8179,7 @@ library
           fields
             hasInitializer f @107
               reference: <testLibraryFragment>::@class::B::@field::f
-              element: <testLibraryFragment>::@class::B::@field::f#element
+              element: <testLibrary>::@class::B::@field::f
               initializer: expression_0
                 ListLiteral
                   leftBracket: [ @111
@@ -8281,7 +8281,7 @@ library
           fields
             hasInitializer v @21
               reference: <testLibraryFragment>::@class::C::@field::v
-              element: <testLibraryFragment>::@class::C::@field::v#element
+              element: <testLibrary>::@class::C::@field::v
               getter2: <testLibraryFragment>::@class::C::@getter::v
               setter2: <testLibraryFragment>::@class::C::@setter::v
           constructors
@@ -8351,7 +8351,7 @@ library
           fields
             synthetic foo
               reference: <testLibraryFragment>::@class::A::@field::foo
-              element: <testLibraryFragment>::@class::A::@field::foo#element
+              element: <testLibrary>::@class::A::@field::foo
               getter2: <testLibraryFragment>::@class::A::@getter::foo
           constructors
             const new
@@ -8369,7 +8369,7 @@ library
           fields
             hasInitializer foo @93
               reference: <testLibraryFragment>::@class::B::@field::foo
-              element: <testLibraryFragment>::@class::B::@field::foo#element
+              element: <testLibrary>::@class::B::@field::foo
               initializer: expression_0
                 IntegerLiteral
                   literal: 2 @99
@@ -8444,7 +8444,7 @@ library
           fields
             synthetic _foo
               reference: <testLibraryFragment>::@class::A::@field::_foo
-              element: <testLibraryFragment>::@class::A::@field::_foo#element
+              element: <testLibrary>::@class::A::@field::_foo
               getter2: <testLibraryFragment>::@class::A::@getter::_foo
           constructors
             synthetic new
@@ -8626,7 +8626,7 @@ library
   fieldNameNonPromotabilityInfo
     _foo
       conflictingFields
-        <testLibraryFragment>::@class::B::@field::_foo#element
+        <testLibrary>::@class::B::@field::_foo
 ''');
   }
 
@@ -9156,7 +9156,7 @@ library
   fieldNameNonPromotabilityInfo
     _foo
       conflictingFields
-        <testLibraryFragment>::@class::A::@field::_foo#element
+        <testLibrary>::@class::A::@field::_foo
 ''');
   }
 
@@ -9233,12 +9233,12 @@ library
           fields
             a @28
               reference: <testLibraryFragment>::@class::C::@field::a
-              element: <testLibraryFragment>::@class::C::@field::a#element
+              element: <testLibrary>::@class::C::@field::a
               getter2: <testLibraryFragment>::@class::C::@getter::a
               setter2: <testLibraryFragment>::@class::C::@setter::a
             <null-name> (offset=30)
               reference: <testLibraryFragment>::@class::C::@field::0
-              element: <testLibraryFragment>::@class::C::@field::0#element
+              element: <testLibrary>::@class::C::@field::0
               getter2: <testLibraryFragment>::@class::C::@getter::0
               setter2: <testLibraryFragment>::@class::C::@setter::0
           constructors
@@ -9330,7 +9330,7 @@ library
           fields
             foo @24
               reference: <testLibraryFragment>::@class::C::@field::foo
-              element: <testLibraryFragment>::@class::C::@field::foo#element
+              element: <testLibrary>::@class::C::@field::foo
               getter2: <testLibraryFragment>::@class::C::@getter::foo
               setter2: <testLibraryFragment>::@class::C::@setter::foo
           getters
@@ -9393,7 +9393,7 @@ library
           fields
             foo @22
               reference: <testLibraryFragment>::@class::C::@field::foo
-              element: <testLibraryFragment>::@class::C::@field::foo#element
+              element: <testLibrary>::@class::C::@field::foo
               getter2: <testLibraryFragment>::@class::C::@getter::foo
               setter2: <testLibraryFragment>::@class::C::@setter::foo
           getters
@@ -9454,7 +9454,7 @@ library
           fields
             hasInitializer x @25
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               initializer: expression_0
                 IntegerLiteral
                   literal: 0 @29
@@ -9513,7 +9513,7 @@ library
           fields
             hasInitializer b @35
               reference: <testLibraryFragment>::@class::C::@field::b
-              element: <testLibraryFragment>::@class::C::@field::b#element
+              element: <testLibrary>::@class::C::@field::b
               getter2: <testLibraryFragment>::@class::C::@getter::b
           constructors
             synthetic new
@@ -9570,7 +9570,7 @@ library
           fields
             hasInitializer b @46
               reference: <testLibraryFragment>::@class::C::@field::b
-              element: <testLibraryFragment>::@class::C::@field::b#element
+              element: <testLibrary>::@class::C::@field::b
               getter2: <testLibraryFragment>::@class::C::@getter::b
           constructors
             synthetic new
@@ -9641,7 +9641,7 @@ library
           fields
             hasInitializer x @18
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
           constructors
             synthetic new
@@ -9689,7 +9689,7 @@ library
           fields
             hasInitializer x @25
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
           constructors
             synthetic new
@@ -9734,7 +9734,7 @@ library
           fields
             i @21
               reference: <testLibraryFragment>::@class::C::@field::i
-              element: <testLibraryFragment>::@class::C::@field::i#element
+              element: <testLibrary>::@class::C::@field::i
               getter2: <testLibraryFragment>::@class::C::@getter::i
               setter2: <testLibraryFragment>::@class::C::@setter::i
           constructors
@@ -9800,7 +9800,7 @@ library
           fields
             hasInitializer f @25
               reference: <testLibraryFragment>::@class::C::@field::f
-              element: <testLibraryFragment>::@class::C::@field::f#element
+              element: <testLibrary>::@class::C::@field::f
               getter2: <testLibraryFragment>::@class::C::@getter::f
           constructors
             const new
@@ -9846,7 +9846,7 @@ library
           fields
             hasInitializer x @23
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
           constructors
             synthetic new
@@ -9891,7 +9891,7 @@ library
           fields
             i @26
               reference: <testLibraryFragment>::@class::C::@field::i
-              element: <testLibraryFragment>::@class::C::@field::i#element
+              element: <testLibrary>::@class::C::@field::i
               getter2: <testLibraryFragment>::@class::C::@getter::i
               setter2: <testLibraryFragment>::@class::C::@setter::i
           constructors
@@ -9957,7 +9957,7 @@ library
           fields
             hasInitializer a @16
               reference: <testLibraryFragment>::@class::C::@field::a
-              element: <testLibraryFragment>::@class::C::@field::a#element
+              element: <testLibrary>::@class::C::@field::a
               getter2: <testLibraryFragment>::@class::C::@getter::a
               setter2: <testLibraryFragment>::@class::C::@setter::a
           constructors
@@ -10023,7 +10023,7 @@ library
           fields
             hasInitializer foo @16
               reference: <testLibraryFragment>::@class::C::@field::foo
-              element: <testLibraryFragment>::@class::C::@field::foo#element
+              element: <testLibrary>::@class::C::@field::foo
               getter2: <testLibraryFragment>::@class::C::@getter::foo
               setter2: <testLibraryFragment>::@class::C::@setter::foo
           constructors
@@ -10093,7 +10093,7 @@ library
           fields
             synthetic foo
               reference: <testLibraryFragment>::@class::A::@field::foo
-              element: <testLibraryFragment>::@class::A::@field::foo#element
+              element: <testLibrary>::@class::A::@field::foo
               getter2: <testLibraryFragment>::@class::A::@getter::foo
           constructors
             synthetic new
@@ -10110,7 +10110,7 @@ library
           fields
             hasInitializer foo @65
               reference: <testLibraryFragment>::@class::B::@field::foo
-              element: <testLibraryFragment>::@class::B::@field::foo#element
+              element: <testLibrary>::@class::B::@field::foo
               getter2: <testLibraryFragment>::@class::B::@getter::foo
           constructors
             synthetic new
@@ -10177,7 +10177,7 @@ library
           fields
             hasInitializer a @16
               reference: <testLibraryFragment>::@class::C::@field::a
-              element: <testLibraryFragment>::@class::C::@field::a#element
+              element: <testLibrary>::@class::C::@field::a
               getter2: <testLibraryFragment>::@class::C::@getter::a
               setter2: <testLibraryFragment>::@class::C::@setter::a
           constructors
@@ -10238,7 +10238,7 @@ library
           fields
             hasInitializer x @14
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
               setter2: <testLibraryFragment>::@class::C::@setter::x
           constructors
@@ -10299,7 +10299,7 @@ library
           fields
             hasInitializer x @14
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
               setter2: <testLibraryFragment>::@class::C::@setter::x
           constructors
@@ -10360,12 +10360,12 @@ library
           fields
             i @14
               reference: <testLibraryFragment>::@class::C::@field::i
-              element: <testLibraryFragment>::@class::C::@field::i#element
+              element: <testLibrary>::@class::C::@field::i
               getter2: <testLibraryFragment>::@class::C::@getter::i
               setter2: <testLibraryFragment>::@class::C::@setter::i
             j @21
               reference: <testLibraryFragment>::@class::C::@field::j
-              element: <testLibraryFragment>::@class::C::@field::j#element
+              element: <testLibrary>::@class::C::@field::j
               getter2: <testLibraryFragment>::@class::C::@getter::j
               setter2: <testLibraryFragment>::@class::C::@setter::j
           constructors
@@ -10453,7 +10453,7 @@ library
           fields
             foo @21
               reference: <testLibraryFragment>::@class::C::@field::foo
-              element: <testLibraryFragment>::@class::C::@field::foo#element
+              element: <testLibrary>::@class::C::@field::foo
               getter2: <testLibraryFragment>::@class::C::@getter::foo
               setter2: <testLibraryFragment>::@class::C::@setter::foo
           constructors
@@ -10518,7 +10518,7 @@ library
           fields
             foo @27
               reference: <testLibraryFragment>::@class::C::@field::foo
-              element: <testLibraryFragment>::@class::C::@field::foo#element
+              element: <testLibrary>::@class::C::@field::foo
               getter2: <testLibraryFragment>::@class::C::@getter::foo
               setter2: <testLibraryFragment>::@class::C::@setter::foo
           constructors
@@ -10583,7 +10583,7 @@ library
           fields
             hasInitializer foo @27
               reference: <testLibraryFragment>::@class::C::@field::foo
-              element: <testLibraryFragment>::@class::C::@field::foo#element
+              element: <testLibrary>::@class::C::@field::foo
               getter2: <testLibraryFragment>::@class::C::@getter::foo
           constructors
             synthetic new
@@ -10648,7 +10648,7 @@ library
           fields
             hasInitializer f @62
               reference: <testLibraryFragment>::@class::B::@field::f
-              element: <testLibraryFragment>::@class::B::@field::f#element
+              element: <testLibrary>::@class::B::@field::f
               getter2: <testLibraryFragment>::@class::B::@getter::f
               setter2: <testLibraryFragment>::@class::B::@setter::f
           constructors
@@ -10730,7 +10730,7 @@ library
           fields
             synthetic foo
               reference: <testLibraryFragment>::@class::A::@field::foo
-              element: <testLibraryFragment>::@class::A::@field::foo#element
+              element: <testLibrary>::@class::A::@field::foo
               getter2: <testLibraryFragment>::@class::A::@getter::foo
           constructors
             synthetic new
@@ -10747,7 +10747,7 @@ library
           fields
             hasInitializer f @64
               reference: <testLibraryFragment>::@class::B::@field::f
-              element: <testLibraryFragment>::@class::B::@field::f#element
+              element: <testLibrary>::@class::B::@field::f
               getter2: <testLibraryFragment>::@class::B::@getter::f
               setter2: <testLibraryFragment>::@class::B::@setter::f
           constructors
@@ -10852,7 +10852,7 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
           constructors
             synthetic new
@@ -10897,7 +10897,7 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
           constructors
             synthetic new
@@ -10942,7 +10942,7 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
           constructors
             synthetic new
@@ -10993,7 +10993,7 @@ library
           fields
             synthetic foo
               reference: <testLibraryFragment>::@class::A::@field::foo
-              element: <testLibraryFragment>::@class::A::@field::foo#element
+              element: <testLibrary>::@class::A::@field::foo
               getter2: <testLibraryFragment>::@class::A::@getter::foo
           constructors
             synthetic new
@@ -11044,7 +11044,7 @@ library
           fields
             synthetic foo
               reference: <testLibraryFragment>::@class::A::@field::foo
-              element: <testLibraryFragment>::@class::A::@field::foo#element
+              element: <testLibrary>::@class::A::@field::foo
               getter2: <testLibraryFragment>::@class::A::@getter::foo
           constructors
             synthetic new
@@ -11095,7 +11095,7 @@ library
           fields
             synthetic foo
               reference: <testLibraryFragment>::@class::A::@field::foo
-              element: <testLibraryFragment>::@class::A::@field::foo#element
+              element: <testLibrary>::@class::A::@field::foo
               getter2: <testLibraryFragment>::@class::A::@getter::foo
           constructors
             synthetic new
@@ -11184,7 +11184,7 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
           constructors
             synthetic new
@@ -11237,7 +11237,7 @@ library
           fields
             synthetic foo
               reference: <testLibraryFragment>::@class::C::@field::foo
-              element: <testLibraryFragment>::@class::C::@field::foo#element
+              element: <testLibrary>::@class::C::@field::foo
               getter2: <testLibraryFragment>::@class::C::@getter::foo
           getters
             get foo @23
@@ -11284,7 +11284,7 @@ library
           fields
             synthetic foo
               reference: <testLibraryFragment>::@class::C::@field::foo
-              element: <testLibraryFragment>::@class::C::@field::foo#element
+              element: <testLibrary>::@class::C::@field::foo
               getter2: <testLibraryFragment>::@class::C::@getter::foo
           getters
             get foo @21
@@ -11325,7 +11325,7 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
           constructors
             synthetic new
@@ -11372,11 +11372,11 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
             synthetic y
               reference: <testLibraryFragment>::@class::C::@field::y
-              element: <testLibraryFragment>::@class::C::@field::y#element
+              element: <testLibrary>::@class::C::@field::y
               getter2: <testLibraryFragment>::@class::C::@getter::y
           constructors
             synthetic new
@@ -11436,7 +11436,7 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
               setter2: <testLibraryFragment>::@class::C::@setter::x
           constructors
@@ -11502,7 +11502,7 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
               setter2: <testLibraryFragment>::@class::C::@setter::x
           constructors
@@ -11668,7 +11668,7 @@ library
           fields
             it @32
               reference: <testLibraryFragment>::@extensionType::B::@field::it
-              element: <testLibraryFragment>::@extensionType::B::@field::it#element
+              element: <testLibrary>::@extensionType::B::@field::it
               getter2: <testLibraryFragment>::@extensionType::B::@getter::it
           getters
             synthetic get it
@@ -11691,7 +11691,7 @@ library
     extension type B
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
-      representation: <testLibraryFragment>::@extensionType::B::@field::it#element
+      representation: <testLibrary>::@extensionType::B::@field::it
       primaryConstructor: <testLibrary>::@extensionType::B::@constructor::B
       typeErasure: int
       fields
@@ -13295,7 +13295,7 @@ library
           fields
             it @32
               reference: <testLibraryFragment>::@extensionType::B::@field::it
-              element: <testLibraryFragment>::@extensionType::B::@field::it#element
+              element: <testLibrary>::@extensionType::B::@field::it
               getter2: <testLibraryFragment>::@extensionType::B::@getter::it
           getters
             synthetic get it
@@ -13320,7 +13320,7 @@ library
     extension type B
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
-      representation: <testLibraryFragment>::@extensionType::B::@field::it#element
+      representation: <testLibrary>::@extensionType::B::@field::it
       primaryConstructor: <testLibrary>::@extensionType::B::@constructor::B
       typeErasure: int
       fields
@@ -15341,7 +15341,7 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               setter2: <testLibraryFragment>::@class::C::@setter::x
           constructors
             synthetic new
@@ -15394,7 +15394,7 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               setter2: <testLibraryFragment>::@class::C::@setter::x
           constructors
             synthetic new
@@ -15447,7 +15447,7 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               setter2: <testLibraryFragment>::@class::C::@setter::x
           constructors
             synthetic new
@@ -15498,7 +15498,7 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               setter2: <testLibraryFragment>::@class::C::@setter::x
           constructors
             synthetic new
@@ -15549,7 +15549,7 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               setter2: <testLibraryFragment>::@class::C::@setter::x
           constructors
             synthetic new
@@ -15612,7 +15612,7 @@ library
           fields
             t @16
               reference: <testLibraryFragment>::@class::A::@field::t
-              element: <testLibraryFragment>::@class::A::@field::t#element
+              element: <testLibrary>::@class::A::@field::t
               getter2: <testLibraryFragment>::@class::A::@getter::t
               setter2: <testLibraryFragment>::@class::A::@setter::t
           constructors
@@ -15637,7 +15637,7 @@ library
           fields
             t @50
               reference: <testLibraryFragment>::@class::B::@field::t
-              element: <testLibraryFragment>::@class::B::@field::t#element
+              element: <testLibrary>::@class::B::@field::t
               getter2: <testLibraryFragment>::@class::B::@getter::t
               setter2: <testLibraryFragment>::@class::B::@setter::t
           constructors
@@ -15670,7 +15670,7 @@ library
           fields
             synthetic t
               reference: <testLibraryFragment>::@class::D::@field::t
-              element: <testLibraryFragment>::@class::D::@field::t#element
+              element: <testLibrary>::@class::D::@field::t
               setter2: <testLibraryFragment>::@class::D::@setter::t
           constructors
             synthetic new
@@ -15784,7 +15784,7 @@ library
           fields
             synthetic f
               reference: <testLibraryFragment>::@class::C::@field::f
-              element: <testLibraryFragment>::@class::C::@field::f#element
+              element: <testLibrary>::@class::C::@field::f
               setter2: <testLibraryFragment>::@class::C::@setter::f
           constructors
             synthetic new
@@ -15804,7 +15804,7 @@ library
           fields
             synthetic f
               reference: <testLibraryFragment>::@class::D::@field::f
-              element: <testLibraryFragment>::@class::D::@field::f#element
+              element: <testLibrary>::@class::D::@field::f
               setter2: <testLibraryFragment>::@class::D::@setter::f
           constructors
             synthetic new
@@ -15879,7 +15879,7 @@ library
           fields
             synthetic f
               reference: <testLibraryFragment>::@class::C::@field::f
-              element: <testLibraryFragment>::@class::C::@field::f#element
+              element: <testLibrary>::@class::C::@field::f
               setter2: <testLibraryFragment>::@class::C::@setter::f
           constructors
             synthetic new
@@ -15930,7 +15930,7 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               setter2: <testLibraryFragment>::@class::C::@setter::x
           constructors
             synthetic new
@@ -15983,7 +15983,7 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               setter2: <testLibraryFragment>::@class::C::@setter::x
           constructors
             synthetic new
@@ -16028,7 +16028,7 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               setter2: <testLibraryFragment>::@class::C::@setter::x
           constructors
             synthetic new
@@ -16079,7 +16079,7 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               setter2: <testLibraryFragment>::@class::C::@setter::x
           constructors
             synthetic new
@@ -16140,7 +16140,7 @@ library
           fields
             synthetic foo
               reference: <testLibraryFragment>::@class::A::@field::foo
-              element: <testLibraryFragment>::@class::A::@field::foo#element
+              element: <testLibrary>::@class::A::@field::foo
               setter2: <testLibraryFragment>::@class::A::@setter::foo
           constructors
             synthetic new
@@ -16197,7 +16197,7 @@ library
           fields
             synthetic foo
               reference: <testLibraryFragment>::@class::A::@field::foo
-              element: <testLibraryFragment>::@class::A::@field::foo#element
+              element: <testLibrary>::@class::A::@field::foo
               setter2: <testLibraryFragment>::@class::A::@setter::foo
           constructors
             synthetic new
@@ -16298,7 +16298,7 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               setter2: <testLibraryFragment>::@class::C::@setter::x
           constructors
             synthetic new
@@ -16357,7 +16357,7 @@ library
           fields
             synthetic foo
               reference: <testLibraryFragment>::@class::C::@field::foo
-              element: <testLibraryFragment>::@class::C::@field::foo#element
+              element: <testLibrary>::@class::C::@field::foo
               setter2: <testLibraryFragment>::@class::C::@setter::foo
           setters
             set foo @19
@@ -16410,7 +16410,7 @@ library
           fields
             synthetic foo
               reference: <testLibraryFragment>::@class::C::@field::foo
-              element: <testLibraryFragment>::@class::C::@field::foo#element
+              element: <testLibrary>::@class::C::@field::foo
               setter2: <testLibraryFragment>::@class::C::@setter::foo
           setters
             set foo @19
@@ -16459,7 +16459,7 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               setter2: <testLibraryFragment>::@class::C::@setter::x
           constructors
             synthetic new
@@ -16515,11 +16515,11 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               setter2: <testLibraryFragment>::@class::C::@setter::x
             synthetic y
               reference: <testLibraryFragment>::@class::C::@field::y
-              element: <testLibraryFragment>::@class::C::@field::y#element
+              element: <testLibrary>::@class::C::@field::y
               setter2: <testLibraryFragment>::@class::C::@setter::y
           constructors
             synthetic new
@@ -16653,7 +16653,7 @@ library
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <testLibraryFragment>::@extensionType::A::@field::it#element
+              element: <testLibrary>::@extensionType::A::@field::it
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             synthetic get it
@@ -16667,7 +16667,7 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
-      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
       typeErasure: int
       fields
@@ -20116,16 +20116,16 @@ library
           fields
             x @105
               reference: <testLibraryFragment>::@class::E::@field::x
-              element: <testLibraryFragment>::@class::E::@field::x#element
+              element: <testLibrary>::@class::E::@field::x
               getter2: <testLibraryFragment>::@class::E::@getter::x
               setter2: <testLibraryFragment>::@class::E::@setter::x
             synthetic a
               reference: <testLibraryFragment>::@class::E::@field::a
-              element: <testLibraryFragment>::@class::E::@field::a#element
+              element: <testLibrary>::@class::E::@field::a
               getter2: <testLibraryFragment>::@class::E::@getter::a
             synthetic b
               reference: <testLibraryFragment>::@class::E::@field::b
-              element: <testLibraryFragment>::@class::E::@field::b#element
+              element: <testLibrary>::@class::E::@field::b
               setter2: <testLibraryFragment>::@class::E::@setter::b
           constructors
             synthetic new
@@ -20290,7 +20290,7 @@ library
           fields
             x @25
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
           constructors
             const named @38
@@ -20391,12 +20391,12 @@ library
           fields
             foo @16
               reference: <testLibraryFragment>::@class::C::@field::foo
-              element: <testLibraryFragment>::@class::C::@field::foo#element
+              element: <testLibrary>::@class::C::@field::foo
               getter2: <testLibraryFragment>::@class::C::@getter::foo
               setter2: <testLibraryFragment>::@class::C::@setter::foo
             synthetic bar
               reference: <testLibraryFragment>::@class::C::@field::bar
-              element: <testLibraryFragment>::@class::C::@field::bar#element
+              element: <testLibrary>::@class::C::@field::bar
               setter2: <testLibraryFragment>::@class::C::@setter::bar
           constructors
             synthetic new
@@ -20476,7 +20476,7 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               setter2: <testLibraryFragment>::@class::C::@setter::x
           constructors
             synthetic new
