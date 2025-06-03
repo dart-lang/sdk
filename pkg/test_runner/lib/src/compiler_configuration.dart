@@ -1409,15 +1409,17 @@ abstract mixin class VMKernelCompilerMixin {
   String tempAssemblyFile(String tempDir) =>
       Path('$tempDir/out.S').toNativePath();
   String tempAOTFile(String tempDir) {
-    switch (_configuration.system) {
-      case System.android:
-      case System.fuchsia:
-      case System.linux:
-        return Path('$tempDir/libout.so').toNativePath();
-      case System.mac:
-        return Path('$tempDir/libout.dylib').toNativePath();
-      case System.win:
-        return Path('$tempDir/out.dll').toNativePath();
+    if (_configuration.genSnapshotFormat == GenSnapshotFormat.assembly) {
+      switch (_configuration.system) {
+        case System.android:
+        case System.fuchsia:
+        case System.linux:
+          return Path('$tempDir/libout.so').toNativePath();
+        case System.mac:
+          return Path('$tempDir/libout.dylib').toNativePath();
+        case System.win:
+          return Path('$tempDir/out.dll').toNativePath();
+      }
     }
     return Path('$tempDir/out.aotsnapshot').toNativePath();
   }
