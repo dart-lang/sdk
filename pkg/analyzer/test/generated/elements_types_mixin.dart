@@ -271,6 +271,11 @@ mixin ElementsTypesMixin {
     field.type = representationType;
     fragment.fields = [field];
 
+    FieldElementImpl2(
+      reference: Reference.root(),
+      firstFragment: field,
+    );
+
     fragment.typeErasure = representationType;
 
     return ExtensionTypeElementImpl2(Reference.root(), fragment);
