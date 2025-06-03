@@ -18,7 +18,38 @@ void main() {
 @reflectiveTest
 class AnalysisErrorIntegrationTest
     extends AbstractAnalysisServerIntegrationTest {
-  Future<void> test_analysisRootDoesNotExist() async {
+  Future<void> test_analysisRootDeleted_rebuildsContexts() async {
+    // To simplify testing, use two analysis roots. When we delete one of them
+    // we can use the notification of diagnostics sent for the other as
+    // validation that contexts were rebuilt.
+    var rootToKeepPath = sourcePath('packageKeep');
+    var filetoKeepPath = sourcePath('packageKeep/lib/test.dart');
+    var rootToDeletePath = sourcePath('packageDelete');
+    var fileToDeletePath = sourcePath('packageDelete/lib/test.dart');
+    var content = 'invalidCode';
+
+    // Create the folders/files up-front.
+    writeFile(filetoKeepPath, content);
+    writeFile(fileToDeletePath, content);
+
+    await sendServerSetSubscriptions([ServerService.STATUS]);
+    await sendAnalysisSetAnalysisRoots([rootToKeepPath, rootToDeletePath], []);
+    await analysisFinished;
+
+    // Start listening for the kept root being re-analyzed as a signal that
+    // the rebuild has completed.
+    var keptFileDiagnostics = onAnalysisErrors.firstWhere(
+      (params) => params.file == filetoKeepPath,
+    );
+
+    // Delete the folder which should trigger a rebuild.
+    deleteFolder(rootToDeletePath);
+
+    // Ensure this completes.
+    await keptFileDiagnostics;
+  }
+
+  Future<void> test_analysisRootDoesNotExist_addOverlay() async {
     var packagePath = sourcePath('package');
     var filePath = sourcePath('package/lib/test.dart');
     var content = '''
@@ -44,6 +75,78 @@ void f() {
     var errors = existingErrorsForFile(filePath);
     expect(errors, hasLength(1));
     expect(errors[0].location.file, equals(filePath));
+  }
+
+  @SkippedTest(
+    reason:
+        'Analysis roots created after watchers are set up are not '
+        'currently detected',
+  )
+  Future<void> test_analysisRootDoesNotExist_createdLater() async {
+    var packagePath = sourcePath('package');
+    var filePath = sourcePath('package/lib/test.dart');
+    var content = 'invalidCode';
+    await sendServerSetSubscriptions([ServerService.STATUS]);
+    await sendAnalysisSetAnalysisRoots([packagePath], []);
+    await analysisFinished;
+
+    // Expect no errors because folder/file do not exist.
+    expect(currentAnalysisErrors[filePath], isNull);
+
+    // Create folder/file and wait for analysis to complete.
+    writeFile(filePath, content);
+    await analysisFinished;
+
+    // Expect errors from the invalid code.
+    expect(currentAnalysisErrors[filePath], isNotNull);
+  }
+
+  @SkippedTest(
+    reason:
+        'Analysis roots created after watchers are set up are not '
+        'currently detected',
+  )
+  Future<void> test_analysisRootDoesNotExist_deletedAndRecreated() async {
+    // To simplify testing, use two analysis roots. When we delete one of them
+    // we can use the notification of diagnostics sent for the other as
+    // validation that contexts were rebuilt.
+    var rootToKeepPath = sourcePath('packageKeep');
+    var filetoKeepPath = sourcePath('packageKeep/lib/test.dart');
+    var rootToDeletePath = sourcePath('packageDelete');
+    var fileToDeletePath = sourcePath('packageDelete/lib/test.dart');
+    var content = 'invalidCode';
+
+    // Create the folders/files up-front.
+    writeFile(filetoKeepPath, content);
+    writeFile(fileToDeletePath, content);
+
+    await sendServerSetSubscriptions([ServerService.STATUS]);
+    await sendAnalysisSetAnalysisRoots([rootToKeepPath, rootToDeletePath], []);
+    await analysisFinished;
+
+    // Expect errors from the invalid code.
+    expect(currentAnalysisErrors[fileToDeletePath], isNotNull);
+
+    // Start listening for the kept root being re-analyzed as a signal that
+    // the original rebuild has completed.
+    var keptFileDiagnostics = onAnalysisErrors.firstWhere(
+      (params) => params.file == filetoKeepPath,
+    );
+
+    // Delete the folder.
+    deleteFolder(rootToDeletePath);
+    await analysisFinished;
+    await keptFileDiagnostics;
+
+    // Expect the errors were removed.
+    expect(currentAnalysisErrors[fileToDeletePath], isNull);
+
+    // Re-create the folder/file.
+    writeFile(fileToDeletePath, content);
+    await analysisFinished;
+
+    // Expect errors returned.
+    expect(currentAnalysisErrors[fileToDeletePath], isNotNull);
   }
 
   Future<void> test_detect_simple_error() async {
