@@ -2440,7 +2440,7 @@ AssignmentExpression
           name: B
           element2: <testLibrary>::@class::B
           type: B
-        element: <testLibraryFragment>::@class::B::@constructor::new#element
+        element: <testLibrary>::@class::B::@constructor::new
       argumentList: ArgumentList
         leftParenthesis: (
         rightParenthesis: )
@@ -4491,7 +4491,7 @@ AssignmentExpression
         name: C
         element2: <testLibrary>::@class::C
         type: C
-      element: <testLibraryFragment>::@class::C::@constructor::new#element
+      element: <testLibrary>::@class::C::@constructor::new
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
@@ -5108,7 +5108,7 @@ AssignmentExpression
         name: C
         element2: <testLibrary>::@class::C
         type: C
-      element: <testLibraryFragment>::@class::C::@constructor::new#element
+      element: <testLibrary>::@class::C::@constructor::new
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )

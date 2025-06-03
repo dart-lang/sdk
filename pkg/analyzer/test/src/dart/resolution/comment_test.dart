@@ -41,9 +41,9 @@ CommentReference
     period: .
     identifier: SimpleIdentifier
       token: named
-      element: <testLibraryFragment>::@class::A::@constructor::named#element
+      element: <testLibrary>::@class::A::@constructor::named
       staticType: null
-    element: <testLibraryFragment>::@class::A::@constructor::named#element
+    element: <testLibrary>::@class::A::@constructor::named
     staticType: null
 ''');
   }
@@ -68,9 +68,9 @@ CommentReference
     period: .
     identifier: SimpleIdentifier
       token: new
-      element: <testLibraryFragment>::@class::A::@constructor::new#element
+      element: <testLibrary>::@class::A::@constructor::new
       staticType: null
-    element: <testLibraryFragment>::@class::A::@constructor::new#element
+    element: <testLibrary>::@class::A::@constructor::new
     staticType: null
 ''');
   }
@@ -356,9 +356,9 @@ CommentReference
     period: .
     identifier: SimpleIdentifier
       token: named
-      element: package:test/foo.dart::<fragment>::@class::A::@constructor::named#element
+      element: package:test/foo.dart::@class::A::@constructor::named
       staticType: null
-    element: package:test/foo.dart::<fragment>::@class::A::@constructor::named#element
+    element: package:test/foo.dart::@class::A::@constructor::named
     staticType: null
 ''');
   }
@@ -387,9 +387,9 @@ CommentReference
     period: .
     identifier: SimpleIdentifier
       token: new
-      element: package:test/foo.dart::<fragment>::@class::A::@constructor::new#element
+      element: package:test/foo.dart::@class::A::@constructor::new
       staticType: null
-    element: package:test/foo.dart::<fragment>::@class::A::@constructor::new#element
+    element: package:test/foo.dart::@class::A::@constructor::new
     staticType: null
 ''');
   }
@@ -930,7 +930,7 @@ CommentReference
     operator: .
     propertyName: SimpleIdentifier
       token: named
-      element: <testLibraryFragment>::@class::A::@constructor::named#element
+      element: <testLibrary>::@class::A::@constructor::named
       staticType: null
     staticType: null
 ''');
@@ -965,7 +965,7 @@ CommentReference
     operator: .
     propertyName: SimpleIdentifier
       token: new
-      element: <testLibraryFragment>::@class::A::@constructor::new#element
+      element: <testLibrary>::@class::A::@constructor::new
       staticType: null
     staticType: null
 ''');
@@ -1869,7 +1869,7 @@ CommentReference
   newKeyword: new
   expression: SimpleIdentifier
     token: A
-    element: package:test/foo.dart::<fragment>::@class::A::@constructor::new#element
+    element: package:test/foo.dart::@class::A::@constructor::new
     staticType: null
 ''');
 
@@ -1884,9 +1884,9 @@ CommentReference
     period: .
     identifier: SimpleIdentifier
       token: named
-      element: package:test/foo.dart::<fragment>::@class::A::@constructor::named#element
+      element: package:test/foo.dart::@class::A::@constructor::named
       staticType: null
-    element: package:test/foo.dart::<fragment>::@class::A::@constructor::named#element
+    element: package:test/foo.dart::@class::A::@constructor::named
     staticType: null
 ''');
   }
@@ -2062,7 +2062,7 @@ CommentReference
   newKeyword: new
   expression: SimpleIdentifier
     token: A
-    element: <testLibraryFragment>::@class::A::@constructor::new#element
+    element: <testLibrary>::@class::A::@constructor::new
     staticType: null
 ''');
 
@@ -2077,9 +2077,9 @@ CommentReference
     period: .
     identifier: SimpleIdentifier
       token: named
-      element: <testLibraryFragment>::@class::A::@constructor::named#element
+      element: <testLibrary>::@class::A::@constructor::named
       staticType: null
-    element: <testLibraryFragment>::@class::A::@constructor::named#element
+    element: <testLibrary>::@class::A::@constructor::named
     staticType: null
 ''');
   }

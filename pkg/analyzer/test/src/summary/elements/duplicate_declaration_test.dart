@@ -65,7 +65,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@def::0::@constructor::new
-              element: <testLibraryFragment>::@class::A::@def::0::@constructor::new#element
+              element: <testLibrary>::@class::A::@def::0::@constructor::new
               typeName: A
           getters
             synthetic get f01
@@ -98,7 +98,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@def::1::@constructor::new
-              element: <testLibraryFragment>::@class::A::@def::1::@constructor::new#element
+              element: <testLibrary>::@class::A::@def::1::@constructor::new
               typeName: A
           getters
             synthetic get f11
@@ -131,7 +131,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@def::2::@constructor::new
-              element: <testLibraryFragment>::@class::A::@def::2::@constructor::new#element
+              element: <testLibrary>::@class::A::@def::2::@constructor::new
               typeName: A
           getters
             synthetic get f21
@@ -249,13 +249,13 @@ library
           constructors
             named @14
               reference: <testLibraryFragment>::@class::A::@constructor::named::@def::0
-              element: <testLibraryFragment>::@class::A::@constructor::named::@def::0#element
+              element: <testLibrary>::@class::A::@constructor::named::@def::0
               typeName: A
               typeNameOffset: 12
               periodOffset: 13
             named @27
               reference: <testLibraryFragment>::@class::A::@constructor::named::@def::1
-              element: <testLibraryFragment>::@class::A::@constructor::named::@def::1#element
+              element: <testLibrary>::@class::A::@constructor::named::@def::1
               typeName: A
               typeNameOffset: 25
               periodOffset: 26
@@ -303,7 +303,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
             synthetic get foo
@@ -387,7 +387,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
             foo @17
@@ -436,7 +436,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
         class B @17
           reference: <testLibraryFragment>::@class::B
@@ -444,7 +444,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
         class X @28
           reference: <testLibraryFragment>::@class::X::@def::0
@@ -452,7 +452,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::X::@def::0::@constructor::new
-              element: <testLibraryFragment>::@class::X::@def::0::@constructor::new#element
+              element: <testLibrary>::@class::X::@def::0::@constructor::new
               typeName: X
         class X @48
           reference: <testLibraryFragment>::@class::X::@def::1
@@ -460,7 +460,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::X::@def::1::@constructor::new
-              element: <testLibraryFragment>::@class::X::@def::1::@constructor::new#element
+              element: <testLibrary>::@class::X::@def::1::@constructor::new
               typeName: X
       mixins
         mixin M @68
@@ -494,8 +494,8 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
-          superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
+          superConstructor: <testLibrary>::@class::A::@constructor::new
     class alias X
       reference: <testLibrary>::@class::X::@def::1
       firstFragment: <testLibraryFragment>::@class::X::@def::1
@@ -511,8 +511,8 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
-          superConstructor: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
+          superConstructor: <testLibrary>::@class::B::@constructor::new
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
@@ -549,7 +549,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E::@def::0
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@def::0::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@def::0::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -565,7 +565,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E::@def::0
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@def::0::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@def::0::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -592,7 +592,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@enum::E::@def::0::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@def::0::@constructor::new#element
+              element: <testLibrary>::@enum::E::@def::0::@constructor::new
               typeName: E
           getters
             synthetic get a
@@ -618,7 +618,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E::@def::0
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@def::0::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@def::0::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -634,7 +634,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E::@def::0
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@def::0::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@def::0::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -650,7 +650,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E::@def::0
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@def::0::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@def::0::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -681,7 +681,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@enum::E::@def::1::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@def::1::@constructor::new#element
+              element: <testLibrary>::@enum::E::@def::1::@constructor::new
               typeName: E
           getters
             synthetic get c
@@ -920,7 +920,7 @@ library
           constructors
             new
               reference: <testLibraryFragment>::@extensionType::E::@def::0::@constructor::new
-              element: <testLibraryFragment>::@extensionType::E::@def::0::@constructor::new#element
+              element: <testLibrary>::@extensionType::E::@def::0::@constructor::E
               typeName: E
               typeNameOffset: 15
               formalParameters
@@ -941,7 +941,7 @@ library
           constructors
             new
               reference: <testLibraryFragment>::@extensionType::E::@def::1::@constructor::new
-              element: <testLibraryFragment>::@extensionType::E::@def::1::@constructor::new#element
+              element: <testLibrary>::@extensionType::E::@def::1::@constructor::E
               typeName: E
               typeNameOffset: 43
               formalParameters
@@ -956,7 +956,7 @@ library
       reference: <testLibrary>::@extensionType::E::@def::0
       firstFragment: <testLibraryFragment>::@extensionType::E::@def::0
       representation: <testLibraryFragment>::@extensionType::E::@def::0::@field::it#element
-      primaryConstructor: <testLibraryFragment>::@extensionType::E::@def::0::@constructor::new#element
+      primaryConstructor: <testLibrary>::@extensionType::E::@def::0::@constructor::E
       typeErasure: int
       fields
         final it
@@ -977,7 +977,7 @@ library
       reference: <testLibrary>::@extensionType::E::@def::1
       firstFragment: <testLibraryFragment>::@extensionType::E::@def::1
       representation: <testLibraryFragment>::@extensionType::E::@def::1::@field::it#element
-      primaryConstructor: <testLibraryFragment>::@extensionType::E::@def::1::@constructor::new#element
+      primaryConstructor: <testLibrary>::@extensionType::E::@def::1::@constructor::E
       typeErasure: double
       fields
         final it

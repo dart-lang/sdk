@@ -1589,7 +1589,7 @@ const c = C<int>.foo;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 C<int> Function()
-  element: <testLibraryFragment>::@class::C::@constructor::foo#element
+  element: <testLibrary>::@class::C::@constructor::foo
   typeArguments
     int
   variable: <testLibrary>::@topLevelVariable::c
@@ -1606,7 +1606,7 @@ const c = C<int>.new;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 C<int> Function()
-  element: <testLibraryFragment>::@class::C::@constructor::new#element
+  element: <testLibrary>::@class::C::@constructor::new
   typeArguments
     int
   variable: <testLibrary>::@topLevelVariable::c
@@ -1898,7 +1898,7 @@ const c = C<int>.foo;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 C<int> Function()
-  element: <testLibraryFragment>::@class::C::@constructor::foo#element
+  element: <testLibrary>::@class::C::@constructor::foo
   typeArguments
     int
   variable: <testLibrary>::@topLevelVariable::c
@@ -1915,7 +1915,7 @@ const c = C<int>.new;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 C<int> Function()
-  element: <testLibraryFragment>::@class::C::@constructor::new#element
+  element: <testLibrary>::@class::C::@constructor::new
   typeArguments
     int
   variable: <testLibrary>::@topLevelVariable::c

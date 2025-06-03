@@ -932,7 +932,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::main::@constructor::new
-              element: <testLibraryFragment>::@class::main::@constructor::new#element
+              element: <testLibrary>::@class::main::@constructor::new
               typeName: main
   classes
     class main
@@ -961,7 +961,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::main::@constructor::new
-              element: <testLibraryFragment>::@class::main::@constructor::new#element
+              element: <testLibrary>::@class::main::@constructor::new
               typeName: main
         class C @29
           reference: <testLibraryFragment>::@class::C
@@ -969,7 +969,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
         class D @40
           reference: <testLibraryFragment>::@class::D
@@ -977,7 +977,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::D::@constructor::new
-              element: <testLibraryFragment>::@class::D::@constructor::new#element
+              element: <testLibrary>::@class::D::@constructor::new
               typeName: D
   classes
     class alias main
@@ -995,8 +995,8 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
-          superConstructor: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
+          superConstructor: <testLibrary>::@class::C::@constructor::new
     class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C

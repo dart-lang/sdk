@@ -715,7 +715,7 @@ InstanceCreationExpression
       element2: <testLibrary>::@class::A
       type: A<int, String>
     element: ConstructorMember
-      baseElement: <testLibraryFragment>::@class::A::@constructor::new#element
+      baseElement: <testLibrary>::@class::A::@constructor::new
       substitution: {T: int, U: String}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -853,7 +853,7 @@ InstanceCreationExpression
       element2: <testLibrary>::@typeAlias::X
       type: A<int, String>
     element: ConstructorMember
-      baseElement: <testLibraryFragment>::@class::A::@constructor::new#element
+      baseElement: <testLibrary>::@class::A::@constructor::new
       substitution: {T: int, U: String}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -916,11 +916,11 @@ InstanceCreationExpression
     name: SimpleIdentifier
       token: named
       element: ConstructorMember
-        baseElement: package:test/a.dart::<fragment>::@class::A::@constructor::named#element
+        baseElement: package:test/a.dart::@class::A::@constructor::named
         substitution: {T: dynamic}
       staticType: null
     element: ConstructorMember
-      baseElement: package:test/a.dart::<fragment>::@class::A::@constructor::named#element
+      baseElement: package:test/a.dart::@class::A::@constructor::named
       substitution: {T: int}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -985,11 +985,11 @@ InstanceCreationExpression
     name: SimpleIdentifier
       token: named
       element: ConstructorMember
-        baseElement: package:test/a.dart::<fragment>::@class::A::@constructor::named#element
+        baseElement: package:test/a.dart::@class::A::@constructor::named
         substitution: {T: int}
       staticType: null
     element: ConstructorMember
-      baseElement: package:test/a.dart::<fragment>::@class::A::@constructor::named#element
+      baseElement: package:test/a.dart::@class::A::@constructor::named
       substitution: {T: int}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1054,11 +1054,11 @@ InstanceCreationExpression
     name: SimpleIdentifier
       token: new
       element: ConstructorMember
-        baseElement: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
+        baseElement: package:test/a.dart::@class::A::@constructor::new
         substitution: {T: int}
       staticType: null
     element: ConstructorMember
-      baseElement: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
+      baseElement: package:test/a.dart::@class::A::@constructor::new
       substitution: {T: int}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1157,11 +1157,11 @@ InstanceCreationExpression
     name: SimpleIdentifier
       token: named
       element: ConstructorMember
-        baseElement: package:test/a.dart::<fragment>::@class::A::@constructor::named#element
+        baseElement: package:test/a.dart::@class::A::@constructor::named
         substitution: {T: dynamic}
       staticType: null
     element: ConstructorMember
-      baseElement: package:test/a.dart::<fragment>::@class::A::@constructor::named#element
+      baseElement: package:test/a.dart::@class::A::@constructor::named
       substitution: {T: int}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1200,11 +1200,11 @@ InstanceCreationExpression
     name: SimpleIdentifier
       token: named
       element: ConstructorMember
-        baseElement: <testLibraryFragment>::@class::A::@constructor::named#element
+        baseElement: <testLibrary>::@class::A::@constructor::named
         substitution: {T: dynamic}
       staticType: null
     element: ConstructorMember
-      baseElement: <testLibraryFragment>::@class::A::@constructor::named#element
+      baseElement: <testLibrary>::@class::A::@constructor::named
       substitution: {T: int}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1254,11 +1254,11 @@ InstanceCreationExpression
     name: SimpleIdentifier
       token: named
       element: ConstructorMember
-        baseElement: <testLibraryFragment>::@class::A::@constructor::named#element
+        baseElement: <testLibrary>::@class::A::@constructor::named
         substitution: {T: dynamic, U: dynamic}
       staticType: null
     element: ConstructorMember
-      baseElement: <testLibraryFragment>::@class::A::@constructor::named#element
+      baseElement: <testLibrary>::@class::A::@constructor::named
       substitution: {T: dynamic, U: dynamic}
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -1320,11 +1320,11 @@ InstanceCreationExpression
     name: SimpleIdentifier
       token: new
       element: ConstructorMember
-        baseElement: <testLibraryFragment>::@class::A::@constructor::new#element
+        baseElement: <testLibrary>::@class::A::@constructor::new
         substitution: {T: dynamic, U: dynamic}
       staticType: null
     element: ConstructorMember
-      baseElement: <testLibraryFragment>::@class::A::@constructor::new#element
+      baseElement: <testLibrary>::@class::A::@constructor::new
       substitution: {T: dynamic, U: dynamic}
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -1428,7 +1428,7 @@ InstanceCreationExpression
       element2: package:test/a.dart::@class::A
       type: A<int, String>
     element: ConstructorMember
-      baseElement: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
+      baseElement: package:test/a.dart::@class::A::@constructor::new
       substitution: {T: int, U: String}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1574,11 +1574,11 @@ InstanceCreationExpression
     name: SimpleIdentifier
       token: named
       element: ConstructorMember
-        baseElement: <testLibraryFragment>::@class::A::@constructor::named#element
+        baseElement: <testLibrary>::@class::A::@constructor::named
         substitution: {T: dynamic}
       staticType: null
     element: ConstructorMember
-      baseElement: <testLibraryFragment>::@class::A::@constructor::named#element
+      baseElement: <testLibrary>::@class::A::@constructor::named
       substitution: {T: int}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1639,9 +1639,9 @@ ConstructorReference
     period: .
     name: SimpleIdentifier
       token: new
-      element: <testLibraryFragment>::@class::C::@constructor::new#element
+      element: <testLibrary>::@class::C::@constructor::new
       staticType: null
-    element: <testLibraryFragment>::@class::C::@constructor::new#element
+    element: <testLibrary>::@class::C::@constructor::new
   correspondingParameter: <testLibraryFragment>::@setter::f::@parameter::_f#element
   staticType: C Function()
 ''');

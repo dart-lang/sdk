@@ -47,7 +47,7 @@ DotShorthandConstructorInvocation
   constructorName: SimpleIdentifier
     token: fromIterable
     element: ConstructorMember
-      baseElement: dart:async::@fragment::dart:async/stream.dart::@class::Stream::@constructor::fromIterable#element
+      baseElement: dart:async::@class::Stream::@constructor::fromIterable
       substitution: {T: int}
     staticType: null
   argumentList: ArgumentList
@@ -85,7 +85,7 @@ DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: new
-    element: <testLibraryFragment>::@class::C::@constructor::new#element
+    element: <testLibrary>::@class::C::@constructor::new
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
@@ -119,7 +119,7 @@ DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: new
-    element: <testLibraryFragment>::@class::C::@constructor::new#element
+    element: <testLibrary>::@class::C::@constructor::new
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
@@ -153,7 +153,7 @@ DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: named
-    element: <testLibraryFragment>::@class::C::@constructor::named#element
+    element: <testLibrary>::@class::C::@constructor::named
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
@@ -187,7 +187,7 @@ DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: named
-    element: <testLibraryFragment>::@class::C::@constructor::named#element
+    element: <testLibrary>::@class::C::@constructor::named
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
@@ -221,7 +221,7 @@ DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: named
-    element: <testLibraryFragment>::@class::C::@constructor::named#element
+    element: <testLibrary>::@class::C::@constructor::named
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
@@ -289,7 +289,7 @@ DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: named
-    element: <testLibraryFragment>::@class::C::@constructor::named#element
+    element: <testLibrary>::@class::C::@constructor::named
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
@@ -325,7 +325,7 @@ DotShorthandConstructorInvocation
   constructorName: SimpleIdentifier
     token: id
     element: ConstructorMember
-      baseElement: <testLibraryFragment>::@class::C::@constructor::id#element
+      baseElement: <testLibrary>::@class::C::@constructor::id
       substitution: {T: dynamic}
     staticType: null
   argumentList: ArgumentList
@@ -386,7 +386,7 @@ DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: named
-    element: <testLibraryFragment>::@class::C::@constructor::named#element
+    element: <testLibrary>::@class::C::@constructor::named
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
@@ -416,7 +416,7 @@ DotShorthandConstructorInvocation
   constructorName: SimpleIdentifier
     token: filled
     element: ConstructorMember
-      baseElement: dart:core::<fragment>::@class::List::@constructor::filled#element
+      baseElement: dart:core::@class::List::@constructor::filled
       substitution: {E: String}
     staticType: null
   argumentList: ArgumentList
@@ -456,7 +456,7 @@ DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: named
-    element: <testLibraryFragment>::@class::C::@constructor::named#element
+    element: <testLibrary>::@class::C::@constructor::named
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
@@ -491,7 +491,7 @@ DotShorthandConstructorInvocation
   constructorName: SimpleIdentifier
     token: new
     element: ConstructorMember
-      baseElement: <testLibraryFragment>::@class::C::@constructor::new#element
+      baseElement: <testLibrary>::@class::C::@constructor::new
       substitution: {T: C<dynamic>}
     staticType: null
   argumentList: ArgumentList
@@ -537,7 +537,7 @@ DotShorthandConstructorInvocation
   constructorName: SimpleIdentifier
     token: new
     element: ConstructorMember
-      baseElement: <testLibraryFragment>::@class::C::@constructor::new#element
+      baseElement: <testLibrary>::@class::C::@constructor::new
       substitution: {T: C<dynamic>}
     staticType: null
   argumentList: ArgumentList
@@ -577,7 +577,7 @@ DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: new
-    element: <testLibraryFragment>::@class::C::@constructor::new#element
+    element: <testLibrary>::@class::C::@constructor::new
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (

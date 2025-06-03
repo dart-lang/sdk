@@ -205,7 +205,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
             m @42
@@ -327,7 +327,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 21
         class B @64
@@ -336,7 +336,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
     class A
@@ -381,7 +381,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 21
       topLevelVariables
@@ -428,7 +428,7 @@ library
                 leftParenthesis: ( @55
                 rightParenthesis: ) @56
               element2: ConstructorMember
-                baseElement: <testLibraryFragment>::@class::A::@constructor::new#element
+                baseElement: <testLibrary>::@class::A::@constructor::new
                 substitution: {T: int Function(String)}
           getter2: <testLibraryFragment>::@getter::v
           setter2: <testLibraryFragment>::@setter::v
@@ -496,7 +496,7 @@ library
             leftParenthesis: ( @55
             rightParenthesis: ) @56
           element2: ConstructorMember
-            baseElement: <testLibraryFragment>::@class::A::@constructor::new#element
+            baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {T: int Function(String)}
       type: int
       getter: <testLibraryFragment>::@getter::v#element
@@ -539,7 +539,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 21
       topLevelVariables
@@ -589,7 +589,7 @@ library
                   element2: <testLibrary>::@class::A
                   type: A<String Function({int? a})>
                 element: ConstructorMember
-                  baseElement: <testLibraryFragment>::@class::A::@constructor::new#element
+                  baseElement: <testLibrary>::@class::A::@constructor::new
                   substitution: {T: String Function({int? a})}
               argumentList: ArgumentList
                 leftParenthesis: ( @67
@@ -649,7 +649,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 21
       topLevelVariables
@@ -699,7 +699,7 @@ library
                   element2: <testLibrary>::@class::A
                   type: A<String Function([int?])>
                 element: ConstructorMember
-                  baseElement: <testLibraryFragment>::@class::A::@constructor::new#element
+                  baseElement: <testLibrary>::@class::A::@constructor::new
                   substitution: {T: String Function([int?])}
               argumentList: ArgumentList
                 leftParenthesis: ( @67
@@ -759,7 +759,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 21
       topLevelVariables
@@ -809,7 +809,7 @@ library
                   element2: <testLibrary>::@class::A
                   type: A<String Function({required int a})>
                 element: ConstructorMember
-                  baseElement: <testLibraryFragment>::@class::A::@constructor::new#element
+                  baseElement: <testLibrary>::@class::A::@constructor::new
                   substitution: {T: String Function({required int a})}
               argumentList: ArgumentList
                 leftParenthesis: ( @75
@@ -869,7 +869,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 21
       topLevelVariables
@@ -913,7 +913,7 @@ library
                   element2: <testLibrary>::@class::A
                   type: A<String Function(int)>
                 element: ConstructorMember
-                  baseElement: <testLibraryFragment>::@class::A::@constructor::new#element
+                  baseElement: <testLibrary>::@class::A::@constructor::new
                   substitution: {T: String Function(int)}
               argumentList: ArgumentList
                 leftParenthesis: ( @64
@@ -1000,7 +1000,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
         class B @31
           reference: <testLibraryFragment>::@class::B
@@ -1008,7 +1008,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
       mixins
         mixin M @20
@@ -1038,8 +1038,8 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
-          superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
+          superConstructor: <testLibrary>::@class::A::@constructor::new
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M

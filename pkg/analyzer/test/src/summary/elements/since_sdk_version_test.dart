@@ -52,7 +52,7 @@ library
           constructors
             named @55
               reference: dart:foo::<fragment>::@class::A::@constructor::named
-              element: dart:foo::<fragment>::@class::A::@constructor::named#element
+              element: dart:foo::@class::A::@constructor::named
               typeName: A
               typeNameOffset: 53
               periodOffset: 54
@@ -62,7 +62,7 @@ library
           constructors
             named @81
               reference: dart:foo::<fragment>::@class::B::@constructor::named
-              element: dart:foo::<fragment>::@class::B::@constructor::named#element
+              element: dart:foo::@class::B::@constructor::named
               typeName: B
               typeNameOffset: 79
               periodOffset: 80
@@ -399,7 +399,7 @@ library
                       name: E @-1
                       element2: dart:foo::@enum::E
                       type: E
-                    element: dart:foo::<fragment>::@enum::E::@constructor::new#element
+                    element: dart:foo::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -415,7 +415,7 @@ library
                       name: E @-1
                       element2: dart:foo::@enum::E
                       type: E
-                    element: dart:foo::<fragment>::@enum::E::@constructor::new#element
+                    element: dart:foo::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -523,7 +523,7 @@ library
                       name: E @-1
                       element2: dart:foo::@enum::E
                       type: E
-                    element: dart:foo::<fragment>::@enum::E::@constructor::new#element
+                    element: dart:foo::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0

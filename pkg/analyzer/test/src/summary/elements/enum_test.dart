@@ -47,7 +47,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -63,7 +63,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -79,7 +79,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -110,7 +110,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
             synthetic get aaa
@@ -210,7 +210,7 @@ library
                       element2: <testLibrary>::@enum::E
                       type: E<int>
                     element: ConstructorMember
-                      baseElement: <testLibraryFragment>::@enum::E::@constructor::new#element
+                      baseElement: <testLibrary>::@enum::E::@constructor::new
                       substitution: {T: int}
                   argumentList: ArgumentList
                     leftParenthesis: ( @17
@@ -232,7 +232,7 @@ library
                       element2: <testLibrary>::@enum::E
                       type: E<String>
                     element: ConstructorMember
-                      baseElement: <testLibraryFragment>::@enum::E::@constructor::new#element
+                      baseElement: <testLibrary>::@enum::E::@constructor::new
                       substitution: {T: String}
                   argumentList: ArgumentList
                     leftParenthesis: ( @28
@@ -263,7 +263,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 43
               formalParameters
@@ -355,7 +355,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -378,7 +378,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
             synthetic get _name
@@ -460,7 +460,7 @@ library
                       element2: <testLibrary>::@enum::E
                       type: E<double>
                     element: ConstructorMember
-                      baseElement: <testLibraryFragment>::@enum::E::@constructor::new#element
+                      baseElement: <testLibrary>::@enum::E::@constructor::new
                       substitution: {T: double}
                   argumentList: ArgumentList
                     leftParenthesis: ( @23
@@ -488,7 +488,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 37
               formalParameters
@@ -566,7 +566,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -589,7 +589,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
             synthetic get _
@@ -659,7 +659,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -682,13 +682,13 @@ library
           constructors
             factory named @26
               reference: <testLibraryFragment>::@enum::E::@constructor::named
-              element: <testLibraryFragment>::@enum::E::@constructor::named#element
+              element: <testLibrary>::@enum::E::@constructor::named
               typeName: E
               typeNameOffset: 24
               periodOffset: 25
             synthetic const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
             synthetic get v
@@ -760,7 +760,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -783,7 +783,7 @@ library
           constructors
             factory new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 24
           getters
@@ -855,7 +855,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -882,7 +882,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 33
               formalParameters
@@ -975,7 +975,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -1006,7 +1006,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 55
               formalParameters
@@ -1103,7 +1103,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -1126,7 +1126,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 22
               formalParameters
@@ -1204,7 +1204,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -1231,7 +1231,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 37
               formalParameters
@@ -1336,7 +1336,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -1363,7 +1363,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 37
               formalParameters
@@ -1451,7 +1451,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -1478,7 +1478,7 @@ library
           constructors
             new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 27
               formalParameters
@@ -1566,7 +1566,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -1593,7 +1593,7 @@ library
           constructors
             new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 27
               formalParameters
@@ -1683,9 +1683,9 @@ library
                     period: . @0
                     name: SimpleIdentifier
                       token: named @-1
-                      element: <testLibraryFragment>::@enum::E::@constructor::named#element
+                      element: <testLibrary>::@enum::E::@constructor::named
                       staticType: null
-                    element: <testLibraryFragment>::@enum::E::@constructor::named#element
+                    element: <testLibrary>::@enum::E::@constructor::named
                   argumentList: ArgumentList
                     leftParenthesis: ( @18
                     arguments
@@ -1712,7 +1712,7 @@ library
           constructors
             const named @34
               reference: <testLibraryFragment>::@enum::E::@constructor::named
-              element: <testLibraryFragment>::@enum::E::@constructor::named#element
+              element: <testLibrary>::@enum::E::@constructor::named
               typeName: E
               typeNameOffset: 32
               periodOffset: 33
@@ -1790,7 +1790,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @12
                     arguments
@@ -1817,7 +1817,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 26
               formalParameters
@@ -1899,7 +1899,7 @@ library
                       element2: <testLibrary>::@enum::E
                       type: E<dynamic>
                     element: ConstructorMember
-                      baseElement: <testLibraryFragment>::@enum::E::@constructor::new#element
+                      baseElement: <testLibrary>::@enum::E::@constructor::new
                       substitution: {T: dynamic}
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -1927,7 +1927,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 40
               formalParameters
@@ -2041,7 +2041,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -2064,7 +2064,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
             synthetic get v
@@ -2135,7 +2135,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -2166,7 +2166,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
             synthetic get v
@@ -2274,7 +2274,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -2301,7 +2301,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
             synthetic get v
@@ -2373,7 +2373,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::I::@constructor::new
-              element: <testLibraryFragment>::@class::I::@constructor::new#element
+              element: <testLibrary>::@class::I::@constructor::new
               typeName: I
       enums
         enum E @16
@@ -2390,7 +2390,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -2413,7 +2413,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
             synthetic get v
@@ -2502,7 +2502,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -2584,7 +2584,7 @@ library
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
       representation: <testLibraryFragment>::@extensionType::B::@field::it#element
-      primaryConstructor: <testLibraryFragment>::@extensionType::B::@constructor::new#element
+      primaryConstructor: <testLibrary>::@extensionType::B::@constructor::B
       typeErasure: int
       fields
         final it
@@ -2621,7 +2621,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::I::@constructor::new
-              element: <testLibraryFragment>::@class::I::@constructor::new#element
+              element: <testLibrary>::@class::I::@constructor::new
               typeName: I
       enums
         enum E @19
@@ -2642,7 +2642,7 @@ library
                       element2: <testLibrary>::@enum::E
                       type: E<dynamic>
                     element: ConstructorMember
-                      baseElement: <testLibraryFragment>::@enum::E::@constructor::new#element
+                      baseElement: <testLibrary>::@enum::E::@constructor::new
                       substitution: {U: dynamic}
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -2666,7 +2666,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
             synthetic get v
@@ -2742,7 +2742,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::X::@constructor::new
-              element: <testLibraryFragment>::@class::X::@constructor::new#element
+              element: <testLibrary>::@class::X::@constructor::new
               typeName: X
         class Z @17
           reference: <testLibraryFragment>::@class::Z
@@ -2750,7 +2750,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::Z::@constructor::new
-              element: <testLibraryFragment>::@class::Z::@constructor::new#element
+              element: <testLibrary>::@class::Z::@constructor::new
               typeName: Z
       enums
         enum E @27
@@ -2767,7 +2767,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -2790,7 +2790,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
             synthetic get v
@@ -2880,7 +2880,7 @@ library
                       element2: <testLibrary>::@enum::E
                       type: E<dynamic>
                     element: ConstructorMember
-                      baseElement: <testLibraryFragment>::@enum::E::@constructor::new#element
+                      baseElement: <testLibrary>::@enum::E::@constructor::new
                       substitution: {T: dynamic}
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -2904,7 +2904,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
             synthetic get v
@@ -3001,7 +3001,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -3024,7 +3024,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
             synthetic get v
@@ -3123,7 +3123,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@enum::0::@constructor::new
-              element: <testLibraryFragment>::@enum::0::@constructor::new#element
+              element: <testLibrary>::@enum::0::@constructor::new
               typeName: null
           getters
             synthetic get v
@@ -3193,7 +3193,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -3216,7 +3216,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
             synthetic get v
@@ -3308,7 +3308,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -3390,7 +3390,7 @@ library
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
       representation: <testLibraryFragment>::@extensionType::B::@field::it#element
-      primaryConstructor: <testLibraryFragment>::@extensionType::B::@constructor::new#element
+      primaryConstructor: <testLibrary>::@extensionType::B::@constructor::B
       typeErasure: int
       fields
         final it
@@ -3433,7 +3433,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -3456,7 +3456,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
             synthetic get v
@@ -3557,7 +3557,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -3584,7 +3584,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
             synthetic get v
@@ -3675,7 +3675,7 @@ library
                       element2: <testLibrary>::@enum::E
                       type: E<dynamic>
                     element: ConstructorMember
-                      baseElement: <testLibraryFragment>::@enum::E::@constructor::new#element
+                      baseElement: <testLibrary>::@enum::E::@constructor::new
                       substitution: {T: dynamic}
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -3699,7 +3699,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
             synthetic get v
@@ -3776,7 +3776,7 @@ library
                       element2: <testLibrary>::@enum::E
                       type: E<num, num>
                     element: ConstructorMember
-                      baseElement: <testLibraryFragment>::@enum::E::@constructor::new#element
+                      baseElement: <testLibrary>::@enum::E::@constructor::new
                       substitution: {T: num, U: num}
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -3800,7 +3800,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
             synthetic get v
@@ -3877,7 +3877,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
             synthetic get values
@@ -3943,7 +3943,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
             synthetic get values
@@ -4009,7 +4009,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
             synthetic get values
@@ -4071,7 +4071,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
             synthetic get values
@@ -4132,7 +4132,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
             synthetic get values
@@ -4193,7 +4193,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
             synthetic get values
@@ -4258,7 +4258,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
             synthetic get values
@@ -4322,7 +4322,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -4338,7 +4338,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -4365,7 +4365,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
             synthetic get a
@@ -4456,7 +4456,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -4472,7 +4472,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -4499,7 +4499,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
             synthetic get a
@@ -4605,7 +4605,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -4621,7 +4621,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -4648,7 +4648,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
             synthetic get v
@@ -4726,7 +4726,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -4742,7 +4742,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -4769,7 +4769,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
             synthetic get v1
@@ -4847,7 +4847,7 @@ library
                       name: E1 @-1
                       element2: <testLibrary>::@enum::E1
                       type: E1
-                    element: <testLibraryFragment>::@enum::E1::@constructor::new#element
+                    element: <testLibrary>::@enum::E1::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -4870,7 +4870,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@enum::E1::@constructor::new
-              element: <testLibraryFragment>::@enum::E1::@constructor::new#element
+              element: <testLibrary>::@enum::E1::@constructor::new
               typeName: E1
           getters
             synthetic get v1
@@ -4893,7 +4893,7 @@ library
                       name: E2 @-1
                       element2: <testLibrary>::@enum::E2
                       type: E2
-                    element: <testLibraryFragment>::@enum::E2::@constructor::new#element
+                    element: <testLibrary>::@enum::E2::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -4916,7 +4916,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@enum::E2::@constructor::new
-              element: <testLibraryFragment>::@enum::E2::@constructor::new#element
+              element: <testLibrary>::@enum::E2::@constructor::new
               typeName: E2
           getters
             synthetic get v2
@@ -5020,7 +5020,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::M::@constructor::new
-              element: <testLibraryFragment>::@class::M::@constructor::new#element
+              element: <testLibrary>::@class::M::@constructor::new
               typeName: M
         class A @36
           reference: <testLibraryFragment>::@class::A
@@ -5028,7 +5028,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
             foo @52
@@ -5040,7 +5040,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
             foo @92
@@ -5052,7 +5052,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
             foo @141
@@ -5064,7 +5064,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@class::D::@constructor::new
-              element: <testLibraryFragment>::@class::D::@constructor::new#element
+              element: <testLibrary>::@class::D::@constructor::new
               typeName: D
       enums
         enum E @5
@@ -5081,7 +5081,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -5097,7 +5097,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -5113,7 +5113,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -5144,7 +5144,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
             synthetic get a
@@ -5219,7 +5219,7 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
-              element: dart:core::<fragment>::@class::Object::@constructor::new#element
+              element: dart:core::@class::Object::@constructor::new
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -5296,7 +5296,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -5319,7 +5319,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
             synthetic get v
@@ -5418,7 +5418,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 41
               formalParameters
@@ -5443,7 +5443,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -5459,7 +5459,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -5475,7 +5475,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -5506,7 +5506,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
             synthetic get a
@@ -5621,7 +5621,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -5644,7 +5644,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
             synthetic get v
@@ -5716,7 +5716,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -5739,7 +5739,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               metadata
                 Annotation
                   atSign: @ @30
@@ -5854,7 +5854,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -5877,7 +5877,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
             synthetic get v
@@ -6015,7 +6015,7 @@ library
                       element2: <testLibrary>::@enum::E
                       type: E<dynamic>
                     element: ConstructorMember
-                      baseElement: <testLibraryFragment>::@enum::E::@constructor::new#element
+                      baseElement: <testLibrary>::@enum::E::@constructor::new
                       substitution: {T: dynamic}
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -6047,7 +6047,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
             synthetic get v
@@ -6203,7 +6203,7 @@ library
                       element2: <testLibrary>::@enum::E
                       type: E<dynamic>
                     element: ConstructorMember
-                      baseElement: <testLibraryFragment>::@enum::E::@constructor::new#element
+                      baseElement: <testLibrary>::@enum::E::@constructor::new
                       substitution: {T: dynamic}
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -6227,7 +6227,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
             synthetic get v
@@ -6328,7 +6328,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -6351,7 +6351,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
             synthetic get v

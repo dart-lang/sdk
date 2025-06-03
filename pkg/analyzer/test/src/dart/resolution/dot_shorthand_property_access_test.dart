@@ -627,7 +627,7 @@ DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: id
-    element: <testLibraryFragment>::@class::C1::@constructor::id#element
+    element: <testLibrary>::@class::C1::@constructor::id
     staticType: C1 Function()
   correspondingParameter: <testLibraryFragment>::@class::C1::@method::==::@parameter::other#element
   staticType: C1 Function()
@@ -677,7 +677,7 @@ DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: new
-    element: <testLibraryFragment>::@class::C::@constructor::new#element
+    element: <testLibrary>::@class::C::@constructor::new
     staticType: C<T> Function(T)
   correspondingParameter: <null>
   staticType: C<T> Function(T)
@@ -698,7 +698,7 @@ DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: new
-    element: dart:core::<fragment>::@class::Object::@constructor::new#element
+    element: dart:core::@class::Object::@constructor::new
     staticType: Object Function()
   staticType: Object Function()
 ''');

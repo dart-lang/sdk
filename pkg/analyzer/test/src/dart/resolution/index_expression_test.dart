@@ -495,7 +495,7 @@ IndexExpression
               name: A
               element2: <testLibrary>::@class::A
               type: A
-            element: <testLibraryFragment>::@class::A::@constructor::new#element
+            element: <testLibrary>::@class::A::@constructor::new
           argumentList: ArgumentList
             leftParenthesis: (
             rightParenthesis: )
@@ -1074,7 +1074,7 @@ AssignmentExpression
                 name: A
                 element2: <testLibrary>::@class::A
                 type: A
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
             argumentList: ArgumentList
               leftParenthesis: (
               rightParenthesis: )

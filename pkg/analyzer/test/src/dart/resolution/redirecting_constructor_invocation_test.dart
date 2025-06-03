@@ -31,7 +31,7 @@ RedirectingConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: named
-    element: <testLibraryFragment>::@class::C::@constructor::named#element
+    element: <testLibrary>::@class::C::@constructor::named
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
@@ -41,7 +41,7 @@ RedirectingConstructorInvocation
         correspondingParameter: <testLibraryFragment>::@class::C::@constructor::named::@parameter::a#element
         staticType: int
     rightParenthesis: )
-  element: <testLibraryFragment>::@class::C::@constructor::named#element
+  element: <testLibrary>::@class::C::@constructor::named
 ''');
   }
 
@@ -102,7 +102,7 @@ RedirectingConstructorInvocation
         correspondingParameter: <testLibraryFragment>::@class::C::@constructor::new::@parameter::a#element
         staticType: int
     rightParenthesis: )
-  element: <testLibraryFragment>::@class::C::@constructor::new#element
+  element: <testLibrary>::@class::C::@constructor::new
 ''');
   }
 

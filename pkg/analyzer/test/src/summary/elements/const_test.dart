@@ -290,7 +290,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
             synthetic get f1
@@ -375,7 +375,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 34
               formalParameters
@@ -383,7 +383,7 @@ library
                   element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::t#element
             const named @55
               reference: <testLibraryFragment>::@class::C::@constructor::named
-              element: <testLibraryFragment>::@class::C::@constructor::named#element
+              element: <testLibrary>::@class::C::@constructor::named
               typeName: C
               typeNameOffset: 53
               periodOffset: 54
@@ -407,7 +407,7 @@ library
                   element2: <testLibrary>::@class::C
                   type: C<int>
                 element: ConstructorMember
-                  baseElement: <testLibraryFragment>::@class::C::@constructor::new#element
+                  baseElement: <testLibrary>::@class::C::@constructor::new
                   substitution: {T: int}
               argumentList: ArgumentList
                 leftParenthesis: ( @96
@@ -433,11 +433,11 @@ library
                 name: SimpleIdentifier
                   token: named @126
                   element: ConstructorMember
-                    baseElement: <testLibraryFragment>::@class::C::@constructor::named#element
+                    baseElement: <testLibrary>::@class::C::@constructor::named
                     substitution: {T: dynamic}
                   staticType: null
                 element: ConstructorMember
-                  baseElement: <testLibraryFragment>::@class::C::@constructor::named#element
+                  baseElement: <testLibrary>::@class::C::@constructor::named
                   substitution: {T: int}
               argumentList: ArgumentList
                 leftParenthesis: ( @131
@@ -538,7 +538,7 @@ library
           constructors
             named @14
               reference: <testLibraryFragment>::@class::A::@constructor::named
-              element: <testLibraryFragment>::@class::A::@constructor::named#element
+              element: <testLibrary>::@class::A::@constructor::named
               typeName: A
               typeNameOffset: 12
               periodOffset: 13
@@ -556,9 +556,9 @@ library
                 period: . @36
                 name: SimpleIdentifier
                   token: named @37
-                  element: <testLibraryFragment>::@class::A::@constructor::named#element
+                  element: <testLibrary>::@class::A::@constructor::named
                   staticType: null
-                element: <testLibraryFragment>::@class::A::@constructor::named#element
+                element: <testLibrary>::@class::A::@constructor::named
               staticType: A Function()
           getter2: <testLibraryFragment>::@getter::v
       getters
@@ -609,7 +609,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 18
       topLevelVariables
@@ -622,7 +622,7 @@ library
               period: . @44
               constructorName: SimpleIdentifier
                 token: new @45
-                element: <testLibraryFragment>::@class::A::@constructor::new#element
+                element: <testLibrary>::@class::A::@constructor::new
                 staticType: null
               argumentList: ArgumentList
                 leftParenthesis: ( @48
@@ -677,7 +677,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 18
       topLevelVariables
@@ -689,7 +689,7 @@ library
               period: . @38
               constructorName: SimpleIdentifier
                 token: new @39
-                element: <testLibraryFragment>::@class::A::@constructor::new#element
+                element: <testLibrary>::@class::A::@constructor::new
                 staticType: null
               argumentList: ArgumentList
                 leftParenthesis: ( @42
@@ -753,7 +753,7 @@ library
                       name: A @31
                       element2: <testLibrary>::@class::A
                       type: A
-                    element: <testLibraryFragment>::@class::A::@constructor::new#element
+                    element: <testLibrary>::@class::A::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @32
                     rightParenthesis: ) @33
@@ -762,7 +762,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 44
           getters
@@ -850,7 +850,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 38
           getters
@@ -1155,7 +1155,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@class::P::@constructor::new
-              element: <testLibraryFragment>::@class::P::@constructor::new#element
+              element: <testLibrary>::@class::P::@constructor::new
               typeName: P
               typeNameOffset: 21
         class P1 @35
@@ -1167,7 +1167,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@class::P1::@constructor::new
-              element: <testLibraryFragment>::@class::P1::@constructor::new#element
+              element: <testLibrary>::@class::P1::@constructor::new
               typeName: P1
               typeNameOffset: 64
         class P2 @79
@@ -1179,7 +1179,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@class::P2::@constructor::new
-              element: <testLibraryFragment>::@class::P2::@constructor::new#element
+              element: <testLibrary>::@class::P2::@constructor::new
               typeName: P2
               typeNameOffset: 108
       topLevelVariables
@@ -1197,7 +1197,7 @@ library
                       element2: <testLibrary>::@class::P1
                       type: P1<dynamic>
                     element: ConstructorMember
-                      baseElement: <testLibraryFragment>::@class::P1::@constructor::new#element
+                      baseElement: <testLibrary>::@class::P1::@constructor::new
                       substitution: {T: dynamic}
                   argumentList: ArgumentList
                     leftParenthesis: ( @146
@@ -1218,7 +1218,7 @@ library
                       element2: <testLibrary>::@class::P2
                       type: P2<int>
                     element: ConstructorMember
-                      baseElement: <testLibraryFragment>::@class::P2::@constructor::new#element
+                      baseElement: <testLibrary>::@class::P2::@constructor::new
                       substitution: {T: int}
                   argumentList: ArgumentList
                     leftParenthesis: ( @159
@@ -1249,7 +1249,7 @@ library
       constructors
         const new
           firstFragment: <testLibraryFragment>::@class::P1::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::P::@constructor::new#element
+          superConstructor: <testLibrary>::@class::P::@constructor::new
     class P2
       reference: <testLibrary>::@class::P2
       firstFragment: <testLibraryFragment>::@class::P2
@@ -1259,7 +1259,7 @@ library
       constructors
         const new
           firstFragment: <testLibraryFragment>::@class::P2::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::P::@constructor::new#element
+          superConstructor: <testLibrary>::@class::P::@constructor::new
   topLevelVariables
     const hasInitializer values
       reference: <testLibrary>::@topLevelVariable::values
@@ -1320,7 +1320,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
             synthetic get f
@@ -1382,7 +1382,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
             synthetic get f
@@ -1475,7 +1475,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 19
   classes
@@ -1516,7 +1516,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 19
   classes
@@ -1568,7 +1568,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 39
           getters
@@ -1665,7 +1665,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 18
               formalParameters
@@ -1675,7 +1675,7 @@ library
                   element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::b#element
             const named @51
               reference: <testLibraryFragment>::@class::A::@constructor::named
-              element: <testLibraryFragment>::@class::A::@constructor::named#element
+              element: <testLibrary>::@class::A::@constructor::named
               typeName: A
               typeNameOffset: 49
               periodOffset: 50
@@ -1707,8 +1707,8 @@ library
                     element: <null>
                     staticType: null
                 rightParenthesis: ) @76
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
-          redirectedConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
+          redirectedConstructor: <testLibrary>::@class::A::@constructor::new
 ''');
   }
 
@@ -1734,7 +1734,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 18
               formalParameters
@@ -1748,7 +1748,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
               typeNameOffset: 71
   classes
@@ -1784,8 +1784,8 @@ library
                     element: <null>
                     staticType: null
                 rightParenthesis: ) @93
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
-          superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
+          superConstructor: <testLibrary>::@class::A::@constructor::new
 ''');
   }
 
@@ -2092,7 +2092,7 @@ library
           constructors
             const named @26
               reference: <testLibraryFragment>::@class::C::@constructor::named
-              element: <testLibraryFragment>::@class::C::@constructor::named#element
+              element: <testLibrary>::@class::C::@constructor::named
               typeName: C
               typeNameOffset: 24
               periodOffset: 25
@@ -2129,11 +2129,11 @@ library
                 name: SimpleIdentifier
                   token: named @76
                   element: ConstructorMember
-                    baseElement: <testLibraryFragment>::@class::C::@constructor::named#element
+                    baseElement: <testLibrary>::@class::C::@constructor::named
                     substitution: {K: int, V: String}
                   staticType: null
                 element: ConstructorMember
-                  baseElement: <testLibraryFragment>::@class::C::@constructor::named#element
+                  baseElement: <testLibrary>::@class::C::@constructor::named
                   substitution: {K: int, V: String}
               argumentList: ArgumentList
                 leftParenthesis: ( @81
@@ -2227,11 +2227,11 @@ library
                 name: SimpleIdentifier
                   token: named @48
                   element: ConstructorMember
-                    baseElement: package:test/a.dart::<fragment>::@class::C::@constructor::named#element
+                    baseElement: package:test/a.dart::@class::C::@constructor::named
                     substitution: {K: int, V: String}
                   staticType: null
                 element: ConstructorMember
-                  baseElement: package:test/a.dart::<fragment>::@class::C::@constructor::named#element
+                  baseElement: package:test/a.dart::@class::C::@constructor::named
                   substitution: {K: int, V: String}
               argumentList: ArgumentList
                 leftParenthesis: ( @53
@@ -2317,11 +2317,11 @@ library
                 name: SimpleIdentifier
                   token: named @55
                   element: ConstructorMember
-                    baseElement: package:test/a.dart::<fragment>::@class::C::@constructor::named#element
+                    baseElement: package:test/a.dart::@class::C::@constructor::named
                     substitution: {K: int, V: String}
                   staticType: null
                 element: ConstructorMember
-                  baseElement: package:test/a.dart::<fragment>::@class::C::@constructor::named#element
+                  baseElement: package:test/a.dart::@class::C::@constructor::named
                   substitution: {K: int, V: String}
               argumentList: ArgumentList
                 leftParenthesis: ( @60
@@ -2379,7 +2379,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 24
       topLevelVariables
@@ -2395,7 +2395,7 @@ library
                   element2: <testLibrary>::@class::C
                   type: C<dynamic, dynamic>
                 element: ConstructorMember
-                  baseElement: <testLibraryFragment>::@class::C::@constructor::new#element
+                  baseElement: <testLibrary>::@class::C::@constructor::new
                   substitution: {K: dynamic, V: dynamic}
               argumentList: ArgumentList
                 leftParenthesis: ( @48
@@ -2461,7 +2461,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 34
               formalParameters
@@ -2484,7 +2484,7 @@ library
                   element2: <testLibrary>::@class::A
                   type: A<int>
                 element: ConstructorMember
-                  baseElement: <testLibraryFragment>::@class::A::@constructor::new#element
+                  baseElement: <testLibrary>::@class::A::@constructor::new
                   substitution: {T: int}
               argumentList: ArgumentList
                 leftParenthesis: ( @71
@@ -2563,7 +2563,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 24
       topLevelVariables
@@ -2591,7 +2591,7 @@ library
                   element2: <testLibrary>::@class::C
                   type: C<int, String>
                 element: ConstructorMember
-                  baseElement: <testLibraryFragment>::@class::C::@constructor::new#element
+                  baseElement: <testLibrary>::@class::C::@constructor::new
                   substitution: {K: int, V: String}
               argumentList: ArgumentList
                 leftParenthesis: ( @61
@@ -2671,7 +2671,7 @@ library
                   element2: package:test/a.dart::@class::C
                   type: C<int, String>
                 element: ConstructorMember
-                  baseElement: package:test/a.dart::<fragment>::@class::C::@constructor::new#element
+                  baseElement: package:test/a.dart::@class::C::@constructor::new
                   substitution: {K: int, V: String}
               argumentList: ArgumentList
                 leftParenthesis: ( @47
@@ -2748,7 +2748,7 @@ library
                   element2: package:test/a.dart::@class::C
                   type: C<int, String>
                 element: ConstructorMember
-                  baseElement: package:test/a.dart::<fragment>::@class::C::@constructor::new#element
+                  baseElement: package:test/a.dart::@class::C::@constructor::new
                   substitution: {K: int, V: String}
               argumentList: ArgumentList
                 leftParenthesis: ( @54
@@ -2795,7 +2795,7 @@ library
           constructors
             const named @20
               reference: <testLibraryFragment>::@class::C::@constructor::named
-              element: <testLibraryFragment>::@class::C::@constructor::named#element
+              element: <testLibrary>::@class::C::@constructor::named
               typeName: C
               typeNameOffset: 18
               periodOffset: 19
@@ -2827,9 +2827,9 @@ library
                 period: . @90
                 name: SimpleIdentifier
                   token: named @91
-                  element: <testLibraryFragment>::@class::C::@constructor::named#element
+                  element: <testLibrary>::@class::C::@constructor::named
                   staticType: null
-                element: <testLibraryFragment>::@class::C::@constructor::named#element
+                element: <testLibrary>::@class::C::@constructor::named
               argumentList: ArgumentList
                 leftParenthesis: ( @96
                 arguments
@@ -2937,9 +2937,9 @@ library
                 period: . @34
                 name: SimpleIdentifier
                   token: named @35
-                  element: package:test/a.dart::<fragment>::@class::C::@constructor::named#element
+                  element: package:test/a.dart::@class::C::@constructor::named
                   staticType: null
-                element: package:test/a.dart::<fragment>::@class::C::@constructor::named#element
+                element: package:test/a.dart::@class::C::@constructor::named
               argumentList: ArgumentList
                 leftParenthesis: ( @40
                 rightParenthesis: ) @41
@@ -3005,9 +3005,9 @@ library
                 period: . @41
                 name: SimpleIdentifier
                   token: named @42
-                  element: package:test/a.dart::<fragment>::@class::C::@constructor::named#element
+                  element: package:test/a.dart::@class::C::@constructor::named
                   staticType: null
-                element: package:test/a.dart::<fragment>::@class::C::@constructor::named#element
+                element: package:test/a.dart::@class::C::@constructor::named
               argumentList: ArgumentList
                 leftParenthesis: ( @47
                 rightParenthesis: ) @48
@@ -3051,7 +3051,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       topLevelVariables
         hasInitializer V @17
@@ -3364,7 +3364,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       topLevelVariables
         hasInitializer V @20
@@ -3438,7 +3438,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 18
       topLevelVariables
@@ -3453,7 +3453,7 @@ library
                   name: C @41
                   element2: <testLibrary>::@class::C
                   type: C
-                element: <testLibraryFragment>::@class::C::@constructor::new#element
+                element: <testLibrary>::@class::C::@constructor::new
               argumentList: ArgumentList
                 leftParenthesis: ( @42
                 rightParenthesis: ) @43
@@ -3516,7 +3516,7 @@ library
                   name: C @33
                   element2: package:test/a.dart::@class::C
                   type: C
-                element: package:test/a.dart::<fragment>::@class::C::@constructor::new#element
+                element: package:test/a.dart::@class::C::@constructor::new
               argumentList: ArgumentList
                 leftParenthesis: ( @34
                 rightParenthesis: ) @35
@@ -3579,7 +3579,7 @@ library
                   name: C @40
                   element2: package:test/a.dart::@class::C
                   type: C
-                element: package:test/a.dart::<fragment>::@class::C::@constructor::new#element
+                element: package:test/a.dart::@class::C::@constructor::new
               argumentList: ArgumentList
                 leftParenthesis: ( @41
                 rightParenthesis: ) @42
@@ -3862,7 +3862,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
             synthetic get F
@@ -4321,7 +4321,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
             length @23
@@ -5082,7 +5082,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 29
               formalParameters
@@ -5158,7 +5158,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 29
               formalParameters
@@ -5232,7 +5232,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 29
               formalParameters
@@ -5302,7 +5302,7 @@ library
           constructors
             const positional @20
               reference: <testLibraryFragment>::@class::C::@constructor::positional
-              element: <testLibraryFragment>::@class::C::@constructor::positional#element
+              element: <testLibrary>::@class::C::@constructor::positional
               typeName: C
               typeNameOffset: 18
               periodOffset: 19
@@ -5323,7 +5323,7 @@ library
                       staticType: int
             const named @55
               reference: <testLibraryFragment>::@class::C::@constructor::named
-              element: <testLibraryFragment>::@class::C::@constructor::named#element
+              element: <testLibrary>::@class::C::@constructor::named
               typeName: C
               typeNameOffset: 53
               periodOffset: 54
@@ -5971,7 +5971,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
             synthetic get F
@@ -6176,7 +6176,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
             m @23
@@ -6385,7 +6385,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       extensions
         extension E @21
@@ -6883,7 +6883,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
         class D @17
           reference: <testLibraryFragment>::@class::D
@@ -6894,7 +6894,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::D::@constructor::new
-              element: <testLibraryFragment>::@class::D::@constructor::new#element
+              element: <testLibrary>::@class::D::@constructor::new
               typeName: D
       enums
         enum E @30
@@ -6911,7 +6911,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -6927,7 +6927,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -6943,7 +6943,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -6974,7 +6974,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
             synthetic get a
@@ -7255,7 +7255,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
             synthetic get f
@@ -7534,7 +7534,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
             synthetic get f
@@ -7621,7 +7621,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       topLevelVariables
         hasInitializer V @17
@@ -10668,7 +10668,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -10684,7 +10684,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -10700,7 +10700,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -10731,7 +10731,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
             synthetic get a
@@ -10874,7 +10874,7 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -10897,7 +10897,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
             synthetic get a
@@ -10996,7 +10996,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
             synthetic get a
@@ -11067,7 +11067,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
             synthetic get a

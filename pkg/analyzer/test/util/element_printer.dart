@@ -70,11 +70,8 @@ class ElementPrinter {
         writelnReference(element.reference);
       case TypeParameterElementImpl2():
         _sink.writeln('${element.name3}@${element.firstFragment.nameOffset2}');
-      case ConstructorElement element:
-        var firstFragment = element.firstFragment as FragmentImpl;
-        var reference = firstFragment.reference;
-        writeReference(reference!);
-        _sink.writeln('#element');
+      case ConstructorElementImpl2 element:
+        writelnReference(element.reference);
       case DynamicElementImpl2():
         _sink.writeln('dynamic');
       case FormalParameterElementImpl():

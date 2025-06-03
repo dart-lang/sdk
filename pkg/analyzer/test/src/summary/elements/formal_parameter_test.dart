@@ -61,7 +61,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
             m @17
@@ -109,7 +109,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
             m @17
@@ -155,7 +155,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
             m @17
@@ -207,7 +207,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
             f @20
@@ -225,7 +225,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
             f @75
@@ -261,7 +261,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
+          superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
         f
           reference: <testLibrary>::@class::B::@method::f
@@ -296,7 +296,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
             m @17
@@ -312,7 +312,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
             m @68
@@ -345,7 +345,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
+          superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
         m
           reference: <testLibrary>::@class::B::@method::m
@@ -373,7 +373,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
             f @10
@@ -425,7 +425,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
             f @16
@@ -474,7 +474,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
             f @10
@@ -516,7 +516,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
             f @10
@@ -596,7 +596,7 @@ library
           constructors
             positional @14
               reference: <testLibraryFragment>::@class::C::@constructor::positional
-              element: <testLibraryFragment>::@class::C::@constructor::positional#element
+              element: <testLibrary>::@class::C::@constructor::positional
               typeName: C
               typeNameOffset: 12
               periodOffset: 13
@@ -609,7 +609,7 @@ library
                       staticType: int
             named @39
               reference: <testLibraryFragment>::@class::C::@constructor::named
-              element: <testLibraryFragment>::@class::C::@constructor::named#element
+              element: <testLibrary>::@class::C::@constructor::named
               typeName: C
               typeNameOffset: 37
               periodOffset: 38
@@ -674,7 +674,7 @@ library
           constructors
             positional @23
               reference: <testLibraryFragment>::@class::C::@constructor::positional
-              element: <testLibraryFragment>::@class::C::@constructor::positional#element
+              element: <testLibrary>::@class::C::@constructor::positional
               typeName: C
               typeNameOffset: 21
               periodOffset: 22
@@ -687,7 +687,7 @@ library
                       staticType: int
             named @53
               reference: <testLibraryFragment>::@class::C::@constructor::named
-              element: <testLibraryFragment>::@class::C::@constructor::named#element
+              element: <testLibrary>::@class::C::@constructor::named
               typeName: C
               typeNameOffset: 51
               periodOffset: 52
@@ -773,7 +773,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
             positional @24
