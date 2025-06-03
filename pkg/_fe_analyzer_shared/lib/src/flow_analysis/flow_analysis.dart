@@ -3786,7 +3786,12 @@ class PromotionModel<Type extends Object> {
     }
 
     List<Type> newTested;
-    if (newPromotedTypes == null && promotedTypes != null) {
+    if (newPromotedTypes == null &&
+        promotedTypes != null &&
+        !helper.typeAnalyzerOptions.soundFlowAnalysisEnabled) {
+      // A full demotion used to clear types of interest. This behavior was
+      // removed as part of the sound-flow-analysis update (see
+      // https://github.com/dart-lang/language/issues/4380).
       newTested = const [];
     } else {
       newTested = tested;

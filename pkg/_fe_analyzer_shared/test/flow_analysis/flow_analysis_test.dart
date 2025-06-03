@@ -3706,7 +3706,7 @@ main() {
         expect(s2.promotionInfo.unwrap(h), {
           h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
             chain: null,
-            ofInterest: isEmpty,
+            ofInterest: [Type('int')],
             assigned: true,
             unassigned: false,
           ),
@@ -12603,6 +12603,33 @@ main() {
           ]);
         });
       });
+    });
+
+    test('When disabled, full demotion clears types of interest', () {
+      var x = Var('x');
+      h.disableSoundFlowAnalysis();
+      h.run([
+        declare(x, initializer: expr('Object')),
+        x.as_('num'),
+        checkPromoted(x, 'num'),
+        x.write(expr('String')),
+        checkNotPromoted(x),
+        x.write(expr('num')),
+        checkNotPromoted(x),
+      ]);
+    });
+
+    test('When enabled, full demotion preserves types of interest', () {
+      var x = Var('x');
+      h.run([
+        declare(x, initializer: expr('Object')),
+        x.as_('num'),
+        checkPromoted(x, 'num'),
+        x.write(expr('String')),
+        checkNotPromoted(x),
+        x.write(expr('num')),
+        checkPromoted(x, 'num'),
+      ]);
     });
   });
 
