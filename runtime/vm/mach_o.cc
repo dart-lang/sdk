@@ -2103,18 +2103,48 @@ void MachOHeader::GenerateUnwindingInformation() {
   }
 #endif
 
+#if defined(DART_TARGET_OS_MACOS)
+  // TODO(dartbug.com/60307): Add compact unwind information.
+  USE(section_type);
+#else
+  if (auto* const text_section =
+          text_segment_->FindSection(mach_o::SECT_TEXT)) {
+    // For the __eh_frame section, the easiest way to determine the size is to
+    // generate the contents and just discard them if using zerofill.
+    GrowableArray<Dwarf::FrameDescriptionEntry> fdes(zone_, 0);
+    for (const auto& portion : text_section->portions()) {
+      ASSERT(portion.label != 0);
+      fdes.Add({portion.label, portion.size});
+    }
+
+    ZoneWriteStream stream(zone(), DwarfSharedObjectStream::kInitialBufferSize);
+    DwarfSharedObjectStream dwarf_stream(zone_, &stream);
+    Dwarf::WriteCallFrameInformationRecords(&dwarf_stream, fdes);
+
+    ASSERT(!text_segment_->FindSection(mach_o::SECT_EH_FRAME));
+    auto* const eh_frame = new (zone())
+        MachOSection(zone(), mach_o::SECT_EH_FRAME, section_type,
+                     mach_o::S_NO_ATTRIBUTES, /*has_contents=*/!use_zerofill,
+                     /*alignment=*/compiler::target::kWordSize);
+    eh_frame->AddPortion(use_zerofill ? nullptr : dwarf_stream.buffer(),
+                         dwarf_stream.bytes_written(),
+                         use_zerofill ? nullptr : dwarf_stream.relocations());
+    text_segment_->AddContents(eh_frame);
+  }
+#endif  // defined(DART_TARGET_OS_MACOS)
+
 #if defined(DART_TARGET_OS_WINDOWS) && defined(TARGET_ARCH_IS_64_BIT)
   // Append Windows unwinding instructions as another section at the end of
   // the text segment.
-  auto* const section = new (zone()) MachOSection(
+  auto* const unwinding_records = new (zone()) MachOSection(
       zone(), mach_o::SECT_UNWIND_INFO, section_type, mach_o::S_NO_ATTRIBUTES,
       /*has_contents=*/!use_zerofill, compiler::target::kWordSize);
   const intptr_t records_size = UnwindingRecordsPlatform::SizeInBytes();
   // The memory space of the text segment is padded to the alignment size, so
   // we need to make sure the resulting data has initial padding so that the
   // records are at the end of the segment without extra padding.
-  const intptr_t section_start =
-      Utils::RoundUp(text_segment_->UnpaddedMemorySize(), section->Alignment());
+  const intptr_t section_start = Utils::RoundUp(
+      text_segment_->UnpaddedMemorySize(), unwinding_records->Alignment());
   const intptr_t section_size =
       Utils::RoundUp(section_start + records_size, text_segment_->Alignment()) -
       section_start;
@@ -2130,11 +2160,9 @@ void MachOHeader::GenerateUnwindingInformation() {
     ASSERT_EQUAL(section_size, stream.Position());
     bytes = stream.buffer();
   }
-  section->AddPortion(bytes, section_size);
-  text_segment_->AddContents(section);
+  unwinding_records->AddPortion(bytes, section_size);
+  text_segment_->AddContents(unwinding_records);
   ASSERT_EQUAL(section_start + section_size, text_segment_->MemorySize());
-#else
-  USE(section_type);
 #endif  // defined(DART_TARGET_OS_WINDOWS) && defined(TARGET_ARCH_IS_64_BIT)
 #endif  // !defined(TARGET_ARCH_IA32)
 }
@@ -2213,6 +2241,7 @@ void MachOHeader::FinalizeDwarfSections() {
   const intptr_t alignment = 1;  // No extra padding.
   auto add_debug = [&](const char* name,
                        const DwarfSharedObjectStream& stream) {
+    ASSERT(!dwarf_segment->FindSection(name));
     auto* const section = new (zone())
         MachOSection(zone(), name, mach_o::S_REGULAR, mach_o::S_ATTR_DEBUG,
                      /*has_contents=*/true, alignment);

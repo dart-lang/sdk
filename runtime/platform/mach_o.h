@@ -248,6 +248,7 @@ static constexpr char SEG_TEXT[] = "__TEXT";
 static constexpr char SECT_TEXT[] = "__text";
 static constexpr char SECT_CONST[] = "__const";
 static constexpr char SECT_UNWIND_INFO[] = "__unwind_info";
+static constexpr char SECT_EH_FRAME[] = "__eh_frame";
 
 // Segment and section names for the data segment, which contains
 // non-constant data (like the BSS section).
