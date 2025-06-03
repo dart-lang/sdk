@@ -518,9 +518,8 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
-    void build(Builder declaration) {
-      SourceMemberBuilder member = declaration as SourceMemberBuilder;
-      member.buildOutlineExpressions(
+    void build(SourceMemberBuilder declaration) {
+      declaration.buildOutlineExpressions(
           classHierarchy, delayedDefaultValueCloners);
     }
 
@@ -548,8 +547,10 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     }
 
-    filteredConstructorsIterator(includeDuplicates: false).forEach(build);
-    filteredMembersIterator(includeDuplicates: false).forEach(build);
+    filteredConstructorsIterator<SourceMemberBuilder>(includeDuplicates: false)
+        .forEach(build);
+    filteredMembersIterator<SourceMemberBuilder>(includeDuplicates: false)
+        .forEach(build);
   }
 
   /// Looks up the constructor by [name] on the class built by this class
@@ -903,7 +904,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         SourceMemberBuilder constructor = constructorIterator.current;
         // Assumes the constructor isn't synthetic since
         // [installSyntheticConstructors] hasn't been called yet.
-        if (constructor is SourceConstructorBuilderImpl) {
+        if (constructor is SourceConstructorBuilder) {
           // Report an error if a mixin class has a constructor with parameters,
           // is external, or is a redirecting constructor.
           if (constructor.isRedirecting ||
@@ -1278,8 +1279,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
   }
 
-  void addSyntheticConstructor(
-      SyntheticSourceConstructorBuilder constructorBuilder) {
+  void addSyntheticConstructor(SourceConstructorBuilder constructorBuilder) {
     String name = constructorBuilder.name;
     assert(
         nameSpace.lookupConstructor(name) == null,
@@ -1288,7 +1288,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     addConstructorInternal(constructorBuilder, addToNameSpace: true);
     // Synthetic constructors are created after the component has been built
     // so we need to add the constructor to the class.
-    cls.addConstructor(constructorBuilder.invokeTarget);
+    cls.addConstructor(constructorBuilder.invokeTarget as Constructor);
     if (constructorBuilder.readTarget != constructorBuilder.invokeTarget) {
       cls.addProcedure(constructorBuilder.readTarget as Procedure);
     }

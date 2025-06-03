@@ -2768,7 +2768,9 @@ _AddBuilder _createConstructorBuilder(
     required IndexedContainer? indexedContainer,
     required ContainerName? containerName}) {
   String name = fragment.name;
-  Modifiers modifiers = fragment.modifiers;
+  bool isConst = fragment.modifiers.isConst;
+  bool isExternal = fragment.modifiers.isExternal;
+
   NameScheme nameScheme = new NameScheme(
       isInstanceMember: false,
       containerName: containerName,
@@ -2900,25 +2902,25 @@ _AddBuilder _createConstructorBuilder(
       augmentationDeclarations.add(createConstructorDeclaration(augmentation));
 
       if (!augmentation.modifiers.isExternal) {
-        modifiers -= Modifiers.External;
+        isExternal = false;
       }
     }
   }
 
-  SourceConstructorBuilderImpl constructorBuilder =
-      new SourceConstructorBuilderImpl(
-          modifiers: modifiers,
-          name: name,
-          libraryBuilder: enclosingLibraryBuilder,
-          declarationBuilder: declarationBuilder!,
-          fileUri: fragment.fileUri,
-          fileOffset: fragment.fullNameOffset,
-          constructorReference: constructorReference,
-          tearOffReference: tearOffReference,
-          nameScheme: nameScheme,
-          nativeMethodName: fragment.nativeMethodName,
-          introductory: constructorDeclaration,
-          augmentations: augmentationDeclarations);
+  SourceConstructorBuilder constructorBuilder = new SourceConstructorBuilder(
+      name: name,
+      libraryBuilder: enclosingLibraryBuilder,
+      declarationBuilder: declarationBuilder!,
+      fileUri: fragment.fileUri,
+      fileOffset: fragment.fullNameOffset,
+      constructorReference: constructorReference,
+      tearOffReference: tearOffReference,
+      nameScheme: nameScheme,
+      nativeMethodName: fragment.nativeMethodName,
+      introductory: constructorDeclaration,
+      augmentations: augmentationDeclarations,
+      isConst: isConst,
+      isExternal: isExternal);
   fragment.builder = constructorBuilder;
   if (augmentations != null) {
     for (Fragment augmentation in augmentations) {
@@ -2970,7 +2972,7 @@ _AddBuilder _createPrimaryConstructorBuilder(
         nameScheme.getConstructorMemberName(name, isTearOff: true).name);
   }
 
-  SourceConstructorBuilderImpl constructorBuilder;
+  SourceConstructorBuilder constructorBuilder;
   switch (declarationBuilder!) {
     case ExtensionTypeDeclarationBuilder():
       NominalParameterCopy? nominalVariableCopy =
@@ -2991,8 +2993,7 @@ _AddBuilder _createPrimaryConstructorBuilder(
       ConstructorDeclaration constructorDeclaration =
           new ExtensionTypePrimaryConstructorDeclaration(fragment,
               typeParameters: typeParameters);
-      constructorBuilder = new SourceConstructorBuilderImpl(
-          modifiers: fragment.modifiers,
+      constructorBuilder = new SourceConstructorBuilder(
           name: name,
           libraryBuilder: enclosingLibraryBuilder,
           declarationBuilder:
@@ -3002,13 +3003,14 @@ _AddBuilder _createPrimaryConstructorBuilder(
           constructorReference: constructorReference,
           tearOffReference: tearOffReference,
           nameScheme: nameScheme,
-          introductory: constructorDeclaration);
+          introductory: constructorDeclaration,
+          isConst: fragment.modifiers.isConst,
+          isExternal: fragment.modifiers.isExternal);
     // Coverage-ignore(suite): Not run.
     case ClassBuilder():
       ConstructorDeclaration constructorDeclaration =
           new PrimaryConstructorDeclaration(fragment);
-      constructorBuilder = new SourceConstructorBuilderImpl(
-          modifiers: fragment.modifiers,
+      constructorBuilder = new SourceConstructorBuilder(
           name: fragment.name,
           libraryBuilder: enclosingLibraryBuilder,
           declarationBuilder: declarationBuilder,
@@ -3017,7 +3019,9 @@ _AddBuilder _createPrimaryConstructorBuilder(
           constructorReference: constructorReference,
           tearOffReference: tearOffReference,
           nameScheme: nameScheme,
-          introductory: constructorDeclaration);
+          introductory: constructorDeclaration,
+          isConst: fragment.modifiers.isConst,
+          isExternal: fragment.modifiers.isExternal);
     // Coverage-ignore(suite): Not run.
     case ExtensionBuilder():
       throw new UnsupportedError(

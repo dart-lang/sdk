@@ -20,7 +20,7 @@ import '../../type_inference/type_inferrer.dart';
 import 'declaration.dart';
 
 class ConstructorBodyBuilderContext extends BodyBuilderContext {
-  final SourceConstructorBuilderImpl _builder;
+  final SourceConstructorBuilder _builder;
 
   final ConstructorFragmentDeclaration _declaration;
 

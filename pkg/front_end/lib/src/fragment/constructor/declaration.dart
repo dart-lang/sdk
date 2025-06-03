@@ -85,7 +85,7 @@ abstract class ConstructorDeclaration {
     required Uri annotatablesFileUri,
     required SourceLibraryBuilder libraryBuilder,
     required DeclarationBuilder declarationBuilder,
-    required SourceConstructorBuilderImpl constructorBuilder,
+    required SourceConstructorBuilder constructorBuilder,
     required ClassHierarchy classHierarchy,
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   });
@@ -117,7 +117,7 @@ abstract class ConstructorDeclaration {
   void inferFormalTypes(
       SourceLibraryBuilder libraryBuilder,
       DeclarationBuilder declarationBuilder,
-      SourceConstructorBuilderImpl constructorBuilder,
+      SourceConstructorBuilder constructorBuilder,
       ClassHierarchyBase hierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners);
 
@@ -199,7 +199,7 @@ mixin ConstructorDeclarationMixin
   void inferFormalTypes(
       SourceLibraryBuilder libraryBuilder,
       DeclarationBuilder declarationBuilder,
-      SourceConstructorBuilderImpl constructorBuilder,
+      SourceConstructorBuilder constructorBuilder,
       ClassHierarchyBase hierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     if (formals != null) {
@@ -221,7 +221,7 @@ mixin ConstructorDeclarationMixin
   void _inferSuperInitializingFormals(
       SourceLibraryBuilder libraryBuilder,
       DeclarationBuilder declarationBuilder,
-      SourceConstructorBuilderImpl constructorBuilder,
+      SourceConstructorBuilder constructorBuilder,
       ClassHierarchyBase hierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     if (_hasSuperInitializingFormals) {
@@ -498,7 +498,7 @@ mixin ConstructorDeclarationMixin
 
   void _buildConstructorForOutlineExpressions(
       SourceLibraryBuilder libraryBuilder,
-      SourceConstructorBuilderImpl constructorBuilder) {
+      SourceConstructorBuilder constructorBuilder) {
     if (_beginInitializers != null) {
       final LocalScope? formalParameterScope;
       if (isConst) {
@@ -526,7 +526,7 @@ mixin ConstructorDeclarationMixin
   }
 
   void _buildOutlineExpressions(SourceLibraryBuilder libraryBuilder,
-      SourceConstructorBuilderImpl constructorBuilder) {
+      SourceConstructorBuilder constructorBuilder) {
     if (isConst || _hasSuperInitializingFormals) {
       // For modular compilation purposes we need to include initializers
       // for const constructors into the outline.
@@ -541,7 +541,7 @@ mixin ConstructorDeclarationMixin
     required Uri annotatablesFileUri,
     required SourceLibraryBuilder libraryBuilder,
     required DeclarationBuilder declarationBuilder,
-    required SourceConstructorBuilderImpl constructorBuilder,
+    required SourceConstructorBuilder constructorBuilder,
     required BodyBuilderContext bodyBuilderContext,
     required ClassHierarchy classHierarchy,
   });
@@ -559,7 +559,7 @@ mixin ConstructorDeclarationMixin
     required Uri annotatablesFileUri,
     required SourceLibraryBuilder libraryBuilder,
     required DeclarationBuilder declarationBuilder,
-    required SourceConstructorBuilderImpl constructorBuilder,
+    required SourceConstructorBuilder constructorBuilder,
     required ClassHierarchy classHierarchy,
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   }) {
@@ -730,7 +730,7 @@ mixin RegularConstructorDeclarationMixin
 
   @override
   BodyBuilderContext createBodyBuilderContext(
-      SourceConstructorBuilderImpl constructorBuilder) {
+      SourceConstructorBuilder constructorBuilder) {
     return _encoding.createBodyBuilderContext(constructorBuilder, this);
   }
 
@@ -860,7 +860,7 @@ class RegularConstructorDeclaration
       required Uri annotatablesFileUri,
       required SourceLibraryBuilder libraryBuilder,
       required DeclarationBuilder declarationBuilder,
-      required SourceConstructorBuilderImpl constructorBuilder,
+      required SourceConstructorBuilder constructorBuilder,
       required BodyBuilderContext bodyBuilderContext,
       required ClassHierarchy classHierarchy}) {
     for (Annotatable annotatable in annotatables) {
@@ -989,7 +989,7 @@ class PrimaryConstructorDeclaration
       required Uri annotatablesFileUri,
       required SourceLibraryBuilder libraryBuilder,
       required DeclarationBuilder declarationBuilder,
-      required SourceConstructorBuilderImpl constructorBuilder,
+      required SourceConstructorBuilder constructorBuilder,
       required BodyBuilderContext bodyBuilderContext,
       required ClassHierarchy classHierarchy}) {
     // There is no metadata on a primary constructor.
@@ -1123,7 +1123,7 @@ class DefaultEnumConstructorDeclaration
       required Uri annotatablesFileUri,
       required SourceLibraryBuilder libraryBuilder,
       required DeclarationBuilder declarationBuilder,
-      required SourceConstructorBuilderImpl constructorBuilder,
+      required SourceConstructorBuilder constructorBuilder,
       required BodyBuilderContext bodyBuilderContext,
       required ClassHierarchy classHierarchy}) {
     // There is no metadata on a default enum constructor.
@@ -1284,7 +1284,7 @@ mixin ExtensionTypeConstructorDeclarationMixin
 
   @override
   BodyBuilderContext createBodyBuilderContext(
-      SourceConstructorBuilderImpl constructorBuilder) {
+      SourceConstructorBuilder constructorBuilder) {
     return _encoding.createBodyBuilderContext(constructorBuilder, this);
   }
 
@@ -1399,7 +1399,7 @@ class ExtensionTypeConstructorDeclaration
       required Uri annotatablesFileUri,
       required SourceLibraryBuilder libraryBuilder,
       required DeclarationBuilder declarationBuilder,
-      required SourceConstructorBuilderImpl constructorBuilder,
+      required SourceConstructorBuilder constructorBuilder,
       required BodyBuilderContext bodyBuilderContext,
       required ClassHierarchy classHierarchy}) {
     for (Annotatable annotatable in annotatables) {
@@ -1523,7 +1523,7 @@ class ExtensionTypePrimaryConstructorDeclaration
       required Uri annotatablesFileUri,
       required SourceLibraryBuilder libraryBuilder,
       required DeclarationBuilder declarationBuilder,
-      required SourceConstructorBuilderImpl constructorBuilder,
+      required SourceConstructorBuilder constructorBuilder,
       required BodyBuilderContext bodyBuilderContext,
       required ClassHierarchy classHierarchy}) {
     // There is no metadata on a primary constructor.
@@ -1560,7 +1560,7 @@ abstract class ConstructorFragmentDeclaration {
   List<FormalParameterBuilder>? get formals;
 
   BodyBuilderContext createBodyBuilderContext(
-      SourceConstructorBuilderImpl constructorBuilder);
+      SourceConstructorBuilder constructorBuilder);
 
   FunctionNode get function;
 
@@ -1594,4 +1594,257 @@ abstract class ConstructorFragmentDeclaration {
   bool get isConst;
 
   bool get isExternal;
+}
+
+mixin _SyntheticConstructorDeclarationMixin implements ConstructorDeclaration {
+  Constructor get _constructor;
+  Procedure? get _constructorTearOff;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Uri get fileUri => _constructor.fileUri;
+
+  @override
+  FunctionNode get function => _constructor.function;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get hasParameters =>
+      _constructor.function.positionalParameters.isNotEmpty ||
+      _constructor.function.namedParameters.isNotEmpty;
+
+  @override
+  Member get invokeTarget => _constructor;
+
+  @override
+  Reference get invokeTargetReference => _constructor.reference;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isExternal => false;
+
+  @override
+  bool get isRedirecting {
+    for (Initializer initializer in _constructor.initializers) {
+      if (initializer is RedirectingInitializer) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void markAsErroneous() {
+    _constructor.isErroneous = true;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  List<MetadataBuilder>? get metadata => null;
+
+  @override
+  Member get readTarget => _constructorTearOff ?? _constructor;
+
+  @override
+  Reference get readTargetReference =>
+      (_constructorTearOff ?? _constructor).reference;
+
+  @override
+  void checkTypes(SourceLibraryBuilder libraryBuilder, NameSpace nameSpace,
+      TypeEnvironment typeEnvironment) {}
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  int computeDefaultTypes(ComputeDefaultTypeContext context,
+      {required bool inErrorRecovery}) {
+    assert(false, "Unexpected call to $runtimeType.computeDefaultType");
+    return 0;
+  }
+
+  @override
+  void buildBody() {}
+
+  @override
+  void buildOutlineNodes(BuildNodesCallback f,
+      {required SourceConstructorBuilder constructorBuilder,
+      required SourceLibraryBuilder libraryBuilder,
+      required Member declarationConstructor,
+      required List<DelayedDefaultValueCloner> delayedDefaultValueCloners}) {
+    throw new UnsupportedError(
+        "Unexpected call to $runtimeType.buildOutlineNodes");
+  }
+
+  @override
+  Substitution computeFieldTypeSubstitution(
+      DeclarationBuilder declarationBuilder) {
+    throw new UnsupportedError(
+        "Unexpected call to $runtimeType.computeFieldTypeSubstitution");
+  }
+
+  @override
+  void createNode(
+      {required String name,
+      required SourceLibraryBuilder libraryBuilder,
+      required NameScheme nameScheme,
+      required Reference? constructorReference,
+      required Reference? tearOffReference}) {}
+
+  @override
+  List<Initializer> get initializers {
+    throw new UnsupportedError("Unexpected call to $runtimeType.initializers");
+  }
+
+  @override
+  void prepareInitializers() {
+    throw new UnsupportedError(
+        "Unexpected call to $runtimeType.prepareInitializers");
+  }
+
+  @override
+  void prependInitializer(Initializer initializer) {
+    throw new UnsupportedError(
+        "Unexpected call to $runtimeType.prependInitializer");
+  }
+
+  @override
+  void registerInferable(Inferable inferable) {}
+}
+
+class DefaultConstructorDeclaration
+    with _SyntheticConstructorDeclarationMixin
+    implements ConstructorDeclaration {
+  @override
+  final Constructor _constructor;
+
+  @override
+  final Procedure? _constructorTearOff;
+
+  DefaultConstructorDeclaration({
+    required Constructor constructor,
+    required Procedure? constructorTearOff,
+  })  : this._constructor = constructor,
+        this._constructorTearOff = constructorTearOff;
+
+  @override
+  void addSuperParameterDefaultValueCloners(
+      SourceLibraryBuilder libraryBuilder,
+      DeclarationBuilder declarationBuilder,
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {}
+
+  @override
+  void buildOutlineExpressions(
+      {required Iterable<Annotatable> annotatables,
+      required Uri annotatablesFileUri,
+      required SourceLibraryBuilder libraryBuilder,
+      required DeclarationBuilder declarationBuilder,
+      required SourceConstructorBuilder constructorBuilder,
+      required ClassHierarchy classHierarchy,
+      required List<DelayedDefaultValueCloner> delayedDefaultValueCloners}) {}
+
+  @override
+  void inferFormalTypes(
+      SourceLibraryBuilder libraryBuilder,
+      DeclarationBuilder declarationBuilder,
+      SourceConstructorBuilder constructorBuilder,
+      ClassHierarchyBase hierarchy,
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {}
+}
+
+class ForwardingConstructorDeclaration
+    with _SyntheticConstructorDeclarationMixin
+    implements ConstructorDeclaration {
+  @override
+  final Constructor _constructor;
+
+  @override
+  final Procedure? _constructorTearOff;
+
+  /// The constructor from which this synthesized constructor is defined.
+  ///
+  /// This defines the parameter structure and the default values of this
+  /// constructor.
+  ///
+  /// The [_immediatelyDefiningConstructor] might itself a synthesized
+  /// constructor and [_effectivelyDefiningConstructor] can be used to find
+  /// the constructor that effectively defines this constructor.
+  MemberBuilder? _immediatelyDefiningConstructor;
+  DelayedDefaultValueCloner? _delayedDefaultValueCloner;
+  TypeDependency? _typeDependency;
+
+  ForwardingConstructorDeclaration({
+    required Constructor constructor,
+    required Procedure? constructorTearOff,
+    required MemberBuilder definingConstructor,
+    required DelayedDefaultValueCloner delayedDefaultValueCloner,
+    required TypeDependency? typeDependency,
+  })  : _constructor = constructor,
+        _constructorTearOff = constructorTearOff,
+        _immediatelyDefiningConstructor = definingConstructor,
+        _delayedDefaultValueCloner = delayedDefaultValueCloner,
+        _typeDependency = typeDependency;
+
+  @override
+  void addSuperParameterDefaultValueCloners(
+      SourceLibraryBuilder libraryBuilder,
+      DeclarationBuilder declarationBuilder,
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
+    MemberBuilder? origin = _immediatelyDefiningConstructor;
+    if (origin is SourceConstructorBuilder) {
+      origin.addSuperParameterDefaultValueCloners(delayedDefaultValueCloners);
+    }
+    if (_delayedDefaultValueCloner != null) {
+      // For constant constructors default values are computed and cloned part
+      // of the outline expression and we there set `isOutlineNode` to `true`
+      // below.
+      //
+      // For non-constant constructors default values are cloned as part of the
+      // full compilation using `KernelTarget._delayedDefaultValueCloners`.
+      delayedDefaultValueCloners
+          .add(_delayedDefaultValueCloner!..isOutlineNode = true);
+      _delayedDefaultValueCloner = null;
+    }
+  }
+
+  @override
+  void buildOutlineExpressions({
+    required Iterable<Annotatable> annotatables,
+    required Uri annotatablesFileUri,
+    required SourceLibraryBuilder libraryBuilder,
+    required DeclarationBuilder declarationBuilder,
+    required SourceConstructorBuilder constructorBuilder,
+    required ClassHierarchy classHierarchy,
+    required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+  }) {
+    if (_immediatelyDefiningConstructor != null) {
+      // Ensure that default value expressions have been created for [_origin].
+      // If [_origin] is from a source library, we need to build the default
+      // values and initializers first.
+      MemberBuilder origin = _immediatelyDefiningConstructor!;
+      if (origin is SourceConstructorBuilder) {
+        origin.buildOutlineExpressions(
+            classHierarchy, delayedDefaultValueCloners);
+      }
+      addSuperParameterDefaultValueCloners(
+          libraryBuilder, declarationBuilder, delayedDefaultValueCloners);
+      _immediatelyDefiningConstructor = null;
+    }
+  }
+
+  @override
+  void inferFormalTypes(
+      SourceLibraryBuilder libraryBuilder,
+      DeclarationBuilder declarationBuilder,
+      SourceConstructorBuilder constructorBuilder,
+      ClassHierarchyBase hierarchy,
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
+    if (_immediatelyDefiningConstructor is SourceConstructorBuilder) {
+      (_immediatelyDefiningConstructor as SourceConstructorBuilder)
+          .inferFormalTypes(hierarchy);
+    }
+    if (_typeDependency != null) {
+      _typeDependency!.copyInferred();
+      _typeDependency = null;
+    }
+  }
 }

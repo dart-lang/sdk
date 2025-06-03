@@ -68,7 +68,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
 
   late final NamedTypeBuilder selfType;
 
-  SourceConstructorBuilderImpl? _synthesizedDefaultConstructorBuilder;
+  SourceConstructorBuilder? _synthesizedDefaultConstructorBuilder;
 
   late final _EnumValuesFieldDeclaration _enumValuesFieldDeclaration;
 
@@ -324,23 +324,23 @@ class SourceEnumBuilder extends SourceClassBuilder {
               fileUri: fileUri,
               fileOffset: fileOffset,
               lookupScope: _introductory.compilationUnitScope);
-      SourceConstructorBuilderImpl constructorBuilder =
-          _synthesizedDefaultConstructorBuilder =
-              new SourceConstructorBuilderImpl(
-                  modifiers: Modifiers.Const,
-                  name: "",
-                  libraryBuilder: libraryBuilder,
-                  declarationBuilder: this,
-                  fileUri: fileUri,
-                  fileOffset: fileOffset,
-                  constructorReference: constructorReference,
-                  tearOffReference: tearOffReference,
-                  nameScheme: new NameScheme(
-                      isInstanceMember: false,
-                      containerName: new ClassName(name),
-                      containerType: ContainerType.Class,
-                      libraryName: libraryName),
-                  introductory: constructorDeclaration);
+      SourceConstructorBuilder constructorBuilder =
+          _synthesizedDefaultConstructorBuilder = new SourceConstructorBuilder(
+              name: "",
+              libraryBuilder: libraryBuilder,
+              declarationBuilder: this,
+              fileUri: fileUri,
+              fileOffset: fileOffset,
+              constructorReference: constructorReference,
+              tearOffReference: tearOffReference,
+              nameScheme: new NameScheme(
+                  isInstanceMember: false,
+                  containerName: new ClassName(name),
+                  containerType: ContainerType.Class,
+                  libraryName: libraryName),
+              introductory: constructorDeclaration,
+              isConst: true,
+              isExternal: false);
       constructorBuilder.registerInitializedField(valuesBuilder);
       addConstructorInternal(constructorBuilder, addToNameSpace: true);
       nameSpaceBuilder.checkTypeParameterConflict(
