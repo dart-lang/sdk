@@ -11,6 +11,7 @@ import 'dart:typed_data';
 
 import 'package:devtools_shared/devtools_extensions_io.dart';
 import 'package:devtools_shared/devtools_shared.dart' show DtdInfo;
+import 'package:dtd/dtd.dart' hide RpcErrorCodes;
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart';
@@ -271,6 +272,23 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
     }
 
     _uri = tmpUri;
+
+    // If DDS is hosting the Dart Tooling Daemon, it needs to register the VM
+    // Service URI on DTD.
+    final hostedDtd = _hostedDartToolingDaemon;
+    if (hostedDtd != null && wsUri != null) {
+      final dtdClient = await DartToolingDaemon.connect(hostedDtd.localUri);
+      await dtdClient.registerVmService(
+        uri: wsUri!.toString(),
+        secret: hostedDtd.secret!,
+      );
+      // Immediately close this client after registering the VM service. The
+      // VM service will be automatically unregistered from DTD when the VM
+      // service shuts down. For this case, DTD will also be shut down as part
+      // of shutting down DDS & the VM Service so we do not need to worry about
+      // unregistering the VM service manually.
+      await dtdClient.close();
+    }
   }
 
   /// Stop accepting requests after gracefully handling existing requests.
