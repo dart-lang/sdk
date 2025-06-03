@@ -78,10 +78,6 @@ class ConstructorMember extends ExecutableMember
   @override
   String? get lookupName => _element2.lookupName;
 
-  @Deprecated('Use name2 instead')
-  @override
-  String get name => declaration.name;
-
   @override
   String? get name3 => _element2.name3;
 
@@ -568,10 +564,6 @@ class FieldMember extends VariableMember
   @override
   MetadataImpl get metadata2 => metadata;
 
-  @Deprecated('Use name2 instead')
-  @override
-  String get name => declaration.name;
-
   @override
   String? get name3 => _element2.name3;
 
@@ -803,10 +795,6 @@ abstract class Member implements FragmentOrMember {
   @override
   Source? get librarySource => _declaration.librarySource;
 
-  @Deprecated('Use name2 instead')
-  @override
-  String? get name => _declaration.name;
-
   @override
   // TODO(scheglov): stop implementing [Fragment] and remove
   String? get name2 => _element2.name3;
@@ -920,10 +908,6 @@ class MethodMember extends ExecutableMember
 
   @override
   String? get lookupName => name3;
-
-  @Deprecated('Use name2 instead')
-  @override
-  String get name => declaration.name;
 
   @override
   String? get name3 => _element2.name3;
@@ -1059,10 +1043,6 @@ class ParameterMember extends VariableMember
   @Deprecated('Use metadata instead')
   @override
   MetadataImpl get metadata2 => metadata;
-
-  @Deprecated('Use name2 instead')
-  @override
-  String get name => declaration.name;
 
   @override
   String? get name3 => _element2.name3;
@@ -1273,10 +1253,6 @@ abstract class PropertyAccessorMember extends ExecutableMember
 
   @override
   bool get isSetter => declaration.isSetter;
-
-  @Deprecated('Use name2 instead')
-  @override
-  String get name => declaration.name;
 
   @override
   String? get name3 => _element2.name3;
@@ -1521,9 +1497,8 @@ class _SubstitutedTypeParameters {
     for (int i = 0; i < elements.length; i++) {
       var element = elements[i];
       var newElement = TypeParameterFragmentImpl.synthetic(
-        name: element.name2 ?? '',
+        name2: element.name2,
       );
-      newElement.name2 = element.name2;
       newElements.add(newElement);
       newTypes.add(
         newElement.instantiate(nullabilitySuffix: NullabilitySuffix.none),

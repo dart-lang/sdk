@@ -34,7 +34,6 @@ import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
-import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -685,10 +684,8 @@ class LibraryReader {
     var reference2 = _readReference();
 
     var fragmentName = _readFragmentName();
-    var name = fragmentName ?? '';
 
-    var fragment = ClassFragmentImpl(name: name, nameOffset: -1);
-    fragment.name2 = fragmentName;
+    var fragment = ClassFragmentImpl(name2: fragmentName, nameOffset: -1);
 
     if (reference2.element2 case ClassElementImpl2 element?) {
       fragment.augmentedInternal = element;
@@ -761,10 +758,13 @@ class LibraryReader {
     return _reader.readTypedList(() {
       var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
       var reference = _readReference();
-      var name = reference.elementName.ifEqualThen('new', '');
-      var element = ConstructorFragmentImpl(name: name, nameOffset: -1);
-      element.typeName = _reader.readOptionalStringReference();
-      element.name2 = _reader.readStringReference();
+      var typeName = _reader.readOptionalStringReference();
+      var fragmentName = _reader.readStringReference();
+      var element = ConstructorFragmentImpl(
+        name2: fragmentName,
+        nameOffset: -1,
+      );
+      element.typeName = typeName;
       var linkedData = ConstructorElementLinkedData(
         reference: reference,
         libraryReader: this,
@@ -859,10 +859,8 @@ class LibraryReader {
     var reference2 = _readReference();
 
     var fragmentName = _readFragmentName();
-    var name = fragmentName ?? '';
 
-    var fragment = EnumFragmentImpl(name: name, nameOffset: -1);
-    fragment.name2 = fragmentName;
+    var fragment = EnumFragmentImpl(name2: fragmentName, nameOffset: -1);
 
     if (reference2.element2 case EnumElementImpl2 element?) {
       fragment.augmentedInternal = element;
@@ -948,10 +946,8 @@ class LibraryReader {
     var reference2 = _readReference();
 
     var fragmentName = _readFragmentName();
-    var name = fragmentName;
 
-    var fragment = ExtensionFragmentImpl(name: name, nameOffset: -1);
-    fragment.name2 = fragmentName;
+    var fragment = ExtensionFragmentImpl(name2: fragmentName, nameOffset: -1);
 
     if (reference2.element2 case ExtensionElementImpl2 element?) {
       fragment.augmentedInternal = element;
@@ -1014,10 +1010,11 @@ class LibraryReader {
     var reference2 = _readReference();
 
     var fragmentName = _readFragmentName();
-    var name = fragmentName ?? '';
 
-    var fragment = ExtensionTypeFragmentImpl(name: name, nameOffset: -1);
-    fragment.name2 = fragmentName;
+    var fragment = ExtensionTypeFragmentImpl(
+      name2: fragmentName,
+      nameOffset: -1,
+    );
 
     if (reference2.element2 case ExtensionTypeElementImpl2 element?) {
       fragment.augmentedInternal = element;
@@ -1087,18 +1084,14 @@ class LibraryReader {
     var getterReference = _readOptionalReference();
     var setterReference = _readOptionalReference();
     var fragmentName = _readFragmentName();
-
-    // TODO(scheglov): we do this only because FieldElement2 uses this name.
-    var name = _reader.readStringReference();
     var isConstElement = _reader.readBool();
 
     FieldFragmentImpl element;
     if (isConstElement) {
-      element = ConstFieldFragmentImpl(name: name, nameOffset: -1);
+      element = ConstFieldFragmentImpl(name2: fragmentName, nameOffset: -1);
     } else {
-      element = FieldFragmentImpl(name: name, nameOffset: -1);
+      element = FieldFragmentImpl(name2: fragmentName, nameOffset: -1);
     }
-    element.name2 = fragmentName;
 
     var linkedData = FieldElementLinkedData(
       reference: reference,
@@ -1165,10 +1158,11 @@ class LibraryReader {
       var reference = _readReference();
       var reference2 = _readReference();
       var fragmentName = _readFragmentName();
-      var name = reference.elementName;
 
-      var fragment = TopLevelFunctionFragmentImpl(name: name, nameOffset: -1);
-      fragment.name2 = fragmentName;
+      var fragment = TopLevelFunctionFragmentImpl(
+        name2: fragmentName,
+        nameOffset: -1,
+      );
 
       if (reference2.element2 case TopLevelFunctionElementImpl element?) {
         fragment.element = element;
@@ -1270,10 +1264,7 @@ class LibraryReader {
       var reference = _readReference();
       var reference2 = _readReference();
       var fragmentName = _readFragmentName();
-      // TODO(scheglov): we do this only because MethodElement2 uses this name.
-      var name = _reader.readStringReference();
-      var fragment = MethodFragmentImpl(name: name, nameOffset: -1);
-      fragment.name2 = fragmentName;
+      var fragment = MethodFragmentImpl(name2: fragmentName, nameOffset: -1);
 
       var linkedData = MethodElementLinkedData(
         reference: reference,
@@ -1307,10 +1298,8 @@ class LibraryReader {
     var reference2 = _readReference();
 
     var fragmentName = _readFragmentName();
-    var name = fragmentName ?? '';
 
-    var fragment = MixinFragmentImpl(name: name, nameOffset: -1);
-    fragment.name2 = fragmentName;
+    var fragment = MixinFragmentImpl(name2: fragmentName, nameOffset: -1);
 
     if (reference2.element2 case MixinElementImpl2 element?) {
       fragment.augmentedInternal = element;
@@ -1384,7 +1373,6 @@ class LibraryReader {
   List<FormalParameterFragmentImpl> _readParameters() {
     return _reader.readTypedList(() {
       var fragmentName = _readFragmentName();
-      var name = _reader.readStringReference();
       var isDefault = _reader.readBool();
       var isInitializingFormal = _reader.readBool();
       var isSuperFormal = _reader.readBool();
@@ -1397,25 +1385,22 @@ class LibraryReader {
       if (!isDefault) {
         if (isInitializingFormal) {
           element = FieldFormalParameterFragmentImpl(
-            name: name,
             nameOffset: -1,
-            name2: name.nullIfEmpty,
+            name2: fragmentName,
             nameOffset2: null,
             parameterKind: kind,
           );
         } else if (isSuperFormal) {
           element = SuperFormalParameterFragmentImpl(
-            name: name,
             nameOffset: -1,
-            name2: name.nullIfEmpty,
+            name2: fragmentName,
             nameOffset2: null,
             parameterKind: kind,
           );
         } else {
           element = FormalParameterFragmentImpl(
-            name: name,
             nameOffset: -1,
-            name2: name.nullIfEmpty,
+            name2: fragmentName,
             nameOffset2: null,
             parameterKind: kind,
           );
@@ -1423,25 +1408,22 @@ class LibraryReader {
       } else {
         if (isInitializingFormal) {
           element = DefaultFieldFormalParameterElementImpl(
-            name: name,
             nameOffset: -1,
-            name2: name.nullIfEmpty,
+            name2: fragmentName,
             nameOffset2: null,
             parameterKind: kind,
           );
         } else if (isSuperFormal) {
           element = DefaultSuperFormalParameterElementImpl(
-            name: name,
             nameOffset: -1,
-            name2: name.nullIfEmpty,
+            name2: fragmentName,
             nameOffset2: null,
             parameterKind: kind,
           );
         } else {
           element = DefaultParameterFragmentImpl(
-            name: name,
             nameOffset: -1,
-            name2: name.nullIfEmpty,
+            name2: fragmentName,
             nameOffset2: null,
             parameterKind: kind,
           );
@@ -1451,7 +1433,6 @@ class LibraryReader {
           reference.element = element;
         }
       }
-      element.name2 = fragmentName;
       ParameterElementFlags.read(_reader, element);
       element.typeParameters = _readTypeParameters();
       element.parameters = _readParameters();
@@ -1476,14 +1457,12 @@ class LibraryReader {
 
     var reference = _readReference();
     var fragmentName = _readFragmentName();
-    var name = reference.elementName;
     var flags = _reader.readUInt30();
 
     var fragment =
         PropertyAccessorElementFlags.isGetter(flags)
-            ? GetterFragmentImpl(name: name, nameOffset: -1)
-            : SetterFragmentImpl(name: name, nameOffset: -1);
-    fragment.name2 = fragmentName;
+            ? GetterFragmentImpl(name2: fragmentName, nameOffset: -1)
+            : SetterFragmentImpl(name2: fragmentName, nameOffset: -1);
 
     var linkedData = PropertyAccessorElementLinkedData(
       reference: reference,
@@ -1531,8 +1510,6 @@ class LibraryReader {
       // TODO(scheglov): should be required?
       var propertyElementReference = _readOptionalReference();
 
-      var name = accessor.displayName;
-
       bool canUseExisting(PropertyInducingElementImpl property) {
         return property.isSynthetic ||
             accessor.isSetter && property.setter == null;
@@ -1546,11 +1523,13 @@ class LibraryReader {
           propertyFragment = existing;
         } else {
           var variableFragment =
-              TopLevelVariableFragmentImpl(name: name, nameOffset: -1)
+              TopLevelVariableFragmentImpl(
+                  name2: accessor.name2,
+                  nameOffset: -1,
+                )
                 ..enclosingElement3 = enclosingElement
                 ..reference = propertyFragmentReference
-                ..isSynthetic = true
-                ..name2 = accessor.name2;
+                ..isSynthetic = true;
           propertyFragment = variableFragment;
           propertyFragmentReference.element ??= propertyFragment;
           propertyFragments.add(variableFragment);
@@ -1569,10 +1548,9 @@ class LibraryReader {
           propertyFragment = existing;
         } else {
           propertyFragment =
-              FieldFragmentImpl(name: name, nameOffset: -1)
+              FieldFragmentImpl(name2: accessor.name2, nameOffset: -1)
                 ..enclosingElement3 = enclosingElement
                 ..reference = propertyFragmentReference
-                ..name2 = accessor.name2
                 ..isStatic = accessor.isStatic
                 ..isSynthetic = true
                 ..isPromotable = isPromotable
@@ -1625,18 +1603,20 @@ class LibraryReader {
     var getterReference = _readOptionalReference();
     var setterReference = _readOptionalReference();
     var fragmentName = _readFragmentName();
-
-    // TODO(scheglov): we do this only because FieldElement2 uses this name.
-    var name = _reader.readStringReference();
     var isConst = _reader.readBool();
 
     TopLevelVariableFragmentImpl fragment;
     if (isConst) {
-      fragment = ConstTopLevelVariableFragmentImpl(name: name, nameOffset: -1);
+      fragment = ConstTopLevelVariableFragmentImpl(
+        name2: fragmentName,
+        nameOffset: -1,
+      );
     } else {
-      fragment = TopLevelVariableFragmentImpl(name: name, nameOffset: -1);
+      fragment = TopLevelVariableFragmentImpl(
+        name2: fragmentName,
+        nameOffset: -1,
+      );
     }
-    fragment.name2 = fragmentName;
 
     if (reference2.element2 case TopLevelVariableElementImpl2 element) {
       fragment.element = element;
@@ -1701,18 +1681,16 @@ class LibraryReader {
     var reference = _readReference();
     var reference2 = _readReference();
     var fragmentName = _readFragmentName();
-    var name = _reader.readStringReference();
 
     var isFunctionTypeAliasBased = _reader.readBool();
 
     TypeAliasFragmentImpl fragment;
     if (isFunctionTypeAliasBased) {
-      fragment = TypeAliasFragmentImpl(name: name, nameOffset: -1);
+      fragment = TypeAliasFragmentImpl(name2: fragmentName, nameOffset: -1);
       fragment.isFunctionTypeAliasBased = true;
     } else {
-      fragment = TypeAliasFragmentImpl(name: name, nameOffset: -1);
+      fragment = TypeAliasFragmentImpl(name2: fragmentName, nameOffset: -1);
     }
-    fragment.name2 = fragmentName;
 
     if (reference2.element2 case TypeAliasElementImpl2 element) {
       fragment.element = element;
@@ -1748,12 +1726,13 @@ class LibraryReader {
 
   List<TypeParameterFragmentImpl> _readTypeParameters() {
     return _reader.readTypedList(() {
-      var name = _reader.readStringReference();
       var fragmentName = _readFragmentName();
       var varianceEncoding = _reader.readByte();
       var variance = _decodeVariance(varianceEncoding);
-      var element = TypeParameterFragmentImpl(name: name, nameOffset: -1);
-      element.name2 = fragmentName;
+      var element = TypeParameterFragmentImpl(
+        name2: fragmentName,
+        nameOffset: -1,
+      );
       element.variance = variance;
       return element;
     });
@@ -2272,22 +2251,20 @@ class ResolutionReader {
       var isInitializingFormal = _reader.readBool();
       var typeParameters = _readTypeParameters(unitElement);
       var type = readRequiredType();
-      var name = readStringReference();
+      var name = _readFragmentName();
       if (!isDefault) {
         FormalParameterFragmentImpl element;
         if (isInitializingFormal) {
           element = FieldFormalParameterFragmentImpl(
-            name: name,
             nameOffset: -1,
-            name2: name.nullIfEmpty,
+            name2: name,
             nameOffset2: null,
             parameterKind: kind,
           )..type = type;
         } else {
           element = FormalParameterFragmentImpl(
-            name: name,
             nameOffset: -1,
-            name2: name.nullIfEmpty,
+            name2: name,
             nameOffset2: null,
             parameterKind: kind,
           )..type = type;
@@ -2303,9 +2280,8 @@ class ResolutionReader {
         return element;
       } else {
         var element = DefaultParameterFragmentImpl(
-          name: name,
           nameOffset: -1,
-          name2: name.nullIfEmpty,
+          name2: name,
           nameOffset2: null,
           parameterKind: kind,
         )..type = type;
@@ -2437,9 +2413,10 @@ class ResolutionReader {
   ) {
     var typeParameters = readTypedList(() {
       var fragmentName = _readFragmentName();
-      var name = readStringReference();
-      var typeParameter = TypeParameterFragmentImpl(name: name, nameOffset: -1);
-      typeParameter.name2 = fragmentName;
+      var typeParameter = TypeParameterFragmentImpl(
+        name2: fragmentName,
+        nameOffset: -1,
+      );
       _localElements.add(typeParameter);
       return typeParameter;
     });

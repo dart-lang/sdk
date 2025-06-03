@@ -1291,8 +1291,6 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference('previousFragment', f.previousFragment);
       _writeFragmentReference('nextFragment', f.nextFragment);
 
-      _writeMetadata(f.metadata);
-
       if (configuration.withImports) {
         var imports =
             f.libraryImports2.where((import) {

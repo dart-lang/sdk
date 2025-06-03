@@ -224,11 +224,16 @@ class ExpressionCompiler {
         }
       }
 
-      // remove undefined js variables (this allows us to get a reference error
-      // from chrome on evaluation)
-      dartScope.definitions.removeWhere(
-          (variable, type) => !dartNameToJsValue.containsKey(variable));
+      dartScope.definitions.removeWhere((variable, type) =>
+          // Remove undefined js variables (this allows us to get a reference
+          // error from chrome on evaluation).
+          !dartNameToJsValue.containsKey(variable) ||
+          // Remove wildcard method arguments which are lowered to have Dart
+          // names that are invalid for Dart compilations.
+          // Wildcard local variables are not appearing here at this time.
+          isWildcardLoweredFormalParameter(variable));
 
+      // Wildcard type parameters already matched by this existing test.
       dartScope.typeParameters
           .removeWhere((parameter) => !jsScope.containsKey(parameter.name));
 

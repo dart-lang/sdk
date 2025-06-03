@@ -1168,10 +1168,9 @@ class InheritanceManager3 {
         return result;
       }
 
-      var result = MethodFragmentImpl(name: executable.name2 ?? '', nameOffset: -1);
+      var result = MethodFragmentImpl(name2: executable.name2, nameOffset: -1);
       result.reference = fragmentReference;
       fragmentReference.element = result;
-      result.name2 = executable.name2;
       result.enclosingElement3 = class_;
       result.isSynthetic = true;
       result.parameters = transformedParameters;
@@ -1193,22 +1192,14 @@ class InheritanceManager3 {
     }
 
     if (executable is SetterFragmentImpl) {
-      var result = SetterFragmentImpl(
-        name: executable.name2 ?? '',
-        nameOffset: -1,
-      );
-      result.name2 = executable.name2;
+      var result = SetterFragmentImpl(name2: executable.name2, nameOffset: -1);
       result.enclosingElement3 = class_;
       result.isSynthetic = true;
       result.parameters = transformedParameters;
       result.returnType = executable.returnType;
 
       var field = executable.variable2!;
-      var resultField = FieldFragmentImpl(
-        name: field.name2 ?? '',
-        nameOffset: -1,
-      );
-      resultField.name2 = field.name2;
+      var resultField = FieldFragmentImpl(name2: field.name2, nameOffset: -1);
       resultField.enclosingElement3 = class_;
       resultField.getter = field.getter;
       resultField.setter = executable;
@@ -1262,11 +1253,10 @@ class InheritanceManager3 {
         return result;
       }
 
-      var result = MethodFragmentImpl(name: first.name2 ?? '', nameOffset: -1);
+      var result = MethodFragmentImpl(name2: fragmentName, nameOffset: -1);
       result.reference = fragmentReference;
       fragmentReference.element = result;
       result.enclosingElement3 = targetClass;
-      result.name2 = fragmentName;
       result.typeParameters = resultType.typeFormals;
       result.returnType = resultType.returnType;
       // TODO(scheglov): check if can type cast instead
@@ -1290,19 +1280,17 @@ class InheritanceManager3 {
     } else {
       var firstAccessor = first as PropertyAccessorElementOrMember;
       var fragmentName = first.asElement2.firstFragment.name2;
-      var variableName = firstAccessor.displayName;
-      var field = FieldFragmentImpl(name: variableName, nameOffset: -1);
+      var field = FieldFragmentImpl(name2: fragmentName, nameOffset: -1);
 
       PropertyAccessorFragmentImpl result;
       if (firstAccessor.isGetter) {
         field.getter =
-            result = GetterFragmentImpl(name: variableName, nameOffset: -1);
+            result = GetterFragmentImpl(name2: fragmentName, nameOffset: -1);
       } else {
         field.setter =
-            result = SetterFragmentImpl(name: variableName, nameOffset: -1);
+            result = SetterFragmentImpl(name2: fragmentName, nameOffset: -1);
       }
       result.enclosingElement3 = targetClass;
-      result.name2 = fragmentName;
       result.returnType = resultType.returnType;
       // TODO(scheglov): check if can type cast instead
       result.parameters =
@@ -1311,7 +1299,6 @@ class InheritanceManager3 {
               .toList();
 
       field.enclosingElement3 = targetClass;
-      field.name2 = fragmentName;
       if (firstAccessor.isGetter) {
         field.type = result.returnType;
       } else {

@@ -968,8 +968,7 @@ class _MockSdkElementsBuilder {
     List<TypeParameterElementImpl2> typeParameters = const [],
     required LibraryFragmentImpl unit,
   }) {
-    var fragment = ClassFragmentImpl(name: name, nameOffset: 0);
-    fragment.name2 = name;
+    var fragment = ClassFragmentImpl(name2: name, nameOffset: 0);
     ClassElementImpl2(Reference.root(), fragment);
     fragment.typeParameters =
         typeParameters.map((tp) => tp.firstFragment).toList();
@@ -979,13 +978,12 @@ class _MockSdkElementsBuilder {
   }
 
   ConstructorFragmentImpl _constructor({
-    String name = '',
+    String name = 'new',
     bool isConst = false,
     bool isFactory = false,
     List<FormalParameterElement> parameters = const [],
   }) {
-    var element = ConstructorFragmentImpl(name: name, nameOffset: 0);
-    element.name2 = name.ifNotEmptyOrElse('new');
+    var element = ConstructorFragmentImpl(name2: name, nameOffset: 0);
     element.isFactory = isFactory;
     element.isConst = isConst;
     element.parameters =
@@ -1004,8 +1002,8 @@ class _MockSdkElementsBuilder {
   }) {
     var fragment =
         isConst
-            ? ConstFieldFragmentImpl(name: name, nameOffset: 0)
-            : FieldFragmentImpl(name: name, nameOffset: 0);
+            ? ConstFieldFragmentImpl(name2: name, nameOffset: 0)
+            : FieldFragmentImpl(name2: name, nameOffset: 0);
     fragment.isConst = isConst;
     fragment.isFinal = isFinal;
     fragment.isStatic = isStatic;
@@ -1024,7 +1022,7 @@ class _MockSdkElementsBuilder {
     List<FormalParameterElement> parameters = const [],
   }) {
     var fragment =
-        TopLevelFunctionFragmentImpl(name: name, nameOffset: 0)
+        TopLevelFunctionFragmentImpl(name2: name, nameOffset: 0)
           ..parameters =
               parameters
                   .map((p) => p.firstFragment as FormalParameterFragmentImpl)
@@ -1053,12 +1051,12 @@ class _MockSdkElementsBuilder {
     TypeImpl type, {
     bool isStatic = false,
   }) {
-    var field = FieldFragmentImpl(name: name, nameOffset: -1);
+    var field = FieldFragmentImpl(name2: name, nameOffset: -1);
     field.isStatic = isStatic;
     field.isSynthetic = true;
     field.type = type;
 
-    var getter = GetterFragmentImpl(name: name, nameOffset: 0);
+    var getter = GetterFragmentImpl(name2: name, nameOffset: 0);
     getter.isStatic = isStatic;
     getter.isSynthetic = false;
     getter.returnType = type;
@@ -1086,7 +1084,7 @@ class _MockSdkElementsBuilder {
     List<FormalParameterElement> parameters = const [],
   }) {
     var fragment =
-        MethodFragmentImpl(name: name, nameOffset: 0)
+        MethodFragmentImpl(name2: name, nameOffset: 0)
           ..parameters =
               parameters
                   .map((p) => p.firstFragment as FormalParameterFragmentImpl)
@@ -1107,7 +1105,6 @@ class _MockSdkElementsBuilder {
     String? initializerCode,
   }) {
     var fragment = DefaultParameterFragmentImpl(
-      name: name,
       nameOffset: 0,
       name2: name,
       nameOffset2: 0,
@@ -1195,7 +1192,6 @@ class _MockSdkElementsBuilder {
 
   FormalParameterElement _positionalParameter(String name, TypeImpl type) {
     var fragment = FormalParameterFragmentImpl(
-      name: name,
       nameOffset: 0,
       name2: name,
       nameOffset2: 0,
@@ -1207,7 +1203,6 @@ class _MockSdkElementsBuilder {
 
   FormalParameterElement _requiredParameter(String name, TypeImpl type) {
     var fragment = FormalParameterFragmentImpl(
-      name: name,
       nameOffset: 0,
       name2: name,
       nameOffset2: 0,
@@ -1235,7 +1230,7 @@ class _MockSdkElementsBuilder {
     TypeImpl type,
   ) {
     var fragment =
-        ConstTopLevelVariableFragmentImpl(name: name, nameOffset: -1)
+        ConstTopLevelVariableFragmentImpl(name2: name, nameOffset: -1)
           ..isConst = true
           ..type = type;
     TopLevelVariableElementImpl2(Reference.root(), fragment);
@@ -1245,7 +1240,7 @@ class _MockSdkElementsBuilder {
 
   TypeParameterElementImpl2 _typeParameter(String name) {
     return TypeParameterElementImpl2(
-      firstFragment: TypeParameterFragmentImpl(name: name, nameOffset: 0),
+      firstFragment: TypeParameterFragmentImpl(name2: name, nameOffset: 0),
       name3: name.nullIfEmpty,
     );
   }
