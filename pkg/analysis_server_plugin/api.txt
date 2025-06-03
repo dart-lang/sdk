@@ -157,6 +157,8 @@ dart:core:
   int (referenced)
 package:_fe_analyzer_shared/src/scanner/token.dart:
   Token (referenced)
+package:analyzer/analysis_rule/analysis_rule.dart:
+  AnalysisRule (referenced)
 package:analyzer/dart/analysis/analysis_options.dart:
   AnalysisOptions (referenced)
 package:analyzer/dart/analysis/features.dart:
@@ -202,8 +204,6 @@ package:analyzer/src/dart/element/inheritance_manager3.dart:
   Name (referenced)
 package:analyzer/src/dart/error/lint_codes.dart:
   LintCode (referenced)
-package:analyzer/src/lint/linter.dart:
-  AnalysisRule (referenced)
 package:analyzer_plugin/protocol/protocol_common.dart:
   SourceChange (referenced)
 package:analyzer_plugin/utilities/assist/assist.dart:

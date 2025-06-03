@@ -402,7 +402,9 @@ class LibraryAnalyzer {
     var allUnits = analysesToContextUnits.values.toList();
     definingContextUnit ??= allUnits.first;
 
-    var nodeRegistry = RuleVisitorRegistry(enableTiming: _enableLintRuleTiming);
+    var nodeRegistry = RuleVisitorRegistryImpl(
+      enableTiming: _enableLintRuleTiming,
+    );
     var context = RuleContextWithResolvedResults(
       allUnits,
       definingContextUnit,

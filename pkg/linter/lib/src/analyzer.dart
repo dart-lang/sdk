@@ -14,7 +14,6 @@ export 'package:analyzer/src/lint/linter.dart'
         LinterContext,
         MultiAnalysisRule,
         NodeLintRegistry;
-export 'package:analyzer/src/lint/pub.dart' show PSEntry, PubspecVisitor;
 export 'package:analyzer/src/workspace/pub.dart' show PubPackage;
 
 export 'lint_codes.dart';
