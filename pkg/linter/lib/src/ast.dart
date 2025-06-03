@@ -5,6 +5,7 @@
 /// Common AST helpers.
 library;
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -15,8 +16,6 @@ import 'package:analyzer/src/lint/constants.dart' // ignore: implementation_impo
     show ExpressionExtension;
 import 'package:analyzer/workspace/workspace.dart';
 import 'package:path/path.dart' as path;
-
-import 'analyzer.dart';
 
 final Set<String> _reservedWords = {
   for (var entry in Keyword.keywords.entries)
@@ -54,7 +53,7 @@ Token? getFieldName(FieldDeclaration decl, String name) {
 /// minus and then an [IntegerLiteral]. If a [context] is provided,
 /// [SimpleIdentifier]s are evaluated as constants. For anything else,
 /// returns `null`.
-int? getIntValue(Expression expression, LinterContext? context) {
+int? getIntValue(Expression expression, RuleContext? context) {
   if (expression is PrefixExpression) {
     var operand = expression.operand;
     if (expression.operator.type != TokenType.MINUS) return null;
@@ -311,7 +310,7 @@ bool _checkForSimpleSetter(MethodDeclaration setter, Expression expression) {
 
 int? _getIntValue(
   Expression expression,
-  LinterContext? context, {
+  RuleContext? context, {
   bool negated = false,
 }) {
   int? value;

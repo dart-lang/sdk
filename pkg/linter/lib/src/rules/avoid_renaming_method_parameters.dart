@@ -4,6 +4,7 @@
 
 import 'dart:math' as math;
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -27,10 +28,7 @@ class AvoidRenamingMethodParameters extends LintRule {
       LinterLintCode.avoid_renaming_method_parameters;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     if (!context.isInLibDir) return;
 
     var visitor = _Visitor(this, context);
@@ -44,7 +42,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   final LintRule rule;
 
-  _Visitor(this.rule, LinterContext context)
+  _Visitor(this.rule, RuleContext context)
     : _wildCardVariablesEnabled = context.isFeatureEnabled(
         Feature.wildcard_variables,
       );

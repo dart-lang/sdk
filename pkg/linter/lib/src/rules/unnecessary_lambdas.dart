@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -26,10 +27,7 @@ class UnnecessaryLambdas extends LintRule {
   DiagnosticCode get diagnosticCode => LinterLintCode.unnecessary_lambdas;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this, context);
     registry.addFunctionExpression(this, visitor);
   }
@@ -94,7 +92,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
   final TypeSystem typeSystem;
 
-  _Visitor(this.rule, LinterContext context)
+  _Visitor(this.rule, RuleContext context)
     : constructorTearOffsEnabled = context.isFeatureEnabled(
         Feature.constructor_tearoffs,
       ),

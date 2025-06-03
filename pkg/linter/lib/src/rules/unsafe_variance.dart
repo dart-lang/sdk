@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -28,10 +29,7 @@ class UnsafeVariance extends LintRule {
   DiagnosticCode get diagnosticCode => LinterLintCode.unsafe_variance;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this, context);
     registry.addMethodDeclaration(this, visitor);
     registry.addVariableDeclarationList(this, visitor);
@@ -86,7 +84,7 @@ class _UnsafeVarianceChecker extends VarianceChecker {
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  final LinterContext context;
+  final RuleContext context;
   final VarianceChecker checker;
 
   _Visitor(this.rule, this.context) : checker = _UnsafeVarianceChecker(rule);

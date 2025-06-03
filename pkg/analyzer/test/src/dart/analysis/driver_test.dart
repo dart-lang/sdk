@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -46947,7 +46948,7 @@ class _AlwaysReportedLint extends LintRule {
   @override
   void registerNodeProcessors(
     RuleVisitorRegistry registry,
-    LinterContext context,
+    RuleContext context,
   ) {
     var visitor = _AlwaysReportedLintVisitor(this);
     registry.addCompilationUnit(this, visitor);

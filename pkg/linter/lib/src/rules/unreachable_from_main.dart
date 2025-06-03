@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -30,10 +31,7 @@ class UnreachableFromMain extends LintRule {
   DiagnosticCode get diagnosticCode => LinterLintCode.unreachable_from_main;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this, context);
     registry.addCompilationUnit(this, visitor);
   }
@@ -41,7 +39,7 @@ class UnreachableFromMain extends LintRule {
 
 /// This gathers all declarations which we may wish to report on.
 class _DeclarationGatherer {
-  final LinterContext linterContext;
+  final RuleContext linterContext;
 
   /// All declarations which we may wish to report on.
   final Set<Declaration> declarations = {};
@@ -451,7 +449,7 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  final LinterContext context;
+  final RuleContext context;
 
   _Visitor(this.rule, this.context);
 

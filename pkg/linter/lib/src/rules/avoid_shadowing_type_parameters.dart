@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -23,10 +24,7 @@ class AvoidShadowingTypeParameters extends LintRule {
       LinterLintCode.avoid_shadowing_type_parameters;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this, context);
     registry.addFunctionDeclarationStatement(this, visitor);
     registry.addGenericTypeAlias(this, visitor);
@@ -40,7 +38,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   final LintRule rule;
 
-  _Visitor(this.rule, LinterContext context)
+  _Visitor(this.rule, RuleContext context)
     : _wildCardVariablesEnabled = context.isFeatureEnabled(
         Feature.wildcard_variables,
       );
