@@ -8833,7 +8833,7 @@ main() {
         var x = Var('x');
         h.run([
           declare(x, initializer: expr('num')),
-          match(wildcard().as_('int'), x),
+          patternVariableDeclaration(wildcard().as_('int'), x),
           checkNotPromoted(x),
         ]);
       });
