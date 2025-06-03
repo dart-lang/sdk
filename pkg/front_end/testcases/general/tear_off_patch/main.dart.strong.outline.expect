@@ -24,10 +24,10 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
   static factory /* from org-dartlang-testcase:///patch_lib.dart */ fact<T extends core::Object? = dynamic>({core::bool defaultValue = true, required self2::Class::fact::T% value}) → self2::Class<self2::Class::fact::T%>
     ;
   @_in::patch
-  static factory /* from org-dartlang-testcase:///patch_lib.dart */ redirect<T extends core::Object? = dynamic>({core::bool defaultValue = null, required self2::Class::redirect::T% value}) → self2::Class<self2::Class::redirect::T%> /* redirection-target: self2::ClassImpl::•<self2::Class::redirect::T%>*/
+  static factory /* from org-dartlang-testcase:///patch_lib.dart */ redirect<T extends core::Object? = dynamic>({core::bool defaultValue = true, required self2::Class::redirect::T% value}) → self2::Class<self2::Class::redirect::T%> /* redirection-target: self2::ClassImpl::•<self2::Class::redirect::T%>*/
     return new self2::ClassImpl::•<self2::Class::redirect::T%>(defaultValue: defaultValue, value: value);
   @_in::patch
-  static factory /* from org-dartlang-testcase:///patch_lib.dart */ redirect2<T extends core::Object? = dynamic>({core::bool defaultValue = null, required self2::Class::redirect2::T% value}) → self2::Class<self2::Class::redirect2::T%> /* redirection-target: self2::ClassImpl::patched<self2::Class::redirect2::T%>*/
+  static factory /* from org-dartlang-testcase:///patch_lib.dart */ redirect2<T extends core::Object? = dynamic>({core::bool defaultValue = true, required self2::Class::redirect2::T% value}) → self2::Class<self2::Class::redirect2::T%> /* redirection-target: self2::ClassImpl::patched<self2::Class::redirect2::T%>*/
     return new self2::ClassImpl::patched<self2::Class::redirect2::T%>(defaultValue: defaultValue, value: value);
 }
 @/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch

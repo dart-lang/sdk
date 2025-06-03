@@ -175,12 +175,31 @@ class DelayedDefaultValueCloner {
         VariableDeclaration synthesizedParameter =
             _synthesized.positionalParameters[i];
         if (i < _original.positionalParameters.length) {
-          _cloneInitializer(
-              _original.positionalParameters[i], synthesizedParameter);
+          if (i >= _synthesized.requiredParameterCount) {
+            if (i < _original.requiredParameterCount) {
+              // Coverage-ignore-block(suite): Not run.
+              // Error case: use `null` as initializer.
+              synthesizedParameter.initializer = new NullLiteral()
+                ..parent = synthesizedParameter;
+              if (synthesizedParameter.type.nullability !=
+                  Nullability.nullable) {
+                synthesizedParameter.isErroneouslyInitialized = true;
+              }
+            } else {
+              _cloneInitializer(
+                  _original.positionalParameters[i], synthesizedParameter);
+            }
+          }
         } else {
-          // Error case: use `null` as initializer.
-          synthesizedParameter.initializer = new NullLiteral()
-            ..parent = synthesizedParameter;
+          if (i >= _synthesized.requiredParameterCount) {
+            // Error case: use `null` as initializer.
+            synthesizedParameter.initializer = new NullLiteral()
+              ..parent = synthesizedParameter;
+            if (synthesizedParameter.type.nullability != Nullability.nullable) {
+              // Coverage-ignore-block(suite): Not run.
+              synthesizedParameter.isErroneouslyInitialized = true;
+            }
+          }
         }
       }
       if (_synthesized.namedParameters.isNotEmpty) {
@@ -195,11 +214,20 @@ class DelayedDefaultValueCloner {
           VariableDeclaration? originalParameter =
               originalParameters[synthesizedParameter.name!];
           if (originalParameter != null) {
-            _cloneInitializer(originalParameter, synthesizedParameter);
+            if (!originalParameter.isRequired &&
+                !synthesizedParameter.isRequired) {
+              _cloneInitializer(originalParameter, synthesizedParameter);
+            }
           } else {
-            // Error case: use `null` as initializer.
-            synthesizedParameter.initializer = new NullLiteral()
-              ..parent = synthesizedParameter;
+            if (!synthesizedParameter.isRequired) {
+              // Error case: use `null` as initializer.
+              synthesizedParameter.initializer = new NullLiteral()
+                ..parent = synthesizedParameter;
+              if (synthesizedParameter.type.nullability !=
+                  Nullability.nullable) {
+                synthesizedParameter.isErroneouslyInitialized = true;
+              }
+            }
           }
         }
       }
@@ -214,6 +242,8 @@ class DelayedDefaultValueCloner {
       clonedParameter.initializer = cloner.clone(originalParameter.initializer!)
         ..parent = clonedParameter;
     }
+    clonedParameter.isErroneouslyInitialized |=
+        originalParameter.isErroneouslyInitialized;
   }
 
   void _cloneDefaultValueForSuperParameters(
