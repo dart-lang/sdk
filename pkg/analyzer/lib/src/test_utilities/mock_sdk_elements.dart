@@ -983,14 +983,21 @@ class _MockSdkElementsBuilder {
     bool isFactory = false,
     List<FormalParameterElement> parameters = const [],
   }) {
-    var element = ConstructorFragmentImpl(name2: name, nameOffset: 0);
-    element.isFactory = isFactory;
-    element.isConst = isConst;
-    element.parameters =
+    var fragment = ConstructorFragmentImpl(name2: name, nameOffset: 0);
+    fragment.isFactory = isFactory;
+    fragment.isConst = isConst;
+    fragment.parameters =
         parameters
             .map((p) => p.firstFragment as FormalParameterFragmentImpl)
             .toList();
-    return element;
+
+    ConstructorElementImpl2(
+      name3: fragment.name2,
+      reference: Reference.root(),
+      firstFragment: fragment,
+    );
+
+    return fragment;
   }
 
   FieldFragmentImpl _field(

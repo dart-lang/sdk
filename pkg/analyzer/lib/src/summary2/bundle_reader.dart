@@ -758,6 +758,7 @@ class LibraryReader {
     return _reader.readTypedList(() {
       var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
       var reference = _readReference();
+      var reference2 = _readReference();
       var typeName = _reader.readOptionalStringReference();
       var fragmentName = _reader.readStringReference();
       var element = ConstructorFragmentImpl(
@@ -774,6 +775,13 @@ class LibraryReader {
       element.setLinkedData(reference, linkedData);
       ConstructorElementFlags.read(_reader, element);
       element.parameters = _readParameters();
+
+      ConstructorElementImpl2(
+        name3: element.name2,
+        reference: reference2,
+        firstFragment: element,
+      );
+
       return element;
     });
   }

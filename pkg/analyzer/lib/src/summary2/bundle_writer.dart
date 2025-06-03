@@ -160,6 +160,7 @@ class BundleWriter {
   void _writeConstructorElement(ConstructorFragmentImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
     _writeReference(element);
+    _writeReference2(element.element.reference);
     _sink._writeOptionalStringReference(element.typeName);
     _sink._writeStringReference(element.name2);
     ConstructorElementFlags.write(_sink, element);
@@ -712,7 +713,6 @@ class ResolutionSink extends _SummaryDataWriter {
         );
         _writeTypeList(typeArguments);
       // TODO(scheglov): give reference to each element below
-      case ConstructorElementImpl2():
       case FieldElementImpl2():
       case FormalParameterElementImpl():
       case GetterElementImpl():

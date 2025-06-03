@@ -270,34 +270,46 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       fragmentName = 'new';
     }
 
-    var element = ConstructorFragmentImpl(
+    var fragment = ConstructorFragmentImpl(
       name2: fragmentName,
       nameOffset: nameOffset,
     );
-    element.isAugmentation = node.augmentKeyword != null;
-    element.isConst = node.constKeyword != null;
-    element.isExternal = node.externalKeyword != null;
-    element.isFactory = node.factoryKeyword != null;
-    element.metadata = _buildMetadata(node.metadata);
-    element.typeName = node.returnType.name;
-    element.typeNameOffset = node.returnType.offset;
-    element.periodOffset = node.period?.offset;
-    element.nameEnd = nameNode.end;
-    element.nameOffset2 = fragmentNameOffset;
-    _setCodeRange(element, node);
-    _setDocumentation(element, node);
+    fragment.isAugmentation = node.augmentKeyword != null;
+    fragment.isConst = node.constKeyword != null;
+    fragment.isExternal = node.externalKeyword != null;
+    fragment.isFactory = node.factoryKeyword != null;
+    fragment.metadata = _buildMetadata(node.metadata);
+    fragment.typeName = node.returnType.name;
+    fragment.typeNameOffset = node.returnType.offset;
+    fragment.periodOffset = node.period?.offset;
+    fragment.nameEnd = nameNode.end;
+    fragment.nameOffset2 = fragmentNameOffset;
+    _setCodeRange(fragment, node);
+    _setDocumentation(fragment, node);
 
-    if (element.isConst || element.isFactory) {
-      element.constantInitializers = node.initializers;
+    if (fragment.isConst || fragment.isFactory) {
+      fragment.constantInitializers = node.initializers;
     }
 
-    node.declaredFragment = element;
-    _linker.elementNodes[element] = node;
+    node.declaredFragment = fragment;
+    _linker.elementNodes[fragment] = node;
 
-    var reference = _enclosingContext.addConstructor(element);
+    var reference = _enclosingContext.addConstructor(fragment);
+
+    var containerBuilder = _enclosingContext.instanceElementBuilder!;
+    var containerElement = containerBuilder.element;
+    var containerRef = containerElement.reference!.getChild('@constructor');
+    var elementReference = containerRef.addChild(fragment.name2);
+
+    ConstructorElementImpl2(
+      name3: fragment.name2,
+      reference: elementReference,
+      firstFragment: fragment,
+    );
+
     _buildExecutableElementChildren(
       reference: reference,
-      fragment: element,
+      fragment: fragment,
       formalParameters: node.parameters,
     );
   }
@@ -1858,6 +1870,19 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       representation.constructorFragment = constructorFragment;
       _linker.elementNodes[constructorFragment] = representation;
       _enclosingContext.addConstructor(constructorFragment);
+
+      var containerBuilder = _enclosingContext.instanceElementBuilder!;
+      var containerElement = containerBuilder.element;
+      var containerRef = containerElement.reference!.getChild('@method');
+      var elementReference = containerRef.addChild(
+        extensionFragment.name2 ?? 'new',
+      );
+
+      ConstructorElementImpl2(
+        name3: constructorFragment.name2,
+        reference: elementReference,
+        firstFragment: constructorFragment,
+      );
     }
 
     representation.fieldType.accept(this);
