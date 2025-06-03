@@ -24,6 +24,7 @@ class DartNativeAssetsBuilder {
   final Uri packageConfigUri;
   final package_config.PackageConfig packageConfig;
   final String runPackageName;
+  final bool includeDevDependencies;
   final bool verbose;
 
   static const _fileSystem = LocalFileSystem();
@@ -34,6 +35,7 @@ class DartNativeAssetsBuilder {
       packageConfig,
       packageConfigUri,
       runPackageName,
+      includeDevDependencies: includeDevDependencies,
     );
   }();
 
@@ -68,6 +70,7 @@ class DartNativeAssetsBuilder {
     required this.packageConfigUri,
     required this.packageConfig,
     required this.runPackageName,
+    required this.includeDevDependencies,
     required this.verbose,
     Target? target,
   }) : target = target ?? Target.current;

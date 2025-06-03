@@ -413,6 +413,7 @@ class RunCommand extends DartdevCommand {
           packageConfigUri: packageConfigUri,
           packageConfig: packageConfig,
           runPackageName: runPackageName,
+          includeDevDependencies: false,
           verbose: verbose,
         );
         if (!nativeAssetsExperimentEnabled) {

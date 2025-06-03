@@ -254,6 +254,7 @@ Future<void> nativeAssetsTest(
       const [
         'add_asset_link',
         'dart_app',
+        'dev_dependency_with_hook',
         'drop_dylib_link',
         'native_add_duplicate',
         'native_add_version_skew',

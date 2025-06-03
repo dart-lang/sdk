@@ -67,6 +67,7 @@ Run "${runner!.executableName} help" to see global options.''');
           packageConfigUri: packageConfigUri,
           packageConfig: packageConfig,
           runPackageName: runPackageName,
+          includeDevDependencies: true,
           verbose: verbose,
         );
         if (!nativeAssetsExperimentEnabled) {

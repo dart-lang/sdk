@@ -18,8 +18,9 @@ void main([List<String> args = const []]) async {
   // stdout.
 
   for (final package in [
-    'native_add',
+    'dev_dependency_with_hook',
     'native_add_version_skew',
+    'native_add',
     'native_dynamic_linking',
     'system_library',
   ]) {
