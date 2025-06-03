@@ -2668,11 +2668,18 @@ class FlowModel<Type extends Object> {
         //
         // In all of these cases, the correct thing to do is to keep all
         // promotions that were done in both the `try` and `finally` blocks.
-        newPromotedTypes = PromotionModel.rebasePromotedTypes(
-          helper.typeOperations,
-          thisModel.promotedTypes,
-          afterFinallyModel.promotedTypes,
-        );
+        newPromotedTypes =
+            helper.typeAnalyzerOptions.soundFlowAnalysisEnabled
+                ? PromotionModel.rebasePromotedTypes(
+                  helper,
+                  afterFinallyModel.promotedTypes,
+                  thisModel.promotedTypes,
+                )
+                : PromotionModel.rebasePromotedTypes(
+                  helper,
+                  thisModel.promotedTypes,
+                  afterFinallyModel.promotedTypes,
+                );
         // And we can safely restore the SSA node from the end of the try block.
         newSsaNode = thisModel.ssaNode;
         if (newSsaNode != afterFinallyModel.ssaNode) {
@@ -2950,7 +2957,7 @@ class FlowModel<Type extends Object> {
         // usual "promotion chain" invariant (each promoted type is a subtype of
         // the previous).
         newPromotedTypes = PromotionModel.rebasePromotedTypes(
-          helper.typeOperations,
+          helper,
           thisModel.promotedTypes,
           baseModel.promotedTypes,
         );
@@ -3028,13 +3035,15 @@ class FlowModel<Type extends Object> {
 
     Type previousType = reference._type;
     Type newType = helper.typeOperations.promoteToNonNull(previousType);
-    if (newType == previousType) {
+    if (!helper.isValidPromotionStep(
+      previousType: previousType,
+      newType: newType,
+    )) {
       return new ExpressionInfo<Type>.trivial(
         model: this,
         type: helper.boolType,
       );
     }
-    assert(helper.typeOperations.isSubtypeOf(newType, previousType));
 
     FlowModel<Type> ifTrue = _finishTypeTest(
       helper,
@@ -3075,14 +3084,14 @@ class FlowModel<Type extends Object> {
 
     Type previousType = reference._type;
     Type? newType = helper.typeOperations.tryPromoteToType(type, previousType);
-    if (newType == null || newType == previousType) {
+    if (newType == null ||
+        !helper.isValidPromotionStep(
+          previousType: previousType,
+          newType: newType,
+        )) {
       return this;
     }
 
-    assert(
-      helper.typeOperations.isSubtypeOf(newType, previousType),
-      "Expected $newType to be a subtype of $previousType.",
-    );
     return _finishTypeTest(helper, reference, info, type, newType);
   }
 
@@ -3118,11 +3127,11 @@ class FlowModel<Type extends Object> {
       type,
       previousType,
     );
-    if (typeIfSuccess != null && typeIfSuccess != previousType) {
-      assert(
-        helper.typeOperations.isSubtypeOf(typeIfSuccess, previousType),
-        "Expected $typeIfSuccess to be a subtype of $previousType.",
-      );
+    if (typeIfSuccess != null &&
+        helper.isValidPromotionStep(
+          previousType: previousType,
+          newType: typeIfSuccess,
+        )) {
       ifTrue = _finishTypeTest(helper, reference, info, type, typeIfSuccess);
     }
 
@@ -3132,8 +3141,11 @@ class FlowModel<Type extends Object> {
       // Promoting to `Never` would mark the code as unreachable.  But it might
       // be reachable due to mixed mode unsoundness.  So don't promote.
       typeIfFalse = null;
-    } else if (factoredType == previousType) {
-      // No change to the type, so don't promote.
+    } else if (!helper.isValidPromotionStep(
+      previousType: previousType,
+      newType: factoredType,
+    )) {
+      // Don't promote.
       typeIfFalse = null;
     } else {
       typeIfFalse = factoredType;
@@ -3198,8 +3210,7 @@ class FlowModel<Type extends Object> {
     NonPromotionReason? nonPromotionReason,
     int variableKey,
     Type writtenType,
-    SsaNode<Type> newSsaNode,
-    FlowAnalysisOperations<Variable, Type> operations, {
+    SsaNode<Type> newSsaNode, {
     bool promoteToTypeOfInterest = true,
     required Type unpromotedType,
   }) {
@@ -3207,10 +3218,10 @@ class FlowModel<Type extends Object> {
     PromotionModel<Type>? infoForVar = promotionInfo?.get(helper, variableKey);
     if (infoForVar != null) {
       PromotionModel<Type> newInfoForVar = infoForVar.write(
+        helper,
         nonPromotionReason,
         variableKey,
         writtenType,
-        operations,
         newSsaNode,
         promoteToTypeOfInterest: promoteToTypeOfInterest,
         unpromotedType: unpromotedType,
@@ -3378,6 +3389,9 @@ mixin FlowModelHelper<Type extends Object> {
   @visibleForTesting
   PromotionKeyStore<Object> get promotionKeyStore;
 
+  /// Language features enables affecting the behavior of flow analysis.
+  TypeAnalyzerOptions get typeAnalyzerOptions;
+
   /// The [FlowAnalysisTypeOperations], used to access types and check
   /// subtyping.
   @visibleForTesting
@@ -3386,6 +3400,15 @@ mixin FlowModelHelper<Type extends Object> {
   /// Whether the variable of [variableKey] was declared with the `final`
   /// modifier and the `inference-update-4` feature flag is enabled.
   bool isFinal(int variableKey);
+
+  /// Determines whether a promotion from type [previousType] to [newType] is
+  /// allowed to occur, given the current configuration of flow analysis.
+  ///
+  /// Caller is required to ensure that `newType <: previousType`.
+  bool isValidPromotionStep({
+    required Type previousType,
+    required Type newType,
+  });
 }
 
 /// Documentation links that might be presented to the user to accompany a "why
@@ -3717,10 +3740,10 @@ class PromotionModel<Type extends Object> {
   /// must pass in a non-null value for [nonPromotionReason] describing the
   /// reason for any potential demotion.
   PromotionModel<Type> write<Variable extends Object>(
+    FlowModelHelper<Type> helper,
     NonPromotionReason? nonPromotionReason,
     int variableKey,
     Type writtenType,
-    FlowAnalysisOperations<Variable, Type> operations,
     SsaNode<Type> newSsaNode, {
     required bool promoteToTypeOfInterest,
     required Type unpromotedType,
@@ -3737,14 +3760,14 @@ class PromotionModel<Type extends Object> {
 
     _DemotionResult<Type> demotionResult = _demoteViaAssignment(
       writtenType,
-      operations,
+      helper.typeOperations,
       nonPromotionReason,
     );
     List<Type>? newPromotedTypes = demotionResult.promotedTypes;
 
     if (promoteToTypeOfInterest) {
       newPromotedTypes = _tryPromoteToTypeOfInterest(
-        operations,
+        helper,
         unpromotedType,
         newPromotedTypes,
         writtenType,
@@ -3858,7 +3881,7 @@ class PromotionModel<Type extends Object> {
   /// Note that since promotion chains are considered immutable, if promotion
   /// is required, a new promotion chain will be created and returned.
   List<Type>? _tryPromoteToTypeOfInterest(
-    FlowAnalysisTypeOperations<Type> typeOperations,
+    FlowModelHelper<Type> helper,
     Type declaredType,
     List<Type>? promotedTypes,
     Type writtenType,
@@ -3875,15 +3898,18 @@ class PromotionModel<Type extends Object> {
 
     void handleTypeOfInterest(Type type) {
       // The written type must be a subtype of the type.
-      if (!typeOperations.isSubtypeOf(writtenType, type)) {
+      if (!helper.typeOperations.isSubtypeOf(writtenType, type)) {
         return;
       }
 
       // Must be more specific that the currently promoted type.
-      if (type == currentlyPromotedType) {
+      if (!helper.typeOperations.isSubtypeOf(type, currentlyPromotedType)) {
         return;
       }
-      if (!typeOperations.isSubtypeOf(type, currentlyPromotedType)) {
+      if (!helper.isValidPromotionStep(
+        previousType: currentlyPromotedType,
+        newType: type,
+      )) {
         return;
       }
 
@@ -3906,7 +3932,9 @@ class PromotionModel<Type extends Object> {
 
     // The declared type is always a type of interest, but we never promote
     // to the declared type. So, try NonNull of it.
-    Type declaredTypeNonNull = typeOperations.promoteToNonNull(declaredType);
+    Type declaredTypeNonNull = helper.typeOperations.promoteToNonNull(
+      declaredType,
+    );
     if (declaredTypeNonNull != declaredType) {
       handleTypeOfInterest(declaredTypeNonNull);
       if (result != null) {
@@ -3922,7 +3950,7 @@ class PromotionModel<Type extends Object> {
         return result!;
       }
 
-      Type typeNonNull = typeOperations.promoteToNonNull(type);
+      Type typeNonNull = helper.typeOperations.promoteToNonNull(type);
       if (typeNonNull != type) {
         handleTypeOfInterest(typeNonNull);
         if (result != null) {
@@ -3940,7 +3968,10 @@ class PromotionModel<Type extends Object> {
       for (int i = 0; i < candidates2.length; i++) {
         for (int j = 0; j < candidates2.length; j++) {
           if (j == i) continue;
-          if (!typeOperations.isSubtypeOf(candidates2[i], candidates2[j])) {
+          if (!helper.typeOperations.isSubtypeOf(
+            candidates2[i],
+            candidates2[j],
+          )) {
             // Not a subtype of all the others.
             continue outer;
           }
@@ -4127,7 +4158,7 @@ class PromotionModel<Type extends Object> {
   /// [thisPromotedTypes] or [basePromotedTypes] (to make it easier for the
   /// caller to detect when data structures may be re-used).
   static List<Type>? rebasePromotedTypes<Type extends Object>(
-    FlowAnalysisTypeOperations<Type> typeOperations,
+    FlowModelHelper<Type> helper,
     List<Type>? thisPromotedTypes,
     List<Type>? basePromotedTypes,
   ) {
@@ -4147,8 +4178,11 @@ class PromotionModel<Type extends Object> {
       Type otherPromotedType = basePromotedTypes.last;
       for (int i = 0; i < thisPromotedTypes.length; i++) {
         Type nextType = thisPromotedTypes[i];
-        if (typeOperations.isSubtypeOf(nextType, otherPromotedType) &&
-            nextType != otherPromotedType) {
+        if (helper.typeOperations.isSubtypeOf(nextType, otherPromotedType) &&
+            helper.isValidPromotionStep(
+              previousType: otherPromotedType,
+              newType: nextType,
+            )) {
           newPromotedTypes =
               basePromotedTypes.toList()..addAll(thisPromotedTypes.skip(i));
           break;
@@ -4582,7 +4616,7 @@ class SsaNode<Type extends Object> {
       }
       List<Type>? newPromotedTypes = newModel.promotedTypes;
       List<Type>? rebasedPromotedTypes = PromotionModel.rebasePromotedTypes(
-        helper.typeOperations,
+        helper,
         afterFinallyPromotedTypes,
         newPromotedTypes,
       );
@@ -4964,7 +4998,7 @@ class _FlowAnalysisImpl<
     implements
         FlowAnalysis<Node, Statement, Expression, Variable, Type>,
         _PropertyTargetHelper<Expression, Type> {
-  /// Language features enables affecting the behavior of flow analysis.
+  @override
   final TypeAnalyzerOptions typeAnalyzerOptions;
 
   /// The [FlowAnalysisOperations], used to access types, check subtyping, and
@@ -5770,6 +5804,27 @@ class _FlowAnalysisImpl<
             ?.get(this, promotionKeyStore.keyForVariable(variable))
             ?.unassigned ??
         true;
+  }
+
+  @override
+  bool isValidPromotionStep({
+    required Type previousType,
+    required Type newType,
+  }) {
+    // Caller must ensure that `newType <: previousType`.
+    assert(
+      typeOperations.isSubtypeOf(newType, previousType),
+      "Expected $newType to be a subtype of $previousType.",
+    );
+    if (this.typeAnalyzerOptions.soundFlowAnalysisEnabled) {
+      // Promotion to a mutual subtype is not allowed. Since the caller has
+      // already ensured that `newType <: previousType`, it's only necessary to
+      // check whether `previousType <: newType`.
+      return !typeOperations.isSubtypeOf(previousType, newType);
+    } else {
+      // Repeated promotion to the same type is not allowed.
+      return newType != previousType;
+    }
   }
 
   @override
@@ -7126,7 +7181,6 @@ class _FlowAnalysisImpl<
       promotionKey,
       matchedType,
       newSsaNode,
-      operations,
       promoteToTypeOfInterest: !isImplicitlyTyped && !isFinal,
       unpromotedType: unpromotedType,
     );
@@ -7394,7 +7448,6 @@ class _FlowAnalysisImpl<
       variableKey,
       writtenType,
       newSsaNode,
-      operations,
       unpromotedType: unpromotedType,
     );
 

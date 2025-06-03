@@ -249,8 +249,10 @@ bool shouldSkip() {
   final stack = StackTrace.current.toString();
   final isObfuscateMode = !stack.contains('shouldSkip');
   final isDwarfStackTracesMode = stack.contains('*** ***');
+  final isDLL = Platform.script.toString().endsWith(".dll");
 
   // We should skip the test if we are running without DWARF stack
-  // traces enabled but with obfuscation.
-  return !isDwarfStackTracesMode && isObfuscateMode;
+  // traces enabled but with obfuscation. Or if running from a DLL,
+  // which lacks DWARF.
+  return isDLL || (!isDwarfStackTracesMode && isObfuscateMode);
 }

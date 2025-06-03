@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Requirements=nnbd
-
 import 'dart:_rti' as rti;
 import 'dart:_foreign_helper' show JS;
 import "package:expect/expect.dart";

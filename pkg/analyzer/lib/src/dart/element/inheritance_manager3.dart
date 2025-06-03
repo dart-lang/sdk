@@ -241,7 +241,7 @@ class InheritanceManager3 {
     if (interface.superImplemented.isNotEmpty) {
       return interface.superImplemented.last;
     } else {
-      assert(element.name == 'Object');
+      assert(element.name2 == 'Object');
       return const {};
     }
   }
@@ -375,7 +375,7 @@ class InheritanceManager3 {
       if (superImplemented.isNotEmpty) {
         return superImplemented.last[name];
       } else {
-        assert(element.name == 'Object');
+        assert(element.name2 == 'Object');
         return null;
       }
     }
@@ -515,8 +515,11 @@ class InheritanceManager3 {
 
     void addMember(ExecutableElementOrMember member) {
       if (!member.isAbstract && !member.isStatic) {
-        var name = Name(libraryUri, member.name);
-        implemented[name] = member;
+        var lookupName = member.element.lookupName;
+        if (lookupName != null) {
+          var name = Name(libraryUri, lookupName);
+          implemented[name] = member;
+        }
       }
     }
 
@@ -1156,7 +1159,7 @@ class InheritanceManager3 {
     }
 
     if (executable is MethodElementOrMember) {
-      var fragmentName = executable.name;
+      var fragmentName = executable.name2 ?? '';
       var fragmentReference = class_.reference!
           .getChild('@method')
           .getChild(fragmentName);
@@ -1165,9 +1168,10 @@ class InheritanceManager3 {
         return result;
       }
 
-      var result = MethodFragmentImpl(name: fragmentName, nameOffset: -1);
+      var result = MethodFragmentImpl(name: executable.name2 ?? '', nameOffset: -1);
       result.reference = fragmentReference;
       fragmentReference.element = result;
+      result.name2 = executable.name2;
       result.enclosingElement3 = class_;
       result.isSynthetic = true;
       result.parameters = transformedParameters;
@@ -1189,14 +1193,22 @@ class InheritanceManager3 {
     }
 
     if (executable is SetterFragmentImpl) {
-      var result = SetterFragmentImpl(name: executable.name, nameOffset: -1);
+      var result = SetterFragmentImpl(
+        name: executable.name2 ?? '',
+        nameOffset: -1,
+      );
+      result.name2 = executable.name2;
       result.enclosingElement3 = class_;
       result.isSynthetic = true;
       result.parameters = transformedParameters;
       result.returnType = executable.returnType;
 
       var field = executable.variable2!;
-      var resultField = FieldFragmentImpl(name: field.name, nameOffset: -1);
+      var resultField = FieldFragmentImpl(
+        name: field.name2 ?? '',
+        nameOffset: -1,
+      );
+      resultField.name2 = field.name2;
       resultField.enclosingElement3 = class_;
       resultField.getter = field.getter;
       resultField.setter = executable;
@@ -1250,7 +1262,7 @@ class InheritanceManager3 {
         return result;
       }
 
-      var result = MethodFragmentImpl(name: first.name, nameOffset: -1);
+      var result = MethodFragmentImpl(name: first.name2 ?? '', nameOffset: -1);
       result.reference = fragmentReference;
       fragmentReference.element = result;
       result.enclosingElement3 = targetClass;
@@ -1320,8 +1332,11 @@ class InheritanceManager3 {
 
     void addMember(ExecutableElementOrMember member) {
       if (!member.isStatic) {
-        var name = Name(libraryUri, member.name);
-        declared[name] = member;
+        var lookupName = member.element.lookupName;
+        if (lookupName != null) {
+          var name = Name(libraryUri, lookupName);
+          declared[name] = member;
+        }
       }
     }
 
@@ -1634,7 +1649,7 @@ class _ParameterDesc {
 
   factory _ParameterDesc(int index, ParameterElementMixin element) {
     return element.isNamed
-        ? _ParameterDesc.name(element.name)
+        ? _ParameterDesc.name(element.name2)
         : _ParameterDesc.index(index);
   }
 

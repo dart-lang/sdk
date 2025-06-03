@@ -4632,7 +4632,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         unnamedParameterCount++;
       } else {
         namedParameters ??= {};
-        namedParameters[parameter.name3!] = parameter;
+        namedParameters[parameter.name3 ?? ''] = parameter;
       }
     }
     int unnamedIndex = 0;

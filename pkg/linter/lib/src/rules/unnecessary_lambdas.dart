@@ -6,6 +6,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
@@ -102,7 +103,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitFunctionExpression(FunctionExpression node) {
     var element = node.declaredFragment?.element;
-    if (element?.name3 != '' || node.body.keyword != null) {
+    if (element?.name3 != null || node.body.keyword != null) {
       return;
     }
     var body = node.body;

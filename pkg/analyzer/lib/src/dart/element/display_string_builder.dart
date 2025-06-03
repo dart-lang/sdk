@@ -37,11 +37,11 @@ class ElementDisplayStringBuilder {
   String toString() => _buffer.toString();
 
   void writeAbstractElement(FragmentImpl element) {
-    _write(element.name ?? '<unnamed $runtimeType>');
+    _write(element.name2 ?? '<unnamed ${element.runtimeType}>');
   }
 
   void writeAbstractElement2(ElementImpl2 element) {
-    _write(element.name3 ?? '<unnamed $runtimeType>');
+    _write(element.name3 ?? '<unnamed ${element.runtimeType}>');
   }
 
   void writeClassElement(ClassFragmentImpl element) {
@@ -162,7 +162,7 @@ class ElementDisplayStringBuilder {
     _write('(');
     _writeType(element.representation.type);
     _write(' ');
-    _write(element.representation.name);
+    _write(element.representation.name2 ?? '<null-name}>');
     _write(')');
 
     _writeTypesIfNotEmpty(' implements ', element.interfaces);

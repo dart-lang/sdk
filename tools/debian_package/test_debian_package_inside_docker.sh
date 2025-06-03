@@ -22,7 +22,11 @@ dart analyze /tmp/hello.dart
 # Test VM JIT
 dart /tmp/hello.dart
 
-# Test VM AOT
+# Test VM AOT - proper library, dartaotruntime on PATH
+dart compile aot-snapshot -o /tmp/libhello.so /tmp/hello.dart
+dartaotruntime /tmp/libhello.so
+
+# Test VM AOT - self-contained executable
 dart compile exe -o /tmp/hello.exe /tmp/hello.dart
 /tmp/hello.exe
 

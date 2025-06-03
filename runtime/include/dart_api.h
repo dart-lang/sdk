@@ -3998,7 +3998,8 @@ DART_EXPORT Dart_Handle Dart_LoadingUnitLibraryUris(intptr_t loading_unit_id);
  *  debugging sections.
  *
  *  If debug_callback_data is provided, debug_callback_data will be used with
- *  the callback to provide separate debugging information.
+ *  the callback to provide separate debugging information. Ignored when
+ *  targeting Windows.
  *
  *  \return A valid handle if no error occurs during the operation.
  */

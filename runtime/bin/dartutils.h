@@ -264,6 +264,7 @@ class DartUtils {
     // ("cigam") ones, as we can't load a reverse-endian snapshot anyway.
     kAotMachO32MagicNumber,
     kAotMachO64MagicNumber,
+    kAotPEMagicNumber,
     kAotCoffARM32MagicNumber,
     kAotCoffARM64MagicNumber,
     kAotCoffRISCV32MagicNumber,

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:expect/expect.dart';
 
@@ -10,7 +11,10 @@ import 'use_flag_test_helper.dart';
 
 void main() {
   final buildId = NativeRuntime.buildId;
-  if (isAOTRuntime) {
+
+  if (Platform.script.toString().endsWith(".dll")) {
+    Expect.isNull(buildId); // No build id in DLLs.
+  } else if (isAOTRuntime) {
     Expect.isNotNull(buildId);
     Expect.isTrue(buildId!.isNotEmpty, 'Build ID is an empty string');
   } else {

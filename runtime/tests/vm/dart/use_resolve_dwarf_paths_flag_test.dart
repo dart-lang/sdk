@@ -19,6 +19,9 @@ main(List<String> args) async {
   if (Platform.isAndroid) {
     return;
   }
+  if (Platform.script.toString().endsWith(".dll")) {
+    return;
+  }
 
   final isDwarfStackTraces = StackTrace.current.toString().contains('*** ***');
   if (!isDwarfStackTraces) {

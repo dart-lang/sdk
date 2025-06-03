@@ -19,6 +19,8 @@ import 'dylib_utils.dart';
 void main(List<String> args) async {
   // Test exercises JIT, Windows-only functionality.
   if (!Platform.isWindows) return;
+  if (Platform.script.toString().endsWith(".dll")) return;
+
   if (args.length == 0) {
     asyncStart();
     final results = await Process.run(

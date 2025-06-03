@@ -1880,7 +1880,7 @@ library
           element: <testLibraryFragment>::@setter::0#element
           formalParameters
             <null-name>
-              element: <testLibraryFragment>::@setter::0::@parameter::_#element
+              element: <testLibraryFragment>::@setter::0::@parameter::#element
   topLevelVariables
     a
       reference: <testLibrary>::@topLevelVariable::a
@@ -1911,7 +1911,7 @@ library
     synthetic static set <null-name>
       firstFragment: <testLibraryFragment>::@setter::0
       formalParameters
-        requiredPositional _
+        requiredPositional <null-name>
           type: Object?
       returnType: void
 ''');

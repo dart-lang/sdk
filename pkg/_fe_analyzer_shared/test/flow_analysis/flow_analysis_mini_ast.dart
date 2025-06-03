@@ -6,6 +6,7 @@ import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/promotion_key_store.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 
 import '../mini_ast.dart';
@@ -39,6 +40,9 @@ class FlowAnalysisTestHarness extends Harness
   final SharedTypeView boolType = SharedTypeView(Type('bool'));
 
   @override
+  TypeAnalyzerOptions get typeAnalyzerOptions => computeTypeAnalyzerOptions();
+
+  @override
   FlowAnalysisOperations<Var, SharedTypeView> get typeOperations =>
       typeAnalyzer.operations;
 
@@ -47,6 +51,22 @@ class FlowAnalysisTestHarness extends Harness
     Var? variable = promotionKeyStore.variableForKey(variableKey);
     if (variable != null && operations.isFinal(variable)) return true;
     return false;
+  }
+
+  @override
+  bool isValidPromotionStep({
+    required SharedTypeView previousType,
+    required SharedTypeView newType,
+  }) {
+    // Caller must ensure that `newType <: previousType`.
+    assert(
+      typeOperations.isSubtypeOf(newType, previousType),
+      "Expected $newType to be a subtype of $previousType.",
+    );
+    // Promotion to a mutual subtype is not allowed. Since the caller has
+    // already ensured that `newType <: previousType`, it's only necessary to
+    // check whether `previousType <: newType`.
+    return !typeOperations.isSubtypeOf(previousType, newType);
   }
 }
 

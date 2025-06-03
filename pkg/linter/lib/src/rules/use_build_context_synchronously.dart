@@ -937,8 +937,7 @@ class UseBuildContextSynchronously extends MultiAnalysisRule {
     NodeLintRegistry registry,
     LinterContext context,
   ) {
-    var unit = context.definingUnit.unit;
-    if (!unit.inTestDir) {
+    if (!context.isInTestDirectory) {
       var visitor = _Visitor(this);
       registry.addMethodInvocation(this, visitor);
       registry.addInstanceCreationExpression(this, visitor);

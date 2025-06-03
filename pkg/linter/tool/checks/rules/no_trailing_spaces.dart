@@ -28,7 +28,7 @@ class NoTrailingSpaces extends LintRule {
     NodeLintRegistry registry,
     LinterContext context,
   ) {
-    if (context.definingUnit.unit.inTestDir) {
+    if (context.isInTestDirectory) {
       var visitor = _Visitor(this);
       registry.addMethodInvocation(this, visitor);
     }

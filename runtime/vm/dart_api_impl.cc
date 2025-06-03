@@ -6451,7 +6451,13 @@ static void CreateAppAOTSnapshot(
                                         FullSnapshotWriter::kInitialSize);
   ZoneWriteStream isolate_snapshot_instructions(T->zone(), kInitialSize);
 
-  const bool generate_debug = debug_callback_data != nullptr;
+  bool generate_debug = debug_callback_data != nullptr;
+#if defined(DART_TARGET_OS_WINDOWS)
+  if (format == Dart_AotBinaryFormat_Assembly) {
+    // TODO(https://github.com/dart-lang/sdk/issues/60812): Support PDB.
+    generate_debug = false;  // PDB unimplemented, no DWARF in PE.
+  }
+#endif
 
   auto* const deobfuscation_trie =
       (strip && !generate_debug) ? nullptr
@@ -6574,8 +6580,6 @@ Dart_CreateAppAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
                                     void* debug_callback_data) {
 #if defined(TARGET_ARCH_IA32)
   return Api::NewError("AOT compilation is not supported on IA32.");
-#elif defined(DART_TARGET_OS_WINDOWS)
-  return Api::NewError("Assembly generation is not implemented for Windows.");
 #elif !defined(DART_PRECOMPILER)
   return Api::NewError(
       "This VM was built without support for AOT compilation.");
@@ -6603,8 +6607,6 @@ DART_EXPORT Dart_Handle Dart_CreateAppAOTSnapshotAsAssemblies(
     Dart_StreamingCloseCallback close_callback) {
 #if defined(TARGET_ARCH_IA32)
   return Api::NewError("AOT compilation is not supported on IA32.");
-#elif defined(DART_TARGET_OS_WINDOWS)
-  return Api::NewError("Assembly generation is not implemented for Windows.");
 #elif !defined(DART_PRECOMPILER)
   return Api::NewError(
       "This VM was built without support for AOT compilation.");
@@ -6627,8 +6629,6 @@ Dart_CreateVMAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
                                    void* callback_data) {
 #if defined(TARGET_ARCH_IA32)
   return Api::NewError("AOT compilation is not supported on IA32.");
-#elif defined(DART_TARGET_OS_WINDOWS)
-  return Api::NewError("Assembly generation is not implemented for Windows.");
 #elif !defined(DART_PRECOMPILER)
   return Api::NewError(
       "This VM was built without support for AOT compilation.");

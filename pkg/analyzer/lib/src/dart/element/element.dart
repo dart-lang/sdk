@@ -65,6 +65,11 @@ abstract class AnnotatableElementImpl implements ElementImpl2, Annotatable {
   MetadataImpl get metadata;
 }
 
+abstract class AnnotatableFragmentImpl implements FragmentImpl, Annotatable {
+  @override
+  abstract MetadataImpl metadata;
+}
+
 /// Shared implementation for an augmentable [Fragment].
 mixin AugmentableFragment on FragmentImpl {
   bool get isAugmentation {
@@ -471,15 +476,15 @@ class ClassFragmentImpl extends ClassOrMixinFragmentImpl
   bool get isConstructable => !isSealed && !isAbstract;
 
   bool get isDartCoreEnum {
-    return name == 'Enum' && library.isDartCore;
+    return name2 == 'Enum' && library.isDartCore;
   }
 
   bool get isDartCoreObject {
-    return name == 'Object' && library.isDartCore;
+    return name2 == 'Object' && library.isDartCore;
   }
 
   bool get isDartCoreRecord {
-    return name == 'Record' && library.isDartCore;
+    return name2 == 'Record' && library.isDartCore;
   }
 
   bool get isExhaustive => isSealed;
@@ -622,15 +627,13 @@ class ClassFragmentImpl extends ClassOrMixinFragmentImpl
     // substituting type parameters as appropriate.
     _constructors = constructorsToForward
         .map((superclassConstructor) {
-          var name = superclassConstructor.name;
+          var name = superclassConstructor.name2;
           var implicitConstructor = ConstructorFragmentImpl(
-            name: name,
+            name: name != 'new' ? name : '',
             nameOffset: -1,
           );
           implicitConstructor.isSynthetic = true;
           implicitConstructor.typeName = name2;
-          implicitConstructor.name = name;
-          implicitConstructor.nameOffset = -1;
           implicitConstructor.name2 = superclassConstructor.name2;
 
           var containerRef = reference!.getChild('@constructor');
@@ -655,24 +658,24 @@ class ClassFragmentImpl extends ClassOrMixinFragmentImpl
               if (superParameter is ConstVariableElement) {
                 var constVariable = superParameter as ConstVariableElement;
                 implicitParameter = DefaultParameterFragmentImpl(
-                  name: superParameter.name,
+                  name: superParameter.name2 ?? '',
                   nameOffset: -1,
-                  name2: superParameter.name.nullIfEmpty,
+                  name2: superParameter.name2,
                   nameOffset2: null,
                   parameterKind: superParameter.parameterKind,
                 )..constantInitializer = constVariable.constantInitializer;
                 if (superParameter.isNamed) {
                   var reference = implicitReference
                       .getChild('@parameter')
-                      .getChild(implicitParameter.name);
+                      .getChild(implicitParameter.name2 ?? '');
                   implicitParameter.reference = reference;
                   reference.element = implicitParameter;
                 }
               } else {
                 implicitParameter = FormalParameterFragmentImpl(
-                  name: superParameter.name,
+                  name: superParameter.name2 ?? '',
                   nameOffset: -1,
-                  name2: superParameter.name.nullIfEmpty,
+                  name2: superParameter.name2,
                   nameOffset2: null,
                   parameterKind: superParameter.parameterKind,
                 );
@@ -688,7 +691,7 @@ class ClassFragmentImpl extends ClassOrMixinFragmentImpl
                 SimpleIdentifierImpl(
                     token: StringToken(
                       TokenType.STRING,
-                      implicitParameter.name,
+                      implicitParameter.name2 ?? '',
                       -1,
                     ),
                   )
@@ -705,7 +708,7 @@ class ClassFragmentImpl extends ClassOrMixinFragmentImpl
             superType,
           );
 
-          var isNamed = superclassConstructor.name.isNotEmpty;
+          var isNamed = superclassConstructor.name2 != 'new';
           var superInvocation = SuperConstructorInvocationImpl(
             superKeyword: Tokens.super_(),
             period: isNamed ? Tokens.period() : null,
@@ -714,7 +717,7 @@ class ClassFragmentImpl extends ClassOrMixinFragmentImpl
                     ? (SimpleIdentifierImpl(
                       token: StringToken(
                         TokenType.STRING,
-                        superclassConstructor.name,
+                        superclassConstructor.name2,
                         -1,
                       ),
                     )..element = superclassConstructor.asElement2)
@@ -945,7 +948,7 @@ mixin ConstructorElementMixin
   /// and has no required parameters.
   bool get isDefaultConstructor {
     // unnamed
-    if (name.isNotEmpty) {
+    if (name2 != 'new') {
       return false;
     }
     // no required parameters
@@ -993,7 +996,7 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
     with ConstructorElementMixin
     implements ConstructorFragment {
   late final ConstructorElementImpl2 element = ConstructorElementImpl2(
-    name.ifNotEmptyOrElse('new'),
+    name2,
     this,
   );
 
@@ -1063,12 +1066,12 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
 
   @override
   String get displayName {
-    var className = enclosingElement3.name;
-    var name = this.name;
-    if (name.isNotEmpty) {
-      return '$className.$name';
+    var className = enclosingElement3.name2;
+    var name2 = this.name2;
+    if (name2 != 'new') {
+      return '$className.$name2';
     } else {
-      return className;
+      return className ?? '<null>';
     }
   }
 
@@ -1519,6 +1522,9 @@ class DynamicFragmentImpl extends FragmentImpl implements TypeDefiningFragment {
   /// The unique instance of this class.
   static final DynamicFragmentImpl instance = DynamicFragmentImpl._();
 
+  @override
+  final MetadataImpl metadata = MetadataImpl(const []);
+
   /// Initialize a newly created instance of this class. Instances of this class
   /// should <b>not</b> be created except as part of creating the type
   /// associated with this element. The single instance of this class should be
@@ -1545,9 +1551,6 @@ class DynamicFragmentImpl extends FragmentImpl implements TypeDefiningFragment {
 
   @override
   Null get libraryFragment => null;
-
-  @override
-  MetadataImpl get metadata => MetadataImpl(metadata3);
 
   @Deprecated('Use metadata instead')
   @override
@@ -2001,17 +2004,13 @@ sealed class ElementDirectiveImpl implements ElementDirective {
   @override
   final DirectiveUri uri;
 
-  List<ElementAnnotationImpl> annotations = [];
+  @override
+  MetadataImpl metadata = MetadataImpl(const []);
 
   ElementDirectiveImpl({required this.uri});
 
   @override
   Null get documentationComment => null;
-
-  @override
-  MetadataImpl get metadata {
-    return MetadataImpl(annotations);
-  }
 
   @Deprecated('Use metadata instead')
   @override
@@ -2241,7 +2240,7 @@ class EnumFragmentImpl extends InterfaceFragmentImpl implements EnumFragment {
   ConstFieldFragmentImpl? get valuesField {
     for (var field in fields) {
       if (field is ConstFieldFragmentImpl &&
-          field.name == 'values' &&
+          field.name2 == 'values' &&
           field.isSyntheticEnumField) {
         return field;
       }
@@ -2376,6 +2375,7 @@ abstract class ExecutableElementOrMember implements FragmentOrMember {
 
   /// The name of this element, or `null` if this element does not have a name.
   @override
+  @Deprecated('Use name2 instead')
   String get name;
 
   /// The parameters defined by this executable element.
@@ -2524,11 +2524,12 @@ abstract class ExecutableFragmentImpl extends _ExistingElementImpl
   bool get isSynchronous => !isAsynchronous;
 
   @override
-  List<ElementAnnotationImpl> get metadata3 {
+  MetadataImpl get metadata {
     linkedData?.read(this);
-    return super.metadata3;
+    return super.metadata;
   }
 
+  @Deprecated('Use name2 instead')
   @override
   String get name {
     return super.name!;
@@ -2662,7 +2663,7 @@ class ExtensionFragmentImpl extends InstanceFragmentImpl
   ];
 
   @override
-  String get displayName => name ?? '';
+  String get displayName => name2 ?? '';
 
   @override
   ExtensionElementImpl2 get element {
@@ -2683,15 +2684,21 @@ class ExtensionFragmentImpl extends InstanceFragmentImpl
   }
 
   @override
+  bool get isPrivate {
+    var name = name2;
+    return name == null || Identifier.isPrivateName(name);
+  }
+
+  @override
   bool get isSimplyBounded => true;
 
   @override
   ElementKind get kind => ElementKind.EXTENSION;
 
   @override
-  List<ElementAnnotationImpl> get metadata3 {
+  MetadataImpl get metadata {
     linkedData?.read(this);
-    return super.metadata3;
+    return super.metadata;
   }
 
   @override
@@ -3144,9 +3151,9 @@ class FieldFragmentImpl extends PropertyInducingElementImpl
   LibraryElementImpl get library2 => library;
 
   @override
-  List<ElementAnnotationImpl> get metadata3 {
+  MetadataImpl get metadata {
     linkedData?.read(this);
-    return super.metadata3;
+    return super.metadata;
   }
 
   @override
@@ -3285,10 +3292,12 @@ class FormalParameterElementImpl extends PromotableElementImpl2
   LibraryElementImpl? get library2 => wrappedElement.library;
 
   @override
-  String? get name3 => wrappedElement.name;
+  String? get name3 {
+    return wrappedElement.name2;
+  }
 
   @override
-  String get nameShared => wrappedElement.name;
+  String get nameShared => wrappedElement.name2 ?? '';
 
   @override
   ParameterKind get parameterKind {
@@ -3366,6 +3375,9 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
 
   @override
   int? nameOffset2;
+
+  @override
+  MetadataImpl metadata = MetadataImpl(const []);
 
   /// A list containing all of the parameters defined by this parameter element.
   /// There will only be parameters if this parameter is a function typed
@@ -3500,9 +3512,6 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
     return enclosingFragment?.libraryFragment;
   }
 
-  @override
-  MetadataImpl get metadata => MetadataImpl(metadata3);
-
   @Deprecated('Use metadata instead')
   @override
   MetadataImpl get metadata2 => metadata;
@@ -3576,7 +3585,12 @@ mixin FragmentedAnnotatableElementMixin<E extends Fragment>
   MetadataImpl get metadata {
     var annotations = <ElementAnnotationImpl>[];
     for (var fragment in _fragments) {
-      annotations.addAll((fragment as FragmentImpl).metadata3);
+      switch (fragment) {
+        case AnnotatableFragmentImpl fragment:
+          annotations.addAll(fragment.metadata.annotations);
+        default:
+          throw StateError('Must have annotatable fragments');
+      }
     }
     return MetadataImpl(annotations);
   }
@@ -3756,9 +3770,6 @@ abstract class FragmentImpl implements FragmentOrMember {
   /// The modifiers associated with this element.
   EnumSet<Modifier> _modifiers = EnumSet.empty();
 
-  /// A list containing all of the metadata associated with this element.
-  List<ElementAnnotationImpl> _metadata = const [];
-
   /// The documentation comment for this element.
   String? _docComment;
 
@@ -3812,7 +3823,7 @@ abstract class FragmentImpl implements FragmentOrMember {
   /// Return an identifier that uniquely identifies this element among the
   /// children of this element's parent.
   String get identifier {
-    var identifier = name!;
+    var identifier = name2 ?? '';
 
     if (_includeNameOffsetInIdentifier) {
       identifier += "@$nameOffset";
@@ -3827,9 +3838,9 @@ abstract class FragmentImpl implements FragmentOrMember {
 
   @override
   bool get isPrivate {
-    var name = this.name;
+    var name = name2;
     if (name == null) {
-      return true;
+      return false;
     }
     return Identifier.isPrivateName(name);
   }
@@ -3852,15 +3863,7 @@ abstract class FragmentImpl implements FragmentOrMember {
   @override
   Source? get librarySource => library?.source;
 
-  @override
-  List<ElementAnnotationImpl> get metadata3 {
-    return _metadata;
-  }
-
-  set metadata3(List<ElementAnnotationImpl> metadata) {
-    _metadata = metadata;
-  }
-
+  @Deprecated('Use name2 instead')
   @override
   String? get name => _name;
 
@@ -4026,14 +4029,8 @@ abstract class FragmentOrMember implements Fragment {
   /// library's defining compilation unit; otherwise return `null`.
   Source? get librarySource;
 
-  /// All of the metadata associated with this element.
-  ///
-  /// The array will be empty if the element does not have any metadata or if
-  /// the library containing this element has not yet been resolved.
-  // TODO(scheglov): replace with `metadata` in [Annotatable] fragments.
-  List<ElementAnnotation> get metadata3;
-
   /// The name of this element, or `null` if this element does not have a name.
+  @Deprecated('Use name2 instead')
   String? get name;
 
   /// The length of the name of this element in the file that contains the
@@ -4226,7 +4223,7 @@ class GenericFunctionTypeElementImpl2 extends FunctionTypedElementImpl2
   MetadataImpl get metadata2 => metadata;
 
   @override
-  String? get name3 => _wrappedElement.name;
+  String? get name3 => _wrappedElement.name2;
 
   @override
   DartType get returnType => _wrappedElement.returnType;
@@ -4979,9 +4976,9 @@ abstract class InstanceFragmentImpl extends _ExistingElementImpl
   }
 
   @override
-  List<ElementAnnotationImpl> get metadata3 {
+  MetadataImpl get metadata {
     linkedData?.read(this);
-    return super.metadata3;
+    return super.metadata;
   }
 
   @override
@@ -5423,7 +5420,7 @@ abstract class InterfaceFragmentImpl extends InstanceFragmentImpl
   }
 
   @override
-  String get displayName => name;
+  String get displayName => name2 ?? '';
 
   @override
   InterfaceElementImpl2 get element;
@@ -5443,13 +5440,13 @@ abstract class InterfaceFragmentImpl extends InstanceFragmentImpl
   /// Return `true` if this class represents the class '_Enum' defined in the
   /// dart:core library.
   bool get isDartCoreEnumImpl {
-    return name == '_Enum' && library.isDartCore;
+    return name2 == '_Enum' && library.isDartCore;
   }
 
   /// Return `true` if this class represents the class 'Function' defined in the
   /// dart:core library.
   bool get isDartCoreFunctionImpl {
-    return name == 'Function' && library.isDartCore;
+    return name2 == 'Function' && library.isDartCore;
   }
 
   @override
@@ -5482,6 +5479,7 @@ abstract class InterfaceFragmentImpl extends InstanceFragmentImpl
     _mixins = mixins.cast();
   }
 
+  @Deprecated('Use name2 instead')
   @override
   String get name {
     return super.name!;
@@ -5516,12 +5514,8 @@ abstract class InterfaceFragmentImpl extends InstanceFragmentImpl
     String setterName,
     List<PropertyAccessorElementOrMember> accessors,
   ) {
-    // Do we need the check for isSetter below?
-    if (!setterName.endsWith('=')) {
-      setterName += '=';
-    }
     return accessors.firstWhereOrNull(
-      (accessor) => accessor.isSetter && accessor.name == setterName,
+      (accessor) => accessor.isSetter && accessor.name2 == setterName,
     );
   }
 }
@@ -5703,6 +5697,9 @@ class LabelElementImpl2 extends ElementImpl2
 class LabelFragmentImpl extends FragmentImpl implements LabelFragment {
   late final LabelElementImpl2 element2 = LabelElementImpl2(this);
 
+  @override
+  String? name2;
+
   /// A flag indicating whether this label is associated with a `switch` member
   /// (`case` or `default`).
   // TODO(brianwilkerson): Make this a modifier.
@@ -5721,7 +5718,7 @@ class LabelFragmentImpl extends FragmentImpl implements LabelFragment {
   List<Fragment> get children3 => const [];
 
   @override
-  String get displayName => name;
+  String get displayName => name2 ?? '';
 
   @override
   LabelElement get element => element2;
@@ -5749,12 +5746,9 @@ class LabelFragmentImpl extends FragmentImpl implements LabelFragment {
   @override
   LibraryFragmentImpl get libraryFragment => enclosingUnit;
 
+  @Deprecated('Use name2 instead')
   @override
   String get name => super.name!;
-
-  @override
-  // TODO(scheglov): make it a nullable field
-  String? get name2 => name;
 
   @override
   // TODO(scheglov): make it a nullable field
@@ -5777,6 +5771,8 @@ class LibraryElementImpl extends ElementImpl2 implements LibraryElement {
   @override
   Reference? reference;
 
+  MetadataImpl _metadata = MetadataImpl(const []);
+
   @override
   String? documentationComment;
 
@@ -5790,8 +5786,6 @@ class LibraryElementImpl extends ElementImpl2 implements LibraryElement {
   LibraryLanguageVersion? _languageVersion;
 
   bool hasTypeProviderSystemSet = false;
-
-  List<ElementAnnotationImpl> _annotations = [];
 
   @override
   late TypeProviderImpl typeProvider;
@@ -5883,15 +5877,6 @@ class LibraryElementImpl extends ElementImpl2 implements LibraryElement {
     this.nameLength,
     this.featureSet,
   );
-
-  List<ElementAnnotationImpl> get annotations {
-    linkedData?.read(this);
-    return _annotations;
-  }
-
-  set annotations(List<ElementAnnotationImpl> value) {
-    _annotations = value;
-  }
 
   @override
   LibraryElementImpl get baseElement => this;
@@ -6054,7 +6039,12 @@ class LibraryElementImpl extends ElementImpl2 implements LibraryElement {
 
   @override
   MetadataImpl get metadata {
-    return MetadataImpl(annotations);
+    linkedData?.read(this);
+    return _metadata;
+  }
+
+  set metadata(MetadataImpl value) {
+    _metadata = value;
   }
 
   @Deprecated('Use metadata instead')
@@ -6306,6 +6296,10 @@ class LibraryFragmentImpl extends _ExistingElementImpl
   @override
   final LibraryElementImpl library;
 
+  @override
+  // TODO(scheglov): Why is it even annotatable?
+  final MetadataImpl metadata = MetadataImpl(const []);
+
   /// The libraries exported by this unit.
   List<LibraryExportImpl> _libraryExports = _Sentinel.libraryExport;
 
@@ -6353,8 +6347,6 @@ class LibraryFragmentImpl extends _ExistingElementImpl
 
   ElementLinkedData? linkedData;
 
-  /// Initialize a newly created compilation unit element to have the given
-  /// [name].
   LibraryFragmentImpl({
     required this.library,
     required this.source,
@@ -6559,18 +6551,9 @@ class LibraryFragmentImpl extends _ExistingElementImpl
   @override
   Source get librarySource => library.source;
 
-  @override
-  MetadataImpl get metadata => MetadataImpl(metadata3);
-
   @Deprecated('Use metadata instead')
   @override
   MetadataImpl get metadata2 => metadata;
-
-  @override
-  List<ElementAnnotationImpl> get metadata3 {
-    linkedData?.read(this);
-    return super.metadata3;
-  }
 
   List<MixinFragmentImpl> get mixins {
     return _mixins;
@@ -7025,7 +7008,7 @@ class LocalVariableElementImpl2 extends PromotableElementImpl2
   }
 
   @override
-  MetadataImpl get metadata => MetadataImpl(_wrappedElement.metadata3);
+  MetadataImpl get metadata => _wrappedElement.metadata;
 
   @Deprecated('Use metadata instead')
   @override
@@ -7062,6 +7045,12 @@ class LocalVariableFragmentImpl extends NonParameterVariableFragmentImpl
   };
 
   @override
+  String? name2;
+
+  @override
+  MetadataImpl metadata = MetadataImpl(const []);
+
+  @override
   late bool hasInitializer;
 
   /// Initialize a newly created method element to have the given [name] and
@@ -7083,7 +7072,7 @@ class LocalVariableFragmentImpl extends NonParameterVariableFragmentImpl
 
   @override
   String get identifier {
-    return '$name$nameOffset';
+    return '$name2$nameOffset';
   }
 
   @override
@@ -7100,9 +7089,9 @@ class LocalVariableFragmentImpl extends NonParameterVariableFragmentImpl
   @override
   LibraryFragmentImpl get libraryFragment => enclosingUnit;
 
+  @Deprecated('Use metadata instead')
   @override
-  // TODO(scheglov): make it a nullable field
-  String? get name2 => name;
+  MetadataImpl get metadata2 => metadata;
 
   @override
   // TODO(scheglov): make it a nullable field
@@ -7487,6 +7476,10 @@ final class MetadataImpl implements Metadata {
     return false;
   }
 
+  void resetCache() {
+    _metadataFlags2 = 0;
+  }
+
   /// Return flags that denote presence of a few specific annotations.
   int _getMetadataFlags() {
     var result = _metadataFlags2;
@@ -7547,6 +7540,11 @@ class MethodElementImpl2 extends ExecutableElementImpl2
 
   @override
   MethodElementImpl2 get baseElement => this;
+
+  @override
+  String get displayName {
+    return lookupName ?? '<unnamed>';
+  }
 
   @override
   Element? get enclosingElement =>
@@ -7678,6 +7676,7 @@ class MethodFragmentImpl extends ExecutableFragmentImpl
   @override
   ElementKind get kind => ElementKind.METHOD;
 
+  @Deprecated('Use name2 instead')
   @override
   String get name {
     String name = super.name;
@@ -8176,6 +8175,9 @@ class NeverFragmentImpl extends FragmentImpl implements TypeDefiningFragment {
   /// The unique instance of this class.
   static final instance = NeverFragmentImpl._();
 
+  @override
+  final MetadataImpl metadata = MetadataImpl(const []);
+
   /// Initialize a newly created instance of this class. Instances of this class
   /// should <b>not</b> be created except as part of creating the type
   /// associated with this element. The single instance of this class should be
@@ -8201,9 +8203,6 @@ class NeverFragmentImpl extends FragmentImpl implements TypeDefiningFragment {
 
   @override
   Null get libraryFragment => null;
-
-  @override
-  MetadataImpl get metadata => MetadataImpl(metadata3);
 
   @Deprecated('Use metadata instead')
   @override
@@ -8274,12 +8273,12 @@ class ParameterElementImpl_ofImplicitSetter
 
   ParameterElementImpl_ofImplicitSetter(this.setter)
     : super(
-        name: considerCanonicalizeString('_${setter.variable2.name}'),
+        name: considerCanonicalizeString('_${setter.variable2.name2 ?? ''}'),
         nameOffset: -1,
         name2:
-            setter.variable2.name == ''
+            setter.variable2.name2 == null
                 ? null
-                : considerCanonicalizeString('_${setter.variable2.name}'),
+                : considerCanonicalizeString('_${setter.variable2.name2!}'),
         nameOffset2: null,
         parameterKind: ParameterKind.REQUIRED,
       ) {
@@ -8405,6 +8404,9 @@ mixin ParameterElementMixin implements VariableElementOrMember {
 
   /// Whether the parameter is both a required and positional parameter.
   bool get isRequiredPositional => parameterKind.isRequiredPositional;
+
+  @override
+  MetadataImpl get metadata;
 
   ParameterKind get parameterKind;
 
@@ -8929,7 +8931,7 @@ sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
     PropertyInducingElementImpl variable, {
     super.reference,
   }) : _variable = variable,
-       super(name: variable.name, nameOffset: -1) {
+       super(name: variable.name2 ?? '', nameOffset: -1) {
     isAbstract = variable is FieldFragmentImpl && variable.isAbstract;
     isStatic = variable.isStatic;
     isSynthetic = true;
@@ -8979,11 +8981,12 @@ sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
   }
 
   @override
-  List<ElementAnnotationImpl> get metadata3 {
+  MetadataImpl get metadata {
     linkedData?.read(this);
-    return super.metadata3;
+    return super.metadata;
   }
 
+  @Deprecated('Use name2 instead')
   @override
   String get name {
     if (isSetter) {
@@ -9037,6 +9040,9 @@ abstract class PropertyInducingElementImpl
 
   @override
   int? nameOffset2;
+
+  @override
+  MetadataImpl metadata = MetadataImpl(const []);
 
   @override
   PropertyInducingElementImpl? previousFragment;
@@ -9118,9 +9124,6 @@ abstract class PropertyInducingElementImpl
     return enclosingFragment.libraryFragment!;
   }
 
-  @override
-  MetadataImpl get metadata => MetadataImpl(metadata3);
-
   @Deprecated('Use metadata instead')
   @override
   MetadataImpl get metadata2 => metadata;
@@ -9130,7 +9133,7 @@ abstract class PropertyInducingElementImpl
     if (isSynthetic) {
       if (enclosingElement3 is EnumFragmentImpl) {
         // TODO(scheglov): remove 'index'?
-        if (name == 'index' || name == 'values') {
+        if (name2 == 'index' || name2 == 'values') {
           return enclosingElement3;
         }
       }
@@ -9531,7 +9534,7 @@ class SuperFormalParameterFragmentImpl extends FormalParameterFragmentImpl
         var superParameters = superConstructor.parameters;
         if (isNamed) {
           return superParameters.firstWhereOrNull(
-            (e) => e.isNamed && e.name == name,
+            (e) => e.isNamed && e.name2 == name2,
           );
         } else {
           var index = indexIn(enclosingElement);
@@ -9630,7 +9633,7 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl2
   }
 
   @override
-  String? get name3 => firstFragment.name;
+  String? get name3 => firstFragment.name2;
 
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
@@ -9782,9 +9785,9 @@ class TopLevelVariableFragmentImpl extends PropertyInducingElementImpl
   LibraryElementImpl get library2 => library;
 
   @override
-  List<ElementAnnotationImpl> get metadata3 {
+  MetadataImpl get metadata {
     linkedData?.read(this);
-    return super.metadata3;
+    return super.metadata;
   }
 
   @override
@@ -10081,7 +10084,7 @@ class TypeAliasFragmentImpl extends _ExistingElementImpl
   List<Fragment> get children3 => const [];
 
   @override
-  String get displayName => name;
+  String get displayName => name2 ?? '';
 
   @override
   LibraryFragmentImpl get enclosingElement3 =>
@@ -10110,11 +10113,12 @@ class TypeAliasFragmentImpl extends _ExistingElementImpl
   }
 
   @override
-  List<ElementAnnotationImpl> get metadata3 {
+  MetadataImpl get metadata {
     linkedData?.read(this);
-    return super.metadata3;
+    return super.metadata;
   }
 
+  @Deprecated('Use name2 instead')
   @override
   String get name {
     return super.name!;
@@ -10238,12 +10242,15 @@ class TypeParameterElementImpl2 extends TypeDefiningElementImpl2
 }
 
 class TypeParameterFragmentImpl extends FragmentImpl
-    implements TypeParameterFragment {
+    implements AnnotatableFragmentImpl, TypeParameterFragment {
   @override
   String? name2;
 
   @override
   int? nameOffset2;
+
+  @override
+  MetadataImpl metadata = MetadataImpl(const []);
 
   /// The default value of the type parameter. It is used to provide the
   /// corresponding missing type argument in type annotations and as the
@@ -10301,7 +10308,7 @@ class TypeParameterFragmentImpl extends FragmentImpl
   TypeParameterFragmentImpl get declaration => this;
 
   @override
-  String get displayName => name;
+  String get displayName => name2 ?? '';
 
   @override
   TypeParameterElementImpl2 get element {
@@ -10318,7 +10325,7 @@ class TypeParameterFragmentImpl extends FragmentImpl
     // chain will have their `_element` set to the newly created element.
     return TypeParameterElementImpl2(
       firstFragment: firstFragment,
-      name3: firstFragment.name.nullIfEmpty,
+      name3: firstFragment.name2,
     );
   }
 
@@ -10347,13 +10354,11 @@ class TypeParameterFragmentImpl extends FragmentImpl
     return enclosingFragment?.libraryFragment;
   }
 
-  @override
-  MetadataImpl get metadata => MetadataImpl(metadata3);
-
   @Deprecated('Use metadata instead')
   @override
   MetadataImpl get metadata2 => metadata;
 
+  @Deprecated('Use name2 instead')
   @override
   String get name {
     return super.name!;
@@ -10441,8 +10446,14 @@ abstract class TypeParameterizedElementImpl2 extends ElementImpl2
 
 /// Mixin representing an element which can have type parameters.
 mixin TypeParameterizedElementMixin on FragmentImpl
-    implements _ExistingElementImpl, TypeParameterizedFragment {
+    implements
+        _ExistingElementImpl,
+        AnnotatableFragmentImpl,
+        TypeParameterizedFragment {
   List<TypeParameterFragmentImpl> _typeParameters = const [];
+
+  @override
+  MetadataImpl metadata = MetadataImpl(const []);
 
   /// If the element defines a type, indicates whether the type may safely
   /// appear without explicit type parameters as the bounds of a type parameter
@@ -10455,9 +10466,6 @@ mixin TypeParameterizedElementMixin on FragmentImpl
   LibraryFragmentImpl get libraryFragment => enclosingUnit;
 
   ElementLinkedData? get linkedData;
-
-  @override
-  MetadataImpl get metadata => MetadataImpl(metadata3);
 
   @Deprecated('Use metadata instead')
   @override
@@ -10532,7 +10540,7 @@ abstract class VariableElementImpl2 extends ElementImpl2
 /// Common base class for all analyzer-internal classes that implement
 /// `VariableElement`.
 abstract class VariableElementOrMember
-    implements FragmentOrMember, ConstantEvaluationTarget {
+    implements FragmentOrMember, Annotatable, ConstantEvaluationTarget {
   @override
   VariableFragmentImpl get declaration;
 
@@ -10567,6 +10575,7 @@ abstract class VariableElementOrMember
   bool get isStatic;
 
   @override
+  @Deprecated('Use name2 instead')
   String get name;
 
   /// The declared type of this variable.
@@ -10580,7 +10589,10 @@ abstract class VariableElementOrMember
 }
 
 abstract class VariableFragmentImpl extends FragmentImpl
-    implements VariableElementOrMember, VariableFragment {
+    implements
+        VariableElementOrMember,
+        AnnotatableFragmentImpl,
+        VariableFragment {
   /// The type of this variable.
   TypeImpl? _type;
 
@@ -10601,7 +10613,7 @@ abstract class VariableFragmentImpl extends FragmentImpl
   VariableFragmentImpl get declaration => this;
 
   @override
-  String get displayName => name;
+  String get displayName => name2 ?? '';
 
   @override
   VariableElementImpl2 get element;
@@ -10678,6 +10690,7 @@ abstract class VariableFragmentImpl extends FragmentImpl
     setModifier(Modifier.STATIC, isStatic);
   }
 
+  @Deprecated('Use name2 instead')
   @override
   String get name => super.name!;
 
@@ -10708,7 +10721,7 @@ mixin WrappedElementMixin implements ElementImpl2 {
   ElementKind get kind => _wrappedElement.kind;
 
   @override
-  String? get name3 => _wrappedElement.name;
+  String? get name3 => _wrappedElement.name2;
 
   FragmentImpl get _wrappedElement;
 

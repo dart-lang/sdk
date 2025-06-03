@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:linter/src/analyzer.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:linter/src/test_utilities/analysis_error_info.dart';
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;

@@ -5410,7 +5410,7 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
     var evaluationResult = element.evaluationResult;
     switch (evaluationResult) {
       case null:
-        fail('Not evaluated: ${element.name}');
+        fail('Not evaluated: ${element.name2}');
       case InvalidConstant():
         return null;
       case DartObjectImpl():

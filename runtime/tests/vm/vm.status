@@ -29,7 +29,6 @@ dart/gen_snapshot_include_resolved_urls_test: Pass, Slow # Spawns several subpro
 dart/hash_map_probes_limit_test: Pass, Slow # Test includes large program compilation.
 dart/incompatible_loading_unit_test: Pass, Slow # Spawns several subprocesses
 dart/isolates/*: Pass, Slow # Tests use many isolates and take a longer time.
-dart/isolates/concurrency_stress_sanity_test: Pass, Slow # Spawns subprocesses
 dart/isolates/fast_object_copy_test: Pass, Slow # Slow due to doing a lot of transitive object copies.
 dart/minimal_kernel_test: Pass, Slow # Spawns several subprocesses
 dart/print_object_layout_test: Pass, Slow # Spawns several subprocesses
@@ -113,9 +112,6 @@ cc/CoreSnapshotSize: SkipByDesign # Imports dart:mirrors
 cc/CreateMirrorSystem: SkipByDesign # Imports dart:mirrors
 cc/StandaloneSnapshotSize: SkipByDesign # Imports dart:mirrors
 dart/gen_snapshot_include_resolved_urls_test: SkipByDesign # Script URLs not included in product gen_snapshot
-
-[ $nnbd == legacy ]
-dart/*: SkipByDesign # Migrated tests are not supposed to run on non-NNBD bots.
 
 [ $sanitizer == asan ]
 dart/transferable_throws_oom_test: SkipByDesign # This test tries to allocate too much memory on purpose. Still dartbug.com/37188

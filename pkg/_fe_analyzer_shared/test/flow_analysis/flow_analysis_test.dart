@@ -6013,6 +6013,7 @@ main() {
       // non-promotable.
       h.addMember('C', '_property', 'int?', promotable: false);
       h.addMember('D', '_property', 'int?', promotable: true);
+      h.addSuperInterfaces('C', (_) => [Type('Object')]);
       h.addSuperInterfaces('D', (_) => [Type('C'), Type('Object')]);
       var x = Var('x');
       h.run([
@@ -6360,6 +6361,7 @@ main() {
       test('Assigned but not promotable in try, promoted in finally', () {
         h.addMember('C', '_property', 'int?', promotable: false);
         h.addMember('D', '_property', 'int?', promotable: true);
+        h.addSuperInterfaces('C', (_) => [Type('Object')]);
         h.addSuperInterfaces('D', (_) => [Type('C'), Type('Object')]);
         var c = Var('c');
         h.run([
@@ -11988,6 +11990,620 @@ main() {
         });
       });
     });
+
+    group('When disabled, may promote to mutual subtypes:', () {
+      test('Type cast', () {
+        h.disableSoundFlowAnalysis();
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('List<Object?>')),
+          x.as_('List<dynamic>'),
+          checkPromoted(x, 'List<dynamic>'),
+        ]);
+      });
+
+      test('Type check', () {
+        h.disableSoundFlowAnalysis();
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('List<Object?>')),
+          if_(x.is_(isInverted: true, 'List<dynamic>'), [return_()]),
+          checkPromoted(x, 'List<dynamic>'),
+        ]);
+      });
+
+      test('Type of interest promotion', () {
+        // Note: to work around the fact that a full demotion clears types of
+        // interest (see https://github.com/dart-lang/language/issues/4380),
+        // this test starts with a variable of type `dynamic` and promotes it
+        // first to `List<Object?>?` and then to `List<dynamic>`. This ensures
+        // that the write that follows (which writes a value of type
+        // `List<Object?>?`) does not fully demote the variable, so the types of
+        // interest will be preserved.
+        h.disableSoundFlowAnalysis();
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('dynamic')),
+          x.as_('List<Object?>?'),
+          // `x` is now promoted to `List<Object?>?` and `List<Object?>` is a
+          // type of interest
+          checkPromoted(x, 'List<Object?>?'),
+          x.as_('List<dynamic>'),
+          // `x` is now promoted to `List<dynamic>` and `List<dynamic>` is a
+          // type of interest.
+          checkPromoted(x, 'List<dynamic>'),
+          x.write(expr('List<Object?>?')),
+          // `x` is now demoted back to `List<Object?>?`.
+          checkPromoted(x, 'List<Object?>?'),
+          x.write(expr('List<Object?>')),
+          // `x` is now promoted to `List<Object?>`.
+          checkPromoted(x, 'List<Object?>'),
+          x.write(expr('List<void>')),
+          // Type of interest promotion rejected `List<Object?>` (because it was
+          // the already-promoted type), but accepted `List<dynamic>`.
+          checkPromoted(x, 'List<dynamic>'),
+        ]);
+      });
+
+      group('Finally clause:', () {
+        test('Variable', () {
+          h.disableSoundFlowAnalysis();
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('Object?')),
+            try_([
+              x.as_('List<Object?>'),
+              checkPromoted(x, 'List<Object?>'),
+            ]).finally_([
+              checkNotPromoted(x),
+              x.as_('List<dynamic>'),
+              checkPromoted(x, 'List<dynamic>'),
+            ]),
+            // After the try/finally, the promotions in the try block are
+            // layered over the promotions in the finally block (see
+            // https://github.com/dart-lang/language/issues/4382), so the
+            // promotion to `List<Object?>` layers over the promotion to
+            // `List<dynamic>`.
+            checkPromoted(x, 'List<Object?>'),
+          ]);
+        });
+
+        test('Promotable property of unmodified variable', () {
+          h.disableSoundFlowAnalysis();
+          h.addMember('C', '_property', 'Object?', promotable: true);
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('C')),
+            try_([
+              x.property('_property').as_('List<Object?>'),
+              checkPromoted(x.property('_property'), 'List<Object?>'),
+            ]).finally_([
+              checkNotPromoted(x),
+              x.property('_property').as_('List<dynamic>'),
+              checkPromoted(x.property('_property'), 'List<dynamic>'),
+            ]),
+            // After the try/finally, the promotions in the try block are
+            // layered over the promotions in the finally block (see
+            // https://github.com/dart-lang/language/issues/4382), so the
+            // promotion to `List<Object?>` layers over the promotion to
+            // `List<dynamic>`.
+            checkPromoted(x.property('_property'), 'List<Object?>'),
+          ]);
+        });
+
+        test('Promotable property of modified variable', () {
+          h.disableSoundFlowAnalysis();
+          h.addMember('C', '_property', 'Object?', promotable: true);
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('C')),
+            try_([
+              x.write(expr('C')),
+              x.property('_property').as_('List<dynamic>'),
+              checkPromoted(x.property('_property'), 'List<dynamic>'),
+            ]).finally_([
+              checkNotPromoted(x),
+              x.property('_property').as_('List<Object?>'),
+              checkPromoted(x.property('_property'), 'List<Object?>'),
+            ]),
+            // After the try/finally, the promotions in the finally block are
+            // layered over the promotions in the try block (see
+            // https://github.com/dart-lang/language/issues/4382), so the
+            // promotion to `List<Object?>` layers over the promotion to
+            // `List<dynamic>`.
+            checkPromoted(x.property('_property'), 'List<Object?>'),
+          ]);
+        });
+      });
+
+      test('Boolean variable', () {
+        h.disableSoundFlowAnalysis();
+        var x = Var('x');
+        var b = Var('b');
+        h.run([
+          declare(x, initializer: expr('Object?')),
+          declare(b, initializer: x.is_('List<Object?>')),
+          checkNotPromoted(x),
+          x.as_('List<dynamic>'),
+          checkPromoted(x, 'List<dynamic>'),
+          if_(b, [
+            // The promotion to `List<Object?>`, captured at the declaration
+            // site of `b`, is layered over the promotion to `List<dynamic>`.
+            checkPromoted(x, 'List<Object?>'),
+          ]),
+        ]);
+      });
+    });
+
+    group('When enabled, do not promote to mutual subtypes:', () {
+      test('Type cast', () {
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('List<Object?>')),
+          x.as_('List<dynamic>'),
+          checkNotPromoted(x),
+        ]);
+      });
+
+      test('Type check', () {
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('List<Object?>')),
+          if_(x.is_(isInverted: true, 'List<dynamic>'), [return_()]),
+          checkNotPromoted(x),
+        ]);
+      });
+
+      test('Type of interest promotion', () {
+        // Note: to work around the fact that a full demotion clears types of
+        // interest (see https://github.com/dart-lang/language/issues/4380),
+        // this test starts with a variable of type `dynamic` and promotes it
+        // first to `List<Object?>?` and then to `List<dynamic>`. This ensures
+        // that the write that follows (which writes a value of type
+        // `List<Object?>?`) does not fully demote the variable, so the types of
+        // interest will be preserved.
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('dynamic')),
+          x.as_('List<Object?>?'),
+          // `x` is now promoted to `List<Object?>?` and `List<Object?>` is a
+          // type of interest
+          checkPromoted(x, 'List<Object?>?'),
+          x.as_('List<dynamic>'),
+          // `x` is now promoted to `List<dynamic>` and `List<dynamic>` is a
+          // type of interest.
+          checkPromoted(x, 'List<dynamic>'),
+          x.write(expr('List<Object?>?')),
+          // `x` is now demoted back to `List<Object?>?`.
+          checkPromoted(x, 'List<Object?>?'),
+          x.write(expr('List<Object?>')),
+          // `x` is now promoted to `List<Object?>`.
+          checkPromoted(x, 'List<Object?>'),
+          x.write(expr('List<void>')),
+          // Type of interest promotion rejected `List<Object?>` (because it was
+          // the already-promoted type) and `List<dynamic>` (because it is a
+          // mutual subtype with the already-promoted type).
+          checkPromoted(x, 'List<Object?>'),
+        ]);
+      });
+
+      group('Finally clause:', () {
+        test('Variable', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('Object?')),
+            try_([
+              x.as_('List<Object?>'),
+              checkPromoted(x, 'List<Object?>'),
+            ]).finally_([
+              checkNotPromoted(x),
+              x.as_('List<dynamic>'),
+              checkPromoted(x, 'List<dynamic>'),
+            ]),
+            // After the try/finally, the promotions in the finally block are
+            // layered over the promotions in the try block, so the
+            // promotion to `List<dynamic>` layers over the promotion to
+            // `List<Object?>`. But since the two types are mutual subtypes, the
+            // promotion to `List<dynamic>` is discarded, leaving only the
+            // promotion to `List<Object?>`.
+            checkPromoted(x, 'List<Object?>'),
+          ]);
+        });
+
+        test('Promotable property of unmodified variable', () {
+          h.addMember('C', '_property', 'Object?', promotable: true);
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('C')),
+            try_([
+              x.property('_property').as_('List<Object?>'),
+              checkPromoted(x.property('_property'), 'List<Object?>'),
+            ]).finally_([
+              checkNotPromoted(x),
+              x.property('_property').as_('List<dynamic>'),
+              checkPromoted(x.property('_property'), 'List<dynamic>'),
+            ]),
+            // After the try/finally, the promotions in the finally block are
+            // layered over the promotions in the try block, so the
+            // promotion to `List<dynamic>` layers over the promotion to
+            // `List<Object?>`. But since the two types are mutual subtypes, the
+            // promotion to `List<dynamic>` is discarded, leaving only the
+            // promotion to `List<Object?>`.
+            checkPromoted(x.property('_property'), 'List<Object?>'),
+          ]);
+        });
+
+        test('Promotable property of modified variable', () {
+          h.addMember('C', '_property', 'Object?', promotable: true);
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('C')),
+            try_([
+              x.write(expr('C')),
+              x.property('_property').as_('List<dynamic>'),
+              checkPromoted(x.property('_property'), 'List<dynamic>'),
+            ]).finally_([
+              checkNotPromoted(x),
+              x.property('_property').as_('List<Object?>'),
+              checkPromoted(x.property('_property'), 'List<Object?>'),
+            ]),
+            // After the try/finally, the promotions in the finally block are
+            // layered over the promotions in the try block (see
+            // https://github.com/dart-lang/language/issues/4382), so the
+            // promotion to `List<Object?>` layers over the promotion to
+            // `List<dynamic>`. But since the two types are mutual subtypes, the
+            // promotion to `List<Object?>` is discarded, leaving only the
+            // promotion to `List<dynamic>`.
+            checkPromoted(x.property('_property'), 'List<dynamic>'),
+          ]);
+        });
+      });
+
+      test('Boolean variable', () {
+        var x = Var('x');
+        var b = Var('b');
+        h.run([
+          declare(x, initializer: expr('Object?')),
+          declare(b, initializer: x.is_('List<Object?>')),
+          checkNotPromoted(x),
+          x.as_('List<dynamic>'),
+          checkPromoted(x, 'List<dynamic>'),
+          if_(b, [
+            // The promotion to `List<Object?>`, captured at the declaration
+            // site of `b`, is layered over the promotion to `List<dynamic>`.
+            // But since the two types are mutual subtypes, the promotion to
+            // `List<Object?>` is discarded, leaving only the promotion to
+            // `List<dynamic>`.
+            checkPromoted(x, 'List<dynamic>'),
+          ]),
+        ]);
+      });
+    });
+
+    group('Try/finally layering order:', () {
+      group('Local variables:', () {
+        test('When disabled, promotions in `finally` applied first', () {
+          h.disableSoundFlowAnalysis();
+          var x = Var('x');
+          var y = Var('y');
+          h.run([
+            declare(x, initializer: expr('Object')),
+            declare(y, initializer: expr('Object')),
+            if_(
+              expr('bool'),
+              [
+                x.as_('num'),
+                y.as_('num'),
+                // The promotion chains for `x` and `y` are both `[num]`.
+                checkPromoted(x, 'num'),
+                checkPromoted(y, 'num'),
+              ],
+              [
+                try_([
+                  x.as_('num'),
+                  y.as_('int'),
+                  checkPromoted(x, 'num'),
+                  checkPromoted(y, 'int'),
+                ]).finally_([
+                  // Neither `x` nor `y` is promoted at this point, because in
+                  // principle an exception could have occurred at any point in
+                  // the `try` block.
+                  checkNotPromoted(x),
+                  checkNotPromoted(y),
+                  x.as_('int'),
+                  y.as_('num'),
+                  checkPromoted(x, 'int'),
+                  checkPromoted(y, 'num'),
+                ]),
+                // After the try/finally, both `x` and `y` are fully promoted to
+                // `int`.
+                checkPromoted(x, 'int'),
+                checkPromoted(y, 'int'),
+                // But since the promotions from the `try` block are layered
+                // over the promotions from the `finally` block, `x` has
+                // promotion chain `[int]`, whereas `y` has promotion chain
+                // `[num, int]`. Therefore, after the `if` and `else` control
+                // flow paths are joined...
+              ],
+            ),
+            // `x` is no longer promoted at all (since `[num]` and `[int]` have
+            // no types in common), whereas `y` is promoted to `num` (since
+            // `[num]` and `[num, int]` both contain the type `num`).
+            checkNotPromoted(x),
+            checkPromoted(y, 'num'),
+          ]);
+        });
+
+        test('When enabled, promotions in `try` applied first', () {
+          var x = Var('x');
+          var y = Var('y');
+          h.run([
+            declare(x, initializer: expr('Object')),
+            declare(y, initializer: expr('Object')),
+            if_(
+              expr('bool'),
+              [
+                x.as_('num'),
+                y.as_('num'),
+                // The promotion chains for `x` and `y` are both `[num]`.
+                checkPromoted(x, 'num'),
+                checkPromoted(y, 'num'),
+              ],
+              [
+                try_([
+                  x.as_('num'),
+                  y.as_('int'),
+                  checkPromoted(x, 'num'),
+                  checkPromoted(y, 'int'),
+                ]).finally_([
+                  // Neither `x` nor `y` is promoted at this point, because in
+                  // principle an exception could have occurred at any point in
+                  // the `try` block.
+                  checkNotPromoted(x),
+                  checkNotPromoted(y),
+                  x.as_('int'),
+                  y.as_('num'),
+                  checkPromoted(x, 'int'),
+                  checkPromoted(y, 'num'),
+                ]),
+                // After the try/finally, both `x` and `y` are fully promoted to
+                // `int`.
+                checkPromoted(x, 'int'),
+                checkPromoted(y, 'int'),
+                // But since the promotions from the `finally` block are layered
+                // over the promotions from the `try` block, `x` has
+                // promotion chain `[num, int]`, whereas `y` has promotion chain
+                // `[int]`. Therefore, after the `if` and `else` control flow
+                // paths are joined...
+              ],
+            ),
+            // `x` is promoted to `num` (since `[num]` and `[num, int]` both
+            // contain the type `num`), whereas `y` is no longer promoted at all
+            // (since `[num]` and `[int]` have no types in common).
+            checkPromoted(x, 'num'),
+            checkNotPromoted(y),
+          ]);
+        });
+      });
+
+      group('Fields of unmodified local variables:', () {
+        test('When disabled, promotions in `finally` applied first', () {
+          h.disableSoundFlowAnalysis();
+          h.addMember('C', '_f', 'Object', promotable: true);
+          var x = Var('x');
+          var y = Var('y');
+          h.run([
+            declare(x, initializer: expr('C')),
+            declare(y, initializer: expr('C')),
+            if_(
+              expr('bool'),
+              [
+                x.property('_f').as_('num'),
+                y.property('_f').as_('num'),
+                // The promotion chains for `x._f` and `y._f` are both `[num]`.
+                checkPromoted(x.property('_f'), 'num'),
+                checkPromoted(y.property('_f'), 'num'),
+              ],
+              [
+                try_([
+                  x.property('_f').as_('num'),
+                  y.property('_f').as_('int'),
+                  checkPromoted(x.property('_f'), 'num'),
+                  checkPromoted(y.property('_f'), 'int'),
+                ]).finally_([
+                  // Neither `x._f` nor `y._f` is promoted at this point,
+                  // because in principle an exception could have occurred at
+                  // any point in the `try` block.
+                  checkNotPromoted(x.property('_f')),
+                  checkNotPromoted(y.property('_f')),
+                  x.property('_f').as_('int'),
+                  y.property('_f').as_('num'),
+                  checkPromoted(x.property('_f'), 'int'),
+                  checkPromoted(y.property('_f'), 'num'),
+                ]),
+                // After the try/finally, both `x._f` and `y._f` are fully
+                // promoted to `int`.
+                checkPromoted(x.property('_f'), 'int'),
+                checkPromoted(y.property('_f'), 'int'),
+                // But since the promotions from the `try` block are layered
+                // over the promotions from the `finally` block, `x._f` has
+                // promotion chain `[int]`, whereas `y._f` has promotion chain
+                // `[num, int]`. Therefore, after the `if` and `else` control
+                // flow paths are joined...
+              ],
+            ),
+            // `x._f` is no longer promoted at all (since `[num]` and `[int]`
+            // have no types in common), whereas `y._f` is promoted to `num`
+            // (since `[num]` and `[num, int]` both contain the type `num`).
+            checkNotPromoted(x.property('_f')),
+            checkPromoted(y.property('_f'), 'num'),
+          ]);
+        });
+
+        test('When enabled, promotions in `try` applied first', () {
+          h.addMember('C', '_f', 'Object', promotable: true);
+          var x = Var('x');
+          var y = Var('y');
+          h.run([
+            declare(x, initializer: expr('C')),
+            declare(y, initializer: expr('C')),
+            if_(
+              expr('bool'),
+              [
+                x.property('_f').as_('num'),
+                y.property('_f').as_('num'),
+                // The promotion chains for `x._f` and `y._f` are both `[num]`.
+                checkPromoted(x.property('_f'), 'num'),
+                checkPromoted(y.property('_f'), 'num'),
+              ],
+              [
+                try_([
+                  x.property('_f').as_('num'),
+                  y.property('_f').as_('int'),
+                  checkPromoted(x.property('_f'), 'num'),
+                  checkPromoted(y.property('_f'), 'int'),
+                ]).finally_([
+                  // Neither `x._f` nor `y._f` is promoted at this point,
+                  // because in principle an exception could have occurred at
+                  // any point in the `try` block.
+                  checkNotPromoted(x.property('_f')),
+                  checkNotPromoted(y.property('_f')),
+                  x.property('_f').as_('int'),
+                  y.property('_f').as_('num'),
+                  checkPromoted(x.property('_f'), 'int'),
+                  checkPromoted(y.property('_f'), 'num'),
+                ]),
+                // After the try/finally, both `x._f` and `y._f` are fully
+                // promoted to `int`.
+                checkPromoted(x.property('_f'), 'int'),
+                checkPromoted(y.property('_f'), 'int'),
+                // But since the promotions from the `finally` block are layered
+                // over the promotions from the `try` block, `x._f` has
+                // promotion chain `[num, int]`, whereas `y._f` has promotion
+                // chain `[int]`. Therefore, after the `if` and `else` control
+                // flow paths are joined...
+              ],
+            ),
+            // `x._f` is promoted to `num` (since `[num]` and `[num, int]` both
+            // contain the type `num`), whereas `y._f` is no longer promoted at
+            // all (since `[num]` and `[int]` have no types in common).
+            checkPromoted(x.property('_f'), 'num'),
+            checkNotPromoted(y.property('_f')),
+          ]);
+        });
+      });
+
+      group('Fields of local variables modified in try clause:', () {
+        test('When disabled, promotions in `try` applied first', () {
+          h.disableSoundFlowAnalysis();
+          h.addMember('C', '_f', 'Object', promotable: true);
+          var x = Var('x');
+          var y = Var('y');
+          h.run([
+            declare(x, initializer: expr('C')),
+            declare(y, initializer: expr('C')),
+            if_(
+              expr('bool'),
+              [
+                x.property('_f').as_('num'),
+                y.property('_f').as_('num'),
+                // The promotion chains for `x._f` and `y._f` are both `[num]`.
+                checkPromoted(x.property('_f'), 'num'),
+                checkPromoted(y.property('_f'), 'num'),
+              ],
+              [
+                try_([
+                  x.write(expr('C')),
+                  y.write(expr('C')),
+                  x.property('_f').as_('num'),
+                  y.property('_f').as_('int'),
+                  checkPromoted(x.property('_f'), 'num'),
+                  checkPromoted(y.property('_f'), 'int'),
+                ]).finally_([
+                  // Neither `x._f` nor `y._f` is promoted at this point,
+                  // because in principle an exception could have occurred at
+                  // any point in the `try` block.
+                  checkNotPromoted(x.property('_f')),
+                  checkNotPromoted(y.property('_f')),
+                  x.property('_f').as_('int'),
+                  y.property('_f').as_('num'),
+                  checkPromoted(x.property('_f'), 'int'),
+                  checkPromoted(y.property('_f'), 'num'),
+                ]),
+                // After the try/finally, both `x._f` and `y._f` are fully
+                // promoted to `int`.
+                checkPromoted(x.property('_f'), 'int'),
+                checkPromoted(y.property('_f'), 'int'),
+                // But since the promotions from the `finally` block are layered
+                // over the promotions from the `try` block, `x._f` has
+                // promotion chain `[num, int]`, whereas `y._f` has promotion
+                // chain `[int]`. Therefore, after the `if` and `else` control
+                // flow paths are joined...
+              ],
+            ),
+            // `x._f` is promoted to `num` (since `[num]` and `[num, int]` both
+            // contain the type `num`), whereas `y._f` is no longer promoted at
+            // all (since `[num]` and `[int]` have no types in common).
+            checkPromoted(x.property('_f'), 'num'),
+            checkNotPromoted(y.property('_f')),
+          ]);
+        });
+
+        test('When enabled, promotions in `try` applied first', () {
+          h.addMember('C', '_f', 'Object', promotable: true);
+          var x = Var('x');
+          var y = Var('y');
+          h.run([
+            declare(x, initializer: expr('C')),
+            declare(y, initializer: expr('C')),
+            if_(
+              expr('bool'),
+              [
+                x.property('_f').as_('num'),
+                y.property('_f').as_('num'),
+                // The promotion chains for `x._f` and `y._f` are both `[num]`.
+                checkPromoted(x.property('_f'), 'num'),
+                checkPromoted(y.property('_f'), 'num'),
+              ],
+              [
+                try_([
+                  x.write(expr('C')),
+                  y.write(expr('C')),
+                  x.property('_f').as_('num'),
+                  y.property('_f').as_('int'),
+                  checkPromoted(x.property('_f'), 'num'),
+                  checkPromoted(y.property('_f'), 'int'),
+                ]).finally_([
+                  // Neither `x._f` nor `y._f` is promoted at this point,
+                  // because in principle an exception could have occurred at
+                  // any point in the `try` block.
+                  checkNotPromoted(x.property('_f')),
+                  checkNotPromoted(y.property('_f')),
+                  x.property('_f').as_('int'),
+                  y.property('_f').as_('num'),
+                  checkPromoted(x.property('_f'), 'int'),
+                  checkPromoted(y.property('_f'), 'num'),
+                ]),
+                // After the try/finally, both `x._f` and `y._f` are fully
+                // promoted to `int`.
+                checkPromoted(x.property('_f'), 'int'),
+                checkPromoted(y.property('_f'), 'int'),
+                // But since the promotions from the `finally` block are layered
+                // over the promotions from the `try` block, `x._f` has
+                // promotion chain `[num, int]`, whereas `y._f` has promotion
+                // chain `[int]`. Therefore, after the `if` and `else` control
+                // flow paths are joined...
+              ],
+            ),
+            // `x._f` is promoted to `num` (since `[num]` and `[num, int]` both
+            // contain the type `num`), whereas `y._f` is no longer promoted at
+            // all (since `[num]` and `[int]` have no types in common).
+            checkPromoted(x.property('_f'), 'num'),
+            checkNotPromoted(y.property('_f')),
+          ]);
+        });
+      });
+    });
   });
 
   group('Demotion and type of interest promotion:', () {
@@ -12329,7 +12945,6 @@ extension on FlowModel<SharedTypeView> {
     h.promotionKeyStore.keyForVariable(variable),
     writtenType,
     newSsaNode,
-    h.typeOperations,
     unpromotedType: SharedTypeView(variable.type),
   );
 }

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -85,24 +84,6 @@ class C {
   String? get g => f;
 }
 ''');
-  }
-
-  /// This code is parsed in such a way that we find `void` as an `Expression`.
-  /// But this expression is a name in a `NamedType`, and so `NamedType` has
-  /// the `type`, but not `void` - its type is `null`. So, the producer should
-  /// check for `null`, and don't expect that every expression has a type.
-  Future<void> test_getter_sync_invalidVoid() async {
-    await resolveTestCode('''
-int f() {
-  return void;
-}
-''');
-    await assertNoFix(
-      errorFilter:
-          (e) =>
-              e.errorCode ==
-              CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
-    );
   }
 
   Future<void> test_incompatibilityIsNotLimitedToNullability() async {

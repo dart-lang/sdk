@@ -128,6 +128,7 @@ mixin ElementsTypesMixin {
     List<MethodFragmentImpl> methods = const [],
   }) {
     var fragment = ClassFragmentImpl(name: name, nameOffset: 0);
+    fragment.name2 = name;
     fragment.isAbstract = isAbstract;
     fragment.isAugmentation = isAugmentation;
     fragment.isSealed = isSealed;
@@ -224,6 +225,7 @@ mixin ElementsTypesMixin {
     List<MethodFragmentImpl> methods = const [],
   }) {
     var element = ExtensionFragmentImpl(name: name, nameOffset: 0);
+    element.name2 = name;
     ExtensionElementImpl2(Reference.root(), element);
     element.element.extendedType = extendedType;
     element.isAugmentation = isAugmentation;
@@ -241,11 +243,13 @@ mixin ElementsTypesMixin {
     List<InterfaceTypeImpl> interfaces = const [],
   }) {
     var fragment = ExtensionTypeFragmentImpl(name: name, nameOffset: -1);
+    fragment.name2 = name;
     fragment.enclosingElement3 = testLibrary.definingCompilationUnit;
     fragment.typeParameters = typeParameters.map((e) => e.asElement).toList();
     fragment.interfaces = interfaces;
 
     var field = FieldFragmentImpl(name: representationName, nameOffset: -1);
+    field.name2 = representationName;
     field.type = representationType;
     fragment.fields = [field];
 
@@ -673,6 +677,7 @@ mixin ElementsTypesMixin {
     Variance? variance,
   }) {
     var fragment = TypeParameterFragmentImpl(name: name, nameOffset: -1);
+    fragment.name2 = name;
     fragment.bound = bound;
 
     var element = TypeParameterElementImpl2(

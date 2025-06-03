@@ -86,9 +86,11 @@ testFuncDynToVoid() {
 
   if (funcDynToVoid is FuncDynToDyn) {
     // Promotion: FuncDynToDyn <:> FuncDynToVoid.
-    a = funcDynToVoid(new A());
-    b = funcDynToVoid(new B());
-    c = funcDynToVoid(new C());
+    // With sound-flow-analysis, this no longer promotes (since FuncDynToDyn
+    // and FuncDynToVoid are mutual subtypes).
+    funcDynToVoid(new A());
+    funcDynToVoid(new B());
+    funcDynToVoid(new C());
   }
 
   if (funcDynToVoid is FuncDynToA) {

@@ -129,7 +129,7 @@ class ClassElementLinkedData extends ElementLinkedData<ClassFragmentImpl> {
 
   @override
   void _read(element, reader) {
-    element.metadata3 = reader._readAnnotationList(unitElement: unitElement);
+    element.metadata = reader._readMetadata(unitElement: unitElement);
     _readTypeParameters(reader, element.typeParameters);
     element.supertype = reader._readOptionalInterfaceType();
     element.mixins = reader._readInterfaceTypeList();
@@ -174,7 +174,7 @@ class CompilationUnitElementLinkedData
   @override
   void _read(element, reader) {
     for (var import in element.libraryImports) {
-      import.annotations = reader._readAnnotationList(unitElement: unitElement);
+      import.metadata = reader._readMetadata(unitElement: unitElement);
       var uri = import.uri;
       if (uri is DirectiveUriWithLibraryImpl) {
         uri.library2 = reader.libraryOfUri(uri.source.uri);
@@ -182,7 +182,7 @@ class CompilationUnitElementLinkedData
     }
 
     for (var export in element.libraryExports) {
-      export.annotations = reader._readAnnotationList(unitElement: unitElement);
+      export.metadata = reader._readMetadata(unitElement: unitElement);
       var uri = export.uri;
       if (uri is DirectiveUriWithLibraryImpl) {
         uri.library2 = reader.libraryOfUri(uri.source.uri);
@@ -190,7 +190,7 @@ class CompilationUnitElementLinkedData
     }
 
     for (var part in element.parts) {
-      part.annotations = reader._readAnnotationList(unitElement: unitElement);
+      part.metadata = reader._readMetadata(unitElement: unitElement);
     }
 
     applyConstantOffsets?.perform();
@@ -217,7 +217,7 @@ class ConstructorElementLinkedData
   void _read(element, reader) {
     _addEnclosingElementTypeParameters(reader, element);
 
-    element.metadata3 = reader._readAnnotationList(unitElement: unitElement);
+    element.metadata = reader._readMetadata(unitElement: unitElement);
     reader._addFormalParameters(element.parameters);
     _readFormalParameters(reader, element.parameters);
     element.superConstructor =
@@ -302,7 +302,7 @@ abstract class ElementLinkedData<E> {
     List<FormalParameterFragmentImpl> parameters,
   ) {
     for (var parameter in parameters) {
-      parameter.metadata3 = reader._readAnnotationList(unitElement: unitElement);
+      parameter.metadata = reader._readMetadata(unitElement: unitElement);
       _readTypeParameters(reader, parameter.typeParameters);
       _readFormalParameters(reader, parameter.parameters);
       parameter.type = reader.readRequiredType();
@@ -325,9 +325,7 @@ abstract class ElementLinkedData<E> {
   ) {
     reader._addTypeParameters(typeParameters);
     for (var typeParameter in typeParameters) {
-      typeParameter.metadata3 = reader._readAnnotationList(
-        unitElement: unitElement,
-      );
+      typeParameter.metadata = reader._readMetadata(unitElement: unitElement);
       typeParameter.bound = reader.readType();
       typeParameter.defaultType = reader.readType();
     }
@@ -351,7 +349,7 @@ class EnumElementLinkedData extends ElementLinkedData<EnumFragmentImpl> {
 
   @override
   void _read(element, reader) {
-    element.metadata3 = reader._readAnnotationList(
+    element.metadata = reader._readMetadata(
       unitElement: element.enclosingElement3,
     );
     _readTypeParameters(reader, element.typeParameters);
@@ -380,7 +378,7 @@ class ExtensionElementLinkedData
 
   @override
   void _read(element, reader) {
-    element.metadata3 = reader._readAnnotationList(
+    element.metadata = reader._readMetadata(
       unitElement: element.enclosingElement3,
     );
     _readTypeParameters(reader, element.typeParameters);
@@ -410,7 +408,7 @@ class ExtensionTypeElementLinkedData
 
   @override
   void _read(element, reader) {
-    element.metadata3 = reader._readAnnotationList(
+    element.metadata = reader._readMetadata(
       unitElement: element.enclosingElement3,
     );
     _readTypeParameters(reader, element.typeParameters);
@@ -438,7 +436,7 @@ class FieldElementLinkedData extends ElementLinkedData<FieldFragmentImpl> {
   @override
   void _read(element, reader) {
     _addEnclosingElementTypeParameters(reader, element);
-    element.metadata3 = reader._readAnnotationList(unitElement: unitElement);
+    element.metadata = reader._readMetadata(unitElement: unitElement);
     element.type = reader.readRequiredType();
 
     if (element is ConstFieldFragmentImpl) {
@@ -470,7 +468,7 @@ class FunctionElementLinkedData
 
   @override
   void _read(element, reader) {
-    element.metadata3 = reader._readAnnotationList(unitElement: unitElement);
+    element.metadata = reader._readMetadata(unitElement: unitElement);
     _readTypeParameters(reader, element.typeParameters);
     element.returnType = reader.readRequiredType();
     _readFormalParameters(reader, element.parameters);
@@ -527,7 +525,7 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
 
   @override
   void _read(element, reader) {
-    element.annotations = reader._readAnnotationList(unitElement: unitElement);
+    element.metadata = reader._readMetadata(unitElement: unitElement);
 
     element.entryPoint2 = reader.readElement() as TopLevelFunctionElementImpl?;
 
@@ -1290,7 +1288,7 @@ class LibraryReader {
       fragment.typeInferenceError = _readTopLevelInferenceError();
 
       MethodElementImpl2(
-        name3: name,
+        name3: fragmentName,
         reference: reference2,
         firstFragment: fragment,
       );
@@ -1870,7 +1868,7 @@ class MethodElementLinkedData extends ElementLinkedData<MethodFragmentImpl> {
   @override
   void _read(element, reader) {
     _addEnclosingElementTypeParameters(reader, element);
-    element.metadata3 = reader._readAnnotationList(unitElement: unitElement);
+    element.metadata = reader._readMetadata(unitElement: unitElement);
     _readTypeParameters(reader, element.typeParameters);
     _readFormalParameters(reader, element.parameters);
     element.returnType = reader.readRequiredType();
@@ -1895,7 +1893,7 @@ class MixinElementLinkedData extends ElementLinkedData<MixinFragmentImpl> {
 
   @override
   void _read(element, reader) {
-    element.metadata3 = reader._readAnnotationList(
+    element.metadata = reader._readMetadata(
       unitElement: element.enclosingElement3,
     );
     _readTypeParameters(reader, element.typeParameters);
@@ -1926,7 +1924,7 @@ class PropertyAccessorElementLinkedData
   void _read(element, reader) {
     _addEnclosingElementTypeParameters(reader, element);
 
-    element.metadata3 = reader._readAnnotationList(unitElement: unitElement);
+    element.metadata = reader._readMetadata(unitElement: unitElement);
 
     element.returnType = reader.readRequiredType();
     _readFormalParameters(reader, element.parameters);
@@ -2263,17 +2261,6 @@ class ResolutionReader {
     return type;
   }
 
-  List<ElementAnnotationImpl> _readAnnotationList({
-    required LibraryFragmentImpl unitElement,
-  }) {
-    return readTypedList(() {
-      var ast = _readRequiredNode() as AnnotationImpl;
-      return ElementAnnotationImpl(unitElement)
-        ..annotationAst = ast
-        ..element2 = ast.element2;
-    });
-  }
-
   List<FormalParameterFragmentImpl> _readFormalParameters(
     LibraryFragmentImpl? unitElement,
   ) {
@@ -2311,7 +2298,7 @@ class ResolutionReader {
         // TODO(scheglov): reuse for formal parameters
         _localElements.length -= typeParameters.length;
         if (unitElement != null) {
-          element.metadata3 = _readAnnotationList(unitElement: unitElement);
+          element.metadata = _readMetadata(unitElement: unitElement);
         }
         return element;
       } else {
@@ -2328,7 +2315,7 @@ class ResolutionReader {
         // TODO(scheglov): reuse for formal parameters
         _localElements.length -= typeParameters.length;
         if (unitElement != null) {
-          element.metadata3 = _readAnnotationList(unitElement: unitElement);
+          element.metadata = _readMetadata(unitElement: unitElement);
         }
         return element;
       }
@@ -2346,6 +2333,10 @@ class ResolutionReader {
     var reference = _referenceReader.referenceOfIndex(referenceIndex);
 
     return _elementFactory.elementOfReference(reference);
+  }
+
+  String? _readFragmentName() {
+    return _reader.readOptionalStringReference();
   }
 
   // TODO(scheglov): Optimize for write/read of types without type parameters.
@@ -2373,6 +2364,17 @@ class ResolutionReader {
 
   List<InterfaceTypeImpl> _readInterfaceTypeList() {
     return readTypedList(_readInterfaceType);
+  }
+
+  MetadataImpl _readMetadata({required LibraryFragmentImpl unitElement}) {
+    var annotations = readTypedList(() {
+      var ast = _readRequiredNode() as AnnotationImpl;
+      return ElementAnnotationImpl(unitElement)
+        ..annotationAst = ast
+        ..element2 = ast.element2;
+    });
+
+    return MetadataImpl(annotations);
   }
 
   List<T> _readNodeList<T>() {
@@ -2434,8 +2436,10 @@ class ResolutionReader {
     LibraryFragmentImpl? unitElement,
   ) {
     var typeParameters = readTypedList(() {
+      var fragmentName = _readFragmentName();
       var name = readStringReference();
       var typeParameter = TypeParameterFragmentImpl(name: name, nameOffset: -1);
+      typeParameter.name2 = fragmentName;
       _localElements.add(typeParameter);
       return typeParameter;
     });
@@ -2443,7 +2447,7 @@ class ResolutionReader {
     for (var typeParameter in typeParameters) {
       typeParameter.bound = readType();
       if (unitElement != null) {
-        typeParameter.metadata3 = _readAnnotationList(unitElement: unitElement);
+        typeParameter.metadata = _readMetadata(unitElement: unitElement);
       }
     }
     return typeParameters;
@@ -2482,7 +2486,7 @@ class TopLevelVariableElementLinkedData
 
   @override
   void _read(element, reader) {
-    element.metadata3 = reader._readAnnotationList(unitElement: unitElement);
+    element.metadata = reader._readMetadata(unitElement: unitElement);
     element.type = reader.readRequiredType();
 
     if (element is ConstTopLevelVariableFragmentImpl) {
@@ -2514,7 +2518,7 @@ class TypeAliasElementLinkedData
 
   @override
   void _read(element, reader) {
-    element.metadata3 = reader._readAnnotationList(unitElement: unitElement);
+    element.metadata = reader._readMetadata(unitElement: unitElement);
     _readTypeParameters(reader, element.typeParameters);
     element.aliasedElement = reader._readAliasedElement(unitElement);
     element.aliasedType = reader.readRequiredType();

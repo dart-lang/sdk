@@ -153,31 +153,33 @@ abstract class InstanceElementBuilder<
 
   void addAccessors(List<PropertyAccessorFragmentImpl> fragments) {
     for (var fragment in fragments) {
-      var name = fragment.name;
-      switch (fragment) {
-        case GetterFragmentImpl():
-          if (fragment.isAugmentation) {
-            if (getters[name] case var target?) {
-              target.nextFragment = fragment;
-              fragment.previousFragment = target;
+      var name = fragment.name2;
+      if (name != null) {
+        switch (fragment) {
+          case GetterFragmentImpl():
+            if (fragment.isAugmentation) {
+              if (getters[name] case var target?) {
+                target.nextFragment = fragment;
+                fragment.previousFragment = target;
+              }
             }
-          }
-          getters[name] = fragment;
-        case SetterFragmentImpl():
-          if (fragment.isAugmentation) {
-            if (setters[name] case var target?) {
-              target.nextFragment = fragment;
-              fragment.previousFragment = target;
+            getters[name] = fragment;
+          case SetterFragmentImpl():
+            if (fragment.isAugmentation) {
+              if (setters[name] case var target?) {
+                target.nextFragment = fragment;
+                fragment.previousFragment = target;
+              }
             }
-          }
-          setters[name] = fragment;
+            setters[name] = fragment;
+        }
       }
     }
   }
 
   void addConstructors(List<ConstructorFragmentImpl> fragments) {
     for (var fragment in fragments) {
-      var name = fragment.name;
+      var name = fragment.name2;
       if (fragment.isAugmentation) {
         if (constructors[name] case var target?) {
           target.nextFragment = fragment;
@@ -190,27 +192,31 @@ abstract class InstanceElementBuilder<
 
   void addFields(List<FieldFragmentImpl> fragments) {
     for (var fragment in fragments) {
-      var name = fragment.name;
-      if (fragment.isAugmentation) {
-        if (fields[name] case var target?) {
-          target.nextFragment = fragment;
-          fragment.previousFragment = target;
+      var name = fragment.name2;
+      if (name != null) {
+        if (fragment.isAugmentation) {
+          if (fields[name] case var target?) {
+            target.nextFragment = fragment;
+            fragment.previousFragment = target;
+          }
         }
+        fields[name] = fragment;
       }
-      fields[name] = fragment;
     }
   }
 
   void addMethods(List<MethodFragmentImpl> fragments) {
     for (var fragment in fragments) {
-      var name = fragment.name;
-      if (fragment.isAugmentation) {
-        if (methods[name] case var target?) {
-          target.nextFragment = fragment;
-          fragment.previousFragment = target;
+      var name = fragment.name2;
+      if (name != null) {
+        if (fragment.isAugmentation) {
+          if (methods[name] case var target?) {
+            target.nextFragment = fragment;
+            fragment.previousFragment = target;
+          }
         }
+        methods[name] = fragment;
       }
-      methods[name] = fragment;
     }
   }
 

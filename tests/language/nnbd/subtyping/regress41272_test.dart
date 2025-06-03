@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // VMOptions=--optimization_counter_threshold=10 --deterministic
-// Requirements=nnbd-strong
 
 // Verifies that null cannot be casted to Object.
 // Regression test for https://github.com/dart-lang/sdk/issues/41272.

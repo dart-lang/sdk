@@ -105,6 +105,7 @@ String? get clangBuildToolsDir {
       return null;
   }
   var clangDir = path.join(sdkDir, 'buildtools', archDir, 'clang', 'bin');
+  print(clangDir);
   return Directory(clangDir).existsSync() ? clangDir : null;
 }
 
@@ -113,7 +114,7 @@ Future<void> assembleSnapshot(
   String snapshotPath, {
   bool debug = false,
 }) async {
-  if (!Platform.isLinux && !Platform.isMacOS) {
+  if (!Platform.isLinux && !Platform.isMacOS && !Platform.isWindows) {
     throw "Unsupported platform ${Platform.operatingSystem} for assembling";
   }
 
@@ -171,20 +172,21 @@ Future<void> stripSnapshot(
   String strippedPath, {
   bool forceElf = false,
 }) async {
-  if (!Platform.isLinux && !Platform.isMacOS) {
+  if (!Platform.isLinux && !Platform.isMacOS && !Platform.isWindows) {
     throw "Unsupported platform ${Platform.operatingSystem} for stripping";
   }
 
   var strip = 'strip';
 
-  if (isSimulator || (Platform.isMacOS && forceElf)) {
-    final clangBuildTools = clangBuildToolsDir;
-    if (clangBuildTools != null) {
-      strip = path.join(clangBuildTools, 'llvm-strip');
-    } else {
-      throw 'Cannot strip ELF files for ${path.basename(buildDir)} '
-          'without //buildtools on ${Platform.operatingSystem}';
-    }
+  final clangBuildTools = clangBuildToolsDir;
+  if (clangBuildTools != null) {
+    strip = path.join(
+      clangBuildTools,
+      Platform.isWindows ? 'llvm-strip.exe' : 'llvm-strip',
+    );
+  } else {
+    throw 'Cannot strip ELF files for ${path.basename(buildDir)} '
+        'without //buildtools on ${Platform.operatingSystem}';
   }
 
   await run(strip, <String>['-o', strippedPath, snapshotPath]);

@@ -90,9 +90,9 @@ class LinkedElementFactory {
     var exportedNames = <String, Element>{};
 
     for (var exportedReference in exportedReferences) {
-      var element = elementOfReference(exportedReference.reference);
+      var fragment = elementOfReference(exportedReference.reference);
       // TODO(scheglov): Remove after https://github.com/dart-lang/sdk/issues/41212
-      if (element == null) {
+      if (fragment == null) {
         throw StateError(
           '[No element]'
           '[uri: $uri]'
@@ -100,7 +100,8 @@ class LinkedElementFactory {
           '[exportedReference: $exportedReference]',
         );
       }
-      exportedNames[element.name!] = element.asElement2!;
+      var element = fragment.asElement2!;
+      exportedNames[element.lookupName!] = element;
     }
 
     return Namespace(exportedNames);
