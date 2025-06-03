@@ -2428,6 +2428,10 @@ _AddBuilder _createExtensionTypeBuilder(ExtensionTypeFragment fragment,
           fragment: fragment,
           indexedContainer: indexedContainer,
           representationFieldFragment: representationFieldFragment);
+  if (indexedContainer?.reference != null) {
+    loader.buildersCreatedWithReferences[indexedContainer!.reference] =
+        extensionTypeDeclarationBuilder;
+  }
   return new _AddBuilder(
       fragment.name, extensionTypeDeclarationBuilder, fragment.uriOffset,
       inPatch: fragment.enclosingCompilationUnit.isPatch);
