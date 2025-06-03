@@ -3366,7 +3366,6 @@
   "../../../tests/lib/typed_data/setRange_5_test.dart",
   "../../../tests/lib/typed_data/simd_store_to_load_forward_test.dart",
   "../../../tests/lib/typed_data/simd_type_null_params_test.dart",
-  "../../../tests/lib/typed_data/simd_type_null_params_weak_test.dart",
   "../../../tests/lib/typed_data/typed_data_from_list_test.dart",
   "../../../tests/lib/typed_data/typed_data_hierarchy_int64_test.dart",
   "../../../tests/lib/typed_data/typed_data_hierarchy_test.dart",
