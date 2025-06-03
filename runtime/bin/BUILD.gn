@@ -162,7 +162,7 @@ static_library("crashpad") {
   }
 }
 
-template("build_elf_loader") {
+template("build_shared_object_loaders") {
   source_set(target_name) {
     configs += [
       "..:dart_arch_config",
@@ -175,6 +175,10 @@ template("build_elf_loader") {
     sources = [
       "elf_loader.cc",
       "elf_loader.h",
+      "macho_loader.cc",
+      "macho_loader.h",
+      "mappable.cc",
+      "mappable.h",
       "virtual_memory.h",
       "virtual_memory_fuchsia.cc",
       "virtual_memory_posix.cc",
@@ -184,11 +188,11 @@ template("build_elf_loader") {
   }
 }
 
-build_elf_loader("elf_loader") {
+build_shared_object_loaders("shared_object_loaders") {
   deps = [ ":libdart_builtin" ]
 }
 
-build_elf_loader("elf_loader_product") {
+build_shared_object_loaders("shared_object_loaders_product") {
   deps = [ ":libdart_builtin_product" ]
 }
 
@@ -928,13 +932,13 @@ dart_executable("dartaotruntime") {
 
   if (dart_runtime_mode == "release") {
     extra_deps += [
-      ":elf_loader_product",
       ":native_assets_api_product",
+      ":shared_object_loaders_product",
     ]
   } else {
     extra_deps += [
-      ":elf_loader",
       ":native_assets_api",
+      ":shared_object_loaders",
     ]
   }
 
@@ -966,8 +970,8 @@ dart_executable("dartaotruntime_product") {
   ]
 
   extra_deps += [
-    ":elf_loader_product",
     ":native_assets_api_product",
+    ":shared_object_loaders_product",
   ]
 }
 
@@ -999,9 +1003,9 @@ if (build_analyze_snapshot) {
     ]
 
     if (use_product_mode) {
-      extra_deps += [ ":elf_loader_product" ]
+      extra_deps += [ ":shared_object_loaders_product" ]
     } else {
-      extra_deps += [ ":elf_loader" ]
+      extra_deps += [ ":shared_object_loaders" ]
     }
   }
 }

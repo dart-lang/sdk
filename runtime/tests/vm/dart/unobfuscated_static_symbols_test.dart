@@ -242,12 +242,6 @@ Future<void> checkCases(
   List<TestCase> obfuscateds,
 ) async {
   checkStaticSymbolTables(unobfuscated, obfuscateds);
-  if (!Platform.isMacOS && unobfuscated.container is! Elf) {
-    assert(unobfuscated.container is MachO);
-    // Don't try and run Mach-O snapshots on systems where it is not the native
-    // format because there is no MachOLoader in the runtime.
-    return;
-  }
   await checkTraces(unobfuscated, obfuscateds);
 }
 

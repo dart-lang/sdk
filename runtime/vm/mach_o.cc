@@ -10,10 +10,12 @@
 
 #include "openssl/sha.h"
 #include "platform/mach_o.h"
+#include "platform/unwinding_records.h"
 #include "vm/dwarf.h"
 #include "vm/dwarf_so_writer.h"
 #include "vm/hash_map.h"
 #include "vm/os.h"
+#include "vm/unwinding_records.h"
 #include "vm/zone_text_buffer.h"
 
 namespace dart {
@@ -596,12 +598,13 @@ class MachOSection : public MachOContents {
 
   const GrowableArray<Portion>& portions() const { return portions_; }
 
-  void AddPortion(const uint8_t* bytes,
-                  intptr_t size,
-                  const SharedObjectWriter::RelocationArray* relocations,
-                  const SharedObjectWriter::SymbolDataArray* symbols = nullptr,
-                  const char* symbol_name = nullptr,
-                  intptr_t label = 0) {
+  void AddPortion(
+      const uint8_t* bytes,
+      intptr_t size,
+      const SharedObjectWriter::RelocationArray* relocations = nullptr,
+      const SharedObjectWriter::SymbolDataArray* symbols = nullptr,
+      const char* symbol_name = nullptr,
+      intptr_t label = 0) {
     // Any named portion should also have a valid symbol label.
     ASSERT(symbol_name == nullptr || label > 0);
     ASSERT(!HasContents() || bytes != nullptr);
@@ -777,14 +780,18 @@ class MachOSegment : public MachOCommand {
     return file_size;
   }
 
-  intptr_t MemorySize() const override {
+  intptr_t UnpaddedMemorySize() const {
     intptr_t memory_size = SelfMemorySize();
     for (auto* const c : contents_) {
       ASSERT(c->IsAllocated());  // Segments never contain unallocated contents.
       memory_size = Utils::RoundUp(memory_size, c->Alignment());
       memory_size += c->MemorySize();
     }
-    return Utils::RoundUp(memory_size, Alignment());
+    return memory_size;
+  }
+
+  intptr_t MemorySize() const override {
+    return Utils::RoundUp(UnpaddedMemorySize(), Alignment());
   }
 
   // The initial segment of the Mach-O file always includes the header
@@ -1737,6 +1744,7 @@ class MachOHeader : public MachOContents {
  private:
   void GenerateUuid();
   void CreateBSS();
+  void GenerateUnwindingInformation();
   void GenerateMiscellaneousCommands();
   void InitializeSymbolTables();
   void FinalizeDwarfSections();
@@ -1911,6 +1919,10 @@ void MachOHeader::Finalize() {
   // debugging information.
   CreateBSS();
 
+  // Generate appropriate unwinding information for the target platform,
+  // for example, unwinding records on Windows.
+  GenerateUnwindingInformation();
+
   FinalizeDwarfSections();
 
   // Create and initialize the dynamic and static symbol tables.
@@ -2060,6 +2072,71 @@ void MachOHeader::CreateBSS() {
     bss_section->AddPortion(/*bytes=*/nullptr, size, /*relocations=*/nullptr,
                             symbols);
   }
+}
+
+void MachOHeader::GenerateUnwindingInformation() {
+  ASSERT(text_segment_ != nullptr);
+#if !defined(TARGET_ARCH_IA32)
+  // Unwinding information is added to the text segment in Mach-O files.
+  // Thus, we need the size of the unwinding information even for debugging
+  // information, since adding the unwinding information changes the memory size
+  // of the initial text segment and thus changes the values for symbols
+  // of sections in later segments.
+  //
+  // However, since the debugging information should never be loaded by
+  // the Mach-O loader, we don't actually need to generate the instructions,
+  // just use an appropriate zerofill section for it.
+  const bool use_zerofill = type_ == SnapshotType::DebugInfo;
+  auto const section_type =
+      use_zerofill ? mach_o::S_ZEROFILL : mach_o::S_REGULAR;
+#if defined(DEBUG)
+  for (auto* const c : text_segment_->contents()) {
+    // The header always has contents, but the restriction on zerofill
+    // sections coming after content-containing sections only matters with
+    // respect to sections, not other contents.
+    if (c->IsMachOHeader()) continue;
+    // RegisterExecutablePages looks at the end of the loaded segment for
+    // the unwinding information, which means the unwinding info needs to be
+    // the last section, but any sections without file contents are ordered
+    // after any sections with file contents in a segment.
+    ASSERT_EQUAL(use_zerofill, !c->HasContents());
+  }
+#endif
+
+#if defined(DART_TARGET_OS_WINDOWS) && defined(TARGET_ARCH_IS_64_BIT)
+  // Append Windows unwinding instructions as another section at the end of
+  // the text segment.
+  auto* const section = new (zone()) MachOSection(
+      zone(), mach_o::SECT_UNWIND_INFO, section_type, mach_o::S_NO_ATTRIBUTES,
+      /*has_contents=*/!use_zerofill, compiler::target::kWordSize);
+  const intptr_t records_size = UnwindingRecordsPlatform::SizeInBytes();
+  // The memory space of the text segment is padded to the alignment size, so
+  // we need to make sure the resulting data has initial padding so that the
+  // records are at the end of the segment without extra padding.
+  const intptr_t section_start =
+      Utils::RoundUp(text_segment_->UnpaddedMemorySize(), section->Alignment());
+  const intptr_t section_size =
+      Utils::RoundUp(section_start + records_size, text_segment_->Alignment()) -
+      section_start;
+  const uint8_t* bytes = nullptr;
+  if (!use_zerofill) {
+    ZoneWriteStream stream(zone(), /*initial_size=*/section_size);
+    uint8_t* unwinding_instructions = zone()->Alloc<uint8_t>(records_size);
+    intptr_t records_start = section_size - records_size;
+    stream.SetPosition(records_start);
+    stream.WriteBytes(UnwindingRecords::GenerateRecordsInto(
+                          records_start, unwinding_instructions),
+                      records_size);
+    ASSERT_EQUAL(section_size, stream.Position());
+    bytes = stream.buffer();
+  }
+  section->AddPortion(bytes, section_size);
+  text_segment_->AddContents(section);
+  ASSERT_EQUAL(section_start + section_size, text_segment_->MemorySize());
+#else
+  USE(section_type);
+#endif  // defined(DART_TARGET_OS_WINDOWS) && defined(TARGET_ARCH_IS_64_BIT)
+#endif  // !defined(TARGET_ARCH_IA32)
 }
 
 void MachOHeader::GenerateMiscellaneousCommands() {

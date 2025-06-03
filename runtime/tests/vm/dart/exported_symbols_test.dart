@@ -353,18 +353,16 @@ main() {
     "Dart_VersionString",
     "Dart_WriteHeapSnapshot",
     "Dart_WriteProfileToTimeline",
-  ];
-
-  if (isAOTRuntime) {
-    expectedSymbols.addAll([
+    if (isAOTRuntime) ...[
       "Dart_LoadELF",
       "Dart_LoadELF_Memory",
+      "Dart_LoadMachODylib",
+      "Dart_LoadMachODylib_Memory",
       "Dart_UnloadELF",
-    ]);
-    if (!Platform.isMacOS) {
-      expectedSymbols.addAll(["Dart_LoadELF_Fd"]);
-    }
-  }
+      "Dart_UnloadMachODylib",
+      if (!Platform.isMacOS) ...["Dart_LoadELF_Fd", "Dart_LoadMachODylib_Fd"],
+    ],
+  ];
 
   Expect.setEquals(expectedSymbols, symbols);
 }

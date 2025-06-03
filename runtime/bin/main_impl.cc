@@ -457,7 +457,7 @@ static Dart_Isolate CreateAndSetupKernelIsolate(const char* script_uri,
   // Kernel isolate uses an app JIT snapshot or uses the dill file.
   if ((kernel_snapshot_uri != nullptr) &&
       ((app_snapshot = Snapshot::TryReadAppSnapshot(
-            kernel_snapshot_uri, /*force_load_elf_from_memory=*/false,
+            kernel_snapshot_uri, /*force_load_from_memory=*/false,
             /*decode_uri=*/false)) != nullptr) &&
       app_snapshot->IsJIT()) {
     const uint8_t* isolate_snapshot_data = nullptr;
@@ -627,7 +627,7 @@ static Dart_Isolate CreateAndSetupDartDevIsolate(const char* script_uri,
   bool isolate_run_app_snapshot = true;
   // dartdev isolate uses an app JIT snapshot or uses the dill file.
   if (((app_snapshot = Snapshot::TryReadAppSnapshot(
-            dartdev_path.get(), /*force_load_elf_from_memory=*/false,
+            dartdev_path.get(), /*force_load_from_memory=*/false,
             /*decode_uri=*/false)) != nullptr) &&
       app_snapshot->IsJIT()) {
     const uint8_t* isolate_snapshot_data = nullptr;
@@ -713,9 +713,9 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
     isolate_snapshot_instructions = app_isolate_snapshot_instructions;
   } else {
     // AOT: All isolates need to be run from AOT compiled snapshots.
-    const bool kForceLoadElfFromMemory = false;
+    const bool kForceLoadFromMemory = false;
     app_snapshot =
-        Snapshot::TryReadAppSnapshot(script_uri, kForceLoadElfFromMemory);
+        Snapshot::TryReadAppSnapshot(script_uri, kForceLoadFromMemory);
     if (app_snapshot == nullptr || !app_snapshot->IsAOT()) {
       *error = Utils::SCreate(
           "The uri(%s) provided to `Isolate.spawnUri()` does not "
@@ -863,7 +863,7 @@ static Dart_Isolate CreateIsolateGroupAndSetup(const char* script_uri,
   dontneed_safe = false;
 #elif defined(DEBUG)
   // If the snapshot isn't file-backed, madvise(DONT_NEED) is destructive.
-  if (Options::force_load_elf_from_memory()) {
+  if (Options::force_load_from_memory()) {
     dontneed_safe = false;
   }
 #endif
@@ -1009,7 +1009,7 @@ void RunMainIsolate(const char* script_name,
   dontneed_safe = false;
 #elif defined(DEBUG)
   // If the snapshot isn't file-backed, madvise(DONT_NEED) is destructive.
-  if (Options::force_load_elf_from_memory()) {
+  if (Options::force_load_from_memory()) {
     dontneed_safe = false;
   }
 #endif
@@ -1227,7 +1227,7 @@ void main(int argc, char** argv) {
   const size_t kPathBufSize = PATH_MAX + 1;
   char executable_path[kPathBufSize];
   if (Platform::ResolveExecutablePathInto(executable_path, kPathBufSize) > 0) {
-    app_snapshot = Snapshot::TryReadAppendedAppSnapshotElf(executable_path);
+    app_snapshot = Snapshot::TryReadAppendedAppSnapshot(executable_path);
     if (app_snapshot != nullptr) {
       script_name = argv[0];
 
@@ -1273,10 +1273,10 @@ void main(int argc, char** argv) {
     if (app_snapshot == nullptr) {
       // For testing purposes we add a flag to debug-mode to use the
       // in-memory ELF loader.
-      const bool force_load_elf_from_memory =
-          false DEBUG_ONLY(|| Options::force_load_elf_from_memory());
+      const bool force_load_from_memory =
+          false DEBUG_ONLY(|| Options::force_load_from_memory());
       app_snapshot =
-          Snapshot::TryReadAppSnapshot(script_name, force_load_elf_from_memory);
+          Snapshot::TryReadAppSnapshot(script_name, force_load_from_memory);
     }
     if (app_snapshot != nullptr && app_snapshot->IsJITorAOT()) {
       if (app_snapshot->IsAOT() && !Dart_IsPrecompiledRuntime()) {
