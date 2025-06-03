@@ -143,15 +143,23 @@ class LibraryBuilder {
       if (classFragment.isMixinApplication) continue;
       if (classFragment.constructors.isNotEmpty) continue;
 
-      var constructor = ConstructorFragmentImpl(name2: 'new', nameOffset: -1)
+      var fragment = ConstructorFragmentImpl(name2: 'new', nameOffset: -1)
         ..isSynthetic = true;
       var containerRef = classFragment.reference!.getChild('@constructor');
       var reference = containerRef.getChild('new');
-      reference.element = constructor;
-      constructor.reference = reference;
-      constructor.typeName = classFragment.name2;
+      reference.element = fragment;
+      fragment.reference = reference;
+      fragment.typeName = classFragment.name2;
 
-      classFragment.constructors = [constructor].toFixedList();
+      ConstructorElementImpl2(
+        name3: fragment.name2,
+        reference: classFragment.element.reference
+            .getChild('@constructor')
+            .addChild('new'),
+        firstFragment: fragment,
+      );
+
+      classFragment.constructors = [fragment].toFixedList();
     }
   }
 
@@ -208,18 +216,26 @@ class LibraryBuilder {
       if (enumFragment is! EnumFragmentImpl) continue;
       if (hasConstructor(enumFragment)) continue;
 
-      var constructor =
+      var fragment =
           ConstructorFragmentImpl(name2: 'new', nameOffset: -1)
             ..isConst = true
             ..isSynthetic = true;
       var containerRef = enumFragment.reference!.getChild('@constructor');
       var reference = containerRef.getChild('new');
-      reference.element = constructor;
-      constructor.reference = reference;
-      constructor.typeName = enumFragment.name2;
+      reference.element = fragment;
+      fragment.reference = reference;
+      fragment.typeName = enumFragment.name2;
+
+      ConstructorElementImpl2(
+        name3: fragment.name2,
+        reference: enumFragment.element.reference
+            .getChild('@constructor')
+            .addChild('new'),
+        firstFragment: fragment,
+      );
 
       enumFragment.constructors =
-          [...enumFragment.constructors, constructor].toFixedList();
+          [...enumFragment.constructors, fragment].toFixedList();
     }
   }
 
@@ -302,7 +318,8 @@ class LibraryBuilder {
       for (var constructor in interfaceFragment.constructors) {
         for (var parameter in constructor.parameters) {
           if (parameter is FieldFormalParameterFragmentImpl) {
-            parameter.field = element.getField(parameter.name2 ?? '')?.asElement;
+            parameter.field =
+                element.getField(parameter.name2 ?? '')?.asElement;
           }
         }
       }

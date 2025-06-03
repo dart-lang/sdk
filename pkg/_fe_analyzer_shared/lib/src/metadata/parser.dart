@@ -1279,13 +1279,15 @@ class AnnotationsListener extends StackListener {
   }
 }
 
-enum _NullValues implements NullValue<Object> {
-  Arguments,
-  Expression,
-  FunctionTypeParameters,
-  Identifier,
-  TypeAnnotation,
-  TypeAnnotations,
+class _NullValues {
+  static const NullValue Arguments = const NullValue("Argument");
+  static const NullValue Expression = const NullValue("Expression");
+  static const NullValue FunctionTypeParameters = const NullValue(
+    "FunctionTypeParameter",
+  );
+  static const NullValue Identifier = const NullValue("Identifier");
+  static const NullValue TypeAnnotation = const NullValue("TypeAnnotation");
+  static const NullValue TypeAnnotations = const NullValue("TypeAnnotations");
 }
 
 final Argument _dummyArgument = new PositionalArgument(

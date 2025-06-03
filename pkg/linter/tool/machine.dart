@@ -5,10 +5,10 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:args/args.dart';
 import 'package:collection/collection.dart';
-import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
 import 'package:linter/src/utils.dart';
 import 'package:pub_semver/pub_semver.dart';

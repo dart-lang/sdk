@@ -18,20 +18,17 @@ import '../base/messages.dart'
         messageSuperInitializerNotLast,
         noLength,
         templateCantInferTypeDueToCircularity;
-import '../base/modifiers.dart';
 import '../base/name_space.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_builder.dart';
 import '../builder/declaration_builders.dart';
-import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../fragment/constructor/declaration.dart';
 import '../kernel/expression_generator_helper.dart';
 import '../kernel/hierarchy/class_member.dart' show ClassMember;
 import '../kernel/internal_ast.dart';
-import '../kernel/kernel_helper.dart'
-    show DelayedDefaultValueCloner, TypeDependency;
+import '../kernel/kernel_helper.dart' show DelayedDefaultValueCloner;
 import '../kernel/type_algorithms.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/type_inference_engine.dart';
@@ -144,42 +141,12 @@ class InferableConstructor implements InferableMember {
   }
 }
 
-abstract class SourceConstructorBuilder implements ConstructorBuilder {
-  @override
-  DeclarationBuilder get declarationBuilder;
-
-  @override
-  Uri get fileUri;
-
-  /// Returns `true` if this constructor is an redirecting generative
-  /// constructor.
-  ///
-  /// It is considered redirecting if it has at least one redirecting
-  /// initializer.
-  bool get isRedirecting;
-
-  void addSuperParameterDefaultValueCloners(
-      List<DelayedDefaultValueCloner> delayedDefaultValueCloners);
-
-  int buildBodyNodes(BuildNodesCallback f);
-
-  void buildOutlineExpressions(ClassHierarchy classHierarchy,
-      List<DelayedDefaultValueCloner> delayedDefaultValueCloners);
-
-  void buildOutlineNodes(BuildNodesCallback f);
-
-  /// Infers the types of any untyped initializing formals.
-  void inferFormalTypes(ClassHierarchyBase hierarchy);
-}
-
-class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
+class SourceConstructorBuilder extends SourceMemberBuilderImpl
     implements
-        SourceConstructorBuilder,
+        ConstructorBuilder,
         SourceMemberBuilder,
         Inferable,
         ConstructorDeclarationBuilder {
-  final Modifiers modifiers;
-
   @override
   final String name;
 
@@ -237,8 +204,12 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
 
   bool _hasFormalsInferred = false;
 
-  SourceConstructorBuilderImpl({
-    required this.modifiers,
+  @override
+  final bool isConst;
+
+  final bool isExternal;
+
+  SourceConstructorBuilder({
     required this.name,
     required this.libraryBuilder,
     required this.declarationBuilder,
@@ -250,6 +221,8 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
     required NameScheme nameScheme,
     required ConstructorDeclaration introductory,
     List<ConstructorDeclaration> augmentations = const [],
+    required this.isConst,
+    required this.isExternal,
   })  : _introductory = introductory,
         _augmentations = augmentations,
         _memberName = nameScheme.getDeclaredName(name) {
@@ -320,9 +293,6 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
   bool get isClassInstanceMember => false;
 
   @override
-  bool get isConst => modifiers.isConst;
-
-  @override
   // Coverage-ignore(suite): Not run.
   bool get isDeclarationInstanceMember => false;
 
@@ -348,8 +318,6 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
     return isRedirecting;
   }
 
-  bool get isExternal => modifiers.isExternal;
-
   @override
   // Coverage-ignore(suite): Not run.
   bool get isFinal => false;
@@ -361,11 +329,15 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
   // Coverage-ignore(suite): Not run.
   bool get isProperty => false;
 
-  @override
+  /// Returns `true` if this constructor is an redirecting generative
+  /// constructor.
+  ///
+  /// It is considered redirecting if it has at least one redirecting
+  /// initializer.
   bool get isRedirecting => _lastDeclaration.isRedirecting;
 
   @override
-  bool get isStatic => modifiers.isStatic;
+  bool get isStatic => false;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -546,7 +518,6 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
     }
   }
 
-  @override
   void addSuperParameterDefaultValueCloners(
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     _introductory.addSuperParameterDefaultValueCloners(
@@ -640,7 +611,7 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
     return count;
   }
 
-  @override
+  /// Infers the types of any untyped initializing formals.
   void inferFormalTypes(ClassHierarchyBase hierarchy) {
     if (_hasFormalsInferred) return;
     _introductory.inferFormalTypes(libraryBuilder, declarationBuilder, this,
@@ -703,214 +674,10 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
   @override
   void markAsErroneous() {
     _introductory.markAsErroneous();
-    for (ConstructorDeclaration augmentation in _augmentations) {
-      // Coverage-ignore-block(suite): Not run.
+    for (ConstructorDeclaration augmentation in _augmentations)
+    // Coverage-ignore(suite): Not run.
+    {
       augmentation.markAsErroneous();
-    }
-  }
-}
-
-class SyntheticSourceConstructorBuilder extends MemberBuilderImpl
-    with SourceMemberBuilderMixin
-    implements SourceConstructorBuilder {
-  @override
-  final SourceLibraryBuilder libraryBuilder;
-
-  @override
-  final SourceClassBuilder classBuilder;
-
-  final Constructor _constructor;
-  final Procedure? _constructorTearOff;
-
-  /// The constructor from which this synthesized constructor is defined.
-  ///
-  /// This defines the parameter structure and the default values of this
-  /// constructor.
-  ///
-  /// The [_immediatelyDefiningConstructor] might itself a synthesized
-  /// constructor and [_effectivelyDefiningConstructor] can be used to find
-  /// the constructor that effectively defines this constructor.
-  MemberBuilder? _immediatelyDefiningConstructor;
-  DelayedDefaultValueCloner? _delayedDefaultValueCloner;
-  TypeDependency? _typeDependency;
-
-  SyntheticSourceConstructorBuilder(this.libraryBuilder, this.classBuilder,
-      Constructor constructor, Procedure? constructorTearOff,
-      {MemberBuilder? definingConstructor,
-      DelayedDefaultValueCloner? delayedDefaultValueCloner,
-      TypeDependency? typeDependency})
-      : _immediatelyDefiningConstructor = definingConstructor,
-        _delayedDefaultValueCloner = delayedDefaultValueCloner,
-        _typeDependency = typeDependency,
-        _constructor = constructor,
-        _constructorTearOff = constructorTearOff;
-
-  @override
-  DeclarationBuilder get declarationBuilder => classBuilder;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Iterable<Reference> get exportedMemberReferences => [_constructor.reference];
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  int get fileOffset => _constructor.fileOffset;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Uri get fileUri => _constructor.fileUri;
-
-  @override
-  FunctionNode get function => _constructor.function;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  NamedBuilder get getable => this;
-
-  @override
-  Constructor get invokeTarget => _constructor;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Reference get invokeTargetReference => _constructor.reference;
-
-  @override
-  bool get isConst => _constructor.isConst;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isFinal => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isProperty => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isRedirecting {
-    for (Initializer initializer in _constructor.initializers) {
-      if (initializer is RedirectingInitializer) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isSynthesized => true;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isSynthetic => _constructor.isSynthetic;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  List<ClassMember> get localMembers =>
-      throw new UnsupportedError('${runtimeType}.localMembers');
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  List<ClassMember> get localSetters =>
-      throw new UnsupportedError('${runtimeType}.localSetters');
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Name get memberName => _constructor.name;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Iterable<MetadataBuilder>? get metadataForTesting => null;
-
-  @override
-  String get name => _constructor.name.text;
-
-  @override
-  Builder get parent => declarationBuilder;
-
-  @override
-  Member get readTarget => _constructorTearOff ?? _constructor;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Reference get readTargetReference =>
-      (_constructorTearOff ?? _constructor).reference;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  NamedBuilder? get setable => null;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Member? get writeTarget => null;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Reference? get writeTargetReference => null;
-
-  @override
-  void addSuperParameterDefaultValueCloners(
-      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
-    MemberBuilder? origin = _immediatelyDefiningConstructor;
-    if (origin is SourceConstructorBuilder) {
-      origin.addSuperParameterDefaultValueCloners(delayedDefaultValueCloners);
-    }
-    if (_delayedDefaultValueCloner != null) {
-      // For constant constructors default values are computed and cloned part
-      // of the outline expression and we there set `isOutlineNode` to `true`
-      // below.
-      //
-      // For non-constant constructors default values are cloned as part of the
-      // full compilation using `KernelTarget._delayedDefaultValueCloners`.
-      delayedDefaultValueCloners
-          .add(_delayedDefaultValueCloner!..isOutlineNode = true);
-      _delayedDefaultValueCloner = null;
-    }
-  }
-
-  @override
-  void buildOutlineExpressions(ClassHierarchy classHierarchy,
-      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
-    if (_immediatelyDefiningConstructor != null) {
-      // Ensure that default value expressions have been created for [_origin].
-      // If [_origin] is from a source library, we need to build the default
-      // values and initializers first.
-      MemberBuilder origin = _immediatelyDefiningConstructor!;
-      if (origin is SourceConstructorBuilder) {
-        origin.buildOutlineExpressions(
-            classHierarchy, delayedDefaultValueCloners);
-      }
-      addSuperParameterDefaultValueCloners(delayedDefaultValueCloners);
-      _immediatelyDefiningConstructor = null;
-    }
-  }
-
-  @override
-  void checkTypes(SourceLibraryBuilder library, NameSpace nameSpace,
-      TypeEnvironment typeEnvironment) {}
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void checkVariance(
-      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {}
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  int computeDefaultTypes(ComputeDefaultTypeContext context,
-      {required bool inErrorRecovery}) {
-    assert(false, "Unexpected call to $runtimeType.computeDefaultType");
-    return 0;
-  }
-
-  @override
-  void inferFormalTypes(ClassHierarchyBase hierarchy) {
-    if (_immediatelyDefiningConstructor is SourceConstructorBuilder) {
-      (_immediatelyDefiningConstructor as SourceConstructorBuilder)
-          .inferFormalTypes(hierarchy);
-    }
-    if (_typeDependency != null) {
-      _typeDependency!.copyInferred();
-      _typeDependency = null;
     }
   }
 }

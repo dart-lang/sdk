@@ -5517,6 +5517,7 @@ class BodyBuilder extends StackListenerImpl
                 .withArguments(_context.redirectingFactoryTargetName),
             initializer.fileOffset,
             noLength);
+        variable.isErroneouslyInitialized = true;
       } else {
         if (!parameter.initializerWasInferred) {
           variable.initializer = initializer..parent = variable;

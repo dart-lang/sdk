@@ -4,18 +4,7 @@
 
 export 'package:analyzer/src/dart/error/lint_codes.dart';
 export 'package:analyzer/src/lint/linter.dart'
-    show
-        dart2_12,
-        dart3,
-        dart3_3,
-        AbstractAnalysisRule,
-        AnalysisRule,
-        LintRule,
-        LinterContext,
-        MultiAnalysisRule,
-        NodeLintRegistry;
-export 'package:analyzer/src/lint/pub.dart' show PSEntry, PubspecVisitor;
-export 'package:analyzer/src/workspace/pub.dart' show PubPackage;
+    show LintRule, LinterContext, MultiAnalysisRule, NodeLintRegistry;
 
 export 'lint_codes.dart';
 export 'lint_names.dart';

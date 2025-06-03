@@ -1426,9 +1426,17 @@ if (!self.deferred_loader) {
       // TODO(nshahan): Make this test stronger and check for generations. A
       // library that is part of a pending hot reload could also be defined as
       // part of the previous generation.
-      if (this.hotReloadInProgress
-        && this.pendingHotReloadLibraryNames.includes(libraryName)) {
-        this.pendingHotReloadLibraryInitializers[libraryName] = initializer;
+      if (this.hotReloadInProgress) {
+        if (this.pendingHotReloadLibraryNames.includes(libraryName)) {
+          // If this is a library we're expecting to hot reload then collect the
+          // initializer.
+          this.pendingHotReloadLibraryInitializers[libraryName] = initializer;
+        } else if (!(libraryName in this.libraryInitializers)) {
+          // Otherwise if this is a new library (added via a new import), then
+          // add the initializer to the base set of libraries.
+          this.libraryInitializers[libraryName] = initializer;
+        }
+        // Otherwise this library is not expected to be hot reload so ignore it.
       } else if (libraryManager.hotRestartInProgress) {
         // TODO(srujzs): We should have a `pendingHotRestartLibraryNames` set
         // like we do with hot reload, but that requires a change to the
@@ -1605,6 +1613,8 @@ if (!self.deferred_loader) {
      * hot reload.
      */
     async hotReloadStart(filesToLoad, librariesToReload) {
+      // TODO(60842): When deferred loading is implemented, block hot reloads
+      //   until all active deferred loads have completed.
       this.hotReloadInProgress = true;
       this.pendingHotReloadFileUrls ??= filesToLoad;
       this.pendingHotReloadLibraryNames ??= librariesToReload;

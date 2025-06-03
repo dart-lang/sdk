@@ -15,7 +15,13 @@ final test = <IsolateTest>[
     // Each client has a default name based on the order of connection to the
     // service.
     var clientName = await service.getClientName();
-    expect(clientName.name, 'client1');
+
+    // This will be 'client2' instead of 'client1' because the Dart Tooling
+    // Daemon that is managed by DDS will connect the first client to this
+    // VM Service connection.
+    final defaultClientName = 'client2';
+
+    expect(clientName.name, defaultClientName);
 
     // Set a custom client name and check it was set properly.
     await service.setClientName('foobar');
@@ -25,7 +31,7 @@ final test = <IsolateTest>[
     // Clear the client name and check that we're using the default again.
     await service.setClientName();
     clientName = await service.getClientName();
-    expect(clientName.name, 'client1');
+    expect(clientName.name, defaultClientName);
   },
 ];
 

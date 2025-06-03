@@ -310,7 +310,9 @@ class FactoryEncoding implements InferredTypeListener {
       }
       delayedDefaultValueCloners.add(new DelayedDefaultValueCloner(
           target!, _procedure,
-          libraryBuilder: libraryBuilder, identicalSignatures: false));
+          libraryBuilder: libraryBuilder,
+          identicalSignatures: false,
+          isOutlineNode: true));
     }
   }
 

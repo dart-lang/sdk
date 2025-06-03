@@ -243,10 +243,12 @@ static constexpr uint32_t S_ATTR_SOME_INSTRUCTIONS = 0x00000400;
 // ones used in our Mach-O writer are listed.
 
 // Segment and section names for the text segment, which also contains
-// constant data.
+// constant data and unwinding information.
 static constexpr char SEG_TEXT[] = "__TEXT";
 static constexpr char SECT_TEXT[] = "__text";
 static constexpr char SECT_CONST[] = "__const";
+static constexpr char SECT_UNWIND_INFO[] = "__unwind_info";
+static constexpr char SECT_EH_FRAME[] = "__eh_frame";
 
 // Segment and section names for the data segment, which contains
 // non-constant data (like the BSS section).

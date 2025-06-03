@@ -129,7 +129,7 @@ vars = {
   ### /third_party/pkg dependencies
   # 'tools/rev_sdk_deps.dart' will rev pkg dependencies to their latest; put an
   # EOL comment after a dependency to instead pin at the current revision.
-  "ai_rev": "2a5eb30492c4231624ae954e93aa1491e4aca84f",
+  "ai_rev": "6a71aebe2b9c19e992dc6333a4111cdb8f9cd2b2",
   "core_rev": "635dfa32c261ba078438b74de397f2207904ca78",
   "dartdoc_rev": "4ceea6b8240bf1dd9694a170368264e40c67d66b",
   "ecosystem_rev": "8cebaf083e9107995811f1f0d2b40b570a0bbb66",
@@ -138,9 +138,9 @@ vars = {
   "i18n_rev": "e44af5483a051d546716b6aa3a57e478c59a5d8d",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
-  "native_rev": "09a756cb8d89638c1179efc86b51156282f5e856", # rolled manually while native assets are experimental
+  "native_rev": "7f5bfa6973becbb0b4d6ecc34f41f9cdc5701d83", # rolled manually while native assets are experimental
   "protobuf_rev": "c69077d83ce5a66d21127019f45b81bcd1e777c4",
-  "pub_rev": "59406faad8959e332da98260bab894feb8500908", # rolled manually
+  "pub_rev": "818f10b4bf9249bd0b2c212dd8709675eeb14cd2", # rolled manually
   "shelf_rev": "082d3ac2d13a98700d8148e8fad8f3e12a6fd0e1",
   "sync_http_rev": "dc54465f07d9652875deeade643256dafa2fbc6c",
   "tar_rev": "5a1ea943e70cdf3fa5e1102cdbb9418bd9b4b81a",
@@ -678,38 +678,38 @@ hooks = [
     # Generate the .dart_tool/package_confg.json file.
     'name': 'Generate .dart_tool/package_confg.json',
     'pattern': '.',
-    'action': ['python3', 'sdk/tools/generate_package_config.py'],
+    'action': ['python3', Var("dart_root") + '/tools/generate_package_config.py'],
   },
   {
     # Generate the sdk/version file.
     'name': 'Generate sdk/version',
     'pattern': '.',
-    'action': ['python3', 'sdk/tools/generate_sdk_version_file.py'],
+    'action': ['python3', Var("dart_root") + '/tools/generate_sdk_version_file.py'],
   },
   {
     'name': 'buildtools',
     'pattern': '.',
-    'action': ['python3', 'sdk/tools/buildtools/update.py'],
+    'action': ['python3', Var("dart_root") + '/tools/buildtools/update.py'],
   },
   {
     # Update the Windows toolchain if necessary.
     'name': 'win_toolchain',
     'pattern': '.',
-    'action': ['python3', 'sdk/build/vs_toolchain.py', 'update'],
+    'action': ['python3', Var("dart_root") + '/build/vs_toolchain.py', 'update'],
     'condition': 'checkout_win'
   },
   # Install and activate the empscripten SDK.
   {
     'name': 'install_emscripten',
     'pattern': '.',
-    'action': ['python3', 'sdk/third_party/emsdk/emsdk.py', 'install',
+    'action': ['python3', Var("dart_root") + '/third_party/emsdk/emsdk.py', 'install',
         Var('emsdk_ver')],
     'condition': 'download_emscripten'
   },
   {
     'name': 'activate_emscripten',
     'pattern': '.',
-    'action': ['python3', 'sdk/third_party/emsdk/emsdk.py', 'activate',
+    'action': ['python3', Var("dart_root") + '/third_party/emsdk/emsdk.py', 'activate',
         Var('emsdk_ver')],
     'condition': 'download_emscripten'
   },
@@ -718,8 +718,8 @@ hooks = [
     'pattern': '.',
     'action': [
       'python3',
-      'sdk/build/fuchsia/with_envs.py',
-      'sdk/third_party/fuchsia/test_scripts/update_product_bundles.py',
+      Var("dart_root") + '/build/fuchsia/with_envs.py',
+      Var("dart_root") + '/third_party/fuchsia/test_scripts/update_product_bundles.py',
       'terminal.x64,terminal.qemu-arm64',
     ],
     'condition': 'download_fuchsia_deps'
@@ -729,8 +729,8 @@ hooks = [
     'pattern': '.',
     'action': [
       'python3',
-      'sdk/build/fuchsia/with_envs.py',
-      'sdk/third_party/fuchsia/test_scripts/gen_build_defs.py',
+      Var("dart_root") + '/build/fuchsia/with_envs.py',
+      Var("dart_root") + '/third_party/fuchsia/test_scripts/gen_build_defs.py',
     ],
     'condition': 'download_fuchsia_deps'
   },

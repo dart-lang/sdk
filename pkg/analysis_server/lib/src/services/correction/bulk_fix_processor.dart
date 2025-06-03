@@ -535,7 +535,7 @@ class BulkFixProcessor {
     RuleContextUnit currentUnit,
     List<RuleContextUnit> allUnits,
   ) {
-    var nodeRegistry = RuleVisitorRegistry(enableTiming: false);
+    var nodeRegistry = RuleVisitorRegistryImpl(enableTiming: false);
     // TODO(srawlins): We are passing `currentUnit` in as `definingUnit`. Seems
     // wrong.
     var context = RuleContextWithParsedResults(allUnits, currentUnit);

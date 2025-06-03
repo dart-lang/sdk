@@ -860,14 +860,14 @@ class SourceExtensionTypeDeclarationBuilder
 
   /// Looks up the constructor by [name] on the class built by this class
   /// builder.
-  SourceConstructorBuilderImpl? lookupConstructor(Name name) {
+  SourceConstructorBuilder? lookupConstructor(Name name) {
     if (name.text == "new") {
       // Coverage-ignore-block(suite): Not run.
       name = new Name("", name.library);
     }
 
     Builder? builder = nameSpace.lookupConstructor(name.text);
-    if (builder is SourceConstructorBuilderImpl) {
+    if (builder is SourceConstructorBuilder) {
       return builder;
     }
     return null;

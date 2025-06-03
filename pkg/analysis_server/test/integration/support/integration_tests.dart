@@ -127,6 +127,9 @@ abstract class AbstractAnalysisServerIntegrationTest extends IntegrationTest
 
   /// Map from file path to the list of analysis errors which have most recently
   /// been received for the file.
+  ///
+  /// If the server requests a files errors are flushed, they will be removed
+  /// from the map.
   Map<String, List<AnalysisError>> currentAnalysisErrors =
       HashMap<String, List<AnalysisError>>();
 
@@ -184,12 +187,18 @@ abstract class AbstractAnalysisServerIntegrationTest extends IntegrationTest
     server.debugStdio();
   }
 
+  /// Deletes the folder at [pathname], recursively deleting all children.
+  void deleteFolder(String pathname) {
+    Directory(pathname).deleteSync(recursive: true);
+  }
+
   void dispatchReverseRequest(Request request) {
     serverToClientRequestsController.add(request);
   }
 
   /// If there was a set of errors (might be empty) received for the file
-  /// with the given [path], return it. If no errors - fail.
+  /// with the given [path], return it. If no errors have been received (or they
+  /// have since been flushed) - fail.
   List<AnalysisError> existingErrorsForFile(String path) {
     var errors = currentAnalysisErrors[path];
     if (errors == null) {
@@ -231,6 +240,11 @@ abstract class AbstractAnalysisServerIntegrationTest extends IntegrationTest
 
     onAnalysisErrors.listen((AnalysisErrorsParams params) {
       currentAnalysisErrors[params.file] = params.errors;
+    });
+    onAnalysisFlushResults.listen((AnalysisFlushResultsParams params) {
+      for (var file in params.files) {
+        currentAnalysisErrors.remove(file);
+      }
     });
     onAnalysisAnalyzedFiles.listen((AnalysisAnalyzedFilesParams params) {
       lastAnalyzedFiles = params.directories;

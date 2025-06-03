@@ -628,23 +628,23 @@ class ClassFragmentImpl extends ClassOrMixinFragmentImpl
     _constructors = constructorsToForward
         .map((superclassConstructor) {
           var name = superclassConstructor.name2;
-          var implicitConstructor = ConstructorFragmentImpl(
+          var implicitConstructorFragment = ConstructorFragmentImpl(
             name2: name,
             nameOffset: -1,
           );
-          implicitConstructor.isSynthetic = true;
-          implicitConstructor.typeName = name2;
+          implicitConstructorFragment.isSynthetic = true;
+          implicitConstructorFragment.typeName = name2;
 
           var containerRef = reference!.getChild('@constructor');
           var referenceName = name.ifNotEmptyOrElse('new');
           var implicitReference = containerRef.getChild(referenceName);
-          implicitConstructor.reference = implicitReference;
-          implicitReference.element = implicitConstructor;
+          implicitConstructorFragment.reference = implicitReference;
+          implicitReference.element = implicitConstructorFragment;
 
           var hasMixinWithInstanceVariables = mixins.any(
             typeHasInstanceVariables,
           );
-          implicitConstructor.isConst =
+          implicitConstructorFragment.isConst =
               superclassConstructor.isConst && !hasMixinWithInstanceVariables;
           var superParameters = superclassConstructor.parameters;
           int count = superParameters.length;
@@ -696,11 +696,12 @@ class ClassFragmentImpl extends ClassOrMixinFragmentImpl
                   ..setPseudoExpressionStaticType(implicitParameter.type),
               );
             }
-            implicitConstructor.parameters = implicitParameters.toFixedList();
+            implicitConstructorFragment.parameters =
+                implicitParameters.toFixedList();
           }
-          implicitConstructor.enclosingElement3 = this;
+          implicitConstructorFragment.enclosingElement3 = this;
           // TODO(scheglov): Why do we manually map parameters types above?
-          implicitConstructor.superConstructor = ConstructorMember.from(
+          implicitConstructorFragment.superConstructor = ConstructorMember.from(
             superclassConstructor,
             superType,
           );
@@ -727,9 +728,17 @@ class ClassFragmentImpl extends ClassOrMixinFragmentImpl
           );
           AstNodeImpl.linkNodeTokens(superInvocation);
           superInvocation.element = superclassConstructor.asElement2;
-          implicitConstructor.constantInitializers = [superInvocation];
+          implicitConstructorFragment.constantInitializers = [superInvocation];
 
-          return implicitConstructor;
+          ConstructorElementImpl2(
+            name3: implicitConstructorFragment.name2,
+            reference: element.reference
+                .getChild('@constructor')
+                .getChild(name),
+            firstFragment: implicitConstructorFragment,
+          );
+
+          return implicitConstructorFragment;
         })
         .toList(growable: false);
   }
@@ -815,12 +824,22 @@ class ConstructorElementImpl2 extends ExecutableElementImpl2
         _HasSinceSdkVersionMixin
     implements ConstructorElement {
   @override
+  final Reference reference;
+
+  @override
   final String? name3;
 
   @override
   final ConstructorFragmentImpl firstFragment;
 
-  ConstructorElementImpl2(this.name3, this.firstFragment);
+  ConstructorElementImpl2({
+    required this.name3,
+    required this.reference,
+    required this.firstFragment,
+  }) {
+    reference.element2 = this;
+    firstFragment.element = this;
+  }
 
   @override
   ConstructorElementImpl2 get baseElement => this;
@@ -992,10 +1011,7 @@ mixin ConstructorElementMixin2
 class ConstructorFragmentImpl extends ExecutableFragmentImpl
     with ConstructorElementMixin
     implements ConstructorFragment {
-  late final ConstructorElementImpl2 element = ConstructorElementImpl2(
-    name2,
-    this,
-  );
+  late final ConstructorElementImpl2 element;
 
   /// The super-constructor which this constructor is invoking, or `null` if
   /// this constructor is not generative, or is redirecting, or the

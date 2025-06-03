@@ -1884,7 +1884,7 @@ class AstBuilder extends StackListener {
     var implementsClause =
         pop(NullValues.IdentifierList) as ImplementsClauseImpl?;
     var representation =
-        pop(const NullValue<RepresentationDeclarationImpl>())
+        pop(const NullValue("RepresentationDeclarationImpl"))
             as RepresentationDeclarationImpl?;
     var constKeyword = pop() as Token?;
 
@@ -3164,7 +3164,7 @@ class AstBuilder extends StackListener {
       fieldName = parser.rewriter.insertSyntheticIdentifier(typeNameToken);
     }
 
-    push(constKeyword ?? const NullValue<Token>());
+    push(constKeyword ?? const NullValue("Token"));
 
     push(
       RepresentationDeclarationImpl(
@@ -5418,9 +5418,9 @@ class AstBuilder extends StackListener {
 
   @override
   void handleNoPrimaryConstructor(Token token, Token? constKeyword) {
-    push(constKeyword ?? const NullValue<Token>());
+    push(constKeyword ?? const NullValue("Token"));
 
-    push(const NullValue<RepresentationDeclarationImpl>());
+    push(const NullValue("RepresentationDeclarationImpl"));
   }
 
   @override

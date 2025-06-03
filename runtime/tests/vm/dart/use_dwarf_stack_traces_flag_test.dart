@@ -31,9 +31,7 @@ Future<void> main() async {
     runNonDwarf,
     [
       runElf,
-      // Only generate Mach-O on MacOS, since there is no MachOLoader
-      // to run the binary on platforms where that isn't the native format.
-      if (Platform.isMacOS) runMachODylib,
+      runMachODylib,
       // Don't run assembly on Windows since DLLs don't contain DWARF.
       if (!Platform.isWindows) runAssembly,
     ],

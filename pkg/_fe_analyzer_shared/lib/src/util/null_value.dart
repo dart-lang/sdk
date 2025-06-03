@@ -9,8 +9,9 @@
 /// `NullValues.Expression` is pushed on the stack instead of `null` and when
 /// popping the entry `NullValues.Expression` is passed show how `null` is
 /// represented.
-class NullValue<T> {
-  const NullValue();
+final class NullValue {
+  final String T;
+  const NullValue(this.T);
 
   @override
   String toString() => "NullValue<$T>";

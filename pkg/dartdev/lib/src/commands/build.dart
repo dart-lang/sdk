@@ -150,6 +150,7 @@ See documentation on https://dart.dev/interop/c-interop#native-assets.
       packageConfigUri: packageConfigUri,
       packageConfig: packageConfig,
       runPackageName: runPackageName!,
+      includeDevDependencies: false,
       verbose: verbose,
     );
     final buildResult = await builder.buildNativeAssetsAOT();

@@ -34,60 +34,87 @@ import '../util/null_value.dart';
 /// `NullValues.Expression` is pushed on the stack instead of `null` and when
 /// popping the entry `NullValues.Expression` is passed show how `null` is
 /// represented.
-enum NullValues implements NullValue<Object> {
-  Arguments,
-  As,
-  AwaitToken,
-  Block,
-  BreakTarget,
-  CascadeReceiver,
-  Combinators,
-  Comments,
-  ConditionalUris,
-  ConditionallySelectedImport,
-  ConstructorInitializerSeparator,
-  ConstructorInitializers,
-  ConstructorReference,
-  ConstructorReferenceContinuationAfterTypeArguments,
-  ContinueTarget,
-  Deferred,
-  DocumentationComment,
-  EnumConstantInfo,
-  Expression,
-  ExtendsClause,
-  FieldInitializer,
-  FormalParameters,
-  FunctionBody,
-  FunctionBodyAsyncToken,
-  FunctionBodyStarToken,
-  HideClause,
-  Identifier,
-  IdentifierList,
-  Initializers,
-  Labels,
-  Metadata,
-  Modifiers,
-  Name,
-  NominalVariable,
-  NominalParameters,
-  OperatorList,
-  ParameterDefaultValue,
-  Pattern,
-  PatternList,
-  Prefix,
-  RecordTypeFieldList,
-  ShowClause,
-  StringLiteral,
-  StructuralParameters,
-  Token,
-  Type,
-  TypeArguments,
-  TypeBuilder,
-  TypeBuilderList,
-  TypeList,
-  VarFinalOrConstToken,
-  VariableDeclarationList,
-  WithClause,
+class NullValues {
+  static const NullValue Arguments = const NullValue("Arguments");
+  static const NullValue As = const NullValue("As");
+  static const NullValue AwaitToken = const NullValue("AwaitToken");
+  static const NullValue Block = const NullValue("Block");
+  static const NullValue BreakTarget = const NullValue("BreakTarget");
+  static const NullValue CascadeReceiver = const NullValue("CascadeReceiver");
+  static const NullValue Combinators = const NullValue("Combinators");
+  static const NullValue Comments = const NullValue("Comments");
+  static const NullValue ConditionalUris = const NullValue("ConditionalUris");
+  static const NullValue ConditionallySelectedImport = const NullValue(
+    "ConditionallySelectedImport",
+  );
+  static const NullValue ConstructorInitializerSeparator = const NullValue(
+    "ConstructorInitializerSeparator",
+  );
+  static const NullValue ConstructorInitializers = const NullValue(
+    "ConstructorInitializers",
+  );
+  static const NullValue ConstructorReference = const NullValue(
+    "ConstructorReference",
+  );
+  static const NullValue ConstructorReferenceContinuationAfterTypeArguments =
+      const NullValue("ConstructorReferenceContinuationAfterTypeArguments");
+  static const NullValue ContinueTarget = const NullValue("ContinueTarget");
+  static const NullValue Deferred = const NullValue("Deferred");
+  static const NullValue DocumentationComment = const NullValue(
+    "DocumentationComment",
+  );
+  static const NullValue EnumConstantInfo = const NullValue("EnumConstantInfo");
+  static const NullValue Expression = const NullValue("Expression");
+  static const NullValue ExtendsClause = const NullValue("ExtendsClause");
+  static const NullValue FieldInitializer = const NullValue("FieldInitializer");
+  static const NullValue FormalParameters = const NullValue("FormalParameters");
+  static const NullValue FunctionBody = const NullValue("FunctionBody");
+  static const NullValue FunctionBodyAsyncToken = const NullValue(
+    "FunctionBodyAsyncToken",
+  );
+  static const NullValue FunctionBodyStarToken = const NullValue(
+    "FunctionBodyStarToken",
+  );
+  static const NullValue HideClause = const NullValue("HideClause");
+  static const NullValue Identifier = const NullValue("Identifier");
+  static const NullValue IdentifierList = const NullValue("IdentifierList");
+  static const NullValue Initializers = const NullValue("Initializers");
+  static const NullValue Labels = const NullValue("Labels");
+  static const NullValue Metadata = const NullValue("Metadata");
+  static const NullValue Modifiers = const NullValue("Modifiers");
+  static const NullValue Name = const NullValue("Name");
+  static const NullValue NominalVariable = const NullValue("NominalVariable");
+  static const NullValue NominalParameters = const NullValue(
+    "NominalParameters",
+  );
+  static const NullValue OperatorList = const NullValue("OperatorList");
+  static const NullValue ParameterDefaultValue = const NullValue(
+    "ParameterDefaultValue",
+  );
+  static const NullValue Pattern = const NullValue("Pattern");
+  static const NullValue PatternList = const NullValue("PatternList");
+  static const NullValue Prefix = const NullValue("Prefix");
+  static const NullValue RecordTypeFieldList = const NullValue(
+    "RecordTypeFieldList",
+  );
+  static const NullValue ShowClause = const NullValue("ShowClause");
+  static const NullValue StringLiteral = const NullValue("StringLiteral");
+  static const NullValue StructuralParameters = const NullValue(
+    "StructuralParameters",
+  );
+  static const NullValue Token = const NullValue("Token");
+  static const NullValue Type = const NullValue("Type");
+  static const NullValue TypeArguments = const NullValue("TypeArguments");
+  static const NullValue TypeBuilder = const NullValue("TypeBuilder");
+  static const NullValue TypeBuilderList = const NullValue("TypeBuilderList");
+  static const NullValue TypeList = const NullValue("TypeList");
+  static const NullValue VarFinalOrConstToken = const NullValue(
+    "VarFinalOrConstToken",
+  );
+  static const NullValue VariableDeclarationList = const NullValue(
+    "VariableDeclarationList",
+  );
+  static const NullValue WithClause = const NullValue("WithClause");
 }
 
 abstract class StackListener extends Listener with StackChecker {

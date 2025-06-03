@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/pubspec.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../../analyzer.dart';
@@ -25,7 +26,7 @@ class Visitor extends PubspecVisitor<void> {
   Visitor(this.rule);
 
   @override
-  void visitPackageName(PSEntry name) {
+  void visitPackageName(PubspecEntry name) {
     var packageName = name.value.text;
     if (packageName != null && !isValidPackageName(packageName)) {
       rule.reportAtPubNode(name.value, arguments: [packageName]);

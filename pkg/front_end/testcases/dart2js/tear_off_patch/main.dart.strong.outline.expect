@@ -28,12 +28,12 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
   static synthetic method /* from org-dartlang-testcase:///patch_lib.dart */ _#fact#tearOff<T extends core::Object? = dynamic>({has-declared-initializer core::bool defaultValue, required self2::Class::_#fact#tearOff::T% value}) → self2::Class<self2::Class::_#fact#tearOff::T%>
     return self2::Class::fact<self2::Class::_#fact#tearOff::T%>(defaultValue: defaultValue, value: value);
   @_in::patch
-  static factory /* from org-dartlang-testcase:///patch_lib.dart */ redirect<T extends core::Object? = dynamic>({core::bool defaultValue = null, required self2::Class::redirect::T% value}) → self2::Class<self2::Class::redirect::T%> /* redirection-target: self2::ClassImpl::•<self2::Class::redirect::T%>*/
+  static factory /* from org-dartlang-testcase:///patch_lib.dart */ redirect<T extends core::Object? = dynamic>({core::bool defaultValue = true, required self2::Class::redirect::T% value}) → self2::Class<self2::Class::redirect::T%> /* redirection-target: self2::ClassImpl::•<self2::Class::redirect::T%>*/
     return new self2::ClassImpl::•<self2::Class::redirect::T%>(defaultValue: defaultValue, value: value);
   static synthetic method /* from org-dartlang-testcase:///patch_lib.dart */ _#redirect#tearOff<T extends core::Object? = dynamic>({core::bool defaultValue, required self2::Class::_#redirect#tearOff::T% value}) → self2::Class<self2::Class::_#redirect#tearOff::T%>
     return new self2::ClassImpl::•<self2::Class::_#redirect#tearOff::T%>(defaultValue: defaultValue, value: value);
   @_in::patch
-  static factory /* from org-dartlang-testcase:///patch_lib.dart */ redirect2<T extends core::Object? = dynamic>({core::bool defaultValue = null, required self2::Class::redirect2::T% value}) → self2::Class<self2::Class::redirect2::T%> /* redirection-target: self2::ClassImpl::patched<self2::Class::redirect2::T%>*/
+  static factory /* from org-dartlang-testcase:///patch_lib.dart */ redirect2<T extends core::Object? = dynamic>({core::bool defaultValue = true, required self2::Class::redirect2::T% value}) → self2::Class<self2::Class::redirect2::T%> /* redirection-target: self2::ClassImpl::patched<self2::Class::redirect2::T%>*/
     return new self2::ClassImpl::patched<self2::Class::redirect2::T%>(defaultValue: defaultValue, value: value);
   static synthetic method /* from org-dartlang-testcase:///patch_lib.dart */ _#redirect2#tearOff<T extends core::Object? = dynamic>({core::bool defaultValue, required self2::Class::_#redirect2#tearOff::T% value}) → self2::Class<self2::Class::_#redirect2#tearOff::T%>
     return new self2::ClassImpl::patched<self2::Class::_#redirect2#tearOff::T%>(defaultValue: defaultValue, value: value);

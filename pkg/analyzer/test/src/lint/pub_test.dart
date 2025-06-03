@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/pubspec.dart';
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:source_span/source_span.dart';
 import 'package:test/test.dart';
@@ -100,11 +101,11 @@ issue_tracker: https://github.com/dart-lang/linter/issues
       testValue('author', ps.author, equals('Dart Team <misc@dartlang.org>'));
 
       group('authors', () {
-        PSNodeList authors = ps.authors!;
+        PubspecNodeList authors = ps.authors!;
         test('contents', () {
           expect(authors, isNotNull);
-          expect(authors.any((PSNode n) => n.text == 'Bill'), isTrue);
-          expect(authors.any((PSNode n) => n.text == 'Ted'), isTrue);
+          expect(authors.any((PubspecNode n) => n.text == 'Bill'), isTrue);
+          expect(authors.any((PubspecNode n) => n.text == 'Ted'), isTrue);
         });
       });
 
@@ -121,7 +122,7 @@ issue_tracker: https://github.com/dart-lang/linter/issues
       ]);
 
       group('environment', () {
-        PSEnvironment environment = ps.environment!;
+        PubspecEnvironment environment = ps.environment!;
         test('contents', () {
           expect(environment, isNotNull);
           expect(environment.sdk!.value.text, equals('>=2.12.0 <3.0.0'));
@@ -130,20 +131,20 @@ issue_tracker: https://github.com/dart-lang/linter/issues
       });
 
       group('path', () {
-        PSDependency dep = findDependency(
+        PubspecDependency dep = findDependency(
           ps.dependencies,
           name: 'relative_path',
         );
-        PSEntry depPath = dep.path!;
+        PubspecEntry depPath = dep.path!;
         testValue('path', depPath, equals('../somewhere'));
       });
 
       group('hosted', () {
-        PSDependency dep = findDependency(
+        PubspecDependency dep = findDependency(
           ps.dependencies,
           name: 'transmogrify',
         );
-        PSHost host = dep.host!;
+        PubspecHost host = dep.host!;
         testValue('name', host.name, equals('transmogrify'));
         testValue('url', host.url, equals('http://your-package-server.com'));
         testKeySpan('name', host.name, startOffset: 293, endOffset: 297);
@@ -151,11 +152,11 @@ issue_tracker: https://github.com/dart-lang/linter/issues
       });
 
       group('hosted (optional name)', () {
-        PSDependency dep = findDependency(
+        PubspecDependency dep = findDependency(
           ps.dependencies,
           name: 'transmogrify_optional_name',
         );
-        PSHost host = dep.host!;
+        PubspecHost host = dep.host!;
         test('name', () => expect(host.name, isNull));
         testValue('url', host.url, equals('http://your-package-server.com'));
         testKeySpan('url', host.url, startOffset: 432, endOffset: 435);
@@ -163,11 +164,11 @@ issue_tracker: https://github.com/dart-lang/linter/issues
       });
 
       group('hosted (short-form)', () {
-        PSDependency dep = findDependency(
+        PubspecDependency dep = findDependency(
           ps.dependencies,
           name: 'transmogrify_short_form',
         );
-        PSHost host = dep.host!;
+        PubspecHost host = dep.host!;
         test('name', () => expect(host.name, isNull));
         testValue('url', host.url, equals('http://your-package-server.com'));
         testKeySpan('url', host.url, startOffset: 529, endOffset: 535);
@@ -175,8 +176,11 @@ issue_tracker: https://github.com/dart-lang/linter/issues
       });
 
       group('git', () {
-        PSDependency dep = findDependency(ps.dependencies, name: 'kittens');
-        PSGitRepo git = dep.git!;
+        PubspecDependency dep = findDependency(
+          ps.dependencies,
+          name: 'kittens',
+        );
+        PubspecGitRepo git = dep.git!;
         testValue('ref', git.ref, equals('some-branch'));
         testValue(
           'url',
@@ -186,8 +190,11 @@ issue_tracker: https://github.com/dart-lang/linter/issues
       });
 
       group('git (short form)', () {
-        PSDependency dep = findDependency(ps.devDependencies, name: 'kittens2');
-        PSGitRepo git = dep.git!;
+        PubspecDependency dep = findDependency(
+          ps.devDependencies,
+          name: 'kittens2',
+        );
+        PubspecGitRepo git = dep.git!;
         test('ref', () => expect(git.ref, isNull));
         testValue(
           'url',
@@ -235,18 +242,18 @@ issue_tracker: https://github.com/dart-lang/linter/issues
   });
 }
 
-PSDependency findDependency(PSDependencyList? deps, {String? name}) =>
+PubspecDependency findDependency(PubspecDependencyList? deps, {String? name}) =>
     deps!.firstWhere((dep) => dep.name!.text == name);
 
 testDepListContains(
   String label,
-  PSDependencyList? list,
+  PubspecDependencyList? list,
   List<Map<String, String>> exp,
 ) {
   test(label, () {
     for (var entry in exp) {
       entry.forEach((k, v) {
-        PSDependency dep = findDependency(list, name: k);
+        PubspecDependency dep = findDependency(list, name: k);
         expect(dep, isNotNull);
         expect(dep.version!.value.text, equals(v));
       });
@@ -254,7 +261,12 @@ testDepListContains(
   });
 }
 
-testKeySpan(String label, PSEntry? node, {int? startOffset, int? endOffset}) {
+testKeySpan(
+  String label,
+  PubspecEntry? node, {
+  int? startOffset,
+  int? endOffset,
+}) {
   group(label, () {
     group('key', () {
       testSpan(node!.key!.span, startOffset: startOffset, endOffset: endOffset);
@@ -273,7 +285,7 @@ testSpan(SourceSpan span, {int? startOffset, int? endOffset}) {
   });
 }
 
-testValue(String label, PSEntry? node, Matcher m) {
+testValue(String label, PubspecEntry? node, Matcher m) {
   group(label, () {
     test('value', () {
       expect(node!.value.text, m);
@@ -281,7 +293,12 @@ testValue(String label, PSEntry? node, Matcher m) {
   });
 }
 
-testValueSpan(String label, PSEntry? node, {int? startOffset, int? endOffset}) {
+testValueSpan(
+  String label,
+  PubspecEntry? node, {
+  int? startOffset,
+  int? endOffset,
+}) {
   group(label, () {
     group('value', () {
       testSpan(

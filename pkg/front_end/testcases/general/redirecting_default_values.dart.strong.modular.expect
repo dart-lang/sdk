@@ -24,15 +24,15 @@ class Class extends core::Object {
     ;
   static factory redirect1a() → self::Class /* redirection-target: self::Class::positional */
     return new self::Class::positional();
-  static factory redirect2a(core::int a = #C1) → self::Class /* redirection-target: self::Class::positional */
+  static factory redirect2a(core::int a) → self::Class /* redirection-target: self::Class::positional */
     return new self::Class::positional(a);
   static factory redirect3a([core::int a = #C1]) → self::Class /* redirection-target: self::Class::positional */
     return new self::Class::positional(a);
-  static factory redirect4a(core::int a = #C1, [core::int b = #C2]) → self::Class /* redirection-target: self::Class::positional */
+  static factory redirect4a(core::int a, [core::int b = #C2]) → self::Class /* redirection-target: self::Class::positional */
     return new self::Class::positional(a, b);
   static factory redirect5a([core::int a = #C1, core::int b = #C2]) → self::Class /* redirection-target: self::Class::positional */
     return new self::Class::positional(a, b);
-  static factory redirect6a([core::int a = #C1, core::int b = #C2]) → self::Class /* redirection-target: self::Class::positional */
+  static factory redirect6a([core::int a = #C1, erroneously-initialized core::int b = #C2]) → self::Class /* redirection-target: self::Class::positional */
     return new self::Class::positional(a, b);
   static factory redirect1b() → self::Class /* redirection-target: self::Class::named */
     return new self::Class::named();
@@ -44,7 +44,7 @@ class Class extends core::Object {
     return new self::Class::named(a: a, b: b);
   static factory redirect5b({core::int b = #C2, core::int a = #C1}) → self::Class /* redirection-target: self::Class::named */
     return new self::Class::named(b: b, a: a);
-  static factory redirect6b({core::int a = #C1, core::int b = #C2}) → self::Class /* redirection-target: self::Class::named */
+  static factory redirect6b({erroneously-initialized core::int a = #C1, core::int b = #C2}) → self::Class /* redirection-target: self::Class::named */
     return new self::Class::named(a: a, b: b);
 }
 static method main() → dynamic {}

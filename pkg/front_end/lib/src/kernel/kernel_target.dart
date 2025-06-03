@@ -8,7 +8,8 @@ import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
-import 'package:kernel/reference_from_index.dart' show IndexedContainer;
+import 'package:kernel/reference_from_index.dart'
+    show IndexedContainer, IndexedClass;
 import 'package:kernel/target/changed_structure_notifier.dart'
     show ChangedStructureNotifier;
 import 'package:kernel/target/targets.dart' show DiagnosticReporter, Target;
@@ -55,6 +56,7 @@ import '../builder/nullability_builder.dart';
 import '../builder/property_builder.dart';
 import '../builder/type_builder.dart';
 import '../dill/dill_target.dart' show DillTarget;
+import '../fragment/constructor/declaration.dart';
 import '../source/class_declaration.dart';
 import '../source/constructor_declaration.dart';
 import '../source/name_scheme.dart';
@@ -951,7 +953,7 @@ class KernelTarget {
     }
   }
 
-  SyntheticSourceConstructorBuilder _makeMixinApplicationConstructor(
+  SourceConstructorBuilder _makeMixinApplicationConstructor(
       SourceClassBuilder classBuilder,
       Class mixin,
       MemberBuilder superConstructorBuilder,
@@ -1057,18 +1059,43 @@ class KernelTarget {
               libraryBuilder: libraryBuilder);
       registerDelayedDefaultValueCloner(delayedDefaultValueCloner);
     }
-    SyntheticSourceConstructorBuilder constructorBuilder =
-        new SyntheticSourceConstructorBuilder(
-            libraryBuilder, classBuilder, constructor, constructorTearOff,
-            // We pass on the original constructor and the cloned function nodes
-            // to ensure that the default values are computed and cloned for the
-            // outline. It is needed to make the default values a part of the
-            // outline for const constructors, and additionally it is required
-            // for a potential subclass using super initializing parameters that
-            // will required the cloning of the default values.
-            definingConstructor: superConstructorBuilder,
-            delayedDefaultValueCloner: delayedDefaultValueCloner,
-            typeDependency: typeDependency);
+    ConstructorDeclaration declaration = new ForwardingConstructorDeclaration(
+        constructor: constructor,
+        constructorTearOff: constructorTearOff,
+        // We pass on the original constructor and the cloned function nodes
+        // to ensure that the default values are computed and cloned for the
+        // outline. It is needed to make the default values a part of the
+        // outline for const constructors, and additionally it is required
+        // for a potential subclass using super initializing parameters that
+        // will required the cloning of the default values.
+        definingConstructor: superConstructorBuilder,
+        delayedDefaultValueCloner: delayedDefaultValueCloner,
+        typeDependency: typeDependency);
+
+    IndexedClass? indexedClass = classBuilder.indexedClass;
+    LibraryName libraryName = indexedClass != null
+        ? new LibraryName(indexedClass.library.reference)
+        : libraryBuilder.libraryName;
+
+    NameScheme nameScheme = new NameScheme(
+        isInstanceMember: false,
+        containerName: new ClassName(classBuilder.name),
+        containerType: ContainerType.Class,
+        libraryName: libraryName);
+
+    SourceConstructorBuilder constructorBuilder = new SourceConstructorBuilder(
+        name: superConstructorBuilder.name,
+        libraryBuilder: libraryBuilder,
+        declarationBuilder: classBuilder,
+        fileOffset: classBuilder.fileOffset,
+        fileUri: classBuilder.fileUri,
+        constructorReference: constructorReference,
+        tearOffReference: tearOffReference,
+        nameScheme: nameScheme,
+        introductory: declaration,
+        isConst: isConst,
+        isExternal: false);
+
     loader.registerConstructorToBeInferred(
         new InferableConstructor(constructor, constructorBuilder));
     return constructorBuilder;
@@ -1104,7 +1131,7 @@ class KernelTarget {
     ticker.logMs("Cloned default values of formals");
   }
 
-  SyntheticSourceConstructorBuilder _makeDefaultConstructor(
+  SourceConstructorBuilder _makeDefaultConstructor(
       SourceClassBuilder classBuilder,
       Reference? constructorReference,
       Reference? tearOffReference) {
@@ -1141,8 +1168,32 @@ class KernelTarget {
               libraryBuilder: libraryBuilder);
       registerDelayedDefaultValueCloner(delayedDefaultValueCloner);
     }
-    return new SyntheticSourceConstructorBuilder(
-        libraryBuilder, classBuilder, constructor, constructorTearOff);
+    ConstructorDeclaration declaration = new DefaultConstructorDeclaration(
+        constructor: constructor, constructorTearOff: constructorTearOff);
+
+    IndexedClass? indexedClass = classBuilder.indexedClass;
+    LibraryName libraryName = indexedClass != null
+        ? new LibraryName(indexedClass.library.reference)
+        : libraryBuilder.libraryName;
+
+    NameScheme nameScheme = new NameScheme(
+        isInstanceMember: false,
+        containerName: new ClassName(classBuilder.name),
+        containerType: ContainerType.Class,
+        libraryName: libraryName);
+
+    return new SourceConstructorBuilder(
+        name: '',
+        libraryBuilder: libraryBuilder,
+        declarationBuilder: classBuilder,
+        fileOffset: classBuilder.fileOffset,
+        fileUri: classBuilder.fileUri,
+        constructorReference: constructorReference,
+        tearOffReference: tearOffReference,
+        nameScheme: nameScheme,
+        introductory: declaration,
+        isExternal: false,
+        isConst: false);
   }
 
   DartType makeConstructorReturnType(Class enclosingClass) {

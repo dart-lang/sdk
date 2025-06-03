@@ -10,7 +10,10 @@ import 'common/test_helper.dart';
 
 final tests = <VMTest>[
   (VmService service) async {
-    final defaultClientName = 'client1';
+    // This will be 'client2' instead of 'client1' because the Dart Tooling
+    // Daemon that is managed by DDS will connect the first client to this
+    // VM Service connection.
+    final defaultClientName = 'client2';
     final clientName = 'agent-007';
     var result = await service.getClientName();
     expect(result.name, defaultClientName);

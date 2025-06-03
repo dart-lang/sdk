@@ -293,7 +293,7 @@ class RegularConstructorEncoding {
   }
 
   BodyBuilderContext createBodyBuilderContext(
-      SourceConstructorBuilderImpl constructorBuilder,
+      SourceConstructorBuilder constructorBuilder,
       ConstructorFragmentDeclaration constructorDeclaration) {
     return new ConstructorBodyBuilderContext(
         constructorBuilder, constructorDeclaration, _constructor);
@@ -601,7 +601,7 @@ class ExtensionTypeConstructorEncoding {
   }
 
   BodyBuilderContext createBodyBuilderContext(
-      SourceConstructorBuilderImpl constructorBuilder,
+      SourceConstructorBuilder constructorBuilder,
       ConstructorFragmentDeclaration constructorDeclaration) {
     return new ConstructorBodyBuilderContext(
         constructorBuilder, constructorDeclaration, _constructor);
