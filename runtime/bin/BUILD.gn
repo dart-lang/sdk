@@ -162,6 +162,39 @@ static_library("crashpad") {
   }
 }
 
+# Don't remove until no longer used by Flutter.
+template("build_elf_loader") {
+  source_set(target_name) {
+    configs += [
+      "..:dart_arch_config",
+      "..:dart_config",
+      "..:dart_os_config",
+      "..:dart_product_config",
+      "..:dart_shared_lib",
+    ]
+    include_dirs = [ ".." ]
+    sources = [
+      "elf_loader.cc",
+      "elf_loader.h",
+      "mappable.cc",
+      "mappable.h",
+      "virtual_memory.h",
+      "virtual_memory_fuchsia.cc",
+      "virtual_memory_posix.cc",
+      "virtual_memory_win.cc",
+    ]
+    deps = invoker.deps
+  }
+}
+
+build_elf_loader("elf_loader") {
+  deps = [ ":libdart_builtin" ]
+}
+
+build_elf_loader("elf_loader_product") {
+  deps = [ ":libdart_builtin_product" ]
+}
+
 template("build_shared_object_loaders") {
   source_set(target_name) {
     configs += [
