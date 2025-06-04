@@ -14,6 +14,7 @@ import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart'
     show LspAnalysisServer;
 import 'package:analysis_server/src/scheduler/message_scheduler.dart';
+import 'package:analysis_server/src/scheduler/scheduler_tracking_listener.dart';
 import 'package:analysis_server/src/status/diagnostics.dart';
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analysis_server/src/status/utilities/library_cycle_extensions.dart';
@@ -252,6 +253,53 @@ class CollectReportPage extends DiagnosticPage {
   void _collectMessageSchedulerData(Map<String, Object?> collectedData) {
     collectedData['allowOverlappingHandlers'] =
         MessageScheduler.allowOverlappingHandlers;
+
+    var now = DateTime.now().millisecondsSinceEpoch;
+    var listener = server.messageScheduler.listener;
+    if (listener is! SchedulerTrackingListener) {
+      return;
+    }
+
+    Map<String, Object?> buildMessageData(
+      MessageData data, {
+      required bool isActive,
+    }) {
+      Map<String, Object?> messageData = {};
+      messageData['id'] = data.message.id;
+      messageData['pendingMessageCount'] = data.pendingMessageCount;
+      messageData['pendingDuration'] =
+          (data.activeTime ?? now) - data.pendingTime;
+      if (isActive) {
+        messageData['activeMessageCount'] = data.activeMessageCount;
+        messageData['runningDuration'] = now - data.activeTime!;
+      }
+      return messageData;
+    }
+
+    var (:pending, :active) = listener.pendingAndActiveMessages;
+    if (pending.isNotEmpty) {
+      pending.sort(
+        (first, second) => first.pendingTime.compareTo(second.pendingTime),
+      );
+      var pendingMessages = <Map<String, Object?>>[];
+      for (var data in pending) {
+        pendingMessages.add(buildMessageData(data, isActive: false));
+      }
+      collectedData['pendingMessages'] = pendingMessages;
+    }
+
+    if (active.isNotEmpty) {
+      active.sort(
+        (first, second) => first.activeTime!.compareTo(second.activeTime!),
+      );
+      var activeMessages = <Map<String, Object?>>[];
+      for (var data in active) {
+        activeMessages.add(buildMessageData(data, isActive: true));
+      }
+      collectedData['activeMessages'] = activeMessages;
+    }
+
+    collectedData['completedMessageLog'] = listener.completedMessageLog;
   }
 
   Future<void> _collectObservatoryData(
