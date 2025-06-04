@@ -1235,7 +1235,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           declarationHelper(mustBeType: true).addLexicalDeclarations(node);
         } else if (offset < name.offset) {
           keywordHelper.addFieldDeclarationKeywords(node);
-          _forTypeAnnotation(node, mustBeNonVoid: firstField.equals != null);
+          _forTypeAnnotation(
+            node,
+            mustBeNonVoid: firstField.equals != null,
+            isInDeclaration: true,
+          );
         } else if (offset <= name.end) {
           keywordHelper.addFieldDeclarationKeywords(node);
         }
@@ -1881,7 +1885,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     collector.completionLocation = 'ClassDeclaration_member';
     if (offset >= node.firstTokenAfterCommentAndMetadata.previous!.offset &&
         offset <= node.name.end) {
-      _forTypeAnnotation(node);
+      _forTypeAnnotation(node, isInDeclaration: true);
       // If the cursor is at the beginning of the declaration, include the class
       // member keywords.  See dartbug.com/41039.
       keywordHelper.addClassMemberKeywords();
@@ -3742,8 +3746,12 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     bool mustBeNonVoid = false,
     bool excludeTypeNames = false,
     Set<AstNode> excludedNodes = const {},
+    bool isInDeclaration = false,
   }) {
-    if (!(mustBeExtensible || mustBeImplementable || mustBeMixable)) {
+    if (!(mustBeExtensible ||
+        mustBeImplementable ||
+        mustBeMixable ||
+        isInDeclaration)) {
       keywordHelper.addKeyword(Keyword.DYNAMIC);
       if (!mustBeNonVoid) {
         keywordHelper.addKeyword(Keyword.VOID);
