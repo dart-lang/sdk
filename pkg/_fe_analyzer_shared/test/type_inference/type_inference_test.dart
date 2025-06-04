@@ -1590,8 +1590,7 @@ main() {
             type: 'num',
             initializer: expr('int').checkSchema('num'),
           ).checkIR(
-            'match(expr(int), '
-            'varPattern(x, matchedType: int, staticType: num))',
+            'declare(x, expr(int), initializerType: int, staticType: num)',
           ),
         ]);
       });
@@ -1600,29 +1599,19 @@ main() {
         var x = Var('x');
         h.run([
           declare(x, initializer: expr('int').checkSchema('_')).checkIR(
-            'match(expr(int), '
-            'varPattern(x, matchedType: int, staticType: int))',
+            'declare(x, expr(int), initializerType: int, staticType: int)',
           ),
         ]);
       });
 
       test('uninitialized, typed', () {
         var x = Var('x');
-        h.run([
-          declare(x, type: 'int').checkIR(
-            'declare(varPattern(x, matchedType: int, staticType: int))',
-          ),
-        ]);
+        h.run([declare(x, type: 'int').checkIR('declare(x, staticType: int)')]);
       });
 
       test('uninitialized, untyped', () {
         var x = Var('x');
-        h.run([
-          declare(x).checkIR(
-            'declare(varPattern(x, matchedType: dynamic, '
-            'staticType: dynamic))',
-          ),
-        ]);
+        h.run([declare(x).checkIR('declare(x, staticType: dynamic)')]);
       });
 
       test('promoted initializer', () {
@@ -1630,8 +1619,7 @@ main() {
         var x = Var('x');
         h.run([
           declare(x, initializer: expr('T&int')).checkIR(
-            'match(expr(T&int), '
-            'varPattern(x, matchedType: T&int, staticType: T))',
+            'declare(x, expr(T&int), initializerType: T&int, staticType: T)',
           ),
         ]);
       });
@@ -1639,11 +1627,7 @@ main() {
       test('legal late pattern', () {
         var x = Var('x');
         h.run([
-          patternVariableDeclaration(
-            x.pattern(),
-            intLiteral(0),
-            isLate: true,
-          ).checkIR(
+          declare(x, initializer: intLiteral(0), isLate: true).checkIR(
             'declare_late(x, 0, initializerType: int, staticType: int)',
           ),
         ]);
