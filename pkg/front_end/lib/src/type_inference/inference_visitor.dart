@@ -59,7 +59,7 @@ import '../kernel/hierarchy/class_member.dart';
 import '../kernel/implicit_type_argument.dart' show ImplicitTypeArgument;
 import '../kernel/internal_ast.dart';
 import '../kernel/late_lowering.dart' as late_lowering;
-import '../source/constructor_declaration.dart';
+import '../source/source_constructor_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_loader.dart';
 import 'closure_context.dart';
@@ -152,7 +152,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   final TypeAnalyzerOptions typeAnalyzerOptions;
 
-  final ConstructorDeclarationBuilder? constructorDeclaration;
+  final SourceConstructorBuilder? _constructorBuilder;
 
   @override
   late final SharedTypeAnalyzerErrors errors = new SharedTypeAnalyzerErrors(
@@ -176,7 +176,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   bool _inTryOrLocalFunction = false;
 
   InferenceVisitorImpl(TypeInferrerImpl inferrer, InferenceHelper helper,
-      this.constructorDeclaration, this.operations, this.typeAnalyzerOptions)
+      this._constructorBuilder, this.operations, this.typeAnalyzerOptions)
       : super(inferrer, helper);
 
   @override
@@ -1574,7 +1574,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   InitializerInferenceResult visitFieldInitializer(FieldInitializer node) {
     DartType fieldType = node.field.type;
-    fieldType = constructorDeclaration!.substituteFieldType(fieldType);
+    fieldType = _constructorBuilder!.substituteFieldType(fieldType);
     ExpressionInferenceResult initializerResult =
         inferExpression(node.value, fieldType);
     Expression initializer = ensureAssignableResult(
@@ -8485,7 +8485,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       ExtensionTypeRedirectingInitializer node) {
     ensureMemberType(node.target);
     List<TypeParameter> constructorTypeParameters =
-        constructorDeclaration!.function.typeParameters;
+        _constructorBuilder!.function.typeParameters;
     List<DartType> typeArguments = new List<DartType>.generate(
         constructorTypeParameters.length,
         (int i) => new TypeParameterType.withDefaultNullability(
@@ -8517,7 +8517,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   InitializerInferenceResult visitExtensionTypeRepresentationFieldInitializer(
       ExtensionTypeRepresentationFieldInitializer node) {
     DartType fieldType = node.field.getterType;
-    fieldType = constructorDeclaration!.substituteFieldType(fieldType);
+    fieldType = _constructorBuilder!.substituteFieldType(fieldType);
     ExpressionInferenceResult initializerResult =
         inferExpression(node.value, fieldType);
     Expression initializer = ensureAssignableResult(

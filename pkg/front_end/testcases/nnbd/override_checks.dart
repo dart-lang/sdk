@@ -2,18 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class Super {}
+class Sub extends Super {}
+
 class A<X extends num> {}
 
 class B1 {
   void set bar(num? value) {}
-  num get baz => 42;
-  void hest(num? value) {}
+  Sub get baz => throw '';
+  void hest(Super value) {}
 }
 
 class B2 extends B1 {
   num bar = 3.14; // Error in strong mode and Warning in weak mode.
-  num? get baz => null; // Error in strong mode and Warning in weak mode.
-  void hest(num value) {} // Error in strong mode and Warning in weak mode.
+  Super get baz => throw ''; // Error in strong mode and Warning in weak mode.
+  void hest(Sub value) {} // Error in strong mode and Warning in weak mode.
 }
 
 class C1 {

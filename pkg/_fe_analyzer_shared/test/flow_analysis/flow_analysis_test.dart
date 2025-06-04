@@ -1611,6 +1611,8 @@ main() {
       String? expectedPromotedTypeThen,
       String? expectedPromotedTypeElse, {
       bool inverted = false,
+      bool expectedReachableThen = true,
+      bool expectedReachableElse = true,
     }) {
       var x = Var('x');
       late SsaNode<SharedTypeView> ssaBeforePromotion;
@@ -1620,12 +1622,12 @@ main() {
         if_(
           x.is_(tryPromoteType, isInverted: inverted),
           [
-            checkReachable(true),
+            checkReachable(expectedReachableThen),
             checkPromoted(x, expectedPromotedTypeThen),
             getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
           ],
           [
-            checkReachable(true),
+            checkReachable(expectedReachableElse),
             checkPromoted(x, expectedPromotedTypeElse),
             getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
           ],
@@ -1642,11 +1644,18 @@ main() {
     });
 
     test('isExpression_end does not promote to a supertype', () {
-      _checkIs('int', 'int?', null, null);
+      _checkIs('int', 'int?', null, null, expectedReachableElse: false);
     });
 
     test('isExpression_end does not promote to a supertype, inverted', () {
-      _checkIs('int', 'int?', null, null, inverted: true);
+      _checkIs(
+        'int',
+        'int?',
+        null,
+        null,
+        inverted: true,
+        expectedReachableThen: false,
+      );
     });
 
     test('isExpression_end does not promote to an unrelated type', () {
@@ -12630,6 +12639,52 @@ main() {
         x.write(expr('num')),
         checkPromoted(x, 'num'),
       ]);
+    });
+
+    group('False branch for trivially satisfied "is" test:', () {
+      group('When enabled, sets unreachable:', () {
+        test('Promotable target', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('int')),
+            if_(x.is_('int', isInverted: true), [
+              checkNotPromoted(x),
+              checkReachable(false),
+            ]),
+          ]);
+        });
+
+        test('Non-promotable target', () {
+          h.run([
+            if_(expr('int').is_('int', isInverted: true), [
+              checkReachable(false),
+            ]),
+          ]);
+        });
+      });
+
+      group('When disabled, leaves reachable:', () {
+        test('Promotable target', () {
+          h.disableSoundFlowAnalysis();
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('int')),
+            if_(x.is_('int', isInverted: true), [
+              checkNotPromoted(x),
+              checkReachable(true),
+            ]),
+          ]);
+        });
+
+        test('Non-promotable target', () {
+          h.disableSoundFlowAnalysis();
+          h.run([
+            if_(expr('int').is_('int', isInverted: true), [
+              checkReachable(true),
+            ]),
+          ]);
+        });
+      });
     });
   });
 

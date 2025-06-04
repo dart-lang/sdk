@@ -1,15 +1,15 @@
 class A<X extends num> {}
 
 class B1 {
-  num get baz => 42;
-  void hest(num? value) {}
+  Sub get baz => throw '';
+  void hest(Super value) {}
   void set bar(num? value) {}
 }
 
 class B2 extends B1 {
-  num? get baz => null;
+  Super get baz => throw '';
   num bar = 3.14;
-  void hest(num value) {}
+  void hest(Sub value) {}
 }
 
 class C1 {
@@ -22,5 +22,9 @@ class D {
   D.foo(num x);
   factory D.bar(num? x) = D.foo;
 }
+
+class Sub extends Super {}
+
+class Super {}
 
 main() {}

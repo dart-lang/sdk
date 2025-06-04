@@ -33,25 +33,6 @@ abstract class SubtypeTest<T, E> {
         "regardless of whether the nullability modifiers are ignored or not.");
   }
 
-  /// Checks if a type is a subtype of the other ignoring nullability modifiers.
-  void isObliviousSubtype(String subtypeString, String supertypeString,
-      {String? typeParameters, String? functionTypeTypeParameters}) {
-    E environment = extend(
-        typeParameters: typeParameters,
-        functionTypeTypeParameters: functionTypeTypeParameters);
-    T subtype = toType(subtypeString, environment);
-    T supertype = toType(supertypeString, environment);
-    IsSubtypeOf result = isSubtypeImpl(subtype, supertype);
-    Expect.isFalse(
-        result.isSubtypeWhenUsingNullabilities(),
-        "$subtypeString should be a subtype of $supertypeString "
-        "only if the nullability modifiers are ignored.");
-    Expect.isFalse(
-        !result.isSubtypeWhenIgnoringNullabilities(),
-        "$subtypeString should be a subtype of $supertypeString "
-        "if the nullability modifiers are ignored.");
-  }
-
   bool get skipFutureOrPromotion => false;
 
   T toType(String text, E environment);
@@ -79,8 +60,8 @@ abstract class SubtypeTest<T, E> {
     isNotSubtype('int*', 'Comparable<int*>*');
     isNotSubtype('int*', 'Iterable<int*>*');
     isNotSubtype('Comparable<int*>*', 'Iterable<int*>*');
-    isObliviousSubtype('num?', 'Object');
-    isObliviousSubtype('Null', 'num');
+    isNotSubtype('num?', 'Object');
+    isNotSubtype('Null', 'num');
     isNotSubtype('num', 'Never');
 
     // Tests for subtypes and supertypes of List.
@@ -108,7 +89,7 @@ abstract class SubtypeTest<T, E> {
     isSubtype('List<int>*', 'List<int>');
     isSubtype('List<int>*', 'List<int>*');
     isSubtype('List<int>*', 'List<int>?');
-    isObliviousSubtype('List<int>?', 'List<int>');
+    isNotSubtype('List<int>?', 'List<int>');
     isSubtype('List<int>?', 'List<int>*');
     isSubtype('List<int>?', 'List<int>?');
 
@@ -121,7 +102,7 @@ abstract class SubtypeTest<T, E> {
     isSubtype('List<int*>', 'List<int>');
     isSubtype('List<int*>', 'List<int*>');
     isSubtype('List<int*>', 'List<int?>');
-    isObliviousSubtype('List<int?>', 'List<int>');
+    isNotSubtype('List<int?>', 'List<int>');
     isSubtype('List<int?>', 'List<int*>');
     isSubtype('List<int?>', 'List<int?>');
     // TODO(cstefantsova):  Uncomment the following when type arguments are
@@ -134,13 +115,12 @@ abstract class SubtypeTest<T, E> {
     isNotSubtype('List<int*>*', 'Comparable<int*>*');
     isNotSubtype('List<int*>*', 'List<Comparable<int*>*>*');
     isNotSubtype('List<int*>*', 'List<Comparable<Comparable<int*>*>*>*');
-    isObliviousSubtype('List<int*>?', 'Object');
-    isObliviousSubtype('Null', 'List<int*>');
+    isNotSubtype('List<int*>?', 'Object');
+    isNotSubtype('Null', 'List<int*>');
     isNotSubtype('List<int*>', 'Never');
 
-    isObliviousSubtype('T?', 'List<int>',
-        typeParameters: 'T extends List<int>');
-    isObliviousSubtype('T?', 'List<int>',
+    isNotSubtype('T?', 'List<int>', typeParameters: 'T extends List<int>');
+    isNotSubtype('T?', 'List<int>',
         functionTypeTypeParameters: 'T extends List<int>');
 
     // Tests for non-generic one-argument function types.
@@ -155,8 +135,8 @@ abstract class SubtypeTest<T, E> {
     isSubtype('Never', '(int*) ->? num*');
     isSubtype('(num*) ->* num*', 'Object');
     isSubtype('(num*) -> num*', 'Object');
-    isObliviousSubtype('(num*) ->? num*', 'Object');
-    isObliviousSubtype('Null', '(int*) -> num*');
+    isNotSubtype('(num*) ->? num*', 'Object');
+    isNotSubtype('Null', '(int*) -> num*');
     isNotSubtype('(int*) -> num*', 'Never');
     isNotSubtype('num', '(num) -> num');
     isNotSubtype('Object', '(num) -> num');
@@ -169,12 +149,12 @@ abstract class SubtypeTest<T, E> {
     isSubtype('(num) ->? num', '(num) ->* num');
     isSubtype('(num) ->* num', '(num) ->? num');
     isSubtype('(num) -> num', '(num) ->? num');
-    isObliviousSubtype('(num) ->? num', '(num) -> num');
+    isNotSubtype('(num) ->? num', '(num) -> num');
 
     isSubtype('(num) -> num', '(num) -> num?');
     isSubtype('(num?) -> num', '(num) -> num');
     isSubtype('(num?) -> num', '(num) -> num?');
-    isObliviousSubtype('(num) -> num', '(num?) -> num?');
+    isNotSubtype('(num) -> num', '(num?) -> num?');
 
     // Tests for non-generic two-argument curried function types.
     isSubtype('(num*) ->* (num*) ->* num*', '(num*) ->* (int*) ->* num*');
@@ -189,14 +169,14 @@ abstract class SubtypeTest<T, E> {
     isSubtype('({num x}) -> num', '({num x}) -> num?');
     isSubtype('({num? x}) -> num', '({num x}) -> num');
     isSubtype('({num? x}) -> num', '({num x}) -> num?');
-    isObliviousSubtype('({num x}) -> num', '({num? x}) -> num?');
+    isNotSubtype('({num x}) -> num', '({num? x}) -> num?');
 
     // Tests for non-generic one-argument function types with optional
     // positional parameters.
     isSubtype('([num]) -> num', '([num]) -> num?');
     isSubtype('([num?]) -> num', '([num]) -> num');
     isSubtype('([num?]) -> num', '([num]) -> num?');
-    isObliviousSubtype('([num]) -> num', '([num?]) -> num?');
+    isNotSubtype('([num]) -> num', '([num?]) -> num?');
 
     // Tests for function types with type parameters.
     isSubtype('<E>(E) ->* int*', '<E>(E) ->* num*');
@@ -241,7 +221,7 @@ abstract class SubtypeTest<T, E> {
     isSubtype('<E extends num*>(E*) -> E*', '<F extends num>(F) -> F');
     isSubtype('<E extends num?>(E) -> E', '<F extends num*>(F*) -> F*');
     isSubtype('<E extends num*>(E*) -> E*', '<F extends num?>(F) -> F');
-    isObliviousSubtype('<E extends num>(E) -> E', '<F extends num?>(F) -> F');
+    isNotSubtype('<E extends num>(E) -> E', '<F extends num?>(F) -> F');
 
     // Tests for FutureOr.
     isSubtype('int*', 'FutureOr<int*>*');
@@ -259,9 +239,9 @@ abstract class SubtypeTest<T, E> {
     isSubtype('Future<num>', 'FutureOr<num>?');
     isSubtype('Future<num>', 'FutureOr<num?>?');
     isSubtype('Future<num?>', 'FutureOr<num?>');
-    isObliviousSubtype('Future<num?>', 'FutureOr<num>?');
-    isObliviousSubtype('FutureOr<int>?', 'FutureOr<int>');
-    isObliviousSubtype('Future<int>?', 'FutureOr<int>');
+    isNotSubtype('Future<num?>', 'FutureOr<num>?');
+    isNotSubtype('FutureOr<int>?', 'FutureOr<int>');
+    isNotSubtype('Future<int>?', 'FutureOr<int>');
     isSubtype('Future<num?>', 'FutureOr<num?>?');
     isSubtype('FutureOr<X>', 'FutureOr<Future<X>>',
         typeParameters: 'X extends Future<Future<X>>');
@@ -297,7 +277,7 @@ abstract class SubtypeTest<T, E> {
         'FutureOr<FutureOr<FutureOr<num?>>>');
 
     isSubtype('FutureOr<num>?', 'FutureOr<num?>');
-    isObliviousSubtype('FutureOr<num?>', 'FutureOr<num>?');
+    isNotSubtype('FutureOr<num?>', 'FutureOr<num>?');
 
     isSubtype('List<FutureOr<List<dynamic>>>',
         'List<FutureOr<List<FutureOr<dynamic>>>>');
@@ -323,9 +303,9 @@ abstract class SubtypeTest<T, E> {
     isSubtype('Object?', 'FutureOr<Object>?');
     isSubtype('Object', 'FutureOr<Object?>');
     isSubtype('Object', 'FutureOr<Object>?');
-    isObliviousSubtype('dynamic', 'FutureOr<Object>');
-    isObliviousSubtype('void', 'FutureOr<Object>');
-    isObliviousSubtype('Object?', 'FutureOr<Object>');
+    isNotSubtype('dynamic', 'FutureOr<Object>');
+    isNotSubtype('void', 'FutureOr<Object>');
+    isNotSubtype('Object?', 'FutureOr<Object>');
     isSubtype('Object', 'FutureOr<Object>');
 
     isSubtype('FutureOr<int>', 'Object');
@@ -334,21 +314,21 @@ abstract class SubtypeTest<T, E> {
     isSubtype('FutureOr<int>*', 'Object');
     isSubtype('FutureOr<int>*', 'Object*');
     isSubtype('FutureOr<int>*', 'Object?');
-    isObliviousSubtype('FutureOr<int>?', 'Object');
+    isNotSubtype('FutureOr<int>?', 'Object');
     isSubtype('FutureOr<int>?', 'Object*');
     isSubtype('FutureOr<int>?', 'Object?');
 
     isSubtype('FutureOr<int*>', 'Object');
     isSubtype('FutureOr<int*>', 'Object*');
     isSubtype('FutureOr<int*>', 'Object?');
-    isObliviousSubtype('FutureOr<int?>', 'Object');
+    isNotSubtype('FutureOr<int?>', 'Object');
     isSubtype('FutureOr<int?>', 'Object*');
     isSubtype('FutureOr<int?>', 'Object?');
 
     isSubtype('FutureOr<Future<Object>>', 'Future<Object>');
-    isObliviousSubtype('FutureOr<Future<Object>>?', 'Future<Object>');
-    isObliviousSubtype('FutureOr<Future<Object>?>', 'Future<Object>');
-    isObliviousSubtype('FutureOr<Future<Object>?>?', 'Future<Object>');
+    isNotSubtype('FutureOr<Future<Object>>?', 'Future<Object>');
+    isNotSubtype('FutureOr<Future<Object>?>', 'Future<Object>');
+    isNotSubtype('FutureOr<Future<Object>?>?', 'Future<Object>');
 
     isNotSubtype('int*', 'FutureOr<double*>*');
     isNotSubtype('FutureOr<double*>*', 'int*');
@@ -376,8 +356,8 @@ abstract class SubtypeTest<T, E> {
     isSubtype('E', 'FutureOr<E?>', typeParameters: 'E extends Object?');
     isSubtype('E', 'FutureOr<E?>',
         functionTypeTypeParameters: 'E extends Object?');
-    isObliviousSubtype('E?', 'FutureOr<E>', typeParameters: 'E extends Object');
-    isObliviousSubtype('E?', 'FutureOr<E>',
+    isNotSubtype('E?', 'FutureOr<E>', typeParameters: 'E extends Object');
+    isNotSubtype('E?', 'FutureOr<E>',
         functionTypeTypeParameters: 'E extends Object');
     isSubtype('E', 'FutureOr<E>', typeParameters: 'E extends Object?');
     isSubtype('E', 'FutureOr<E>',
@@ -398,13 +378,11 @@ abstract class SubtypeTest<T, E> {
     isSubtype('E', 'FutureOr<String?>', typeParameters: 'E extends String?');
     isSubtype('E', 'FutureOr<String?>',
         functionTypeTypeParameters: 'E extends String?');
-    isObliviousSubtype('E?', 'FutureOr<String>',
-        typeParameters: 'E extends String');
-    isObliviousSubtype('E?', 'FutureOr<String>',
+    isNotSubtype('E?', 'FutureOr<String>', typeParameters: 'E extends String');
+    isNotSubtype('E?', 'FutureOr<String>',
         functionTypeTypeParameters: 'E extends String');
-    isObliviousSubtype('E', 'FutureOr<String>',
-        typeParameters: 'E extends String?');
-    isObliviousSubtype('E', 'FutureOr<String>',
+    isNotSubtype('E', 'FutureOr<String>', typeParameters: 'E extends String?');
+    isNotSubtype('E', 'FutureOr<String>',
         functionTypeTypeParameters: 'E extends String?');
     isSubtype('X', 'X', typeParameters: 'X extends num?');
     isSubtype('X', 'X', functionTypeTypeParameters: 'X extends num?');
@@ -426,8 +404,8 @@ abstract class SubtypeTest<T, E> {
     isSubtype('() -> String', 'FutureOr<() -> void>?');
     isSubtype('() ->? String', 'FutureOr<() ->? void>');
     isSubtype('() ->? String', 'FutureOr<() -> void>?');
-    isObliviousSubtype('() ->? String', 'FutureOr<() -> void>');
-    isObliviousSubtype('() ->? String', 'FutureOr<() -> void>');
+    isNotSubtype('() ->? String', 'FutureOr<() -> void>');
+    isNotSubtype('() ->? String', 'FutureOr<() -> void>');
     isNotSubtype('() ->* void', 'FutureOr<() ->* String>*');
     isSubtype('FutureOr<int*>*', 'FutureOr<num*>*');
     isNotSubtype('FutureOr<num*>*', 'FutureOr<int*>*');
@@ -440,13 +418,13 @@ abstract class SubtypeTest<T, E> {
     isSubtype('T & int', 'FutureOr<num>', typeParameters: 'T extends Object?');
     isSubtype('T & int', 'FutureOr<num?>', typeParameters: 'T extends Object?');
     isSubtype('T & int', 'FutureOr<num>?', typeParameters: 'T extends Object?');
-    isObliviousSubtype('T & int?', 'FutureOr<num>',
+    isNotSubtype('T & int?', 'FutureOr<num>',
         typeParameters: 'T extends Object?');
     isSubtype('T & int?', 'FutureOr<num?>',
         typeParameters: 'T extends Object?');
     isSubtype('T & int?', 'FutureOr<num>?',
         typeParameters: 'T extends Object?');
-    isObliviousSubtype('T & S', 'FutureOr<Object>',
+    isNotSubtype('T & S', 'FutureOr<Object>',
         typeParameters: 'T extends Object?, S extends T');
     isSubtype('T & S', 'FutureOr<Object?>',
         typeParameters: 'T extends Object?, S extends T');
@@ -469,17 +447,17 @@ abstract class SubtypeTest<T, E> {
         typeParameters: 'T extends Object?');
     isSubtype('T & Future<int>', 'FutureOr<num>?',
         typeParameters: 'T extends Object?');
-    isObliviousSubtype('T & Future<int>?', 'FutureOr<num>',
+    isNotSubtype('T & Future<int>?', 'FutureOr<num>',
         typeParameters: 'T extends Object?');
     isSubtype('T & Future<int>?', 'FutureOr<num?>',
         typeParameters: 'T extends Object?');
     isSubtype('T & Future<int>?', 'FutureOr<num>?',
         typeParameters: 'T extends Object?');
-    isObliviousSubtype('T & Future<int?>', 'FutureOr<num>',
+    isNotSubtype('T & Future<int?>', 'FutureOr<num>',
         typeParameters: 'T extends Object');
     isSubtype('T & Future<int?>', 'FutureOr<num?>',
         typeParameters: 'T extends Object');
-    isObliviousSubtype('T & Future<int?>', 'FutureOr<num>?',
+    isNotSubtype('T & Future<int?>', 'FutureOr<num>?',
         typeParameters: 'T extends Object');
     isNotSubtype('FutureOr<T?>?', 'FutureOr<Never?>?',
         typeParameters: 'T extends FutureOr<T?>?');
@@ -516,10 +494,10 @@ abstract class SubtypeTest<T, E> {
 
     isSubtype('Id<int*>*', 'FutureOr<num*>*');
     isSubtype('Id<int>', 'FutureOr<num>');
-    isObliviousSubtype('Id<int?>', 'FutureOr<num>');
+    isNotSubtype('Id<int?>', 'FutureOr<num>');
     isSubtype('Id<int?>', 'FutureOr<num?>');
     isSubtype('Id<int?>', 'FutureOr<num>?');
-    isObliviousSubtype('Id<int>?', 'FutureOr<num>');
+    isNotSubtype('Id<int>?', 'FutureOr<num>');
     isSubtype('Id<int>?', 'FutureOr<num?>');
     isSubtype('Id<int>?', 'FutureOr<num>?');
     isNotSubtype('Id<num*>*', 'FutureOr<int*>*');
@@ -527,7 +505,7 @@ abstract class SubtypeTest<T, E> {
     isSubtype('FutureOr<Object*>*', 'FutureOr<FutureOr<Object*>*>*');
     isSubtype('FutureOr<num>*', 'Object');
     isSubtype('FutureOr<num>', 'Object');
-    isObliviousSubtype('FutureOr<num>?', 'Object');
+    isNotSubtype('FutureOr<num>?', 'Object');
     isSubtype('Never', 'FutureOr<num>');
     isSubtype('Never', 'FutureOr<num*>');
     isSubtype('Never', 'FutureOr<num>*');
@@ -539,10 +517,10 @@ abstract class SubtypeTest<T, E> {
     isSubtype('Null', 'T* & num*', typeParameters: 'T extends Object*');
     isSubtype('Never', 'T* & num*', typeParameters: 'T extends Object*');
     isSubtype('Never', 'T & num', typeParameters: 'T extends Object');
-    isObliviousSubtype('Null', 'T & num', typeParameters: 'T extends Object?');
-    isObliviousSubtype('Null', 'T & num?', typeParameters: 'T extends Object?');
-    isObliviousSubtype('Null', 'T & num', typeParameters: 'T extends Object');
-    isObliviousSubtype('Null', 'T & S',
+    isNotSubtype('Null', 'T & num', typeParameters: 'T extends Object?');
+    isNotSubtype('Null', 'T & num?', typeParameters: 'T extends Object?');
+    isNotSubtype('Null', 'T & num', typeParameters: 'T extends Object');
+    isNotSubtype('Null', 'T & S',
         typeParameters: 'T extends Object?, S extends T');
     isNotSubtype('T* & num*', 'Never', typeParameters: 'T extends Object*');
     isSubtype('T', 'Never', typeParameters: 'T extends Never');
@@ -554,12 +532,10 @@ abstract class SubtypeTest<T, E> {
     isSubtype('Null', 'T?', functionTypeTypeParameters: 'T extends Object');
     isSubtype('Null', 'T?', typeParameters: 'T extends Object?');
     isSubtype('Null', 'T?', functionTypeTypeParameters: 'T extends Object?');
-    isObliviousSubtype('Null', 'T', typeParameters: 'T extends Object');
-    isObliviousSubtype('Null', 'T',
-        functionTypeTypeParameters: 'T extends Object');
-    isObliviousSubtype('Null', 'T', typeParameters: 'T extends Object?');
-    isObliviousSubtype('Null', 'T',
-        functionTypeTypeParameters: 'T extends Object?');
+    isNotSubtype('Null', 'T', typeParameters: 'T extends Object');
+    isNotSubtype('Null', 'T', functionTypeTypeParameters: 'T extends Object');
+    isNotSubtype('Null', 'T', typeParameters: 'T extends Object?');
+    isNotSubtype('Null', 'T', functionTypeTypeParameters: 'T extends Object?');
     isSubtype('Never', 'T?', typeParameters: 'T extends Object');
     isSubtype('Never', 'T?', functionTypeTypeParameters: 'T extends Object');
     isSubtype('Never', 'T?', typeParameters: 'T extends Object?');
@@ -568,8 +544,8 @@ abstract class SubtypeTest<T, E> {
     isSubtype('Never', 'T', functionTypeTypeParameters: 'T extends Object');
     isSubtype('Never', 'T', typeParameters: 'T extends Object?');
     isSubtype('Never', 'T', functionTypeTypeParameters: 'T extends Object?');
-    isObliviousSubtype('Never?', 'T', typeParameters: 'T extends Object?');
-    isObliviousSubtype('Never?', 'T',
+    isNotSubtype('Never?', 'T', typeParameters: 'T extends Object?');
+    isNotSubtype('Never?', 'T',
         functionTypeTypeParameters: 'T extends Object?');
     isSubtype('T', 'Null', typeParameters: 'T extends Null');
     isSubtype('T', 'Null', functionTypeTypeParameters: 'T extends Null');
@@ -581,15 +557,12 @@ abstract class SubtypeTest<T, E> {
     isNotSubtype('T', 'Null', functionTypeTypeParameters: 'T extends Object?');
     isSubtype('T', 'Never', typeParameters: 'T extends Never');
     isSubtype('T', 'Never', functionTypeTypeParameters: 'T extends Never');
-    isObliviousSubtype('T', 'Never', typeParameters: 'T extends Never?');
-    isObliviousSubtype('T', 'Never',
-        functionTypeTypeParameters: 'T extends Never?');
-    isObliviousSubtype('T?', 'Never', typeParameters: 'T extends Never');
-    isObliviousSubtype('T?', 'Never',
-        functionTypeTypeParameters: 'T extends Never');
-    isObliviousSubtype('T?', 'Never', typeParameters: 'T extends Never?');
-    isObliviousSubtype('T?', 'Never',
-        functionTypeTypeParameters: 'T extends Never?');
+    isNotSubtype('T', 'Never', typeParameters: 'T extends Never?');
+    isNotSubtype('T', 'Never', functionTypeTypeParameters: 'T extends Never?');
+    isNotSubtype('T?', 'Never', typeParameters: 'T extends Never');
+    isNotSubtype('T?', 'Never', functionTypeTypeParameters: 'T extends Never');
+    isNotSubtype('T?', 'Never', typeParameters: 'T extends Never?');
+    isNotSubtype('T?', 'Never', functionTypeTypeParameters: 'T extends Never?');
     isNotSubtype('T', 'Never', typeParameters: 'T extends Object');
     isNotSubtype('T', 'Never', functionTypeTypeParameters: 'T extends Object');
     isNotSubtype('T', 'Never', typeParameters: 'T extends Object?');
@@ -605,8 +578,7 @@ abstract class SubtypeTest<T, E> {
     isSubtype('T & int', 'T & num', typeParameters: 'T extends Object');
     isSubtype('T & int', 'T & num', typeParameters: 'T extends Object?');
     isSubtype('T & int?', 'T & num?', typeParameters: 'T extends Object?');
-    isObliviousSubtype('T & int?', 'T & num',
-        typeParameters: 'T extends Object?');
+    isNotSubtype('T & int?', 'T & num', typeParameters: 'T extends Object?');
 
     // T & B <: T extends A if B <: A
     // (Trivially satisfied since promoted bounds are always a isSubtype of the
@@ -618,23 +590,23 @@ abstract class SubtypeTest<T, E> {
     // T extends B <: T & A if B <: A
     isSubtype('T*', 'T* & int*', typeParameters: 'T extends int*');
     isSubtype('T', 'T & int', typeParameters: 'T extends int');
-    isObliviousSubtype('T?', 'T & int', typeParameters: 'T extends int');
-    isObliviousSubtype('T', 'T & int', typeParameters: 'T extends int?');
+    isNotSubtype('T?', 'T & int', typeParameters: 'T extends int');
+    isNotSubtype('T', 'T & int', typeParameters: 'T extends int?');
     isSubtype('T', 'T & int?', typeParameters: 'T extends int?');
-    isObliviousSubtype('T?', 'T & int?', typeParameters: 'T extends int?');
+    isNotSubtype('T?', 'T & int?', typeParameters: 'T extends int?');
 
     isSubtype('T*', 'T* & num*', typeParameters: 'T extends int*');
     isSubtype('T', 'T & num', typeParameters: 'T extends int');
-    isObliviousSubtype('T', 'T & num', typeParameters: 'T extends int?');
+    isNotSubtype('T', 'T & num', typeParameters: 'T extends int?');
     isSubtype('T', 'T & num?', typeParameters: 'T extends int?');
-    isObliviousSubtype('T?', 'T & num?', typeParameters: 'T extends int?');
+    isNotSubtype('T?', 'T & num?', typeParameters: 'T extends int?');
 
     isSubtype('T*', 'T* & num*', typeParameters: 'T extends num*');
     isSubtype('T', 'T & num', typeParameters: 'T extends num');
-    isObliviousSubtype('T?', 'T & num', typeParameters: 'T extends num');
-    isObliviousSubtype('T', 'T & num', typeParameters: 'T extends num?');
+    isNotSubtype('T?', 'T & num', typeParameters: 'T extends num');
+    isNotSubtype('T', 'T & num', typeParameters: 'T extends num?');
     isSubtype('T', 'T & num?', typeParameters: 'T extends num?');
-    isObliviousSubtype('T?', 'T & num?', typeParameters: 'T extends num?');
+    isNotSubtype('T?', 'T & num?', typeParameters: 'T extends num?');
 
     isNotSubtype('T*', 'T* & int*', typeParameters: 'T extends num*');
 
@@ -682,9 +654,8 @@ abstract class SubtypeTest<T, E> {
     isSubtype('T', 'S?', typeParameters: 'S extends Object, T extends S');
     isSubtype('T', 'S?',
         functionTypeTypeParameters: 'S extends Object, T extends S');
-    isObliviousSubtype('T?', 'S',
-        typeParameters: 'S extends Object, T extends S');
-    isObliviousSubtype('T?', 'S',
+    isNotSubtype('T?', 'S', typeParameters: 'S extends Object, T extends S');
+    isNotSubtype('T?', 'S',
         functionTypeTypeParameters: 'S extends Object, T extends S');
     isSubtype('T?', 'S?', typeParameters: 'S extends Object, T extends S');
     isSubtype('T?', 'S?',
@@ -696,39 +667,34 @@ abstract class SubtypeTest<T, E> {
     isSubtype('T', 'S?', typeParameters: 'S extends Object?, T extends S');
     isSubtype('T', 'S?',
         functionTypeTypeParameters: 'S extends Object?, T extends S');
-    isObliviousSubtype('T?', 'S',
-        typeParameters: 'S extends Object?, T extends S');
-    isObliviousSubtype('T?', 'S',
+    isNotSubtype('T?', 'S', typeParameters: 'S extends Object?, T extends S');
+    isNotSubtype('T?', 'S',
         functionTypeTypeParameters: 'S extends Object?, T extends S');
     isSubtype('T?', 'S?', typeParameters: 'S extends Object?, T extends S');
     isSubtype('T?', 'S?',
         functionTypeTypeParameters: 'S extends Object?, T extends S');
 
-    isObliviousSubtype('T', 'S',
-        typeParameters: 'S extends Object?, T extends S?');
-    isObliviousSubtype('T', 'S',
+    isNotSubtype('T', 'S', typeParameters: 'S extends Object?, T extends S?');
+    isNotSubtype('T', 'S',
         functionTypeTypeParameters: 'S extends Object?, T extends S?');
     isSubtype('T', 'S?', typeParameters: 'S extends Object?, T extends S?');
     isSubtype('T', 'S?',
         functionTypeTypeParameters: 'S extends Object?, T extends S?');
-    isObliviousSubtype('T?', 'S',
-        typeParameters: 'S extends Object?, T extends S?');
-    isObliviousSubtype('T?', 'S',
+    isNotSubtype('T?', 'S', typeParameters: 'S extends Object?, T extends S?');
+    isNotSubtype('T?', 'S',
         functionTypeTypeParameters: 'S extends Object?, T extends S?');
     isSubtype('T?', 'S?', typeParameters: 'S extends Object?, T extends S?');
     isSubtype('T?', 'S?',
         functionTypeTypeParameters: 'S extends Object?, T extends S?');
 
-    isObliviousSubtype('T', 'S',
-        typeParameters: 'S extends Object, T extends S?');
-    isObliviousSubtype('T', 'S',
+    isNotSubtype('T', 'S', typeParameters: 'S extends Object, T extends S?');
+    isNotSubtype('T', 'S',
         functionTypeTypeParameters: 'S extends Object, T extends S?');
     isSubtype('T', 'S?', typeParameters: 'S extends Object, T extends S?');
     isSubtype('T', 'S?',
         functionTypeTypeParameters: 'S extends Object, T extends S?');
-    isObliviousSubtype('T?', 'S',
-        typeParameters: 'S extends Object, T extends S?');
-    isObliviousSubtype('T?', 'S',
+    isNotSubtype('T?', 'S', typeParameters: 'S extends Object, T extends S?');
+    isNotSubtype('T?', 'S',
         functionTypeTypeParameters: 'S extends Object, T extends S?');
     isSubtype('T?', 'S?', typeParameters: 'S extends Object, T extends S?');
     isSubtype('T?', 'S?',
@@ -744,7 +710,7 @@ abstract class SubtypeTest<T, E> {
         typeParameters: 'S extends Object?, T extends S, V extends S');
     isSubtype('T & V', 'S',
         typeParameters: 'S extends Object?, T extends S?, V extends S');
-    isObliviousSubtype('T & V', 'S',
+    isNotSubtype('T & V', 'S',
         typeParameters: 'S extends Object?, T extends S?, V extends S?');
 
     // Non-trivial tests for intersection types.
@@ -756,7 +722,7 @@ abstract class SubtypeTest<T, E> {
     isNotSubtype('S & num*', 'T', typeParameters: 'S, T');
     isNotSubtype('S & num*', 'T & num*', typeParameters: 'S, T');
     isSubtype('S & num', 'num', typeParameters: 'S extends Object?');
-    isObliviousSubtype('S & num?', 'num', typeParameters: 'S extends Object?');
+    isNotSubtype('S & num?', 'num', typeParameters: 'S extends Object?');
     isSubtype('S & num?', 'num?', typeParameters: 'S extends Object?');
     isSubtype('S & num?', 'num*', typeParameters: 'S extends Object?');
 
@@ -769,9 +735,9 @@ abstract class SubtypeTest<T, E> {
     isNotSubtype('S*', 'int*', typeParameters: 'S extends num*');
     isNotSubtype('S*', 'T', typeParameters: 'S extends num*, T');
     isNotSubtype('S*', 'T & num*', typeParameters: 'S extends num*, T');
-    isObliviousSubtype('S?', 'Object', typeParameters: 'S extends num');
-    isObliviousSubtype('S', 'Object', typeParameters: 'S extends num?');
-    isObliviousSubtype('S?', 'Object', typeParameters: 'S extends num?');
+    isNotSubtype('S?', 'Object', typeParameters: 'S extends num');
+    isNotSubtype('S', 'Object', typeParameters: 'S extends num?');
+    isNotSubtype('S?', 'Object', typeParameters: 'S extends num?');
 
     isNotSubtype('dynamic', 'int');
     isNotSubtype('dynamic', 'int*');
@@ -797,7 +763,7 @@ abstract class SubtypeTest<T, E> {
     isSubtype('() ->* int*', 'Function');
     isSubtype('() ->* int*', 'Function*');
     isSubtype('() ->* int*', 'Function?');
-    isObliviousSubtype('() ->? int*', 'Function');
+    isNotSubtype('() ->? int*', 'Function');
     isSubtype('() ->? int*', 'Function*');
     isSubtype('() ->? int*', 'Function?');
 
@@ -807,7 +773,7 @@ abstract class SubtypeTest<T, E> {
     isSubtype('() ->* int*', 'Object');
     isSubtype('() ->* int*', 'Object*');
     isSubtype('() ->* int*', 'Object?');
-    isObliviousSubtype('() ->? int*', 'Object');
+    isNotSubtype('() ->? int*', 'Object');
     isSubtype('() ->? int*', 'Object*');
     isSubtype('() ->? int*', 'Object?');
 
@@ -821,24 +787,22 @@ abstract class SubtypeTest<T, E> {
     isSubtype('Null', 'T', functionTypeTypeParameters: 'T extends Object*');
     isSubtype('Null', 'T?', typeParameters: 'T extends Object');
     isSubtype('Null', 'T?', functionTypeTypeParameters: 'T extends Object');
-    isObliviousSubtype('Null', 'T', typeParameters: 'T extends Object?');
-    isObliviousSubtype('Null', 'T',
-        functionTypeTypeParameters: 'T extends Object?');
-    isObliviousSubtype('Null', 'T', typeParameters: 'T extends Object');
-    isObliviousSubtype('Null', 'T',
-        functionTypeTypeParameters: 'T extends Object');
-    isObliviousSubtype('Null', 'Object');
+    isNotSubtype('Null', 'T', typeParameters: 'T extends Object?');
+    isNotSubtype('Null', 'T', functionTypeTypeParameters: 'T extends Object?');
+    isNotSubtype('Null', 'T', typeParameters: 'T extends Object');
+    isNotSubtype('Null', 'T', functionTypeTypeParameters: 'T extends Object');
+    isNotSubtype('Null', 'Object');
 
     // Tests for bottom and top types.
     isSubtype('Null', 'Null');
-    isObliviousSubtype('Null', 'Never');
+    isNotSubtype('Null', 'Never');
     isSubtype('Never', 'Null');
     isSubtype('Never', 'Never');
 
     isSubtype('Null', 'Never?');
     isSubtype('Never?', 'Null');
     isSubtype('Never', 'Never?');
-    isObliviousSubtype('Never?', 'Never');
+    isNotSubtype('Never?', 'Never');
 
     isSubtype('Object*', 'Object*');
     isSubtype('Object*', 'dynamic');
@@ -885,9 +849,9 @@ abstract class SubtypeTest<T, E> {
 
     isNotSubtype('Object', 'Null');
     isNotSubtype('Object', 'Never');
-    isObliviousSubtype('dynamic', 'Object');
-    isObliviousSubtype('void', 'Object');
-    isObliviousSubtype('Object?', 'Object');
+    isNotSubtype('dynamic', 'Object');
+    isNotSubtype('void', 'Object');
+    isNotSubtype('Object?', 'Object');
 
     // Check that the top types are equivalent.
     isSubtype(
@@ -960,9 +924,8 @@ abstract class SubtypeTest<T, E> {
     isSubtype('T', '() -> void', typeParameters: 'T extends () -> void');
     isSubtype('T', '() -> void',
         functionTypeTypeParameters: 'T extends () -> void');
-    isObliviousSubtype('T?', '() -> void',
-        typeParameters: 'T extends () -> void');
-    isObliviousSubtype('T?', '() -> void',
+    isNotSubtype('T?', '() -> void', typeParameters: 'T extends () -> void');
+    isNotSubtype('T?', '() -> void',
         functionTypeTypeParameters: 'T extends () -> void');
     isNotSubtype('T', '() ->* void', typeParameters: 'T');
     isNotSubtype('T', '() ->* void', functionTypeTypeParameters: 'T');
@@ -1017,21 +980,21 @@ abstract class SubtypeTest<T, E> {
     isSubtype('Id<Object>', 'Object');
     isSubtype('Object*', 'Id<Object>');
     isSubtype('Id<Object>', 'Object*');
-    isObliviousSubtype('dynamic', 'Id<Object>');
+    isNotSubtype('dynamic', 'Id<Object>');
     isSubtype('Id<Object>', 'dynamic');
-    isObliviousSubtype('void', 'Id<Object>');
+    isNotSubtype('void', 'Id<Object>');
     isSubtype('Id<Object>', 'void');
-    isObliviousSubtype('Null', 'Id<Object>');
+    isNotSubtype('Null', 'Id<Object>');
     isSubtype('Never', 'Id<Object>');
     isSubtype('Never', 'Id<Never>');
     isSubtype('Id<Never>', 'Never');
-    isObliviousSubtype('Null', 'Id<Never>');
+    isNotSubtype('Null', 'Id<Never>');
     isSubtype('Id<Never>', 'Null');
     isNotSubtype('Id<Object>', 'Never');
     isSubtype('Id<int>', 'num');
-    isObliviousSubtype('Id<int?>', 'num');
-    isObliviousSubtype('Id<int>?', 'num');
-    isObliviousSubtype('Id<int?>?', 'num');
+    isNotSubtype('Id<int?>', 'num');
+    isNotSubtype('Id<int>?', 'num');
+    isNotSubtype('Id<int?>?', 'num');
     isSubtype('Id<int>', 'num*');
     isSubtype('Id<int?>', 'num*');
     isSubtype('Id<int>?', 'num*');
@@ -1075,11 +1038,11 @@ abstract class SubtypeTest<T, E> {
 //        typeParameters: 'T extends Object?');
 //    isSubtype('Id<T & String>', 'T & String?',
 //        typeParameters: 'T extends Object?');
-//    isObliviousSubtype('Id<T & String?>', 'T & String',
+//    isNotSubtype('Id<T & String?>', 'T & String',
 //        typeParameters: 'T extends Object?');
-//    isObliviousSubtype('Id<T & String>?', 'T & String',
+//    isNotSubtype('Id<T & String>?', 'T & String',
 //        typeParameters: 'T extends Object');
-//    isObliviousSubtype('Id<T & String>?', 'T & String?',
+//    isNotSubtype('Id<T & String>?', 'T & String?',
 //        typeParameters: 'T extends Object');
 //
 //    isSubtype('Id<T* & String*>*', 'T*', typeParameters: 'T extends Object*');
@@ -1215,7 +1178,7 @@ abstract class SubtypeTest<T, E> {
     isSubtype("(int, {String foo})", "(Object, {Object foo})");
     isSubtype("(Never, {Never foo})", "(int, {String foo})");
     isSubtype("(int, {String foo})", "(num, {Object foo})");
-    isObliviousSubtype("Null", "(int, String)");
+    isNotSubtype("Null", "(int, String)");
     isNotSubtype("(int, String)", "Null");
     isNotSubtype("(int, String, bool)", "(int, String)");
     isNotSubtype("(int, String)", "(int, String, bool)");
@@ -1230,7 +1193,7 @@ abstract class SubtypeTest<T, E> {
     isNotSubtype("Record", "(int, String)");
     isSubtype("Record", "Object");
     isSubtype("Never", "Record");
-    isObliviousSubtype("Null", "Record");
+    isNotSubtype("Null", "Record");
     isNotSubtype("(int, String)", "Function");
     isNotSubtype("Function", "(int, String)");
     isNotSubtype("(int, String)", "(int, String) -> void");
@@ -1259,10 +1222,10 @@ abstract class SubtypeTest<T, E> {
     isNotSubtype("(int, String)", "T & (int, String)",
         typeParameters: "T extends Object?");
     isSubtype("(int, String)", "(int, String)?");
-    isObliviousSubtype("(int, String)?", "(int, String)");
+    isNotSubtype("(int, String)?", "(int, String)");
     isSubtype("Null", "(int, String)?");
-    isObliviousSubtype("Null", "(int, String)");
-    isObliviousSubtype("(int, String)?", "Record");
+    isNotSubtype("Null", "(int, String)");
+    isNotSubtype("(int, String)?", "Record");
 
     // Tests for extension types.
     isSubtype("Never", "NullableExtensionType");
@@ -1279,15 +1242,15 @@ abstract class SubtypeTest<T, E> {
     isSubtype("NullableExtensionType", "void");
     isSubtype("NullableExtensionType", "Object?");
     isSubtype("NullableExtensionType", "FutureOr<dynamic>");
-    isObliviousSubtype("NullableExtensionType", "Object");
-    isObliviousSubtype("NullableExtensionType?", "Object");
+    isNotSubtype("NullableExtensionType", "Object");
+    isNotSubtype("NullableExtensionType?", "Object");
 
     isSubtype("NonNullableExtensionType", "dynamic");
     isSubtype("NonNullableExtensionType", "void");
     isSubtype("NonNullableExtensionType", "Object?");
     isSubtype("NonNullableExtensionType", "FutureOr<dynamic>");
     isSubtype("NonNullableExtensionType", "Object");
-    isObliviousSubtype("NonNullableExtensionType?", "Object");
+    isNotSubtype("NonNullableExtensionType?", "Object");
 
     isSubtype("PotentiallyNullableGenericExtensionType<Object>", "dynamic");
     isSubtype("PotentiallyNullableGenericExtensionType<Object>", "void");
@@ -1295,16 +1258,15 @@ abstract class SubtypeTest<T, E> {
     isSubtype(
         "PotentiallyNullableGenericExtensionType<Object>", "FutureOr<dynamic>");
     isSubtype("NonNullableGenericExtensionType<Object>", "Object");
-    isObliviousSubtype(
-        "PotentiallyNullableGenericExtensionType<Object>?", "Object");
+    isNotSubtype("PotentiallyNullableGenericExtensionType<Object>?", "Object");
 
-    isObliviousSubtype("PotentiallyNullableGenericExtensionType<T>", "Object",
+    isNotSubtype("PotentiallyNullableGenericExtensionType<T>", "Object",
         typeParameters: "T");
-    isObliviousSubtype("PotentiallyNullableGenericExtensionType<T>?", "Object",
+    isNotSubtype("PotentiallyNullableGenericExtensionType<T>?", "Object",
         typeParameters: "T");
     isSubtype("NonNullableGenericExtensionType<T>", "Object",
         typeParameters: "T extends Object");
-    isObliviousSubtype("PotentiallyNullableGenericExtensionType<T>?", "Object",
+    isNotSubtype("PotentiallyNullableGenericExtensionType<T>?", "Object",
         typeParameters: "T extends Object");
 
     isSubtype("PotentiallyNullableGenericExtensionSubType<Object>", "dynamic");
@@ -1313,7 +1275,7 @@ abstract class SubtypeTest<T, E> {
     isSubtype("PotentiallyNullableGenericExtensionSubType<Object>",
         "FutureOr<dynamic>");
     isSubtype("NonNullableGenericExtensionSubType<Object>", "Object");
-    isObliviousSubtype(
+    isNotSubtype(
         "PotentiallyNullableGenericExtensionSubType<Object>?", "Object");
 
     isSubtype("NonNullableGenericExtensionType<Object>", "dynamic");
@@ -1321,21 +1283,21 @@ abstract class SubtypeTest<T, E> {
     isSubtype("NonNullableGenericExtensionType<Object>", "Object?");
     isSubtype("NonNullableGenericExtensionType<Object>", "FutureOr<dynamic>");
     isSubtype("NonNullableGenericExtensionType<Object>", "Object");
-    isObliviousSubtype("NonNullableGenericExtensionType<Object>?", "Object");
+    isNotSubtype("NonNullableGenericExtensionType<Object>?", "Object");
 
     isSubtype("GenericExtensionTypeImplements<Object>", "dynamic");
     isSubtype("GenericExtensionTypeImplements<Object>", "void");
     isSubtype("GenericExtensionTypeImplements<Object>", "Object?");
     isSubtype("GenericExtensionTypeImplements<Object>", "FutureOr<dynamic>");
     isSubtype("GenericExtensionTypeImplements<Object>", "Object");
-    isObliviousSubtype("GenericExtensionTypeImplements<Object>?", "Object");
+    isNotSubtype("GenericExtensionTypeImplements<Object>?", "Object");
 
     isSubtype("GenericSubExtensionTypeImplements<Object>", "dynamic");
     isSubtype("GenericSubExtensionTypeImplements<Object>", "void");
     isSubtype("GenericSubExtensionTypeImplements<Object>", "Object?");
     isSubtype("GenericSubExtensionTypeImplements<Object>", "FutureOr<dynamic>");
     isSubtype("GenericSubExtensionTypeImplements<Object>", "Object");
-    isObliviousSubtype("GenericSubExtensionTypeImplements<Object>?", "Object");
+    isNotSubtype("GenericSubExtensionTypeImplements<Object>?", "Object");
 
     isSubtype(
         "PotentiallyNullableNestedGenericExtensionType<Object>", "dynamic");
@@ -1349,33 +1311,28 @@ abstract class SubtypeTest<T, E> {
         "FutureOr<dynamic>");
     isSubtype(
         "NonNullableNestedGenericExtensionType<Object>", "FutureOr<dynamic>");
-    isObliviousSubtype(
+    isNotSubtype(
         "PotentiallyNullableNestedGenericExtensionType<Object>", "Object");
     isSubtype("NonNullableNestedGenericExtensionType<Object>", "Object");
-    isObliviousSubtype(
+    isNotSubtype(
         "PotentiallyNullableNestedGenericExtensionType<Object>?", "Object");
-    isObliviousSubtype(
-        "NonNullableNestedGenericExtensionType<Object>?", "Object");
+    isNotSubtype("NonNullableNestedGenericExtensionType<Object>?", "Object");
 
-    isObliviousSubtype(
-        "PotentiallyNullableNestedGenericExtensionType<T>", "Object",
+    isNotSubtype("PotentiallyNullableNestedGenericExtensionType<T>", "Object",
         typeParameters: "T");
     isSubtype("NonNullableNestedGenericExtensionType<T>", "Object",
         typeParameters: "T extends Object");
-    isObliviousSubtype(
-        "PotentiallyNullableNestedGenericExtensionType<T>?", "Object",
+    isNotSubtype("PotentiallyNullableNestedGenericExtensionType<T>?", "Object",
         typeParameters: "T");
-    isObliviousSubtype("NonNullableNestedGenericExtensionType<T>?", "Object",
+    isNotSubtype("NonNullableNestedGenericExtensionType<T>?", "Object",
         typeParameters: "T extends Object");
-    isObliviousSubtype(
-        "PotentiallyNullableNestedGenericExtensionType<T>", "Object",
+    isNotSubtype("PotentiallyNullableNestedGenericExtensionType<T>", "Object",
         typeParameters: "T extends Object");
     isSubtype("NonNullableNestedGenericExtensionType<T>", "Object",
         typeParameters: "T extends Object");
-    isObliviousSubtype(
-        "PotentiallyNullableNestedGenericExtensionType<T>?", "Object",
+    isNotSubtype("PotentiallyNullableNestedGenericExtensionType<T>?", "Object",
         typeParameters: "T extends Object");
-    isObliviousSubtype("NonNullableNestedGenericExtensionType<T>?", "Object",
+    isNotSubtype("NonNullableNestedGenericExtensionType<T>?", "Object",
         typeParameters: "T extends Object");
 
     isNotSubtype("dynamic", "NullableExtensionType");
@@ -1394,10 +1351,10 @@ abstract class SubtypeTest<T, E> {
     isSubtype("NonNullableExtensionType", "Object?");
     isSubtype("NonNullableExtensionType?", "Object?");
 
-    isObliviousSubtype("NonNullableExtensionType?", "Object");
-    isObliviousSubtype("NonNullableGenericExtensionType<Object>?", "Object");
-    isObliviousSubtype("GenericExtensionTypeImplements<Object>?", "Object");
-    isObliviousSubtype("GenericSubExtensionTypeImplements<Object>?", "Object");
+    isNotSubtype("NonNullableExtensionType?", "Object");
+    isNotSubtype("NonNullableGenericExtensionType<Object>?", "Object");
+    isNotSubtype("GenericExtensionTypeImplements<Object>?", "Object");
+    isNotSubtype("GenericSubExtensionTypeImplements<Object>?", "Object");
 
     isSubtype("PotentiallyNullableGenericExtensionType<Object>",
         "PotentiallyNullableGenericExtensionType<Object>");

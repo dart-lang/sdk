@@ -264,14 +264,14 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   @override
   IsSubtypeOf performNullabilityAwareSubtypeCheck(
       DartType subtype, DartType supertype) {
-    if (subtype is UnknownType) return const IsSubtypeOf.always();
+    if (subtype is UnknownType) return const IsSubtypeOf.success();
 
     DartType unwrappedSupertype = supertype;
     while (unwrappedSupertype is FutureOrType) {
       unwrappedSupertype = unwrappedSupertype.typeArgument;
     }
     if (unwrappedSupertype is UnknownType) {
-      return const IsSubtypeOf.always();
+      return const IsSubtypeOf.success();
     }
     return super.performNullabilityAwareSubtypeCheck(subtype, supertype);
   }

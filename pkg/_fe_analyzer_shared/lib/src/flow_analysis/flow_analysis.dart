@@ -3137,10 +3137,16 @@ class FlowModel<Type extends Object> {
 
     Type factoredType = helper.typeOperations.factor(previousType, type);
     Type? typeIfFalse;
+    bool ifFalseIsUnreachable = false;
     if (helper.typeOperations.isBottomType(factoredType)) {
-      // Promoting to `Never` would mark the code as unreachable.  But it might
-      // be reachable due to mixed mode unsoundness.  So don't promote.
+      // Do not promote to `Never` (even if it would be sound to do so); it's
+      // not useful.
       typeIfFalse = null;
+      if (helper.typeAnalyzerOptions.soundFlowAnalysisEnabled) {
+        ifFalseIsUnreachable = true;
+      } else {
+        // The code path might be reachable due to mixed mode unsoundness.
+      }
     } else if (!helper.isValidPromotionStep(
       previousType: previousType,
       newType: factoredType,
@@ -3157,6 +3163,10 @@ class FlowModel<Type extends Object> {
       type,
       typeIfFalse,
     );
+
+    if (ifFalseIsUnreachable) {
+      ifFalse = ifFalse.setUnreachable();
+    }
 
     return new ExpressionInfo<Type>(
       type: helper.boolType,
@@ -5791,6 +5801,11 @@ class _FlowAnalysisImpl<
           isExpression,
           isNot ? expressionInfo._invert() : expressionInfo,
         );
+      } else if (_isTypeCheckGuaranteedToSucceedWithSoundNullSafety(
+        staticType: subExpressionType,
+        checkedType: checkedType,
+      )) {
+        booleanLiteral(isExpression, !isNot);
       }
     }
   }
@@ -7227,6 +7242,23 @@ class _FlowAnalysisImpl<
       default:
         return false;
     }
+  }
+
+  /// Determines whether an expression having the given [staticType] is
+  /// guaranteed to fail an `is` or `as` check using [checkedType] due to sound
+  /// null safety.
+  ///
+  /// If [TypeAnalyzerOptions.soundFlowAnalysisEnabled] is `false`, this method
+  /// will return `false` regardless of its input. This reflects the fact that
+  /// in language versions prior to the introduction of sound flow analysis,
+  /// flow analysis assumed that the program might be executing in unsound null
+  /// safety mode.
+  bool _isTypeCheckGuaranteedToSucceedWithSoundNullSafety({
+    required Type staticType,
+    required Type checkedType,
+  }) {
+    if (!typeAnalyzerOptions.soundFlowAnalysisEnabled) return false;
+    return typeOperations.isSubtypeOf(staticType, checkedType);
   }
 
   FlowModel<Type> _join(FlowModel<Type>? first, FlowModel<Type>? second) =>

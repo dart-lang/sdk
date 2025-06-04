@@ -98,9 +98,9 @@ import '../codes/cfe_codes.dart' as cfe;
 import '../dill/dill_library_builder.dart' show DillLibraryBuilder;
 import '../dill/dill_type_parameter_builder.dart';
 import '../fragment/fragment.dart';
-import '../source/constructor_declaration.dart';
 import '../source/diet_parser.dart';
 import '../source/offset_map.dart';
+import '../source/source_constructor_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_member_builder.dart';
 import '../source/source_property_builder.dart';
@@ -1254,6 +1254,8 @@ class BodyBuilder extends StackListenerImpl
                 _cloner.cloneInContext(initializer!);
             tearOffParameter.initializer = tearOffInitializer
               ..parent = tearOffParameter;
+            tearOffParameter.isErroneouslyInitialized =
+                parameter.variable!.isErroneouslyInitialized;
           }
         }
       }
@@ -9314,7 +9316,7 @@ class BodyBuilder extends StackListenerImpl
                 cfe.messageUnexpectedSuperParametersInGenerativeConstructors,
                 formal.fileOffset,
                 noLength);
-            if (constructorBuilder is ConstructorDeclarationBuilder) {
+            if (constructorBuilder is SourceConstructorBuilder) {
               constructorBuilder.markAsErroneous();
             }
           }
