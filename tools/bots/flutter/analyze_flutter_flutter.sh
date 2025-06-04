@@ -11,6 +11,11 @@ checkout=$(pwd)
 dart=$checkout/out/ReleaseX64/dart-sdk/bin/dart
 sdk=$checkout/out/ReleaseX64/dart-sdk
 tmpdir=$(mktemp -d)
+# Do we want to do this?
+cleanup() {
+  rm -rf "$tmpdir"
+}
+trap cleanup EXIT HUP INT QUIT TERM PIPE
 cd "$tmpdir"
 
 git clone --single-branch -vv \
@@ -35,3 +40,12 @@ popd
 
 # Test flutter's use of data-driven fixes.
 $dart fix --suppress-analytics packages/flutter/test_fixes --compare-to-golden
+
+# analyze the web engine
+echo Analyzing the web engine...
+pushd engine/src/flutter/lib/web_ui
+
+$dart pub get
+$dart analyze --suppress-analytics --fatal-infos
+
+popd

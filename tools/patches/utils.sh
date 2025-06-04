@@ -27,8 +27,3 @@ get_pinned_dart_version() {
                     sed -E "s/.*'([^']*)',/\1/")
   echo -n $pinned_dart_sdk
 }
-
-get_pinned_flutter_engine_version() {
-  pinned_engine_version=$(cat flutter/bin/internal/engine.version | sed 's/[[:space:]]//')
-  echo -n $pinned_engine_version
-}
