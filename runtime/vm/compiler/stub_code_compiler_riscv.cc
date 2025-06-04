@@ -2186,9 +2186,6 @@ void StubCodeCompiler::GenerateOptimizedUsageCounterIncrement() {
     __ Breakpoint();
     return;
   }
-  if (FLAG_trace_optimized_ic_calls) {
-    __ Stop("Unimplemented");
-  }
   __ LoadFieldFromOffset(TMP, A6, target::Function::usage_counter_offset(),
                          kFourBytes);
   __ addi(TMP, TMP, 1);

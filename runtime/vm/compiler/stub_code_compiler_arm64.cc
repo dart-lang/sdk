@@ -2592,23 +2592,10 @@ void StubCodeCompiler::GenerateCallClosureNoSuchMethodStub() {
 // Cannot use function object from ICData as it may be the inlined
 // function and not the top-scope function.
 void StubCodeCompiler::GenerateOptimizedUsageCounterIncrement() {
-  Register ic_reg = R5;
   Register func_reg = R6;
   if (FLAG_precompiled_mode) {
     __ Breakpoint();
     return;
-  }
-  if (FLAG_trace_optimized_ic_calls) {
-    __ EnterStubFrame();
-    __ Push(R6);        // Preserve.
-    __ Push(R5);        // Preserve.
-    __ Push(ic_reg);    // Argument.
-    __ Push(func_reg);  // Argument.
-    __ CallRuntime(kTraceICCallRuntimeEntry, 2);
-    __ Drop(2);  // Discard argument;
-    __ Pop(R5);  // Restore.
-    __ Pop(R6);  // Restore.
-    __ LeaveStubFrame();
   }
   __ LoadFieldFromOffset(R7, func_reg, target::Function::usage_counter_offset(),
                          kFourBytes);

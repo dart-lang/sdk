@@ -3570,19 +3570,6 @@ DEFINE_RUNTIME_ENTRY(InterruptOrStackOverflow, 0) {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
-DEFINE_RUNTIME_ENTRY(TraceICCall, 2) {
-  const ICData& ic_data = ICData::CheckedHandle(zone, arguments.ArgAt(0));
-  const Function& function = Function::CheckedHandle(zone, arguments.ArgAt(1));
-  DartFrameIterator iterator(thread,
-                             StackFrameIterator::kNoCrossThreadIteration);
-  StackFrame* frame = iterator.NextFrame();
-  ASSERT(frame != nullptr);
-  OS::PrintErr(
-      "IC call @%#" Px ": ICData: %#" Px " cnt:%" Pd " nchecks: %" Pd " %s\n",
-      frame->pc(), static_cast<uword>(ic_data.ptr()), function.usage_counter(),
-      ic_data.NumberOfChecks(), function.ToFullyQualifiedCString());
-}
-
 // Compile a function. Should call only if the function has not been compiled.
 //   Arg0: function object.
 DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {

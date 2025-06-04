@@ -2498,21 +2498,7 @@ void StubCodeCompiler::GenerateOptimizedUsageCounterIncrement() {
     __ Breakpoint();
     return;
   }
-  Register ic_reg = RBX;
   Register func_reg = RDI;
-  if (FLAG_trace_optimized_ic_calls) {
-    __ EnterStubFrame();
-    __ pushq(func_reg);  // Preserve
-    __ pushq(ic_reg);    // Preserve.
-    __ pushq(ic_reg);    // Argument.
-    __ pushq(func_reg);  // Argument.
-    __ CallRuntime(kTraceICCallRuntimeEntry, 2);
-    __ popq(RAX);       // Discard argument;
-    __ popq(RAX);       // Discard argument;
-    __ popq(ic_reg);    // Restore.
-    __ popq(func_reg);  // Restore.
-    __ LeaveStubFrame();
-  }
   __ incl(FieldAddress(func_reg, target::Function::usage_counter_offset()));
 }
 
