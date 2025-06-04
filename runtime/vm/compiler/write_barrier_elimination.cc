@@ -389,6 +389,14 @@ bool WriteBarrierElimination::SlotEligibleForWBE(const Slot& slot) {
 
 void WriteBarrierElimination::UpdateVectorForBlock(BlockEntryInstr* entry,
                                                    bool finalize) {
+  if (entry->IsCatchBlockEntry()) {
+    // Control flow from potentially-throwing instructions in the try block to
+    // the catch block is not explicitly represented in the flow graph.
+    // Conservatively assume the try block corresponding to this catch block
+    // contains at least one CanCallDart instruction.
+    vector_->Clear();
+  }
+
   for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
     Instruction* const current = it.Current();
 
