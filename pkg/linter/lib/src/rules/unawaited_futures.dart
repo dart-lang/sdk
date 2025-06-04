@@ -11,6 +11,7 @@ import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../utils.dart';
 
 const _desc =
     r'`Future` results in `async` function bodies must be '
@@ -68,7 +69,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (_isEnclosedInAsyncFunctionBody(node)) {
       // Future expression statement that isn't awaited in an async function:
       // while this is legal, it's a very frequent sign of an error.
-      rule.reportAtNode(node);
+      reportOnExpression(rule, node.expression);
     }
   }
 
@@ -110,7 +111,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     if (_isEnclosedInAsyncFunctionBody(expr) && expr is! AssignmentExpression) {
-      rule.reportAtNode(expr);
+      reportOnExpression(rule, expr);
     }
   }
 }

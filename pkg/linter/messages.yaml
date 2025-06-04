@@ -11990,7 +11990,7 @@ LintCode:
 
       ```dart
       Future<void> f() async {
-        [!g();!]
+        [!g!]();
       }
 
       Future<int> g() => Future.value(0);

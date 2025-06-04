@@ -10,6 +10,7 @@ import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../utils.dart';
 
 const _desc =
     'There should be no `Future`-returning calls in synchronous functions unless they '
@@ -63,7 +64,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         return;
       }
 
-      _reportOnExpression(expr);
+      reportOnExpression(rule, expr);
     }
   }
 
@@ -94,17 +95,6 @@ class _Visitor extends SimpleAstVisitor<void> {
       expr.methodName.name == 'putIfAbsent' &&
       _isMapClass(expr.methodName.element?.enclosingElement);
 
-  void _reportOnExpression(Expression expr) {
-    rule.reportAtNode(switch (expr) {
-      MethodInvocation(:var methodName) => methodName,
-      InstanceCreationExpression(:var constructorName) => constructorName,
-      FunctionExpressionInvocation(:var function) => function,
-      PrefixedIdentifier(:var identifier) => identifier,
-      PropertyAccess(:var propertyName) => propertyName,
-      _ => expr,
-    });
-  }
-
   void _visit(Expression expr) {
     if (expr.isAwaitNotRequired) {
       return;
@@ -114,7 +104,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         !_isEnclosedInAsyncFunctionBody(expr) &&
         expr is! AssignmentExpression) {
       // TODO(srawlins): Take `@awaitNotRequired` into account.
-      _reportOnExpression(expr);
+      reportOnExpression(rule, expr);
     }
   }
 }
