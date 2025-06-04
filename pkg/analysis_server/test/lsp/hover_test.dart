@@ -151,13 +151,12 @@ class HoverTest extends AbstractLspAnalysisServerTest {
   Future<void> test_dartDocPreference_full() =>
       assertDocumentation('full', includesSummary: true, includesFull: true);
 
-  Future<void> test_dartDocPreference_none() =>
-      assertDocumentation('none', includesSummary: false, includesFull: false);
-
   Future<void> test_dartDocPreference_summary() => assertDocumentation(
     'summary',
     includesSummary: true,
-    includesFull: false,
+    // Doc preferences don't apply to single-result requests so always expect
+    // full docs.
+    includesFull: true,
   );
 
   /// No preference should result in full docs.

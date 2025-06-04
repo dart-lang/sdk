@@ -123,8 +123,6 @@ class HoverHandler
       server.getDartdocDirectiveInfoFor(unit),
       compilationUnit,
       offset,
-      documentationPreference:
-          server.lspClientConfiguration.global.preferredDocumentation,
     );
     var hover = computer.compute();
     return success(toHover(clientCapabilities, unit.lineInfo, hover));
