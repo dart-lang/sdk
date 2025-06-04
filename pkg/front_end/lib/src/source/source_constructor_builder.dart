@@ -32,7 +32,6 @@ import '../kernel/kernel_helper.dart' show DelayedDefaultValueCloner;
 import '../kernel/type_algorithms.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/type_inference_engine.dart';
-import 'constructor_declaration.dart';
 import 'name_scheme.dart';
 import 'source_class_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
@@ -142,11 +141,7 @@ class InferableConstructor implements InferableMember {
 }
 
 class SourceConstructorBuilder extends SourceMemberBuilderImpl
-    implements
-        ConstructorBuilder,
-        SourceMemberBuilder,
-        Inferable,
-        ConstructorDeclarationBuilder {
+    implements ConstructorBuilder, SourceMemberBuilder, Inferable {
   @override
   final String name;
 
@@ -296,7 +291,11 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
   // Coverage-ignore(suite): Not run.
   bool get isDeclarationInstanceMember => false;
 
-  @override
+  /// Returns `true` if this constructor, including its augmentations, is
+  /// external.
+  ///
+  /// An augmented constructor is considered external if all of the origin
+  /// and augmentation constructors are external.
   bool get isEffectivelyExternal {
     bool isExternal = this.isExternal;
     if (isExternal) {
@@ -307,7 +306,13 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
     return isExternal;
   }
 
-  @override
+  /// Returns `true` if this constructor or any of its augmentations are
+  /// redirecting.
+  ///
+  /// An augmented constructor is considered redirecting if any of the origin
+  /// or augmentation constructors is redirecting. Since it is an error if more
+  /// than one is redirecting, only one can be redirecting in the without
+  /// errors.
   bool get isEffectivelyRedirecting {
     bool isRedirecting = _introductory.isRedirecting;
     if (!isRedirecting) {
@@ -385,7 +390,6 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
 
   List<Initializer> get _initializers => _lastDeclaration.initializers;
 
-  @override
   void addInitializer(Initializer initializer, ExpressionGeneratorHelper helper,
       {required InitializerInferenceResult? inferenceResult,
       required TreeNode parent}) {
@@ -628,7 +632,6 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
     inferFormalTypes(hierarchy);
   }
 
-  @override
   void prepareInitializers() {
     _introductory.prepareInitializers();
     for (ConstructorDeclaration augmentation in _augmentations) {
@@ -638,22 +641,33 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
     superInitializer = null;
   }
 
-  @override
   void prependInitializer(Initializer initializer) {
     _lastDeclaration.prependInitializer(initializer);
   }
 
-  @override
+  /// Registers field as being initialized by this constructor.
+  ///
+  /// The field can be initialized either via an initializing formal or via an
+  /// entry in the constructor initializer list.
   void registerInitializedField(SourcePropertyBuilder fieldBuilder) {
     (_initializedFields ??= {}).add(fieldBuilder);
   }
 
-  @override
+  /// Substitute [fieldType] from the context of the enclosing class or
+  /// extension type declaration to this constructor.
+  ///
+  /// This is used for generic extension type constructors where the type
+  /// variable referring to the class type parameters must be substituted for
+  /// the synthesized constructor type parameters.
   DartType substituteFieldType(DartType fieldType) {
     return _fieldTypeSubstitution.substituteType(fieldType);
   }
 
-  @override
+  /// Returns the fields registered as initialized by this constructor.
+  ///
+  /// Returns the set of fields previously registered via
+  /// [registerInitializedField] and passes on the ownership of the collection
+  /// to the caller.
   Set<SourcePropertyBuilder>? takeInitializedFields() {
     Set<SourcePropertyBuilder>? result = _initializedFields;
     _initializedFields = null;
@@ -671,7 +685,11 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
     _initializers.add(lastInitializer);
   }
 
-  @override
+  /// Mark the constructor as erroneous.
+  ///
+  /// This is used during the compilation phase to set the appropriate flag on
+  /// the input AST node. The flag helps the verifier to skip apriori erroneous
+  /// members and to avoid reporting cascading errors.
   void markAsErroneous() {
     _introductory.markAsErroneous();
     for (ConstructorDeclaration augmentation in _augmentations)

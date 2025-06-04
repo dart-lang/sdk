@@ -825,7 +825,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/kernel/kernel_helper.dart": (
-    hitCount: 264,
+    hitCount: 265,
     missCount: 0,
   ),
   // 100.0%.

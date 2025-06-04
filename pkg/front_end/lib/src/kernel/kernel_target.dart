@@ -58,7 +58,6 @@ import '../builder/type_builder.dart';
 import '../dill/dill_target.dart' show DillTarget;
 import '../fragment/constructor/declaration.dart';
 import '../source/class_declaration.dart';
-import '../source/constructor_declaration.dart';
 import '../source/name_scheme.dart';
 import '../source/source_class_builder.dart' show SourceClassBuilder;
 import '../source/source_constructor_builder.dart';
@@ -1382,15 +1381,15 @@ class KernelTarget {
       }
     }
 
-    Map<ConstructorDeclarationBuilder, Set<SourcePropertyBuilder>>
+    Map<SourceConstructorBuilder, Set<SourcePropertyBuilder>>
         constructorInitializedFields = new Map.identity();
     Set<SourcePropertyBuilder>? initializedFieldBuilders = null;
     Set<SourcePropertyBuilder>? uninitializedInstanceFields;
 
-    Iterator<ConstructorDeclarationBuilder> constructorIterator =
+    Iterator<SourceConstructorBuilder> constructorIterator =
         classDeclaration.filteredConstructorsIterator(includeDuplicates: false);
     while (constructorIterator.moveNext()) {
-      ConstructorDeclarationBuilder constructor = constructorIterator.current;
+      SourceConstructorBuilder constructor = constructorIterator.current;
       if (constructor.isEffectivelyRedirecting) continue;
       if (constructor.isConst && nonFinalFields.isNotEmpty) {
         classDeclaration.libraryBuilder.addProblem(
@@ -1476,10 +1475,9 @@ class KernelTarget {
 
     // Run through all fields that are initialized by some constructor, and
     // make sure that all other constructors also initialize them.
-    for (MapEntry<ConstructorDeclarationBuilder,
-            Set<SourcePropertyBuilder>> entry
+    for (MapEntry<SourceConstructorBuilder, Set<SourcePropertyBuilder>> entry
         in constructorInitializedFields.entries) {
-      ConstructorDeclarationBuilder constructorBuilder = entry.key;
+      SourceConstructorBuilder constructorBuilder = entry.key;
       Set<SourcePropertyBuilder> fieldBuilders = entry.value;
       bool hasReportedErrors = false;
       for (SourcePropertyBuilder fieldBuilder
