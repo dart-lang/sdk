@@ -24,7 +24,6 @@ import 'package:analyzer/src/summary2/element_flags.dart';
 import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
-import 'package:analyzer/src/utilities/extensions/object.dart';
 
 class BundleWriter {
   late final _BundleWriterReferences _references;
@@ -321,6 +320,7 @@ class BundleWriter {
   void _writeFieldElement(FieldFragmentImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
     _writeReference(element);
+    _writeReference2(element.element.reference);
     _writeOptionalReference(element.getter?.reference);
     _writeOptionalReference(element.setter?.reference);
     _writeFragmentName(element);
@@ -541,12 +541,12 @@ class BundleWriter {
     if (!fragment.isAugmentation) {
       var variableFragment = fragment.variable2!;
       _writeReference(variableFragment);
-      _writeOptionalReference(
-        variableFragment
-            .ifTypeOrNull<TopLevelVariableFragmentImpl>()
-            ?.element
-            .reference,
-      );
+      switch (variableFragment) {
+        case FieldFragmentImpl fieldFragment:
+          _writeReference2(fieldFragment.element.reference);
+        case TopLevelVariableFragmentImpl topFragment:
+          _writeReference2(topFragment.element.reference);
+      }
       switch (variableFragment) {
         case FieldFragmentImpl fieldFragment:
           var field = fieldFragment.element;
@@ -713,7 +713,6 @@ class ResolutionSink extends _SummaryDataWriter {
         );
         _writeTypeList(typeArguments);
       // TODO(scheglov): give reference to each element below
-      case FieldElementImpl2():
       case FormalParameterElementImpl():
       case GetterElementImpl():
       case SetterElementImpl():

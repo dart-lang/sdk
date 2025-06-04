@@ -44,9 +44,9 @@ FunctionReference
         period: .
         name: SimpleIdentifier
           token: foo
-          element: <testLibraryFragment>::@class::A::@constructor::foo#element
+          element: <testLibrary>::@class::A::@constructor::foo
           staticType: null
-        element: <testLibraryFragment>::@class::A::@constructor::foo#element
+        element: <testLibrary>::@class::A::@constructor::foo
       staticType: A<T> Function<T>()
     rightParenthesis: )
     staticType: A<T> Function<T>()
@@ -86,9 +86,9 @@ FunctionReference
         period: .
         name: SimpleIdentifier
           token: new
-          element: <testLibraryFragment>::@class::A::@constructor::new#element
+          element: <testLibrary>::@class::A::@constructor::new
           staticType: null
-        element: <testLibraryFragment>::@class::A::@constructor::new#element
+        element: <testLibrary>::@class::A::@constructor::new
       staticType: A<T> Function<T>()
     rightParenthesis: )
     staticType: A<T> Function<T>()
@@ -136,9 +136,9 @@ FunctionReference
       period: .
       name: SimpleIdentifier
         token: foo
-        element: <testLibraryFragment>::@class::A::@constructor::foo#element
+        element: <testLibrary>::@class::A::@constructor::foo
         staticType: null
-      element: <testLibraryFragment>::@class::A::@constructor::foo#element
+      element: <testLibrary>::@class::A::@constructor::foo
     staticType: A<T> Function<T>()
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -184,9 +184,9 @@ FunctionReference
       period: .
       name: SimpleIdentifier
         token: delayed
-        element: dart:async::<fragment>::@class::Future::@constructor::delayed#element
+        element: dart:async::@class::Future::@constructor::delayed
         staticType: null
-      element: dart:async::<fragment>::@class::Future::@constructor::delayed#element
+      element: dart:async::@class::Future::@constructor::delayed
     staticType: Future<T> Function<T>(Duration, [FutureOr<T> Function()?])
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -1167,7 +1167,7 @@ ImplicitCallReference
         name: C
         element2: <testLibrary>::@class::C
         type: C
-      element: <testLibraryFragment>::@class::C::@constructor::new#element
+      element: <testLibrary>::@class::C::@constructor::new
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
@@ -1423,7 +1423,7 @@ ImplicitCallReference
         name: C
         element2: <testLibrary>::@class::C
         type: C
-      element: <testLibraryFragment>::@class::C::@constructor::new#element
+      element: <testLibrary>::@class::C::@constructor::new
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
@@ -1473,7 +1473,7 @@ ImplicitCallReference
         name: C
         element2: <testLibrary>::@class::C
         type: C
-      element: <testLibraryFragment>::@class::C::@constructor::new#element
+      element: <testLibrary>::@class::C::@constructor::new
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
@@ -4298,11 +4298,11 @@ ConstructorReference
     period: .
     name: SimpleIdentifier
       token: new
-      element: <testLibraryFragment>::@class::C::@constructor::new#element
+      element: <testLibrary>::@class::C::@constructor::new
       staticType: null
       tearOffTypeArgumentTypes
         int
-    element: <testLibraryFragment>::@class::C::@constructor::new#element
+    element: <testLibrary>::@class::C::@constructor::new
   staticType: C<int> Function(int)
 ''');
   }

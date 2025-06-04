@@ -1206,6 +1206,16 @@ class InheritanceManager3 {
       resultField.type = executable.parameters[0].type;
       result.variable2 = resultField;
 
+      var elementName = executable.asElement2.name3!;
+      var elementReference = class_.element.reference!
+          .getChild('@field')
+          .getChild(elementName);
+      assert(elementReference.element2 == null);
+      FieldElementImpl2(
+        reference: elementReference,
+        firstFragment: resultField,
+      );
+
       return result;
     }
 
@@ -1279,16 +1289,36 @@ class InheritanceManager3 {
       return result;
     } else {
       var firstAccessor = first as PropertyAccessorElementOrMember;
-      var fragmentName = first.asElement2.firstFragment.name2;
+      var fragmentName = first.asElement2.firstFragment.name2!;
       var field = FieldFragmentImpl(name2: fragmentName, nameOffset: -1);
 
       PropertyAccessorFragmentImpl result;
       if (firstAccessor.isGetter) {
-        field.getter =
-            result = GetterFragmentImpl(name2: fragmentName, nameOffset: -1);
+        var fragmentReference = targetClass.reference!
+            .getChild('@getter')
+            .getChild(fragmentName);
+        if (fragmentReference.element case GetterFragmentImpl result) {
+          return result;
+        }
+
+        var fragment = GetterFragmentImpl(name2: fragmentName, nameOffset: -1);
+        fragment.reference = fragmentReference;
+        fragmentReference.element = fragment;
+        field.getter = fragment;
+        result = fragment;
       } else {
-        field.setter =
-            result = SetterFragmentImpl(name2: fragmentName, nameOffset: -1);
+        var fragmentReference = targetClass.reference!
+            .getChild('@setter')
+            .getChild(fragmentName);
+        if (fragmentReference.element case SetterFragmentImpl result) {
+          return result;
+        }
+
+        var fragment = SetterFragmentImpl(name2: fragmentName, nameOffset: -1);
+        fragment.reference = fragmentReference;
+        fragmentReference.element = fragment;
+        field.setter = fragment;
+        result = fragment;
       }
       result.enclosingElement3 = targetClass;
       result.returnType = resultType.returnType;
@@ -1305,6 +1335,13 @@ class InheritanceManager3 {
         field.type = result.parameters[0].type;
       }
       result.variable2 = field;
+
+      var elementName = first.asElement2.name3!;
+      var elementReference = targetClass.element.reference!
+          .getChild('@field')
+          .getChild(elementName);
+      assert(elementReference.element2 == null);
+      FieldElementImpl2(reference: elementReference, firstFragment: field);
 
       return result;
     }

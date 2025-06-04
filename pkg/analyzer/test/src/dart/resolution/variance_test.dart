@@ -78,7 +78,7 @@ InstanceCreationExpression
       element2: <testLibrary>::@class::B
       type: B<num>
     element: ConstructorMember
-      baseElement: <testLibraryFragment>::@class::B::@constructor::new#element
+      baseElement: <testLibrary>::@class::B::@constructor::new
       substitution: {T: num}
   staticType: B<num>
 ''');

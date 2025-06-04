@@ -173,12 +173,12 @@ library
           fields
             synthetic f
               reference: <testLibraryFragment>::@class::C::@field::f
-              element: <testLibraryFragment>::@class::C::@field::f#element
+              element: <testLibrary>::@class::C::@field::f
               getter2: <testLibraryFragment>::@class::C::@getter::f
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
             get f @24
@@ -190,12 +190,12 @@ library
           fields
             synthetic f
               reference: <testLibraryFragment>::@class::D::@field::f
-              element: <testLibraryFragment>::@class::D::@field::f#element
+              element: <testLibrary>::@class::D::@field::f
               getter2: <testLibraryFragment>::@class::D::@getter::f
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::D::@constructor::new
-              element: <testLibraryFragment>::@class::D::@constructor::new#element
+              element: <testLibrary>::@class::D::@constructor::new
               typeName: D
           getters
             get f @64
@@ -214,7 +214,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::D::@constructor::new#element
+          superConstructor: <testLibrary>::@class::D::@constructor::new
       getters
         get f
           firstFragment: <testLibraryFragment>::@class::C::@getter::f
@@ -1608,7 +1608,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       extensions
         extension E @21
@@ -2358,7 +2358,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 21
       topLevelVariables
@@ -2373,7 +2373,7 @@ library
                   element2: <testLibrary>::@class::A
                   type: A<int>
                 element: ConstructorMember
-                  baseElement: <testLibraryFragment>::@class::A::@constructor::new#element
+                  baseElement: <testLibrary>::@class::A::@constructor::new
                   substitution: {T: int}
               argumentList: ArgumentList
                 leftParenthesis: ( @46

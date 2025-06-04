@@ -56,7 +56,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::Raw::@constructor::new
-              element: <testLibraryFragment>::@class::Raw::@constructor::new#element
+              element: <testLibrary>::@class::Raw::@constructor::new
               typeName: Raw
         class HasDocComment @50
           reference: <testLibraryFragment>::@class::HasDocComment
@@ -64,7 +64,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::HasDocComment::@constructor::new
-              element: <testLibraryFragment>::@class::HasDocComment::@constructor::new#element
+              element: <testLibrary>::@class::HasDocComment::@constructor::new
               typeName: HasDocComment
         class HasAnnotation @84
           reference: <testLibraryFragment>::@class::HasAnnotation
@@ -72,7 +72,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::HasAnnotation::@constructor::new
-              element: <testLibraryFragment>::@class::HasAnnotation::@constructor::new#element
+              element: <testLibrary>::@class::HasAnnotation::@constructor::new
               typeName: HasAnnotation
         class AnnotationThenComment @148
           reference: <testLibraryFragment>::@class::AnnotationThenComment
@@ -80,7 +80,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::AnnotationThenComment::@constructor::new
-              element: <testLibraryFragment>::@class::AnnotationThenComment::@constructor::new#element
+              element: <testLibrary>::@class::AnnotationThenComment::@constructor::new
               typeName: AnnotationThenComment
         class CommentThenAnnotation @220
           reference: <testLibraryFragment>::@class::CommentThenAnnotation
@@ -88,7 +88,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::CommentThenAnnotation::@constructor::new
-              element: <testLibraryFragment>::@class::CommentThenAnnotation::@constructor::new#element
+              element: <testLibrary>::@class::CommentThenAnnotation::@constructor::new
               typeName: CommentThenAnnotation
         class CommentAroundAnnotation @292
           reference: <testLibraryFragment>::@class::CommentAroundAnnotation
@@ -96,7 +96,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::CommentAroundAnnotation::@constructor::new
-              element: <testLibraryFragment>::@class::CommentAroundAnnotation::@constructor::new#element
+              element: <testLibrary>::@class::CommentAroundAnnotation::@constructor::new
               typeName: CommentAroundAnnotation
   classes
     class Raw
@@ -186,7 +186,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
         class B @18
           reference: <testLibraryFragment>::@class::B
@@ -194,7 +194,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
         class Raw @30
           reference: <testLibraryFragment>::@class::Raw
@@ -202,7 +202,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@class::Raw::@constructor::new
-              element: <testLibraryFragment>::@class::Raw::@constructor::new#element
+              element: <testLibrary>::@class::Raw::@constructor::new
               typeName: Raw
         class HasDocComment @91
           reference: <testLibraryFragment>::@class::HasDocComment
@@ -210,7 +210,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@class::HasDocComment::@constructor::new
-              element: <testLibraryFragment>::@class::HasDocComment::@constructor::new#element
+              element: <testLibrary>::@class::HasDocComment::@constructor::new
               typeName: HasDocComment
         class HasAnnotation @142
           reference: <testLibraryFragment>::@class::HasAnnotation
@@ -218,7 +218,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@class::HasAnnotation::@constructor::new
-              element: <testLibraryFragment>::@class::HasAnnotation::@constructor::new#element
+              element: <testLibrary>::@class::HasAnnotation::@constructor::new
               typeName: HasAnnotation
         class AnnotationThenComment @223
           reference: <testLibraryFragment>::@class::AnnotationThenComment
@@ -226,7 +226,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@class::AnnotationThenComment::@constructor::new
-              element: <testLibraryFragment>::@class::AnnotationThenComment::@constructor::new#element
+              element: <testLibrary>::@class::AnnotationThenComment::@constructor::new
               typeName: AnnotationThenComment
         class CommentThenAnnotation @312
           reference: <testLibraryFragment>::@class::CommentThenAnnotation
@@ -234,7 +234,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@class::CommentThenAnnotation::@constructor::new
-              element: <testLibraryFragment>::@class::CommentThenAnnotation::@constructor::new#element
+              element: <testLibrary>::@class::CommentThenAnnotation::@constructor::new
               typeName: CommentThenAnnotation
         class CommentAroundAnnotation @401
           reference: <testLibraryFragment>::@class::CommentAroundAnnotation
@@ -242,7 +242,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@class::CommentAroundAnnotation::@constructor::new
-              element: <testLibraryFragment>::@class::CommentAroundAnnotation::@constructor::new#element
+              element: <testLibrary>::@class::CommentAroundAnnotation::@constructor::new
               typeName: CommentAroundAnnotation
   classes
     class A
@@ -273,7 +273,7 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
-              element: dart:core::<fragment>::@class::Object::@constructor::new#element
+              element: dart:core::@class::Object::@constructor::new
     class alias HasDocComment
       reference: <testLibrary>::@class::HasDocComment
       firstFragment: <testLibraryFragment>::@class::HasDocComment
@@ -291,7 +291,7 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
-              element: dart:core::<fragment>::@class::Object::@constructor::new#element
+              element: dart:core::@class::Object::@constructor::new
     class alias HasAnnotation
       reference: <testLibrary>::@class::HasAnnotation
       firstFragment: <testLibraryFragment>::@class::HasAnnotation
@@ -308,7 +308,7 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
-              element: dart:core::<fragment>::@class::Object::@constructor::new#element
+              element: dart:core::@class::Object::@constructor::new
     class alias AnnotationThenComment
       reference: <testLibrary>::@class::AnnotationThenComment
       firstFragment: <testLibraryFragment>::@class::AnnotationThenComment
@@ -326,7 +326,7 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
-              element: dart:core::<fragment>::@class::Object::@constructor::new#element
+              element: dart:core::@class::Object::@constructor::new
     class alias CommentThenAnnotation
       reference: <testLibrary>::@class::CommentThenAnnotation
       firstFragment: <testLibraryFragment>::@class::CommentThenAnnotation
@@ -344,7 +344,7 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
-              element: dart:core::<fragment>::@class::Object::@constructor::new#element
+              element: dart:core::@class::Object::@constructor::new
     class alias CommentAroundAnnotation
       reference: <testLibrary>::@class::CommentAroundAnnotation
       firstFragment: <testLibraryFragment>::@class::CommentAroundAnnotation
@@ -362,7 +362,7 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
-              element: dart:core::<fragment>::@class::Object::@constructor::new#element
+              element: dart:core::@class::Object::@constructor::new
 ''');
   }
 
@@ -410,14 +410,14 @@ library
           constructors
             new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               codeOffset: 12
               codeLength: 4
               typeName: C
               typeNameOffset: 12
             raw @22
               reference: <testLibraryFragment>::@class::C::@constructor::raw
-              element: <testLibraryFragment>::@class::C::@constructor::raw#element
+              element: <testLibrary>::@class::C::@constructor::raw
               codeOffset: 20
               codeLength: 10
               typeName: C
@@ -425,7 +425,7 @@ library
               periodOffset: 21
             hasDocComment @70
               reference: <testLibraryFragment>::@class::C::@constructor::hasDocComment
-              element: <testLibraryFragment>::@class::C::@constructor::hasDocComment#element
+              element: <testLibrary>::@class::C::@constructor::hasDocComment
               documentationComment: /// Comment 1.\n/// Comment 2.
               codeOffset: 34
               codeLength: 54
@@ -434,7 +434,7 @@ library
               periodOffset: 69
             hasAnnotation @106
               reference: <testLibraryFragment>::@class::C::@constructor::hasAnnotation
-              element: <testLibraryFragment>::@class::C::@constructor::hasAnnotation#element
+              element: <testLibrary>::@class::C::@constructor::hasAnnotation
               metadata
                 Annotation
                   atSign: @ @92
@@ -445,7 +445,7 @@ library
                   arguments: ArgumentList
                     leftParenthesis: ( @99
                     rightParenthesis: ) @100
-                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+                  element2: dart:core::@class::Object::@constructor::new
               codeOffset: 92
               codeLength: 32
               typeName: C
@@ -453,7 +453,7 @@ library
               periodOffset: 105
             annotationThenComment @176
               reference: <testLibraryFragment>::@class::C::@constructor::annotationThenComment
-              element: <testLibraryFragment>::@class::C::@constructor::annotationThenComment#element
+              element: <testLibrary>::@class::C::@constructor::annotationThenComment
               documentationComment: /// Comment 1.\n/// Comment 2.
               metadata
                 Annotation
@@ -465,7 +465,7 @@ library
                   arguments: ArgumentList
                     leftParenthesis: ( @135
                     rightParenthesis: ) @136
-                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+                  element2: dart:core::@class::Object::@constructor::new
               codeOffset: 128
               codeLength: 74
               typeName: C
@@ -473,7 +473,7 @@ library
               periodOffset: 175
             commentThenAnnotation @254
               reference: <testLibraryFragment>::@class::C::@constructor::commentThenAnnotation
-              element: <testLibraryFragment>::@class::C::@constructor::commentThenAnnotation#element
+              element: <testLibrary>::@class::C::@constructor::commentThenAnnotation
               documentationComment: /// Comment 1.\n/// Comment 2.
               metadata
                 Annotation
@@ -485,7 +485,7 @@ library
                   arguments: ArgumentList
                     leftParenthesis: ( @247
                     rightParenthesis: ) @248
-                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+                  element2: dart:core::@class::Object::@constructor::new
               codeOffset: 206
               codeLength: 74
               typeName: C
@@ -493,7 +493,7 @@ library
               periodOffset: 253
             commentAroundAnnotation @332
               reference: <testLibraryFragment>::@class::C::@constructor::commentAroundAnnotation
-              element: <testLibraryFragment>::@class::C::@constructor::commentAroundAnnotation#element
+              element: <testLibrary>::@class::C::@constructor::commentAroundAnnotation
               documentationComment: /// Comment 2.
               metadata
                 Annotation
@@ -505,7 +505,7 @@ library
                   arguments: ArgumentList
                     leftParenthesis: ( @308
                     rightParenthesis: ) @309
-                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+                  element2: dart:core::@class::Object::@constructor::new
               codeOffset: 301
               codeLength: 59
               typeName: C
@@ -535,7 +535,7 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @99
                 rightParenthesis: ) @100
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+              element2: dart:core::@class::Object::@constructor::new
         annotationThenComment
           firstFragment: <testLibraryFragment>::@class::C::@constructor::annotationThenComment
           documentationComment: /// Comment 1.\n/// Comment 2.
@@ -549,7 +549,7 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @135
                 rightParenthesis: ) @136
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+              element2: dart:core::@class::Object::@constructor::new
         commentThenAnnotation
           firstFragment: <testLibraryFragment>::@class::C::@constructor::commentThenAnnotation
           documentationComment: /// Comment 1.\n/// Comment 2.
@@ -563,7 +563,7 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @247
                 rightParenthesis: ) @248
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+              element2: dart:core::@class::Object::@constructor::new
         commentAroundAnnotation
           firstFragment: <testLibraryFragment>::@class::C::@constructor::commentAroundAnnotation
           documentationComment: /// Comment 2.
@@ -577,7 +577,7 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @308
                 rightParenthesis: ) @309
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+              element2: dart:core::@class::Object::@constructor::new
 ''');
   }
 
@@ -625,14 +625,14 @@ library
           constructors
             factory new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               codeOffset: 12
               codeLength: 23
               typeName: C
               typeNameOffset: 20
             factory raw @49
               reference: <testLibraryFragment>::@class::C::@constructor::raw
-              element: <testLibraryFragment>::@class::C::@constructor::raw#element
+              element: <testLibrary>::@class::C::@constructor::raw
               codeOffset: 39
               codeLength: 27
               typeName: C
@@ -640,7 +640,7 @@ library
               periodOffset: 48
             factory hasDocComment @114
               reference: <testLibraryFragment>::@class::C::@constructor::hasDocComment
-              element: <testLibraryFragment>::@class::C::@constructor::hasDocComment#element
+              element: <testLibrary>::@class::C::@constructor::hasDocComment
               documentationComment: /// Comment 1.\n/// Comment 2.
               codeOffset: 70
               codeLength: 71
@@ -649,7 +649,7 @@ library
               periodOffset: 113
             factory hasAnnotation @167
               reference: <testLibraryFragment>::@class::C::@constructor::hasAnnotation
-              element: <testLibraryFragment>::@class::C::@constructor::hasAnnotation#element
+              element: <testLibrary>::@class::C::@constructor::hasAnnotation
               metadata
                 Annotation
                   atSign: @ @145
@@ -660,7 +660,7 @@ library
                   arguments: ArgumentList
                     leftParenthesis: ( @152
                     rightParenthesis: ) @153
-                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+                  element2: dart:core::@class::Object::@constructor::new
               codeOffset: 145
               codeLength: 49
               typeName: C
@@ -668,7 +668,7 @@ library
               periodOffset: 166
             factory annotationThenComment @254
               reference: <testLibraryFragment>::@class::C::@constructor::annotationThenComment
-              element: <testLibraryFragment>::@class::C::@constructor::annotationThenComment#element
+              element: <testLibrary>::@class::C::@constructor::annotationThenComment
               documentationComment: /// Comment 1.\n/// Comment 2.
               metadata
                 Annotation
@@ -680,7 +680,7 @@ library
                   arguments: ArgumentList
                     leftParenthesis: ( @205
                     rightParenthesis: ) @206
-                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+                  element2: dart:core::@class::Object::@constructor::new
               codeOffset: 198
               codeLength: 91
               typeName: C
@@ -688,7 +688,7 @@ library
               periodOffset: 253
             factory commentThenAnnotation @349
               reference: <testLibraryFragment>::@class::C::@constructor::commentThenAnnotation
-              element: <testLibraryFragment>::@class::C::@constructor::commentThenAnnotation#element
+              element: <testLibrary>::@class::C::@constructor::commentThenAnnotation
               documentationComment: /// Comment 1.\n/// Comment 2.
               metadata
                 Annotation
@@ -700,7 +700,7 @@ library
                   arguments: ArgumentList
                     leftParenthesis: ( @334
                     rightParenthesis: ) @335
-                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+                  element2: dart:core::@class::Object::@constructor::new
               codeOffset: 293
               codeLength: 91
               typeName: C
@@ -708,7 +708,7 @@ library
               periodOffset: 348
             factory commentAroundAnnotation @444
               reference: <testLibraryFragment>::@class::C::@constructor::commentAroundAnnotation
-              element: <testLibraryFragment>::@class::C::@constructor::commentAroundAnnotation#element
+              element: <testLibrary>::@class::C::@constructor::commentAroundAnnotation
               documentationComment: /// Comment 2.
               metadata
                 Annotation
@@ -720,7 +720,7 @@ library
                   arguments: ArgumentList
                     leftParenthesis: ( @412
                     rightParenthesis: ) @413
-                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+                  element2: dart:core::@class::Object::@constructor::new
               codeOffset: 405
               codeLength: 76
               typeName: C
@@ -750,7 +750,7 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @152
                 rightParenthesis: ) @153
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+              element2: dart:core::@class::Object::@constructor::new
         factory annotationThenComment
           firstFragment: <testLibraryFragment>::@class::C::@constructor::annotationThenComment
           documentationComment: /// Comment 1.\n/// Comment 2.
@@ -764,7 +764,7 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @205
                 rightParenthesis: ) @206
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+              element2: dart:core::@class::Object::@constructor::new
         factory commentThenAnnotation
           firstFragment: <testLibraryFragment>::@class::C::@constructor::commentThenAnnotation
           documentationComment: /// Comment 1.\n/// Comment 2.
@@ -778,7 +778,7 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @334
                 rightParenthesis: ) @335
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+              element2: dart:core::@class::Object::@constructor::new
         factory commentAroundAnnotation
           firstFragment: <testLibraryFragment>::@class::C::@constructor::commentAroundAnnotation
           documentationComment: /// Comment 2.
@@ -792,7 +792,7 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @412
                 rightParenthesis: ) @413
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+              element2: dart:core::@class::Object::@constructor::new
 ''');
   }
 
@@ -838,7 +838,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       extensions
         extension Raw @22
@@ -916,33 +916,33 @@ library
           fields
             hasInitializer withInit @16
               reference: <testLibraryFragment>::@class::C::@field::withInit
-              element: <testLibraryFragment>::@class::C::@field::withInit#element
+              element: <testLibrary>::@class::C::@field::withInit
               getter2: <testLibraryFragment>::@class::C::@getter::withInit
               setter2: <testLibraryFragment>::@class::C::@setter::withInit
             withoutInit @37
               reference: <testLibraryFragment>::@class::C::@field::withoutInit
-              element: <testLibraryFragment>::@class::C::@field::withoutInit#element
+              element: <testLibrary>::@class::C::@field::withoutInit
               getter2: <testLibraryFragment>::@class::C::@getter::withoutInit
               setter2: <testLibraryFragment>::@class::C::@setter::withoutInit
             hasInitializer multiWithInit @57
               reference: <testLibraryFragment>::@class::C::@field::multiWithInit
-              element: <testLibraryFragment>::@class::C::@field::multiWithInit#element
+              element: <testLibrary>::@class::C::@field::multiWithInit
               getter2: <testLibraryFragment>::@class::C::@getter::multiWithInit
               setter2: <testLibraryFragment>::@class::C::@setter::multiWithInit
             multiWithoutInit @76
               reference: <testLibraryFragment>::@class::C::@field::multiWithoutInit
-              element: <testLibraryFragment>::@class::C::@field::multiWithoutInit#element
+              element: <testLibrary>::@class::C::@field::multiWithoutInit
               getter2: <testLibraryFragment>::@class::C::@getter::multiWithoutInit
               setter2: <testLibraryFragment>::@class::C::@setter::multiWithoutInit
             hasInitializer multiWithInit2 @94
               reference: <testLibraryFragment>::@class::C::@field::multiWithInit2
-              element: <testLibraryFragment>::@class::C::@field::multiWithInit2#element
+              element: <testLibrary>::@class::C::@field::multiWithInit2
               getter2: <testLibraryFragment>::@class::C::@getter::multiWithInit2
               setter2: <testLibraryFragment>::@class::C::@setter::multiWithInit2
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
             synthetic get withInit
@@ -1114,58 +1114,58 @@ library
           fields
             hasDocComment @50
               reference: <testLibraryFragment>::@class::C::@field::hasDocComment
-              element: <testLibraryFragment>::@class::C::@field::hasDocComment#element
+              element: <testLibrary>::@class::C::@field::hasDocComment
               getter2: <testLibraryFragment>::@class::C::@getter::hasDocComment
               setter2: <testLibraryFragment>::@class::C::@setter::hasDocComment
             hasDocComment2 @65
               reference: <testLibraryFragment>::@class::C::@field::hasDocComment2
-              element: <testLibraryFragment>::@class::C::@field::hasDocComment2#element
+              element: <testLibrary>::@class::C::@field::hasDocComment2
               getter2: <testLibraryFragment>::@class::C::@getter::hasDocComment2
               setter2: <testLibraryFragment>::@class::C::@setter::hasDocComment2
             hasAnnotation @100
               reference: <testLibraryFragment>::@class::C::@field::hasAnnotation
-              element: <testLibraryFragment>::@class::C::@field::hasAnnotation#element
+              element: <testLibrary>::@class::C::@field::hasAnnotation
               getter2: <testLibraryFragment>::@class::C::@getter::hasAnnotation
               setter2: <testLibraryFragment>::@class::C::@setter::hasAnnotation
             hasAnnotation2 @115
               reference: <testLibraryFragment>::@class::C::@field::hasAnnotation2
-              element: <testLibraryFragment>::@class::C::@field::hasAnnotation2#element
+              element: <testLibrary>::@class::C::@field::hasAnnotation2
               getter2: <testLibraryFragment>::@class::C::@getter::hasAnnotation2
               setter2: <testLibraryFragment>::@class::C::@setter::hasAnnotation2
             annotationThenComment @184
               reference: <testLibraryFragment>::@class::C::@field::annotationThenComment
-              element: <testLibraryFragment>::@class::C::@field::annotationThenComment#element
+              element: <testLibrary>::@class::C::@field::annotationThenComment
               getter2: <testLibraryFragment>::@class::C::@getter::annotationThenComment
               setter2: <testLibraryFragment>::@class::C::@setter::annotationThenComment
             annotationThenComment2 @207
               reference: <testLibraryFragment>::@class::C::@field::annotationThenComment2
-              element: <testLibraryFragment>::@class::C::@field::annotationThenComment2#element
+              element: <testLibrary>::@class::C::@field::annotationThenComment2
               getter2: <testLibraryFragment>::@class::C::@getter::annotationThenComment2
               setter2: <testLibraryFragment>::@class::C::@setter::annotationThenComment2
             commentThenAnnotation @284
               reference: <testLibraryFragment>::@class::C::@field::commentThenAnnotation
-              element: <testLibraryFragment>::@class::C::@field::commentThenAnnotation#element
+              element: <testLibrary>::@class::C::@field::commentThenAnnotation
               getter2: <testLibraryFragment>::@class::C::@getter::commentThenAnnotation
               setter2: <testLibraryFragment>::@class::C::@setter::commentThenAnnotation
             commentThenAnnotation2 @307
               reference: <testLibraryFragment>::@class::C::@field::commentThenAnnotation2
-              element: <testLibraryFragment>::@class::C::@field::commentThenAnnotation2#element
+              element: <testLibrary>::@class::C::@field::commentThenAnnotation2
               getter2: <testLibraryFragment>::@class::C::@getter::commentThenAnnotation2
               setter2: <testLibraryFragment>::@class::C::@setter::commentThenAnnotation2
             commentAroundAnnotation @384
               reference: <testLibraryFragment>::@class::C::@field::commentAroundAnnotation
-              element: <testLibraryFragment>::@class::C::@field::commentAroundAnnotation#element
+              element: <testLibrary>::@class::C::@field::commentAroundAnnotation
               getter2: <testLibraryFragment>::@class::C::@getter::commentAroundAnnotation
               setter2: <testLibraryFragment>::@class::C::@setter::commentAroundAnnotation
             commentAroundAnnotation2 @409
               reference: <testLibraryFragment>::@class::C::@field::commentAroundAnnotation2
-              element: <testLibraryFragment>::@class::C::@field::commentAroundAnnotation2#element
+              element: <testLibrary>::@class::C::@field::commentAroundAnnotation2
               getter2: <testLibraryFragment>::@class::C::@getter::commentAroundAnnotation2
               setter2: <testLibraryFragment>::@class::C::@setter::commentAroundAnnotation2
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
             synthetic get hasDocComment
@@ -1466,7 +1466,7 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @77
                 rightParenthesis: ) @78
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+              element2: dart:core::@class::Object::@constructor::new
         annotationThenComment @150
           reference: <testLibraryFragment>::@function::annotationThenComment
           element: <testLibrary>::@function::annotationThenComment
@@ -1481,7 +1481,7 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @112
                 rightParenthesis: ) @113
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+              element2: dart:core::@class::Object::@constructor::new
         commentThenAnnotation @223
           reference: <testLibraryFragment>::@function::commentThenAnnotation
           element: <testLibrary>::@function::commentThenAnnotation
@@ -1496,7 +1496,7 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @215
                 rightParenthesis: ) @216
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+              element2: dart:core::@class::Object::@constructor::new
         commentAroundAnnotation @296
           reference: <testLibraryFragment>::@function::commentAroundAnnotation
           element: <testLibrary>::@function::commentAroundAnnotation
@@ -1511,7 +1511,7 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @273
                 rightParenthesis: ) @274
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+              element2: dart:core::@class::Object::@constructor::new
   functions
     raw
       reference: <testLibrary>::@function::raw
@@ -1535,7 +1535,7 @@ library
           arguments: ArgumentList
             leftParenthesis: ( @77
             rightParenthesis: ) @78
-          element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+          element2: dart:core::@class::Object::@constructor::new
       returnType: void
     annotationThenComment
       reference: <testLibrary>::@function::annotationThenComment
@@ -1551,7 +1551,7 @@ library
           arguments: ArgumentList
             leftParenthesis: ( @112
             rightParenthesis: ) @113
-          element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+          element2: dart:core::@class::Object::@constructor::new
       returnType: void
     commentThenAnnotation
       reference: <testLibrary>::@function::commentThenAnnotation
@@ -1567,7 +1567,7 @@ library
           arguments: ArgumentList
             leftParenthesis: ( @215
             rightParenthesis: ) @216
-          element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+          element2: dart:core::@class::Object::@constructor::new
       returnType: void
     commentAroundAnnotation
       reference: <testLibrary>::@function::commentAroundAnnotation
@@ -1583,7 +1583,7 @@ library
           arguments: ArgumentList
             leftParenthesis: ( @273
             rightParenthesis: ) @274
-          element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+          element2: dart:core::@class::Object::@constructor::new
       returnType: void
 ''');
   }
@@ -1630,7 +1630,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
             raw @17
@@ -1657,7 +1657,7 @@ library
                   arguments: ArgumentList
                     leftParenthesis: ( @97
                     rightParenthesis: ) @98
-                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+                  element2: dart:core::@class::Object::@constructor::new
               codeOffset: 90
               codeLength: 35
             annotationThenComment @180
@@ -1674,7 +1674,7 @@ library
                   arguments: ArgumentList
                     leftParenthesis: ( @136
                     rightParenthesis: ) @137
-                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+                  element2: dart:core::@class::Object::@constructor::new
               codeOffset: 129
               codeLength: 77
             commentThenAnnotation @261
@@ -1691,7 +1691,7 @@ library
                   arguments: ArgumentList
                     leftParenthesis: ( @251
                     rightParenthesis: ) @252
-                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+                  element2: dart:core::@class::Object::@constructor::new
               codeOffset: 210
               codeLength: 77
             commentAroundAnnotation @342
@@ -1708,7 +1708,7 @@ library
                   arguments: ArgumentList
                     leftParenthesis: ( @315
                     rightParenthesis: ) @316
-                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+                  element2: dart:core::@class::Object::@constructor::new
               codeOffset: 308
               codeLength: 62
   classes
@@ -1741,7 +1741,7 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @97
                 rightParenthesis: ) @98
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+              element2: dart:core::@class::Object::@constructor::new
           returnType: void
         annotationThenComment
           reference: <testLibrary>::@class::C::@method::annotationThenComment
@@ -1757,7 +1757,7 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @136
                 rightParenthesis: ) @137
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+              element2: dart:core::@class::Object::@constructor::new
           returnType: void
         commentThenAnnotation
           reference: <testLibrary>::@class::C::@method::commentThenAnnotation
@@ -1773,7 +1773,7 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @251
                 rightParenthesis: ) @252
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+              element2: dart:core::@class::Object::@constructor::new
           returnType: void
         commentAroundAnnotation
           reference: <testLibrary>::@class::C::@method::commentAroundAnnotation
@@ -1789,7 +1789,7 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @315
                 rightParenthesis: ) @316
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+              element2: dart:core::@class::Object::@constructor::new
           returnType: void
 ''');
   }
@@ -1879,7 +1879,7 @@ library
                   arguments: ArgumentList
                     leftParenthesis: ( @12
                     rightParenthesis: ) @13
-                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+                  element2: dart:core::@class::Object::@constructor::new
             b @26
               element: <testLibraryFragment>::@function::main::@parameter::b#element
             c @43
@@ -1894,7 +1894,7 @@ library
                   arguments: ArgumentList
                     leftParenthesis: ( @36
                     rightParenthesis: ) @37
-                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+                  element2: dart:core::@class::Object::@constructor::new
   functions
     main
       reference: <testLibrary>::@function::main
@@ -1912,7 +1912,7 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @12
                 rightParenthesis: ) @13
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+              element2: dart:core::@class::Object::@constructor::new
         requiredPositional b
           type: int
         requiredPositional c
@@ -1927,7 +1927,7 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @36
                 rightParenthesis: ) @37
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+              element2: dart:core::@class::Object::@constructor::new
       returnType: dynamic
 ''');
   }
@@ -2158,7 +2158,7 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @73
                 rightParenthesis: ) @74
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+              element2: dart:core::@class::Object::@constructor::new
           getter2: <testLibraryFragment>::@getter::hasAnnotation
           setter2: <testLibraryFragment>::@setter::hasAnnotation
         hasAnnotation2 @95
@@ -2174,7 +2174,7 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @73
                 rightParenthesis: ) @74
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+              element2: dart:core::@class::Object::@constructor::new
           getter2: <testLibraryFragment>::@getter::hasAnnotation2
           setter2: <testLibraryFragment>::@setter::hasAnnotation2
         annotationThenComment @156
@@ -2191,7 +2191,7 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @119
                 rightParenthesis: ) @120
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+              element2: dart:core::@class::Object::@constructor::new
           getter2: <testLibraryFragment>::@getter::annotationThenComment
           setter2: <testLibraryFragment>::@setter::annotationThenComment
         annotationThenComment2 @179
@@ -2208,7 +2208,7 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @119
                 rightParenthesis: ) @120
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+              element2: dart:core::@class::Object::@constructor::new
           getter2: <testLibraryFragment>::@getter::annotationThenComment2
           setter2: <testLibraryFragment>::@setter::annotationThenComment2
         commentThenAnnotation @248
@@ -2225,7 +2225,7 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @241
                 rightParenthesis: ) @242
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+              element2: dart:core::@class::Object::@constructor::new
           getter2: <testLibraryFragment>::@getter::commentThenAnnotation
           setter2: <testLibraryFragment>::@setter::commentThenAnnotation
         commentThenAnnotation2 @271
@@ -2242,7 +2242,7 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @241
                 rightParenthesis: ) @242
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+              element2: dart:core::@class::Object::@constructor::new
           getter2: <testLibraryFragment>::@getter::commentThenAnnotation2
           setter2: <testLibraryFragment>::@setter::commentThenAnnotation2
         commentAroundAnnotation @340
@@ -2259,7 +2259,7 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @318
                 rightParenthesis: ) @319
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+              element2: dart:core::@class::Object::@constructor::new
           getter2: <testLibraryFragment>::@getter::commentAroundAnnotation
           setter2: <testLibraryFragment>::@setter::commentAroundAnnotation
         commentAroundAnnotation2 @365
@@ -2276,7 +2276,7 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @318
                 rightParenthesis: ) @319
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+              element2: dart:core::@class::Object::@constructor::new
           getter2: <testLibraryFragment>::@getter::commentAroundAnnotation2
           setter2: <testLibraryFragment>::@setter::commentAroundAnnotation2
       getters
@@ -2399,7 +2399,7 @@ library
           arguments: ArgumentList
             leftParenthesis: ( @73
             rightParenthesis: ) @74
-          element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+          element2: dart:core::@class::Object::@constructor::new
       type: int
       getter: <testLibraryFragment>::@getter::hasAnnotation#element
       setter: <testLibraryFragment>::@setter::hasAnnotation#element
@@ -2416,7 +2416,7 @@ library
           arguments: ArgumentList
             leftParenthesis: ( @73
             rightParenthesis: ) @74
-          element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+          element2: dart:core::@class::Object::@constructor::new
       type: int
       getter: <testLibraryFragment>::@getter::hasAnnotation2#element
       setter: <testLibraryFragment>::@setter::hasAnnotation2#element
@@ -2434,7 +2434,7 @@ library
           arguments: ArgumentList
             leftParenthesis: ( @119
             rightParenthesis: ) @120
-          element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+          element2: dart:core::@class::Object::@constructor::new
       type: int
       getter: <testLibraryFragment>::@getter::annotationThenComment#element
       setter: <testLibraryFragment>::@setter::annotationThenComment#element
@@ -2452,7 +2452,7 @@ library
           arguments: ArgumentList
             leftParenthesis: ( @119
             rightParenthesis: ) @120
-          element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+          element2: dart:core::@class::Object::@constructor::new
       type: int
       getter: <testLibraryFragment>::@getter::annotationThenComment2#element
       setter: <testLibraryFragment>::@setter::annotationThenComment2#element
@@ -2470,7 +2470,7 @@ library
           arguments: ArgumentList
             leftParenthesis: ( @241
             rightParenthesis: ) @242
-          element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+          element2: dart:core::@class::Object::@constructor::new
       type: int
       getter: <testLibraryFragment>::@getter::commentThenAnnotation#element
       setter: <testLibraryFragment>::@setter::commentThenAnnotation#element
@@ -2488,7 +2488,7 @@ library
           arguments: ArgumentList
             leftParenthesis: ( @241
             rightParenthesis: ) @242
-          element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+          element2: dart:core::@class::Object::@constructor::new
       type: int
       getter: <testLibraryFragment>::@getter::commentThenAnnotation2#element
       setter: <testLibraryFragment>::@setter::commentThenAnnotation2#element
@@ -2506,7 +2506,7 @@ library
           arguments: ArgumentList
             leftParenthesis: ( @318
             rightParenthesis: ) @319
-          element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+          element2: dart:core::@class::Object::@constructor::new
       type: int
       getter: <testLibraryFragment>::@getter::commentAroundAnnotation#element
       setter: <testLibraryFragment>::@setter::commentAroundAnnotation#element
@@ -2524,7 +2524,7 @@ library
           arguments: ArgumentList
             leftParenthesis: ( @318
             rightParenthesis: ) @319
-          element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+          element2: dart:core::@class::Object::@constructor::new
       type: int
       getter: <testLibraryFragment>::@getter::commentAroundAnnotation2#element
       setter: <testLibraryFragment>::@setter::commentAroundAnnotation2#element
@@ -2645,7 +2645,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       functions
         f @19
@@ -2694,12 +2694,12 @@ library
           constructors
             new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 12
             named @21
               reference: <testLibraryFragment>::@class::A::@constructor::named
-              element: <testLibraryFragment>::@class::A::@constructor::named#element
+              element: <testLibrary>::@class::A::@constructor::named
               typeName: A
               typeNameOffset: 19
               periodOffset: 20
@@ -2734,7 +2734,7 @@ library
           constructors
             new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 12
               formalParameters
@@ -2772,13 +2772,13 @@ library
           fields
             hasInitializer foo @16
               reference: <testLibraryFragment>::@class::A::@field::foo
-              element: <testLibraryFragment>::@class::A::@field::foo#element
+              element: <testLibrary>::@class::A::@field::foo
               getter2: <testLibraryFragment>::@class::A::@getter::foo
               setter2: <testLibraryFragment>::@class::A::@setter::foo
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
             synthetic get foo
@@ -2837,12 +2837,12 @@ library
           fields
             synthetic foo
               reference: <testLibraryFragment>::@class::A::@field::foo
-              element: <testLibraryFragment>::@class::A::@field::foo#element
+              element: <testLibrary>::@class::A::@field::foo
               getter2: <testLibraryFragment>::@class::A::@getter::foo
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
             get foo @20
@@ -2886,7 +2886,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
             foo @17
@@ -2937,12 +2937,12 @@ library
           fields
             synthetic foo
               reference: <testLibraryFragment>::@class::A::@field::foo
-              element: <testLibraryFragment>::@class::A::@field::foo#element
+              element: <testLibrary>::@class::A::@field::foo
               setter2: <testLibraryFragment>::@class::A::@setter::foo
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           setters
             set foo @16
@@ -2993,7 +2993,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
   classes
     class A

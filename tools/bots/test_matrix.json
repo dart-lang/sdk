@@ -1421,6 +1421,17 @@
           ]
         },
         {
+          "name": "build dart debug arm64",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=debug",
+            "--arch=arm64",
+            "--no-clang",
+            "runtime",
+            "runtime_precompiled"
+          ]
+        },
+        {
           "name": "build dart debug riscv64",
           "script": "tools/build.py",
           "arguments": [
@@ -1448,6 +1459,17 @@
           "arguments": [
             "--mode=release",
             "--arch=arm",
+            "--no-clang",
+            "runtime",
+            "runtime_precompiled"
+          ]
+        },
+        {
+          "name": "build dart release arm64",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=release",
+            "--arch=arm64",
             "--no-clang",
             "runtime",
             "runtime_precompiled"

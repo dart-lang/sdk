@@ -52,7 +52,7 @@ library
           constructors
             named @55
               reference: dart:foo::<fragment>::@class::A::@constructor::named
-              element: dart:foo::<fragment>::@class::A::@constructor::named#element
+              element: dart:foo::@class::A::@constructor::named
               typeName: A
               typeNameOffset: 53
               periodOffset: 54
@@ -62,7 +62,7 @@ library
           constructors
             named @81
               reference: dart:foo::<fragment>::@class::B::@constructor::named
-              element: dart:foo::<fragment>::@class::B::@constructor::named#element
+              element: dart:foo::@class::B::@constructor::named
               typeName: B
               typeNameOffset: 79
               periodOffset: 80
@@ -107,7 +107,7 @@ library
           fields
             hasInitializer foo @57
               reference: dart:foo::<fragment>::@class::A::@field::foo
-              element: dart:foo::<fragment>::@class::A::@field::foo#element
+              element: dart:foo::@class::A::@field::foo
               getter2: dart:foo::<fragment>::@class::A::@getter::foo
               setter2: dart:foo::<fragment>::@class::A::@setter::foo
           getters
@@ -172,7 +172,7 @@ library
           fields
             synthetic foo
               reference: dart:foo::<fragment>::@class::A::@field::foo
-              element: dart:foo::<fragment>::@class::A::@field::foo#element
+              element: dart:foo::@class::A::@field::foo
               getter2: dart:foo::<fragment>::@class::A::@getter::foo
           getters
             get foo @61
@@ -336,7 +336,7 @@ library
           fields
             synthetic foo
               reference: dart:foo::<fragment>::@class::A::@field::foo
-              element: dart:foo::<fragment>::@class::A::@field::foo#element
+              element: dart:foo::@class::A::@field::foo
               setter2: dart:foo::<fragment>::@class::A::@setter::foo
           setters
             set foo @57
@@ -391,7 +391,7 @@ library
           fields
             hasInitializer v1 @37
               reference: dart:foo::<fragment>::@enum::E::@field::v1
-              element: dart:foo::<fragment>::@enum::E::@field::v1#element
+              element: dart:foo::@enum::E::@field::v1
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -399,7 +399,7 @@ library
                       name: E @-1
                       element2: dart:foo::@enum::E
                       type: E
-                    element: dart:foo::<fragment>::@enum::E::@constructor::new#element
+                    element: dart:foo::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -407,7 +407,7 @@ library
               getter2: dart:foo::<fragment>::@enum::E::@getter::v1
             hasInitializer v2 @60
               reference: dart:foo::<fragment>::@enum::E::@field::v2
-              element: dart:foo::<fragment>::@enum::E::@field::v2#element
+              element: dart:foo::@enum::E::@field::v2
               initializer: expression_1
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -415,7 +415,7 @@ library
                       name: E @-1
                       element2: dart:foo::@enum::E
                       type: E
-                    element: dart:foo::<fragment>::@enum::E::@constructor::new#element
+                    element: dart:foo::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -423,7 +423,7 @@ library
               getter2: dart:foo::<fragment>::@enum::E::@getter::v2
             synthetic values
               reference: dart:foo::<fragment>::@enum::E::@field::values
-              element: dart:foo::<fragment>::@enum::E::@field::values#element
+              element: dart:foo::@enum::E::@field::values
               initializer: expression_2
                 ListLiteral
                   leftBracket: [ @0
@@ -515,7 +515,7 @@ library
           fields
             hasInitializer v @52
               reference: dart:foo::<fragment>::@enum::E::@field::v
-              element: dart:foo::<fragment>::@enum::E::@field::v#element
+              element: dart:foo::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -523,7 +523,7 @@ library
                       name: E @-1
                       element2: dart:foo::@enum::E
                       type: E
-                    element: dart:foo::<fragment>::@enum::E::@constructor::new#element
+                    element: dart:foo::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -531,7 +531,7 @@ library
               getter2: dart:foo::<fragment>::@enum::E::@getter::v
             synthetic values
               reference: dart:foo::<fragment>::@enum::E::@field::values
-              element: dart:foo::<fragment>::@enum::E::@field::values#element
+              element: dart:foo::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0

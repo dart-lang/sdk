@@ -570,7 +570,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -583,7 +583,7 @@ library
           constructors
             synthetic new
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::B::@constructor::new
-              element: <testLibrary>::@fragment::package:test/a.dart::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
     class A
@@ -628,7 +628,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -641,7 +641,7 @@ library
           constructors
             synthetic new
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::B::@constructor::new
-              element: <testLibrary>::@fragment::package:test/a.dart::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
     class A

@@ -26,6 +26,8 @@ class ServerSetClientCapabilitiesHandler extends LegacyHandler {
         request,
         clientUriConverter: server.uriConverter,
       );
+
+      server.checkAnalytics();
     } on RequestFailure catch (exception) {
       sendResponse(exception.response);
       return;

@@ -4407,7 +4407,7 @@ MethodInvocation
         element2: <testLibrary>::@class::C
         type: C<S>
       element: ConstructorMember
-        baseElement: <testLibraryFragment>::@class::C::@constructor::new#element
+        baseElement: <testLibrary>::@class::C::@constructor::new
         substitution: {T: S}
     argumentList: ArgumentList
       leftParenthesis: (
@@ -4481,7 +4481,7 @@ MethodInvocation
         element2: <testLibrary>::@class::C
         type: C<S>
       element: ConstructorMember
-        baseElement: <testLibraryFragment>::@class::C::@constructor::new#element
+        baseElement: <testLibrary>::@class::C::@constructor::new
         substitution: {T: S}
     argumentList: ArgumentList
       leftParenthesis: (

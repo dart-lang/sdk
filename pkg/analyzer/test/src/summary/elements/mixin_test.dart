@@ -47,7 +47,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
         class B @17
           reference: <testLibraryFragment>::@class::B
@@ -55,7 +55,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
         class C @28
           reference: <testLibraryFragment>::@class::C
@@ -63,7 +63,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
         class D @39
           reference: <testLibraryFragment>::@class::D
@@ -71,7 +71,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::D::@constructor::new
-              element: <testLibraryFragment>::@class::D::@constructor::new#element
+              element: <testLibrary>::@class::D::@constructor::new
               typeName: D
       mixins
         mixin M @51
@@ -85,16 +85,16 @@ library
           fields
             f @101
               reference: <testLibraryFragment>::@mixin::M::@field::f
-              element: <testLibraryFragment>::@mixin::M::@field::f#element
+              element: <testLibrary>::@mixin::M::@field::f
               getter2: <testLibraryFragment>::@mixin::M::@getter::f
               setter2: <testLibraryFragment>::@mixin::M::@setter::f
             synthetic g
               reference: <testLibraryFragment>::@mixin::M::@field::g
-              element: <testLibraryFragment>::@mixin::M::@field::g#element
+              element: <testLibrary>::@mixin::M::@field::g
               getter2: <testLibraryFragment>::@mixin::M::@getter::g
             synthetic s
               reference: <testLibraryFragment>::@mixin::M::@field::s
-              element: <testLibraryFragment>::@mixin::M::@field::s#element
+              element: <testLibrary>::@mixin::M::@field::s
               setter2: <testLibraryFragment>::@mixin::M::@setter::s
           getters
             synthetic get f
@@ -253,7 +253,7 @@ library
           fields
             hasInitializer x @18
               reference: <testLibraryFragment>::@mixin::M::@field::x
-              element: <testLibraryFragment>::@mixin::M::@field::x#element
+              element: <testLibrary>::@mixin::M::@field::x
               getter2: <testLibraryFragment>::@mixin::M::@getter::x
           getters
             synthetic get x
@@ -310,7 +310,7 @@ library
           fields
             synthetic foo
               reference: <testLibraryFragment>::@mixin::M::@field::foo
-              element: <testLibraryFragment>::@mixin::M::@field::foo#element
+              element: <testLibrary>::@mixin::M::@field::foo
               getter2: <testLibraryFragment>::@mixin::M::@getter::foo
           getters
             get foo @25
@@ -355,7 +355,7 @@ library
           fields
             synthetic foo
               reference: <testLibraryFragment>::@mixin::M::@field::foo
-              element: <testLibraryFragment>::@mixin::M::@field::foo#element
+              element: <testLibrary>::@mixin::M::@field::foo
               getter2: <testLibraryFragment>::@mixin::M::@getter::foo
           getters
             get foo @25
@@ -400,7 +400,7 @@ library
           fields
             synthetic foo
               reference: <testLibraryFragment>::@mixin::M::@field::foo
-              element: <testLibraryFragment>::@mixin::M::@field::foo#element
+              element: <testLibrary>::@mixin::M::@field::foo
               getter2: <testLibraryFragment>::@mixin::M::@getter::foo
           getters
             get foo @25
@@ -469,7 +469,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
         class B @42
           reference: <testLibraryFragment>::@class::B
@@ -477,7 +477,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
       mixins
         mixin M @20
@@ -504,7 +504,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
+          superConstructor: <testLibrary>::@class::A::@constructor::new
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
@@ -542,7 +542,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
         class B @20
           reference: <testLibraryFragment>::@class::B
@@ -553,7 +553,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
         class C @51
           reference: <testLibraryFragment>::@class::C
@@ -561,7 +561,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
   classes
     class A
@@ -589,7 +589,7 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
-              element: dart:core::<fragment>::@class::Object::@constructor::new#element
+              element: dart:core::@class::Object::@constructor::new
     class alias C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
@@ -605,8 +605,8 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
-          superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
+          superConstructor: <testLibrary>::@class::A::@constructor::new
 ''');
   }
 
@@ -639,7 +639,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A1::@constructor::new
-              element: <testLibraryFragment>::@class::A1::@constructor::new#element
+              element: <testLibrary>::@class::A1::@constructor::new
               typeName: A1
         class A2 @21
           reference: <testLibraryFragment>::@class::A2
@@ -650,7 +650,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A2::@constructor::new
-              element: <testLibraryFragment>::@class::A2::@constructor::new#element
+              element: <testLibrary>::@class::A2::@constructor::new
               typeName: A2
         class B @36
           reference: <testLibraryFragment>::@class::B
@@ -661,7 +661,7 @@ library
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
         class Base @75
           reference: <testLibraryFragment>::@class::Base
@@ -669,7 +669,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::Base::@constructor::new
-              element: <testLibraryFragment>::@class::Base::@constructor::new#element
+              element: <testLibrary>::@class::Base::@constructor::new
               typeName: Base
         class C @108
           reference: <testLibraryFragment>::@class::C
@@ -677,7 +677,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
   classes
     class A1
@@ -714,7 +714,7 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
-              element: dart:core::<fragment>::@class::Object::@constructor::new#element
+              element: dart:core::@class::Object::@constructor::new
     class Base
       reference: <testLibrary>::@class::Base
       firstFragment: <testLibraryFragment>::@class::Base
@@ -738,8 +738,8 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
-              element: <testLibraryFragment>::@class::Base::@constructor::new#element
-          superConstructor: <testLibraryFragment>::@class::Base::@constructor::new#element
+              element: <testLibrary>::@class::Base::@constructor::new
+          superConstructor: <testLibrary>::@class::Base::@constructor::new
 ''');
   }
 
@@ -765,7 +765,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
         class C @57
           reference: <testLibraryFragment>::@class::C
@@ -773,7 +773,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       mixins
         mixin M @20
@@ -802,7 +802,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
+          superConstructor: <testLibrary>::@class::A::@constructor::new
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
@@ -837,7 +837,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
         class C @57
           reference: <testLibraryFragment>::@class::C
@@ -845,7 +845,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       mixins
         mixin M @29
@@ -872,7 +872,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
+          superConstructor: <testLibrary>::@class::A::@constructor::new
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
@@ -908,7 +908,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::I::@constructor::new
-              element: <testLibraryFragment>::@class::I::@constructor::new#element
+              element: <testLibrary>::@class::I::@constructor::new
               typeName: I
         class A @66
           reference: <testLibraryFragment>::@class::A
@@ -916,7 +916,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       mixins
         mixin M1 @20
@@ -956,8 +956,8 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
-              element: <testLibraryFragment>::@class::I::@constructor::new#element
-          superConstructor: <testLibraryFragment>::@class::I::@constructor::new#element
+              element: <testLibrary>::@class::I::@constructor::new
+          superConstructor: <testLibrary>::@class::I::@constructor::new
   mixins
     mixin M1
       reference: <testLibrary>::@mixin::M1
@@ -1002,7 +1002,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::S::@constructor::new
-              element: <testLibraryFragment>::@class::S::@constructor::new#element
+              element: <testLibrary>::@class::S::@constructor::new
               typeName: S
         class X @78
           reference: <testLibraryFragment>::@class::X
@@ -1010,7 +1010,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::X::@constructor::new
-              element: <testLibraryFragment>::@class::X::@constructor::new#element
+              element: <testLibrary>::@class::X::@constructor::new
               typeName: X
       mixins
         mixin M @6
@@ -1049,7 +1049,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::X::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::S::@constructor::new#element
+          superConstructor: <testLibrary>::@class::S::@constructor::new
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
@@ -1096,7 +1096,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::S::@constructor::new
-              element: <testLibraryFragment>::@class::S::@constructor::new#element
+              element: <testLibrary>::@class::S::@constructor::new
               typeName: S
         class X @104
           reference: <testLibraryFragment>::@class::X
@@ -1104,7 +1104,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::X::@constructor::new
-              element: <testLibraryFragment>::@class::X::@constructor::new#element
+              element: <testLibrary>::@class::X::@constructor::new
               typeName: X
       mixins
         mixin M @6
@@ -1149,7 +1149,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::X::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::S::@constructor::new#element
+          superConstructor: <testLibrary>::@class::S::@constructor::new
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
@@ -1204,7 +1204,7 @@ library
           fields
             it @32
               reference: <testLibraryFragment>::@extensionType::B::@field::it
-              element: <testLibraryFragment>::@extensionType::B::@field::it#element
+              element: <testLibrary>::@extensionType::B::@field::it
               getter2: <testLibraryFragment>::@extensionType::B::@getter::it
           getters
             synthetic get it
@@ -1225,8 +1225,8 @@ library
     extension type B
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
-      representation: <testLibraryFragment>::@extensionType::B::@field::it#element
-      primaryConstructor: <testLibraryFragment>::@extensionType::B::@constructor::new#element
+      representation: <testLibrary>::@extensionType::B::@field::it
+      primaryConstructor: <testLibrary>::@extensionType::B::@constructor::B
       typeErasure: int
       fields
         final it
@@ -1305,7 +1305,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       mixins
         mixin B @17
@@ -1467,7 +1467,7 @@ library
           fields
             synthetic foo
               reference: <testLibraryFragment>::@mixin::M::@field::foo
-              element: <testLibraryFragment>::@mixin::M::@field::foo#element
+              element: <testLibrary>::@mixin::M::@field::foo
               setter2: <testLibraryFragment>::@mixin::M::@setter::foo
           setters
             set foo @21
@@ -1518,7 +1518,7 @@ library
           fields
             synthetic foo
               reference: <testLibraryFragment>::@mixin::M::@field::foo
-              element: <testLibraryFragment>::@mixin::M::@field::foo#element
+              element: <testLibrary>::@mixin::M::@field::foo
               setter2: <testLibraryFragment>::@mixin::M::@setter::foo
           setters
             set foo @21
@@ -1576,7 +1576,7 @@ library
           fields
             it @32
               reference: <testLibraryFragment>::@extensionType::B::@field::it
-              element: <testLibraryFragment>::@extensionType::B::@field::it#element
+              element: <testLibrary>::@extensionType::B::@field::it
               getter2: <testLibraryFragment>::@extensionType::B::@getter::it
           getters
             synthetic get it
@@ -1597,8 +1597,8 @@ library
     extension type B
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
-      representation: <testLibraryFragment>::@extensionType::B::@field::it#element
-      primaryConstructor: <testLibraryFragment>::@extensionType::B::@constructor::new#element
+      representation: <testLibrary>::@extensionType::B::@field::it
+      primaryConstructor: <testLibrary>::@extensionType::B::@constructor::B
       typeErasure: int
       fields
         final it

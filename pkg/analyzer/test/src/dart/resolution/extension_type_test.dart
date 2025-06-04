@@ -143,7 +143,7 @@ ExtensionTypeDeclaration
         ConstructorFieldInitializer
           fieldName: SimpleIdentifier
             token: it
-            element: <testLibraryFragment>::@extensionType::A::@field::it#element
+            element: <testLibrary>::@extensionType::A::@field::it
             staticType: null
           equals: =
           expression: SimpleIdentifier

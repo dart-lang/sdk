@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
@@ -22,10 +23,7 @@ class PreferIfElementsToConditionalExpressions extends LintRule {
       LinterLintCode.prefer_if_elements_to_conditional_expressions;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addConditionalExpression(this, visitor);
   }

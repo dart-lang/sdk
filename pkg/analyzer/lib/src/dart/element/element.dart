@@ -2848,14 +2848,14 @@ class FieldElementImpl2 extends PropertyInducingElementImpl2
         _HasSinceSdkVersionMixin
     implements FieldElement2OrMember {
   @override
+  final Reference reference;
+
+  @override
   final FieldFragmentImpl firstFragment;
 
-  FieldElementImpl2(this.firstFragment) {
-    FieldFragmentImpl? fragment = firstFragment;
-    while (fragment != null) {
-      fragment.element = this;
-      fragment = fragment.nextFragment;
-    }
+  FieldElementImpl2({required this.reference, required this.firstFragment}) {
+    reference.element2 = this;
+    firstFragment.element = this;
   }
 
   @override
@@ -3054,8 +3054,8 @@ class FieldFragmentImpl extends PropertyInducingElementImpl
   /// annotations, but also inferred types.
   bool hasEnclosingTypeParameterReference = true;
 
-  /// The element corresponding to this fragment.
-  FieldElementImpl2? _element;
+  @override
+  late final FieldElementImpl2 element;
 
   /// Initialize a newly created synthetic field element to have the given
   /// [name] at the given [offset].
@@ -3063,24 +3063,6 @@ class FieldFragmentImpl extends PropertyInducingElementImpl
 
   @override
   FieldFragmentImpl get declaration => this;
-
-  @override
-  FieldElementImpl2 get element {
-    if (_element != null) {
-      return _element!;
-    }
-    FieldFragment firstFragment = this;
-    var previousFragment = firstFragment.previousFragment;
-    while (previousFragment != null) {
-      firstFragment = previousFragment;
-      previousFragment = firstFragment.previousFragment;
-    }
-    // As a side-effect of creating the element, all of the fragments in the
-    // chain will have their `_element` set to the newly created element.
-    return FieldElementImpl2(firstFragment as FieldFragmentImpl);
-  }
-
-  set element(FieldElementImpl2 element) => _element = element;
 
   /// Whether the field is abstract.
   ///

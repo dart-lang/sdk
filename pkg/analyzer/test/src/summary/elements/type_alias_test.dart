@@ -73,7 +73,7 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @79
                 rightParenthesis: ) @80
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+              element2: dart:core::@class::Object::@constructor::new
         AnnotationThenComment @156
           reference: <testLibraryFragment>::@typeAlias::AnnotationThenComment
           element: <testLibrary>::@typeAlias::AnnotationThenComment
@@ -88,7 +88,7 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @115
                 rightParenthesis: ) @116
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+              element2: dart:core::@class::Object::@constructor::new
         CommentThenAnnotation @230
           reference: <testLibraryFragment>::@typeAlias::CommentThenAnnotation
           element: <testLibrary>::@typeAlias::CommentThenAnnotation
@@ -103,7 +103,7 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @219
                 rightParenthesis: ) @220
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+              element2: dart:core::@class::Object::@constructor::new
         CommentAroundAnnotation @304
           reference: <testLibraryFragment>::@typeAlias::CommentAroundAnnotation
           element: <testLibrary>::@typeAlias::CommentAroundAnnotation
@@ -118,7 +118,7 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @278
                 rightParenthesis: ) @279
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+              element2: dart:core::@class::Object::@constructor::new
   typeAliases
     Raw
       firstFragment: <testLibraryFragment>::@typeAlias::Raw
@@ -139,7 +139,7 @@ library
           arguments: ArgumentList
             leftParenthesis: ( @79
             rightParenthesis: ) @80
-          element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+          element2: dart:core::@class::Object::@constructor::new
       aliasedType: dynamic Function()
     AnnotationThenComment
       firstFragment: <testLibraryFragment>::@typeAlias::AnnotationThenComment
@@ -154,7 +154,7 @@ library
           arguments: ArgumentList
             leftParenthesis: ( @115
             rightParenthesis: ) @116
-          element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+          element2: dart:core::@class::Object::@constructor::new
       aliasedType: dynamic Function()
     CommentThenAnnotation
       firstFragment: <testLibraryFragment>::@typeAlias::CommentThenAnnotation
@@ -169,7 +169,7 @@ library
           arguments: ArgumentList
             leftParenthesis: ( @219
             rightParenthesis: ) @220
-          element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+          element2: dart:core::@class::Object::@constructor::new
       aliasedType: dynamic Function()
     CommentAroundAnnotation
       firstFragment: <testLibraryFragment>::@typeAlias::CommentAroundAnnotation
@@ -184,7 +184,7 @@ library
           arguments: ArgumentList
             leftParenthesis: ( @278
             rightParenthesis: ) @279
-          element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+          element2: dart:core::@class::Object::@constructor::new
       aliasedType: dynamic Function()
 ''');
   }
@@ -243,7 +243,7 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @101
                 rightParenthesis: ) @102
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+              element2: dart:core::@class::Object::@constructor::new
         AnnotationThenComment @189
           reference: <testLibraryFragment>::@typeAlias::AnnotationThenComment
           element: <testLibrary>::@typeAlias::AnnotationThenComment
@@ -258,7 +258,7 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @148
                 rightParenthesis: ) @149
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+              element2: dart:core::@class::Object::@constructor::new
         CommentThenAnnotation @274
           reference: <testLibraryFragment>::@typeAlias::CommentThenAnnotation
           element: <testLibrary>::@typeAlias::CommentThenAnnotation
@@ -273,7 +273,7 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @263
                 rightParenthesis: ) @264
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+              element2: dart:core::@class::Object::@constructor::new
         CommentAroundAnnotation @359
           reference: <testLibraryFragment>::@typeAlias::CommentAroundAnnotation
           element: <testLibrary>::@typeAlias::CommentAroundAnnotation
@@ -288,7 +288,7 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @333
                 rightParenthesis: ) @334
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+              element2: dart:core::@class::Object::@constructor::new
   typeAliases
     Raw
       firstFragment: <testLibraryFragment>::@typeAlias::Raw
@@ -309,7 +309,7 @@ library
           arguments: ArgumentList
             leftParenthesis: ( @101
             rightParenthesis: ) @102
-          element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+          element2: dart:core::@class::Object::@constructor::new
       aliasedType: dynamic Function()
     AnnotationThenComment
       firstFragment: <testLibraryFragment>::@typeAlias::AnnotationThenComment
@@ -324,7 +324,7 @@ library
           arguments: ArgumentList
             leftParenthesis: ( @148
             rightParenthesis: ) @149
-          element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+          element2: dart:core::@class::Object::@constructor::new
       aliasedType: dynamic Function()
     CommentThenAnnotation
       firstFragment: <testLibraryFragment>::@typeAlias::CommentThenAnnotation
@@ -339,7 +339,7 @@ library
           arguments: ArgumentList
             leftParenthesis: ( @263
             rightParenthesis: ) @264
-          element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+          element2: dart:core::@class::Object::@constructor::new
       aliasedType: dynamic Function()
     CommentAroundAnnotation
       firstFragment: <testLibraryFragment>::@typeAlias::CommentAroundAnnotation
@@ -354,7 +354,7 @@ library
           arguments: ArgumentList
             leftParenthesis: ( @333
             rightParenthesis: ) @334
-          element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+          element2: dart:core::@class::Object::@constructor::new
       aliasedType: dynamic Function()
 ''');
   }
@@ -1245,7 +1245,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       typeAliases
         F @19
@@ -1709,13 +1709,13 @@ library
           fields
             f @58
               reference: <testLibraryFragment>::@class::A::@field::f
-              element: <testLibraryFragment>::@class::A::@field::f#element
+              element: <testLibrary>::@class::A::@field::f
               getter2: <testLibraryFragment>::@class::A::@getter::f
               setter2: <testLibraryFragment>::@class::A::@setter::f
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
             synthetic get f
@@ -1800,7 +1800,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       typeAliases
         F @8
@@ -1846,7 +1846,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       typeAliases
         F @8
@@ -1892,7 +1892,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       typeAliases
         F @8
@@ -1994,7 +1994,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       typeAliases
         F @13
@@ -2040,7 +2040,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       typeAliases
         F @10
@@ -2427,7 +2427,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::D::@constructor::new
-              element: <testLibraryFragment>::@class::D::@constructor::new#element
+              element: <testLibrary>::@class::D::@constructor::new
               typeName: D
       typeAliases
         F @10
@@ -2882,7 +2882,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
         class B @49
           reference: <testLibraryFragment>::@class::B
@@ -2890,7 +2890,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
       typeAliases
         X @8
@@ -2953,7 +2953,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
         class B @42
           reference: <testLibraryFragment>::@class::B
@@ -2961,7 +2961,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
         class C @53
           reference: <testLibraryFragment>::@class::C
@@ -2969,7 +2969,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
         class D @64
           reference: <testLibraryFragment>::@class::D
@@ -2977,7 +2977,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::D::@constructor::new
-              element: <testLibraryFragment>::@class::D::@constructor::new#element
+              element: <testLibrary>::@class::D::@constructor::new
               typeName: D
       typeAliases
         X @8
@@ -3049,7 +3049,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
         class B @42
           reference: <testLibraryFragment>::@class::B
@@ -3057,7 +3057,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
         class C @53
           reference: <testLibraryFragment>::@class::C
@@ -3065,7 +3065,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
         class D @64
           reference: <testLibraryFragment>::@class::D
@@ -3073,7 +3073,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::D::@constructor::new
-              element: <testLibraryFragment>::@class::D::@constructor::new#element
+              element: <testLibrary>::@class::D::@constructor::new
               typeName: D
       typeAliases
         X @8
@@ -3143,7 +3143,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       typeAliases
         X @8
@@ -3181,7 +3181,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       typeAliases
         X @8
@@ -3221,7 +3221,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
         class B @35
           reference: <testLibraryFragment>::@class::B
@@ -3229,7 +3229,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
         class C @46
           reference: <testLibraryFragment>::@class::C
@@ -3240,7 +3240,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       typeAliases
         X @8
@@ -3302,7 +3302,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
         class B @35
           reference: <testLibraryFragment>::@class::B
@@ -3310,7 +3310,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
         class C @46
           reference: <testLibraryFragment>::@class::C
@@ -3318,7 +3318,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       typeAliases
         X @8
@@ -3375,7 +3375,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
         class B @40
           reference: <testLibraryFragment>::@class::B
@@ -3383,7 +3383,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
       typeAliases
         X @8
@@ -3439,7 +3439,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
         class B @65
           reference: <testLibraryFragment>::@class::B
@@ -3447,7 +3447,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
       mixins
         mixin M1 @41
@@ -3521,7 +3521,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
         class B @65
           reference: <testLibraryFragment>::@class::B
@@ -3529,7 +3529,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
       mixins
         mixin M1 @41
@@ -3599,7 +3599,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       typeAliases
         X @8
@@ -3641,7 +3641,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
         class B @40
           reference: <testLibraryFragment>::@class::B
@@ -3649,7 +3649,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
       typeAliases
         X @8
@@ -3672,7 +3672,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
+          superConstructor: <testLibrary>::@class::A::@constructor::new
   typeAliases
     X
       firstFragment: <testLibraryFragment>::@typeAlias::X
@@ -3702,7 +3702,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
         class B @38
           reference: <testLibraryFragment>::@class::B
@@ -3710,7 +3710,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
       typeAliases
         X @8
@@ -3738,7 +3738,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
+          superConstructor: <testLibrary>::@class::A::@constructor::new
   typeAliases
     X
       firstFragment: <testLibraryFragment>::@typeAlias::X
@@ -3766,7 +3766,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       typeAliases
         X @8
@@ -3808,7 +3808,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
         class D @41
           reference: <testLibraryFragment>::@class::D
@@ -3816,7 +3816,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::D::@constructor::new
-              element: <testLibraryFragment>::@class::D::@constructor::new#element
+              element: <testLibrary>::@class::D::@constructor::new
               typeName: D
       typeAliases
         X @8
@@ -3866,7 +3866,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
         class D @41
           reference: <testLibraryFragment>::@class::D
@@ -3874,7 +3874,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::D::@constructor::new
-              element: <testLibraryFragment>::@class::D::@constructor::new#element
+              element: <testLibrary>::@class::D::@constructor::new
               typeName: D
       typeAliases
         X @8
@@ -3897,7 +3897,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::D::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
+          superConstructor: <testLibrary>::@class::A::@constructor::new
   typeAliases
     X
       firstFragment: <testLibraryFragment>::@typeAlias::X
@@ -3923,7 +3923,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       typeAliases
         X @8
@@ -3961,7 +3961,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       typeAliases
         X @8

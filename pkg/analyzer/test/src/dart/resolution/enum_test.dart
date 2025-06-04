@@ -101,7 +101,7 @@ EnumConstantDeclaration
           staticType: int
       rightParenthesis: )
   constructorElement2: ConstructorMember
-    baseElement: <testLibraryFragment>::@enum::E::@constructor::named#element
+    baseElement: <testLibrary>::@enum::E::@constructor::named
     substitution: {T: int}
   declaredElement: <testLibraryFragment>::@enum::E::@field::v
 ''');
@@ -131,7 +131,7 @@ EnumConstantDeclaration
           staticType: int
       rightParenthesis: )
   constructorElement2: ConstructorMember
-    baseElement: <testLibraryFragment>::@enum::E::@constructor::new#element
+    baseElement: <testLibrary>::@enum::E::@constructor::new
     substitution: {T: int}
   declaredElement: <testLibraryFragment>::@enum::E::@field::v
 ''');
@@ -175,7 +175,7 @@ EnumConstantDeclaration
           staticType: double
       rightParenthesis: )
   constructorElement2: ConstructorMember
-    baseElement: <testLibraryFragment>::@enum::E::@constructor::named#element
+    baseElement: <testLibrary>::@enum::E::@constructor::named
     substitution: {T: double}
   declaredElement: <testLibraryFragment>::@enum::E::@field::v
 ''');
@@ -208,7 +208,7 @@ EnumConstantDeclaration
           correspondingParameter: <testLibraryFragment>::@enum::E::@constructor::named::@parameter::a#element
           staticType: int
       rightParenthesis: )
-  constructorElement2: <testLibraryFragment>::@enum::E::@constructor::named#element
+  constructorElement2: <testLibrary>::@enum::E::@constructor::named
   declaredElement: <testLibraryFragment>::@enum::E::@field::v
 ''');
   }
@@ -234,7 +234,7 @@ EnumConstantDeclaration
           correspondingParameter: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::a#element
           staticType: int
       rightParenthesis: )
-  constructorElement2: <testLibraryFragment>::@enum::E::@constructor::new#element
+  constructorElement2: <testLibrary>::@enum::E::@constructor::new
   declaredElement: <testLibraryFragment>::@enum::E::@field::v
 ''');
   }
@@ -250,7 +250,7 @@ enum E {
     assertResolvedNodeText(node, r'''
 EnumConstantDeclaration
   name: v
-  constructorElement2: <testLibraryFragment>::@enum::E::@constructor::new#element
+  constructorElement2: <testLibrary>::@enum::E::@constructor::new
   declaredElement: <testLibraryFragment>::@enum::E::@field::v
 ''');
   }

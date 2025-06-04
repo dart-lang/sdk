@@ -1089,6 +1089,7 @@ class LibraryReader {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
 
     var reference = _readReference();
+    var reference2 = _readReference();
     var getterReference = _readOptionalReference();
     var setterReference = _readOptionalReference();
     var fragmentName = _readFragmentName();
@@ -1124,6 +1125,8 @@ class LibraryReader {
             element.hasEnclosingTypeParameterReference;
       }
     }
+
+    FieldElementImpl2(reference: reference2, firstFragment: element);
 
     return element;
   }
@@ -1515,8 +1518,7 @@ class LibraryReader {
 
       // Read the property references.
       var propertyFragmentReference = _readReference();
-      // TODO(scheglov): should be required?
-      var propertyElementReference = _readOptionalReference();
+      var propertyElementReference = _readReference();
 
       bool canUseExisting(PropertyInducingElementImpl property) {
         return property.isSynthetic ||
@@ -1542,8 +1544,6 @@ class LibraryReader {
           propertyFragmentReference.element ??= propertyFragment;
           propertyFragments.add(variableFragment);
 
-          // TODO(scheglov): should be required?
-          propertyElementReference!;
           var variableElement = TopLevelVariableElementImpl2(
             propertyElementReference,
             variableFragment,
@@ -1555,7 +1555,7 @@ class LibraryReader {
         if (existing is FieldFragmentImpl && canUseExisting(existing)) {
           propertyFragment = existing;
         } else {
-          propertyFragment =
+          var fieldFragment =
               FieldFragmentImpl(name2: accessor.name2, nameOffset: -1)
                 ..enclosingElement3 = enclosingElement
                 ..reference = propertyFragmentReference
@@ -1564,8 +1564,14 @@ class LibraryReader {
                 ..isPromotable = isPromotable
                 ..hasEnclosingTypeParameterReference =
                     accessor.hasEnclosingTypeParameterReference;
+          propertyFragment = fieldFragment;
           propertyFragmentReference.element ??= propertyFragment;
           propertyFragments.add(propertyFragment);
+
+          FieldElementImpl2(
+            reference: propertyElementReference,
+            firstFragment: fieldFragment,
+          );
         }
       }
 

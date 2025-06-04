@@ -94,7 +94,7 @@ class A {
     var node = findNode.constructor('A.foo()');
     var element = ElementLocator.locate2(node);
     _assertElement(element, r'''
-<testLibraryFragment>::@class::A::@constructor::foo#element
+<testLibrary>::@class::A::@constructor::foo
 ''');
   }
 
@@ -107,7 +107,7 @@ class A {
     var node = findNode.constructor('A()');
     var element = ElementLocator.locate2(node);
     _assertElement(element, r'''
-<testLibraryFragment>::@class::A::@constructor::new#element
+<testLibrary>::@class::A::@constructor::new
 ''');
   }
 
@@ -121,7 +121,7 @@ enum E {
     var node = findNode.constructorSelector('named(); // 0');
     var element = ElementLocator.locate2(node);
     _assertElement(element, r'''
-<testLibraryFragment>::@enum::E::@constructor::named#element
+<testLibrary>::@enum::E::@constructor::named
 ''');
   }
 
@@ -149,7 +149,7 @@ void main() {
     var node = findNode.singleDotShorthandConstructorInvocation;
     var element = ElementLocator.locate2(node);
     _assertElement(element, r'''
-<testLibraryFragment>::@class::A::@constructor::new#element
+<testLibrary>::@class::A::@constructor::new
 ''');
   }
 
@@ -196,7 +196,7 @@ enum E {
     var node = findNode.enumConstantDeclaration('one');
     var element = ElementLocator.locate2(node);
     _assertElement(element, r'''
-<testLibraryFragment>::@enum::E::@field::one#element
+<testLibrary>::@enum::E::@field::one
 ''');
   }
 
@@ -273,7 +273,7 @@ void main(@Class() parameter) {}
     var node = findNode.simple('Class() parameter');
     var element = ElementLocator.locate2(node);
     _assertElement(element, r'''
-<testLibraryFragment>::@class::Class::@constructor::new#element
+<testLibrary>::@class::Class::@constructor::new
 ''');
   }
 
@@ -295,7 +295,7 @@ class A {
     var node = findNode.constructor('bar');
     var element = ElementLocator.locate2(node);
     _assertElement(element, r'''
-<testLibraryFragment>::@class::A::@constructor::bar#element
+<testLibrary>::@class::A::@constructor::bar
 ''');
   }
 
@@ -308,7 +308,7 @@ class A {
     var node = findNode.simple('A()');
     var element = ElementLocator.locate2(node);
     _assertElement(element, r'''
-<testLibraryFragment>::@class::A::@constructor::new#element
+<testLibrary>::@class::A::@constructor::new
 ''');
   }
 
@@ -321,7 +321,7 @@ class A {
     var node = findNode.variableDeclaration('x;');
     var element = ElementLocator.locate2(node);
     _assertElement(element, r'''
-<testLibraryFragment>::@class::A::@field::x#element
+<testLibrary>::@class::A::@field::x
 ''');
   }
 
@@ -383,7 +383,7 @@ void main() {
     var node = findNode.instanceCreation('new A()');
     var element = ElementLocator.locate2(node);
     _assertElement(element, r'''
-<testLibraryFragment>::@class::A::@constructor::new#element
+<testLibrary>::@class::A::@constructor::new
 ''');
   }
 
@@ -401,7 +401,7 @@ void main() {
     var node = findNode.instanceCreation('A();');
     var element = ElementLocator.locate2(node);
     _assertElement(element, r'''
-package:test/a.dart::<fragment>::@class::A::@constructor::new#element
+package:test/a.dart::@class::A::@constructor::new
 ''');
   }
 
@@ -418,7 +418,7 @@ void main() {
     var node = findNode.instanceCreation('A();');
     var element = ElementLocator.locate2(node);
     _assertElement(element, r'''
-<testLibraryFragment>::@class::A::@constructor::new#element
+<testLibrary>::@class::A::@constructor::new
 ''');
   }
 
@@ -556,7 +556,7 @@ dart:core::@class::num::@method::+
     var node = findNode.singleRepresentationDeclaration;
     var element = ElementLocator.locate2(node);
     _assertElement(element, r'''
-<testLibraryFragment>::@extensionType::A::@field::it#element
+<testLibrary>::@extensionType::A::@field::it
 ''');
   }
 
@@ -565,7 +565,7 @@ dart:core::@class::num::@method::+
     var node = findNode.singleRepresentationConstructorName;
     var element = ElementLocator.locate2(node);
     _assertElement(element, r'''
-<testLibraryFragment>::@extensionType::A::@constructor::named#element
+<testLibrary>::@extensionType::A::@constructor::A
 ''');
   }
 

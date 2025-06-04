@@ -38,7 +38,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
             X @21
@@ -103,12 +103,12 @@ library
           fields
             f @71
               reference: <testLibraryFragment>::@class::X::@field::f
-              element: <testLibraryFragment>::@class::X::@field::f#element
+              element: <testLibrary>::@class::X::@field::f
               getter2: <testLibraryFragment>::@class::X::@getter::f
           constructors
             const new
               reference: <testLibraryFragment>::@class::X::@constructor::new
-              element: <testLibraryFragment>::@class::X::@constructor::new#element
+              element: <testLibrary>::@class::X::@constructor::new
               typeName: X
               typeNameOffset: 82
               formalParameters
@@ -221,7 +221,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 21
         class B @34
@@ -230,7 +230,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
             foo @45
@@ -263,7 +263,7 @@ library
                           element2: <testLibrary>::@class::A
                           type: A<dynamic Function()>
                         element: ConstructorMember
-                          baseElement: <testLibraryFragment>::@class::A::@constructor::new#element
+                          baseElement: <testLibrary>::@class::A::@constructor::new
                           substitution: {T: dynamic Function()}
                       argumentList: ArgumentList
                         leftParenthesis: ( @72
@@ -607,7 +607,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       extensions
         extension E @21
@@ -683,7 +683,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
               typeNameOffset: 26
         class C @39
@@ -692,7 +692,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
             foo @50
@@ -710,7 +710,7 @@ library
                           element2: <testLibrary>::@class::B
                           type: B<int, double>
                         element: ConstructorMember
-                          baseElement: <testLibraryFragment>::@class::B::@constructor::new#element
+                          baseElement: <testLibrary>::@class::B::@constructor::new
                           substitution: {T1: int, T2: double}
                       argumentList: ArgumentList
                         leftParenthesis: ( @81
@@ -770,7 +770,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
               typeNameOffset: 21
         class C @34
@@ -782,7 +782,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 49
               formalParameters
@@ -797,7 +797,7 @@ library
                           element2: <testLibrary>::@class::B
                           type: B<Never>
                         element: ConstructorMember
-                          baseElement: <testLibraryFragment>::@class::B::@constructor::new#element
+                          baseElement: <testLibrary>::@class::B::@constructor::new
                           substitution: {T: Never}
                       argumentList: ArgumentList
                         leftParenthesis: ( @68
@@ -854,7 +854,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
         class B @29
           reference: <testLibraryFragment>::@class::B
@@ -865,7 +865,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
               typeNameOffset: 60
         class C @73
@@ -877,7 +877,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 114
               formalParameters
@@ -892,7 +892,7 @@ library
                           element2: <testLibrary>::@class::B
                           type: B<Never>
                         element: ConstructorMember
-                          baseElement: <testLibraryFragment>::@class::B::@constructor::new#element
+                          baseElement: <testLibrary>::@class::B::@constructor::new
                           substitution: {T: Never}
                       argumentList: ArgumentList
                         leftParenthesis: ( @133
@@ -958,7 +958,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
               typeNameOffset: 21
       functions
@@ -980,7 +980,7 @@ library
                       element2: <testLibrary>::@class::B
                       type: B<Never>
                     element: ConstructorMember
-                      baseElement: <testLibraryFragment>::@class::B::@constructor::new#element
+                      baseElement: <testLibrary>::@class::B::@constructor::new
                       substitution: {T: Never}
                   argumentList: ArgumentList
                     leftParenthesis: ( @57
@@ -1035,7 +1035,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
               typeNameOffset: 21
         class C @34
@@ -1044,7 +1044,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
             foo @45
@@ -1065,7 +1065,7 @@ library
                           element2: <testLibrary>::@class::B
                           type: B<Never>
                         element: ConstructorMember
-                          baseElement: <testLibraryFragment>::@class::B::@constructor::new#element
+                          baseElement: <testLibrary>::@class::B::@constructor::new
                           substitution: {T: Never}
                       argumentList: ArgumentList
                         leftParenthesis: ( @69
@@ -1128,7 +1128,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
               typeNameOffset: 26
         class C @39
@@ -1140,7 +1140,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
             foo @54
@@ -1161,7 +1161,7 @@ library
                           element2: <testLibrary>::@class::B
                           type: B<Never, Never>
                         element: ConstructorMember
-                          baseElement: <testLibraryFragment>::@class::B::@constructor::new#element
+                          baseElement: <testLibrary>::@class::B::@constructor::new
                           substitution: {T1: Never, T2: Never}
                       argumentList: ArgumentList
                         leftParenthesis: ( @84
@@ -1226,7 +1226,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
               typeNameOffset: 21
         class C @34
@@ -1238,7 +1238,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
             foo @48
@@ -1256,7 +1256,7 @@ library
                           element2: <testLibrary>::@class::B
                           type: B<Never>
                         element: ConstructorMember
-                          baseElement: <testLibraryFragment>::@class::B::@constructor::new#element
+                          baseElement: <testLibrary>::@class::B::@constructor::new
                           substitution: {T: Never}
                       argumentList: ArgumentList
                         leftParenthesis: ( @69

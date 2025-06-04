@@ -905,13 +905,13 @@ library
           fields
             f @16
               reference: <testLibraryFragment>::@class::A::@field::f
-              element: <testLibraryFragment>::@class::A::@field::f#element
+              element: <testLibrary>::@class::A::@field::f
               getter2: <testLibraryFragment>::@class::A::@getter::f
               setter2: <testLibraryFragment>::@class::A::@setter::f
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
             synthetic get f
@@ -1067,13 +1067,13 @@ library
           fields
             f @16
               reference: <testLibraryFragment>::@class::I::@field::f
-              element: <testLibraryFragment>::@class::I::@field::f#element
+              element: <testLibrary>::@class::I::@field::f
               getter2: <testLibraryFragment>::@class::I::@getter::f
               setter2: <testLibraryFragment>::@class::I::@setter::f
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::I::@constructor::new
-              element: <testLibraryFragment>::@class::I::@constructor::new#element
+              element: <testLibrary>::@class::I::@constructor::new
               typeName: I
           getters
             synthetic get f
@@ -1092,7 +1092,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       topLevelVariables
         c @56
@@ -1245,13 +1245,13 @@ library
           fields
             f @16
               reference: <testLibraryFragment>::@class::I::@field::f
-              element: <testLibraryFragment>::@class::I::@field::f#element
+              element: <testLibrary>::@class::I::@field::f
               getter2: <testLibraryFragment>::@class::I::@getter::f
               setter2: <testLibraryFragment>::@class::I::@setter::f
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::I::@constructor::new
-              element: <testLibraryFragment>::@class::I::@constructor::new#element
+              element: <testLibrary>::@class::I::@constructor::new
               typeName: I
           getters
             synthetic get f
@@ -1270,7 +1270,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       topLevelVariables
         hasInitializer t1 @76
@@ -1670,13 +1670,13 @@ library
           fields
             a @16
               reference: <testLibraryFragment>::@class::A::@field::a
-              element: <testLibraryFragment>::@class::A::@field::a#element
+              element: <testLibrary>::@class::A::@field::a
               getter2: <testLibraryFragment>::@class::A::@getter::a
               setter2: <testLibraryFragment>::@class::A::@setter::a
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
             synthetic get a
@@ -1864,13 +1864,13 @@ library
           fields
             hasInitializer f @16
               reference: <testLibraryFragment>::@class::A::@field::f
-              element: <testLibraryFragment>::@class::A::@field::f#element
+              element: <testLibrary>::@class::A::@field::f
               getter2: <testLibraryFragment>::@class::A::@getter::f
               setter2: <testLibraryFragment>::@class::A::@setter::f
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
             synthetic get f
@@ -1889,13 +1889,13 @@ library
           fields
             a @39
               reference: <testLibraryFragment>::@class::B::@field::a
-              element: <testLibraryFragment>::@class::B::@field::a#element
+              element: <testLibrary>::@class::B::@field::a
               getter2: <testLibraryFragment>::@class::B::@getter::a
               setter2: <testLibraryFragment>::@class::B::@setter::a
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           getters
             synthetic get a
@@ -1914,13 +1914,13 @@ library
           fields
             b @58
               reference: <testLibraryFragment>::@class::C::@field::b
-              element: <testLibraryFragment>::@class::C::@field::b#element
+              element: <testLibrary>::@class::C::@field::b
               getter2: <testLibraryFragment>::@class::C::@getter::b
               setter2: <testLibraryFragment>::@class::C::@setter::b
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
             synthetic get b
@@ -1939,68 +1939,68 @@ library
           fields
             hasInitializer a @77
               reference: <testLibraryFragment>::@class::X::@field::a
-              element: <testLibraryFragment>::@class::X::@field::a#element
+              element: <testLibrary>::@class::X::@field::a
               getter2: <testLibraryFragment>::@class::X::@getter::a
               setter2: <testLibraryFragment>::@class::X::@setter::a
             hasInitializer b @94
               reference: <testLibraryFragment>::@class::X::@field::b
-              element: <testLibraryFragment>::@class::X::@field::b#element
+              element: <testLibrary>::@class::X::@field::b
               getter2: <testLibraryFragment>::@class::X::@getter::b
               setter2: <testLibraryFragment>::@class::X::@setter::b
             hasInitializer c @111
               reference: <testLibraryFragment>::@class::X::@field::c
-              element: <testLibraryFragment>::@class::X::@field::c#element
+              element: <testLibrary>::@class::X::@field::c
               getter2: <testLibraryFragment>::@class::X::@getter::c
               setter2: <testLibraryFragment>::@class::X::@setter::c
             hasInitializer t01 @130
               reference: <testLibraryFragment>::@class::X::@field::t01
-              element: <testLibraryFragment>::@class::X::@field::t01#element
+              element: <testLibrary>::@class::X::@field::t01
               getter2: <testLibraryFragment>::@class::X::@getter::t01
               setter2: <testLibraryFragment>::@class::X::@setter::t01
             hasInitializer t02 @147
               reference: <testLibraryFragment>::@class::X::@field::t02
-              element: <testLibraryFragment>::@class::X::@field::t02#element
+              element: <testLibrary>::@class::X::@field::t02
               getter2: <testLibraryFragment>::@class::X::@getter::t02
               setter2: <testLibraryFragment>::@class::X::@setter::t02
             hasInitializer t03 @166
               reference: <testLibraryFragment>::@class::X::@field::t03
-              element: <testLibraryFragment>::@class::X::@field::t03#element
+              element: <testLibrary>::@class::X::@field::t03
               getter2: <testLibraryFragment>::@class::X::@getter::t03
               setter2: <testLibraryFragment>::@class::X::@setter::t03
             hasInitializer t11 @187
               reference: <testLibraryFragment>::@class::X::@field::t11
-              element: <testLibraryFragment>::@class::X::@field::t11#element
+              element: <testLibrary>::@class::X::@field::t11
               getter2: <testLibraryFragment>::@class::X::@getter::t11
               setter2: <testLibraryFragment>::@class::X::@setter::t11
             hasInitializer t12 @210
               reference: <testLibraryFragment>::@class::X::@field::t12
-              element: <testLibraryFragment>::@class::X::@field::t12#element
+              element: <testLibrary>::@class::X::@field::t12
               getter2: <testLibraryFragment>::@class::X::@getter::t12
               setter2: <testLibraryFragment>::@class::X::@setter::t12
             hasInitializer t13 @235
               reference: <testLibraryFragment>::@class::X::@field::t13
-              element: <testLibraryFragment>::@class::X::@field::t13#element
+              element: <testLibrary>::@class::X::@field::t13
               getter2: <testLibraryFragment>::@class::X::@getter::t13
               setter2: <testLibraryFragment>::@class::X::@setter::t13
             hasInitializer t21 @262
               reference: <testLibraryFragment>::@class::X::@field::t21
-              element: <testLibraryFragment>::@class::X::@field::t21#element
+              element: <testLibrary>::@class::X::@field::t21
               getter2: <testLibraryFragment>::@class::X::@getter::t21
               setter2: <testLibraryFragment>::@class::X::@setter::t21
             hasInitializer t22 @284
               reference: <testLibraryFragment>::@class::X::@field::t22
-              element: <testLibraryFragment>::@class::X::@field::t22#element
+              element: <testLibrary>::@class::X::@field::t22
               getter2: <testLibraryFragment>::@class::X::@getter::t22
               setter2: <testLibraryFragment>::@class::X::@setter::t22
             hasInitializer t23 @308
               reference: <testLibraryFragment>::@class::X::@field::t23
-              element: <testLibraryFragment>::@class::X::@field::t23#element
+              element: <testLibrary>::@class::X::@field::t23
               getter2: <testLibraryFragment>::@class::X::@getter::t23
               setter2: <testLibraryFragment>::@class::X::@setter::t23
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::X::@constructor::new
-              element: <testLibraryFragment>::@class::X::@constructor::new#element
+              element: <testLibrary>::@class::X::@constructor::new
               typeName: X
           getters
             synthetic get a
@@ -2821,13 +2821,13 @@ library
           fields
             hasInitializer f @16
               reference: <testLibraryFragment>::@class::C::@field::f
-              element: <testLibraryFragment>::@class::C::@field::f#element
+              element: <testLibrary>::@class::C::@field::f
               getter2: <testLibraryFragment>::@class::C::@getter::f
               setter2: <testLibraryFragment>::@class::C::@setter::f
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
             synthetic get f
@@ -3035,13 +3035,13 @@ library
           fields
             hasInitializer f @16
               reference: <testLibraryFragment>::@class::C::@field::f
-              element: <testLibraryFragment>::@class::C::@field::f#element
+              element: <testLibrary>::@class::C::@field::f
               getter2: <testLibraryFragment>::@class::C::@getter::f
               setter2: <testLibraryFragment>::@class::C::@setter::f
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
             synthetic get f
@@ -3195,13 +3195,13 @@ library
           fields
             f @16
               reference: <testLibraryFragment>::@class::A::@field::f
-              element: <testLibraryFragment>::@class::A::@field::f#element
+              element: <testLibrary>::@class::A::@field::f
               getter2: <testLibraryFragment>::@class::A::@getter::f
               setter2: <testLibraryFragment>::@class::A::@setter::f
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
             synthetic get f
@@ -3220,13 +3220,13 @@ library
           fields
             hasInitializer t @44
               reference: <testLibraryFragment>::@class::B::@field::t
-              element: <testLibraryFragment>::@class::B::@field::t#element
+              element: <testLibrary>::@class::B::@field::t
               getter2: <testLibraryFragment>::@class::B::@getter::t
               setter2: <testLibraryFragment>::@class::B::@setter::t
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           getters
             synthetic get t
@@ -3310,13 +3310,13 @@ library
           fields
             b @17
               reference: <testLibraryFragment>::@class::C::@field::b
-              element: <testLibraryFragment>::@class::C::@field::b#element
+              element: <testLibrary>::@class::C::@field::b
               getter2: <testLibraryFragment>::@class::C::@getter::b
               setter2: <testLibraryFragment>::@class::C::@setter::b
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
             synthetic get b
@@ -3442,13 +3442,13 @@ library
           fields
             b @17
               reference: <testLibraryFragment>::@class::I::@field::b
-              element: <testLibraryFragment>::@class::I::@field::b#element
+              element: <testLibrary>::@class::I::@field::b
               getter2: <testLibraryFragment>::@class::I::@getter::b
               setter2: <testLibraryFragment>::@class::I::@setter::b
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::I::@constructor::new
-              element: <testLibraryFragment>::@class::I::@constructor::new#element
+              element: <testLibrary>::@class::I::@constructor::new
               typeName: I
           getters
             synthetic get b
@@ -3467,7 +3467,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       topLevelVariables
         c @57
@@ -3590,13 +3590,13 @@ library
           fields
             b @17
               reference: <testLibraryFragment>::@class::I::@field::b
-              element: <testLibraryFragment>::@class::I::@field::b#element
+              element: <testLibrary>::@class::I::@field::b
               getter2: <testLibraryFragment>::@class::I::@getter::b
               setter2: <testLibraryFragment>::@class::I::@setter::b
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::I::@constructor::new
-              element: <testLibraryFragment>::@class::I::@constructor::new#element
+              element: <testLibrary>::@class::I::@constructor::new
               typeName: I
           getters
             synthetic get b
@@ -3615,7 +3615,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       topLevelVariables
         hasInitializer x @74
@@ -3720,7 +3720,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
             foo @16
@@ -3732,7 +3732,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
             foo @52
@@ -3788,7 +3788,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
+          superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
         foo
           reference: <testLibrary>::@class::B::@method::foo
@@ -4300,17 +4300,17 @@ library
           fields
             hasInitializer staticClassVariable @118
               reference: <testLibraryFragment>::@class::A::@field::staticClassVariable
-              element: <testLibraryFragment>::@class::A::@field::staticClassVariable#element
+              element: <testLibrary>::@class::A::@field::staticClassVariable
               getter2: <testLibraryFragment>::@class::A::@getter::staticClassVariable
               setter2: <testLibraryFragment>::@class::A::@setter::staticClassVariable
             synthetic staticGetter
               reference: <testLibraryFragment>::@class::A::@field::staticGetter
-              element: <testLibraryFragment>::@class::A::@field::staticGetter#element
+              element: <testLibrary>::@class::A::@field::staticGetter
               getter2: <testLibraryFragment>::@class::A::@getter::staticGetter
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
             synthetic get staticClassVariable
@@ -4708,13 +4708,13 @@ library
           fields
             hasInitializer a @23
               reference: <testLibraryFragment>::@class::A::@field::a
-              element: <testLibraryFragment>::@class::A::@field::a#element
+              element: <testLibrary>::@class::A::@field::a
               getter2: <testLibraryFragment>::@class::A::@getter::a
               setter2: <testLibraryFragment>::@class::A::@setter::a
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
             synthetic get a
@@ -4733,13 +4733,13 @@ library
           fields
             hasInitializer b @57
               reference: <testLibraryFragment>::@class::B::@field::b
-              element: <testLibraryFragment>::@class::B::@field::b#element
+              element: <testLibrary>::@class::B::@field::b
               getter2: <testLibraryFragment>::@class::B::@getter::b
               setter2: <testLibraryFragment>::@class::B::@setter::b
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           getters
             synthetic get b
@@ -4858,13 +4858,13 @@ library
           fields
             hasInitializer a @23
               reference: <testLibraryFragment>::@class::A::@field::a
-              element: <testLibraryFragment>::@class::A::@field::a#element
+              element: <testLibrary>::@class::A::@field::a
               getter2: <testLibraryFragment>::@class::A::@getter::a
               setter2: <testLibraryFragment>::@class::A::@setter::a
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
             synthetic get a
@@ -5086,7 +5086,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       topLevelVariables
         hasInitializer a @15
@@ -6190,7 +6190,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
             m @19
@@ -7803,13 +7803,13 @@ library
           fields
             d @21
               reference: <testLibraryFragment>::@class::C::@field::d
-              element: <testLibraryFragment>::@class::C::@field::d#element
+              element: <testLibrary>::@class::C::@field::d
               getter2: <testLibraryFragment>::@class::C::@getter::d
               setter2: <testLibraryFragment>::@class::C::@setter::d
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
             synthetic get d
@@ -7828,13 +7828,13 @@ library
           fields
             i @42
               reference: <testLibraryFragment>::@class::D::@field::i
-              element: <testLibraryFragment>::@class::D::@field::i#element
+              element: <testLibrary>::@class::D::@field::i
               getter2: <testLibraryFragment>::@class::D::@getter::i
               setter2: <testLibraryFragment>::@class::D::@setter::i
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::D::@constructor::new
-              element: <testLibraryFragment>::@class::D::@constructor::new#element
+              element: <testLibrary>::@class::D::@constructor::new
               typeName: D
           getters
             synthetic get i
@@ -7939,12 +7939,12 @@ library
           fields
             synthetic d
               reference: <testLibraryFragment>::@class::C::@field::d
-              element: <testLibraryFragment>::@class::C::@field::d#element
+              element: <testLibrary>::@class::C::@field::d
               getter2: <testLibraryFragment>::@class::C::@getter::d
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
             get d @25
@@ -7956,13 +7956,13 @@ library
           fields
             i @54
               reference: <testLibraryFragment>::@class::D::@field::i
-              element: <testLibraryFragment>::@class::D::@field::i#element
+              element: <testLibrary>::@class::D::@field::i
               getter2: <testLibraryFragment>::@class::D::@getter::i
               setter2: <testLibraryFragment>::@class::D::@setter::i
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::D::@constructor::new
-              element: <testLibraryFragment>::@class::D::@constructor::new#element
+              element: <testLibrary>::@class::D::@constructor::new
               typeName: D
           getters
             synthetic get i
@@ -8222,13 +8222,13 @@ library
           fields
             x @25
               reference: <testLibraryFragment>::@class::A::@field::x
-              element: <testLibraryFragment>::@class::A::@field::x#element
+              element: <testLibrary>::@class::A::@field::x
               getter2: <testLibraryFragment>::@class::A::@getter::x
               setter2: <testLibraryFragment>::@class::A::@setter::x
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
             synthetic get x
@@ -8247,12 +8247,12 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::B::@field::x
-              element: <testLibraryFragment>::@class::B::@field::x#element
+              element: <testLibrary>::@class::B::@field::x
               setter2: <testLibraryFragment>::@class::B::@setter::x
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           setters
             set x @59
@@ -8322,13 +8322,13 @@ library
           fields
             hasInitializer f @16
               reference: <testLibraryFragment>::@class::A::@field::f
-              element: <testLibraryFragment>::@class::A::@field::f#element
+              element: <testLibrary>::@class::A::@field::f
               getter2: <testLibraryFragment>::@class::A::@getter::f
               setter2: <testLibraryFragment>::@class::A::@setter::f
           constructors
             new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 25
               formalParameters
@@ -8406,23 +8406,23 @@ library
           fields
             x @25
               reference: <testLibraryFragment>::@class::A::@field::x
-              element: <testLibraryFragment>::@class::A::@field::x#element
+              element: <testLibrary>::@class::A::@field::x
               getter2: <testLibraryFragment>::@class::A::@getter::x
               setter2: <testLibraryFragment>::@class::A::@setter::x
             y @34
               reference: <testLibraryFragment>::@class::A::@field::y
-              element: <testLibraryFragment>::@class::A::@field::y#element
+              element: <testLibrary>::@class::A::@field::y
               getter2: <testLibraryFragment>::@class::A::@getter::y
               setter2: <testLibraryFragment>::@class::A::@setter::y
             z @43
               reference: <testLibraryFragment>::@class::A::@field::z
-              element: <testLibraryFragment>::@class::A::@field::z#element
+              element: <testLibrary>::@class::A::@field::z
               getter2: <testLibraryFragment>::@class::A::@getter::z
               setter2: <testLibraryFragment>::@class::A::@setter::z
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
             synthetic get x
@@ -8459,21 +8459,21 @@ library
           fields
             x @77
               reference: <testLibraryFragment>::@class::B::@field::x
-              element: <testLibraryFragment>::@class::B::@field::x#element
+              element: <testLibrary>::@class::B::@field::x
               getter2: <testLibraryFragment>::@class::B::@getter::x
               setter2: <testLibraryFragment>::@class::B::@setter::x
             synthetic y
               reference: <testLibraryFragment>::@class::B::@field::y
-              element: <testLibraryFragment>::@class::B::@field::y#element
+              element: <testLibrary>::@class::B::@field::y
               getter2: <testLibraryFragment>::@class::B::@getter::y
             synthetic z
               reference: <testLibraryFragment>::@class::B::@field::z
-              element: <testLibraryFragment>::@class::B::@field::z#element
+              element: <testLibrary>::@class::B::@field::z
               setter2: <testLibraryFragment>::@class::B::@setter::z
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           getters
             synthetic get x
@@ -8614,13 +8614,13 @@ library
           fields
             x @29
               reference: <testLibraryFragment>::@class::A::@field::x
-              element: <testLibraryFragment>::@class::A::@field::x#element
+              element: <testLibrary>::@class::A::@field::x
               getter2: <testLibraryFragment>::@class::A::@getter::x
               setter2: <testLibraryFragment>::@class::A::@setter::x
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
             synthetic get x
@@ -8639,13 +8639,13 @@ library
           fields
             hasInitializer x @63
               reference: <testLibraryFragment>::@class::B::@field::x
-              element: <testLibraryFragment>::@class::B::@field::x#element
+              element: <testLibrary>::@class::B::@field::x
               getter2: <testLibraryFragment>::@class::B::@getter::x
               setter2: <testLibraryFragment>::@class::B::@setter::x
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           getters
             synthetic get x
@@ -8739,23 +8739,23 @@ library
           fields
             x @26
               reference: <testLibraryFragment>::@class::A::@field::x
-              element: <testLibraryFragment>::@class::A::@field::x#element
+              element: <testLibrary>::@class::A::@field::x
               getter2: <testLibraryFragment>::@class::A::@getter::x
               setter2: <testLibraryFragment>::@class::A::@setter::x
             y @33
               reference: <testLibraryFragment>::@class::A::@field::y
-              element: <testLibraryFragment>::@class::A::@field::y#element
+              element: <testLibrary>::@class::A::@field::y
               getter2: <testLibraryFragment>::@class::A::@getter::y
               setter2: <testLibraryFragment>::@class::A::@setter::y
             z @40
               reference: <testLibraryFragment>::@class::A::@field::z
-              element: <testLibraryFragment>::@class::A::@field::z#element
+              element: <testLibrary>::@class::A::@field::z
               getter2: <testLibraryFragment>::@class::A::@getter::z
               setter2: <testLibraryFragment>::@class::A::@setter::z
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
             synthetic get x
@@ -8795,21 +8795,21 @@ library
           fields
             x @80
               reference: <testLibraryFragment>::@class::B::@field::x
-              element: <testLibraryFragment>::@class::B::@field::x#element
+              element: <testLibrary>::@class::B::@field::x
               getter2: <testLibraryFragment>::@class::B::@getter::x
               setter2: <testLibraryFragment>::@class::B::@setter::x
             synthetic y
               reference: <testLibraryFragment>::@class::B::@field::y
-              element: <testLibraryFragment>::@class::B::@field::y#element
+              element: <testLibrary>::@class::B::@field::y
               getter2: <testLibraryFragment>::@class::B::@getter::y
             synthetic z
               reference: <testLibraryFragment>::@class::B::@field::z
-              element: <testLibraryFragment>::@class::B::@field::z#element
+              element: <testLibrary>::@class::B::@field::z
               setter2: <testLibraryFragment>::@class::B::@setter::z
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           getters
             synthetic get x
@@ -8970,13 +8970,13 @@ library
           fields
             x @25
               reference: <testLibraryFragment>::@class::A::@field::x
-              element: <testLibraryFragment>::@class::A::@field::x#element
+              element: <testLibrary>::@class::A::@field::x
               getter2: <testLibraryFragment>::@class::A::@getter::x
               setter2: <testLibraryFragment>::@class::A::@setter::x
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
             synthetic get x
@@ -8995,13 +8995,13 @@ library
           fields
             hasInitializer x @59
               reference: <testLibraryFragment>::@class::B::@field::x
-              element: <testLibraryFragment>::@class::B::@field::x#element
+              element: <testLibrary>::@class::B::@field::x
               getter2: <testLibraryFragment>::@class::B::@getter::x
               setter2: <testLibraryFragment>::@class::B::@setter::x
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           getters
             synthetic get x
@@ -9088,13 +9088,13 @@ library
           fields
             x @25
               reference: <testLibraryFragment>::@class::A::@field::x
-              element: <testLibraryFragment>::@class::A::@field::x#element
+              element: <testLibrary>::@class::A::@field::x
               getter2: <testLibraryFragment>::@class::A::@getter::x
               setter2: <testLibraryFragment>::@class::A::@setter::x
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
             synthetic get x
@@ -9113,13 +9113,13 @@ library
           fields
             hasInitializer x @59
               reference: <testLibraryFragment>::@class::B::@field::x
-              element: <testLibraryFragment>::@class::B::@field::x#element
+              element: <testLibrary>::@class::B::@field::x
               getter2: <testLibraryFragment>::@class::B::@getter::x
               setter2: <testLibraryFragment>::@class::B::@setter::x
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           getters
             synthetic get x
@@ -9210,20 +9210,20 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::A::@field::x
-              element: <testLibraryFragment>::@class::A::@field::x#element
+              element: <testLibrary>::@class::A::@field::x
               getter2: <testLibraryFragment>::@class::A::@getter::x
             synthetic y
               reference: <testLibraryFragment>::@class::A::@field::y
-              element: <testLibraryFragment>::@class::A::@field::y#element
+              element: <testLibrary>::@class::A::@field::y
               getter2: <testLibraryFragment>::@class::A::@getter::y
             synthetic z
               reference: <testLibraryFragment>::@class::A::@field::z
-              element: <testLibraryFragment>::@class::A::@field::z#element
+              element: <testLibrary>::@class::A::@field::z
               getter2: <testLibraryFragment>::@class::A::@getter::z
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
             get x @29
@@ -9241,21 +9241,21 @@ library
           fields
             x @89
               reference: <testLibraryFragment>::@class::B::@field::x
-              element: <testLibraryFragment>::@class::B::@field::x#element
+              element: <testLibrary>::@class::B::@field::x
               getter2: <testLibraryFragment>::@class::B::@getter::x
               setter2: <testLibraryFragment>::@class::B::@setter::x
             synthetic y
               reference: <testLibraryFragment>::@class::B::@field::y
-              element: <testLibraryFragment>::@class::B::@field::y#element
+              element: <testLibrary>::@class::B::@field::y
               getter2: <testLibraryFragment>::@class::B::@getter::y
             synthetic z
               reference: <testLibraryFragment>::@class::B::@field::z
-              element: <testLibraryFragment>::@class::B::@field::z#element
+              element: <testLibrary>::@class::B::@field::z
               setter2: <testLibraryFragment>::@class::B::@setter::z
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           getters
             synthetic get x
@@ -9381,20 +9381,20 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::A::@field::x
-              element: <testLibraryFragment>::@class::A::@field::x#element
+              element: <testLibrary>::@class::A::@field::x
               getter2: <testLibraryFragment>::@class::A::@getter::x
             synthetic y
               reference: <testLibraryFragment>::@class::A::@field::y
-              element: <testLibraryFragment>::@class::A::@field::y#element
+              element: <testLibrary>::@class::A::@field::y
               getter2: <testLibraryFragment>::@class::A::@getter::y
             synthetic z
               reference: <testLibraryFragment>::@class::A::@field::z
-              element: <testLibraryFragment>::@class::A::@field::z#element
+              element: <testLibrary>::@class::A::@field::z
               getter2: <testLibraryFragment>::@class::A::@getter::z
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
             get x @30
@@ -9415,21 +9415,21 @@ library
           fields
             x @92
               reference: <testLibraryFragment>::@class::B::@field::x
-              element: <testLibraryFragment>::@class::B::@field::x#element
+              element: <testLibrary>::@class::B::@field::x
               getter2: <testLibraryFragment>::@class::B::@getter::x
               setter2: <testLibraryFragment>::@class::B::@setter::x
             synthetic y
               reference: <testLibraryFragment>::@class::B::@field::y
-              element: <testLibraryFragment>::@class::B::@field::y#element
+              element: <testLibrary>::@class::B::@field::y
               getter2: <testLibraryFragment>::@class::B::@getter::y
             synthetic z
               reference: <testLibraryFragment>::@class::B::@field::z
-              element: <testLibraryFragment>::@class::B::@field::z#element
+              element: <testLibrary>::@class::B::@field::z
               setter2: <testLibraryFragment>::@class::B::@setter::z
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           getters
             synthetic get x
@@ -9569,12 +9569,12 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::A::@field::x
-              element: <testLibraryFragment>::@class::A::@field::x#element
+              element: <testLibrary>::@class::A::@field::x
               getter2: <testLibraryFragment>::@class::A::@getter::x
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
             get x @29
@@ -9586,12 +9586,12 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::B::@field::x
-              element: <testLibraryFragment>::@class::B::@field::x#element
+              element: <testLibrary>::@class::B::@field::x
               getter2: <testLibraryFragment>::@class::B::@getter::x
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           getters
             get x @66
@@ -9603,12 +9603,12 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
             get x @103
@@ -9692,12 +9692,12 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::A::@field::x
-              element: <testLibraryFragment>::@class::A::@field::x#element
+              element: <testLibrary>::@class::A::@field::x
               getter2: <testLibraryFragment>::@class::A::@getter::x
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
             get x @29
@@ -9709,12 +9709,12 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::B::@field::x
-              element: <testLibraryFragment>::@class::B::@field::x#element
+              element: <testLibrary>::@class::B::@field::x
               getter2: <testLibraryFragment>::@class::B::@getter::x
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           getters
             get x @67
@@ -9726,12 +9726,12 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
             get x @104
@@ -9818,12 +9818,12 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::A::@field::x
-              element: <testLibraryFragment>::@class::A::@field::x#element
+              element: <testLibrary>::@class::A::@field::x
               getter2: <testLibraryFragment>::@class::A::@getter::x
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
             get x @30
@@ -9838,12 +9838,12 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::B::@field::x
-              element: <testLibraryFragment>::@class::B::@field::x#element
+              element: <testLibrary>::@class::B::@field::x
               getter2: <testLibraryFragment>::@class::B::@getter::x
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           getters
             get x @65
@@ -9855,12 +9855,12 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
             get x @115
@@ -9951,12 +9951,12 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::A::@field::x
-              element: <testLibraryFragment>::@class::A::@field::x#element
+              element: <testLibrary>::@class::A::@field::x
               getter2: <testLibraryFragment>::@class::A::@getter::x
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
             get x @29
@@ -9968,12 +9968,12 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::B::@field::x
-              element: <testLibraryFragment>::@class::B::@field::x#element
+              element: <testLibrary>::@class::B::@field::x
               getter2: <testLibraryFragment>::@class::B::@getter::x
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           getters
             get x @63
@@ -9985,12 +9985,12 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
             get x @100
@@ -10076,16 +10076,16 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::A::@field::x
-              element: <testLibraryFragment>::@class::A::@field::x#element
+              element: <testLibrary>::@class::A::@field::x
               getter2: <testLibraryFragment>::@class::A::@getter::x
             synthetic y
               reference: <testLibraryFragment>::@class::A::@field::y
-              element: <testLibraryFragment>::@class::A::@field::y#element
+              element: <testLibrary>::@class::A::@field::y
               getter2: <testLibraryFragment>::@class::A::@getter::y
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
             get x @29
@@ -10100,16 +10100,16 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::B::@field::x
-              element: <testLibraryFragment>::@class::B::@field::x#element
+              element: <testLibrary>::@class::B::@field::x
               setter2: <testLibraryFragment>::@class::B::@setter::x
             synthetic y
               reference: <testLibraryFragment>::@class::B::@field::y
-              element: <testLibraryFragment>::@class::B::@field::y#element
+              element: <testLibrary>::@class::B::@field::y
               setter2: <testLibraryFragment>::@class::B::@setter::y
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           setters
             set x @77
@@ -10130,17 +10130,17 @@ library
           fields
             x @148
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
               setter2: <testLibraryFragment>::@class::C::@setter::x
             y @159
               reference: <testLibraryFragment>::@class::C::@field::y
-              element: <testLibraryFragment>::@class::C::@field::y#element
+              element: <testLibrary>::@class::C::@field::y
               getter2: <testLibraryFragment>::@class::C::@getter::y
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
             synthetic get x
@@ -10268,12 +10268,12 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::A::@field::x
-              element: <testLibraryFragment>::@class::A::@field::x#element
+              element: <testLibrary>::@class::A::@field::x
               getter2: <testLibraryFragment>::@class::A::@getter::x
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
             get x @29
@@ -10285,12 +10285,12 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::B::@field::x
-              element: <testLibraryFragment>::@class::B::@field::x#element
+              element: <testLibrary>::@class::B::@field::x
               setter2: <testLibraryFragment>::@class::B::@setter::x
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           setters
             set x @64
@@ -10305,12 +10305,12 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
             get x @111
@@ -10397,12 +10397,12 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::A::@field::x
-              element: <testLibraryFragment>::@class::A::@field::x#element
+              element: <testLibrary>::@class::A::@field::x
               getter2: <testLibraryFragment>::@class::A::@getter::x
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
             get x @29
@@ -10414,12 +10414,12 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::B::@field::x
-              element: <testLibraryFragment>::@class::B::@field::x#element
+              element: <testLibrary>::@class::B::@field::x
               setter2: <testLibraryFragment>::@class::B::@setter::x
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           setters
             set x @64
@@ -10434,12 +10434,12 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               setter2: <testLibraryFragment>::@class::C::@setter::x
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           setters
             set x @111
@@ -10531,12 +10531,12 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::A::@field::x
-              element: <testLibraryFragment>::@class::A::@field::x#element
+              element: <testLibrary>::@class::A::@field::x
               getter2: <testLibraryFragment>::@class::A::@getter::x
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
             get x @29
@@ -10548,12 +10548,12 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::B::@field::x
-              element: <testLibraryFragment>::@class::B::@field::x#element
+              element: <testLibrary>::@class::B::@field::x
               setter2: <testLibraryFragment>::@class::B::@setter::x
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           setters
             set x @64
@@ -10568,13 +10568,13 @@ library
           fields
             x @108
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
               setter2: <testLibraryFragment>::@class::C::@setter::x
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
             synthetic get x
@@ -10675,12 +10675,12 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::A::@field::x
-              element: <testLibraryFragment>::@class::A::@field::x#element
+              element: <testLibrary>::@class::A::@field::x
               getter2: <testLibraryFragment>::@class::A::@getter::x
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
             get x @29
@@ -10692,12 +10692,12 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::B::@field::x
-              element: <testLibraryFragment>::@class::B::@field::x#element
+              element: <testLibrary>::@class::B::@field::x
               setter2: <testLibraryFragment>::@class::B::@setter::x
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           setters
             set x @64
@@ -10712,12 +10712,12 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
             get x @108
@@ -10803,12 +10803,12 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::A::@field::x
-              element: <testLibraryFragment>::@class::A::@field::x#element
+              element: <testLibrary>::@class::A::@field::x
               getter2: <testLibraryFragment>::@class::A::@getter::x
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
             get x @29
@@ -10820,12 +10820,12 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::B::@field::x
-              element: <testLibraryFragment>::@class::B::@field::x#element
+              element: <testLibrary>::@class::B::@field::x
               setter2: <testLibraryFragment>::@class::B::@setter::x
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           setters
             set x @64
@@ -10840,12 +10840,12 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               setter2: <testLibraryFragment>::@class::C::@setter::x
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           setters
             set x @108
@@ -10938,20 +10938,20 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::A::@field::x
-              element: <testLibraryFragment>::@class::A::@field::x#element
+              element: <testLibrary>::@class::A::@field::x
               setter2: <testLibraryFragment>::@class::A::@setter::x
             synthetic y
               reference: <testLibraryFragment>::@class::A::@field::y
-              element: <testLibraryFragment>::@class::A::@field::y#element
+              element: <testLibrary>::@class::A::@field::y
               setter2: <testLibraryFragment>::@class::A::@setter::y
             synthetic z
               reference: <testLibraryFragment>::@class::A::@field::z
-              element: <testLibraryFragment>::@class::A::@field::z#element
+              element: <testLibrary>::@class::A::@field::z
               setter2: <testLibraryFragment>::@class::A::@setter::z
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           setters
             set x @30
@@ -10978,21 +10978,21 @@ library
           fields
             x @113
               reference: <testLibraryFragment>::@class::B::@field::x
-              element: <testLibraryFragment>::@class::B::@field::x#element
+              element: <testLibrary>::@class::B::@field::x
               getter2: <testLibraryFragment>::@class::B::@getter::x
               setter2: <testLibraryFragment>::@class::B::@setter::x
             synthetic y
               reference: <testLibraryFragment>::@class::B::@field::y
-              element: <testLibraryFragment>::@class::B::@field::y#element
+              element: <testLibrary>::@class::B::@field::y
               getter2: <testLibraryFragment>::@class::B::@getter::y
             synthetic z
               reference: <testLibraryFragment>::@class::B::@field::z
-              element: <testLibraryFragment>::@class::B::@field::z#element
+              element: <testLibrary>::@class::B::@field::z
               setter2: <testLibraryFragment>::@class::B::@setter::z
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           getters
             synthetic get x
@@ -11123,12 +11123,12 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::A::@field::x
-              element: <testLibraryFragment>::@class::A::@field::x#element
+              element: <testLibrary>::@class::A::@field::x
               setter2: <testLibraryFragment>::@class::A::@setter::x
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           setters
             set x @30
@@ -11143,12 +11143,12 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::B::@field::x
-              element: <testLibraryFragment>::@class::B::@field::x#element
+              element: <testLibrary>::@class::B::@field::x
               setter2: <testLibraryFragment>::@class::B::@setter::x
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           setters
             set x @72
@@ -11163,12 +11163,12 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
             get x @119
@@ -11257,12 +11257,12 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::A::@field::x
-              element: <testLibraryFragment>::@class::A::@field::x#element
+              element: <testLibrary>::@class::A::@field::x
               setter2: <testLibraryFragment>::@class::A::@setter::x
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           setters
             set x @30
@@ -11277,12 +11277,12 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::B::@field::x
-              element: <testLibraryFragment>::@class::B::@field::x#element
+              element: <testLibrary>::@class::B::@field::x
               setter2: <testLibraryFragment>::@class::B::@setter::x
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           setters
             set x @72
@@ -11297,12 +11297,12 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::C::@field::x
-              element: <testLibraryFragment>::@class::C::@field::x#element
+              element: <testLibrary>::@class::C::@field::x
               getter2: <testLibraryFragment>::@class::C::@getter::x
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
             get x @116
@@ -11396,16 +11396,16 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::A::@field::x
-              element: <testLibraryFragment>::@class::A::@field::x#element
+              element: <testLibrary>::@class::A::@field::x
               getter2: <testLibraryFragment>::@class::A::@getter::x
             synthetic y
               reference: <testLibraryFragment>::@class::A::@field::y
-              element: <testLibraryFragment>::@class::A::@field::y#element
+              element: <testLibrary>::@class::A::@field::y
               getter2: <testLibraryFragment>::@class::A::@getter::y
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
             get x @41
@@ -11420,16 +11420,16 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::B::@field::x
-              element: <testLibraryFragment>::@class::B::@field::x#element
+              element: <testLibrary>::@class::B::@field::x
               getter2: <testLibraryFragment>::@class::B::@getter::x
             synthetic y
               reference: <testLibraryFragment>::@class::B::@field::y
-              element: <testLibraryFragment>::@class::B::@field::y#element
+              element: <testLibrary>::@class::B::@field::y
               getter2: <testLibraryFragment>::@class::B::@getter::y
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           getters
             get x @114
@@ -11499,7 +11499,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
+          superConstructor: <testLibrary>::@class::A::@constructor::new
       getters
         get x
           firstFragment: <testLibraryFragment>::@class::B::@getter::x
@@ -11542,13 +11542,13 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::A::@field::x
-              element: <testLibraryFragment>::@class::A::@field::x#element
+              element: <testLibrary>::@class::A::@field::x
               getter2: <testLibraryFragment>::@class::A::@getter::x
               setter2: <testLibraryFragment>::@class::A::@setter::x
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
             get x @29
@@ -11567,13 +11567,13 @@ library
           fields
             x @94
               reference: <testLibraryFragment>::@class::B::@field::x
-              element: <testLibraryFragment>::@class::B::@field::x#element
+              element: <testLibrary>::@class::B::@field::x
               getter2: <testLibraryFragment>::@class::B::@getter::x
               setter2: <testLibraryFragment>::@class::B::@setter::x
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           getters
             synthetic get x
@@ -11661,13 +11661,13 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::A::@field::x
-              element: <testLibraryFragment>::@class::A::@field::x#element
+              element: <testLibrary>::@class::A::@field::x
               getter2: <testLibraryFragment>::@class::A::@getter::x
               setter2: <testLibraryFragment>::@class::A::@setter::x
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
             get x @29
@@ -11686,12 +11686,12 @@ library
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::B::@field::x
-              element: <testLibraryFragment>::@class::B::@field::x#element
+              element: <testLibrary>::@class::B::@field::x
               setter2: <testLibraryFragment>::@class::B::@setter::x
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           setters
             set x @94
@@ -11768,23 +11768,23 @@ library
           fields
             hasInitializer t1 @16
               reference: <testLibraryFragment>::@class::A::@field::t1
-              element: <testLibraryFragment>::@class::A::@field::t1#element
+              element: <testLibrary>::@class::A::@field::t1
               getter2: <testLibraryFragment>::@class::A::@getter::t1
               setter2: <testLibraryFragment>::@class::A::@setter::t1
             hasInitializer t2 @30
               reference: <testLibraryFragment>::@class::A::@field::t2
-              element: <testLibraryFragment>::@class::A::@field::t2#element
+              element: <testLibrary>::@class::A::@field::t2
               getter2: <testLibraryFragment>::@class::A::@getter::t2
               setter2: <testLibraryFragment>::@class::A::@setter::t2
             hasInitializer t3 @46
               reference: <testLibraryFragment>::@class::A::@field::t3
-              element: <testLibraryFragment>::@class::A::@field::t3#element
+              element: <testLibrary>::@class::A::@field::t3
               getter2: <testLibraryFragment>::@class::A::@getter::t3
               setter2: <testLibraryFragment>::@class::A::@setter::t3
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
             synthetic get t1
@@ -11894,7 +11894,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
             m @17
@@ -11909,7 +11909,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
             m @58
@@ -11942,7 +11942,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
+          superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
         m
           reference: <testLibrary>::@class::B::@method::m
@@ -11981,7 +11981,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
             m @17
@@ -11996,7 +11996,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
             m @48
@@ -12011,7 +12011,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
             m @100
@@ -12058,7 +12058,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
+          superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
         m
           reference: <testLibrary>::@class::C::@method::m
@@ -12097,7 +12097,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
             foo @25
@@ -12112,7 +12112,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
             foo @68
@@ -12127,7 +12127,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
             foo @126
@@ -12211,7 +12211,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
             m @16
@@ -12223,7 +12223,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
             m @44
@@ -12235,7 +12235,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
             m @88
@@ -12273,7 +12273,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
+          superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
         m
           reference: <testLibrary>::@class::C::@method::m
@@ -12310,7 +12310,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
             m @20
@@ -12328,7 +12328,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
             m @52
@@ -12343,7 +12343,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
             m @112
@@ -12396,7 +12396,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
+          superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
         m
           reference: <testLibrary>::@class::C::@method::m
@@ -12438,7 +12438,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
             m @20
@@ -12456,7 +12456,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
             m @49
@@ -12471,7 +12471,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
             m @119
@@ -12525,7 +12525,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
+          superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
         m
           reference: <testLibrary>::@class::C::@method::m
@@ -12559,7 +12559,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
             m @17
@@ -12574,7 +12574,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
             m @53
@@ -12608,7 +12608,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
+          superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
         m
           reference: <testLibrary>::@class::B::@method::m
@@ -12645,7 +12645,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
             m @17
@@ -12660,7 +12660,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
             m @53
@@ -12693,7 +12693,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
+          superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
         m
           reference: <testLibrary>::@class::B::@method::m
@@ -12729,7 +12729,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
             m @12
@@ -12744,7 +12744,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
             m @44
@@ -12775,7 +12775,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
+          superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
         m
           reference: <testLibrary>::@class::B::@method::m
@@ -12809,7 +12809,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
             foo @16
@@ -12824,7 +12824,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
             m @63
@@ -12855,7 +12855,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
+          superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
         m
           reference: <testLibrary>::@class::B::@method::m
@@ -12889,13 +12889,13 @@ library
           fields
             hasInitializer m @16
               reference: <testLibraryFragment>::@class::A::@field::m
-              element: <testLibraryFragment>::@class::A::@field::m#element
+              element: <testLibrary>::@class::A::@field::m
               getter2: <testLibraryFragment>::@class::A::@getter::m
               setter2: <testLibraryFragment>::@class::A::@setter::m
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
             synthetic get m
@@ -12914,7 +12914,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
             m @48
@@ -12954,7 +12954,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
+          superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
         m
           reference: <testLibrary>::@class::B::@method::m
@@ -12994,7 +12994,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
             m @20
@@ -13012,7 +13012,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
         class C @70
           reference: <testLibraryFragment>::@class::C
@@ -13020,7 +13020,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
             m @94
@@ -13057,7 +13057,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
+          superConstructor: <testLibrary>::@class::A::@constructor::new
     class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
@@ -13065,7 +13065,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::B::@constructor::new#element
+          superConstructor: <testLibrary>::@class::B::@constructor::new
       methods
         m
           reference: <testLibrary>::@class::C::@method::m
@@ -13102,7 +13102,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
             m @19
@@ -13117,7 +13117,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
             m @55
@@ -13132,7 +13132,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
             m @87
@@ -13163,7 +13163,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
+          superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
         m
           reference: <testLibrary>::@class::B::@method::m
@@ -13179,7 +13179,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::B::@constructor::new#element
+          superConstructor: <testLibrary>::@class::B::@constructor::new
       methods
         m
           reference: <testLibrary>::@class::C::@method::m
@@ -13216,7 +13216,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
             m @19
@@ -13231,7 +13231,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
             m @58
@@ -13246,7 +13246,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
             m @90
@@ -13293,7 +13293,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::B::@constructor::new#element
+          superConstructor: <testLibrary>::@class::B::@constructor::new
       methods
         m
           reference: <testLibrary>::@class::C::@method::m
@@ -13330,7 +13330,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
             m @19
@@ -13345,7 +13345,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
             m @67
@@ -13360,7 +13360,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
             m @99
@@ -13408,7 +13408,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::B::@constructor::new#element
+          superConstructor: <testLibrary>::@class::B::@constructor::new
       methods
         m
           reference: <testLibrary>::@class::C::@method::m
@@ -13447,7 +13447,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
             m @20
@@ -13464,7 +13464,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
             m @77
@@ -13503,7 +13503,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
+          superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
         m
           reference: <testLibrary>::@class::B::@method::m
@@ -13539,7 +13539,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
             m @19
@@ -13554,7 +13554,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
             m @55
@@ -13585,7 +13585,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
+          superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
         m
           reference: <testLibrary>::@class::B::@method::m
@@ -13619,7 +13619,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
             m @19
@@ -13637,7 +13637,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
             m @67
@@ -13674,7 +13674,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
+          superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
         m
           reference: <testLibrary>::@class::B::@method::m
@@ -13711,7 +13711,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
             m @19
@@ -13728,7 +13728,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
             m @67
@@ -13763,7 +13763,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
+          superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
         m
           reference: <testLibrary>::@class::B::@method::m
@@ -13805,7 +13805,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
             m @20
@@ -13823,7 +13823,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
         class C @70
           reference: <testLibraryFragment>::@class::C
@@ -13831,7 +13831,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
             m @94
@@ -13868,7 +13868,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
+          superConstructor: <testLibrary>::@class::A::@constructor::new
     class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
@@ -13876,7 +13876,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::B::@constructor::new#element
+          superConstructor: <testLibrary>::@class::B::@constructor::new
       methods
         m
           reference: <testLibrary>::@class::C::@method::m
@@ -13915,7 +13915,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
             m @29
@@ -13930,7 +13930,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
             m @77
@@ -13999,7 +13999,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
             m @28
@@ -14014,7 +14014,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
             m @65
@@ -14085,7 +14085,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
             m @29
@@ -14105,7 +14105,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
         class C @91
           reference: <testLibraryFragment>::@class::C
@@ -14113,7 +14113,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
             m @123
@@ -14151,7 +14151,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
+          superConstructor: <testLibrary>::@class::A::@constructor::new
     class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
@@ -14200,7 +14200,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A1::@constructor::new
-              element: <testLibraryFragment>::@class::A1::@constructor::new#element
+              element: <testLibrary>::@class::A1::@constructor::new
               typeName: A1
           methods
             _foo @38
@@ -14212,7 +14212,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A2::@constructor::new
-              element: <testLibraryFragment>::@class::A2::@constructor::new#element
+              element: <testLibrary>::@class::A2::@constructor::new
               typeName: A2
           methods
             _foo @77
@@ -14237,7 +14237,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::A2::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::A1::@constructor::new#element
+          superConstructor: <testLibrary>::@class::A1::@constructor::new
       methods
         _foo
           reference: <testLibrary>::@class::A2::@method::_foo
@@ -14268,7 +14268,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
             m @19
@@ -14283,7 +14283,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
             m @67
@@ -14357,7 +14357,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
             m @20
@@ -14375,7 +14375,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
             m @49
@@ -14390,7 +14390,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
             m @119
@@ -14444,7 +14444,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
+          superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
         m
           reference: <testLibrary>::@class::C::@method::m
@@ -14481,7 +14481,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
             m @19
@@ -14496,7 +14496,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
             m @52
@@ -14511,7 +14511,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
             m @101
@@ -14558,7 +14558,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
+          superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
         m
           reference: <testLibrary>::@class::C::@method::m

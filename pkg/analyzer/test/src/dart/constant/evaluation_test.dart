@@ -124,9 +124,9 @@ E
     _name: String v1
     a: int 42
     index: int 0
-    variable: <testLibraryFragment>::@enum::E::@field::v1#element
+    variable: <testLibrary>::@enum::E::@field::v1
   index: int 1
-  variable: <testLibraryFragment>::@enum::E::@field::v2#element
+  variable: <testLibrary>::@enum::E::@field::v2
 ''');
   }
 
@@ -1589,7 +1589,7 @@ const c = C<int>.foo;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 C<int> Function()
-  element: <testLibraryFragment>::@class::C::@constructor::foo#element
+  element: <testLibrary>::@class::C::@constructor::foo
   typeArguments
     int
   variable: <testLibrary>::@topLevelVariable::c
@@ -1606,7 +1606,7 @@ const c = C<int>.new;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 C<int> Function()
-  element: <testLibraryFragment>::@class::C::@constructor::new#element
+  element: <testLibrary>::@class::C::@constructor::new
   typeArguments
     int
   variable: <testLibrary>::@topLevelVariable::c
@@ -1898,7 +1898,7 @@ const c = C<int>.foo;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 C<int> Function()
-  element: <testLibraryFragment>::@class::C::@constructor::foo#element
+  element: <testLibrary>::@class::C::@constructor::foo
   typeArguments
     int
   variable: <testLibrary>::@topLevelVariable::c
@@ -1915,7 +1915,7 @@ const c = C<int>.new;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 C<int> Function()
-  element: <testLibraryFragment>::@class::C::@constructor::new#element
+  element: <testLibrary>::@class::C::@constructor::new
   typeArguments
     int
   variable: <testLibrary>::@topLevelVariable::c
@@ -3741,7 +3741,7 @@ void Function(int, {int? b})
   element: <testLibrary>::@function::f
   typeArguments
     int
-  variable: <testLibraryFragment>::@class::C::@field::h#element
+  variable: <testLibrary>::@class::C::@field::h
 ''');
   }
 

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -26,10 +27,7 @@ class PreferRelativeImports extends LintRule {
   ];
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     if (!context.isInLibDir) return;
 
     var sourceUri = context.libraryElement?.uri;
@@ -43,7 +41,7 @@ class PreferRelativeImports extends LintRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final PreferRelativeImports rule;
   final Uri sourceUri;
-  final LinterContext context;
+  final RuleContext context;
 
   _Visitor(this.rule, this.sourceUri, this.context);
 

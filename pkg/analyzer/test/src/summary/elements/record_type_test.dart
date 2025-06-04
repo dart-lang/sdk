@@ -35,12 +35,12 @@ library
           fields
             x @32
               reference: <testLibraryFragment>::@class::A::@field::x
-              element: <testLibraryFragment>::@class::A::@field::x#element
+              element: <testLibrary>::@class::A::@field::x
               getter2: <testLibraryFragment>::@class::A::@getter::x
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
             synthetic get x
@@ -84,12 +84,12 @@ library
           fields
             hasInitializer x @18
               reference: <testLibraryFragment>::@class::A::@field::x
-              element: <testLibraryFragment>::@class::A::@field::x#element
+              element: <testLibrary>::@class::A::@field::x
               getter2: <testLibraryFragment>::@class::A::@getter::x
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
             synthetic get x
@@ -133,7 +133,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
             foo @17
@@ -179,7 +179,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
             foo @26
@@ -220,7 +220,7 @@ library
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
   classes
     class A

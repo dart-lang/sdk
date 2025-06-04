@@ -419,7 +419,7 @@ class LspAnalysisServer extends AnalysisServer {
     performanceAfterStartup = ServerPerformance();
     performance = performanceAfterStartup!;
 
-    _checkAnalytics();
+    checkAnalytics();
     enableSurveys();
 
     // Notify the client of any issues parsing experimental capabilities.
@@ -1071,21 +1071,6 @@ class LspAnalysisServer extends AnalysisServer {
 
     notifyDeclarationsTracker(path);
     notifyFlutterWidgetDescriptions(path);
-  }
-
-  /// Display a message that will allow us to enable analytics on the next run.
-  void _checkAnalytics() {
-    // TODO(dantup): This code should move to base server.
-    var unifiedAnalytics = analyticsManager.analytics;
-    var prompt = userPromptSender;
-    if (!unifiedAnalytics.shouldShowMessage || prompt == null) {
-      return;
-    }
-
-    unawaited(
-      prompt(MessageType.info, unifiedAnalytics.getConsentMessage, ['Ok']),
-    );
-    unifiedAnalytics.clientShowedMessage();
   }
 
   /// Computes analysis roots for a set of open files.

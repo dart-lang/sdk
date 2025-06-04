@@ -586,7 +586,7 @@ DotShorthandInvocation
         constructorName: SimpleIdentifier
           token: new
           element: ConstructorMember
-            baseElement: <testLibraryFragment>::@class::C::@constructor::new#element
+            baseElement: <testLibrary>::@class::C::@constructor::new
             substitution: {T: C<dynamic>}
           staticType: null
         argumentList: ArgumentList

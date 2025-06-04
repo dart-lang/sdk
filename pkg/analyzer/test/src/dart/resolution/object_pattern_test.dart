@@ -1321,7 +1321,7 @@ PatternVariableDeclaration
         element2: <testLibrary>::@class::A
         type: A<int>
       element: ConstructorMember
-        baseElement: <testLibraryFragment>::@class::A::@constructor::new#element
+        baseElement: <testLibrary>::@class::A::@constructor::new
         substitution: {T: int}
     argumentList: ArgumentList
       leftParenthesis: (
@@ -1383,7 +1383,7 @@ PatternVariableDeclaration
         element2: <testLibrary>::@class::A
         type: A<dynamic>
       element: ConstructorMember
-        baseElement: <testLibraryFragment>::@class::A::@constructor::new#element
+        baseElement: <testLibrary>::@class::A::@constructor::new
         substitution: {T: dynamic}
     argumentList: ArgumentList
       leftParenthesis: (

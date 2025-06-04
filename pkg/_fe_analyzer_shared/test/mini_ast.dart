@@ -150,7 +150,7 @@ Statement declare(
   String? expectInferredType,
 }) {
   var location = computeLocation();
-  return new Declare._(
+  return new PatternVariableDeclaration._(
     new VariablePattern._(
       type == null ? null : Type(type),
       variable,
@@ -444,22 +444,6 @@ Pattern mapPatternWithTypeArguments({
   );
 }
 
-Statement match(
-  Pattern pattern,
-  ProtoExpression initializer, {
-  bool isLate = false,
-  bool isFinal = false,
-}) {
-  var location = computeLocation();
-  return new Declare._(
-    pattern,
-    initializer.asExpression(location: location),
-    isLate: isLate,
-    isFinal: isFinal,
-    location: location,
-  );
-}
-
 Pattern objectPattern({
   required String requiredType,
   required List<RecordPatternField> fields,
@@ -515,6 +499,22 @@ CollectionElement patternForInElement(
     expression.asExpression(location: location),
     body.asCollectionElement(location: location),
     hasAwait: hasAwait,
+    location: location,
+  );
+}
+
+Statement patternVariableDeclaration(
+  Pattern pattern,
+  ProtoExpression initializer, {
+  bool isLate = false,
+  bool isFinal = false,
+}) {
+  var location = computeLocation();
+  return new PatternVariableDeclaration._(
+    pattern,
+    initializer.asExpression(location: location),
+    isLate: isLate,
+    isFinal: isFinal,
     location: location,
   );
 }
@@ -1299,149 +1299,6 @@ class Continue extends Statement {
           : target._getBinding(),
     );
     h.irBuilder.apply('continue', [], Kind.statement, location: location);
-  }
-}
-
-class Declare extends Statement {
-  final bool isLate;
-  final bool isFinal;
-  final Pattern pattern;
-  final Expression? initializer;
-
-  Declare._(
-    this.pattern,
-    this.initializer, {
-    required this.isLate,
-    required this.isFinal,
-    required super.location,
-  });
-
-  @override
-  void preVisit(PreVisitor visitor) {
-    var variableBinder = _VariableBinder(visitor);
-    variableBinder.casePatternStart();
-    pattern.preVisit(visitor, variableBinder, isInAssignment: false);
-    variableBinder.casePatternFinish();
-    variableBinder.finish();
-    if (isLate) {
-      visitor._assignedVariables.beginNode();
-    }
-    initializer?.preVisit(visitor);
-    if (isLate) {
-      visitor._assignedVariables.endNode(this);
-    }
-  }
-
-  @override
-  String toString() {
-    var parts = <String>[
-      if (isLate) 'late',
-      if (isFinal) 'final',
-      pattern._debugString(needsKeywordOrType: !isFinal),
-      if (initializer != null) '= $initializer',
-    ];
-    return '${parts.join(' ')};';
-  }
-
-  @override
-  void visit(Harness h) {
-    String irName;
-    List<Kind> argKinds;
-    List<String> names = const [];
-    var initializer = this.initializer;
-    if (isLate) {
-      // Late declarations are not allowed using patterns, so interpret the
-      // declaration as an old-fashioned variable declaration.
-      var pattern = this.pattern as VariablePattern;
-      var variable = pattern.variable;
-      h.irBuilder.atom(variable.name, Kind.variable, location: location);
-      var declaredType = pattern.declaredType;
-      Type staticType;
-      if (initializer == null) {
-        // Use the shared logic for analyzing uninitialized variable
-        // declarations.
-        staticType =
-            h.typeAnalyzer
-                .analyzeUninitializedVariableDeclaration(
-                  this,
-                  pattern.variable,
-                  declaredType?.wrapSharedTypeView(),
-                  isFinal: isFinal,
-                )
-                .unwrapTypeView();
-        irName = 'declare';
-        argKinds = [Kind.variable];
-      } else {
-        // There's no shared logic for analyzing initialized late variable
-        // declarations, so analyze the declaration directly.
-        h.flow.lateInitializer_begin(this);
-        var initializerType =
-            h.typeAnalyzer
-                .analyzeExpression(
-                  initializer,
-                  declaredType?.wrapSharedTypeSchemaView() ??
-                      h.operations.unknownType,
-                )
-                .unwrapTypeView<Type>();
-        h.flow.lateInitializer_end();
-        staticType = variable.type = declaredType ?? initializerType;
-        h.flow.declare(variable, SharedTypeView(staticType), initialized: true);
-        h.flow.initialize(
-          variable,
-          SharedTypeView(initializerType),
-          initializer,
-          isFinal: isFinal,
-          isLate: true,
-          isImplicitlyTyped: declaredType == null,
-        );
-        h.irBuilder.atom(initializerType.type, Kind.type, location: location);
-        h.irBuilder.atom(staticType.type, Kind.type, location: location);
-        irName = 'declare';
-        argKinds = [Kind.variable, Kind.expression, Kind.type, Kind.type];
-        names = (['initializerType', 'staticType']);
-      }
-      // Finally, double check the inferred variable type, if necessary for the
-      // test.
-      var expectInferredType = pattern.expectInferredType;
-      if (expectInferredType != null) {
-        expect(staticType, expectInferredType);
-      }
-    } else if (initializer == null) {
-      var pattern = this.pattern as VariablePattern;
-      var declaredType = pattern.declaredType;
-      var staticType =
-          h.typeAnalyzer
-              .analyzeUninitializedVariableDeclaration(
-                this,
-                pattern.variable,
-                declaredType?.wrapSharedTypeView(),
-                isFinal: isFinal,
-              )
-              .unwrapTypeView<Type>();
-      h.typeAnalyzer.handleDeclaredVariablePattern(
-        pattern,
-        matchedType: staticType,
-        staticType: staticType,
-      );
-      irName = 'declare';
-      argKinds = [Kind.pattern];
-    } else {
-      h.typeAnalyzer.analyzePatternVariableDeclaration(
-        this,
-        pattern,
-        initializer,
-        isFinal: isFinal,
-      );
-      irName = 'match';
-      argKinds = [Kind.expression, Kind.pattern];
-    }
-    h.irBuilder.apply(
-      [irName, if (isLate) 'late', if (isFinal) 'final'].join('_'),
-      argKinds,
-      Kind.statement,
-      location: location,
-      names: names,
-    );
   }
 }
 
@@ -4220,6 +4077,149 @@ class PatternForInElement extends CollectionElement {
       [Kind.expression, Kind.pattern, Kind.collectionElement],
       Kind.collectionElement,
       location: location,
+    );
+  }
+}
+
+class PatternVariableDeclaration extends Statement {
+  final bool isLate;
+  final bool isFinal;
+  final Pattern pattern;
+  final Expression? initializer;
+
+  PatternVariableDeclaration._(
+    this.pattern,
+    this.initializer, {
+    required this.isLate,
+    required this.isFinal,
+    required super.location,
+  });
+
+  @override
+  void preVisit(PreVisitor visitor) {
+    var variableBinder = _VariableBinder(visitor);
+    variableBinder.casePatternStart();
+    pattern.preVisit(visitor, variableBinder, isInAssignment: false);
+    variableBinder.casePatternFinish();
+    variableBinder.finish();
+    if (isLate) {
+      visitor._assignedVariables.beginNode();
+    }
+    initializer?.preVisit(visitor);
+    if (isLate) {
+      visitor._assignedVariables.endNode(this);
+    }
+  }
+
+  @override
+  String toString() {
+    var parts = <String>[
+      if (isLate) 'late',
+      if (isFinal) 'final',
+      pattern._debugString(needsKeywordOrType: !isFinal),
+      if (initializer != null) '= $initializer',
+    ];
+    return '${parts.join(' ')};';
+  }
+
+  @override
+  void visit(Harness h) {
+    String irName;
+    List<Kind> argKinds;
+    List<String> names = const [];
+    var initializer = this.initializer;
+    if (isLate) {
+      // Late declarations are not allowed using patterns, so interpret the
+      // declaration as an old-fashioned variable declaration.
+      var pattern = this.pattern as VariablePattern;
+      var variable = pattern.variable;
+      h.irBuilder.atom(variable.name, Kind.variable, location: location);
+      var declaredType = pattern.declaredType;
+      Type staticType;
+      if (initializer == null) {
+        // Use the shared logic for analyzing uninitialized variable
+        // declarations.
+        staticType =
+            h.typeAnalyzer
+                .analyzeUninitializedVariableDeclaration(
+                  this,
+                  pattern.variable,
+                  declaredType?.wrapSharedTypeView(),
+                  isFinal: isFinal,
+                )
+                .unwrapTypeView();
+        irName = 'declare';
+        argKinds = [Kind.variable];
+      } else {
+        // There's no shared logic for analyzing initialized late variable
+        // declarations, so analyze the declaration directly.
+        h.flow.lateInitializer_begin(this);
+        var initializerType =
+            h.typeAnalyzer
+                .analyzeExpression(
+                  initializer,
+                  declaredType?.wrapSharedTypeSchemaView() ??
+                      h.operations.unknownType,
+                )
+                .unwrapTypeView<Type>();
+        h.flow.lateInitializer_end();
+        staticType = variable.type = declaredType ?? initializerType;
+        h.flow.declare(variable, SharedTypeView(staticType), initialized: true);
+        h.flow.initialize(
+          variable,
+          SharedTypeView(initializerType),
+          initializer,
+          isFinal: isFinal,
+          isLate: true,
+          isImplicitlyTyped: declaredType == null,
+        );
+        h.irBuilder.atom(initializerType.type, Kind.type, location: location);
+        h.irBuilder.atom(staticType.type, Kind.type, location: location);
+        irName = 'declare';
+        argKinds = [Kind.variable, Kind.expression, Kind.type, Kind.type];
+        names = (['initializerType', 'staticType']);
+      }
+      // Finally, double check the inferred variable type, if necessary for the
+      // test.
+      var expectInferredType = pattern.expectInferredType;
+      if (expectInferredType != null) {
+        expect(staticType, expectInferredType);
+      }
+    } else if (initializer == null) {
+      var pattern = this.pattern as VariablePattern;
+      var declaredType = pattern.declaredType;
+      var staticType =
+          h.typeAnalyzer
+              .analyzeUninitializedVariableDeclaration(
+                this,
+                pattern.variable,
+                declaredType?.wrapSharedTypeView(),
+                isFinal: isFinal,
+              )
+              .unwrapTypeView<Type>();
+      h.typeAnalyzer.handleDeclaredVariablePattern(
+        pattern,
+        matchedType: staticType,
+        staticType: staticType,
+      );
+      irName = 'declare';
+      argKinds = [Kind.pattern];
+    } else {
+      h.typeAnalyzer.analyzePatternVariableDeclaration(
+        this,
+        pattern,
+        initializer,
+        isFinal: isFinal,
+      );
+      irName = 'match';
+      argKinds = [Kind.expression, Kind.pattern];
+    }
+    h.irBuilder.apply(
+      [irName, if (isLate) 'late', if (isFinal) 'final'].join('_'),
+      argKinds,
+      Kind.statement,
+      location: location,
+      names: names,
     );
   }
 }

@@ -34,7 +34,7 @@ SuperConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: named
-    element: <testLibraryFragment>::@class::A::@constructor::named#element
+    element: <testLibrary>::@class::A::@constructor::named
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
@@ -44,7 +44,7 @@ SuperConstructorInvocation
         correspondingParameter: <testLibraryFragment>::@class::A::@constructor::named::@parameter::a#element
         staticType: int
     rightParenthesis: )
-  element: <testLibraryFragment>::@class::A::@constructor::named#element
+  element: <testLibrary>::@class::A::@constructor::named
 ''');
   }
 
@@ -122,7 +122,7 @@ SuperConstructorInvocation
         correspondingParameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
         staticType: int
     rightParenthesis: )
-  element: <testLibraryFragment>::@class::A::@constructor::new#element
+  element: <testLibrary>::@class::A::@constructor::new
 ''');
   }
 
@@ -149,7 +149,7 @@ SuperConstructorInvocation
         correspondingParameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
         staticType: int
     rightParenthesis: )
-  element: <testLibraryFragment>::@class::A::@constructor::new#element
+  element: <testLibrary>::@class::A::@constructor::new
 ''');
   }
 

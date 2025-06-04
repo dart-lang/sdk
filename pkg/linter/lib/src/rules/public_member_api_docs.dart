@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -25,10 +26,7 @@ class PublicMemberApiDocs extends LintRule {
   DiagnosticCode get diagnosticCode => LinterLintCode.public_member_api_docs;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var package = context.package;
     if (package != null && !package.canHavePublicApi) {
       return;
@@ -54,7 +52,7 @@ class PublicMemberApiDocs extends LintRule {
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  final LinterContext context;
+  final RuleContext context;
 
   _Visitor(this.rule, this.context);
 

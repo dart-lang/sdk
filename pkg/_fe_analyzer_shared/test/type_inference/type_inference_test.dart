@@ -1639,7 +1639,11 @@ main() {
       test('legal late pattern', () {
         var x = Var('x');
         h.run([
-          match(x.pattern(), intLiteral(0), isLate: true).checkIR(
+          patternVariableDeclaration(
+            x.pattern(),
+            intLiteral(0),
+            isLate: true,
+          ).checkIR(
             'declare_late(x, 0, initializerType: int, staticType: int)',
           ),
         ]);
@@ -1648,8 +1652,10 @@ main() {
       test('illegal refutable pattern', () {
         h.run(
           [
-            (match(intLiteral(1).pattern..errorId = 'PATTERN', intLiteral(0))
-              ..errorId = 'CONTEXT'),
+            (patternVariableDeclaration(
+              intLiteral(1).pattern..errorId = 'PATTERN',
+              intLiteral(0),
+            )..errorId = 'CONTEXT'),
           ],
           expectedErrors: {
             'refutablePatternInIrrefutableContext(pattern: PATTERN, '
@@ -1918,7 +1924,10 @@ main() {
       test('Type schema', () {
         var x = Var('x');
         h.run([
-          match(x.pattern().as_('int'), expr('num').checkSchema('_')).checkIR(
+          patternVariableDeclaration(
+            x.pattern().as_('int'),
+            expr('num').checkSchema('_'),
+          ).checkIR(
             'match(expr(num), castPattern(varPattern(x, '
             'matchedType: int, staticType: int), int, matchedType: num))',
           ),
@@ -1952,7 +1961,7 @@ main() {
           var x = Var('x');
           h.run(
             [
-              match(
+              patternVariableDeclaration(
                 x.pattern().as_('num')..errorId = 'PATTERN',
                 expr('int'),
               ).checkIR(
@@ -1971,7 +1980,10 @@ main() {
         test('When matched type is dynamic', () {
           var x = Var('x');
           h.run([
-            match(x.pattern().as_('num'), expr('dynamic')).checkIR(
+            patternVariableDeclaration(
+              x.pattern().as_('num'),
+              expr('dynamic'),
+            ).checkIR(
               'match(expr(dynamic), '
               'castPattern(varPattern(x, matchedType: num, '
               'staticType: num), num, matchedType: dynamic))',
@@ -1982,7 +1994,10 @@ main() {
         test('When matched type is not a subtype of variable type', () {
           var x = Var('x');
           h.run([
-            match(x.pattern().as_('num'), expr('String')).checkIR(
+            patternVariableDeclaration(
+              x.pattern().as_('num'),
+              expr('String'),
+            ).checkIR(
               'match(expr(String), '
               'castPattern(varPattern(x, matchedType: num, '
               'staticType: num), num, matchedType: String))',
@@ -2030,8 +2045,10 @@ main() {
       test('Refutability', () {
         h.run(
           [
-            (match(intLiteral(1).pattern..errorId = 'PATTERN', intLiteral(0))
-              ..errorId = 'CONTEXT'),
+            (patternVariableDeclaration(
+              intLiteral(1).pattern..errorId = 'PATTERN',
+              intLiteral(0),
+            )..errorId = 'CONTEXT'),
           ],
           expectedErrors: {
             'refutablePatternInIrrefutableContext(pattern: PATTERN, '
@@ -2046,7 +2063,7 @@ main() {
         test('Explicit type arguments', () {
           var x = Var('x');
           h.run([
-            match(
+            patternVariableDeclaration(
               mapPatternWithTypeArguments(
                 keyType: 'bool',
                 valueType: 'int',
@@ -2060,7 +2077,7 @@ main() {
           test('No elements', () {
             h.run(
               [
-                match(
+                patternVariableDeclaration(
                   mapPattern([])..errorId = 'PATTERN',
                   expr('dynamic').checkSchema('Map<_, _>'),
                 ),
@@ -2073,7 +2090,7 @@ main() {
             var x = Var('x');
             var y = Var('y');
             h.run([
-              match(
+              patternVariableDeclaration(
                 mapPattern([
                   mapPatternEntry(expr('bool'), x.pattern(type: 'int?')),
                   mapPatternEntry(expr('bool'), y.pattern(type: 'num')),
@@ -2190,7 +2207,7 @@ main() {
       group('Refutable context:', () {
         test('When matched type is a subtype of required type', () {
           h.run([
-            match(
+            patternVariableDeclaration(
               mapPatternWithTypeArguments(
                 keyType: 'Object',
                 valueType: 'num',
@@ -2213,7 +2230,7 @@ main() {
 
         test('When matched type is dynamic', () {
           h.run([
-            match(
+            patternVariableDeclaration(
               mapPatternWithTypeArguments(
                 keyType: 'Object',
                 valueType: 'num',
@@ -2236,7 +2253,7 @@ main() {
         test('When matched type is not a subtype of required type', () {
           h.run(
             [
-              match(
+              patternVariableDeclaration(
                 mapPatternWithTypeArguments(
                   keyType: 'bool',
                   valueType: 'int',
@@ -2264,7 +2281,7 @@ main() {
           var x = Var('x');
           h.run(
             [
-              match(
+              patternVariableDeclaration(
                 mapPattern([
                   restPattern()..errorId = 'REST_ELEMENT',
                   mapPatternEntry(expr('bool'), x.pattern(type: 'int')),
@@ -2281,7 +2298,7 @@ main() {
           var x = Var('x');
           h.run(
             [
-              match(
+              patternVariableDeclaration(
                 mapPattern([
                   mapPatternEntry(expr('bool'), x.pattern(type: 'int')),
                   restPattern()..errorId = 'REST_ELEMENT',
@@ -2298,7 +2315,7 @@ main() {
           var x = Var('x');
           h.run(
             [
-              match(
+              patternVariableDeclaration(
                 mapPattern([
                   mapPatternEntry(expr('bool'), x.pattern(type: 'int')),
                   restPattern()..errorId = 'REST_ELEMENT1',
@@ -2317,7 +2334,7 @@ main() {
           var x = Var('x');
           h.run(
             [
-              match(
+              patternVariableDeclaration(
                 mapPattern([
                   restPattern()..errorId = 'REST_ELEMENT1',
                   restPattern()..errorId = 'REST_ELEMENT2',
@@ -2336,7 +2353,7 @@ main() {
           var x = Var('x');
           h.run(
             [
-              match(
+              patternVariableDeclaration(
                 mapPattern([
                   mapPatternEntry(expr('bool'), x.pattern(type: 'int')),
                   restPattern(wildcard())..errorId = 'REST_ELEMENT',
@@ -2357,7 +2374,7 @@ main() {
         test('Explicit element type', () {
           var x = Var('x');
           h.run([
-            match(
+            patternVariableDeclaration(
               listPattern([x.pattern()], elementType: 'int'),
               expr('dynamic').checkSchema('List<int>'),
             ),
@@ -2367,7 +2384,10 @@ main() {
         group('Implicit element type:', () {
           test('No elements', () {
             h.run([
-              match(listPattern([]), expr('dynamic').checkSchema('List<_>')),
+              patternVariableDeclaration(
+                listPattern([]),
+                expr('dynamic').checkSchema('List<_>'),
+              ),
             ]);
           });
 
@@ -2375,7 +2395,7 @@ main() {
             var x = Var('x');
             var y = Var('y');
             h.run([
-              match(
+              patternVariableDeclaration(
                 listPattern([x.pattern(type: 'int?'), y.pattern(type: 'num')]),
                 expr('dynamic').checkSchema('List<int>'),
               ),
@@ -2387,7 +2407,7 @@ main() {
               test('Iterable', () {
                 var x = Var('x');
                 h.run([
-                  match(
+                  patternVariableDeclaration(
                     listPattern([
                       restPattern(x.pattern(type: 'Iterable<int>')),
                     ]),
@@ -2399,7 +2419,7 @@ main() {
                 var x = Var('x');
                 h.run(
                   [
-                    match(
+                    patternVariableDeclaration(
                       listPattern([
                         restPattern(
                           x.pattern(type: 'String')..errorId = 'VAR(x)',
@@ -2419,7 +2439,7 @@ main() {
             group('Without pattern:', () {
               test('No other elements', () {
                 h.run([
-                  match(
+                  patternVariableDeclaration(
                     listPattern([restPattern()]),
                     expr('dynamic').checkSchema('List<_>'),
                   ),
@@ -2428,7 +2448,7 @@ main() {
               test('Has other elements', () {
                 var x = Var('x');
                 h.run([
-                  match(
+                  patternVariableDeclaration(
                     listPattern([x.pattern(type: 'int'), restPattern()]),
                     expr('dynamic').checkSchema('List<int>'),
                   ),
@@ -2443,7 +2463,7 @@ main() {
         test('Explicit type', () {
           var x = Var('x');
           h.run([
-            match(
+            patternVariableDeclaration(
               listPattern([x.pattern(type: 'num')], elementType: 'int'),
               expr('dynamic'),
             ).checkIR(
@@ -2459,7 +2479,7 @@ main() {
           var x = Var('x');
           var y = Var('y');
           h.run([
-            match(
+            patternVariableDeclaration(
               listPattern([
                 x.pattern(expectInferredType: 'int'),
                 restPattern(y.pattern(expectInferredType: 'List<int>')),
@@ -2478,7 +2498,7 @@ main() {
           var x = Var('x');
           var y = Var('y');
           h.run([
-            match(
+            patternVariableDeclaration(
               listPattern([
                 x.pattern(expectInferredType: 'dynamic'),
                 restPattern(y.pattern(expectInferredType: 'List<dynamic>')),
@@ -2497,7 +2517,7 @@ main() {
           var x = Var('x');
           var y = Var('y');
           h.run([
-            match(
+            patternVariableDeclaration(
               listPattern([
                 x.pattern(expectInferredType: 'error'),
                 restPattern(y.pattern(expectInferredType: 'List<error>')),
@@ -2537,7 +2557,7 @@ main() {
           test('With pattern', () {
             var x = Var('x');
             h.run([
-              match(
+              patternVariableDeclaration(
                 listPattern([restPattern(x.pattern())]),
                 expr('List<int>'),
               ).checkIR(
@@ -2549,7 +2569,10 @@ main() {
           });
           test('Without pattern', () {
             h.run([
-              match(listPattern([restPattern()]), expr('List<int>')).checkIR(
+              patternVariableDeclaration(
+                listPattern([restPattern()]),
+                expr('List<int>'),
+              ).checkIR(
                 'match(expr(List<int>), listPattern(..., '
                 'matchedType: List<int>, requiredType: List<int>))',
               ),
@@ -2561,7 +2584,7 @@ main() {
       group('Refutability:', () {
         test('When matched type is a subtype of pattern type', () {
           h.run([
-            match(
+            patternVariableDeclaration(
               listPattern([wildcard()], elementType: 'num'),
               expr('List<int>'),
             ).checkIR(
@@ -2574,7 +2597,7 @@ main() {
 
         test('When matched type is dynamic', () {
           h.run([
-            match(
+            patternVariableDeclaration(
               listPattern([wildcard()], elementType: 'num'),
               expr('dynamic'),
             ).checkIR(
@@ -2588,7 +2611,7 @@ main() {
         test('When matched type is not a subtype of variable type', () {
           h.run(
             [
-              (match(
+              (patternVariableDeclaration(
                 listPattern([wildcard()], elementType: 'num')
                   ..errorId = 'PATTERN',
                 expr('String'),
@@ -2605,7 +2628,7 @@ main() {
         test('Sub-refutability', () {
           h.run(
             [
-              (match(
+              (patternVariableDeclaration(
                 listPattern([
                   wildcard(type: 'int')..errorId = 'INT',
                   wildcard(type: 'double')..errorId = 'DOUBLE',
@@ -2630,7 +2653,7 @@ main() {
             var y = Var('y');
             h.run(
               [
-                match(
+                patternVariableDeclaration(
                   listPattern([
                     restPattern(x.pattern())..errorId = 'ORI',
                     restPattern(y.pattern())..errorId = 'DUP',
@@ -2654,7 +2677,7 @@ main() {
           test('Without pattern', () {
             h.run(
               [
-                match(
+                patternVariableDeclaration(
                   listPattern([
                     restPattern()..errorId = 'ORI',
                     restPattern()..errorId = 'DUP',
@@ -2676,7 +2699,7 @@ main() {
         test('First', () {
           var x = Var('x');
           h.run([
-            match(
+            patternVariableDeclaration(
               listPattern([restPattern(), x.pattern()]),
               expr('List<int>'),
             ).checkIR(
@@ -2689,7 +2712,7 @@ main() {
         test('Last', () {
           var x = Var('x');
           h.run([
-            match(
+            patternVariableDeclaration(
               listPattern([x.pattern(), restPattern()]),
               expr('List<int>'),
             ).checkIR(
@@ -2706,7 +2729,10 @@ main() {
         var x2 = Var('x', identity: 'x2')..errorId = 'x2';
         h.run(
           [
-            match(listPattern([x1.pattern(), x2.pattern()]), expr('List<int>')),
+            patternVariableDeclaration(
+              listPattern([x1.pattern(), x2.pattern()]),
+              expr('List<int>'),
+            ),
           ],
           expectedErrors: {
             'duplicateVariablePattern(name: x, original: x1, duplicate: x2)',
@@ -2719,7 +2745,7 @@ main() {
       test('Type schema', () {
         h.run(
           [
-            match(
+            patternVariableDeclaration(
               (wildcard(type: 'int?')..errorId = 'WILDCARD1').and(
                 wildcard(type: 'double?')..errorId = 'WILDCARD2',
               ),
@@ -2742,7 +2768,7 @@ main() {
       test('Refutability', () {
         h.run(
           [
-            (match(
+            (patternVariableDeclaration(
               (wildcard(type: 'int')
                 ..errorId =
                     'LHS').and(wildcard(type: 'double')..errorId = 'RHS'),
@@ -2762,7 +2788,12 @@ main() {
         var x1 = Var('x', identity: 'x1')..errorId = 'x1';
         var x2 = Var('x', identity: 'x2')..errorId = 'x2';
         h.run(
-          [match(x1.pattern().and(x2.pattern()), expr('int'))],
+          [
+            patternVariableDeclaration(
+              x1.pattern().and(x2.pattern()),
+              expr('int'),
+            ),
+          ],
           expectedErrors: {
             'duplicateVariablePattern(name: x, original: x1, duplicate: x2)',
           },
@@ -2774,7 +2805,7 @@ main() {
       test('Type schema', () {
         h.run(
           [
-            (match(
+            (patternVariableDeclaration(
               wildcard(type: 'int?').or(wildcard(type: 'double?'))
                 ..errorId = 'PATTERN',
               nullLiteral.checkSchema('_'),
@@ -2793,7 +2824,7 @@ main() {
         // we're issuing for the logical-or pattern as a whole.
         h.run(
           [
-            (match(
+            (patternVariableDeclaration(
               wildcard(type: 'int').or(wildcard(type: 'double'))
                 ..errorId = 'PATTERN',
               expr('num'),
@@ -3035,7 +3066,7 @@ main() {
         var x = Var('x');
         h.run(
           [
-            match(
+            patternVariableDeclaration(
               x.pattern(type: 'int').nullAssert..errorId = 'PATTERN',
               expr('int').checkSchema('int?'),
             ).checkIR(
@@ -3054,7 +3085,10 @@ main() {
       group('Refutability:', () {
         test('When matched type is nullable', () {
           h.run([
-            match(wildcard().nullAssert, expr('int?')).checkIR(
+            patternVariableDeclaration(
+              wildcard().nullAssert,
+              expr('int?'),
+            ).checkIR(
               'match(expr(int?), nullAssertPattern('
               'wildcardPattern(matchedType: int), matchedType: int?))',
             ),
@@ -3064,7 +3098,7 @@ main() {
         test('When matched type is non-nullable', () {
           h.run(
             [
-              match(
+              patternVariableDeclaration(
                 wildcard().nullAssert..errorId = 'PATTERN',
                 expr('int'),
               ).checkIR(
@@ -3081,7 +3115,10 @@ main() {
 
         test('When matched type is dynamic', () {
           h.run([
-            match(wildcard().nullAssert, expr('dynamic')).checkIR(
+            patternVariableDeclaration(
+              wildcard().nullAssert,
+              expr('dynamic'),
+            ).checkIR(
               'match(expr(dynamic), nullAssertPattern('
               'wildcardPattern(matchedType: dynamic), '
               'matchedType: dynamic))',
@@ -3092,7 +3129,7 @@ main() {
         test('Sub-refutability', () {
           h.run(
             [
-              (match(
+              (patternVariableDeclaration(
                 (wildcard(type: 'int')..errorId = 'INT').nullAssert
                   ..errorId = 'PATTERN',
                 expr('num'),
@@ -3145,7 +3182,7 @@ main() {
         var x = Var('x');
         h.run(
           [
-            (match(
+            (patternVariableDeclaration(
               x.pattern(type: 'int').nullCheck..errorId = 'PATTERN',
               expr('int').checkSchema('_'),
             )..errorId = 'CONTEXT'),
@@ -3161,8 +3198,10 @@ main() {
         test('When matched type is nullable', () {
           h.run(
             [
-              (match(wildcard().nullCheck..errorId = 'PATTERN', expr('int?'))
-                ..errorId = 'CONTEXT'),
+              (patternVariableDeclaration(
+                wildcard().nullCheck..errorId = 'PATTERN',
+                expr('int?'),
+              )..errorId = 'CONTEXT'),
             ],
             expectedErrors: {
               'refutablePatternInIrrefutableContext(pattern: PATTERN, '
@@ -3174,8 +3213,10 @@ main() {
         test('When matched type is non-nullable', () {
           h.run(
             [
-              (match(wildcard().nullCheck..errorId = 'PATTERN', expr('int'))
-                ..errorId = 'CONTEXT'),
+              (patternVariableDeclaration(
+                wildcard().nullCheck..errorId = 'PATTERN',
+                expr('int'),
+              )..errorId = 'CONTEXT'),
             ],
             expectedErrors: {
               'refutablePatternInIrrefutableContext(pattern: PATTERN, '
@@ -3187,8 +3228,10 @@ main() {
         test('When matched type is dynamic', () {
           h.run(
             [
-              (match(wildcard().nullCheck..errorId = 'PATTERN', expr('dynamic'))
-                ..errorId = 'CONTEXT'),
+              (patternVariableDeclaration(
+                wildcard().nullCheck..errorId = 'PATTERN',
+                expr('dynamic'),
+              )..errorId = 'CONTEXT'),
             ],
             expectedErrors: {
               'refutablePatternInIrrefutableContext(pattern: PATTERN, '
@@ -3200,7 +3243,7 @@ main() {
         test('Sub-refutability', () {
           h.run(
             [
-              (match(
+              (patternVariableDeclaration(
                 wildcard(type: 'int').nullCheck..errorId = 'PATTERN',
                 expr('num'),
               )..errorId = 'CONTEXT'),
@@ -3353,7 +3396,7 @@ main() {
         test('assignable', () {
           h.addMember('num', 'foo', 'bool');
           h.run([
-            match(
+            patternVariableDeclaration(
               objectPattern(
                 requiredType: 'num',
                 fields: [Var('foo').pattern().recordField('foo')],
@@ -3371,7 +3414,7 @@ main() {
           h.addMember('int', 'foo', 'bool');
           h.run(
             [
-              (match(
+              (patternVariableDeclaration(
                 objectPattern(
                   requiredType: 'int',
                   fields: [Var('foo').pattern().recordField('foo')],
@@ -3526,7 +3569,7 @@ main() {
           group('Same shape:', () {
             test('irrefutable', () {
               h.run([
-                match(
+                patternVariableDeclaration(
                   recordPattern([
                     Var('a').pattern(type: 'int').recordField(),
                     Var('b').pattern().recordField(),
@@ -3546,7 +3589,7 @@ main() {
             test('irrefutable', () {
               h.run(
                 [
-                  (match(
+                  (patternVariableDeclaration(
                     recordPattern([
                       (Var('a').pattern(type: 'int')
                         ..errorId = 'VAR(a)').recordField(),
@@ -3656,7 +3699,7 @@ main() {
           group('Same shape:', () {
             test('irrefutable', () {
               h.run([
-                match(
+                patternVariableDeclaration(
                   recordPattern([
                     Var('a').pattern(type: 'int').recordField('a'),
                     Var('b').pattern().recordField('b'),
@@ -3676,7 +3719,7 @@ main() {
             test('irrefutable', () {
               h.run(
                 [
-                  (match(
+                  (patternVariableDeclaration(
                     recordPattern([
                       (Var('a').pattern(type: 'int')
                         ..errorId = 'VAR(a)').recordField('a'),
@@ -3787,7 +3830,7 @@ main() {
       test('Refutability', () {
         h.run(
           [
-            (match(
+            (patternVariableDeclaration(
               relationalPattern('>', intLiteral(0).checkSchema('num'))
                 ..errorId = 'PATTERN',
               intLiteral(1).checkSchema('_'),
@@ -4018,7 +4061,10 @@ main() {
         test('When matched type is a subtype of variable type', () {
           var x = Var('x');
           h.run([
-            match(x.pattern(type: 'num'), expr('int')).checkIR(
+            patternVariableDeclaration(
+              x.pattern(type: 'num'),
+              expr('int'),
+            ).checkIR(
               'match(expr(int), '
               'varPattern(x, matchedType: int, staticType: num))',
             ),
@@ -4028,7 +4074,10 @@ main() {
         test('When matched type is dynamic', () {
           var x = Var('x');
           h.run([
-            match(x.pattern(type: 'num'), expr('dynamic')).checkIR(
+            patternVariableDeclaration(
+              x.pattern(type: 'num'),
+              expr('dynamic'),
+            ).checkIR(
               'match(expr(dynamic), '
               'varPattern(x, matchedType: dynamic, staticType: num))',
             ),
@@ -4038,7 +4087,10 @@ main() {
         test('When matched type is error', () {
           var x = Var('x');
           h.run([
-            match(x.pattern(type: 'num'), expr('error')).checkIR(
+            patternVariableDeclaration(
+              x.pattern(type: 'num'),
+              expr('error'),
+            ).checkIR(
               'match(expr(error), '
               'varPattern(x, matchedType: error, staticType: num))',
             ),
@@ -4049,7 +4101,7 @@ main() {
           var x = Var('x');
           h.run(
             [
-              (match(
+              (patternVariableDeclaration(
                 x.pattern(type: 'num')..errorId = 'PATTERN',
                 expr('String'),
               )..errorId = 'CONTEXT'),
@@ -4085,7 +4137,7 @@ main() {
       group('Refutability:', () {
         test('When matched type is a subtype of variable type', () {
           h.run([
-            match(
+            patternVariableDeclaration(
               wildcard(type: 'num'),
               expr('int'),
             ).checkIR('match(expr(int), wildcardPattern(matchedType: int))'),
@@ -4094,7 +4146,10 @@ main() {
 
         test('When matched type is dynamic', () {
           h.run([
-            match(wildcard(type: 'num'), expr('dynamic')).checkIR(
+            patternVariableDeclaration(
+              wildcard(type: 'num'),
+              expr('dynamic'),
+            ).checkIR(
               'match(expr(dynamic), wildcardPattern('
               'matchedType: dynamic))',
             ),
@@ -4104,8 +4159,10 @@ main() {
         test('When matched type is not a subtype of variable type', () {
           h.run(
             [
-              (match(wildcard(type: 'num')..errorId = 'PATTERN', expr('String'))
-                ..errorId = 'CONTEXT'),
+              (patternVariableDeclaration(
+                wildcard(type: 'num')..errorId = 'PATTERN',
+                expr('String'),
+              )..errorId = 'CONTEXT'),
             ],
             expectedErrors: {
               'patternTypeMismatchInIrrefutableContext(pattern: PATTERN, '

@@ -453,6 +453,13 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         SimpleIdentifierImpl(token: StringToken(TokenType.STRING, name, -1)),
       );
       valuesNames.add(name);
+
+      FieldElementImpl2(
+        reference: elementBuilder.element.reference
+            .getChild('@field')
+            .addChild(refName),
+        firstFragment: field,
+      );
     }
 
     // Build the 'values' field.
@@ -507,6 +514,13 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _linker.elementNodes[valuesField] = variableDeclaration;
 
     holder.addNonSyntheticField('values', valuesField);
+
+    FieldElementImpl2(
+      reference: elementBuilder.element.reference
+          .getChild('@field')
+          .addChild('values'),
+      firstFragment: valuesField,
+    );
 
     _libraryBuilder.implicitEnumNodes[fragment] = ImplicitEnumNodes(
       element: fragment,
@@ -761,6 +775,13 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
       _linker.elementNodes[fragment] = variable;
       variable.declaredFragment = fragment;
+
+      var containerBuilder = _enclosingContext.instanceElementBuilder!;
+      var containerElement = containerBuilder.element;
+      var containerRef = containerElement.reference!.getChild('@field');
+      var elementReference = containerRef.addChild(refName);
+
+      FieldElementImpl2(reference: elementReference, firstFragment: fragment);
     }
     _buildType(node.fields.type);
   }
@@ -1767,6 +1788,16 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
                   ..isStatic = accessorElement.isStatic
                   ..isSynthetic = true;
         _enclosingContext.addFieldSynthetic(reference, field);
+
+        FieldElementImpl2(
+          reference: _enclosingContext
+              .instanceElementBuilder!
+              .element
+              .reference!
+              .getChild('@field')
+              .getChild(name),
+          firstFragment: field,
+        );
       }
     }
 
@@ -1810,6 +1841,13 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     representation.fieldFragment = fieldFragment;
     _linker.elementNodes[fieldFragment] = representation;
     _enclosingContext.addNonSyntheticField(fieldName, fieldFragment);
+
+    FieldElementImpl2(
+      reference: extensionFragment.element.reference
+          .getChild('@field')
+          .addChild(fieldName),
+      firstFragment: fieldFragment,
+    );
 
     var nameOffset2 = fieldNameToken.offset.nullIfNegative;
 
@@ -1873,7 +1911,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
       var containerBuilder = _enclosingContext.instanceElementBuilder!;
       var containerElement = containerBuilder.element;
-      var containerRef = containerElement.reference!.getChild('@method');
+      var containerRef = containerElement.reference!.getChild('@constructor');
       var elementReference = containerRef.addChild(
         extensionFragment.name2 ?? 'new',
       );
