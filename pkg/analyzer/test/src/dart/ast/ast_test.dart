@@ -13,6 +13,7 @@ import '../resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CompilationUnitImplTest);
+    defineReflectiveTests(EvaluateExpressionTest);
     defineReflectiveTests(ExpressionImplTest);
     defineReflectiveTests(InstanceCreationExpressionImplTest);
     defineReflectiveTests(IntegerLiteralImplTest);
@@ -104,6 +105,108 @@ void main() {}
       testUnit.languageVersionToken,
       testUnit.beginToken.precedingComments!.next!.next,
     );
+  }
+}
+
+@reflectiveTest
+class EvaluateExpressionTest extends PubPackageResolutionTest {
+  test_hasError_listLiteral_forElement() async {
+    await resolveTestCode('''
+var x = const [for (var i = 0; i < 4; i++) i];
+''');
+    var result = _evaluateX();
+    expect(result, isNotNull);
+    expect(result!.diagnostics, isNotEmpty);
+    expect(result.value, isNull);
+  }
+
+  test_hasError_mapLiteral_forElement() async {
+    await resolveTestCode('''
+var x = const {for (var i = 0; i < 4; i++) i: 0};
+''');
+    var result = _evaluateX();
+    expect(result, isNotNull);
+    expect(result?.diagnostics, isNotEmpty);
+    expect(result?.value, isNull);
+  }
+
+  test_hasError_methodInvocation() async {
+    await resolveTestCode('''
+var x = 42.abs();
+''');
+    var result = _evaluateX();
+    expect(result, isNotNull);
+    expect(result!.diagnostics, isNotEmpty);
+    expect(result.value, isNull);
+  }
+
+  test_hasError_setLiteral_forElement() async {
+    await resolveTestCode('''
+var x = const {for (var i = 0; i < 4; i++) i};
+''');
+    var result = _evaluateX();
+    expect(result, isNotNull);
+    expect(result!.diagnostics, isNotEmpty);
+    expect(result.value, isNull);
+  }
+
+  test_hasValue_binaryExpression() async {
+    await resolveTestCode('''
+var x = 1 + 2;
+''');
+    var result = _evaluateX();
+    expect(result, isNotNull);
+    expect(result!.diagnostics, isEmpty);
+    expect(result.value!.toIntValue(), 3);
+  }
+
+  test_hasValue_constantReference() async {
+    await resolveTestCode('''
+const a = 42;
+var x = a;
+''');
+    var result = _evaluateX();
+    expect(result, isNotNull);
+    expect(result!.diagnostics, isEmpty);
+    expect(result.value!.toIntValue(), 42);
+  }
+
+  test_hasValue_constantReference_imported() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 42;
+''');
+    await resolveTestCode('''
+import 'a.dart';
+var x = a;
+''');
+    var result = _evaluateX();
+    expect(result, isNotNull);
+    expect(result!.diagnostics, isEmpty);
+    expect(result.value!.toIntValue(), 42);
+  }
+
+  test_hasValue_intLiteral() async {
+    await resolveTestCode('''
+var x = 42;
+''');
+    var result = _evaluateX();
+    expect(result, isNotNull);
+    expect(result!.diagnostics, isEmpty);
+    expect(result.value!.toIntValue(), 42);
+  }
+
+  test_nonConstant() async {
+    await resolveTestCode('''
+var a = 42;
+var x = a;
+''');
+    var result = _evaluateX();
+    expect(result, isNull);
+  }
+
+  AttemptedConstantEvaluationResult? _evaluateX() {
+    var node = findNode.topVariableDeclarationByName('x').initializer!;
+    return node.computeConstantValue();
   }
 }
 

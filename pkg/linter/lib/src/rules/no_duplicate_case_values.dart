@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/lint/constants.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
 
@@ -41,7 +40,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         var expression = member.expression;
 
         var result = expression.computeConstantValue();
-        var value = result.value;
+        var value = result?.value;
 
         if (value == null || !value.hasKnownValue) {
           continue;

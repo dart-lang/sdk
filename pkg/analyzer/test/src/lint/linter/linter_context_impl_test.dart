@@ -19,7 +19,6 @@ main() {
     defineReflectiveTests(CanBeConstConstructorTest);
     defineReflectiveTests(CanBeConstInstanceCreationTest);
     defineReflectiveTests(CanBeConstTypedLiteralTest);
-    defineReflectiveTests(EvaluateExpressionTest);
     defineReflectiveTests(PubDependencyTest);
   });
 }
@@ -508,91 +507,6 @@ f() => {if (a) 0 else 1};
 f() => {1, 2, 3};
 ''');
     assertCanBeConst('{', true);
-  }
-}
-
-@reflectiveTest
-class EvaluateExpressionTest extends AbstractLinterContextTest {
-  test_hasError_listLiteral_forElement() async {
-    await resolve('''
-var x = const [for (var i = 0; i < 4; i++) i];
-''');
-    var result = _evaluateX();
-    expect(result.errors, isNotEmpty);
-    expect(result.value, isNull);
-  }
-
-  test_hasError_mapLiteral_forElement() async {
-    await resolve('''
-var x = const {for (var i = 0; i < 4; i++) i: 0};
-''');
-    var result = _evaluateX();
-    expect(result.errors, isNotEmpty);
-    expect(result.value, isNull);
-  }
-
-  test_hasError_methodInvocation() async {
-    await resolve('''
-var x = 42.abs();
-''');
-    var result = _evaluateX();
-    expect(result.errors, isNotEmpty);
-    expect(result.value, isNull);
-  }
-
-  test_hasError_setLiteral_forElement() async {
-    await resolve('''
-var x = const {for (var i = 0; i < 4; i++) i};
-''');
-    var result = _evaluateX();
-    expect(result.errors, isNotEmpty);
-    expect(result.value, isNull);
-  }
-
-  test_hasValue_binaryExpression() async {
-    await resolve('''
-var x = 1 + 2;
-''');
-    var result = _evaluateX();
-    expect(result.errors, isEmpty);
-    expect(result.value!.toIntValue(), 3);
-  }
-
-  test_hasValue_constantReference() async {
-    await resolve('''
-const a = 42;
-var x = a;
-''');
-    var result = _evaluateX();
-    expect(result.errors, isEmpty);
-    expect(result.value!.toIntValue(), 42);
-  }
-
-  test_hasValue_constantReference_imported() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-const a = 42;
-''');
-    await resolve('''
-import 'a.dart';
-var x = a;
-''');
-    var result = _evaluateX();
-    expect(result.errors, isEmpty);
-    expect(result.value!.toIntValue(), 42);
-  }
-
-  test_hasValue_intLiteral() async {
-    await resolve('''
-var x = 42;
-''');
-    var result = _evaluateX();
-    expect(result.errors, isEmpty);
-    expect(result.value!.toIntValue(), 42);
-  }
-
-  LinterConstantEvaluationResult _evaluateX() {
-    var node = findNode.topVariableDeclarationByName('x').initializer!;
-    return node.computeConstantValue();
   }
 }
 

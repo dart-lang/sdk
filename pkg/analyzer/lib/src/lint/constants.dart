@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
@@ -15,20 +14,7 @@ import 'package:analyzer/src/dart/constant/constant_verifier.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/potentially_constant.dart';
 import 'package:analyzer/src/dart/constant/utilities.dart';
-import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/error/codes.dart';
-
-/// The result of attempting to evaluate an expression as a constant.
-final class LinterConstantEvaluationResult {
-  /// The value of the expression, or `null` if has [errors].
-  final DartObject? value;
-
-  /// The errors reported during the evaluation.
-  // TODO(srawlins): Rename to `diagnostics`.
-  final List<Diagnostic> errors;
-
-  LinterConstantEvaluationResult._(this.value, this.errors);
-}
 
 /// An error listener that only records whether any constant related errors have
 /// been reported.
@@ -39,9 +25,9 @@ class _ConstantAnalysisErrorListener extends AnalysisErrorListener {
 
   @override
   void onError(Diagnostic error) {
-    DiagnosticCode errorCode = error.errorCode;
-    if (errorCode is CompileTimeErrorCode) {
-      switch (errorCode) {
+    DiagnosticCode diagnosticCode = error.errorCode;
+    if (diagnosticCode is CompileTimeErrorCode) {
+      switch (diagnosticCode) {
         case CompileTimeErrorCode
             .CONST_CONSTRUCTOR_CONSTANT_FROM_DEFERRED_LIBRARY:
         case CompileTimeErrorCode
@@ -85,7 +71,7 @@ class _ConstantAnalysisErrorListener extends AnalysisErrorListener {
   }
 }
 
-extension on AstNode {
+extension AstNodeExtension on AstNode {
   /// Whether [ConstantVerifier] reports an error when computing the value of
   /// `this` as a constant.
   bool get hasConstantVerifierError {
@@ -131,91 +117,6 @@ extension ConstructorDeclarationExtension on ConstructorDeclaration {
     } finally {
       temporaryConstConstructorElements[element] = null;
       self.constKeyword = oldKeyword;
-    }
-  }
-}
-
-extension ExpressionExtension on Expression {
-  /// Whether it would be valid for this expression to have a `const` keyword.
-  ///
-  /// Note that this method can cause constant evaluation to occur, which can be
-  /// computationally expensive.
-  bool get canBeConst {
-    var self = this;
-    return switch (self) {
-      InstanceCreationExpressionImpl() => _canBeConstInstanceCreation(self),
-      TypedLiteralImpl() => _canBeConstTypedLiteral(self),
-      _ => false,
-    };
-  }
-
-  /// Computes the constant value of `this`, if it has one.
-  ///
-  /// Returns a [LinterConstantEvaluationResult], containing both the computed
-  /// constant value, and a list of errors that occurred during the computation.
-  LinterConstantEvaluationResult computeConstantValue() {
-    var unitNode = thisOrAncestorOfType<CompilationUnitImpl>();
-    var unitFragment = unitNode?.declaredFragment;
-    if (unitFragment == null) {
-      return LinterConstantEvaluationResult._(null, []);
-    }
-
-    var libraryElement = unitFragment.element;
-    var declaredVariables = libraryElement.session.declaredVariables;
-
-    var evaluationEngine = ConstantEvaluationEngine(
-      declaredVariables: declaredVariables,
-      configuration: ConstantEvaluationConfiguration(),
-    );
-
-    var dependencies = <ConstantEvaluationTarget>[];
-    accept(ReferenceFinder(dependencies.add));
-
-    computeConstants(
-      declaredVariables: declaredVariables,
-      constants: dependencies,
-      featureSet: libraryElement.featureSet,
-      configuration: ConstantEvaluationConfiguration(),
-    );
-
-    var errorListener = RecordingErrorListener();
-    var visitor = ConstantVisitor(
-      evaluationEngine,
-      libraryElement,
-      ErrorReporter(errorListener, unitFragment.source),
-    );
-
-    var constant = visitor.evaluateAndReportInvalidConstant(this);
-    var dartObject = constant is DartObjectImpl ? constant : null;
-    return LinterConstantEvaluationResult._(dartObject, errorListener.errors);
-  }
-
-  bool _canBeConstInstanceCreation(InstanceCreationExpressionImpl node) {
-    var element = node.constructorName.element;
-    if (element == null || !element.isConst) return false;
-
-    // Ensure that dependencies (e.g. default parameter values) are computed.
-    var implElement = element.baseElement;
-    implElement.computeConstantDependencies();
-
-    // Verify that the evaluation of the constructor would not produce an
-    // exception.
-    var oldKeyword = node.keyword;
-    try {
-      node.keyword = KeywordToken(Keyword.CONST, offset);
-      return !hasConstantVerifierError;
-    } finally {
-      node.keyword = oldKeyword;
-    }
-  }
-
-  bool _canBeConstTypedLiteral(TypedLiteralImpl node) {
-    var oldKeyword = node.constKeyword;
-    try {
-      node.constKeyword = KeywordToken(Keyword.CONST, offset);
-      return !hasConstantVerifierError;
-    } finally {
-      node.constKeyword = oldKeyword;
     }
   }
 }

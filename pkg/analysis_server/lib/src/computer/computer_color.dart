@@ -9,7 +9,6 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/constant/value.dart' show GenericState;
-import 'package:analyzer/src/lint/constants.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
 import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
@@ -51,8 +50,12 @@ class ColorComputer {
 
     // Try to evaluate the constant target.
     var colorConstResult = target.computeConstantValue();
-    var colorConst = colorConstResult.value;
-    if (colorConstResult.errors.isNotEmpty || colorConst == null) return false;
+    var colorConst = colorConstResult?.value;
+    if (colorConstResult == null ||
+        colorConstResult.diagnostics.isNotEmpty ||
+        colorConst == null) {
+      return false;
+    }
 
     // If we want a specific member or swatch index, read that.
     if (memberName != null) {

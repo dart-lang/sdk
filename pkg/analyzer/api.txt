@@ -1058,12 +1058,14 @@ package:analyzer/dart/ast/ast.dart:
     exportKeyword (getter: Token)
     libraryExport (getter: LibraryExport?, experimental)
   Expression (class extends Object implements CollectionElement):
+    canBeConst (getter: bool)
     correspondingParameter (getter: FormalParameterElement?, experimental)
     inConstantContext (getter: bool)
     isAssignable (getter: bool)
     precedence (getter: Precedence)
     staticType (getter: DartType?)
     unParenthesized (getter: Expression)
+    computeConstantValue (method: AttemptedConstantEvaluationResult? Function())
   ExpressionFunctionBody (class extends Object implements FunctionBody):
     expression (getter: Expression)
     functionDefinition (getter: Token)
@@ -5106,6 +5108,10 @@ package:analyzer/src/dart/analysis/experiments_impl.dart:
     status (getter: FeatureStatus)
     stringForValue (method: String Function(bool))
     toString (method: String Function())
+package:analyzer/src/dart/ast/ast.dart:
+  AttemptedConstantEvaluationResult (class extends Object):
+    diagnostics (getter: List<Diagnostic>)
+    value (getter: DartObject?)
 package:analyzer/src/dart/constant/evaluation.dart:
   ConstantEvaluationTarget (class extends Object):
     new (constructor: ConstantEvaluationTarget Function())

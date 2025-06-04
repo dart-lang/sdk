@@ -19,21 +19,31 @@ import 'package:analyzer/dart/ast/doc_comment.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/to_source_visitor.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
+import 'package:analyzer/src/dart/constant/compute.dart';
+import 'package:analyzer/src/dart/constant/evaluation.dart';
+import 'package:analyzer/src/dart/constant/utilities.dart';
+import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
+import 'package:analyzer/src/error/codes.g.dart';
 import 'package:analyzer/src/fasta/token_utils.dart' as util show findPrevious;
 import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/lint/constants.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
@@ -1863,6 +1873,21 @@ abstract class AstVisitor<R> {
   R? visitWithClause(WithClause node);
 
   R? visitYieldStatement(YieldStatement node);
+}
+
+/// The result of attempting to evaluate an expression as a constant.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+final class AttemptedConstantEvaluationResult {
+  /// The value of the expression, or `null` if has [diagnostics].
+  ///
+  /// If evaluating a constant expression yields diagnostics, then the value of
+  /// the constant expression cannot be calculated.
+  final DartObject? value;
+
+  /// The diagnostics reported during the evaluation.
+  final List<Diagnostic> diagnostics;
+
+  AttemptedConstantEvaluationResult._(this.value, this.diagnostics);
 }
 
 /// The augmented expression.
@@ -8007,6 +8032,12 @@ final class ExportDirectiveImpl extends NamespaceDirectiveImpl
 ///      | [ThrowExpression]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class Expression implements CollectionElement {
+  /// Whether it would be valid for this expression to have a `const` keyword.
+  ///
+  /// Note that this method can cause constant evaluation to occur, which can be
+  /// computationally expensive.
+  bool get canBeConst;
+
   /// The parameter element representing the parameter to which the value of
   /// this expression is bound.
   ///
@@ -8064,6 +8095,14 @@ abstract final class Expression implements CollectionElement {
   /// unwrapping the expression inside the parentheses. Otherwise, returns this
   /// expression.
   Expression get unParenthesized;
+
+  /// Computes the constant value of this expression, if it has one.
+  ///
+  /// Returns a [AttemptedConstantEvaluationResult], containing both the computed
+  /// constant value, and a list of errors that occurred during the computation.
+  ///
+  /// Returns `null` if this expression is not a constant expression.
+  AttemptedConstantEvaluationResult? computeConstantValue();
 }
 
 /// A function body consisting of a single expression.
@@ -8215,6 +8254,9 @@ sealed class ExpressionImpl extends AstNodeImpl
     implements CollectionElementImpl, Expression {
   TypeImpl? _staticType;
 
+  @override
+  bool get canBeConst => false;
+
   @experimental
   @override
   FormalParameterElementMixin? get correspondingParameter {
@@ -8263,6 +8305,53 @@ sealed class ExpressionImpl extends AstNodeImpl
 
   @override
   ExpressionImpl get unParenthesized => this;
+
+  @override
+  AttemptedConstantEvaluationResult? computeConstantValue() {
+    var unitNode = thisOrAncestorOfType<CompilationUnitImpl>();
+    var unitFragment = unitNode?.declaredFragment;
+    if (unitFragment == null) {
+      throw ArgumentError('This AST structure has not yet been resolved.');
+    }
+
+    var libraryElement = unitFragment.element;
+    var declaredVariables = libraryElement.session.declaredVariables;
+
+    var evaluationEngine = ConstantEvaluationEngine(
+      declaredVariables: declaredVariables,
+      configuration: ConstantEvaluationConfiguration(),
+    );
+
+    var dependencies = <ConstantEvaluationTarget>[];
+    accept(ReferenceFinder(dependencies.add));
+
+    computeConstants(
+      declaredVariables: declaredVariables,
+      constants: dependencies,
+      featureSet: libraryElement.featureSet,
+      configuration: ConstantEvaluationConfiguration(),
+    );
+
+    var errorListener = RecordingErrorListener();
+    var visitor = ConstantVisitor(
+      evaluationEngine,
+      libraryElement,
+      ErrorReporter(errorListener, unitFragment.source),
+    );
+
+    var constant = visitor.evaluateAndReportInvalidConstant(this);
+    var isInvalidConstant = errorListener.errors.any(
+      (e) => e.errorCode == CompileTimeErrorCode.INVALID_CONSTANT,
+    );
+    if (isInvalidConstant) {
+      return null;
+    }
+
+    return AttemptedConstantEvaluationResult._(
+      constant is DartObjectImpl ? constant : null,
+      errorListener.errors,
+    );
+  }
 
   /// Returns the [AstNode] that puts node into the constant context, and
   /// the explicit `const` keyword of that node. The keyword might be absent
@@ -14055,6 +14144,25 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
       return keyword;
     }
     return constructorName.beginToken;
+  }
+
+  @override
+  bool get canBeConst {
+    var element = constructorName.element;
+    if (element == null || !element.isConst) return false;
+
+    // Ensure that dependencies (e.g. default parameter values) are computed.
+    element.baseElement.computeConstantDependencies();
+
+    // Verify that the evaluation of the constructor would not produce an
+    // exception.
+    var oldKeyword = keyword;
+    try {
+      keyword = KeywordToken(Keyword.CONST, offset);
+      return !hasConstantVerifierError;
+    } finally {
+      keyword = oldKeyword;
+    }
   }
 
   @generated
@@ -24538,6 +24646,17 @@ sealed class TypedLiteralImpl extends LiteralImpl implements TypedLiteral {
     required TypeArgumentListImpl? typeArguments,
   }) : _typeArguments = typeArguments {
     _becomeParentOf(_typeArguments);
+  }
+
+  @override
+  bool get canBeConst {
+    var oldKeyword = constKeyword;
+    try {
+      constKeyword = KeywordToken(Keyword.CONST, offset);
+      return !hasConstantVerifierError;
+    } finally {
+      constKeyword = oldKeyword;
+    }
   }
 
   @override
