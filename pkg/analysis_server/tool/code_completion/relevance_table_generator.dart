@@ -21,7 +21,6 @@ import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
 import 'package:analyzer_testing/package_root.dart' as package_root;
@@ -303,8 +302,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   /// The compilation unit in which data is currently being collected.
   late CompilationUnit unit;
 
-  late InheritanceManager3 inheritanceManager = InheritanceManager3();
-
   /// The library containing the compilation unit being visited.
   late LibraryElement enclosingLibrary;
 
@@ -532,7 +529,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     enclosingLibrary = node.declaredFragment!.element;
     typeProvider = enclosingLibrary.typeProvider;
     typeSystem = enclosingLibrary.typeSystem;
-    inheritanceManager = InheritanceManager3();
     featureComputer = FeatureComputer(typeSystem, typeProvider);
 
     for (var directive in node.directives) {

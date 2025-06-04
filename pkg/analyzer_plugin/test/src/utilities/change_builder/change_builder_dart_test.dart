@@ -9,7 +9,6 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
@@ -4137,13 +4136,9 @@ class B extends A {
       }
     }
 
-    var inherited = InheritanceManager3().getInherited4(
-      targetElement,
-      Name(null, nameToOverride),
-    );
-
+    var inherited =
+        targetElement.getInheritedMember(Name(null, nameToOverride));
     var displayBuffer = displayText != null ? StringBuffer() : null;
-
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 2, (builder) {

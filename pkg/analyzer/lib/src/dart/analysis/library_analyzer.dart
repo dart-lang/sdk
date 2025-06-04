@@ -519,7 +519,7 @@ class LibraryAnalyzer {
       ),
     );
 
-    unit.accept(OverrideVerifier(_inheritance, errorReporter));
+    unit.accept(OverrideVerifier(errorReporter));
 
     unit.accept(RedeclareVerifier(errorReporter));
 
@@ -543,7 +543,6 @@ class LibraryAnalyzer {
       UnusedLocalElementsVerifier(
         fileAnalysis.errorListener,
         usedElements,
-        _inheritance,
         _libraryElement,
       ),
     );
