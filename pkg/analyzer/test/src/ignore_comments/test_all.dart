@@ -4,10 +4,12 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'diagnostic_suppression_test.dart' as diagnostic_suppression_test;
 import 'ignore_info_test.dart' as ignore_info;
 
 main() {
   defineReflectiveSuite(() {
+    diagnostic_suppression_test.main();
     ignore_info.main();
   }, name: 'src');
 }
