@@ -60,7 +60,7 @@ class Types with StandardBounds {
   // ignore:unused_element
   IsSubtypeOf _collect_performNullabilityAwareSubtypeCheck(
       DartType subtype, DartType supertype) {
-    IsSubtypeOf result = const IsSubtypeOf.always();
+    IsSubtypeOf result = const IsSubtypeOf.success();
     // result = _performNullabilityAwareSubtypeCheck(subtype, supertype);
     bool booleanResult = result.isSubtypeWhenUsingNullabilities();
     (typeChecksForTesting ??= <Object>[])
@@ -74,15 +74,15 @@ class Types with StandardBounds {
       // InvalidType in the subtype relation.
       case (InvalidType(), _):
       case (_, InvalidType()):
-        return const IsSubtypeOf.always();
+        return const IsSubtypeOf.success();
 
       // Rule 2.
       case (_, DynamicType()):
-        return const IsSubtypeOf.always();
+        return const IsSubtypeOf.success();
 
       // Rule 2.
       case (_, VoidType()):
-        return const IsSubtypeOf.always();
+        return const IsSubtypeOf.success();
 
       case (NeverType(), _):
         return new IsSubtypeOf.basedSolelyOnNullabilities(s, t);
@@ -106,10 +106,10 @@ class Types with StandardBounds {
         return new IsSubtypeOf.basedSolelyOnNullabilities(s, t);
 
       case (DynamicType(), InterfaceType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (VoidType(), InterfaceType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (InterfaceType sInterfaceType, InterfaceType tInterfaceType):
         List<DartType>? asSupertypeArguments;
@@ -121,10 +121,10 @@ class Types with StandardBounds {
                   sInterfaceType, tInterfaceType.classNode);
         }
         if (asSupertypeArguments == null) {
-          return const IsSubtypeOf.never();
+          return const IsSubtypeOf.failure();
         }
         if (asSupertypeArguments.isEmpty) {
-          return const IsSubtypeOf.always().and(
+          return const IsSubtypeOf.success().and(
               new IsSubtypeOf.basedSolelyOnNullabilitiesNotInvalidType(
                   sInterfaceType, tInterfaceType));
         }
@@ -139,7 +139,7 @@ class Types with StandardBounds {
         return tInterfaceType.classNode == hierarchy.coreTypes.functionClass
             ? new IsSubtypeOf.basedSolelyOnNullabilities(
                 sFunctionType, tInterfaceType)
-            : const IsSubtypeOf.never();
+            : const IsSubtypeOf.failure();
 
       case (TypeParameterType sTypeParameterType, InterfaceType tInterfaceType):
         return performNullabilityAwareSubtypeCheck(
@@ -180,17 +180,17 @@ class Types with StandardBounds {
         return tInterfaceType.classNode == hierarchy.coreTypes.recordClass
             ? new IsSubtypeOf.basedSolelyOnNullabilities(
                 sRecordType, tInterfaceType)
-            : const IsSubtypeOf.never();
+            : const IsSubtypeOf.failure();
 
       case (ExtensionType sExtensionType, InterfaceType tInterfaceType):
         List<DartType>? asSupertypeArguments =
             hierarchy.getExtensionTypeArgumentsAsInstanceOfClass(
                 sExtensionType, tInterfaceType.classNode);
         if (asSupertypeArguments == null) {
-          return const IsSubtypeOf.never();
+          return const IsSubtypeOf.failure();
         }
         if (asSupertypeArguments.isEmpty) {
-          return const IsSubtypeOf.always().and(
+          return const IsSubtypeOf.success().and(
               new IsSubtypeOf.basedSolelyOnNullabilitiesNotInvalidType(s, t));
         }
         return areTypeArgumentsOfSubtypeKernel(
@@ -201,21 +201,21 @@ class Types with StandardBounds {
                 sExtensionType, tInterfaceType));
 
       case (DynamicType(), FunctionType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (VoidType(), FunctionType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (InterfaceType(), FunctionType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (FunctionType sFunctionType, FunctionType tFunctionType):
         List<StructuralParameter> sTypeVariables = sFunctionType.typeParameters;
         List<StructuralParameter> tTypeVariables = tFunctionType.typeParameters;
         if (sTypeVariables.length != tTypeVariables.length) {
-          return const IsSubtypeOf.never();
+          return const IsSubtypeOf.failure();
         }
-        IsSubtypeOf result = const IsSubtypeOf.always();
+        IsSubtypeOf result = const IsSubtypeOf.success();
         if (sTypeVariables.isNotEmpty) {
           // If the function types have type variables, we alpha-rename the type
           // variables of [s] to use those of [t].
@@ -239,7 +239,7 @@ class Types with StandardBounds {
           // If the bounds aren't the same, we need to try again after computing
           // the substitution of type variables.
           if (!result.isSubtypeWhenIgnoringNullabilities()) {
-            result = const IsSubtypeOf.always();
+            result = const IsSubtypeOf.success();
             for (int i = 0; i < sTypeVariables.length; i++) {
               StructuralParameter sTypeVariable = sTypeVariables[i];
               StructuralParameter tTypeVariable = tTypeVariables[i];
@@ -247,7 +247,7 @@ class Types with StandardBounds {
                   instantiator.substitute(sTypeVariable.bound),
                   tTypeVariable.bound));
               if (!result.isSubtypeWhenIgnoringNullabilities()) {
-                return const IsSubtypeOf.never();
+                return const IsSubtypeOf.failure();
               }
             }
           }
@@ -257,25 +257,25 @@ class Types with StandardBounds {
         result = result.and(performNullabilityAwareSubtypeCheck(
             sFunctionType.returnType, tFunctionType.returnType));
         if (!result.isSubtypeWhenIgnoringNullabilities()) {
-          return const IsSubtypeOf.never();
+          return const IsSubtypeOf.failure();
         }
         List<DartType> sPositional = sFunctionType.positionalParameters;
         List<DartType> tPositional = tFunctionType.positionalParameters;
         if (sFunctionType.requiredParameterCount >
             tFunctionType.requiredParameterCount) {
           // Rule 15, n1 <= n2.
-          return const IsSubtypeOf.never();
+          return const IsSubtypeOf.failure();
         }
         if (sPositional.length < tPositional.length) {
           // Rule 15, n1 + k1 >= n2 + k2.
-          return const IsSubtypeOf.never();
+          return const IsSubtypeOf.failure();
         }
         for (int i = 0; i < tPositional.length; i++) {
           result = result.and(performNullabilityAwareSubtypeCheck(
               tPositional[i], sPositional[i]));
           if (!result.isSubtypeWhenIgnoringNullabilities()) {
             // Rule 15, Tj <: Sj.
-            return const IsSubtypeOf.never();
+            return const IsSubtypeOf.failure();
           }
         }
         List<NamedType> sNamedParameters = sFunctionType.namedParameters;
@@ -283,11 +283,11 @@ class Types with StandardBounds {
         if (sNamedParameters.isNotEmpty || tNamedParameters.isNotEmpty) {
           // Rule 16, the number of positional parameters must be the same.
           if (sPositional.length != tPositional.length) {
-            return const IsSubtypeOf.never();
+            return const IsSubtypeOf.failure();
           }
           if (sFunctionType.requiredParameterCount !=
               tFunctionType.requiredParameterCount) {
-            return const IsSubtypeOf.never();
+            return const IsSubtypeOf.failure();
           }
 
           // Rule 16, the parameter names of [t] must be a subset of those of
@@ -311,7 +311,7 @@ class Types with StandardBounds {
               }
             }
             if (sCount == sNamedParameters.length) {
-              return const IsSubtypeOf.never();
+              return const IsSubtypeOf.failure();
             }
             // Increment [sCount] so we don't check [sNamedParameter] again in
             // the loop above or below and assume it is an extra (unmatched)
@@ -320,7 +320,7 @@ class Types with StandardBounds {
             result = result.and(performNullabilityAwareSubtypeCheck(
                 tNamedParameter.type, sNamedParameter!.type));
             if (!result.isSubtypeWhenIgnoringNullabilities()) {
-              return const IsSubtypeOf.never();
+              return const IsSubtypeOf.failure();
             }
 
             /// From the NNBD spec: For each j such that r0j is required, then
@@ -369,31 +369,31 @@ class Types with StandardBounds {
             sTypedefType.unalias, tFunctionType);
 
       case (FutureOrType(), FunctionType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (RecordType(), FunctionType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (ExtensionType(), FunctionType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (DynamicType(), TypeParameterType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (VoidType(), TypeParameterType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (InterfaceType(), TypeParameterType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (FunctionType(), TypeParameterType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (
           TypeParameterType sTypeParameterType,
           TypeParameterType tTypeParameterType
         ):
-        IsSubtypeOf result = const IsSubtypeOf.always();
+        IsSubtypeOf result = const IsSubtypeOf.success();
         if (sTypeParameterType.parameter != tTypeParameterType.parameter) {
           result =
               performNullabilityAwareSubtypeCheck(sTypeParameterType.bound, t);
@@ -439,7 +439,7 @@ class Types with StandardBounds {
             // The two nullabilities are undetermined, but are connected via
             // additional constraint, namely that they will be equal at run
             // time.
-            return const IsSubtypeOf.always();
+            return const IsSubtypeOf.success();
           }
           return new IsSubtypeOf.basedSolelyOnNullabilities(
               sIntersectionType, t);
@@ -456,34 +456,34 @@ class Types with StandardBounds {
             sTypedefType.unalias, tTypeParameterType);
 
       case (FutureOrType(), TypeParameterType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (RecordType(), TypeParameterType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (ExtensionType(), TypeParameterType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (DynamicType(), StructuralParameterType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (VoidType(), StructuralParameterType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (InterfaceType(), StructuralParameterType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (FunctionType(), StructuralParameterType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (TypeParameterType(), StructuralParameterType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (
           StructuralParameterType sStructuralParameterType,
           StructuralParameterType tStructuralParameterType
         ):
-        IsSubtypeOf result = const IsSubtypeOf.always();
+        IsSubtypeOf result = const IsSubtypeOf.success();
         if (sStructuralParameterType.parameter !=
             tStructuralParameterType.parameter) {
           result = performNullabilityAwareSubtypeCheck(
@@ -499,7 +499,7 @@ class Types with StandardBounds {
             sStructuralParameterType, tStructuralParameterType));
 
       case (IntersectionType(), StructuralParameterType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (
           TypedefType sTypedefType,
@@ -509,31 +509,31 @@ class Types with StandardBounds {
             sTypedefType.unalias, tStructuralParameterType);
 
       case (FutureOrType(), StructuralParameterType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (RecordType(), StructuralParameterType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (ExtensionType(), StructuralParameterType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (DynamicType(), IntersectionType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (VoidType(), IntersectionType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (InterfaceType(), IntersectionType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (FunctionType(), IntersectionType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (
           TypeParameterType sTypeParameterType,
           IntersectionType tIntersectionType
         ):
-        IsSubtypeOf result = const IsSubtypeOf.always();
+        IsSubtypeOf result = const IsSubtypeOf.success();
         if (sTypeParameterType.parameter != tIntersectionType.left.parameter) {
           result =
               performNullabilityAwareSubtypeCheck(sTypeParameterType.bound, t);
@@ -552,7 +552,7 @@ class Types with StandardBounds {
                 sTypeParameterType, tIntersectionType.right, this);
 
       case (StructuralParameterType(), IntersectionType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (
           IntersectionType sIntersectionType,
@@ -573,7 +573,7 @@ class Types with StandardBounds {
             // The two nullabilities are undetermined, but are connected via
             // additional constraint, namely that they will be equal at run
             // time.
-            tLeftResult = const IsSubtypeOf.always();
+            tLeftResult = const IsSubtypeOf.success();
           } else {
             tLeftResult = new IsSubtypeOf.basedSolelyOnNullabilities(
                 sIntersectionType, tIntersectionType.left);
@@ -593,13 +593,13 @@ class Types with StandardBounds {
             sTypedefType.unalias, tIntersectionType);
 
       case (FutureOrType(), IntersectionType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (RecordType(), IntersectionType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (ExtensionType(), IntersectionType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (DynamicType sDynamicType, TypedefType tTypedefType):
         return performNullabilityAwareSubtypeCheck(
@@ -839,16 +839,16 @@ class Types with StandardBounds {
                     this);
 
       case (DynamicType(), NullType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (VoidType(), NullType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (InterfaceType(), NullType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (FunctionType(), NullType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (TypeParameterType sTypeParameterType, NullType tNullType):
         return performNullabilityAwareSubtypeCheck(
@@ -870,25 +870,25 @@ class Types with StandardBounds {
             sTypedefType.unalias, tNullType);
 
       case (FutureOrType(), NullType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (RecordType(), NullType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (ExtensionType(), NullType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (DynamicType(), NeverType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (VoidType(), NeverType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (InterfaceType(), NeverType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (FunctionType(), NeverType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (TypeParameterType sTypeParameterType, NeverType tNeverType):
         return performNullabilityAwareSubtypeCheck(
@@ -914,25 +914,25 @@ class Types with StandardBounds {
             sTypedefType.unalias, tNeverType);
 
       case (FutureOrType(), NeverType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (RecordType(), NeverType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (ExtensionType(), NeverType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (DynamicType(), RecordType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (VoidType(), RecordType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (InterfaceType(), RecordType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (FunctionType(), RecordType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (
           StructuralParameterType sStructuralParameterType,
@@ -958,51 +958,51 @@ class Types with StandardBounds {
             sTypedefType.unalias, tRecordType);
 
       case (FutureOrType(), RecordType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (RecordType sRecordType, RecordType tRecordType):
         if (sRecordType.positional.length != tRecordType.positional.length ||
             sRecordType.named.length != tRecordType.named.length) {
-          return const IsSubtypeOf.never();
+          return const IsSubtypeOf.failure();
         }
         for (int i = 0; i < sRecordType.named.length; i++) {
           if (sRecordType.named[i].name != tRecordType.named[i].name) {
-            return const IsSubtypeOf.never();
+            return const IsSubtypeOf.failure();
           }
         }
 
-        IsSubtypeOf result = IsSubtypeOf.always();
+        IsSubtypeOf result = IsSubtypeOf.success();
         for (int i = 0; i < sRecordType.positional.length; i++) {
           result = result.and(performNullabilityAwareSubtypeCheck(
               sRecordType.positional[i], tRecordType.positional[i]));
           if (!result.isSubtypeWhenIgnoringNullabilities()) {
-            return const IsSubtypeOf.never();
+            return const IsSubtypeOf.failure();
           }
         }
         for (int i = 0; i < sRecordType.named.length; i++) {
           result = result.and(performNullabilityAwareSubtypeCheck(
               sRecordType.named[i].type, tRecordType.named[i].type));
           if (!result.isSubtypeWhenIgnoringNullabilities()) {
-            return const IsSubtypeOf.never();
+            return const IsSubtypeOf.failure();
           }
         }
         return result.and(new IsSubtypeOf.basedSolelyOnNullabilities(
             sRecordType, tRecordType));
 
       case (ExtensionType(), RecordType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (DynamicType(), ExtensionType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (VoidType(), ExtensionType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (InterfaceType(), ExtensionType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (FunctionType(), ExtensionType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (TypeParameterType sTypeParameterType, ExtensionType tExtensionType):
         return performNullabilityAwareSubtypeCheck(
@@ -1024,17 +1024,17 @@ class Types with StandardBounds {
             sTypedefType.unalias, tExtensionType);
 
       case (FutureOrType(), ExtensionType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (RecordType(), ExtensionType()):
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.failure();
 
       case (ExtensionType sExtensionType, ExtensionType tExtensionType):
         List<DartType>? typeArguments = hierarchy
             .getExtensionTypeArgumentsAsInstanceOfExtensionTypeDeclaration(
                 sExtensionType, tExtensionType.extensionTypeDeclaration);
         if (typeArguments == null) {
-          return const IsSubtypeOf.never();
+          return const IsSubtypeOf.failure();
         }
         return areTypeArgumentsOfSubtypeKernel(
                 typeArguments,
@@ -1056,24 +1056,24 @@ class Types with StandardBounds {
     if (s.length != t.length || s.length != p.length) {
       throw "Numbers of type arguments don't match $s $t with parameters $p.";
     }
-    IsSubtypeOf result = const IsSubtypeOf.always();
+    IsSubtypeOf result = const IsSubtypeOf.success();
     for (int i = 0; i < s.length; i++) {
       Variance variance = p[i].variance;
       if (variance == Variance.contravariant) {
         result = result.and(performNullabilityAwareSubtypeCheck(t[i], s[i]));
         if (!result.isSubtypeWhenIgnoringNullabilities()) {
-          return const IsSubtypeOf.never();
+          return const IsSubtypeOf.failure();
         }
       } else if (variance == Variance.invariant) {
         result =
             result.and(performNullabilityAwareMutualSubtypesCheck(s[i], t[i]));
         if (!result.isSubtypeWhenIgnoringNullabilities()) {
-          return const IsSubtypeOf.never();
+          return const IsSubtypeOf.failure();
         }
       } else {
         result = result.and(performNullabilityAwareSubtypeCheck(s[i], t[i]));
         if (!result.isSubtypeWhenIgnoringNullabilities()) {
-          return const IsSubtypeOf.never();
+          return const IsSubtypeOf.failure();
         }
       }
     }

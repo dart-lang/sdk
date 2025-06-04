@@ -622,7 +622,6 @@ class FactoryEncoding implements InferredTypeListener {
         // [typeParameter].
         if (!typeEnvironment.isSubtypeOf(typeArgument, typeParameterBound,
             SubtypeCheckMode.ignoringNullabilities)) {
-          // Coverage-ignore-block(suite): Not run.
           _addProblemForRedirectingFactory(
               libraryBuilder: libraryBuilder,
               message: templateRedirectingFactoryIncompatibleTypeArgument
@@ -634,6 +633,7 @@ class FactoryEncoding implements InferredTypeListener {
         } else {
           if (!typeEnvironment.isSubtypeOf(typeArgument, typeParameterBound,
               SubtypeCheckMode.withNullabilities)) {
+            // Coverage-ignore-block(suite): Not run.
             _addProblemForRedirectingFactory(
                 libraryBuilder: libraryBuilder,
                 message: templateRedirectingFactoryIncompatibleTypeArgument

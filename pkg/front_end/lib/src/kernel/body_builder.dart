@@ -1254,6 +1254,8 @@ class BodyBuilder extends StackListenerImpl
                 _cloner.cloneInContext(initializer!);
             tearOffParameter.initializer = tearOffInitializer
               ..parent = tearOffParameter;
+            tearOffParameter.isErroneouslyInitialized =
+                parameter.variable!.isErroneouslyInitialized;
           }
         }
       }

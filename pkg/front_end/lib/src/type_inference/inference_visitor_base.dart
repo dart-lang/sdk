@@ -792,11 +792,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
     bool isIndirectlyAssignable = expressionType is DynamicType;
     if (!isIndirectlyAssignable) {
-      if (isDirectSubtypeResult.isSubtypeWhenIgnoringNullabilities()) {
+      if (typeSchemaEnvironment
+          .performNullabilityAwareSubtypeCheck(expressionType,
+              contextType.withDeclaredNullability(Nullability.nullable))
+          .isSubtypeWhenUsingNullabilities()) {
         return new AssignabilityResult.withTypes(
             AssignabilityKind.unassignableNullability,
-            isDirectSubtypeResult.subtype,
-            isDirectSubtypeResult.supertype,
+            expressionType,
+            contextType,
             needsTearOff: needsTearoff,
             implicitInstantiation: implicitInstantiation);
       } else {
@@ -2164,6 +2167,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             formal.fileOffset,
             formal.name!.length,
             libraryBuilder.importUri);
+        formal.isErroneouslyInitialized = true;
       }
     }
 
