@@ -11873,7 +11873,7 @@ CompileTimeErrorCode:
       extension type A(void Function(String) f) {}
       ```
   NON_EXHAUSTIVE_SWITCH_EXPRESSION:
-    problemMessage: "The type '{0}' is not exhaustively matched by the switch cases since it doesn't match '{1}'."
+    problemMessage: "The type '{0}' isn't exhaustively matched by the switch cases since it doesn't match the pattern '{1}'."
     correctionMessage: "Try adding a wildcard pattern or cases that match '{2}'."
     hasPublishedDocs: true
     comment: |-
@@ -11934,7 +11934,7 @@ CompileTimeErrorCode:
       in the future. You will lose the ability to have the compiler warn you if
       the `switch` needs to be updated to account for newly added types.
   NON_EXHAUSTIVE_SWITCH_STATEMENT:
-    problemMessage: "The type '{0}' is not exhaustively matched by the switch cases since it doesn't match '{1}'."
+    problemMessage: "The type '{0}' isn't exhaustively matched by the switch cases since it doesn't match the pattern '{1}'."
     correctionMessage: "Try adding a default case or cases that match '{2}'."
     hasPublishedDocs: true
     comment: |-
@@ -18992,7 +18992,7 @@ FfiCode:
       external void leafCall(Pointer<Uint8> ptr);
 
       void main() {
-        final data = Uint8List(10); 
+        final data = Uint8List(10);
 
         // Correct: Using .address directly as an argument to a leaf call.
         leafCall(data.address);
