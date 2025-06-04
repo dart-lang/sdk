@@ -541,7 +541,7 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_struct8bytesPackedx10) {
   member_types.Add(&int8_type);
   member_types.Add(&int8_type);
   const auto& struct_type =
-      NativeStructType::FromNativeTypes(Z, member_types, /*packing=*/1);
+      NativeStructType::FromNativeTypes(Z, member_types, /*member_packing=*/1);
   EXPECT_EQ(8, struct_type.SizeInBytes());
   EXPECT(struct_type.ContainsUnalignedMembers());
 
@@ -580,7 +580,7 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_structPacked) {
   member_types.Add(&int8_type);
   member_types.Add(&double_type);
   const auto& struct_type =
-      NativeStructType::FromNativeTypes(Z, member_types, /*packing=*/1);
+      NativeStructType::FromNativeTypes(Z, member_types, /*member_packing=*/1);
   EXPECT_EQ(9, struct_type.SizeInBytes());
   EXPECT(struct_type.ContainsUnalignedMembers());
 

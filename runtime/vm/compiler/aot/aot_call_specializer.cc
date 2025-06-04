@@ -907,7 +907,7 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
           // the computed single_target.
           ic_data = ICData::New(function, instr->function_name(),
                                 args_desc_array, DeoptId::kNone,
-                                /* args_tested = */ 1, ICData::kOptimized);
+                                /*num_args_tested=*/1, ICData::kOptimized);
           for (intptr_t j = 0; j < i; j++) {
             ic_data.AddReceiverCheck(class_ids[j], single_target);
           }
@@ -928,7 +928,7 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
           const ICData& ic_data = ICData::Handle(
               ICData::New(flow_graph()->function(), instr->function_name(),
                           args_desc_array, DeoptId::kNone,
-                          /* args_tested = */ 1, ICData::kOptimized));
+                          /*num_args_tested=*/1, ICData::kOptimized));
           cls = single_target.Owner();
           ic_data.AddReceiverCheck(cls.id(), single_target);
           instr->set_ic_data(&ic_data);

@@ -487,7 +487,7 @@ DART_EXPORT Dart_LoadedElf* Dart_LoadELF_Memory(
     return nullptr;
   }
   std::unique_ptr<LoadedElf> elf(
-      new LoadedElf(std::move(mappable), /*file_offset=*/0));
+      new LoadedElf(std::move(mappable), /*elf_data_offset=*/0));
 
   if (!elf->Load() ||
       !elf->ResolveSymbols(vm_snapshot_data, vm_snapshot_instrs,

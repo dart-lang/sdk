@@ -262,25 +262,25 @@ ISOLATE_UNIT_TEST_CASE(ConstantPropagator_Regress35371) {
     return op;
   };
 
-  ConstantPropagatorUnboxedOpTest(thread, /*lhs=*/1, /*lhs=*/2, make_int64_add,
+  ConstantPropagatorUnboxedOpTest(thread, /*lhs=*/1, /*rhs=*/2, make_int64_add,
                                   FoldingResult::FoldsTo(3));
-  ConstantPropagatorUnboxedOpTest(thread, /*lhs=*/kMaxInt64, /*lhs=*/1,
+  ConstantPropagatorUnboxedOpTest(thread, /*lhs=*/kMaxInt64, /*rhs=*/1,
                                   make_int64_add,
                                   FoldingResult::FoldsTo(kMinInt64));
 
-  ConstantPropagatorUnboxedOpTest(thread, /*lhs=*/1, /*lhs=*/2, make_int32_add,
+  ConstantPropagatorUnboxedOpTest(thread, /*lhs=*/1, /*rhs=*/2, make_int32_add,
                                   FoldingResult::FoldsTo(3));
-  ConstantPropagatorUnboxedOpTest(thread, /*lhs=*/kMaxInt32 - 1, /*lhs=*/1,
+  ConstantPropagatorUnboxedOpTest(thread, /*lhs=*/kMaxInt32 - 1, /*rhs=*/1,
                                   make_int32_add,
                                   FoldingResult::FoldsTo(kMaxInt32));
 
   // Overflow of int32 representation and operation is not marked as
   // truncating.
-  ConstantPropagatorUnboxedOpTest(thread, /*lhs=*/kMaxInt32, /*lhs=*/1,
+  ConstantPropagatorUnboxedOpTest(thread, /*lhs=*/kMaxInt32, /*rhs=*/1,
                                   make_int32_add, FoldingResult::NoFold());
 
   // Overflow of int32 representation and operation is marked as truncating.
-  ConstantPropagatorUnboxedOpTest(thread, /*lhs=*/kMaxInt32, /*lhs=*/1,
+  ConstantPropagatorUnboxedOpTest(thread, /*lhs=*/kMaxInt32, /*rhs=*/1,
                                   make_int32_truncating_add,
                                   FoldingResult::FoldsTo(kMinInt32));
 }

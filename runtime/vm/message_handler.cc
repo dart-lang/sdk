@@ -459,7 +459,7 @@ void MessageHandler::TaskCallback() {
         PausedOnExitLocked(&ml, true);
         // More messages may have come in while we released the monitor.
         status = HandleMessages(&ml, /*allow_normal_messages=*/false,
-                                /*allow_multiple_normal_messagesfalse=*/false);
+                                /*allow_multiple_normal_messages=*/false);
         if (ShouldPauseOnExit(status)) {
           // Still paused.
           ASSERT(oob_queue_->IsEmpty());

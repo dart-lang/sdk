@@ -126,7 +126,7 @@ void SafepointHandler::SafepointThreads(Thread* T, SafepointLevel level) {
 
   for (auto main_port : oob_isolates) {
     Isolate::SendInternalLibMessage(main_port, Isolate::kCheckForReload,
-                                    /*ignored=*/-1);
+                                    /*capability=*/-1);
   }
 
   // Now wait for all threads that are not already at a safepoint to check-in.

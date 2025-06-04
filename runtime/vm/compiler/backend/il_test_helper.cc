@@ -87,8 +87,7 @@ ObjectPtr Invoke(const Library& lib, const char* name) {
   Dart_Handle result;
   {
     TransitionVMToNative transition(thread);
-    result =
-        Dart_Invoke(api_lib, NewString(name), /*argc=*/0, /*argv=*/nullptr);
+    result = Dart_Invoke(api_lib, NewString(name), 0, nullptr);
     EXPECT_VALID(result);
   }
   return Api::UnwrapHandle(result);

@@ -248,8 +248,7 @@ void WriteBarrierElimination::IndexDefinitions(Zone* zone) {
       if (auto phi_use = it.Current()->instruction()->AsPhi()) {
         const intptr_t index = Index(phi_use);
         if (!large_array_allocations.Get(index)) {
-          large_array_allocations.Set(index,
-                                      /*can_be_create_large_array=*/true);
+          large_array_allocations.Set(index, true);  // Can be large array.
           create_array_worklist.Add(phi_use);
         }
       }

@@ -1,1 +1,1 @@
-Checks: -*,readability-implicit-bool-conversion
+Checks: -*,readability-implicit-bool-conversion,bugprone-argument-comment

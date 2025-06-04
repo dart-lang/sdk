@@ -222,7 +222,7 @@ static void TestRegress38528(intptr_t header_overlap) {
 
   free_list->Free(blob->start(), alloc_size + remainder_size);
   blob->Protect(VirtualMemory::kReadExecute);  // not writable
-  Allocate(free_list.get(), alloc_size, /*protected=*/true);
+  Allocate(free_list.get(), alloc_size, /*is_protected=*/true);
   VirtualMemory::Protect(blob->address(), alloc_size,
                          VirtualMemory::kReadExecute);
   reinterpret_cast<void (*)()>(other_code)();

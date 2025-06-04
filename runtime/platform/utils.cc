@@ -359,27 +359,23 @@ void* Utils::LoadDynamicLibrary(const char* library_path,
 void* Utils::ResolveSymbolInDynamicLibrary(void* library_handle,
                                            const char* symbol,
                                            char** error) {
-  void* result = nullptr;
-
 #if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_MACOS) ||              \
     defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_FUCHSIA)
   dlerror();  // Clear any errors.
-  result = dlsym(library_handle, symbol);
+  void* result = dlsym(library_handle, symbol);
   // Note: nullptr might be a valid return from dlsym. Must call dlerror
   // to differentiate.
   GetLastErrorAsString(error);
   return result;
 #elif defined(DART_HOST_OS_WINDOWS)
   SetLastError(0);
-  result = reinterpret_cast<void*>(
+  void* result = reinterpret_cast<void*>(
       GetProcAddress(reinterpret_cast<HMODULE>(library_handle), symbol));
-#endif
-
   if (result == nullptr) {
     GetLastErrorAsString(error);
   }
-
   return result;
+#endif
 }
 
 void Utils::UnloadDynamicLibrary(void* library_handle, char** error) {

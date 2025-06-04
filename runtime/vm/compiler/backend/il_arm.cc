@@ -2116,7 +2116,7 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary(Zone* zone,
   const bool can_be_constant =
       index()->BindsToConstant() &&
       compiler::Assembler::AddressCanHoldConstantIndex(
-          index()->BoundConstant(), /*load=*/true, IsUntagged(), class_id(),
+          index()->BoundConstant(), /*is_load=*/true, IsUntagged(), class_id(),
           index_scale(), &needs_base);
   // We don't need to check if [needs_base] is true, since we use TMP as the
   // temp register in this case and so don't need to allocate a temp register.
@@ -2289,7 +2289,7 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
   const bool can_be_constant =
       index()->BindsToConstant() &&
       compiler::Assembler::AddressCanHoldConstantIndex(
-          index()->BoundConstant(), /*load=*/false, IsUntagged(), class_id(),
+          index()->BoundConstant(), /*is_load=*/false, IsUntagged(), class_id(),
           index_scale(), &needs_base);
   if (can_be_constant) {
     if (!directly_addressable) {
@@ -6893,8 +6893,8 @@ void IntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* BitCastInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   LocationSummary* summary =
-      new (zone) LocationSummary(zone, /*num_inputs=*/InputCount(),
-                                 /*num_temps=*/0, LocationSummary::kNoCall);
+      new (zone) LocationSummary(zone, InputCount(),
+                                 /*temp_count=*/0, LocationSummary::kNoCall);
   switch (from()) {
     case kUnboxedInt32:
       summary->set_in(0, Location::RequiresRegister());

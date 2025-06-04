@@ -5680,10 +5680,11 @@ TEST_CASE(DeoptimizeFramesWhenSettingBreakpoint) {
   Dart_Isolate parent = Dart_CurrentIsolate();
   Dart_ExitIsolate();
   char* error = nullptr;
-  Dart_Isolate child = Dart_CreateIsolateInGroup(parent, "child",
-                                                 /*shutdown_callback=*/nullptr,
-                                                 /*cleanup_callback=*/nullptr,
-                                                 /*peer=*/nullptr, &error);
+  Dart_Isolate child =
+      Dart_CreateIsolateInGroup(parent, "child",
+                                /*shutdown_callback=*/nullptr,
+                                /*cleanup_callback=*/nullptr,
+                                /*child_isolate_data=*/nullptr, &error);
   EXPECT_NE(nullptr, child);
   EXPECT_EQ(nullptr, error);
   Dart_ExitIsolate();
@@ -5796,10 +5797,11 @@ TEST_CASE(DartAPI_BreakpointLockRace) {
   Dart_Isolate parent = Dart_CurrentIsolate();
   Dart_ExitIsolate();
   char* error = nullptr;
-  Dart_Isolate child = Dart_CreateIsolateInGroup(parent, "child",
-                                                 /*shutdown_callback=*/nullptr,
-                                                 /*cleanup_callback=*/nullptr,
-                                                 /*peer=*/nullptr, &error);
+  Dart_Isolate child =
+      Dart_CreateIsolateInGroup(parent, "child",
+                                /*shutdown_callback=*/nullptr,
+                                /*cleanup_callback=*/nullptr,
+                                /*child_isolate_data=*/nullptr, &error);
   EXPECT_NE(nullptr, child);
   EXPECT_EQ(nullptr, error);
   Dart_ExitIsolate();

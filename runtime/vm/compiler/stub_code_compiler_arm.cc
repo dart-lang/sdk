@@ -3361,7 +3361,7 @@ void StubCodeCompiler::GenerateICCallThroughCodeStub() {
   __ b(&miss, EQ);
 
   const intptr_t entry_length =
-      target::ICData::TestEntryLengthFor(1, /*tracking_exactness=*/false) *
+      target::ICData::TestEntryLengthFor(1, /*exactness_check=*/false) *
       target::kWordSize;
   __ AddImmediate(R8, entry_length);  // Next entry.
   __ b(&loop);

@@ -87,7 +87,7 @@ static void WithExceptionCatchingTrampoline(Assembler* assembler,
   // Save & Restore the volatile CPU registers across the setjmp() call.
   const RegisterSet volatile_registers(
       CallingConventions::kVolatileCpuRegisters & ~(1 << RAX),
-      /*fpu_registers=*/0);
+      /*fpu_register_mask=*/0);
 
   const Register kSavedRspReg = R12;
   COMPILE_ASSERT(IsCalleeSavedRegister(kSavedRspReg));
@@ -3673,7 +3673,7 @@ void StubCodeCompiler::GenerateICCallThroughCodeStub() {
   __ j(ZERO, &miss, Assembler::kNearJump);
 
   const intptr_t entry_length =
-      target::ICData::TestEntryLengthFor(1, /*tracking_exactness=*/false) *
+      target::ICData::TestEntryLengthFor(1, /*exactness_check=*/false) *
       target::kCompressedWordSize;
   __ addq(R13, Immediate(entry_length));  // Next entry.
   __ jmp(&loop);

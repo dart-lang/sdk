@@ -3624,8 +3624,6 @@ class RODataSerializationCluster
             is_canonical,
             is_canonical && IsStringClassId(cid),
             ImageWriter::TagObjectTypeAsReadOnly(zone, type)),
-        zone_(zone),
-        cid_(cid),
         type_(type) {}
   ~RODataSerializationCluster() {}
 
@@ -3675,8 +3673,6 @@ class RODataSerializationCluster
   }
 
  private:
-  Zone* zone_;
-  const intptr_t cid_;
   const char* const type_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME && !DART_COMPRESSED_POINTERS

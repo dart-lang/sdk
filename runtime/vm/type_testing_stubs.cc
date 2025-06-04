@@ -487,7 +487,7 @@ static CheckType SubtypeChecksForClass(Zone* zone,
     return CheckType::kCidCheckOnly;
   }
   if (to_check.FindInstantiationOf(zone, type_class,
-                                   /*only_super_classes=*/true)) {
+                                   /*consider_only_super_classes=*/true)) {
     // No need to check for type argument consistency, as [to_check] is the same
     // as or a subclass of [type_class].
     return to_check.is_finalized()
@@ -659,7 +659,7 @@ void TypeTestingStubGenerator::
     // c) Then we'll check each value of the type argument.
     compiler::Label pop_saved_registers_on_failure;
     const RegisterSet saved_registers(
-        TTSInternalRegs::kSavedTypeArgumentRegisters, /*fpu_registers=*/0);
+        TTSInternalRegs::kSavedTypeArgumentRegisters, /*fpu_register_mask=*/0);
     __ PushRegisters(saved_registers);
 
     AbstractType& type_arg = AbstractType::Handle();

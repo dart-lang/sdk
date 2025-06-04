@@ -2556,12 +2556,15 @@ void MachOSymbolTable::Initialize(const GrowableArray<MachOSection*>& sections,
             intptr_t offset, intptr_t size, bool is_global) {
           switch (type) {
             case Type::Function: {
-              AddSymbol("", mach_o::N_BNSYM, section_index, /*desc=*/0, offset);
-              AddSymbol(name, mach_o::N_FUN, section_index, /*desc=*/0, offset);
+              AddSymbol("", mach_o::N_BNSYM, section_index, /*description=*/0,
+                        offset);
+              AddSymbol(name, mach_o::N_FUN, section_index, /*description=*/0,
+                        offset);
               // The size is output as an unnamed N_FUN symbol with no section
               // following the actual N_FUN symbol.
-              AddSymbol("", mach_o::N_FUN, mach_o::NO_SECT, /*desc=*/0, size);
-              AddSymbol("", mach_o::N_ENSYM, section_index, /*desc=*/0,
+              AddSymbol("", mach_o::N_FUN, mach_o::NO_SECT, /*description=*/0,
+                        size);
+              AddSymbol("", mach_o::N_ENSYM, section_index, /*description=*/0,
                         offset + size);
 
               break;
@@ -2569,11 +2572,12 @@ void MachOSymbolTable::Initialize(const GrowableArray<MachOSection*>& sections,
             case Type::Section:
             case Type::Object: {
               if (is_global) {
-                AddSymbol(name, mach_o::N_GSYM, mach_o::NO_SECT, /*desc=*/0,
+                AddSymbol(name, mach_o::N_GSYM, mach_o::NO_SECT,
+                          /*description=*/0,
                           /*value=*/0);
               } else {
                 AddSymbol(name, mach_o::N_STSYM, section_index,
-                          /*desc=*/0, offset);
+                          /*description=*/0, offset);
               }
               break;
             }

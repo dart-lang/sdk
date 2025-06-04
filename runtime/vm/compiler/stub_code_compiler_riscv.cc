@@ -2334,7 +2334,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   if (optimized == kOptimized) {
     GenerateOptimizedUsageCounterIncrement();
   } else {
-    GenerateUsageCounterIncrement(/*scratch=*/T0);
+    GenerateUsageCounterIncrement(/*temp_reg=*/T0);
   }
 
   ASSERT(num_args == 1 || num_args == 2);
@@ -3280,7 +3280,7 @@ void StubCodeCompiler::GenerateICCallThroughCodeStub() {
   __ BranchIf(EQ, &miss);
 
   const intptr_t entry_length =
-      target::ICData::TestEntryLengthFor(1, /*tracking_exactness=*/false) *
+      target::ICData::TestEntryLengthFor(1, /*exactness_check=*/false) *
       target::kCompressedWordSize;
   __ AddImmediate(T1, entry_length);  // Next entry.
   __ j(&loop);

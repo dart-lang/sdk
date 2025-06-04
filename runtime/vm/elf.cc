@@ -91,10 +91,10 @@ class ElfSection : public ZoneAllocated {
              bool allocate,
              bool executable,
              bool writable,
-             intptr_t align = compiler::target::kWordSize)
+             intptr_t alignment = compiler::target::kWordSize)
       : type(t),
         flags(EncodeFlags(allocate, executable, writable)),
-        alignment(align),
+        alignment(alignment),
         // Non-segments will never have a memory offset, here represented by 0.
         memory_offset_(allocate ? kLinearInitValue : 0) {
     // Only SHT_NULL sections (namely, the reserved section) are allowed to have
@@ -1290,7 +1290,7 @@ void ElfWriter::FinalizeEhFrame() {
   Dwarf::WriteCallFrameInformationRecords(&dwarf_stream, fdes);
 
   auto* const eh_frame = new (zone_)
-      BitsContainer(type_, /*writable=*/false, /*executable=*/false);
+      BitsContainer(type_, /*executable=*/false, /*writable=*/false);
   eh_frame->AddPortion(dwarf_stream.buffer(), dwarf_stream.bytes_written(),
                        dwarf_stream.relocations());
   section_table_->Add(eh_frame, ".eh_frame");

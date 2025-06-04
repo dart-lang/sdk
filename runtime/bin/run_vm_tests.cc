@@ -149,7 +149,8 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
 
   // Load embedder specific bits and return.
   if (!bin::VmService::Setup("127.0.0.1", 0,
-                             /*dev_mode=*/false, /*auth_disabled=*/true,
+                             /*dev_mode_server=*/false,
+                             /*auth_codes_disabled=*/true,
                              /*write_service_info_filename=*/"",
                              /*trace_loading=*/false, /*deterministic=*/true,
                              /*enable_service_port_fallback=*/false,

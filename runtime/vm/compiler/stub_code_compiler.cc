@@ -165,7 +165,7 @@ void StubCodeCompiler::GenerateInitLateStaticFieldStub() {
 }
 
 void StubCodeCompiler::GenerateInitLateFinalStaticFieldStub() {
-  GenerateInitLateStaticFieldStub(/*is_final=*/true, /*shared=*/false);
+  GenerateInitLateStaticFieldStub(/*is_final=*/true, /*is_shared=*/false);
 }
 
 void StubCodeCompiler::GenerateInitSharedLateStaticFieldStub() {
@@ -173,7 +173,7 @@ void StubCodeCompiler::GenerateInitSharedLateStaticFieldStub() {
 }
 
 void StubCodeCompiler::GenerateInitSharedLateFinalStaticFieldStub() {
-  GenerateInitLateStaticFieldStub(/*is_final=*/true, /*shared=*/true);
+  GenerateInitLateStaticFieldStub(/*is_final=*/true, /*is_shared=*/true);
 }
 
 void StubCodeCompiler::GenerateInitInstanceFieldStub() {
@@ -1365,7 +1365,7 @@ void StubCodeCompiler::GenerateAllocateGrowableArrayStub() {
     __ Comment("Inline allocation of GrowableList");
     __ TryAllocateObject(kGrowableObjectArrayCid, instance_size, &slow_case,
                          Assembler::kNearJump, AllocateObjectABI::kResultReg,
-                         /*temp_reg=*/AllocateObjectABI::kTagsReg);
+                         /*temp=*/AllocateObjectABI::kTagsReg);
     __ StoreIntoObjectNoBarrier(
         AllocateObjectABI::kResultReg,
         FieldAddress(AllocateObjectABI::kResultReg,
@@ -2731,7 +2731,7 @@ void StubCodeCompiler::InsertBSSRelocation(BSS::Relocation reloc) {
   pc_descriptors_list_->AddDescriptor(
       UntaggedPcDescriptors::kBSSRelocation, pc_offset,
       /*deopt_id=*/DeoptId::kNone,
-      /*root_pos=*/TokenPosition::kNoSource,
+      /*token_pos=*/TokenPosition::kNoSource,
       /*try_index=*/-1,
       /*yield_index=*/UntaggedPcDescriptors::kInvalidYieldIndex);
 }

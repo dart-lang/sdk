@@ -2655,7 +2655,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
                                                           isolate_group);
 
     cls = Class::New<Instance, RTN::Instance>(kByteBufferCid, isolate_group,
-                                              /*register_isolate_group=*/false);
+                                              /*register_class=*/false);
     cls.set_instance_size_in_words(0, 0);
     isolate_group->class_table()->Register(cls);
 
@@ -11890,10 +11890,7 @@ void Function::SetDeoptReasonForAll(intptr_t deopt_id,
 }
 
 bool Function::CheckSourceFingerprint(int32_t fp, const char* kind) const {
-#if !defined(DEBUG)
-  return true;  // Only check on debug.
-#endif
-
+#if defined(DEBUG)
 #if !defined(DART_PRECOMPILED_RUNTIME)
   // Check that the function is marked as recognized via the vm:recognized
   // pragma. This is so that optimizations that change the signature will know
@@ -11922,6 +11919,7 @@ bool Function::CheckSourceFingerprint(int32_t fp, const char* kind) const {
     THR_Print("s/0x%08x/0x%08x/\n", fp, SourceFingerprint());
     return false;
   }
+#endif  // defined(DEBUG)
   return true;
 }
 

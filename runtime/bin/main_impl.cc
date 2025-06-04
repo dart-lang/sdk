@@ -220,7 +220,7 @@ static bool OnIsolateInitialize(void** child_callback_data, char** error) {
   const bool isolate_run_app_snapshot =
       isolate_group_data->RunFromAppSnapshot();
   Dart_Handle result = SetupCoreLibraries(isolate, isolate_data,
-                                          /*group_start=*/false,
+                                          /*is_isolate_group_start=*/false,
                                           /*is_kernel_isolate=*/false,
                                           /*resolved_packages_config=*/nullptr);
   if (Dart_IsError(result)) goto failed;
