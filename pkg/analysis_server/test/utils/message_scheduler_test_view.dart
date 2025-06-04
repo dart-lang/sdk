@@ -44,6 +44,16 @@ class MessageSchedulerTestView implements MessageSchedulerListener {
   }
 
   @override
+  void pauseProcessingMessages(int newPauseCount) {
+    messageLog.add('Pause requested - there are now $newPauseCount pauses');
+  }
+
+  @override
+  void resumeProcessingMessages(int newPauseCount) {
+    messageLog.add('Resume requested - there are now $newPauseCount pauses');
+  }
+
+  @override
   void startProcessingMessages() {
     messageLog.add('Entering process messages loop');
   }

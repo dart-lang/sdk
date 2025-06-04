@@ -119,7 +119,7 @@ class CompletionHandler
     // unit and LineInfo.
     late ErrorOr<LineInfo> lineInfo;
     late ErrorOr<ResolvedUnitResult> unit;
-    await server.lockRequestsWhile(() async {
+    await server.pauseSchedulerWhile(() async {
       unit = await path.mapResult(requireResolvedUnit);
       lineInfo = await unit.map(
         // If we don't have a unit, we can still try to obtain the line info from

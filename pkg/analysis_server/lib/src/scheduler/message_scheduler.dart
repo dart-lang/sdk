@@ -45,6 +45,11 @@ final class MessageScheduler {
   /// Whether the [MessageScheduler] is currently processing messages.
   bool _isProcessing = false;
 
+  /// The number of times [pause] has been called without matching [resume]s.
+  ///
+  /// If zero, the queue is not paused.
+  int _pauseCount = 0;
+
   /// The completer used to indicate that message handling has been completed.
   Completer<void> _completer = Completer();
 
@@ -57,6 +62,9 @@ final class MessageScheduler {
   /// have the nullable reference to the server rather than the other way
   /// around.
   MessageScheduler({required this.listener});
+
+  /// Whether the queue is currently paused.
+  bool get isPaused => _pauseCount > 0;
 
   /// Add the [message] to the end of the pending messages queue.
   ///
@@ -177,12 +185,28 @@ final class MessageScheduler {
     }
   }
 
+  /// Pauses processing messages.
+  ///
+  /// Any messages that are already being processed will continue until they
+  /// complete, but no new messages will be processed.
+  ///
+  /// If this method is called multiple times, [resume] will need to be called
+  /// an equal number of times for processing to continue.
+  void pause() {
+    _pauseCount++;
+    listener?.pauseProcessingMessages(_pauseCount);
+  }
+
   /// Dispatch the first message in the queue to be executed.
   void processMessages() async {
+    if (isPaused) {
+      return;
+    }
+
     _isProcessing = true;
     listener?.startProcessingMessages();
     try {
-      while (_pendingMessages.isNotEmpty) {
+      while (_pendingMessages.isNotEmpty && !isPaused) {
         var currentMessage = _pendingMessages.removeFirst();
         _activeMessages.addLast(currentMessage);
         listener?.addActiveMessage(currentMessage);
@@ -247,6 +271,21 @@ final class MessageScheduler {
     }
     _isProcessing = false;
     listener?.endProcessingMessages();
+  }
+
+  /// Resumes processing messages.
+  void resume() {
+    if (!isPaused) {
+      throw StateError('Cannot resume if not paused');
+    }
+    _pauseCount--;
+    listener?.resumeProcessingMessages(_pauseCount);
+    if (!isPaused && !_isProcessing) {
+      // Process on the next tick so that the caller to resume() doesn't get
+      // messages in the queue attributed to their time (or run before they
+      // complete).
+      Future.delayed(Duration.zero, processMessages);
+    }
   }
 
   /// Returns the parameters of a cancellation [message].
@@ -476,6 +515,14 @@ abstract class MessageSchedulerListener {
   ///
   /// This implies that the message was active and wasn't cancelled.
   void messageCompleted(ScheduledMessage message);
+
+  /// Report that the pause counter was increased to [newPauseCount], and that
+  /// processing will be paused.
+  void pauseProcessingMessages(int newPauseCount);
+
+  /// Report that the pause counter was decreased to [newPauseCount] which, if
+  /// zero, indicates processing will resume.
+  void resumeProcessingMessages(int newPauseCount);
 
   /// Report that the loop that processes messages has started to run.
   void startProcessingMessages();

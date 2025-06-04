@@ -273,6 +273,13 @@ abstract class AnalysisServer {
   /// A [TimingByteStore] that records timings for reads from the byte store.
   TimingByteStore? _timingByteStore;
 
+  /// Whether notifications caused by analysis should be suppressed.
+  ///
+  /// This is used when an operation is temporarily modifying overlays and does
+  /// not want the client to be notified of any analysis happening on the
+  /// temporary content.
+  bool suppressAnalysisResults = false;
+
   AnalysisServer(
     this.options,
     this.sdkManager,
@@ -884,6 +891,39 @@ abstract class AnalysisServer {
   /// given [path] was changed - added, updated, or removed.
   void notifyFlutterWidgetDescriptions(String path) {}
 
+  /// Prevents the scheduler from processing new messages until [operation]
+  /// completes.
+  ///
+  /// This can be used to obtain analysis results/resolved units consistent with
+  /// the state of a file at the time this method was called, preventing
+  /// changes by incoming file modifications.
+  ///
+  /// The contents of [operation] should be kept as short as possible and since
+  /// cancellation requests will also be blocked for the duration of this
+  /// operation, handlers should generally check the cancellation flag
+  /// immediately after this function returns.
+  Future<T> pauseSchedulerWhile<T>(FutureOr<T> Function() operation) async {
+    // TODO(dantup): Prevent this method from locking responses from the client
+    //  because this can lead to deadlocks if called during initialization where
+    //  the server may wait for something (configuration) from the client. This
+    //  might fit in with potential upcoming scheduler changes.
+    //
+    // This is currently used by Completion+FixAll (which are less likely, but
+    // possible to be called during init).
+    //
+    // https://github.com/dart-lang/sdk/issues/56311#issuecomment-2250089185
+
+    messageScheduler.pause();
+    try {
+      // `await` here is important to ensure `finally` doesn't execute until
+      // `operation()` completes (`whenComplete` is not available on
+      // `FutureOr`).
+      return await operation();
+    } finally {
+      messageScheduler.resume();
+    }
+  }
+
   /// Read all files, resolve all URIs, and perform required analysis in
   /// all current analysis drivers.
   Future<void> reanalyze() async {
@@ -1087,6 +1127,10 @@ abstract class CommonServerContextManagerCallbacks
   @override
   @mustCallSuper
   void handleFileResult(FileResult result) {
+    if (analysisServer.suppressAnalysisResults) {
+      return;
+    }
+
     var path = result.path;
     filesToFlush.add(path);
 
