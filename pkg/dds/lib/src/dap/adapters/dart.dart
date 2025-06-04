@@ -1148,26 +1148,34 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     } else if (result is vm.Sentinel) {
       throw DebugAdapterException(result.valueAsString ?? '<collected>');
     } else if (result is vm.InstanceRef && thread != null) {
-      final resultString = await _converter.convertVmInstanceRefToDisplayString(
+      final variable = await _converter.convertVmResponseToVariable(
         thread,
         result,
+        name: null,
+        evaluateName: expression,
         allowCallingToString:
             evaluateToStringInDebugViews || shouldExpandTruncatedValues,
-        format: format,
         allowTruncatedValue: !shouldExpandTruncatedValues,
+        format: format,
       );
-
-      final variablesReference = _converter.isSimpleKind(result.kind)
-          ? 0
-          : thread.storeData(VariableData(result, format));
 
       // Store the expression that gets this object as we may need it to
       // compute evaluateNames for child objects later.
       storeEvaluateName(result, expression);
 
       sendResponse(EvaluateResponseBody(
-        result: resultString,
-        variablesReference: variablesReference,
+        // EvaluateResponse is mostly the same as a Variable response but
+        // do not share a class, so copy all fields off manually (this allows
+        // us to have a single implementation of building these fields for
+        // an instance instead of duplicating logic here).
+        result: variable.value,
+        variablesReference: variable.variablesReference,
+        indexedVariables: variable.indexedVariables,
+        namedVariables: variable.namedVariables,
+        memoryReference: variable.memoryReference,
+        presentationHint: variable.presentationHint,
+        type: variable.type,
+        valueLocationReference: variable.valueLocationReference,
       ));
     } else {
       throw DebugAdapterException(
