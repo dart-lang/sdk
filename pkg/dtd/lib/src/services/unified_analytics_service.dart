@@ -18,12 +18,18 @@ extension UnifiedAnalyticsExtension on DartToolingDaemon {
   /// Gets the Dart and Flutter unified analytics consent message to prompt
   /// users with on first run or when the message has been updated.
   Future<StringResponse> analyticsGetConsentMessage(DashTool tool) {
-    return _callServiceWithStringResponse(tool, 'getConsentMessage');
+    return _callServiceWithStringResponse(
+      tool,
+      UnifiedAnalyticsServiceConstants.getConsentMessage,
+    );
   }
 
   /// Whether the unified analytics client should display the consent message.
   Future<BoolResponse> analyticsShouldShowConsentMessage(DashTool tool) {
-    return _callServiceWithBoolResponse(tool, 'shouldShowMessage');
+    return _callServiceWithBoolResponse(
+      tool,
+      UnifiedAnalyticsServiceConstants.shouldShowMessage,
+    );
   }
 
   /// Method to be invoked by a Dart & Flutter unified analytics client to
@@ -32,12 +38,18 @@ extension UnifiedAnalyticsExtension on DartToolingDaemon {
   /// * the [DashTool] [tool] can be added to the config file and start sending
   ///   events the next time it starts up.
   Future<Success> analyticsClientShowedMessage(DashTool tool) {
-    return _callServiceWithSuccessResponse(tool, 'clientShowedMessage');
+    return _callServiceWithSuccessResponse(
+      tool,
+      UnifiedAnalyticsServiceConstants.clientShowedMessage,
+    );
   }
 
   /// Whether the unified analytics telemetry is enabled.
   Future<BoolResponse> analyticsTelemetryEnabled(DashTool tool) {
-    return _callServiceWithBoolResponse(tool, 'telemetryEnabled');
+    return _callServiceWithBoolResponse(
+      tool,
+      UnifiedAnalyticsServiceConstants.telemetryEnabled,
+    );
   }
 
   /// Sets the unified analytics telemetry to enabled or disabled based on the
@@ -51,8 +63,8 @@ extension UnifiedAnalyticsExtension on DartToolingDaemon {
   }) {
     return _callServiceWithSuccessResponse(
       tool,
-      'setTelemetry',
-      additionalParams: {'enable': enabled},
+      UnifiedAnalyticsServiceConstants.setTelemetry,
+      additionalParams: {DtdParameters.enable: enabled},
     );
   }
 
@@ -60,8 +72,8 @@ extension UnifiedAnalyticsExtension on DartToolingDaemon {
   Future<Success> analyticsSend(DashTool tool, Event event) {
     return _callServiceWithSuccessResponse(
       tool,
-      'send',
-      additionalParams: {'event': event.toJson()},
+      UnifiedAnalyticsServiceConstants.send,
+      additionalParams: {DtdParameters.event: event.toJson()},
     );
   }
 
@@ -111,9 +123,9 @@ extension UnifiedAnalyticsExtension on DartToolingDaemon {
     required T Function(DTDResponse) parseResponse,
   }) async {
     final response = await call(
-      kUnifiedAnalyticsServiceName,
+      UnifiedAnalyticsServiceConstants.serviceName,
       methodName,
-      params: {'tool': tool.name, ...additionalParams},
+      params: {DtdParameters.tool: tool.name, ...additionalParams},
     );
     return parseResponse(response);
   }
