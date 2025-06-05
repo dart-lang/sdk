@@ -317,10 +317,7 @@ class _ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
   @override
   StringConstantValue visitString(StringConstantValue constant, _) => constant;
   @override
-  DummyInterceptorConstantValue visitDummyInterceptor(
-    DummyInterceptorConstantValue constant,
-    _,
-  ) => constant;
+  DummyConstantValue visitDummy(DummyConstantValue constant, _) => constant;
   @override
   LateSentinelConstantValue visitLateSentinel(
     LateSentinelConstantValue constant,

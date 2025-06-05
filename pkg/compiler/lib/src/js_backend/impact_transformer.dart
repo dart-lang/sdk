@@ -119,7 +119,7 @@ class CodegenImpactTransformer {
           break;
         case ConstantValueKind.bool:
         case ConstantValueKind.double:
-        case ConstantValueKind.dummyInterceptor:
+        case ConstantValueKind.dummy:
         case ConstantValueKind.function:
         case ConstantValueKind.int:
         case ConstantValueKind.interceptor:

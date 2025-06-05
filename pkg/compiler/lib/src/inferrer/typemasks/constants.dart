@@ -55,7 +55,7 @@ class ConstantValueTypeMasks extends ConstantValueVisitor<TypeMask, Null> {
   }
 
   @override
-  TypeMask visitDummyInterceptor(DummyInterceptorConstantValue constant, _) =>
+  TypeMask visitDummy(DummyConstantValue constant, _) =>
       _abstractValueDomain.dynamicType;
 
   @override
