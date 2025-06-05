@@ -5,6 +5,9 @@
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
+import 'package:vm_service/vm_service.dart' as vm;
+
+import '../rpc_error_codes.dart';
 
 /// Returns whether this URI is something that can be resolved to a file-like
 /// URI via the VM Service.
@@ -133,3 +136,25 @@ bool containsVmFlag(List<String> args, String flag) {
 }
 
 typedef StackFrameLocation = ({Uri uri, int? line, int? column});
+
+extension RpcErrorExtension on vm.RPCError {
+  /// Whether this [vm.RPCError] is some kind of "VM Service connection has gone"
+  /// error that may occur if the VM is shut down.
+  bool get isServiceDisposedError {
+    if (code == RpcErrorCodes.kServiceDisappeared ||
+        code == RpcErrorCodes.kConnectionDisposed) {
+      return true;
+    }
+
+    if (code == RpcErrorCodes.kExtensionError) {
+      // Always ignore "client is closed" and "closed with pending request"
+      // errors because these can always occur during shutdown if we were
+      // just starting to send (or had just sent) a request.
+      return message.contains("The client is closed") ||
+          message.contains("The client closed with pending request") ||
+          message.contains("Service connection disposed");
+    }
+
+    return false;
+  }
+}

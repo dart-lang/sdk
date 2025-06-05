@@ -41,7 +41,7 @@ void main() {
         remoteVmServiceUri,
         devToolsConfiguration: DevToolsConfiguration(
           enable: true,
-          customBuildDirectoryPath: devtoolsAppUri(prefix: '../../../'),
+          customBuildDirectoryPath: devtoolsAppUri(),
         ),
       );
       expect(dds!.isRunning, true);

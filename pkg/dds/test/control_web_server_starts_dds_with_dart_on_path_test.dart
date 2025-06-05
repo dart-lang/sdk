@@ -9,6 +9,8 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
+import 'common/test_helper.dart';
+
 // Regression test for https://github.com/dart-lang/sdk/issues/56087
 
 void main() {
@@ -19,10 +21,9 @@ void main() {
   });
 
   test('Enabling the VM service with dart on PATH spawns DDS', () async {
-    final script = path.join(
-      path.dirname(Platform.script.toString()),
+    final script = resolveTestRelativePath(
       'control_web_server_starts_dds_test.dart',
-    );
+    ).toFilePath();
     process = await Process.start(
       'dart',
       [script],
