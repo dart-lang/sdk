@@ -13399,7 +13399,9 @@ void Field::SetOffset(intptr_t host_offset_in_bytes,
 
 ObjectPtr Field::StaticValue() const {
   ASSERT(is_static());  // Valid only for static dart fields.
-  return Isolate::Current()->field_table()->At(field_id());
+  return is_shared()
+             ? IsolateGroup::Current()->shared_field_table()->At(field_id())
+             : Isolate::Current()->field_table()->At(field_id());
 }
 
 inline intptr_t Field::field_id() const {

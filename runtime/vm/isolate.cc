@@ -354,6 +354,7 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       kernel_data_lib_cache_mutex_(),
       kernel_data_class_cache_mutex_(),
       kernel_constants_mutex_(),
+      shared_field_initializer_rwlock_(),
       field_list_mutex_(),
       boxed_field_list_(GrowableObjectArray::null()),
       program_lock_(new SafepointRwLock(SafepointLevel::kGCAndDeopt)),
@@ -890,6 +891,7 @@ void IsolateGroup::FreeStaticField(const Field& field) {
   const intptr_t field_id = field.field_id();
   if (field.is_shared()) {
     shared_field_table()->Free(field_id);
+    shared_initial_field_table()->Free(field_id);
   } else {
     initial_field_table()->Free(field_id);
     sentinel_field_table()->Free(field_id);

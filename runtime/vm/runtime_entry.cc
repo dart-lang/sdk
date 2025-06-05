@@ -4724,6 +4724,21 @@ DEFINE_LEAF_RUNTIME_ENTRY(PropagateError,
                           /*argument_count=*/1,
                           DLRT_PropagateError);
 
+DEFINE_RUNTIME_ENTRY(InitializeSharedField, 1) {
+  SafepointWriteRwLocker locker(
+      thread, thread->isolate_group()->shared_field_initializer_rwlock());
+  const Field& field = Field::CheckedHandle(zone, arguments.ArgAt(0));
+  Object& result = Object::Handle(zone, field.StaticValue());
+  if (result.ptr() == Object::sentinel().ptr()) {
+    // Haven't lost a race to set the initial value.
+    result = field.InitializeStatic();
+    ThrowIfError(result);
+    result = field.StaticValue();
+    ASSERT(result.ptr() != Object::sentinel().ptr());
+  }
+  arguments.SetReturn(result);
+}
+
 #if !defined(USING_MEMORY_SANITIZER)
 extern "C" void __msan_unpoison(const volatile void*, size_t) {
   UNREACHABLE();

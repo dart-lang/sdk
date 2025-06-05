@@ -2035,20 +2035,20 @@ void AsmIntrinsifier::Timeline_getNextTaskId(Assembler* assembler,
   __ LoadImmediate(A0, target::ToRawSmi(0));
   __ ret();
 #elif XLEN == 64
-  __ ld(A0, Address(THR, target::Thread::next_task_id_offset()));
+  __ LoadFromOffset(A0, THR, target::Thread::next_task_id_offset());
   __ addi(A1, A0, 1);
-  __ sd(A1, Address(THR, target::Thread::next_task_id_offset()));
+  __ StoreToOffset(A1, THR, target::Thread::next_task_id_offset());
   __ SmiTag(A0);  // Ignore loss of precision.
   __ ret();
 #else
-  __ lw(T0, Address(THR, target::Thread::next_task_id_offset()));
-  __ lw(T1, Address(THR, target::Thread::next_task_id_offset() + 4));
+  __ LoadFromOffset(T0, THR, target::Thread::next_task_id_offset());
+  __ LoadFromOffset(T1, THR, target::Thread::next_task_id_offset() + 4);
   __ SmiTag(A0, T0);  // Ignore loss of precision.
   __ addi(T2, T0, 1);
   __ sltu(T3, T2, T0);  // Carry.
   __ add(T1, T1, T3);
-  __ sw(T2, Address(THR, target::Thread::next_task_id_offset()));
-  __ sw(T1, Address(THR, target::Thread::next_task_id_offset() + 4));
+  __ StoreToOffset(T2, THR, target::Thread::next_task_id_offset());
+  __ StoreToOffset(T1, THR, target::Thread::next_task_id_offset() + 4);
   __ ret();
 #endif
 }

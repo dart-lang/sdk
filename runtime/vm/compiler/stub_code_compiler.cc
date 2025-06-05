@@ -91,14 +91,26 @@ void StubCodeCompiler::GenerateInitLateStaticFieldStub(bool is_final,
 
   __ EnterStubFrame();
 
+  if (FLAG_experimental_shared_data && is_shared) {
+    // Since initialization of shared fields has to be guarded by
+    // a mutex, do the initialization in the runtime.
+    __ PushObject(NullObject());  // Make room for the result
+    __ PushRegister(kFieldReg);
+    __ CallRuntime(kInitializeSharedFieldRuntimeEntry, /*argument_count=*/1);
+    __ PopRegister(kFieldReg);
+    __ PopRegister(kResultReg);
+    __ LeaveStubFrame();
+    __ Ret();
+    return;
+  }
+
   Label throw_since_no_isolate_is_present;
   if (FLAG_experimental_shared_data) {
-    if (!is_shared) {
-      // This stub is also called from mutator thread running without an
-      // isolate and attempts to load value from isolate static field.
-      __ LoadIsolate(kScratchReg);
-      __ BranchIfZero(kScratchReg, &throw_since_no_isolate_is_present);
-    }
+    ASSERT(!is_shared);
+    // This stub is also called from mutator thread running without an
+    // isolate and attempts to load value from isolate static field.
+    __ LoadIsolate(kScratchReg);
+    __ BranchIfZero(kScratchReg, &throw_since_no_isolate_is_present);
   }
 
   __ Comment("Calling initializer function");
@@ -143,20 +155,19 @@ void StubCodeCompiler::GenerateInitLateStaticFieldStub(bool is_final,
   }
 
   if (FLAG_experimental_shared_data) {
-    if (!is_shared) {
+    ASSERT(!is_shared);
 #if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
-      // We are jumping over LeaveStubFrame so restore LR state to match one
-      // at the jump point.
-      __ set_lr_state(compiler::LRState::OnEntry().EnterFrame());
+    // We are jumping over LeaveStubFrame so restore LR state to match one
+    // at the jump point.
+    __ set_lr_state(compiler::LRState::OnEntry().EnterFrame());
 #endif  // defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
-      // Throw FieldAccessError
-      __ Bind(&throw_since_no_isolate_is_present);
-      __ PushObject(NullObject());  // Make room for (unused) result.
-      __ PushRegister(kFieldReg);
-      __ CallRuntime(kStaticFieldAccessedWithoutIsolateErrorRuntimeEntry,
-                     /*argument_count=*/1);
-      __ Breakpoint();
-    }
+    // Throw FieldAccessError
+    __ Bind(&throw_since_no_isolate_is_present);
+    __ PushObject(NullObject());  // Make room for (unused) result.
+    __ PushRegister(kFieldReg);
+    __ CallRuntime(kStaticFieldAccessedWithoutIsolateErrorRuntimeEntry,
+                   /*argument_count=*/1);
+    __ Breakpoint();
   }
 }
 
@@ -170,10 +181,6 @@ void StubCodeCompiler::GenerateInitLateFinalStaticFieldStub() {
 
 void StubCodeCompiler::GenerateInitSharedLateStaticFieldStub() {
   GenerateInitLateStaticFieldStub(/*is_final=*/false, /*is_shared=*/true);
-}
-
-void StubCodeCompiler::GenerateInitSharedLateFinalStaticFieldStub() {
-  GenerateInitLateStaticFieldStub(/*is_final=*/true, /*is_shared=*/true);
 }
 
 void StubCodeCompiler::GenerateInitInstanceFieldStub() {
