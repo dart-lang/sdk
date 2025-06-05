@@ -945,7 +945,7 @@ void Snapshot::GenerateAppAOTAsAssembly(const char* snapshot_filename) {
               snapshot_filename);
   }
   Dart_Handle result = Dart_CreateAppAOTSnapshotAsAssembly(
-      StreamingWriteCallback, file, /*strip=*/false,
+      StreamingWriteCallback, file, /*stripped=*/false,
       /*debug_callback_data=*/nullptr);
   if (Dart_IsError(result)) {
     ErrorExit(kErrorExitCode, "%s\n", Dart_GetError(result));

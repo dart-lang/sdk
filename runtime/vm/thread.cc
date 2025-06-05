@@ -1682,7 +1682,8 @@ NoReloadScope::~NoReloadScope() {
     if (isolate != nullptr &&
         Thread::IsSafepointLevelRequested(
             state, SafepointLevel::kGCAndDeoptAndReload)) {
-      isolate->SendInternalLibMessage(Isolate::kCheckForReload, /*ignored=*/-1);
+      isolate->SendInternalLibMessage(Isolate::kCheckForReload,
+                                      /*capability=*/-1);
     }
   }
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)

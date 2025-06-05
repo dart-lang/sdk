@@ -9,7 +9,6 @@ import 'class_member_parser_test.dart' as class_member_parser;
 import 'collection_literal_parser_test.dart' as collection_literal_parser;
 import 'complex_parser_test.dart' as complex_parser;
 import 'error_parser_test.dart' as error_parser;
-import 'error_suppression_test.dart' as error_suppression;
 import 'expression_parser_test.dart' as expression_parser;
 import 'extension_methods_parser_test.dart' as extension_methods_parser;
 import 'formal_parameter_parser_test.dart' as formal_parameter_parser;
@@ -49,7 +48,6 @@ main() {
     collection_literal_parser.main();
     complex_parser.main();
     error_parser.main();
-    error_suppression.main();
     expression_parser.main();
     extension_methods_parser.main();
     formal_parameter_parser.main();

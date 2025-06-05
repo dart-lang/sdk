@@ -261,8 +261,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   /// The relevance data being collected.
   final RelevanceData data;
 
-  InheritanceManager3 inheritanceManager = InheritanceManager3();
-
   /// The library containing the compilation unit being visited.
   late LibraryElement enclosingLibrary;
 
@@ -529,7 +527,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     enclosingLibrary = node.declaredFragment!.element;
     typeProvider = enclosingLibrary.typeProvider;
     typeSystem = enclosingLibrary.typeSystem;
-    inheritanceManager = InheritanceManager3();
     featureComputer = FeatureComputer(typeSystem, typeProvider);
 
     var hasPrefix = false;
@@ -1132,8 +1129,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     var element = fragment.element;
     var enclosingElement = element.enclosingElement;
     if (!element.isStatic && enclosingElement is InterfaceElement) {
-      var overriddenMembers = inheritanceManager.getOverridden4(
-        enclosingElement,
+      var overriddenMembers = enclosingElement.getOverridden(
         Name(fragment.libraryFragment.source.uri, element.name3!),
       );
       if (overriddenMembers != null) {

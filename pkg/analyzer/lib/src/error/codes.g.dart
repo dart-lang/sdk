@@ -3971,8 +3971,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   static const CompileTimeErrorCode
   NON_EXHAUSTIVE_SWITCH_EXPRESSION = CompileTimeErrorCode(
     'NON_EXHAUSTIVE_SWITCH_EXPRESSION',
-    "The type '{0}' is not exhaustively matched by the switch cases since it "
-        "doesn't match '{1}'.",
+    "The type '{0}' isn't exhaustively matched by the switch cases since it "
+        "doesn't match the pattern '{1}'.",
     correctionMessage:
         "Try adding a wildcard pattern or cases that match '{2}'.",
     hasPublishedDocs: true,
@@ -3985,8 +3985,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   static const CompileTimeErrorCode
   NON_EXHAUSTIVE_SWITCH_STATEMENT = CompileTimeErrorCode(
     'NON_EXHAUSTIVE_SWITCH_STATEMENT',
-    "The type '{0}' is not exhaustively matched by the switch cases since it "
-        "doesn't match '{1}'.",
+    "The type '{0}' isn't exhaustively matched by the switch cases since it "
+        "doesn't match the pattern '{1}'.",
     correctionMessage: "Try adding a default case or cases that match '{2}'.",
     hasPublishedDocs: true,
   );

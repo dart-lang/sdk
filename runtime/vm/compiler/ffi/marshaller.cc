@@ -824,7 +824,7 @@ class CallbackArgumentTranslator : public ValueObject {
       FrameRebase rebase(
           zone,
           /*old_base=*/SPREG, /*new_base=*/SPREG,
-          /*stack_delta=*/(argument_slots_required_ + stack_delta) *
+          /*stack_delta_in_bytes=*/(argument_slots_required_ + stack_delta) *
               compiler::target::kWordSize);
       return rebase.Rebase(arg);
     }

@@ -358,7 +358,7 @@ FfiCallbackMetadata::Trampoline FfiCallbackMetadata::CreateAsyncFfiCallback(
     Dart_Port send_port,
     MetadataEntry** list_head) {
   ASSERT(send_function.GetFfiCallbackKind() == FfiCallbackKind::kAsyncCallback);
-  return CreateMetadataEntry(isolate, /*isolate_group=*/nullptr,
+  return CreateMetadataEntry(isolate, /*target_isolate_group=*/nullptr,
                              TrampolineType::kAsync,
                              GetEntryPoint(zone, send_function),
                              static_cast<uint64_t>(send_port), list_head);

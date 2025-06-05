@@ -3404,9 +3404,7 @@ static ObjectPtr ThrowArgumentError(const char* exception_message) {
     saved_exception = &Instance::Handle(raw_exception);
   }
   Exceptions::Throw(thread, *saved_exception);
-  const String& message =
-      String::Handle(String::New("Exception was not thrown, internal error"));
-  return ApiError::New(message);
+  UNREACHABLE();
 }
 
 // TODO(sgjesse): value should always be smaller then 0xff. Add error handling.

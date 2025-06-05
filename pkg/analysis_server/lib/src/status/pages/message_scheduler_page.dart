@@ -20,6 +20,7 @@ class MessageSchedulerPage extends DiagnosticPageWithNav {
 
   @override
   Future<void> generateContent(Map<String, String> params) async {
+    var now = DateTime.now().millisecondsSinceEpoch;
     var listener = server.messageScheduler.listener;
 
     h3('Status');
@@ -38,14 +39,11 @@ class MessageSchedulerPage extends DiagnosticPageWithNav {
       p(data.message.id);
       buf.write('<blockquote>');
       p('Pending messages ahead of this: ${data.pendingMessageCount}');
-      p(
-        'Time spent on pending queue: ${(data.activeTime ?? DateTime.now().millisecondsSinceEpoch) - data.pendingTime}',
-      );
+      var pendingDuration = (data.activeTime ?? now) - data.pendingTime;
+      p('Time spent on pending queue: $pendingDuration');
       if (isActive) {
         p('Active messages ahead of this: ${data.activeMessageCount}');
-        p(
-          'Time spent running: ${DateTime.now().millisecondsSinceEpoch - data.activeTime!}',
-        );
+        p('Time spent running: ${now - data.activeTime!}');
       }
       buf.write('</blockquote>');
     }

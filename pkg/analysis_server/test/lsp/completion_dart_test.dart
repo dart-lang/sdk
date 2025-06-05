@@ -1840,30 +1840,35 @@ var a = 1 /^
         getCompletion(mainFileUri, position),
       ];
 
-      // Ensure all requests started, then let them continue.
-      await pumpEventQueue(times: 5000);
-      completer.complete();
+      var expectationFutures = [
+        expectLater(
+          responseFutures[0],
+          throwsA(
+            isResponseError(
+              ErrorCodes.RequestCancelled,
+              message: 'Another textDocument/completion request was started',
+            ),
+          ),
+        ),
+        expectLater(
+          responseFutures[1],
+          throwsA(
+            isResponseError(
+              ErrorCodes.RequestCancelled,
+              message: 'Another textDocument/completion request was started',
+            ),
+          ),
+        ),
+        expectLater(responseFutures[2], completion(isNotEmpty)),
+      ];
 
-      expect(
-        responseFutures[0],
-        throwsA(
-          isResponseError(
-            ErrorCodes.RequestCancelled,
-            message: 'Another textDocument/completion request was started',
-          ),
-        ),
-      );
-      expect(
-        responseFutures[1],
-        throwsA(
-          isResponseError(
-            ErrorCodes.RequestCancelled,
-            message: 'Another textDocument/completion request was started',
-          ),
-        ),
-      );
-      var results = await responseFutures[2];
-      expect(results, isNotEmpty);
+      // Ensure all requests started, then let them continue. This must be done
+      // after the expectations are set up above, because otherwise if the
+      // exceptions occur too quickly, they will be unhandled (whereas the
+      // expectations attach error handlers to them).
+      await pumpEventQueue(times: 50000);
+      completer.complete();
+      await Future.wait(expectationFutures);
     } finally {
       CompletionHandler.delayAfterResolveForTests = null;
     }

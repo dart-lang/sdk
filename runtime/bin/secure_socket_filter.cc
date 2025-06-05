@@ -162,12 +162,13 @@ void FUNCTION_NAME(SecureSocket_NewX509CertificateWrapper)(
     Dart_NativeArguments args) {
 // This is to be used only in conjunction with certificate trust evaluator
 // running asynchronously, which is only used on mac/ios at the moment.
-#if !defined(DART_HOST_OS_MACOS)
-  FATAL("This is to be used only on mac/ios platforms");
-#endif
+#if defined(DART_HOST_OS_MACOS)
   intptr_t x509_pointer = DartUtils::GetNativeIntptrArgument(args, 0);
   X509* x509 = reinterpret_cast<X509*>(x509_pointer);
   Dart_SetReturnValue(args, X509Helper::WrappedX509Certificate(x509));
+#else
+  FATAL("This is to be used only on mac/ios platforms");
+#endif
 }
 
 void FUNCTION_NAME(SecureSocket_GetSelectedProtocol)(

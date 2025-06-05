@@ -295,6 +295,88 @@ Exit process messages loop
 ''');
   }
 
+  Future<void> test_pauseResume() async {
+    // Content isn't important, we just need a valid file to send requests for.
+    const content = '';
+    newFile(mainFilePath, content);
+
+    await initialize();
+    var futures = <Future<void>>[];
+
+    /// Helper to send two hover requests and pump the event queue, but not wait
+    /// for the requests to complete.
+    Future<void> sendHovers() async {
+      futures.add(getHover(mainFileUri, Position(line: 0, character: 0)));
+      futures.add(getHover(mainFileUri, Position(line: 0, character: 0)));
+      await pumpEventQueue(times: 5000);
+    }
+
+    /// Helper to resume the scheduler and pump the event queue to allow time
+    /// for processing to ensure the logs are in a consistent order.
+    Future<void> resume() async {
+      messageScheduler.resume();
+      await pumpEventQueue(times: 5000);
+    }
+
+    await sendHovers();
+    messageScheduler.pause(); // Pause 1
+    await sendHovers();
+    messageScheduler.pause(); // Pause 2
+    await sendHovers();
+    await resume(); // Resume 1
+    await sendHovers();
+    await resume(); // Resume 2
+
+    await Future.wait(futures);
+
+    _assertLogContents(testView!, r'''
+Incoming RequestMessage: lsp:initialize
+Entering process messages loop
+  Start LspMessage: lsp:initialize
+  Complete LspMessage: lsp:initialize
+Exit process messages loop
+Incoming NotificationMessage: lsp:initialized
+Entering process messages loop
+  Start LspMessage: lsp:initialized
+  Complete LspMessage: lsp:initialized
+Exit process messages loop
+Incoming RequestMessage: lsp:textDocument/hover
+Entering process messages loop
+  Start LspMessage: lsp:textDocument/hover
+  Complete LspMessage: lsp:textDocument/hover
+Exit process messages loop
+Incoming RequestMessage: lsp:textDocument/hover
+Entering process messages loop
+  Start LspMessage: lsp:textDocument/hover
+  Complete LspMessage: lsp:textDocument/hover
+Exit process messages loop
+Pause requested - there are now 1 pauses
+Incoming RequestMessage: lsp:textDocument/hover
+Incoming RequestMessage: lsp:textDocument/hover
+Pause requested - there are now 2 pauses
+Incoming RequestMessage: lsp:textDocument/hover
+Incoming RequestMessage: lsp:textDocument/hover
+Resume requested - there are now 1 pauses
+Incoming RequestMessage: lsp:textDocument/hover
+Incoming RequestMessage: lsp:textDocument/hover
+Resume requested - there are now 0 pauses
+Entering process messages loop
+  Start LspMessage: lsp:textDocument/hover
+  Complete LspMessage: lsp:textDocument/hover
+  Start LspMessage: lsp:textDocument/hover
+  Complete LspMessage: lsp:textDocument/hover
+  Start LspMessage: lsp:textDocument/hover
+  Complete LspMessage: lsp:textDocument/hover
+  Start LspMessage: lsp:textDocument/hover
+  Complete LspMessage: lsp:textDocument/hover
+  Start LspMessage: lsp:textDocument/hover
+  Complete LspMessage: lsp:textDocument/hover
+  Start LspMessage: lsp:textDocument/hover
+  Complete LspMessage: lsp:textDocument/hover
+Exit process messages loop
+''');
+  }
+
   Future<void> test_response() async {
     if (MessageScheduler.allowOverlappingHandlers) return;
 

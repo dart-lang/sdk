@@ -8,7 +8,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer_testing/package_root.dart' as package_root;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -209,7 +208,6 @@ class SelectionCoverageTest {
     var astImplData = processAstImpl(astImplResult as ResolvedUnitResult);
     var selectionData = processSelection(selectionResult as ResolvedUnitResult);
     var visitedLists = selectionData.visitedLists;
-    var inheritanceManager = InheritanceManager3();
 
     var buffer = StringBuffer();
     for (var interface in astImplData.instantiableInterfaces) {
@@ -244,8 +242,9 @@ class SelectionCoverageTest {
         var unvisitedNodeLists = {...declaredNodeLists};
         for (var visitedNodeList in visitedNodeLists) {
           unvisitedNodeLists.remove(visitedNodeList);
-          var overridden = inheritanceManager.getOverridden4(
-            visitedNodeList.enclosingElement as InterfaceElement,
+          var enclosingElement =
+              visitedNodeList.enclosingElement as InterfaceElement;
+          var overridden = enclosingElement.getOverridden(
             Name(visitedNodeList.library2.uri, visitedNodeList.name3!),
           );
           if (overridden != null) {

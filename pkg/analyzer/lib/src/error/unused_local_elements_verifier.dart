@@ -17,7 +17,6 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart'
     show JoinPatternVariableElementImpl2, MetadataImpl;
 import 'package:analyzer/src/dart/element/extensions.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart' show ExecutableMember;
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -499,9 +498,6 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   /// The elements know to be used.
   final UsedLocalElements _usedElements;
 
-  /// The inheritance manager used to find overridden methods.
-  final InheritanceManager3 _inheritanceManager;
-
   /// The URI of the library being verified.
   final Uri _libraryUri;
 
@@ -516,7 +512,6 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   UnusedLocalElementsVerifier(
     this._errorListener,
     this._usedElements,
-    this._inheritanceManager,
     LibraryElement library,
   ) : _libraryUri = library.uri,
       _wildCardVariablesEnabled = library.featureSet.isEnabled(
@@ -963,12 +958,9 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
       var elementName = element.name3;
       if (elementName != null) {
         Name name = Name(_libraryUri, elementName);
-        var overridden = _inheritanceManager.getOverridden4(
-          enclosingElement,
-          name,
-        );
+        var overridden = enclosingElement.getOverridden(name);
         if (overridden == null) {
-          return [];
+          return const [];
         }
         return overridden.map(
           (e) => (e is ExecutableMember) ? e.baseElement : e,

@@ -4,8 +4,8 @@
 
 import 'dart:async';
 
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/context_manager.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
@@ -18,7 +18,7 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 /// need to be merged together (to be mappable to LSP document changes) and then
 /// reverted to allow the client to apply the change.
 abstract class TemporaryOverlayOperation {
-  final LspAnalysisServer server;
+  final AnalysisServer server;
   final ContextManager contextManager;
   final OverlayResourceProvider resourceProvider;
 
@@ -78,16 +78,16 @@ abstract class TemporaryOverlayOperation {
   }
 
   /// Locks the server from processing incoming messages until [operation]
-  /// completes just like [LspAnalysisServer.lockRequestsWhile] but
+  /// completes just like [AnalysisServer.pauseSchedulerWhile] but
   /// additionally provides a function for writing temporary overlays that will
   /// be reverted when the operation completes.
   ///
   /// Additionally, sending diagnostics, outlines, etc. are suppressed by the
   /// temporary overlays and re-enabled after the overlays are restored.
-  Future<T> lockRequestsWithTemporaryOverlays<T>(
+  Future<T> pauseSchedulerWithTemporaryOverlays<T>(
     Future<T> Function() operation,
   ) {
-    return server.lockRequestsWhile(() async {
+    return server.pauseSchedulerWhile(() async {
       // Wait for any in-progress analysis to complete before we start
       // suppressing analysis results.
       server.contextManager.pauseWatchers();

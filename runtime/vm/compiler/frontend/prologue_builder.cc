@@ -127,7 +127,7 @@ Fragment PrologueBuilder::BuildParameterHandling() {
 
     copy_args_prologue += LoadLocal(count_var);
     copy_args_prologue += IntConstant(min_num_pos_args);
-    copy_args_prologue += SmiBinaryOp(Token::kSUB, /* truncate= */ true);
+    copy_args_prologue += SmiBinaryOp(Token::kSUB, /*is_truncating=*/true);
     optional_count_var = MakeTemporary();
   }
 
@@ -219,7 +219,7 @@ Fragment PrologueBuilder::BuildParameterHandling() {
           compiler::target::ArgumentsDescriptor::named_entry_size() /
           compiler::target::kCompressedWordSize);
       copy_args_prologue += LoadLocal(optional_count_vars_processed);
-      copy_args_prologue += SmiBinaryOp(Token::kMUL, /* truncate= */ true);
+      copy_args_prologue += SmiBinaryOp(Token::kMUL, /*is_truncating=*/true);
       LocalVariable* tuple_diff = MakeTemporary();
 
       // Let's load position from arg descriptor (to see which parameter is the
@@ -239,11 +239,11 @@ Fragment PrologueBuilder::BuildParameterHandling() {
                compiler::target::ArgumentsDescriptor::position_offset()) /
               compiler::target::kCompressedWordSize);
           good += LoadLocal(tuple_diff);
-          good += SmiBinaryOp(Token::kADD, /* truncate= */ true);
+          good += SmiBinaryOp(Token::kADD, /*is_truncating=*/true);
           good += LoadIndexed(
               kArrayCid, /*index_scale*/ compiler::target::kCompressedWordSize);
         }
-        good += SmiBinaryOp(Token::kSUB, /* truncate= */ true);
+        good += SmiBinaryOp(Token::kSUB, /*is_truncating=*/true);
         good += LoadFpRelativeSlot(
             compiler::target::kWordSize *
                 compiler::target::frame_layout.param_end_from_fp,
@@ -257,7 +257,7 @@ Fragment PrologueBuilder::BuildParameterHandling() {
         // Increase processed optional variable count.
         good += LoadLocal(optional_count_vars_processed);
         good += IntConstant(1);
-        good += SmiBinaryOp(Token::kADD, /* truncate= */ true);
+        good += SmiBinaryOp(Token::kADD, /*is_truncating=*/true);
         good += StoreLocalRaw(TokenPosition::kNoSource,
                               optional_count_vars_processed);
         good += Drop();
@@ -275,7 +275,7 @@ Fragment PrologueBuilder::BuildParameterHandling() {
                          compiler::target::ArgumentsDescriptor::name_offset()) /
                         compiler::target::kCompressedWordSize);
         copy_args_prologue += LoadLocal(tuple_diff);
-        copy_args_prologue += SmiBinaryOp(Token::kADD, /* truncate= */ true);
+        copy_args_prologue += SmiBinaryOp(Token::kADD, /*is_truncating=*/true);
         copy_args_prologue += LoadIndexed(
             kArrayCid, /*index_scale*/ compiler::target::kCompressedWordSize);
 

@@ -6,23 +6,19 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/error/codes.dart';
 
 /// Instances of the class `OverrideVerifier` visit all of the declarations in a
 /// compilation unit to verify that if they have an override annotation it is
 /// being used correctly.
 class OverrideVerifier extends RecursiveAstVisitor<void> {
-  /// The inheritance manager used to find overridden methods.
-  final InheritanceManager3 _inheritance;
-
   /// The error reporter used to report errors.
   final ErrorReporter _errorReporter;
 
   /// The current class or mixin.
   InterfaceElement? _currentClass;
 
-  OverrideVerifier(this._inheritance, this._errorReporter);
+  OverrideVerifier(this._errorReporter);
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
@@ -93,7 +89,7 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
     var currentClass = _currentClass?.firstFragment;
     if (currentClass != null) {
       var name = Name.forElement(member)!;
-      return _inheritance.getOverridden4(currentClass.element, name) != null;
+      return currentClass.element.getOverridden(name) != null;
     } else {
       return false;
     }

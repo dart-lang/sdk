@@ -4893,7 +4893,7 @@ LocationSummary* NativeParameterInstr::MakeLocationSummary(Zone* zone,
                  ? Location::RequiresRegister()
                  : Location::RequiresFpuRegister();
   }
-  return LocationSummary::Make(zone, /*num_inputs=*/0, output,
+  return LocationSummary::Make(zone, /*input_count=*/0, output,
                                LocationSummary::kNoCall);
 }
 
@@ -7404,8 +7404,8 @@ LocationSummary* FfiCallInstr::MakeLocationSummaryInternal(
       is_leaf_ ? LocationSummary::kNativeLeafCall : LocationSummary::kCall;
 
   LocationSummary* summary = new (zone) LocationSummary(
-      zone, /*num_inputs=*/InputCount(),
-      /*num_temps=*/Utils::CountOneBitsWord(temps), contains_call);
+      zone, InputCount(),
+      /*temp_count=*/Utils::CountOneBitsWord(temps), contains_call);
 
   intptr_t reg_i = 0;
   for (intptr_t reg = 0; reg < kNumberOfCpuRegisters; reg++) {
@@ -7473,7 +7473,7 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
   // Moves for arguments.
   compiler::ffi::FrameRebase rebase(compiler->zone(), /*old_base=*/FPREG,
                                     /*new_base=*/saved_fp,
-                                    /*stack_delta=*/0);
+                                    /*stack_delta_in_bytes=*/0);
   intptr_t def_index = 0;
   for (intptr_t arg_index = 0; arg_index < marshaller_.num_args();
        arg_index++) {
@@ -8090,8 +8090,8 @@ LocationSummary* LeafRuntimeCallInstr::MakeLocationSummaryInternal(
     Zone* zone,
     const RegList temps) const {
   LocationSummary* summary =
-      new (zone) LocationSummary(zone, /*num_inputs=*/InputCount(),
-                                 /*num_temps=*/Utils::CountOneBitsWord(temps),
+      new (zone) LocationSummary(zone, InputCount(),
+                                 /*temp_count=*/Utils::CountOneBitsWord(temps),
                                  LocationSummary::kNativeLeafCall);
 
   intptr_t reg_i = 0;
@@ -8174,7 +8174,7 @@ void LeafRuntimeCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
   ConstantTemporaryAllocator temp_alloc(temp0);
   compiler::ffi::FrameRebase rebase(compiler->zone(), /*old_base=*/FPREG,
                                     /*new_base=*/saved_fp,
-                                    /*stack_delta=*/0);
+                                    /*stack_delta_in_bytes=*/0);
 
   __ Comment("EmitParamMoves");
   const auto& argument_locations =

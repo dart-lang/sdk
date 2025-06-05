@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/simple_edit_handler.dart';
@@ -89,14 +90,14 @@ class FixAllCommandHandler extends SimpleEditCommandHandler<LspAnalysisServer> {
 
 /// Computes edits for iterative fix-all using temporary overlays.
 class _FixAllOperation extends TemporaryOverlayOperation
-    with HandlerHelperMixin<LspAnalysisServer> {
+    with HandlerHelperMixin<AnalysisServer> {
   final MessageInfo message;
   final CancellationToken cancellationToken;
   final String path;
   final bool autoTriggered;
 
   _FixAllOperation({
-    required LspAnalysisServer server,
+    required AnalysisServer server,
     required this.message,
     required this.path,
     required this.cancellationToken,
@@ -104,7 +105,7 @@ class _FixAllOperation extends TemporaryOverlayOperation
   }) : super(server);
 
   Future<ErrorOr<WorkspaceEdit?>> computeEdits() async {
-    return await lockRequestsWithTemporaryOverlays(_computeEditsImpl);
+    return await pauseSchedulerWithTemporaryOverlays(_computeEditsImpl);
   }
 
   Future<ErrorOr<WorkspaceEdit?>> _computeEditsImpl() async {

@@ -515,8 +515,6 @@ int DisassemblerX64::PrintImmediate(uint8_t* data,
       break;
     default:
       UNREACHABLE();
-      value = 0;  // Initialize variables on all paths to satisfy the compiler.
-      count = 0;
   }
   PrintImmediateValue(value, sign_extend, count);
   return count;
@@ -1223,7 +1221,7 @@ bool DisassemblerX64::DecodeInstructionType(uint8_t** data) {
       (*data) += 1 + imm_bytes;
       Print("mov%s %s,", operand_size_code(),
             NameOfCPURegister(base_reg(current & 0x07)));
-      PrintImmediateValue(addr, /* signed = */ false, imm_bytes);
+      PrintImmediateValue(addr, /*signed_value=*/false, imm_bytes);
       break;
     }
 

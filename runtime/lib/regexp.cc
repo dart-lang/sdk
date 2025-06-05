@@ -167,7 +167,7 @@ static ObjectPtr ExecuteMatch(Zone* zone,
   }
 #endif
   return BytecodeRegExpMacroAssembler::Interpret(regexp, subject, start_index,
-                                                 /*sticky=*/sticky, zone);
+                                                 /*is_sticky=*/sticky, zone);
 }
 
 DEFINE_NATIVE_ENTRY(RegExp_ExecuteMatch, 0, 3) {

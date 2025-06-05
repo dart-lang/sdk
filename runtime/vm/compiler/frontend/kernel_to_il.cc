@@ -1986,7 +1986,7 @@ Fragment FlowGraphBuilder::BuildTypedDataViewFactoryConstructor(
   // and thus already checked (e.g., the implementation of the
   // UnmodifiableXListView constructors).
 
-  body += AllocateObject(token_pos, view_class, /*arg_count=*/0);
+  body += AllocateObject(token_pos, view_class, /*argument_count=*/0);
   LocalVariable* view_object = MakeTemporary();
 
   body += LoadLocal(view_object);
@@ -3808,7 +3808,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
     body += IntConstant(function.NumParameters());
   }
   body += LoadLocal(argument_count_var);
-  body += SmiBinaryOp(Token::kADD, /* truncate= */ true);
+  body += SmiBinaryOp(Token::kADD, /*is_truncating=*/true);
   LocalVariable* argument_count = MakeTemporary();
 
   // We are generating code like the following:
@@ -3871,7 +3871,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
     loop_body += LoadLocal(index);
     loop_body += LoadLocal(argument_count);
     loop_body += LoadLocal(index);
-    loop_body += SmiBinaryOp(Token::kSUB, /*truncate=*/true);
+    loop_body += SmiBinaryOp(Token::kSUB, /*is_truncating=*/true);
     loop_body +=
         LoadFpRelativeSlot(compiler::target::kWordSize *
                                compiler::target::frame_layout.param_end_from_fp,
@@ -3881,7 +3881,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
     // ++i
     loop_body += LoadLocal(index);
     loop_body += IntConstant(1);
-    loop_body += SmiBinaryOp(Token::kADD, /*truncate=*/true);
+    loop_body += SmiBinaryOp(Token::kADD, /*is_truncating=*/true);
     loop_body += StoreLocal(TokenPosition::kNoSource, index);
     loop_body += Drop();
 
@@ -5312,7 +5312,7 @@ Fragment FlowGraphBuilder::FfiNativeLookupAddress(
       CachableIdempotentCall(TokenPosition::kNoSource, kUntagged, ffi_resolver,
                              /*argument_count=*/3,
                              /*argument_names=*/Array::null_array(),
-                             /*type_args_count=*/0);
+                             /*type_args_len=*/0);
   return body;
 #else  // !defined(TARGET_ARCH_IA32)
   // IA32 only has JIT and no pool. This function will only be compiled if

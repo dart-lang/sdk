@@ -1653,7 +1653,7 @@ static void ActOnIsolateGroup(JSONStream* js,
   IsolateGroup::RunWithIsolateGroup(
       isolate_group_id,
       [&visitor](IsolateGroup* isolate_group) { visitor(isolate_group); },
-      /*if_not_found=*/[&js]() { PrintSentinel(js, kExpiredSentinel); });
+      /*not_found=*/[&js]() { PrintSentinel(js, kExpiredSentinel); });
 }
 
 static void GetIsolateGroup(Thread* thread, JSONStream* js) {

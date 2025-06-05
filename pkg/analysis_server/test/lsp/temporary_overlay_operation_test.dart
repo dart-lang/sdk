@@ -127,5 +127,5 @@ class _TestTemporaryOverlayOperation extends TemporaryOverlayOperation {
 
   _TestTemporaryOverlayOperation(super.server, this.operation);
 
-  Future<void> doWork() => lockRequestsWithTemporaryOverlays(operation);
+  Future<void> doWork() => pauseSchedulerWithTemporaryOverlays(operation);
 }

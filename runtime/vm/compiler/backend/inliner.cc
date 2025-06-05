@@ -1312,7 +1312,7 @@ class CallSiteInliner : public ValueObject {
         kernel::FlowGraphBuilder builder(
             parsed_function, ic_data_array, /*context_level_array=*/nullptr,
             exit_collector,
-            /*optimized=*/true, Compiler::kNoOSRDeoptId,
+            /*optimizing=*/true, Compiler::kNoOSRDeoptId,
             caller_graph_->max_block_id() + 1,
             entry_kind == Code::EntryKind::kUnchecked, &call_data->caller);
         {

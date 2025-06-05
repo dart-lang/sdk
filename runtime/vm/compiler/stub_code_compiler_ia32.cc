@@ -1935,21 +1935,7 @@ void StubCodeCompiler::GenerateCallClosureNoSuchMethodStub() {
 // Cannot use function object from ICData as it may be the inlined
 // function and not the top-scope function.
 void StubCodeCompiler::GenerateOptimizedUsageCounterIncrement() {
-  Register ic_reg = ECX;
   Register func_reg = EAX;
-  if (FLAG_trace_optimized_ic_calls) {
-    __ EnterStubFrame();
-    __ pushl(func_reg);  // Preserve
-    __ pushl(ic_reg);    // Preserve.
-    __ pushl(ic_reg);    // Argument.
-    __ pushl(func_reg);  // Argument.
-    __ CallRuntime(kTraceICCallRuntimeEntry, 2);
-    __ popl(EAX);       // Discard argument;
-    __ popl(EAX);       // Discard argument;
-    __ popl(ic_reg);    // Restore.
-    __ popl(func_reg);  // Restore.
-    __ LeaveFrame();
-  }
   __ incl(FieldAddress(func_reg, target::Function::usage_counter_offset()));
 }
 

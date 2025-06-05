@@ -660,7 +660,7 @@ void Assembler::testq(Register reg, const Immediate& imm) {
     if (reg >= 4) {
       // We need the Rex byte to give access to the SIL and DIL registers (the
       // low bytes of RSI and RDI).
-      EmitRegisterREX(reg, REX_NONE, /* force = */ true);
+      EmitRegisterREX(reg, REX_NONE, /*force_emit=*/true);
     }
     if (reg == RAX) {
       EmitUint8(0xA8);

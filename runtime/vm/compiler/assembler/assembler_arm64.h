@@ -1007,19 +1007,25 @@ class Assembler : public AssemblerBase {
     EmitLoadStoreReg(STR, rt, a, sz);
   }
 
-  void ldp(Register rt, Register rt2, Address a, OperandSize sz = kEightBytes) {
-    ASSERT((rt != CSP) && (rt != R31));
+  void ldp(Register low,
+           Register high,
+           Address a,
+           OperandSize sz = kEightBytes) {
+    ASSERT((low != CSP) && (low != R31));
     ASSERT((a.type() == Address::PairOffset) ||
            (a.type() == Address::PairPostIndex) ||
            (a.type() == Address::PairPreIndex));
-    EmitLoadStoreRegPair(LDP, rt, rt2, a, sz);
+    EmitLoadStoreRegPair(LDP, low, high, a, sz);
   }
-  void stp(Register rt, Register rt2, Address a, OperandSize sz = kEightBytes) {
-    ASSERT((rt != CSP) && (rt != R31));
+  void stp(Register low,
+           Register high,
+           Address a,
+           OperandSize sz = kEightBytes) {
+    ASSERT((low != CSP) && (low != R31));
     ASSERT((a.type() == Address::PairOffset) ||
            (a.type() == Address::PairPostIndex) ||
            (a.type() == Address::PairPreIndex));
-    EmitLoadStoreRegPair(STP, rt, rt2, a, sz);
+    EmitLoadStoreRegPair(STP, low, high, a, sz);
   }
   void fldp(VRegister rt, VRegister rt2, Address a, OperandSize sz) {
     ASSERT((a.type() == Address::PairOffset) ||

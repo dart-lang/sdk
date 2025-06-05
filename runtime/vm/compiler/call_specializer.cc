@@ -331,7 +331,7 @@ bool CallSpecializer::TryStringLengthOneEquality(InstanceCallInstr* call,
       right_val = new (Z) Value(right_instr->char_code()->definition());
       to_remove_right = right_instr;
     } else {
-      AddChecksForArgNr(call, right, /* arg_number = */ 1);
+      AddChecksForArgNr(call, right, /* argument_number = */ 1);
       // String-to-char-code instructions returns -1 (illegal charcode) if
       // string is not of length one.
       StringToCharCodeInstr* char_code_right = new (Z)
@@ -427,8 +427,8 @@ bool CallSpecializer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
     // we can still emit the optimized Smi equality operation but need to add
     // checks for null or Smi.
     if (binary_feedback.OperandsAreSmiOrNull()) {
-      AddChecksForArgNr(call, left, /* arg_number = */ 0);
-      AddChecksForArgNr(call, right, /* arg_number = */ 1);
+      AddChecksForArgNr(call, left, /* argument_number = */ 0);
+      AddChecksForArgNr(call, right, /* argument_number = */ 1);
 
       representation = kTagged;
     } else {
@@ -442,7 +442,7 @@ bool CallSpecializer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
         StrictCompareInstr* comp = new (Z)
             StrictCompareInstr(call->source(), Token::kEQ_STRICT,
                                new (Z) Value(left), new (Z) Value(right),
-                               /* number_check = */ false, DeoptId::kNone);
+                               /*needs_number_check=*/false, DeoptId::kNone);
         ReplaceCall(call, comp);
         return true;
       }
@@ -969,8 +969,8 @@ bool CallSpecializer::InlineSimdBinaryOp(InstanceCallInstr* call,
   Definition* const left = call->ArgumentAt(0);
   Definition* const right = call->ArgumentAt(1);
   // Type check left and right.
-  AddChecksForArgNr(call, left, /* arg_number = */ 0);
-  AddChecksForArgNr(call, right, /* arg_number = */ 1);
+  AddChecksForArgNr(call, left, /* argument_number = */ 0);
+  AddChecksForArgNr(call, right, /* argument_number = */ 1);
   // Replace call.
   SimdOpInstr* op = SimdOpInstr::Create(
       SimdOpInstr::KindForOperator(cid, op_kind), new (Z) Value(left),
@@ -1211,7 +1211,7 @@ bool CallSpecializer::TryOptimizeInstanceOfUsingStaticTypes(
         type.IsNullType() ? Token::kEQ_STRICT : Token::kNE_STRICT,
         left_value->CopyWithType(Z),
         new (Z) Value(flow_graph()->constant_null()),
-        /* number_check = */ false, DeoptId::kNone);
+        /*needs_number_check=*/false, DeoptId::kNone);
     if (FLAG_trace_strong_mode_types) {
       THR_Print("[Strong mode] replacing %s with %s (%s < %s)\n",
                 call->ToCString(), replacement->ToCString(),

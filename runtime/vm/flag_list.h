@@ -213,8 +213,6 @@ constexpr bool FLAG_support_il_printer = false;
   D(trace_type_checks_verbose, bool, false,                                    \
     "Enable verbose trace of runtime type checks.")                            \
   D(trace_patching, bool, false, "Trace patching of code.")                    \
-  D(trace_optimized_ic_calls, bool, false,                                     \
-    "Trace IC calls in optimized code.")                                       \
   D(trace_zones, bool, false, "Traces allocation sizes in the zone.")          \
   P(truncating_left_shift, bool, true,                                         \
     "Optimize left shift to truncate if possible")                             \

@@ -44,7 +44,6 @@ namespace dart {
   V(NoSuchMethodFromCallStub)                                                  \
   V(NoSuchMethodFromPrologue)                                                  \
   V(OptimizeInvokedFunction)                                                   \
-  V(TraceICCall)                                                               \
   V(PatchStaticCall)                                                           \
   V(RangeError)                                                                \
   V(RangeErrorUnboxedInt64)                                                    \

@@ -6643,8 +6643,8 @@ void IntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* BitCastInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   LocationSummary* summary =
-      new (zone) LocationSummary(zone, /*num_inputs=*/InputCount(),
-                                 /*num_temps=*/0, LocationSummary::kNoCall);
+      new (zone) LocationSummary(zone, InputCount(),
+                                 /*temp_count=*/0, LocationSummary::kNoCall);
   switch (from()) {
     case kUnboxedInt32:
       summary->set_in(0, Location::RequiresRegister());

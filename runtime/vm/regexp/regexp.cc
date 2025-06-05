@@ -4464,7 +4464,7 @@ RegExpNode* RegExpAssertion::ToNode(RegExpCompiler* compiler,
       RegExpCharacterClass* newline_atom =
           new RegExpCharacterClass('n', RegExpFlags());
       TextNode* newline_matcher =
-          new TextNode(newline_atom, /*read_backwards=*/false,
+          new TextNode(newline_atom, /*read_backward=*/false,
                        ActionNode::PositiveSubmatchSuccess(
                            stack_pointer_register, position_register,
                            0,   // No captures inside.
@@ -5350,7 +5350,7 @@ RegExpEngine::CompilationResult RegExpEngine::CompileIR(
       first_step_node->AddAlternative(GuardedAlternative(captured_body));
       first_step_node->AddAlternative(GuardedAlternative(new (zone) TextNode(
           new (zone) RegExpCharacterClass('*', RegExpFlags()),
-          /*read_backwards=*/false, loop_node)));
+          /*read_backward=*/false, loop_node)));
       node = first_step_node;
     } else {
       node = loop_node;
@@ -5460,7 +5460,7 @@ RegExpEngine::CompilationResult RegExpEngine::CompileBytecode(
       first_step_node->AddAlternative(GuardedAlternative(captured_body));
       first_step_node->AddAlternative(GuardedAlternative(new (zone) TextNode(
           new (zone) RegExpCharacterClass('*', RegExpFlags()),
-          /*read_backwards=*/false, loop_node)));
+          /*read_backward=*/false, loop_node)));
       node = first_step_node;
     } else {
       node = loop_node;
