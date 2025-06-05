@@ -3744,7 +3744,7 @@ class _ProxyConfiguration {
             String userinfo = proxy.substring(0, at).trim();
             proxy = proxy.substring(at + 1).trim();
             int colon = userinfo.indexOf(":");
-            if (colon == -1 || colon == 0 || colon == proxy.length - 1) {
+            if (colon == -1 || colon == 0 || colon == userinfo.length - 1) {
               throw HttpException("Invalid proxy configuration $configuration");
             }
             username = userinfo.substring(0, colon).trim();
