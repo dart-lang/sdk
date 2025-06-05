@@ -6,6 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'add_diagnostic_property_reference_test.dart' as add_diagnostic_property;
 import 'add_digit_separators_test.dart' as add_digit_separators;
+import 'add_late_test.dart' as add_late;
 import 'add_return_type_test.dart' as add_return_type;
 import 'add_type_annotation_test.dart' as add_type_annotation;
 import 'assign_to_local_variable_test.dart' as assign_to_local_variable;
@@ -113,6 +114,7 @@ void main() {
   defineReflectiveSuite(() {
     add_diagnostic_property.main();
     add_digit_separators.main();
+    add_late.main();
     add_return_type.main();
     add_type_annotation.main();
     assign_to_local_variable.main();

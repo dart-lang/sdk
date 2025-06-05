@@ -16,6 +16,11 @@ abstract final class DartAssistKind {
     DartAssistKindPriority.DEFAULT,
     'Add digit separators',
   );
+  static const ADD_LATE = AssistKind(
+    'dart.assist.add.late',
+    DartAssistKindPriority.DEFAULT,
+    "Add 'late' modifier",
+  );
   static const ADD_RETURN_TYPE = AssistKind(
     'dart.assist.add.returnType',
     DartAssistKindPriority.DEFAULT,

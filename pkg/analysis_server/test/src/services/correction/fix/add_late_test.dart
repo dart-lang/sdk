@@ -64,6 +64,57 @@ class C {
 ''', target: '$testPackageLibPath/a.dart');
   }
 
+  Future<void> test_final_implicitThis() async {
+    await resolveTestCode('''
+class A {
+  final int v;
+  final bool isEven = v.isEven;
+  A(this.v);
+}
+''');
+    await assertHasFix('''
+class A {
+  final int v;
+  late final bool isEven = v.isEven;
+  A(this.v);
+}
+''');
+  }
+
+  Future<void> test_type_implicitThis() async {
+    await resolveTestCode('''
+class A {
+  final int v;
+  bool isEven = v.isEven;
+  A(this.v);
+}
+''');
+    await assertHasFix('''
+class A {
+  final int v;
+  late bool isEven = v.isEven;
+  A(this.v);
+}
+''');
+  }
+
+  Future<void> test_var_implicitThis() async {
+    await resolveTestCode('''
+class A {
+  final int v;
+  var isEven = v.isEven;
+  A(this.v);
+}
+''');
+    await assertHasFix('''
+class A {
+  final int v;
+  late var isEven = v.isEven;
+  A(this.v);
+}
+''');
+  }
+
   Future<void> test_withFinal() async {
     await resolveTestCode('''
 class C {

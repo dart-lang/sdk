@@ -40,6 +40,9 @@ abstract class CodeStyleOptions {
   /// Whether constructors should be sorted first, before other class members.
   bool get sortConstructorsFirst;
 
+  /// Whether types should be specified for return values.
+  bool get specifyReturnTypes;
+
   /// Whether types should be specified whenever possible.
   bool get specifyTypes;
 

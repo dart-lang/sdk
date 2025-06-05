@@ -726,6 +726,10 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   CompileTimeErrorCode.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS: [
     AddSuperParameter.new,
   ],
+  CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER: [
+    ConvertIntoGetter.implicitThis,
+    AddLate.implicitThis,
+  ],
   CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY: [RemoveUnusedImport.new],
   CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY: [RemoveUnusedImport.new],
   CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD: [

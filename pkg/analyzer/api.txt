@@ -353,6 +353,7 @@ package:analyzer/dart/analysis/code_style_options.dart:
     preferredQuoteForStrings (getter: String)
     sortCombinators (getter: bool)
     sortConstructorsFirst (getter: bool)
+    specifyReturnTypes (getter: bool)
     specifyTypes (getter: bool)
     useFormatter (getter: bool)
     usePackageUris (getter: bool)

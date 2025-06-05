@@ -67,6 +67,7 @@ import 'convert_flutter_children_test.dart' as convert_flutter_children;
 import 'convert_for_each_to_for_loop_test.dart' as convert_for_each_to_for_loop;
 import 'convert_into_block_body_test.dart' as convert_into_block_body;
 import 'convert_into_expression_body_test.dart' as convert_into_expression_body;
+import 'convert_into_getter_test.dart' as convert_into_getter;
 import 'convert_into_is_not_test.dart' as convert_into_is_not;
 import 'convert_null_check_to_null_aware_element_or_entry_test.dart'
     as convert_null_check_to_null_aware_element_or_entry;
@@ -378,6 +379,7 @@ void main() {
     convert_for_each_to_for_loop.main();
     convert_into_block_body.main();
     convert_into_expression_body.main();
+    convert_into_getter.main();
     convert_into_is_not.main();
     convert_null_check_to_null_aware_element_or_entry.main();
     convert_quotes.main();

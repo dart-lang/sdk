@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/dart/add_diagnostic_property_reference.dart';
 import 'package:analysis_server/src/services/correction/dart/add_digit_separators.dart';
+import 'package:analysis_server/src/services/correction/dart/add_late.dart';
 import 'package:analysis_server/src/services/correction/dart/add_return_type.dart';
 import 'package:analysis_server/src/services/correction/dart/add_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/assign_to_local_variable.dart';
@@ -82,6 +83,7 @@ const Set<ProducerGenerator> _builtInGenerators = {
   AddDiagnosticPropertyReference.new,
   AddDigitSeparatorEveryThreeDigits.new,
   AddDigitSeparatorEveryTwoDigits.new,
+  AddLate.new,
   AddReturnType.new,
   AddTypeAnnotation.bulkFixable,
   AssignToLocalVariable.new,

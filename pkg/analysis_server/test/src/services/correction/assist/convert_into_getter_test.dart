@@ -3,164 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/assist.dart';
-import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
-import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../fix/fix_processor.dart';
 import 'assist_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ConvertIntoGetterFixTest);
     defineReflectiveTests(ConvertIntoGetterTest);
   });
-}
-
-@reflectiveTest
-class ConvertIntoGetterFixTest extends FixProcessorTest {
-  @override
-  FixKind get kind => DartFixKind.CONVERT_INTO_GETTER;
-
-  Future<void> test_extension_final() async {
-    await resolveTestCode('''
-extension E on int {
-  final int a;
-}
-''');
-    await assertHasFix(
-      '''
-extension E on int {
-  int get a => null;
-}
-''',
-      errorFilter:
-          (error) =>
-              error.errorCode ==
-              CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD,
-    );
-  }
-
-  Future<void> test_extension_late() async {
-    await resolveTestCode('''
-extension E on int {
-  late int a = 0;
-}
-''');
-    await assertHasFix('''
-extension E on int {
-  int get a => 0;
-}
-''');
-  }
-
-  Future<void> test_extension_late_final() async {
-    await resolveTestCode('''
-extension E on int {
-  late final int a = 0;
-}
-''');
-    await assertHasFix('''
-extension E on int {
-  int get a => 0;
-}
-''');
-  }
-
-  Future<void> test_extension_nonFinal_nonLate() async {
-    await resolveTestCode('''
-extension E on int {
-  int a = 0;
-}
-''');
-    await assertHasFix('''
-extension E on int {
-  int get a => 0;
-}
-''');
-  }
-
-  Future<void> test_extension_notSingleField() async {
-    await resolveTestCode('''
-extension E on int {
-  final int foo = 1, bar = 2;
-}
-''');
-    await assertNoFix(
-      errorFilter: (error) => error.offset == testCode.indexOf('foo'),
-    );
-    await assertNoFix(
-      errorFilter: (error) => error.offset == testCode.indexOf('bar'),
-    );
-  }
-
-  Future<void> test_extensionType_final() async {
-    await resolveTestCode('''
-extension type A(int i) {
-  final int a;
-}
-''');
-    await assertHasFix('''
-extension type A(int i) {
-  int get a => null;
-}
-''');
-  }
-
-  Future<void> test_extensionType_late() async {
-    await resolveTestCode('''
-extension type A(int i) {
-  late int a = 0;
-}
-''');
-    await assertHasFix('''
-extension type A(int i) {
-  int get a => 0;
-}
-''');
-  }
-
-  Future<void> test_extensionType_late_final() async {
-    await resolveTestCode('''
-extension type A(int i) {
-  late final int a = 0;
-}
-''');
-    await assertHasFix('''
-extension type A(int i) {
-  int get a => 0;
-}
-''');
-  }
-
-  Future<void> test_extensionType_nonFinal_nonLate() async {
-    await resolveTestCode('''
-extension type A(int i) {
-  int a = 0;
-}
-''');
-    await assertHasFix('''
-extension type A(int i) {
-  int get a => 0;
-}
-''');
-  }
-
-  Future<void> test_extensionType_notSingleField() async {
-    await resolveTestCode('''
-extension type A(int i) {
-  final int foo = 1, bar = 2;
-}
-''');
-    await assertNoFix(
-      errorFilter: (error) => error.offset == testCode.indexOf('foo'),
-    );
-    await assertNoFix(
-      errorFilter: (error) => error.offset == testCode.indexOf('bar'),
-    );
-  }
 }
 
 @reflectiveTest
@@ -277,7 +128,7 @@ class A {
 ''');
     await assertHasAssist('''
 class A {
-  get foo => 42;
+  int get foo => 42;
 }
 ''');
   }
