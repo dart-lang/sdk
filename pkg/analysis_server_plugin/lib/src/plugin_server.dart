@@ -318,7 +318,7 @@ class PluginServer {
     if (unitResult is! ResolvedUnitResult) {
       return const [];
     }
-    var listener = RecordingErrorListener();
+    var listener = RecordingDiagnosticListener();
     var errorReporter = ErrorReporter(
         listener, unitResult.libraryElement2.firstFragment.source);
 
@@ -378,7 +378,7 @@ class PluginServer {
         AnalysisRuleVisitor(nodeRegistry, shouldPropagateExceptions: true));
 
     var ignoreInfo = IgnoreInfo.forDart(unitResult.unit, unitResult.content);
-    var diagnostics = listener.errors.where((e) {
+    var diagnostics = listener.diagnostics.where((e) {
       var pluginName = pluginCodeMapping[e.errorCode.name];
       if (pluginName == null) {
         // If [e] is somehow not mapped, something is wrong; but don't mark it

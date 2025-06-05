@@ -43,7 +43,7 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
   /// The error listener to which scanner and parser errors will be reported.
   ///
   /// This field is typically initialized by invoking [createParser].
-  GatheringErrorListener get listener;
+  GatheringDiagnosticListener get listener;
 
   /// Get the parser used by the test.
   ///
@@ -253,7 +253,7 @@ class FastaParserTestCase
   bool allowNativeClause = false;
 
   @override
-  GatheringErrorListener get listener => parserProxy.errorListener;
+  GatheringDiagnosticListener get listener => parserProxy.diagnosticListener;
 
   @override
   ParserProxy get parser => parserProxy;
@@ -275,12 +275,12 @@ class FastaParserTestCase
 
   @override
   void assertErrorsWithCodes(List<DiagnosticCode> expectedCodes) {
-    parserProxy.errorListener.assertErrorsWithCodes(expectedCodes);
+    parserProxy.diagnosticListener.assertErrorsWithCodes(expectedCodes);
   }
 
   @override
   void assertNoErrors() {
-    parserProxy.errorListener.assertNoErrors();
+    parserProxy.diagnosticListener.assertNoErrors();
   }
 
   @override
@@ -323,7 +323,7 @@ class FastaParserTestCase
 
   @override
   void expectNotNullIfNoErrors(Object? result) {
-    if (!listener.hasErrors) {
+    if (!listener.hasDiagnostics) {
       expect(result, isNotNull);
     }
   }
@@ -412,7 +412,7 @@ class FastaParserTestCase
     List<ExpectedError>? errors,
     FeatureSet? featureSet,
   }) {
-    GatheringErrorListener listener = GatheringErrorListener();
+    GatheringDiagnosticListener listener = GatheringDiagnosticListener();
 
     var unit = parseCompilationUnit2(content, listener, featureSet: featureSet);
 
@@ -429,7 +429,7 @@ class FastaParserTestCase
 
   CompilationUnitImpl parseCompilationUnit2(
     String content,
-    GatheringErrorListener listener, {
+    GatheringDiagnosticListener listener, {
     FeatureSet? featureSet,
   }) {
     featureSet ??= FeatureSet.latestLanguageVersion();
@@ -808,8 +808,9 @@ class FastaParserTestCase
 /// This allows many of the analyzer parser tests to be run on Fasta, even if
 /// they call into the analyzer parser class directly.
 class ParserProxy extends analyzer.Parser {
-  /// The error listener to which scanner and parser errors will be reported.
-  final GatheringErrorListener errorListener;
+  /// The diagnostic listener to which scanner and parser diagnostics will be
+  /// reported.
+  final GatheringDiagnosticListener diagnosticListener;
 
   late final ForwardingTestListener _eventListener;
 
@@ -826,11 +827,11 @@ class ParserProxy extends analyzer.Parser {
     required LineInfo lineInfo,
   }) {
     TestSource source = TestSource();
-    var errorListener = GatheringErrorListener();
+    var diagnosticListener = GatheringDiagnosticListener();
     return ParserProxy._(
       firstToken,
       source,
-      errorListener,
+      diagnosticListener,
       featureSet,
       languageVersion,
       allowNativeClause: allowNativeClause,
@@ -842,7 +843,7 @@ class ParserProxy extends analyzer.Parser {
   ParserProxy._(
     Token firstToken,
     Source source,
-    this.errorListener,
+    this.diagnosticListener,
     FeatureSet featureSet,
     LibraryLanguageVersion languageVersion, {
     bool allowNativeClause = false,
@@ -850,7 +851,7 @@ class ParserProxy extends analyzer.Parser {
     required LineInfo lineInfo,
   }) : super(
          source,
-         errorListener,
+         diagnosticListener,
          featureSet: featureSet,
          languageVersion: languageVersion,
          allowNativeClause: allowNativeClause,
@@ -1080,7 +1081,7 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
   bool parseAsync = true;
 
   @override
-  late final GatheringErrorListener listener;
+  late final GatheringDiagnosticListener listener;
 
   /// The parser used by the test.
   ///
@@ -1113,7 +1114,7 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
       override: null,
     );
     Source source = TestSource();
-    listener = GatheringErrorListener();
+    listener = GatheringDiagnosticListener();
 
     fasta.ScannerResult result = fasta.scanString(
       content,
@@ -1146,7 +1147,7 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
 
   @override
   void expectNotNullIfNoErrors(Object result) {
-    if (!listener.hasErrors) {
+    if (!listener.hasDiagnostics) {
       expect(result, isNotNull);
     }
   }
@@ -1249,7 +1250,7 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
     List<ExpectedError>? errors,
   }) {
     Source source = TestSource();
-    GatheringErrorListener listener = GatheringErrorListener();
+    GatheringDiagnosticListener listener = GatheringDiagnosticListener();
 
     var languageVersion = LibraryLanguageVersion(
       package: ExperimentStatus.currentVersion,
@@ -1290,10 +1291,9 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
   /// Parse the given [content] as a compilation unit.
   CompilationUnit parseCompilationUnit2(
     String content, {
-    AnalysisErrorListener? listener,
+    DiagnosticListener listener = DiagnosticListener.NULL_LISTENER,
   }) {
     Source source = NonExistingSource.unknown;
-    listener ??= AnalysisErrorListener.NULL_LISTENER;
 
     var languageVersion = LibraryLanguageVersion(
       package: ExperimentStatus.currentVersion,
@@ -1608,7 +1608,7 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
   @override
   Statement parseStatement(String content, {int? expectedEndOffset}) {
     Source source = TestSource();
-    listener = GatheringErrorListener();
+    listener = GatheringDiagnosticListener();
 
     var languageVersion = LibraryLanguageVersion(
       package: ExperimentStatus.currentVersion,

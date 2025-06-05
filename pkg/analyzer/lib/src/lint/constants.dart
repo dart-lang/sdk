@@ -16,16 +16,16 @@ import 'package:analyzer/src/dart/constant/potentially_constant.dart';
 import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/error/codes.dart';
 
-/// An error listener that only records whether any constant related errors have
-/// been reported.
-class _ConstantAnalysisErrorListener extends AnalysisErrorListener {
-  /// A flag indicating whether any constant related errors have been reported
-  /// to this listener.
+/// A diagnostic listener that only records whether any constant-related
+/// diagnostics have been reported.
+class _ConstantDiagnosticListener extends DiagnosticListener {
+  /// A flag indicating whether any constant-related diagnostics have been
+  /// reported to this listener.
   bool hasConstError = false;
 
   @override
-  void onError(Diagnostic error) {
-    DiagnosticCode diagnosticCode = error.errorCode;
+  void onError(Diagnostic diagnostic) {
+    DiagnosticCode diagnosticCode = diagnostic.errorCode;
     if (diagnosticCode is CompileTimeErrorCode) {
       switch (diagnosticCode) {
         case CompileTimeErrorCode
@@ -91,7 +91,7 @@ extension AstNodeExtension on AstNode {
       configuration: ConstantEvaluationConfiguration(),
     );
 
-    var listener = _ConstantAnalysisErrorListener();
+    var listener = _ConstantDiagnosticListener();
     var errorReporter = ErrorReporter(listener, unitFragment.source);
 
     accept(ConstantVerifier(errorReporter, libraryElement, declaredVariables));

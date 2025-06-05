@@ -657,8 +657,11 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     Expression expression,
     DiagnosticCode diagnosticCode,
   ) {
-    var errorListener = RecordingErrorListener();
-    var subErrorReporter = ErrorReporter(errorListener, _errorReporter.source);
+    var diagnosticListener = RecordingDiagnosticListener();
+    var subErrorReporter = ErrorReporter(
+      diagnosticListener,
+      _errorReporter.source,
+    );
     var constantVisitor = ConstantVisitor(
       _evaluationEngine,
       _currentLibrary,
@@ -968,10 +971,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           if (initializer != null) {
             // Ignore any errors produced during validation--if the constant
             // can't be evaluated we'll just report a single error.
-            AnalysisErrorListener errorListener =
-                AnalysisErrorListener.NULL_LISTENER;
             ErrorReporter subErrorReporter = ErrorReporter(
-              errorListener,
+              DiagnosticListener.NULL_LISTENER,
               _errorReporter.source,
             );
             var result = initializer.accept(

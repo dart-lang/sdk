@@ -116,7 +116,7 @@ part 'part.dart';
     ResolvedUnitResult libResult = await resolveFile(libFile);
     ResolvedUnitResult partResult = await resolveFile(partFile);
     expect(libResult.errors, hasLength(0));
-    GatheringErrorListener()
+    GatheringDiagnosticListener()
       ..addAll(partResult.errors)
       ..assertErrors([
         error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 36, 1),

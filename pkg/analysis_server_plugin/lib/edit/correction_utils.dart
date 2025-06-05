@@ -440,7 +440,7 @@ class TokenUtils {
       var scanner = Scanner(
         _SourceMock(),
         CharSequenceReader(s),
-        AnalysisErrorListener.NULL_LISTENER,
+        DiagnosticListener.NULL_LISTENER,
       )..configureFeatures(
           featureSetForOverriding: featureSet,
           featureSet: featureSet,

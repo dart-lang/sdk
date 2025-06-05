@@ -93,8 +93,11 @@ class ConstantEvaluationEngine {
       if (constant is ConstVariableElement) {
         var defaultValue = constant.constantInitializer;
         if (defaultValue != null) {
-          var errorListener = RecordingErrorListener();
-          var errorReporter = ErrorReporter(errorListener, constant.source!);
+          var diagnosticListener = RecordingDiagnosticListener();
+          var errorReporter = ErrorReporter(
+            diagnosticListener,
+            constant.source!,
+          );
           var constantVisitor = ConstantVisitor(this, library, errorReporter);
           var dartConstant = constantVisitor.evaluateConstant(defaultValue);
           constant.evaluationResult = dartConstant;
@@ -105,8 +108,8 @@ class ConstantEvaluationEngine {
     } else if (constant is VariableFragmentImpl) {
       var constantInitializer = constant.constantInitializer;
       if (constantInitializer != null) {
-        var errorListener = RecordingErrorListener();
-        var errorReporter = ErrorReporter(errorListener, constant.source!);
+        var diagnosticListener = RecordingDiagnosticListener();
+        var errorReporter = ErrorReporter(diagnosticListener, constant.source!);
         var constantVisitor = ConstantVisitor(this, library, errorReporter);
         var dartConstant = constantVisitor.evaluateConstant(
           constantInitializer,
@@ -183,8 +186,8 @@ class ConstantEvaluationEngine {
       } else if (element is ConstructorElementMixin2 &&
           element.isConst &&
           constNode.arguments != null) {
-        var errorListener = RecordingErrorListener();
-        var errorReporter = ErrorReporter(errorListener, constant.source);
+        var diagnosticListener = RecordingDiagnosticListener();
+        var errorReporter = ErrorReporter(diagnosticListener, constant.source);
         var constantVisitor = ConstantVisitor(this, library, errorReporter);
         var result = evaluateAndFormatErrorsInConstructorCall(
           library,
@@ -195,7 +198,7 @@ class ConstantEvaluationEngine {
           constantVisitor,
         );
         constant.evaluationResult = result;
-        constant.additionalErrors = errorListener.errors;
+        constant.additionalErrors = diagnosticListener.diagnostics;
       } else {
         // This may happen for invalid code (e.g. failing to pass arguments
         // to an annotation which references a const constructor).  The error
@@ -419,9 +422,8 @@ class ConstantEvaluationEngine {
     ConstantEvaluationTarget constant,
   ) {
     if (constant is VariableFragmentImpl) {
-      RecordingErrorListener errorListener = RecordingErrorListener();
       ErrorReporter errorReporter = ErrorReporter(
-        errorListener,
+        RecordingDiagnosticListener(),
         constant.source!,
       );
       // TODO(paulberry): It would be really nice if we could extract enough
@@ -2799,7 +2801,8 @@ class _InstanceCreationEvaluator {
 
   final LibraryElementImpl _library;
 
-  final BooleanErrorListener _externalErrorListener = BooleanErrorListener();
+  final BooleanDiagnosticListener _externalDiagnosticListener =
+      BooleanDiagnosticListener();
 
   /// An error reporter for errors determined while computing values for field
   /// initializers, or default values for the constructor parameters.
@@ -2808,7 +2811,7 @@ class _InstanceCreationEvaluator {
   /// because they usually happen in a different source. But they still should
   /// cause a constant evaluation error for the current node.
   late final ErrorReporter _externalErrorReporter = ErrorReporter(
-    _externalErrorListener,
+    _externalDiagnosticListener,
     _constructor.source,
   );
 

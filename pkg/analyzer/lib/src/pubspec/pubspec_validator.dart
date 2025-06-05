@@ -45,7 +45,7 @@ List<Diagnostic> validatePubspec({
   required ResourceProvider provider,
   AnalysisOptions? analysisOptions,
 }) {
-  var recorder = RecordingErrorListener();
+  var recorder = RecordingDiagnosticListener();
   ErrorReporter reporter = ErrorReporter(recorder, source);
   var ctx = PubspecValidationContext._(
     contents: contents,
@@ -76,7 +76,9 @@ List<Diagnostic> validatePubspec({
   var lineInfo = LineInfo.fromContent(source.contents.data);
   var ignoreInfo = IgnoreInfo.forYaml(source.contents.data, lineInfo);
 
-  return recorder.errors.where((error) => !ignoreInfo.ignored(error)).toList();
+  return recorder.diagnostics
+      .where((error) => !ignoreInfo.ignored(error))
+      .toList();
 }
 
 /// A function that can validate a `pubspec.yaml`.

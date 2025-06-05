@@ -473,14 +473,14 @@ class ContextManagerImpl implements ContextManager {
     var convertedErrors = const <protocol.AnalysisError>[];
     try {
       var content = file.readAsStringSync();
-      var errorListener = RecordingErrorListener();
-      var errorReporter = ErrorReporter(errorListener, FileSource(file));
+      var diagnosticListener = RecordingDiagnosticListener();
+      var errorReporter = ErrorReporter(diagnosticListener, FileSource(file));
       var parser = TransformSetParser(errorReporter, packageName);
       parser.parse(content);
       var converter = AnalyzerConverter();
       var analysisOptions = driver.getAnalysisOptionsForFile(file);
       convertedErrors = converter.convertAnalysisErrors(
-        errorListener.errors,
+        diagnosticListener.diagnostics,
         lineInfo: LineInfo.fromContent(content),
         options: analysisOptions,
       );

@@ -20,7 +20,7 @@ main() {
 
 @reflectiveTest
 class ErrorReporterTest extends PubPackageResolutionTest {
-  var listener = GatheringErrorListener();
+  var listener = GatheringDiagnosticListener();
 
   test_atElement_named() async {
     await resolveTestCode('class A {}');
@@ -36,8 +36,8 @@ class ErrorReporterTest extends PubPackageResolutionTest {
       arguments: ['A'],
     );
 
-    var error = listener.errors[0];
-    expect(error.offset, firstFragment.nameOffset2);
+    var diagnostic = listener.diagnostics[0];
+    expect(diagnostic.offset, firstFragment.nameOffset2);
   }
 
   test_atElement_unnamed() async {
@@ -57,8 +57,8 @@ extension on int {}
       arguments: ['A'],
     );
 
-    var error = listener.errors[0];
-    expect(error.offset, -1);
+    var diagnostic = listener.diagnostics[0];
+    expect(diagnostic.offset, -1);
   }
 
   test_atNode_types_differentNames() async {
@@ -99,8 +99,8 @@ main() {
       arguments: [firstType, secondType, ''],
     );
 
-    var error = listener.errors[0];
-    expect(error.message, isNot(contains('(')));
+    var diagnostic = listener.diagnostics[0];
+    expect(diagnostic.message, isNot(contains('(')));
   }
 
   test_atNode_types_sameName() async {
@@ -140,8 +140,8 @@ main() {
       arguments: [firstType, secondType, ''],
     );
 
-    var error = listener.errors[0];
-    expect(error.message, contains('('));
+    var diagnostic = listener.diagnostics[0];
+    expect(diagnostic.message, contains('('));
   }
 
   test_atNode_types_sameName_functionType() async {
@@ -169,9 +169,9 @@ main() {
       arguments: [fa.variables.type!.type!, fb.variables.type!.type!, ''],
     );
 
-    var error = listener.errors[0];
-    expect(error.message, contains('a.dart'));
-    expect(error.message, contains('b.dart'));
+    var diagnostic = listener.diagnostics[0];
+    expect(diagnostic.message, contains('a.dart'));
+    expect(diagnostic.message, contains('b.dart'));
   }
 
   test_atNode_types_sameName_nested() async {
@@ -200,9 +200,9 @@ main() {
       arguments: [ba.variables.type!.type!, bb.variables.type!.type!, ''],
     );
 
-    var error = listener.errors[0];
-    expect(error.message, contains('a.dart'));
-    expect(error.message, contains('b.dart'));
+    var diagnostic = listener.diagnostics[0];
+    expect(diagnostic.message, contains('a.dart'));
+    expect(diagnostic.message, contains('b.dart'));
   }
 
   test_atSourceSpan() async {
@@ -228,9 +228,9 @@ zap: baz
       AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE,
       arguments: ['test', 'zip', 'zap'],
     );
-    expect(listener.errors, hasLength(1));
-    expect(listener.errors.first.offset, offset);
-    expect(listener.errors.first.length, length);
+    expect(listener.diagnostics, hasLength(1));
+    expect(listener.diagnostics.first.offset, offset);
+    expect(listener.diagnostics.first.length, length);
   }
 
   test_creation() async {

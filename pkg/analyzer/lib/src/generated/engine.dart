@@ -12,7 +12,7 @@ import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:meta/meta.dart';
 
 export 'package:analyzer/dart/analysis/analysis_options.dart';
-export 'package:analyzer/error/listener.dart' show RecordingErrorListener;
+export 'package:analyzer/error/listener.dart' show RecordingDiagnosticListener;
 export 'package:analyzer/src/dart/analysis/analysis_options.dart';
 export 'package:analyzer/src/generated/timestamped_data.dart'
     show TimestampedData;

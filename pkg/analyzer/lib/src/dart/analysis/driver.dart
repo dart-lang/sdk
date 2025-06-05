@@ -1153,16 +1153,16 @@ class AnalysisDriver {
     _applyPendingFileChanges();
 
     var file = _fsState.getFileForPath(path);
-    RecordingErrorListener listener = RecordingErrorListener();
+    RecordingDiagnosticListener listener = RecordingDiagnosticListener();
     CompilationUnit unit = file.parse(
-      errorListener: listener,
+      diagnosticListener: listener,
       performance: OperationPerformanceImpl('<root>'),
     );
     return ParsedUnitResultImpl(
       session: currentSession,
       fileState: file,
       unit: unit,
-      errors: listener.errors,
+      errors: listener.diagnostics,
     );
   }
 

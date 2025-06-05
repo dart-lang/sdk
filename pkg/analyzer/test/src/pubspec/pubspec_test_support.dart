@@ -17,7 +17,7 @@ class PubspecDiagnosticTest with ResourceProviderMixin {
     var pubspecFile = newFile('/sample/pubspec.yaml', content);
     var source = FileSource(pubspecFile);
     YamlNode node = loadYamlNode(content);
-    GatheringErrorListener listener = GatheringErrorListener();
+    GatheringDiagnosticListener listener = GatheringDiagnosticListener();
     listener.addAll(
       validatePubspec(
         contents: node,

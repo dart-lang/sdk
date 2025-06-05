@@ -271,7 +271,7 @@ mixin OptionsRuleValidatorTestMixin on AbstractAnalysisOptionsTest {
     List<DiagnosticCode> expectedCodes, {
     VersionConstraint? sdk,
   }) {
-    GatheringErrorListener listener = GatheringErrorListener();
+    GatheringDiagnosticListener listener = GatheringDiagnosticListener();
     ErrorReporter reporter = ErrorReporter(
       listener,
       StringSource(content, 'analysis_options.yaml'),

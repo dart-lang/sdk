@@ -130,7 +130,7 @@ class LineInfoTest {
 
   void test_linestarts() {
     String source = "var\r\ni\n=\n1;\n";
-    GatheringErrorListener listener = GatheringErrorListener();
+    GatheringDiagnosticListener listener = GatheringDiagnosticListener();
     Scanner scanner = Scanner(
       TestSource(),
       CharSequenceReader(source),
@@ -150,7 +150,7 @@ class LineInfoTest {
     // to the correct analyzer error code.
     // See https://github.com/dart-lang/sdk/issues/30320
     String source = '<!-- @Component(';
-    GatheringErrorListener listener = GatheringErrorListener();
+    GatheringDiagnosticListener listener = GatheringDiagnosticListener();
     Scanner scanner = Scanner(
       TestSource(),
       CharSequenceReader(source),
@@ -171,7 +171,7 @@ class LineInfoTest {
     String source,
     List<ScannerTest_ExpectedLocation> expectedLocations,
   ) {
-    GatheringErrorListener listener = GatheringErrorListener();
+    GatheringDiagnosticListener listener = GatheringDiagnosticListener();
     _scanWithListener(source, listener);
     listener.assertNoErrors();
     LineInfo info = listener.getLineInfo(TestSource())!;
@@ -193,7 +193,7 @@ class LineInfoTest {
     }
   }
 
-  Token _scanWithListener(String source, GatheringErrorListener listener) {
+  Token _scanWithListener(String source, GatheringDiagnosticListener listener) {
     Scanner scanner = Scanner(
       TestSource(),
       CharSequenceReader(source),
@@ -258,8 +258,8 @@ class ScannerTest with ResourceProviderMixin {
     var path = convertPath('/test/lib/a.dart');
     var source = StringSource(content, path);
     var reader = CharSequenceReader(content);
-    var errorCollector = RecordingErrorListener();
-    return Scanner(source, reader, errorCollector);
+    var diagnosticCollector = RecordingDiagnosticListener();
+    return Scanner(source, reader, diagnosticCollector);
   }
 }
 

@@ -26,7 +26,7 @@ List<Token> _getTokens(String text, FeatureSet featureSet) {
     var scanner = Scanner(
       _SourceMock.instance,
       CharSequenceReader(text),
-      AnalysisErrorListener.NULL_LISTENER,
+      DiagnosticListener.NULL_LISTENER,
     )..configureFeatures(
       featureSetForOverriding: featureSet,
       featureSet: featureSet,

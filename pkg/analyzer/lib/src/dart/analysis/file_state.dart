@@ -597,17 +597,17 @@ class FileState {
       return result;
     }
 
-    var errorListener = RecordingErrorListener();
+    var diagnosticListener = RecordingDiagnosticListener();
     var unit = parseCode(
       code: content,
-      errorListener: errorListener,
+      diagnosticListener: diagnosticListener,
       performance: performance,
     );
 
     result = ParsedFileState(
       code: content,
       unit: unit,
-      errors: errorListener.errors,
+      errors: diagnosticListener.diagnostics,
     );
     _fsState.parsedFileStateCache.put(this, result);
 
@@ -616,14 +616,13 @@ class FileState {
 
   /// Return a new parsed unresolved [CompilationUnit].
   CompilationUnitImpl parse({
-    AnalysisErrorListener? errorListener,
+    DiagnosticListener diagnosticListener = DiagnosticListener.NULL_LISTENER,
     required OperationPerformanceImpl performance,
   }) {
-    errorListener ??= AnalysisErrorListener.NULL_LISTENER;
     try {
       return parseCode(
         code: content,
-        errorListener: errorListener,
+        diagnosticListener: diagnosticListener,
         performance: performance,
       );
     } catch (exception, stackTrace) {
@@ -634,14 +633,14 @@ class FileState {
   /// Parses given [code] with the same features as this file.
   CompilationUnitImpl parseCode({
     required String code,
-    required AnalysisErrorListener errorListener,
+    required DiagnosticListener diagnosticListener,
     required OperationPerformanceImpl performance,
   }) {
     return performance.run('parseCode', (performance) {
       performance.getDataInt('length').add(code.length);
 
       CharSequenceReader reader = CharSequenceReader(code);
-      Scanner scanner = Scanner(source, reader, errorListener)
+      Scanner scanner = Scanner(source, reader, diagnosticListener)
         ..configureFeatures(
           featureSetForOverriding: featureSet,
           featureSet: featureSet.restrictToVersion(packageLanguageVersion),
@@ -655,7 +654,7 @@ class FileState {
 
       Parser parser = Parser(
         source,
-        errorListener,
+        diagnosticListener,
         featureSet: scanner.featureSet,
         lineInfo: lineInfo,
         languageVersion: languageVersion,

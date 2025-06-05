@@ -112,7 +112,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   factory ResolutionVisitor({
     required LibraryFragmentImpl unitElement,
-    required AnalysisErrorListener errorListener,
+    required DiagnosticListener diagnosticListener,
     required Scope nameScope,
     required bool strictInference,
     required bool strictCasts,
@@ -122,7 +122,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var libraryElement = unitElement.library;
     var typeProvider = libraryElement.typeProvider;
     var unitSource = unitElement.source;
-    var errorReporter = ErrorReporter(errorListener, unitSource);
+    var errorReporter = ErrorReporter(diagnosticListener, unitSource);
 
     var typeSystemOperations = TypeSystemOperations(
       unitElement.library.typeSystem,
@@ -1524,7 +1524,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         fragment = ConstLocalVariableFragmentImpl(
           name2: _getFragmentName(nameToken),
           nameOffset: nameToken.offset,
-        ) ;
+        );
       } else {
         fragment = LocalVariableFragmentImpl(
           name2: _getFragmentName(nameToken),

@@ -4743,16 +4743,16 @@ package:analyzer/error/error.dart:
   ErrorSeverity (type alias for DiagnosticSeverity, deprecated)
   ErrorType (type alias for DiagnosticType, deprecated)
 package:analyzer/error/listener.dart:
-  AnalysisErrorListener (class extends Object):
-    NULL_LISTENER (static getter: AnalysisErrorListener)
-    new (constructor: AnalysisErrorListener Function())
-    onError (method: void Function(Diagnostic))
-  BooleanErrorListener (class extends Object implements AnalysisErrorListener):
-    new (constructor: BooleanErrorListener Function())
+  BooleanDiagnosticListener (class extends Object implements DiagnosticListener):
+    new (constructor: BooleanDiagnosticListener Function())
     errorReported (getter: bool)
     onError (method: void Function(Diagnostic))
+  DiagnosticListener (class extends Object):
+    NULL_LISTENER (static getter: DiagnosticListener)
+    new (constructor: DiagnosticListener Function())
+    onError (method: void Function(Diagnostic))
   ErrorReporter (class extends Object):
-    new (constructor: ErrorReporter Function(AnalysisErrorListener, Source))
+    new (constructor: ErrorReporter Function(DiagnosticListener, Source))
     lockLevel (getter: int)
     lockLevel= (setter: int)
     source (getter: Source)
@@ -4764,11 +4764,15 @@ package:analyzer/error/listener.dart:
     atSourceSpan (method: void Function(SourceSpan, DiagnosticCode, {List<Object>? arguments, List<DiagnosticMessage>? contextMessages, Object? data}))
     atToken (method: void Function(Token, DiagnosticCode, {List<Object>? arguments, List<DiagnosticMessage>? contextMessages, Object? data}))
     reportError (method: void Function(Diagnostic))
-  RecordingErrorListener (class extends Object implements AnalysisErrorListener):
-    new (constructor: RecordingErrorListener Function())
-    errors (getter: List<Diagnostic>)
-    getErrorsForSource (method: List<Diagnostic> Function(Source))
+  RecordingDiagnosticListener (class extends Object implements DiagnosticListener):
+    new (constructor: RecordingDiagnosticListener Function())
+    diagnostics (getter: List<Diagnostic>)
+    errors (getter: List<Diagnostic>, deprecated)
+    getErrorsForSource (method: List<Diagnostic> Function(Source), deprecated)
     onError (method: void Function(Diagnostic))
+  AnalysisErrorListener (type alias for DiagnosticListener, deprecated)
+  BooleanErrorListener (type alias for BooleanDiagnosticListener, deprecated)
+  RecorderingErrorListener (type alias for RecordingDiagnosticListener, deprecated)
 package:analyzer/exception/exception.dart:
   AnalysisException (class extends Object implements Exception):
     new (constructor: AnalysisException Function([String, CaughtException?]))

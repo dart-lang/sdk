@@ -8332,15 +8332,15 @@ sealed class ExpressionImpl extends AstNodeImpl
       configuration: ConstantEvaluationConfiguration(),
     );
 
-    var errorListener = RecordingErrorListener();
+    var diagnosticListener = RecordingDiagnosticListener();
     var visitor = ConstantVisitor(
       evaluationEngine,
       libraryElement,
-      ErrorReporter(errorListener, unitFragment.source),
+      ErrorReporter(diagnosticListener, unitFragment.source),
     );
 
     var constant = visitor.evaluateAndReportInvalidConstant(this);
-    var isInvalidConstant = errorListener.errors.any(
+    var isInvalidConstant = diagnosticListener.diagnostics.any(
       (e) => e.errorCode == CompileTimeErrorCode.INVALID_CONSTANT,
     );
     if (isInvalidConstant) {
@@ -8349,7 +8349,7 @@ sealed class ExpressionImpl extends AstNodeImpl
 
     return AttemptedConstantEvaluationResult._(
       constant is DartObjectImpl ? constant : null,
-      errorListener.errors,
+      diagnosticListener.diagnostics,
     );
   }
 

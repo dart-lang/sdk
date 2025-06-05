@@ -95,7 +95,7 @@ CompilationUnit parseDirectives(Source source) {
   var lineInfo = LineInfo(result.lineStarts);
   var parser = Parser(
     source,
-    AnalysisErrorListener.NULL_LISTENER,
+    DiagnosticListener.NULL_LISTENER,
     featureSet: FeatureSet.latestLanguageVersion(),
     lineInfo: lineInfo,
     languageVersion: languageVersion,
@@ -136,7 +136,7 @@ CompilationUnit parseFull(Source source) {
   var lineInfo = LineInfo(result.lineStarts);
   var parser = Parser(
     source,
-    AnalysisErrorListener.NULL_LISTENER,
+    DiagnosticListener.NULL_LISTENER,
     featureSet: FeatureSet.latestLanguageVersion(),
     languageVersion: languageVersion,
     lineInfo: lineInfo,
@@ -238,7 +238,7 @@ ScannerResult tokenize(Source source) {
       Scanner(
           source,
           CharSequenceReader(contents),
-          AnalysisErrorListener.NULL_LISTENER,
+          DiagnosticListener.NULL_LISTENER,
         )
         ..configureFeatures(
           featureSetForOverriding: featureSet,

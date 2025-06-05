@@ -414,13 +414,13 @@ class ManifestValidator {
     //  the caller always knows whether it should just return empty?
     if (!checkManifest) return [];
 
-    RecordingErrorListener recorder = RecordingErrorListener();
+    RecordingDiagnosticListener recorder = RecordingDiagnosticListener();
     ErrorReporter reporter = ErrorReporter(recorder, source);
 
     var xmlParser = ManifestParser(content, source.uri);
 
     _checkManifestTag(xmlParser, reporter);
-    return recorder.errors;
+    return recorder.diagnostics;
   }
 
   void _checkManifestTag(ManifestParser parser, ErrorReporter reporter) {

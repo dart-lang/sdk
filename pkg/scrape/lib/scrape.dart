@@ -270,13 +270,13 @@ class Scrape {
   void _parseFile(File file, String shortPath) {
     var source = file.readAsStringSync();
 
-    var errorListener = ErrorListener(this, _printErrors);
+    var diagnosticListener = SimpleDiagnosticListener(this, _printErrors);
     var featureSet = FeatureSet.latestLanguageVersion();
 
     // Tokenize the source.
     var reader = CharSequenceReader(source);
     var stringSource = StringSource(source, file.path);
-    var scanner = Scanner(stringSource, reader, errorListener);
+    var scanner = Scanner(stringSource, reader, diagnosticListener);
     scanner.configureFeatures(
         featureSet: featureSet, featureSetForOverriding: featureSet);
     var startToken = scanner.tokenize();
@@ -285,7 +285,7 @@ class Scrape {
     // Parse it.
     var parser = Parser(
       stringSource,
-      errorListener,
+      diagnosticListener,
       featureSet: featureSet,
       languageVersion: LibraryLanguageVersion(
           package: ExperimentStatus.currentVersion, override: null),
@@ -318,7 +318,7 @@ class Scrape {
     }
 
     // Don't process files with syntax errors.
-    if (errorListener.hadError) {
+    if (diagnosticListener.hadDiagnostic) {
       _errorFileCount++;
       return;
     }

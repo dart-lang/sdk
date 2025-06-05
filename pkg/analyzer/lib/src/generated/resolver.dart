@@ -327,16 +327,16 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   /// The [definingLibrary] is the element for the library containing the node
   /// being visited. The [source] is the source representing the compilation
   /// unit containing the node being visited. The [typeProvider] is the object
-  /// used to access the types from the core library. The [errorListener] is the
-  /// error listener that will be informed of any errors that are found during
-  /// resolution.
+  /// used to access the types from the core library. The [diagnosticListener]
+  /// is the diagnostic listener that will be informed of any diagnostics that
+  /// are found during resolution.
   ResolverVisitor(
     InheritanceManager3 inheritanceManager,
     LibraryElementImpl definingLibrary,
     LibraryResolutionContext libraryResolutionContext,
     Source source,
     TypeProvider typeProvider,
-    AnalysisErrorListener errorListener, {
+    DiagnosticListener diagnosticListener, {
     required LibraryFragmentImpl libraryFragment,
     required FeatureSet featureSet,
     required AnalysisOptions analysisOptions,
@@ -349,7 +349,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
          source,
          definingLibrary.typeSystem,
          typeProvider as TypeProviderImpl,
-         ErrorReporter(errorListener, source),
+         ErrorReporter(diagnosticListener, source),
          featureSet,
          analysisOptions,
          flowAnalysisHelper,

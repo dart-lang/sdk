@@ -17,6 +17,11 @@
 * Deprecate `ErrorSeverity`; use `DiagnosticSeverity` instead.
 * Deprecate `DiagnosticCode.errorSeverity`; use
   `DiagnosticCode.diagnosticSeverity` instead.
+* Deprecate `ErrorListener` and `RecordingErrorListener`; use
+  `DiagnosticListener` and `RecordingDiagnosticListener` instead.
+* Deprecate `RecordingErrorListener.errors`; use
+  `RecordingDiagnosticListener.diagnostics` instead.
+* Deprecate `RecordingErrorListener.getErrorsForSource`; no longer supported.
 * Deprecate `ErrorType`; use `DiagnosticType` instead.
 * Change `ElementDirective` from `sealed` to `abstract`.
   This allows the analyzer to have an internal implementation

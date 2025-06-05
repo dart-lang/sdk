@@ -28,7 +28,7 @@ Source _createSource(Uri uri) {
 }
 
 /// Dart source linter, only for package:linter's tools and tests.
-class TestLinter implements AnalysisErrorListener {
+class TestLinter implements DiagnosticListener {
   final errors = <Diagnostic>[];
 
   final LinterOptions options;
