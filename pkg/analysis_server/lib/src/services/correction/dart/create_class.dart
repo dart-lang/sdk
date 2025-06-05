@@ -11,24 +11,13 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class CreateClass extends ResolvedCorrectionProducer {
-  String className = '';
+class CreateClass extends MultiCorrectionProducer {
+  static final _lowerCaseRegex = RegExp(r'([_\$]||[_\$]+[0-9])*[a-z]');
 
   CreateClass({required super.context});
 
   @override
-  CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
-
-  @override
-  List<String> get fixArguments => [className];
-
-  @override
-  FixKind get fixKind => DartFixKind.CREATE_CLASS;
-
-  @override
-  Future<void> compute(ChangeBuilder builder) async {
+  Future<List<ResolvedCorrectionProducer>> get producers async {
     var targetNode = node;
     Element? prefixElement;
     ArgumentList? arguments;
@@ -41,7 +30,7 @@ class CreateClass extends ResolvedCorrectionProducer {
       if (name.element != null || arguments == null) {
         // TODO(brianwilkerson): Consider supporting creating a class when the
         //  arguments are missing by also adding an empty argument list.
-        return;
+        return const [];
       }
       targetNode = name;
       requiresConstConstructor = true;
@@ -51,7 +40,7 @@ class CreateClass extends ResolvedCorrectionProducer {
       if (importPrefix != null) {
         prefixElement = importPrefix.element2;
         if (prefixElement == null) {
-          return;
+          return const [];
         }
       }
       className = targetNode.name.lexeme;
@@ -59,32 +48,124 @@ class CreateClass extends ResolvedCorrectionProducer {
     } else if (targetNode case SimpleIdentifier(
       :var parent,
     ) when parent is! PropertyAccess && parent is! PrefixedIdentifier) {
-      className = targetNode.nameOfType;
+      className = targetNode.nameOfType ?? targetNode.name;
       requiresConstConstructor |= _requiresConstConstructor(targetNode);
     } else if (targetNode is PrefixedIdentifier) {
       prefixElement = targetNode.prefix.element;
       if (prefixElement == null) {
-        return;
+        return const [];
       }
-      className = targetNode.identifier.nameOfType;
+      className =
+          targetNode.identifier.nameOfType ?? targetNode.identifier.name;
     } else {
-      return;
+      return const [];
     }
 
-    if (className == null) {
-      return;
+    if (className.isEmpty) {
+      return const [];
     }
-    this.className = className;
+    // Lowercase class names are valid but not idiomatic so lower the priority.
+    if (className.startsWith(_lowerCaseRegex)) {
+      return [
+        _CreateClass.lowercase(
+          context: context,
+          targetNode: targetNode,
+          prefixElement: prefixElement,
+          className: className,
+          requiresConstConstructor: requiresConstConstructor,
+          arguments: arguments,
+        ),
+      ];
+    } else {
+      return [
+        _CreateClass.uppercase(
+          context: context,
+          targetNode: targetNode,
+          prefixElement: prefixElement,
+          className: className,
+          requiresConstConstructor: requiresConstConstructor,
+          arguments: arguments,
+        ),
+      ];
+    }
+  }
 
+  static bool _requiresConstConstructor(AstNode node) {
+    var parent = node.parent;
+    // TODO(scheglov): remove after NamedType refactoring.
+    if (node is SimpleIdentifier && parent is NamedType) {
+      return _requiresConstConstructor(parent);
+    }
+    if (node is SimpleIdentifier && parent is MethodInvocation) {
+      return parent.inConstantContext;
+    }
+    if (node is NamedType && parent is ConstructorName) {
+      return _requiresConstConstructor(parent);
+    }
+    if (node is ConstructorName && parent is InstanceCreationExpression) {
+      return parent.isConst;
+    }
+    return false;
+  }
+}
+
+class _CreateClass extends ResolvedCorrectionProducer {
+  final ArgumentList? _arguments;
+  final bool _requiresConstConstructor;
+  final AstNode _targetNode;
+  final Element? _prefixElement;
+  final String _className;
+
+  @override
+  final FixKind fixKind;
+
+  _CreateClass.lowercase({
+    required super.context,
+    required ArgumentList? arguments,
+    required bool requiresConstConstructor,
+    required AstNode targetNode,
+    required Element? prefixElement,
+    required String className,
+  }) : _className = className,
+       _prefixElement = prefixElement,
+       _targetNode = targetNode,
+       _requiresConstConstructor = requiresConstConstructor,
+       _arguments = arguments,
+       fixKind = DartFixKind.CREATE_CLASS_LOWERCASE;
+
+  _CreateClass.uppercase({
+    required super.context,
+    required ArgumentList? arguments,
+    required bool requiresConstConstructor,
+    required AstNode targetNode,
+    required Element? prefixElement,
+    required String className,
+  }) : _className = className,
+       _prefixElement = prefixElement,
+       _targetNode = targetNode,
+       _requiresConstConstructor = requiresConstConstructor,
+       _arguments = arguments,
+       fixKind = DartFixKind.CREATE_CLASS_UPPERCASE;
+
+  @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
+  List<String> get fixArguments => [_className];
+
+  @override
+  Future<void> compute(ChangeBuilder builder) async {
     // prepare environment
     LibraryFragment targetUnit;
     var prefix = '';
     var suffix = '';
     var offset = -1;
     String? filePath;
-    if (prefixElement == null) {
+    if (_prefixElement == null) {
       targetUnit = unit.declaredFragment!;
-      var enclosingMember = targetNode.thisOrAncestorMatching(
+      var enclosingMember = _targetNode.thisOrAncestorMatching(
         (node) =>
             node is CompilationUnitMember && node.parent is CompilationUnit,
       );
@@ -96,8 +177,8 @@ class CreateClass extends ResolvedCorrectionProducer {
       prefix = '$eol$eol';
     } else {
       for (var import in libraryElement2.firstFragment.libraryImports2) {
-        if (prefixElement is PrefixElement &&
-            import.prefix2?.element == prefixElement) {
+        if (_prefixElement is PrefixElement &&
+            import.prefix2?.element == _prefixElement) {
           var library = import.importedLibrary2;
           if (library != null) {
             targetUnit = library.firstFragment;
@@ -120,11 +201,11 @@ class CreateClass extends ResolvedCorrectionProducer {
       return;
     }
 
-    var className2 = className;
+    var className2 = _className;
     await builder.addDartFileEdit(filePath, (builder) {
       builder.addInsertion(offset, (builder) {
         builder.write(prefix);
-        if (arguments == null && !requiresConstConstructor) {
+        if (_arguments == null && !_requiresConstConstructor) {
           builder.writeClassDeclaration(className2, nameGroupName: 'NAME');
         } else {
           builder.writeClassDeclaration(
@@ -134,9 +215,9 @@ class CreateClass extends ResolvedCorrectionProducer {
               builder.write('  ');
               builder.writeConstructorDeclaration(
                 className2,
-                argumentList: arguments,
+                argumentList: _arguments,
                 classNameGroupName: 'NAME',
-                isConst: requiresConstConstructor,
+                isConst: _requiresConstConstructor,
               );
               builder.writeln();
             },
@@ -144,28 +225,10 @@ class CreateClass extends ResolvedCorrectionProducer {
         }
         builder.write(suffix);
       });
-      if (prefixElement == null) {
-        builder.addLinkedPosition(range.node(targetNode), 'NAME');
+      if (_prefixElement == null) {
+        builder.addLinkedPosition(range.node(_targetNode), 'NAME');
       }
     });
-  }
-
-  static bool _requiresConstConstructor(AstNode node) {
-    var parent = node.parent;
-    // TODO(scheglov): remove after NamedType refactoring.
-    if (node is SimpleIdentifier && parent is NamedType) {
-      return _requiresConstConstructor(parent);
-    }
-    if (node is SimpleIdentifier && parent is MethodInvocation) {
-      return parent.inConstantContext;
-    }
-    if (node is NamedType && parent is ConstructorName) {
-      return _requiresConstConstructor(parent);
-    }
-    if (node is ConstructorName && parent is InstanceCreationExpression) {
-      return parent.isConst;
-    }
-    return false;
   }
 }
 

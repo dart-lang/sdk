@@ -38,6 +38,22 @@ abstract class BaseFixProcessorTest extends AbstractSingleUnitTest {
     return DartChangeWorkspace([await session]);
   }
 
+  /// Computes fixes for the given [error] in [testUnit].
+  Future<List<Fix>> _computeFixes(Diagnostic error) async {
+    var libraryResult = testLibraryResult;
+    if (libraryResult == null) {
+      return const [];
+    }
+    var context = DartFixContext(
+      instrumentationService: TestInstrumentationService(),
+      workspace: await workspace,
+      libraryResult: libraryResult,
+      unitResult: testAnalysisResult,
+      error: error,
+    );
+    return await computeFixes(context);
+  }
+
   /// Find the error that is to be fixed by computing the errors in the file,
   /// using the [errorFilter] to filter out errors that should be ignored, and
   /// expecting that there is a single remaining error. The error filter should
@@ -271,6 +287,7 @@ abstract class FixInFileProcessorTest extends BaseFixProcessorTest {
   }
 
   /// Computes fixes for the given [diagnostic] in [testUnit].
+  @override
   Future<List<Fix>> _computeFixes(
     Diagnostic diagnostic, {
     Set<String>? alreadyCalculated,
@@ -287,12 +304,30 @@ abstract class FixInFileProcessorTest extends BaseFixProcessorTest {
       error: diagnostic,
     );
 
-    var fixes =
-        await FixInFileProcessor(
-          context,
-          alreadyCalculated: alreadyCalculated,
-        ).compute();
-    return fixes;
+    return await FixInFileProcessor(
+      context,
+      alreadyCalculated: alreadyCalculated,
+    ).compute();
+  }
+}
+
+abstract class FixPriorityTest extends BaseFixProcessorTest {
+  Future<void> assertFixPriorityOrder(
+    List<FixKind> fixKinds, {
+    ErrorFilter? errorFilter,
+  }) async {
+    var error = await _findErrorToFix(errorFilter: errorFilter);
+    var computedFixes = await _computeFixes(error);
+    var kinds = computedFixes.map((fix) => fix.kind).toList();
+    kinds.sort((a, b) => b.priority.compareTo(a.priority));
+    expect(kinds, containsAllInOrder(fixKinds));
+  }
+
+  @override
+  void setUp() {
+    super.setUp();
+    verifyNoTestUnitErrors = false;
+    useLineEndingsForPlatform = true;
   }
 }
 
@@ -613,8 +648,9 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
     }
   }
 
-  /// Computes fixes for the given [diagnostic] in [testUnit].
-  Future<List<Fix>> _computeFixes(Diagnostic diagnostic) async {
+  /// Computes fixes for the given [error] in [testUnit].
+  @override
+  Future<List<Fix>> _computeFixes(Diagnostic error) async {
     var libraryResult = testLibraryResult;
     if (libraryResult == null) {
       return const [];
@@ -624,7 +660,7 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
       workspace: await workspace,
       libraryResult: libraryResult,
       unitResult: testAnalysisResult,
-      error: diagnostic,
+      error: error,
     );
     return await computeFixes(context);
   }

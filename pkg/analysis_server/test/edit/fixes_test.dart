@@ -86,9 +86,9 @@ void f() {
 }
 ''');
     await waitForTasksFinished();
-    var errorFixes = await _getFixesAt(testFile, 'Completer<String>');
-    expect(errorFixes, hasLength(1));
-    var fixes = errorFixes[0].fixes;
+    var errors = await _getFixesAt(testFile, 'Completer<String>');
+    expect(errors, hasLength(1));
+    var fixes = errors.first.fixes;
     expect(fixes, hasLength(4));
     expect(fixes[0].message, matches('Import library'));
     expect(fixes[1].message, matches("Import library .+ with 'show'"));

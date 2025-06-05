@@ -10,22 +10,22 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 abstract final class AnalysisOptionsFixKind {
   static const REMOVE_LINT = FixKind(
     'analysisOptions.fix.removeLint',
-    50,
+    DartFixKindPriority.standard,
     "Remove '{0}'",
   );
   static const REMOVE_SETTING = FixKind(
     'analysisOptions.fix.removeSetting',
-    50,
+    DartFixKindPriority.standard,
     "Remove '{0}'",
   );
   static const REPLACE_WITH_STRICT_CASTS = FixKind(
     'analysisOptions.fix.replaceWithStrictCasts',
-    50,
+    DartFixKindPriority.standard,
     'Replace with the strict-casts analysis mode',
   );
   static const REPLACE_WITH_STRICT_RAW_TYPES = FixKind(
     'analysisOptions.fix.replaceWithStrictRawTypes',
-    50,
+    DartFixKindPriority.standard,
     'Replace with the strict-raw-types analysis mode',
   );
 }
@@ -159,7 +159,7 @@ abstract final class DartFixKind {
   );
   static const ADD_INITIALIZING_FORMAL_PARAMETERS = FixKind(
     'dart.fix.add.initializingFormalParameters',
-    70,
+    DartFixKindPriority.standard + 20,
     'Add final initializing formal parameters',
   );
   static const ADD_KEY_TO_CONSTRUCTORS = FixKind(
@@ -194,22 +194,22 @@ abstract final class DartFixKind {
   );
   static const ADD_MISSING_PARAMETER_NAMED = FixKind(
     'dart.fix.add.missingParameterNamed',
-    70,
+    DartFixKindPriority.standard + 20,
     "Add named parameter '{0}'",
   );
   static const ADD_MISSING_PARAMETER_POSITIONAL = FixKind(
     'dart.fix.add.missingParameterPositional',
-    69,
+    DartFixKindPriority.standard + 19,
     'Add optional positional parameter',
   );
   static const ADD_MISSING_PARAMETER_REQUIRED = FixKind(
     'dart.fix.add.missingParameterRequired',
-    70,
+    DartFixKindPriority.standard + 20,
     'Add required positional parameter',
   );
   static const ADD_MISSING_REQUIRED_ARGUMENT = FixKind(
     'dart.fix.add.missingRequiredArgument',
-    70,
+    DartFixKindPriority.standard + 20,
     'Add {0} required argument{1}',
   );
   static const ADD_MISSING_SWITCH_CASES = FixKind(
@@ -334,7 +334,7 @@ abstract final class DartFixKind {
   );
   static const CHANGE_ARGUMENT_NAME = FixKind(
     'dart.fix.change.argumentName',
-    60,
+    DartFixKindPriority.standard + 10,
     "Change to '{0}'",
   );
   static const CHANGE_TO = FixKind(
@@ -455,7 +455,7 @@ abstract final class DartFixKind {
   );
   static const CONVERT_TO_CONSTANT_PATTERN = FixKind(
     'dart.fix.convert.toConstantPattern',
-    49,
+    DartFixKindPriority.standard - 1,
     'Convert to constant pattern',
   );
   static const CONVERT_TO_CONTAINS = FixKind(
@@ -700,12 +700,12 @@ abstract final class DartFixKind {
   );
   static const CONVERT_TO_SUPER_PARAMETERS = FixKind(
     'dart.fix.convert.toSuperParameters',
-    30,
+    DartFixKindPriority.ignore,
     'Convert to using super parameters',
   );
   static const CONVERT_TO_SUPER_PARAMETERS_MULTI = FixKind(
     'dart.fix.convert.toSuperParameters.multi',
-    30,
+    DartFixKindPriority.ignore,
     'Convert to using super parameters everywhere in file',
   );
   static const CONVERT_TO_WHERE_TYPE = FixKind(
@@ -728,9 +728,14 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard,
     'Convert to wildcard variable',
   );
-  static const CREATE_CLASS = FixKind(
-    'dart.fix.create.class',
-    DartFixKindPriority.standard,
+  static const CREATE_CLASS_UPPERCASE = FixKind(
+    'dart.fix.create.class.uppercase',
+    DartFixKindPriority.standard + 2,
+    "Create class '{0}'",
+  );
+  static const CREATE_CLASS_LOWERCASE = FixKind(
+    'dart.fix.create.class.lowercase',
+    DartFixKindPriority.standard - 5,
     "Create class '{0}'",
   );
   static const CREATE_CONSTRUCTOR = FixKind(
@@ -755,27 +760,27 @@ abstract final class DartFixKind {
   );
   static const CREATE_EXTENSION_GETTER = FixKind(
     'dart.fix.create.extension.getter',
-    DartFixKindPriority.standard - 20,
+    DartFixKindPriority.ignore,
     "Create extension getter '{0}'",
   );
   static const CREATE_EXTENSION_METHOD = FixKind(
     'dart.fix.create.extension.method',
-    DartFixKindPriority.standard - 20,
+    DartFixKindPriority.ignore,
     "Create extension method '{0}'",
   );
   static const CREATE_EXTENSION_OPERATOR = FixKind(
     'dart.fix.create.extension.operator',
-    DartFixKindPriority.standard - 20,
+    DartFixKindPriority.ignore,
     "Create extension operator '{0}'",
   );
   static const CREATE_EXTENSION_SETTER = FixKind(
     'dart.fix.create.extension.setter',
-    DartFixKindPriority.standard - 20,
+    DartFixKindPriority.ignore,
     "Create extension setter '{0}'",
   );
   static const CREATE_FIELD = FixKind(
     'dart.fix.create.field',
-    49,
+    DartFixKindPriority.standard - 1,
     "Create field '{0}'",
   );
   static const CREATE_FILE = FixKind(
@@ -785,7 +790,7 @@ abstract final class DartFixKind {
   );
   static const CREATE_FUNCTION = FixKind(
     'dart.fix.create.function',
-    49,
+    DartFixKindPriority.standard - 1,
     "Create function '{0}'",
   );
   static const CREATE_GETTER = FixKind(
@@ -822,7 +827,7 @@ abstract final class DartFixKind {
   );
   static const CREATE_NO_SUCH_METHOD = FixKind(
     'dart.fix.create.noSuchMethod',
-    49,
+    DartFixKindPriority.standard - 1,
     "Create 'noSuchMethod' method",
   );
   static const CREATE_PARAMETER = FixKind(
@@ -849,11 +854,6 @@ abstract final class DartFixKind {
     'dart.fix.extractLocalVariable',
     DartFixKindPriority.standard,
     'Extract local variable',
-  );
-  static const IMPORT_ASYNC = FixKind(
-    'dart.fix.import.async',
-    49,
-    "Import 'dart:async'",
   );
   static const IMPORT_LIBRARY_COMBINATOR = FixKind(
     'dart.fix.import.libraryCombinator',
@@ -962,7 +962,7 @@ abstract final class DartFixKind {
   );
   static const INLINE_INVOCATION = FixKind(
     'dart.fix.inlineInvocation',
-    DartFixKindPriority.standard - 20,
+    DartFixKindPriority.ignore,
     "Inline invocation of '{0}'",
   );
   static const INLINE_INVOCATION_MULTI = FixKind(
@@ -972,7 +972,7 @@ abstract final class DartFixKind {
   );
   static const INLINE_TYPEDEF = FixKind(
     'dart.fix.inlineTypedef',
-    DartFixKindPriority.standard - 20,
+    DartFixKindPriority.ignore,
     "Inline the definition of '{0}'",
   );
   static const INLINE_TYPEDEF_MULTI = FixKind(
@@ -1542,7 +1542,7 @@ abstract final class DartFixKind {
   );
   static const REMOVE_TYPE_ARGUMENTS = FixKind(
     'dart.fix.remove.typeArguments',
-    49,
+    DartFixKindPriority.standard - 1,
     'Remove type arguments',
   );
   static const REMOVE_TYPE_CHECK = FixKind(
