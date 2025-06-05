@@ -12,8 +12,7 @@ void main(List<String> args) async {
   unawaited(
     DevToolsServer().serveDevToolsWithArgs(
       args,
-      customDevToolsPath:
-          devtoolsAppUri(prefix: '../../../../../').toFilePath(),
+      customDevToolsPath: devtoolsAppUri().toFilePath(),
     ),
   );
 }

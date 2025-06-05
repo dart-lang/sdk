@@ -28,7 +28,7 @@ void main() {
     );
 
     devToolsServer = (await DevToolsServer().serveDevTools(
-      customDevToolsPath: devtoolsAppUri(prefix: '../../../').toFilePath(),
+      customDevToolsPath: devtoolsAppUri().toFilePath(),
     ))!;
   });
 
