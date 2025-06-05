@@ -378,6 +378,9 @@ class IsolateManager {
       if (e.code == RpcErrorCodes.kIsolateMustBePaused) {
         // It's possible something else resumed the thread (such as if another
         // debugger is attached), we can just continue.
+      } else if (e.isServiceDisposedError) {
+        // The VM service connection was terminated, we can silently ignore this
+        // because we're likely shutting down.
       } else if (e.code == RpcErrorCodes.kInternalError &&
           e.message.contains('No running isolate (inspector is not set).')) {
         // TODO(bkonyi): remove once https://github.com/flutter/flutter/issues/156793
@@ -432,6 +435,9 @@ class IsolateManager {
       if (e.code == RpcErrorCodes.kIsolateMustBePaused) {
         // It's possible something else resumed the thread (such as if another
         // debugger is attached), we can just continue.
+      } else if (e.isServiceDisposedError) {
+        // The VM service connection was terminated, we can silently ignore this
+        // because we're likely shutting down.
       } else if (e.code == RpcErrorCodes.kMethodNotFound) {
         // Fallback to a regular resume if the DDS service extension isn't
         // available:

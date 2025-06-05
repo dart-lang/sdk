@@ -22,7 +22,7 @@ abstract class RpcErrorCodes {
   static const kInvalidParams = -32602;
   static const kInternalError = -32603;
 
-  // static const kExtensionError = -32000;
+  static const kExtensionError = -32000;
 
   static const kConnectionDisposed = -32010;
 

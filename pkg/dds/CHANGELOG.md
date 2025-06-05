@@ -1,4 +1,5 @@
 # 5.0.3
+- [DAP] Handle some additional errors if the VM Service is shutting down during an attempt to resume an isolate.
 - [DAP] Stack frames with dots in paths will now be parsed and have locations attached to `OutputEvents`s.
 - [DAP] Responses to `evaluateRequest` that are lists now include `indexedVariables` to allow for client-side paging.
 

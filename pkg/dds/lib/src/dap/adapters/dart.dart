@@ -15,7 +15,6 @@ import 'package:path/path.dart' as path;
 import 'package:vm_service/vm_service.dart' as vm;
 
 import '../../../dds.dart';
-import '../../rpc_error_codes.dart';
 import '../base_debug_adapter.dart';
 import '../isolate_manager.dart';
 import '../logging.dart';
@@ -2838,8 +2837,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       // outside of the DAP (eg. closing the simulator) so it's possible our
       // requests will fail in this way before we've handled any event to set
       // `isTerminating`.
-      if (e.code == RpcErrorCodes.kServiceDisappeared ||
-          e.code == RpcErrorCodes.kConnectionDisposed) {
+      if (e.isServiceDisposedError) {
         return null;
       }
 
@@ -2851,15 +2849,6 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       if (e.code == json_rpc_errors.SERVER_ERROR) {
         // Ignore all server errors during shutdown.
         if (isTerminating) {
-          return null;
-        }
-
-        // Always ignore "client is closed" and "closed with pending request"
-        // errors because these can always occur during shutdown if we were
-        // just starting to send (or had just sent) a request.
-        if (e.message.contains("The client is closed") ||
-            e.message.contains("The client closed with pending request") ||
-            e.message.contains("Service connection disposed")) {
           return null;
         }
       }
