@@ -14,32 +14,42 @@ import 'package:kernel/target/targets.dart' show TargetFlags;
 class DevelopmentIncrementalCompiler extends fe.IncrementalCompiler {
   Uri entryPoint;
 
-  DevelopmentIncrementalCompiler(fe.CompilerOptions options, this.entryPoint,
-      [Uri? initializeFrom,
-      bool? outlineOnly,
-      fe.IncrementalSerializer? incrementalSerializer])
-      : super(
-            fe.CompilerContext(
-                fe.ProcessedOptions(options: options, inputs: [entryPoint])),
-            initializeFrom,
-            outlineOnly,
-            incrementalSerializer);
+  DevelopmentIncrementalCompiler(
+    fe.CompilerOptions options,
+    this.entryPoint, [
+    Uri? initializeFrom,
+    bool? outlineOnly,
+    fe.IncrementalSerializer? incrementalSerializer,
+  ]) : super(
+         fe.CompilerContext(
+           fe.ProcessedOptions(options: options, inputs: [entryPoint]),
+         ),
+         initializeFrom,
+         outlineOnly,
+         incrementalSerializer,
+       );
 
-  DevelopmentIncrementalCompiler.fromComponent(fe.CompilerOptions options,
-      this.entryPoint, Component componentToInitializeFrom,
-      [bool? outlineOnly, fe.IncrementalSerializer? incrementalSerializer])
-      : super.fromComponent(
-            fe.CompilerContext(
-                fe.ProcessedOptions(options: options, inputs: [entryPoint])),
-            componentToInitializeFrom,
-            outlineOnly,
-            incrementalSerializer);
+  DevelopmentIncrementalCompiler.fromComponent(
+    fe.CompilerOptions options,
+    this.entryPoint,
+    Component componentToInitializeFrom, [
+    bool? outlineOnly,
+    fe.IncrementalSerializer? incrementalSerializer,
+  ]) : super.fromComponent(
+         fe.CompilerContext(
+           fe.ProcessedOptions(options: options, inputs: [entryPoint]),
+         ),
+         componentToInitializeFrom,
+         outlineOnly,
+         incrementalSerializer,
+       );
 }
 
 class SetupCompilerOptions {
   static final sdkRoot = fe.computePlatformBinariesLocation();
-  static final buildRoot =
-      fe.computePlatformBinariesLocation(forceBuildDir: true);
+  static final buildRoot = fe.computePlatformBinariesLocation(
+    forceBuildDir: true,
+  );
 
   final List<String> errors = [];
   final List<String> diagnosticMessages = [];
@@ -48,19 +58,25 @@ class SetupCompilerOptions {
   final bool canaryFeatures;
   final bool enableAsserts;
 
-  static fe.CompilerOptions _getOptions(
-      {required bool enableAsserts, required List<String> enableExperiments}) {
+  static fe.CompilerOptions _getOptions({
+    required bool enableAsserts,
+    required List<String> enableExperiments,
+  }) {
     var options = fe.CompilerOptions()
-      ..verbose = false // set to true for debugging
+      ..verbose =
+          false // set to true for debugging
       ..sdkRoot = sdkRoot
       ..target = DevCompilerTarget(TargetFlags())
       ..omitPlatform = true
       ..sdkSummary = buildRoot.resolve('ddc_outline.dill')
-      ..environmentDefines =
-          addGeneratedVariables({}, enableAsserts: enableAsserts)
+      ..environmentDefines = addGeneratedVariables(
+        {},
+        enableAsserts: enableAsserts,
+      )
       ..explicitExperimentalFlags = fe.parseExperimentalFlags(
-          fe.parseExperimentalArguments(enableExperiments),
-          onError: (e) => throw e);
+        fe.parseExperimentalArguments(enableExperiments),
+        onError: (e) => throw e,
+      );
     return options;
   }
 
@@ -70,8 +86,9 @@ class SetupCompilerOptions {
     this.canaryFeatures = false,
     List<String> enableExperiments = const [],
   }) : options = _getOptions(
-            enableAsserts: enableAsserts,
-            enableExperiments: enableExperiments) {
+         enableAsserts: enableAsserts,
+         enableExperiments: enableExperiments,
+       ) {
     options.onDiagnostic = (fe.DiagnosticMessage m) {
       diagnosticMessages.addAll(m.plainTextFormatted);
       if (m.severity == fe.Severity.error ||

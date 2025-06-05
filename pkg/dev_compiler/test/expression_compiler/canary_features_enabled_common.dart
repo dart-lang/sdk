@@ -9,8 +9,11 @@ import 'package:test/test.dart';
 import '../shared_test_options.dart';
 import 'expression_compiler_e2e_suite.dart';
 
-void runTests(ExpressionEvaluationTestDriver driver, SetupCompilerOptions setup,
-    String mode) {
+void runTests(
+  ExpressionEvaluationTestDriver driver,
+  SetupCompilerOptions setup,
+  String mode,
+) {
   group('$mode mode', () {
     const source = r'''
       void main() {
@@ -30,10 +33,9 @@ void runTests(ExpressionEvaluationTestDriver driver, SetupCompilerOptions setup,
       await driver.initSource(setup, source);
 
       expect(
-          File(driver.dartSdkPath).readAsStringSync(),
-          setup.canaryFeatures
-              ? contains('canary')
-              : isNot(contains('canary')));
+        File(driver.dartSdkPath).readAsStringSync(),
+        setup.canaryFeatures ? contains('canary') : isNot(contains('canary')),
+      );
     });
   });
 }

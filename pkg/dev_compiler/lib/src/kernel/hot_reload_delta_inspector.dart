@@ -33,39 +33,49 @@ class HotReloadDeltaInspector {
   /// compiling.
   List<String> compareGenerations(Component lastAccepted, Component delta) {
     final deltaLibraryImportUris = [
-      for (var library in delta.libraries) '${library.importUri}'
+      for (var library in delta.libraries) '${library.importUri}',
     ];
-    _partialLastAcceptedLibraryIndex =
-        LibraryIndex(lastAccepted, deltaLibraryImportUris);
+    _partialLastAcceptedLibraryIndex = LibraryIndex(
+      lastAccepted,
+      deltaLibraryImportUris,
+    );
     final deltaLibraryIndex = LibraryIndex(delta, deltaLibraryImportUris);
-    final metadataRepo = lastAccepted.metadata[hotReloadLibraryMetadataTag]
+    final metadataRepo =
+        lastAccepted.metadata[hotReloadLibraryMetadataTag]
             as HotReloadLibraryMetadataRepository? ??
         HotReloadLibraryMetadataRepository();
     metadataRepo.generation++;
     _rejectionMessages.clear();
     for (var deltaLibrary in delta.libraries) {
-      final acceptedLibrary = _partialLastAcceptedLibraryIndex
-          .tryGetLibrary('${deltaLibrary.importUri}');
+      final acceptedLibrary = _partialLastAcceptedLibraryIndex.tryGetLibrary(
+        '${deltaLibrary.importUri}',
+      );
       if (acceptedLibrary == null) {
         // No previous version of the library to compare with.
         continue;
       }
       if (_shouldNotCompileWithHotReload(deltaLibrary.importUri)) {
-        _rejectionMessages
-            .add('Attempting to hot reload a modified library from a package '
-                'marked as non-hot-reloadable: '
-                "Library: '${deltaLibrary.importUri}'");
+        _rejectionMessages.add(
+          'Attempting to hot reload a modified library from a package '
+          'marked as non-hot-reloadable: '
+          "Library: '${deltaLibrary.importUri}'",
+        );
       }
-      var libraryMetadata = metadataRepo.mapping
-          .putIfAbsent(deltaLibrary, HotReloadLibraryMetadata.new);
+      var libraryMetadata = metadataRepo.mapping.putIfAbsent(
+        deltaLibrary,
+        HotReloadLibraryMetadata.new,
+      );
       // TODO(60281): Handle members when an entire library has been deleted
       // from the delta.
       libraryMetadata.deletedStaticProcedureNames.clear();
       libraryMetadata.deletedStaticProcedureNames.addAll(
-          _findDeletedLibraryProcedures(acceptedLibrary, deltaLibraryIndex));
+        _findDeletedLibraryProcedures(acceptedLibrary, deltaLibraryIndex),
+      );
       for (var deltaClass in deltaLibrary.classes) {
         final acceptedClass = _partialLastAcceptedLibraryIndex.tryGetClass(
-            '${deltaLibrary.importUri}', deltaClass.name);
+          '${deltaLibrary.importUri}',
+          deltaClass.name,
+        );
         if (acceptedClass == null) {
           // No previous version of the class to compare with.
           continue;
@@ -97,9 +107,11 @@ class HotReloadDeltaInspector {
   void _checkConstClassConsistency(Class acceptedClass, Class deltaClass) {
     assert(acceptedClass.hasConstConstructor);
     if (!deltaClass.hasConstConstructor) {
-      _rejectionMessages.add('Const class cannot become non-const: '
-          "Library:'${deltaClass.enclosingLibrary.importUri}' "
-          'Class: ${deltaClass.name}');
+      _rejectionMessages.add(
+        'Const class cannot become non-const: '
+        "Library:'${deltaClass.enclosingLibrary.importUri}' "
+        'Class: ${deltaClass.name}',
+      );
     }
   }
 
@@ -118,13 +130,15 @@ class HotReloadDeltaInspector {
     }
     // Verify all fields are still present.
     final acceptedFields = {
-      for (var field in acceptedClass.fields) field.name.text
+      for (var field in acceptedClass.fields) field.name.text,
     };
     final deltaFields = {for (var field in deltaClass.fields) field.name.text};
     if (acceptedFields.difference(deltaFields).isNotEmpty) {
-      _rejectionMessages.add('Const class cannot remove fields: '
-          "Library:'${deltaClass.enclosingLibrary.importUri}' "
-          'Class: ${deltaClass.name}');
+      _rejectionMessages.add(
+        'Const class cannot remove fields: '
+        "Library:'${deltaClass.enclosingLibrary.importUri}' "
+        'Class: ${deltaClass.name}',
+      );
     }
   }
 
@@ -134,13 +148,16 @@ class HotReloadDeltaInspector {
   /// [acceptedClass] and [deltaClass] must represent the same class in the
   /// last known accepted and delta components respectively.
   void _checkClassTypeParametersCountChange(
-      Class acceptedClass, Class deltaClass) {
+    Class acceptedClass,
+    Class deltaClass,
+  ) {
     if (acceptedClass.typeParameters.length !=
         deltaClass.typeParameters.length) {
       _rejectionMessages.add(
-          'Limitation: changing type parameters does not work with hot reload.'
-          "Library:'${deltaClass.enclosingLibrary.importUri}' "
-          'Class: ${deltaClass.name}');
+        'Limitation: changing type parameters does not work with hot reload.'
+        "Library:'${deltaClass.enclosingLibrary.importUri}' "
+        'Class: ${deltaClass.name}',
+      );
     }
   }
 
@@ -150,24 +167,32 @@ class HotReloadDeltaInspector {
   /// last known accepted and delta components respectively.
   void _checkEnumIllegalConversion(Class acceptedClass, Class deltaClass) {
     if (acceptedClass.isEnum && !deltaClass.isEnum) {
-      _rejectionMessages
-          .add('Enum class cannot be redefined to be a non-enum class.'
-              'Class: ${deltaClass.name}');
+      _rejectionMessages.add(
+        'Enum class cannot be redefined to be a non-enum class.'
+        'Class: ${deltaClass.name}',
+      );
     } else if (!acceptedClass.isEnum && deltaClass.isEnum) {
-      _rejectionMessages.add('Class cannot be redefined to be a enum class.'
-          'Class: ${deltaClass.name}');
+      _rejectionMessages.add(
+        'Class cannot be redefined to be a enum class.'
+        'Class: ${deltaClass.name}',
+      );
     }
   }
 
   /// Returns the names of library methods, getters, and setters that were
   /// present in [acceptedLibrary] but do not appear in [deltaLibraryIndex].
   List<String> _findDeletedLibraryProcedures(
-      Library acceptedLibrary, LibraryIndex deltaLibraryIndex) {
+    Library acceptedLibrary,
+    LibraryIndex deltaLibraryIndex,
+  ) {
     final acceptedLibraryImportUri = '${acceptedLibrary.importUri}';
     return [
       for (var acceptedProcedure in acceptedLibrary.procedures)
-        if (deltaLibraryIndex.tryGetProcedure(acceptedLibraryImportUri,
-                LibraryIndex.topLevel, acceptedProcedure.indexName) ==
+        if (deltaLibraryIndex.tryGetProcedure(
+              acceptedLibraryImportUri,
+              LibraryIndex.topLevel,
+              acceptedProcedure.indexName,
+            ) ==
             null)
           acceptedProcedure.name.text,
     ];
@@ -212,7 +237,10 @@ class HotReloadLibraryMetadataRepository
 
   @override
   void writeToBinary(
-      HotReloadLibraryMetadata metadata, Node node, BinarySink sink) {
+    HotReloadLibraryMetadata metadata,
+    Node node,
+    BinarySink sink,
+  ) {
     // TODO(nshahan): How to write all metadata even when there are no
     // associated nodes.
   }
@@ -255,7 +283,7 @@ class HotReloadLibraryMetadataRepository
   void encodeMapping() {
     _encodedMetadata.addAll({
       for (var library in mapping.keys)
-        '${library.importUri}': mapping[library]!
+        '${library.importUri}': mapping[library]!,
     });
     mapping.clear();
   }

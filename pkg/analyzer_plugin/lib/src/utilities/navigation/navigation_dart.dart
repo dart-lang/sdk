@@ -455,6 +455,17 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    if (node.constructorName.element == null) {
+      computer._addRegionForElement(
+        node.constructorName,
+        node.constructorName.type.element2,
+      );
+    }
+    super.visitInstanceCreationExpression(node);
+  }
+
+  @override
   void visitLibraryDirective(LibraryDirective node) {
     computer._addRegionForElement(node.name2, node.element2);
     super.visitLibraryDirective(node);

@@ -92,6 +92,7 @@ class InlineValueHandler
           server.lspClientConfiguration,
           collector,
           function,
+          stoppedOffset,
         );
         function.accept(visitor);
 
@@ -139,7 +140,7 @@ class _InlineValueCollector {
   final Range rangeAlreadyExecuted;
 
   /// A [LineInfo] used to convert offsets to lines/columns for comparing to
-  /// [applicableRange].
+  /// locations provided by the client.
   final LineInfo lineInfo;
 
   _InlineValueCollector(
@@ -263,10 +264,31 @@ class _InlineValueVisitor extends GeneralizingAstVisitor<void> {
   final _InlineValueCollector collector;
   final AstNode rootNode;
 
-  _InlineValueVisitor(this.clientConfiguration, this.collector, this.rootNode);
+  /// The offset where execution currently is.
+  ///
+  /// This is used to determine which block of code we're inside, so we can
+  /// avoid showing inline values in other branches.
+  final int currentExecutionOffset;
+
+  _InlineValueVisitor(
+    this.clientConfiguration,
+    this.collector,
+    this.rootNode,
+    this.currentExecutionOffset,
+  );
 
   bool get experimentalInlineValuesProperties =>
       clientConfiguration.global.experimentalInlineValuesProperties;
+
+  @override
+  void visitBlock(Block node) {
+    if (currentExecutionOffset < node.offset ||
+        currentExecutionOffset > node.end) {
+      return;
+    }
+
+    super.visitBlock(node);
+  }
 
   @override
   void visitFormalParameter(FormalParameter node) {
@@ -357,6 +379,16 @@ class _InlineValueVisitor extends GeneralizingAstVisitor<void> {
     }
 
     super.visitSimpleIdentifier(node);
+  }
+
+  @override
+  void visitSwitchPatternCase(SwitchPatternCase node) {
+    if (currentExecutionOffset < node.offset ||
+        currentExecutionOffset > (node.statements.endToken?.end ?? node.end)) {
+      return;
+    }
+
+    super.visitSwitchPatternCase(node);
   }
 
   @override

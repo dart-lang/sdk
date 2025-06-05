@@ -56,68 +56,68 @@ class DevCompilerTarget extends Target {
 
   @override
   List<String> get extraRequiredLibraries => const [
-        'dart:_ddc_only',
-        'dart:_runtime',
-        'dart:_async_status_codes',
-        'dart:_js_shared_embedded_names',
-        'dart:_recipe_syntax',
-        'dart:_rti',
-        'dart:_debugger',
-        'dart:_foreign_helper',
-        'dart:_interceptors',
-        'dart:_internal',
-        'dart:_isolate_helper',
-        'dart:_js_annotations',
-        'dart:_js_helper',
-        'dart:_js_names',
-        'dart:_js_primitives',
-        'dart:_js_types',
-        'dart:_metadata',
-        'dart:_native_typed_data',
-        'dart:async',
-        'dart:collection',
-        'dart:convert',
-        'dart:developer',
-        'dart:io',
-        'dart:isolate',
-        'dart:js',
-        'dart:js_interop',
-        'dart:js_interop_unsafe',
-        'dart:js_util',
-        'dart:math',
-        'dart:typed_data',
-        'dart:indexed_db',
-        'dart:html',
-        'dart:html_common',
-        'dart:svg',
-        'dart:web_audio',
-        'dart:web_gl',
-      ];
+    'dart:_ddc_only',
+    'dart:_runtime',
+    'dart:_async_status_codes',
+    'dart:_js_shared_embedded_names',
+    'dart:_recipe_syntax',
+    'dart:_rti',
+    'dart:_debugger',
+    'dart:_foreign_helper',
+    'dart:_interceptors',
+    'dart:_internal',
+    'dart:_isolate_helper',
+    'dart:_js_annotations',
+    'dart:_js_helper',
+    'dart:_js_names',
+    'dart:_js_primitives',
+    'dart:_js_types',
+    'dart:_metadata',
+    'dart:_native_typed_data',
+    'dart:async',
+    'dart:collection',
+    'dart:convert',
+    'dart:developer',
+    'dart:io',
+    'dart:isolate',
+    'dart:js',
+    'dart:js_interop',
+    'dart:js_interop_unsafe',
+    'dart:js_util',
+    'dart:math',
+    'dart:typed_data',
+    'dart:indexed_db',
+    'dart:html',
+    'dart:html_common',
+    'dart:svg',
+    'dart:web_audio',
+    'dart:web_gl',
+  ];
 
   // The libraries required to be indexed via CoreTypes.
   @override
   List<String> get extraIndexedLibraries => const [
-        'dart:async',
-        'dart:collection',
-        'dart:html',
-        'dart:indexed_db',
-        'dart:js',
-        'dart:js_util',
-        'dart:js_interop',
-        'dart:js_interop_unsafe',
-        'dart:math',
-        'dart:svg',
-        'dart:typed_data',
-        'dart:web_audio',
-        'dart:web_gl',
-        'dart:_foreign_helper',
-        'dart:_interceptors',
-        'dart:_js_helper',
-        'dart:_js_types',
-        'dart:_native_typed_data',
-        'dart:_runtime',
-        'dart:_rti',
-      ];
+    'dart:async',
+    'dart:collection',
+    'dart:html',
+    'dart:indexed_db',
+    'dart:js',
+    'dart:js_util',
+    'dart:js_interop',
+    'dart:js_interop_unsafe',
+    'dart:math',
+    'dart:svg',
+    'dart:typed_data',
+    'dart:web_audio',
+    'dart:web_gl',
+    'dart:_foreign_helper',
+    'dart:_interceptors',
+    'dart:_js_helper',
+    'dart:_js_types',
+    'dart:_native_typed_data',
+    'dart:_runtime',
+    'dart:_rti',
+  ];
 
   @override
   bool mayDefineRestrictedType(Uri uri) =>
@@ -167,15 +167,16 @@ class DevCompilerTarget extends Target {
 
   @override
   void performModularTransformationsOnLibraries(
-      Component component,
-      CoreTypes coreTypes,
-      ClassHierarchy hierarchy,
-      List<Library> libraries,
-      Map<String, String>? environmentDefines,
-      DiagnosticReporter diagnosticReporter,
-      ReferenceFromIndex? referenceFromIndex,
-      {void Function(String msg)? logger,
-      ChangedStructureNotifier? changedStructureNotifier}) {
+    Component component,
+    CoreTypes coreTypes,
+    ClassHierarchy hierarchy,
+    List<Library> libraries,
+    Map<String, String>? environmentDefines,
+    DiagnosticReporter diagnosticReporter,
+    ReferenceFromIndex? referenceFromIndex, {
+    void Function(String msg)? logger,
+    ChangedStructureNotifier? changedStructureNotifier,
+  }) {
     _nativeClasses ??= JsInteropChecks.getNativeClasses(component);
     _diagnosticReporter =
         diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>;
@@ -184,11 +185,12 @@ class DevCompilerTarget extends Target {
 
   @override
   void performTransformationsOnProcedure(
-      CoreTypes coreTypes,
-      ClassHierarchy hierarchy,
-      Procedure procedure,
-      Map<String, String>? environmentDefines,
-      {void Function(String)? logger}) {
+    CoreTypes coreTypes,
+    ClassHierarchy hierarchy,
+    Procedure procedure,
+    Map<String, String>? environmentDefines, {
+    void Function(String)? logger,
+  }) {
     _performTransformations(coreTypes, hierarchy, [procedure]);
   }
 
@@ -199,19 +201,27 @@ class DevCompilerTarget extends Target {
   ) {
     final jsInteropReporter = JsInteropDiagnosticReporter(_diagnosticReporter!);
     final jsInteropChecks = JsInteropChecks(
-        coreTypes, hierarchy, jsInteropReporter, _nativeClasses!);
+      coreTypes,
+      hierarchy,
+      jsInteropReporter,
+      _nativeClasses!,
+    );
     for (var node in nodes) {
       // Process and validate first before doing anything with exports.
       node.accept(jsInteropChecks);
     }
     final sharedInteropTransformer = SharedInteropTransformer(
-        TypeEnvironment(coreTypes, hierarchy),
-        jsInteropReporter,
-        jsInteropChecks.exportChecker,
-        jsInteropChecks.extensionIndex);
+      TypeEnvironment(coreTypes, hierarchy),
+      jsInteropReporter,
+      jsInteropChecks.exportChecker,
+      jsInteropChecks.extensionIndex,
+    );
     final jsUtilOptimizer = JsUtilOptimizer(
-        coreTypes, hierarchy, jsInteropChecks.extensionIndex,
-        isDart2JS: false);
+      coreTypes,
+      hierarchy,
+      jsInteropChecks.extensionIndex,
+      isDart2JS: false,
+    );
     for (var node in nodes) {
       _CovarianceTransformer(node).transform();
       // Shared interop transformer has static checks, so we still visit.
@@ -225,12 +235,13 @@ class DevCompilerTarget extends Target {
 
   @override
   void performPreConstantEvaluationTransformations(
-      Component component,
-      CoreTypes coreTypes,
-      List<Library> libraries,
-      DiagnosticReporter diagnosticReporter,
-      {void Function(String msg)? logger,
-      ChangedStructureNotifier? changedStructureNotifier}) {
+    Component component,
+    CoreTypes coreTypes,
+    List<Library> libraries,
+    DiagnosticReporter diagnosticReporter, {
+    void Function(String msg)? logger,
+    ChangedStructureNotifier? changedStructureNotifier,
+  }) {
     if (flags.trackWidgetCreation) {
       _widgetTracker ??= WidgetCreatorTracker();
       _widgetTracker!.transform(component, libraries, changedStructureNotifier);
@@ -238,8 +249,14 @@ class DevCompilerTarget extends Target {
   }
 
   @override
-  Expression instantiateInvocation(CoreTypes coreTypes, Expression receiver,
-      String name, Arguments arguments, int offset, bool isSuper) {
+  Expression instantiateInvocation(
+    CoreTypes coreTypes,
+    Expression receiver,
+    String name,
+    Arguments arguments,
+    int offset,
+    bool isSuper,
+  ) {
     // TODO(jmesserly): preserve source information?
     // (These method are synthetic. Also unclear if the offset will correspond
     // to the file where the class resides, or the file where the method we're
@@ -260,8 +277,10 @@ class DevCompilerTarget extends Target {
       return createInvocation('getter', [SymbolLiteral(name.substring(4))]);
     }
     if (name.startsWith('set:')) {
-      return createInvocation('setter',
-          [SymbolLiteral(name.substring(4)), arguments.positional.single]);
+      return createInvocation('setter', [
+        SymbolLiteral(name.substring(4)),
+        arguments.positional.single,
+      ]);
     }
     var ctorArgs = <Expression>[
       SymbolLiteral(name),
@@ -273,7 +292,7 @@ class DevCompilerTarget extends Target {
       if (arguments.named.isNotEmpty)
         MapLiteral([
           for (var n in arguments.named)
-            MapLiteralEntry(SymbolLiteral(n.name), n.value)
+            MapLiteralEntry(SymbolLiteral(n.name), n.value),
         ], keyType: coreTypes.symbolNonNullableRawType)
       else
         NullLiteral(),
@@ -282,18 +301,23 @@ class DevCompilerTarget extends Target {
   }
 
   @override
-  Expression instantiateNoSuchMethodError(CoreTypes coreTypes,
-      Expression receiver, String name, Arguments arguments, int offset,
-      {bool isMethod = false,
-      bool isGetter = false,
-      bool isSetter = false,
-      bool isField = false,
-      bool isLocalVariable = false,
-      bool isDynamic = false,
-      bool isSuper = false,
-      bool isStatic = false,
-      bool isConstructor = false,
-      bool isTopLevel = false}) {
+  Expression instantiateNoSuchMethodError(
+    CoreTypes coreTypes,
+    Expression receiver,
+    String name,
+    Arguments arguments,
+    int offset, {
+    bool isMethod = false,
+    bool isGetter = false,
+    bool isSetter = false,
+    bool isField = false,
+    bool isLocalVariable = false,
+    bool isDynamic = false,
+    bool isSuper = false,
+    bool isStatic = false,
+    bool isConstructor = false,
+    bool isTopLevel = false,
+  }) {
     // TODO(sigmund): implement;
     return InvalidExpression(null);
   }
@@ -431,8 +455,10 @@ class _CovarianceTransformer extends RecursiveVisitor {
         target.isInstanceMember &&
         receiver is! ThisExpression &&
         receiver is! ConstructorInvocation) {
-      assert(target.enclosingLibrary == _library,
-          'call to private member must be in same library');
+      assert(
+        target.enclosingLibrary == _library,
+        'call to private member must be in same library',
+      );
       _checkedMembers.add(target);
     }
   }
@@ -449,8 +475,10 @@ class _CovarianceTransformer extends RecursiveVisitor {
         target.isInstanceMember &&
         target is Procedure &&
         !target.isAccessor) {
-      assert(target.enclosingLibrary == _library,
-          'tearoff of private member must be in same library');
+      assert(
+        target.enclosingLibrary == _library,
+        'tearoff of private member must be in same library',
+      );
       _checkedMembers.add(target);
     }
   }

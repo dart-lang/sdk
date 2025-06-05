@@ -26,16 +26,16 @@ bool _isLibrary(Library library, List<String> candidates) {
 /// `dart:_foreign_helper`, `dart:_js_annotations`, or `dart:_js_helper`, or
 /// `dart:js_interop`.
 bool _isJSLibrary(Library library) => _isLibrary(library, [
-      // While the annotations no longer live in `package:js`, this is needed to
-      // support older versions of the package.
-      'package:js',
-      'dart:_foreign_helper',
-      'dart:_js_annotations',
-      'dart:_js_helper',
-      // This is to allow `dart:js_interop`'s `@JS` to work with
-      // `@staticInterop`.
-      'dart:js_interop',
-    ]);
+  // While the annotations no longer live in `package:js`, this is needed to
+  // support older versions of the package.
+  'package:js',
+  'dart:_foreign_helper',
+  'dart:_js_annotations',
+  'dart:_js_helper',
+  // This is to allow `dart:js_interop`'s `@JS` to work with
+  // `@staticInterop`.
+  'dart:js_interop',
+]);
 
 /// Whether [node] is a direct call to `allowInterop`.
 bool isAllowInterop(Expression node) {

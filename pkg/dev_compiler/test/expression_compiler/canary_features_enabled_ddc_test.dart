@@ -11,8 +11,10 @@ import 'expression_compiler_e2e_suite.dart';
 
 void main(List<String> args) async {
   final driver = await ExpressionEvaluationTestDriver.init();
-  final setup =
-      SetupCompilerOptions(moduleFormat: ModuleFormat.ddc, args: args);
+  final setup = SetupCompilerOptions(
+    moduleFormat: ModuleFormat.ddc,
+    args: args,
+  );
   final mode = setup.canaryFeatures ? 'canary' : 'stable';
   runTests(driver, setup, mode);
 }

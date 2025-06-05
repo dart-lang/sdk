@@ -11,7 +11,8 @@ import 'dart:math';
 import 'package:_fe_analyzer_shared/src/util/relativize.dart' as fe_shared;
 import 'package:args/args.dart';
 import 'package:collection/collection.dart';
-import 'package:dev_compiler/dev_compiler.dart' as ddc_names
+import 'package:dev_compiler/dev_compiler.dart'
+    as ddc_names
     show libraryUriToJsIdentifier;
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:path/path.dart' as p;
@@ -69,44 +70,63 @@ class Options {
   });
 
   static final _parser = ArgParser()
-    ..addFlag('help',
-        abbr: 'h',
-        help: 'Display this message.',
-        negatable: false,
-        defaultsTo: false)
-    ..addOption('runtime',
-        abbr: 'r',
-        defaultsTo: 'd8',
-        allowed: RuntimePlatforms.values.map((v) => v.text),
-        help: 'runtime platform used to run tests.')
-    ..addOption('named-configuration',
-        abbr: 'n',
-        defaultsTo: 'no-configuration',
-        help: 'configuration name to use for emitting test result files.')
-    ..addOption('output-directory',
-        help: 'directory to emit test results files.')
-    ..addOption('filter',
-        abbr: 'f', defaultsTo: r'.*', help: 'regexp filter over tests to run.')
-    ..addOption('diff',
-        allowed: ['check', 'write', 'ignore'],
-        allowedHelp: {
-          'check': 'validate that reload test diffs are generated and correct.',
-          'write': 'write diffs for reload tests.',
-          'ignore': 'ignore reload diffs.',
-        },
-        defaultsTo: 'check',
-        help: 'selects whether test diffs should be checked, written, or '
-            'ignored.')
-    ..addFlag('debug',
-        abbr: 'd',
-        defaultsTo: false,
-        negatable: true,
-        help: 'enables additional debug behavior and logging.')
-    ..addFlag('verbose',
-        abbr: 'v',
-        defaultsTo: true,
-        negatable: true,
-        help: 'enables verbose logging.');
+    ..addFlag(
+      'help',
+      abbr: 'h',
+      help: 'Display this message.',
+      negatable: false,
+      defaultsTo: false,
+    )
+    ..addOption(
+      'runtime',
+      abbr: 'r',
+      defaultsTo: 'd8',
+      allowed: RuntimePlatforms.values.map((v) => v.text),
+      help: 'runtime platform used to run tests.',
+    )
+    ..addOption(
+      'named-configuration',
+      abbr: 'n',
+      defaultsTo: 'no-configuration',
+      help: 'configuration name to use for emitting test result files.',
+    )
+    ..addOption(
+      'output-directory',
+      help: 'directory to emit test results files.',
+    )
+    ..addOption(
+      'filter',
+      abbr: 'f',
+      defaultsTo: r'.*',
+      help: 'regexp filter over tests to run.',
+    )
+    ..addOption(
+      'diff',
+      allowed: ['check', 'write', 'ignore'],
+      allowedHelp: {
+        'check': 'validate that reload test diffs are generated and correct.',
+        'write': 'write diffs for reload tests.',
+        'ignore': 'ignore reload diffs.',
+      },
+      defaultsTo: 'check',
+      help:
+          'selects whether test diffs should be checked, written, or '
+          'ignored.',
+    )
+    ..addFlag(
+      'debug',
+      abbr: 'd',
+      defaultsTo: false,
+      negatable: true,
+      help: 'enables additional debug behavior and logging.',
+    )
+    ..addFlag(
+      'verbose',
+      abbr: 'v',
+      defaultsTo: true,
+      negatable: true,
+      help: 'enables verbose logging.',
+    );
 
   /// Usage description for these command line options.
   String get usage => _parser.usage;
@@ -173,16 +193,21 @@ class HotReloadTest {
   /// generation.
   final Map<int, bool> isHotRestart;
 
-  HotReloadTest(this.directory, this.name, this.generationCount, this.files,
-      ReloadTestConfiguration config, this.isHotRestart)
-      : excludedPlatforms = config.excludedPlatforms,
-        expectedErrors = config.expectedErrors;
+  HotReloadTest(
+    this.directory,
+    this.name,
+    this.generationCount,
+    this.files,
+    ReloadTestConfiguration config,
+    this.isHotRestart,
+  ) : excludedPlatforms = config.excludedPlatforms,
+      expectedErrors = config.expectedErrors;
 
   /// The files edited in the provided [generation] (zero-based).
   List<TestFile> filesEditedInGeneration(int generation) => [
-        for (final file in files)
-          if (file._editsByGeneration.containsKey(generation)) file
-      ];
+    for (final file in files)
+      if (file._editsByGeneration.containsKey(generation)) file,
+  ];
 }
 
 /// An individual test file for a hot reload test across all generations.
@@ -238,32 +263,37 @@ abstract class HotReloadSuiteRunner {
 
   /// The directory containing files emitted from Frontend Server compiles and
   /// recompiles.
-  late final Directory frontendServerEmittedFilesDir =
-      Directory.fromUri(generatedCodeDir.uri.resolve('.fes/'))..createSync();
+  late final Directory frontendServerEmittedFilesDir = Directory.fromUri(
+    generatedCodeDir.uri.resolve('.fes/'),
+  )..createSync();
 
   /// The output location for .dill file created by the front end server.
-  late final Uri outputDillUri =
-      frontendServerEmittedFilesDir.uri.resolve('output.dill');
+  late final Uri outputDillUri = frontendServerEmittedFilesDir.uri.resolve(
+    'output.dill',
+  );
 
   /// The output location for the incremental .dill file created by the front
   /// end server.
-  late final Uri outputIncrementalDillUri =
-      frontendServerEmittedFilesDir.uri.resolve('output_incremental.dill');
+  late final Uri outputIncrementalDillUri = frontendServerEmittedFilesDir.uri
+      .resolve('output_incremental.dill');
 
   /// All test results that are reported after running the entire test suite.
   final List<TestResultOutcome> testOutcomes = [];
 
   /// The directory used as a temporary staging area to construct a compile-able
   /// test app across reload/restart generations.
-  late final Directory snapshotDir =
-      Directory.fromUri(generatedCodeDir.uri.resolve('.snapshot/'))
-        ..createSync();
+  late final Directory snapshotDir = Directory.fromUri(
+    generatedCodeDir.uri.resolve('.snapshot/'),
+  )..createSync();
 
   // TODO(markzipan): Support custom entrypoints.
   late final Uri snapshotEntrypointUri = snapshotDir.uri.resolve('main.dart');
   late final String snapshotEntrypointWithScheme = () {
     final snapshotEntrypointLibraryName = fe_shared.relativizeUri(
-        snapshotDir.uri, snapshotEntrypointUri, fe_shared.isWindows);
+      snapshotDir.uri,
+      snapshotEntrypointUri,
+      fe_shared.isWindows,
+    );
     return '$filesystemScheme:///$snapshotEntrypointLibraryName';
   }();
 
@@ -278,41 +308,54 @@ abstract class HotReloadSuiteRunner {
     // TODO(nshahan): report time for collecting and validating test sources.
     final testSuite = collectTestSources(options);
     _debugPrint(
-        'See generated hot reload framework code in ${generatedCodeDir.uri}');
+      'See generated hot reload framework code in ${generatedCodeDir.uri}',
+    );
     final controller = createFrontEndServer();
     for (final test in testSuite) {
       stopwatch
         ..start()
         ..reset();
       diffCheck(test);
-      final tempDirectory =
-          Directory.fromUri(generatedCodeDir.uri.resolve('${test.name}/'))
-            ..createSync();
+      final tempDirectory = Directory.fromUri(
+        generatedCodeDir.uri.resolve('${test.name}/'),
+      )..createSync();
       if (options.runtime.emitsJS) {
         filesystem = HotReloadMemoryFilesystem(tempDirectory.uri);
       }
       var compileSuccess = false;
       _print('Generating test assets.', label: test.name);
       // TODO(markzipan): replace this with a test-configurable main entrypoint.
-      final mainDartFilePath =
-          test.directory.uri.resolve('main.dart').toFilePath();
+      final mainDartFilePath = test.directory.uri
+          .resolve('main.dart')
+          .toFilePath();
       _debugPrint('Test entrypoint: $mainDartFilePath', label: test.name);
-      _print('Generating code over ${test.generationCount} generations.',
-          label: test.name);
+      _print(
+        'Generating code over ${test.generationCount} generations.',
+        label: test.name,
+      );
       stopwatch
         ..start()
         ..reset();
-      for (var generation = 0;
-          generation < test.generationCount;
-          generation++) {
+      for (
+        var generation = 0;
+        generation < test.generationCount;
+        generation++
+      ) {
         final updatedFiles = copyGenerationSources(test, generation);
         compileSuccess = await compileGeneration(
-            test, generation, tempDirectory, updatedFiles, controller);
+          test,
+          generation,
+          tempDirectory,
+          updatedFiles,
+          controller,
+        );
         if (!compileSuccess) break;
       }
       if (!compileSuccess) {
-        _print('Did not emit all assets due to compilation error.',
-            label: test.name);
+        _print(
+          'Did not emit all assets due to compilation error.',
+          label: test.name,
+        );
         // Skip to the next test and avoid execution if there is an unexpected
         // compilation error.
         continue;
@@ -324,9 +367,15 @@ abstract class HotReloadSuiteRunner {
           .transform(utf8.decoder)
           .listen(testOutputBuffer.write);
       final testPassed = await runTest(
-          test, tempDirectory, IOSink(testOutputStreamController.sink));
+        test,
+        tempDirectory,
+        IOSink(testOutputStreamController.sink),
+      );
       await reportTestOutcome(
-          test.name, testOutputBuffer.toString(), testPassed);
+        test.name,
+        testOutputBuffer.toString(),
+        testPassed,
+      );
     }
     await shutdown(controller);
     await reportAllResults();
@@ -376,15 +425,16 @@ abstract class HotReloadSuiteRunner {
     // Set an arbitrary cap on generations.
     final globalMaxGenerations = 100;
     final validTestSourceName = RegExp(
-        // Begins with 1 or more word characters.
-        r'^(?<name>[\w,-]+)'
-        // Followed by a dot and 1 or more digits.
-        r'\.(?<generation>\d+)'
-        // Optionally a dot and either the word 'restart' indicating a hot
-        // restart, or the word 'reject', indicating a hot reload rejection.
-        r'((?<restart>\.restart)|(?<reject>\.reject))?'
-        // Ending with a dot and the word 'dart'
-        r'\.dart$');
+      // Begins with 1 or more word characters.
+      r'^(?<name>[\w,-]+)'
+      // Followed by a dot and 1 or more digits.
+      r'\.(?<generation>\d+)'
+      // Optionally a dot and either the word 'restart' indicating a hot
+      // restart, or the word 'reject', indicating a hot reload rejection.
+      r'((?<restart>\.restart)|(?<reject>\.reject))?'
+      // Ending with a dot and the word 'dart'
+      r'\.dart$',
+    );
     final testSuite = <HotReloadTest>[];
     for (var testDir in Directory.fromUri(allTestsUri).listSync()) {
       if (testDir is! Directory) {
@@ -392,8 +442,10 @@ abstract class HotReloadSuiteRunner {
           // Ignore Dart source files, which may be imported as helpers.
           continue;
         }
-        throw Exception('Non-directory or file entity found in '
-            '${allTestsUri.toFilePath()}: $testDir');
+        throw Exception(
+          'Non-directory or file entity found in '
+          '${allTestsUri.toFilePath()}: $testDir',
+        );
       }
       final testDirParts = testDir.uri.pathSegments;
       final testName = testDirParts[testDirParts.length - 2];
@@ -410,24 +462,28 @@ abstract class HotReloadSuiteRunner {
           : ReloadTestConfiguration();
       if (testConfig.excludedPlatforms.contains(options.runtime)) {
         // Skip this test directory if this platform is excluded.
-        _print('Skipping test on platform: ${options.runtime.text}',
-            label: testName);
+        _print(
+          'Skipping test on platform: ${options.runtime.text}',
+          label: testName,
+        );
         continue;
       }
       final isHotRestart = <int, bool>{};
       final expectedErrors = testConfig.expectedErrors;
-      final dartFiles = testDir
-          .listSync()
-          .where((e) => e is File && e.uri.path.endsWith('.dart'));
+      final dartFiles = testDir.listSync().where(
+        (e) => e is File && e.uri.path.endsWith('.dart'),
+      );
       // All files in this test clustered by file name - in generation order.
       final filesByGeneration = <String, PriorityQueue<TestFileEdit>>{};
       for (final file in dartFiles) {
         final fileName = p.basename(file.uri.toFilePath());
         final matches = validTestSourceName.allMatches(fileName);
         if (matches.length != 1) {
-          throw Exception('Invalid test source file name: $fileName\n'
-              'Valid names look like "file_name.10.dart", '
-              '"file_name.10.restart.dart" or "file_name.10.reject.dart".');
+          throw Exception(
+            'Invalid test source file name: $fileName\n'
+            'Valid names look like "file_name.10.dart", '
+            '"file_name.10.restart.dart" or "file_name.10.reject.dart".',
+          );
         }
         final match = matches.single;
         final name = match.namedGroup('name');
@@ -439,58 +495,80 @@ abstract class HotReloadSuiteRunner {
           isHotRestart[generation] = restart;
         } else {
           if (restart != isHotRestart[generation]) {
-            throw Exception('Expected all files for generation $generation to '
-                "be consistent about having a '.restart' suffix, but $fileName "
-                'does not match other files in the same generation.');
+            throw Exception(
+              'Expected all files for generation $generation to '
+              "be consistent about having a '.restart' suffix, but $fileName "
+              'does not match other files in the same generation.',
+            );
           }
         }
         final rejectExpected = match.namedGroup('reject') != null;
         assert(!(rejectExpected && restart));
         if (rejectExpected && !expectedErrors.containsKey(generation)) {
           throw Exception(
-              'Expected error for generation file missing from config.json: '
-              '$fileName');
+            'Expected error for generation file missing from config.json: '
+            '$fileName',
+          );
         }
         if (!rejectExpected && expectedErrors.containsKey(generation)) {
           throw Exception(
-              'Error for generation $generation found in config.json: '
-              '"${expectedErrors[generation]}"\n'
-              'Either remove the error or update the name of this file: '
-              '$fileName -> '
-              '$name.$generation.reject.dart');
+            'Error for generation $generation found in config.json: '
+            '"${expectedErrors[generation]}"\n'
+            'Either remove the error or update the name of this file: '
+            '$fileName -> '
+            '$name.$generation.reject.dart',
+          );
         }
         if (generation == 0 && rejectExpected) {
-          throw Exception('The first generation may not be rejected: '
-              '$fileName');
+          throw Exception(
+            'The first generation may not be rejected: '
+            '$fileName',
+          );
         }
         filesByGeneration
             .putIfAbsent(
-                restoredName,
-                () => PriorityQueue((TestFileEdit a, TestFileEdit b) =>
-                    a.generation - b.generation))
+              restoredName,
+              () => PriorityQueue(
+                (TestFileEdit a, TestFileEdit b) => a.generation - b.generation,
+              ),
+            )
             .add(TestFileEdit(generation, file.uri));
       }
       if (maxGenerations > globalMaxGenerations) {
-        throw Exception('Too many generations specified in test '
-            '(requested: $maxGenerations, max: $globalMaxGenerations).');
+        throw Exception(
+          'Too many generations specified in test '
+          '(requested: $maxGenerations, max: $globalMaxGenerations).',
+        );
       }
       final testFiles = <TestFile>[];
       for (final entry in filesByGeneration.entries) {
         final fileName = entry.key;
         final fileEdits = entry.value.toList();
-        final editsByGeneration = LinkedHashMap<int, TestFileEdit>.from(
-            {for (final edit in fileEdits) edit.generation: edit});
+        final editsByGeneration = LinkedHashMap<int, TestFileEdit>.from({
+          for (final edit in fileEdits) edit.generation: edit,
+        });
         testFiles.add(TestFile(fileName, editsByGeneration));
       }
-      testSuite.add(HotReloadTest(testDir, testName, maxGenerations + 1,
-          testFiles, testConfig, isHotRestart));
+      testSuite.add(
+        HotReloadTest(
+          testDir,
+          testName,
+          maxGenerations + 1,
+          testFiles,
+          testConfig,
+          isHotRestart,
+        ),
+      );
     }
     return testSuite;
   }
 
   /// Report results for this test's execution.
   Future<void> reportTestOutcome(
-      String testName, String testOutput, bool testPassed) async {
+    String testName,
+    String testOutput,
+    bool testPassed,
+  ) async {
     stopwatch.stop();
     final outcome = TestResultOutcome(
       configuration: options.namedConfiguration,
@@ -509,7 +587,11 @@ abstract class HotReloadSuiteRunner {
 
   /// Report results for this test's sources' diff validations.
   void reportDiffOutcome(
-      String testName, Uri fileUri, String testOutput, bool testPassed) {
+    String testName,
+    Uri fileUri,
+    String testOutput,
+    bool testPassed,
+  ) {
     stopwatch.stop();
     final filePath = fileUri.path;
     final relativeFilePath = p.relative(filePath, from: allTestsUri.path);
@@ -522,11 +604,15 @@ abstract class HotReloadSuiteRunner {
     outcome.matchedExpectations = testPassed;
     testOutcomes.add(outcome);
     if (testPassed) {
-      _debugPrint('PASSED (diff on $filePath) with:\n  $testOutput',
-          label: testName);
+      _debugPrint(
+        'PASSED (diff on $filePath) with:\n  $testOutput',
+        label: testName,
+      );
     } else {
-      _debugPrint('FAILED (diff on $filePath) with:\n  $testOutput',
-          label: testName);
+      _debugPrint(
+        'FAILED (diff on $filePath) with:\n  $testOutput',
+        label: testName,
+      );
     }
   }
 
@@ -534,31 +620,44 @@ abstract class HotReloadSuiteRunner {
   void diffCheck(HotReloadTest test) {
     var diffMode = options.diffMode;
     if (fe_shared.isWindows && diffMode != DiffMode.ignore) {
-      _print("Diffing isn't supported on Windows. Defaulting to 'ignore'.",
-          label: test.name);
+      _print(
+        "Diffing isn't supported on Windows. Defaulting to 'ignore'.",
+        label: test.name,
+      );
       diffMode = DiffMode.ignore;
     }
     switch (diffMode) {
       case DiffMode.check:
         _print('Checking source file diffs.', label: test.name);
         for (final file in test.files) {
-          _debugPrint('Checking source file diffs for $file.',
-              label: test.name);
+          _debugPrint(
+            'Checking source file diffs for $file.',
+            label: test.name,
+          );
           var edits = file.edits.iterator;
           if (!edits.moveNext()) {
             throw Exception('Test file created with no generation edits.');
           }
           var currentEdit = edits.current;
           // Check that the first file does not have a diff.
-          var (currentCode, currentDiff) =
-              _splitTestByDiff(currentEdit.fileUri);
+          var (currentCode, currentDiff) = _splitTestByDiff(
+            currentEdit.fileUri,
+          );
           var diffCount = testDiffSeparator.allMatches(currentDiff).length;
           if (diffCount == 0) {
-            reportDiffOutcome(test.name, currentEdit.fileUri,
-                'First generation does not have a diff', true);
+            reportDiffOutcome(
+              test.name,
+              currentEdit.fileUri,
+              'First generation does not have a diff',
+              true,
+            );
           } else {
-            reportDiffOutcome(test.name, currentEdit.fileUri,
-                'First generation should not have any diffs', false);
+            reportDiffOutcome(
+              test.name,
+              currentEdit.fileUri,
+              'First generation should not have any diffs',
+              false,
+            );
           }
           while (edits.moveNext()) {
             final previousEdit = currentEdit;
@@ -568,16 +667,21 @@ abstract class HotReloadSuiteRunner {
             // Check that exactly one diff exists.
             diffCount = testDiffSeparator.allMatches(currentDiff).length;
             if (diffCount == 0) {
-              reportDiffOutcome(test.name, currentEdit.fileUri,
-                  'No diff found for ${currentEdit.fileUri}', false);
+              reportDiffOutcome(
+                test.name,
+                currentEdit.fileUri,
+                'No diff found for ${currentEdit.fileUri}',
+                false,
+              );
               continue;
             } else if (diffCount > 1) {
               reportDiffOutcome(
-                  test.name,
-                  currentEdit.fileUri,
-                  'Too many diffs found for ${currentEdit.fileUri} '
-                  '(expected 1)',
-                  false);
+                test.name,
+                currentEdit.fileUri,
+                'Too many diffs found for ${currentEdit.fileUri} '
+                '(expected 1)',
+                false,
+              );
               continue;
             }
             // Check that the diff is properly generated.
@@ -586,9 +690,10 @@ abstract class HotReloadSuiteRunner {
             if (file.baseName != 'main.dart' && previousCode == currentCode) {
               // TODO(markzipan): Should we make this an error?
               _print(
-                  'Extraneous file detected. ${currentEdit.fileUri} '
-                  'is identical to ${previousEdit.fileUri} and can be removed.',
-                  label: test.name);
+                'Extraneous file detected. ${currentEdit.fileUri} '
+                'is identical to ${previousEdit.fileUri} and can be removed.',
+                label: test.name,
+              );
             }
             final previousTempUri = generatedCodeDir.uri.resolve('__previous');
             final currentTempUri = generatedCodeDir.uri.resolve('__current');
@@ -597,41 +702,53 @@ abstract class HotReloadSuiteRunner {
             File.fromUri(previousTempUri).writeAsStringSync('$previousCode\n');
             File.fromUri(currentTempUri).writeAsStringSync('$currentCode\n');
             final diffOutput = _diffWithFileUris(
-                previousTempUri, currentTempUri,
-                label: test.name);
+              previousTempUri,
+              currentTempUri,
+              label: test.name,
+            );
             File.fromUri(previousTempUri).deleteSync();
             File.fromUri(currentTempUri).deleteSync();
             if (diffOutput != currentDiff) {
               reportDiffOutcome(
-                  test.name,
-                  currentEdit.fileUri,
-                  'Unexpected diff found for ${currentEdit.fileUri}:\n'
-                  '-- Expected --\n$diffOutput\n'
-                  '-- Actual --\n$currentDiff',
-                  false);
+                test.name,
+                currentEdit.fileUri,
+                'Unexpected diff found for ${currentEdit.fileUri}:\n'
+                '-- Expected --\n$diffOutput\n'
+                '-- Actual --\n$currentDiff',
+                false,
+              );
             } else {
-              reportDiffOutcome(test.name, currentEdit.fileUri,
-                  'Correct diff found for ${currentEdit.fileUri}', true);
+              reportDiffOutcome(
+                test.name,
+                currentEdit.fileUri,
+                'Correct diff found for ${currentEdit.fileUri}',
+                true,
+              );
             }
           }
         }
       case DiffMode.write:
         _print('Generating source file diffs.', label: test.name);
         for (final file in test.files) {
-          _debugPrint('Generating source file diffs for ${file.edits}.',
-              label: test.name);
+          _debugPrint(
+            'Generating source file diffs for ${file.edits}.',
+            label: test.name,
+          );
           var edits = file.edits.iterator;
           if (!edits.moveNext()) {
             throw Exception('Test file created with no generation edits.');
           }
           var currentEdit = edits.current;
-          var (currentCode, currentDiff) =
-              _splitTestByDiff(currentEdit.fileUri);
+          var (currentCode, currentDiff) = _splitTestByDiff(
+            currentEdit.fileUri,
+          );
           // Don't generate a diff for the first file of any generation,
           // and delete any diffs encountered.
           if (currentDiff.isNotEmpty) {
-            _print('Removing extraneous diff from ${currentEdit.fileUri}',
-                label: test.name);
+            _print(
+              'Removing extraneous diff from ${currentEdit.fileUri}',
+              label: test.name,
+            );
             File.fromUri(currentEdit.fileUri).writeAsStringSync(currentCode);
           }
           while (edits.moveNext()) {
@@ -645,19 +762,27 @@ abstract class HotReloadSuiteRunner {
             File.fromUri(previousTempUri).writeAsStringSync('$previousCode\n');
             File.fromUri(currentTempUri).writeAsStringSync('$currentCode\n');
             final diffOutput = _diffWithFileUris(
-                previousTempUri, currentTempUri,
-                label: test.name);
+              previousTempUri,
+              currentTempUri,
+              label: test.name,
+            );
             File.fromUri(previousTempUri).deleteSync();
             File.fromUri(currentTempUri).deleteSync();
             // Write an empty line between the code and the diff comment to
             // agree with the dart formatter.
             final newCurrentText = '$currentCode\n\n$diffOutput\n';
             File.fromUri(currentEdit.fileUri).writeAsStringSync(newCurrentText);
-            _print('Writing updated diff to $currentEdit.fileUri',
-                label: test.name);
+            _print(
+              'Writing updated diff to $currentEdit.fileUri',
+              label: test.name,
+            );
             _debugPrint('Updated diff:\n$diffOutput', label: test.name);
-            reportDiffOutcome(test.name, currentEdit.fileUri,
-                'diff updated for $currentEdit.fileUri', true);
+            reportDiffOutcome(
+              test.name,
+              currentEdit.fileUri,
+              'diff updated for $currentEdit.fileUri',
+              true,
+            );
           }
         }
       case DiffMode.ignore:
@@ -665,8 +790,10 @@ abstract class HotReloadSuiteRunner {
         for (final file in test.files) {
           for (final edit in file.edits) {
             var uri = edit.fileUri;
-            _debugPrint('Ignoring source file diffs for $uri.',
-                label: test.name);
+            _debugPrint(
+              'Ignoring source file diffs for $uri.',
+              label: test.name,
+            );
             reportDiffOutcome(test.name, uri, 'Ignoring diff for $uri', true);
           }
         }
@@ -678,25 +805,31 @@ abstract class HotReloadSuiteRunner {
   ///
   /// If no reload receipt is found the line is passed to [orElse]. [test] is
   /// only used to label debug logs.
-  void parseReloadReceipt(HotReloadTest test, String line,
-      Function(HotReloadReceipt) onReloadReceipt, Function(String) orElse) {
+  void parseReloadReceipt(
+    HotReloadTest test,
+    String line,
+    Function(HotReloadReceipt) onReloadReceipt,
+    Function(String) orElse,
+  ) {
     if (line.startsWith(HotReloadReceipt.hotReloadReceiptTag)) {
       // Reload utils write reload receipts as output lines with a leading tag
       // so the lines can be extracted here.
-      final reloadReceipt = HotReloadReceipt.fromJson(jsonDecode(
-              line.substring(HotReloadReceipt.hotReloadReceiptTag.length))
-          as Map<String, dynamic>);
+      final reloadReceipt = HotReloadReceipt.fromJson(
+        jsonDecode(line.substring(HotReloadReceipt.hotReloadReceiptTag.length))
+            as Map<String, dynamic>,
+      );
       onReloadReceipt(reloadReceipt);
       _debugPrint(
-          [
-            'Generation ${reloadReceipt.generation} '
-                'was ${reloadReceipt.status.name}',
-            if (reloadReceipt.status == Status.rejected)
-              ': "${reloadReceipt.rejectionMessage}"'
-            else
-              '.',
-          ].join(),
-          label: test.name);
+        [
+          'Generation ${reloadReceipt.generation} '
+              'was ${reloadReceipt.status.name}',
+          if (reloadReceipt.status == Status.rejected)
+            ': "${reloadReceipt.rejectionMessage}"'
+          else
+            '.',
+        ].join(),
+        label: test.name,
+      );
     } else {
       orElse(line);
     }
@@ -709,16 +842,19 @@ abstract class HotReloadSuiteRunner {
   /// reported, the test still ran through all expected generations with the
   /// expected accept/reject/restart status.
   bool reloadReceiptCheck(
-      HotReloadTest test, List<HotReloadReceipt> reloadReceipts) {
+    HotReloadTest test,
+    List<HotReloadReceipt> reloadReceipts,
+  ) {
     // Check number of reloads.
     // No reload receipt will appear for generation 0.
     final expectedReloadCount = test.generationCount - 1;
     if (reloadReceipts.length != expectedReloadCount) {
       _print(
-          'Unexpected number of reloads/restarts were performed. '
-          'Expected: $expectedReloadCount Actual: ${reloadReceipts.length}\n'
-          '${reloadReceipts.join('\n')}',
-          label: test.name);
+        'Unexpected number of reloads/restarts were performed. '
+        'Expected: $expectedReloadCount Actual: ${reloadReceipts.length}\n'
+        '${reloadReceipts.join('\n')}',
+        label: test.name,
+      );
       return false;
     }
     var expectedGeneration = 0;
@@ -727,46 +863,51 @@ abstract class HotReloadSuiteRunner {
       // Validate order of reloads.
       if (reloadReceipt.generation != expectedGeneration) {
         _print(
-            'Generation reload order mismatch. '
-            'Expected: $expectedGeneration '
-            'Actual: ${reloadReceipt.generation}\n'
-            '${reloadReceipts.join('\n')}',
-            label: test.name);
+          'Generation reload order mismatch. '
+          'Expected: $expectedGeneration '
+          'Actual: ${reloadReceipt.generation}\n'
+          '${reloadReceipts.join('\n')}',
+          label: test.name,
+        );
         return false;
       }
       final expectedError = test.expectedErrors[reloadReceipt.generation];
       // Check the reloads match the expected accept/reject.
       if (reloadReceipt.status == Status.accepted && expectedError != null) {
         _print(
-            'Generation ${reloadReceipt.generation} was not rejected. '
-            'Expected: $expectedError',
-            label: test.name);
+          'Generation ${reloadReceipt.generation} was not rejected. '
+          'Expected: $expectedError',
+          label: test.name,
+        );
         return false;
       }
       if (reloadReceipt.status == Status.rejected) {
         if (expectedError == null) {
           _print(
-              'Generation ${reloadReceipt.generation} was unexpectedly '
-              'rejected: ${reloadReceipt.rejectionMessage}',
-              label: test.name);
+            'Generation ${reloadReceipt.generation} was unexpectedly '
+            'rejected: ${reloadReceipt.rejectionMessage}',
+            label: test.name,
+          );
           return false;
         }
         final rejectionMessage = reloadReceipt.rejectionMessage;
         if (rejectionMessage == null ||
             !rejectionMessage.contains(expectedError)) {
           _print(
-              'Generation ${reloadReceipt.generation} was rejected but error '
-              'was unexpected. Expected: "$expectedError" Actual: '
-              '${reloadReceipt.rejectionMessage}',
-              label: test.name);
+            'Generation ${reloadReceipt.generation} was rejected but error '
+            'was unexpected. Expected: "$expectedError" Actual: '
+            '${reloadReceipt.rejectionMessage}',
+            label: test.name,
+          );
           return false;
         }
       }
     }
     _debugPrint(
-        'Generation reloads matched expected outcomes:\n'
-        '  ${reloadReceipts.join('\n  ')}',
-        label: test.name);
+      'Generation reloads matched expected outcomes:\n'
+      '  ${reloadReceipts.join('\n  ')}',
+      label: test.name,
+    );
     return true;
   }
 
@@ -782,23 +923,28 @@ abstract class HotReloadSuiteRunner {
     // names restored (e.g., path/to/main' from 'path/to/main.0.dart).
     // TODO(markzipan): support subdirectories.
     _debugPrint(
-        'Copying Dart files to snapshot directory: '
-        '${snapshotDir.uri.toFilePath()}',
-        label: test.name);
+      'Copying Dart files to snapshot directory: '
+      '${snapshotDir.uri.toFilePath()}',
+      label: test.name,
+    );
     for (final file in test.filesEditedInGeneration(generation)) {
       final fileSnapshotUri = snapshotDir.uri.resolve(file.baseName);
       final editUri = file.editForGeneration(generation).fileUri;
       File.fromUri(editUri).copySync(fileSnapshotUri.toFilePath());
       final relativeSnapshotPath = fe_shared.relativizeUri(
-          snapshotDir.uri, fileSnapshotUri, fe_shared.isWindows);
+        snapshotDir.uri,
+        fileSnapshotUri,
+        fe_shared.isWindows,
+      );
       final snapshotPathWithScheme =
           '$filesystemScheme:///$relativeSnapshotPath';
       updatedFilesInCurrentGeneration.add(snapshotPathWithScheme);
     }
     _print(
-        'Updated files in generation $generation: '
-        '$updatedFilesInCurrentGeneration',
-        label: test.name);
+      'Updated files in generation $generation: '
+      '$updatedFilesInCurrentGeneration',
+      label: test.name,
+    );
     return updatedFilesInCurrentGeneration;
   }
 
@@ -808,11 +954,12 @@ abstract class HotReloadSuiteRunner {
   ///
   /// Reports test failures on compile time errors.
   Future<bool> compileGeneration(
-      HotReloadTest test,
-      int generation,
-      Directory outputDirectory,
-      List<String> updatedFiles,
-      HotReloadFrontendServerController controller);
+    HotReloadTest test,
+    int generation,
+    Directory outputDirectory,
+    List<String> updatedFiles,
+    HotReloadFrontendServerController controller,
+  );
 
   /// Runs [test] from compiled and generated assets in [tempDirectory] and
   /// returns `true` if it passes.
@@ -820,7 +967,10 @@ abstract class HotReloadSuiteRunner {
   /// All output (standard and errors) from running the test is written to
   /// [outputSink].
   Future<bool> runTest(
-      HotReloadTest test, Directory tempDirectory, IOSink outputSink);
+    HotReloadTest test,
+    Directory tempDirectory,
+    IOSink outputSink,
+  );
 
   /// Reports test results to standard out as well as the output .json file if
   /// requested.
@@ -843,26 +993,33 @@ abstract class HotReloadSuiteRunner {
       final testLogsUri = testResultsOutputDir.resolve('logs.json');
       if (Platform.isWindows) {
         // TODO(55297): Logs are disabled on windows until this but is fixed.
-        _print('Logs are not written on Windows. '
-            'See: https://github.com/dart-lang/sdk/issues/55297');
+        _print(
+          'Logs are not written on Windows. '
+          'See: https://github.com/dart-lang/sdk/issues/55297',
+        );
       } else {
         final testLogsSink = File.fromUri(testLogsUri).openWrite();
         testOutcomeLogs.forEach(testLogsSink.writeln);
         await testLogsSink.flush();
         await testLogsSink.close();
       }
-      _print('Emitted logs to ${testResultsUri.toFilePath()} '
-          'and ${testLogsUri.toFilePath()}.');
+      _print(
+        'Emitted logs to ${testResultsUri.toFilePath()} '
+        'and ${testLogsUri.toFilePath()}.',
+      );
     }
     if (testOutcomes.isEmpty) {
-      print('No tests ran: no sub-directories in ${allTestsUri.toFilePath()} '
-          'match the provided filter:\n'
-          '${options.testNameFilter}');
+      print(
+        'No tests ran: no sub-directories in ${allTestsUri.toFilePath()} '
+        'match the provided filter:\n'
+        '${options.testNameFilter}',
+      );
       exit(0);
     }
     // Report failed tests.
-    var failedTests =
-        testOutcomes.where((outcome) => !outcome.matchedExpectations);
+    var failedTests = testOutcomes.where(
+      (outcome) => !outcome.matchedExpectations,
+    );
     if (failedTests.isNotEmpty) {
       print('Some tests failed:');
       failedTests.forEach((outcome) {
@@ -877,14 +1034,19 @@ abstract class HotReloadSuiteRunner {
   ///
   /// Will echo the commands to the console before running them when running in
   /// `verbose` mode.
-  Future<Process> startProcess(String name, String command, List<String> args,
-      {Map<String, String> environment = const {},
-      ProcessStartMode mode = ProcessStartMode.normal}) {
+  Future<Process> startProcess(
+    String name,
+    String command,
+    List<String> args, {
+    Map<String, String> environment = const {},
+    ProcessStartMode mode = ProcessStartMode.normal,
+  }) {
     if (options.verbose) {
       print('Running $name:\n$command ${args.join(' ')}\n');
       if (environment.isNotEmpty) {
-        var environmentVariables =
-            environment.entries.map((e) => '${e.key}: ${e.value}').join('\n');
+        var environmentVariables = environment.entries
+            .map((e) => '${e.key}: ${e.value}')
+            .join('\n');
         print('With environment:\n$environmentVariables\n');
       }
     }
@@ -917,13 +1079,20 @@ abstract class HotReloadSuiteRunner {
   ///
   /// If [trimHeaders] is set, the leading '+++' and '---' file headers will be
   /// removed.
-  String _diffWithFileUris(Uri file1, Uri file2,
-      {String label = '', bool commented = true, bool trimHeaders = true}) {
+  String _diffWithFileUris(
+    Uri file1,
+    Uri file2, {
+    String label = '',
+    bool commented = true,
+    bool trimHeaders = true,
+  }) {
     final file1Path = file1.toFilePath();
     final file2Path = file2.toFilePath();
     final diffArgs = ['diff', '-u', file1Path, file2Path];
-    _debugPrint("Running diff with 'git diff ${diffArgs.join(' ')}'.",
-        label: label);
+    _debugPrint(
+      "Running diff with 'git diff ${diffArgs.join(' ')}'.",
+      label: label,
+    );
     final diffProcess = Process.runSync('git', diffArgs);
     final errOutput = diffProcess.stderr as String;
     if (errOutput.isNotEmpty) {
@@ -953,58 +1122,70 @@ abstract class HotReloadSuiteRunner {
 /// Hot reload test suite runner for DDC specific behavior that is agnostic to
 /// the environment where the compiled code is eventually run.
 abstract class DdcSuiteRunner extends HotReloadSuiteRunner {
-  late final String entrypointLibraryExportName =
-      ddc_names.libraryUriToJsIdentifier(snapshotEntrypointUri);
-  final Uri dartSdkJSUri =
-      buildRootUri.resolve('gen/utils/ddc/canary/sdk/ddc/dart_sdk.js');
-  final Uri ddcModuleLoaderJSUri =
-      sdkRoot.resolve('pkg/dev_compiler/lib/js/ddc/ddc_module_loader.js');
+  late final String entrypointLibraryExportName = ddc_names
+      .libraryUriToJsIdentifier(snapshotEntrypointUri);
+  final Uri dartSdkJSUri = buildRootUri.resolve(
+    'gen/utils/ddc/canary/sdk/ddc/dart_sdk.js',
+  );
+  final Uri ddcModuleLoaderJSUri = sdkRoot.resolve(
+    'pkg/dev_compiler/lib/js/ddc/ddc_module_loader.js',
+  );
   final String ddcPlatformDillFromSdkRoot = fe_shared.relativizeUri(
-      sdkRoot, buildRootUri.resolve('ddc_outline.dill'), fe_shared.isWindows);
+    sdkRoot,
+    buildRootUri.resolve('ddc_outline.dill'),
+    fe_shared.isWindows,
+  );
   final String entrypointModuleName = 'hot-reload-test:///main.dart';
 
   DdcSuiteRunner(super.options);
 
   @override
   List<String> get platformFrontEndServerArgs => [
-        '--dartdevc-module-format=ddc',
-        '--dartdevc-canary',
-        '--platform=$ddcPlatformDillFromSdkRoot',
-        '--target=dartdevc',
-      ];
+    '--dartdevc-module-format=ddc',
+    '--dartdevc-canary',
+    '--platform=$ddcPlatformDillFromSdkRoot',
+    '--target=dartdevc',
+  ];
 
   @override
   Future<bool> compileGeneration(
-      HotReloadTest test,
-      int generation,
-      Directory outputDirectory,
-      List<String> updatedFiles,
-      HotReloadFrontendServerController controller) async {
+    HotReloadTest test,
+    int generation,
+    Directory outputDirectory,
+    List<String> updatedFiles,
+    HotReloadFrontendServerController controller,
+  ) async {
     // The first generation calls `compile`, but subsequent ones call
     // `recompile`.
     // Likewise, use the incremental output file for `recompile` calls.
     // TODO(nshahan): Sending compile/recompile instructions is likely
     // the same across backends and should be shared code.
     String outputDillPath;
-    _print('Compiling generation $generation with the Frontend Server.',
-        label: test.name);
+    _print(
+      'Compiling generation $generation with the Frontend Server.',
+      label: test.name,
+    );
     CompilerOutput compilerOutput;
     if (generation == 0) {
       _debugPrint(
-          'Compiling snapshot entrypoint: $snapshotEntrypointWithScheme',
-          label: test.name);
+        'Compiling snapshot entrypoint: $snapshotEntrypointWithScheme',
+        label: test.name,
+      );
       outputDillPath = outputDillUri.toFilePath();
-      compilerOutput =
-          await controller.sendCompile(snapshotEntrypointWithScheme);
+      compilerOutput = await controller.sendCompile(
+        snapshotEntrypointWithScheme,
+      );
     } else {
       _debugPrint(
-          'Recompiling snapshot entrypoint: $snapshotEntrypointWithScheme',
-          label: test.name);
+        'Recompiling snapshot entrypoint: $snapshotEntrypointWithScheme',
+        label: test.name,
+      );
       outputDillPath = outputIncrementalDillUri.toFilePath();
       compilerOutput = await controller.sendRecompile(
-          snapshotEntrypointWithScheme,
-          invalidatedFiles: updatedFiles,
-          recompileRestart: test.isHotRestart[generation]!);
+        snapshotEntrypointWithScheme,
+        invalidatedFiles: updatedFiles,
+        recompileRestart: test.isHotRestart[generation]!,
+      );
     }
     final expectedError = test.expectedErrors[generation];
     if (compilerOutput.errorCount > 0) {
@@ -1015,9 +1196,10 @@ abstract class DdcSuiteRunner extends HotReloadSuiteRunner {
         // If the failure was an expected rejection it is OK to continue
         // compiling generations and run the test.
         _debugPrint(
-            'DDC rejected generation $generation: '
-            '"${compilerOutput.outputText}"',
-            label: test.name);
+          'DDC rejected generation $generation: '
+          '"${compilerOutput.outputText}"',
+          label: test.name,
+        );
         // Remove the expected error from this test to avoid expecting it to
         // appear as a rejection at runtime.
         test.expectedErrors[generation] =
@@ -1026,9 +1208,10 @@ abstract class DdcSuiteRunner extends HotReloadSuiteRunner {
       } else {
         // Fail if the error was unexpected.
         await reportTestOutcome(
-            test.name,
-            'Test failed with compile error: ${compilerOutput.outputText}',
-            false);
+          test.name,
+          'Test failed with compile error: ${compilerOutput.outputText}',
+          false,
+        );
         return false;
       }
     } else {
@@ -1038,30 +1221,42 @@ abstract class DdcSuiteRunner extends HotReloadSuiteRunner {
     if (expectedError != null) {
       // A rejection error was expected but not seen.
       await reportTestOutcome(
-          test.name,
-          'Missing rejection for generation $generation. '
-          'Expected: "$expectedError"',
-          false);
+        test.name,
+        'Missing rejection for generation $generation. '
+        'Expected: "$expectedError"',
+        false,
+      );
       return false;
     }
     _debugPrint(
-        'Frontend Server successfully compiled outputs to: '
-        '$outputDillPath',
-        label: test.name);
-    _debugPrint('Emitting JS code to ${outputDirectory.path}.',
-        label: test.name);
+      'Frontend Server successfully compiled outputs to: '
+      '$outputDillPath',
+      label: test.name,
+    );
+    _debugPrint(
+      'Emitting JS code to ${outputDirectory.path}.',
+      label: test.name,
+    );
     // Update the memory filesystem with the newly-created JS files.
-    _print('Loading generation $generation files into the memory filesystem.',
-        label: test.name);
+    _print(
+      'Loading generation $generation files into the memory filesystem.',
+      label: test.name,
+    );
     final codeFile = File('$outputDillPath.sources');
     final manifestFile = File('$outputDillPath.json');
     final sourcemapFile = File('$outputDillPath.map');
-    filesystem!.update(codeFile, manifestFile, sourcemapFile,
-        generation: '$generation');
+    filesystem!.update(
+      codeFile,
+      manifestFile,
+      sourcemapFile,
+      generation: '$generation',
+    );
     // Write JS files and sourcemaps to their respective generation.
     _print('Writing generation $generation assets.', label: test.name);
-    _debugPrint('Writing JS assets to ${outputDirectory.path}',
-        label: test.name);
+    _debugPrint(
+      'Writing JS assets to ${outputDirectory.path}',
+      label: test.name,
+    );
     filesystem!.writeToDisk(outputDirectory.uri, generation: '$generation');
     return true;
   }
@@ -1074,10 +1269,14 @@ class D8SuiteRunner extends DdcSuiteRunner {
 
   @override
   Future<bool> runTest(
-      HotReloadTest test, Directory tempDirectory, IOSink outputSink) async {
+    HotReloadTest test,
+    Directory tempDirectory,
+    IOSink outputSink,
+  ) async {
     _print('Creating D8 hot reload test suite.', label: test.name);
-    final bootstrapJSUri =
-        tempDirectory.uri.resolve('generation0/bootstrap.js');
+    final bootstrapJSUri = tempDirectory.uri.resolve(
+      'generation0/bootstrap.js',
+    );
     _print('Preparing to run D8 test.', label: test.name);
     final d8BootstrapJS = ddc_helpers.generateD8Bootstrapper(
       ddcModuleLoaderJsPath: escapedString(ddcModuleLoaderJSUri.toFilePath()),
@@ -1096,11 +1295,19 @@ class D8SuiteRunner extends DdcSuiteRunner {
     final process = await startProcess('D8', config.binary.toFilePath(), [
       config.sealNativeObjectScript.toFilePath(),
       config.preamblesScript.toFilePath(),
-      bootstrapJSFile.path
+      bootstrapJSFile.path,
     ]);
-    process.stdout.transform(utf8.decoder).transform(LineSplitter()).listen(
-        (line) => parseReloadReceipt(
-            test, line, reloadReceipts.add, outputSink.writeln));
+    process.stdout
+        .transform(utf8.decoder)
+        .transform(LineSplitter())
+        .listen(
+          (line) => parseReloadReceipt(
+            test,
+            line,
+            reloadReceipts.add,
+            outputSink.writeln,
+          ),
+        );
     return await process.exitCode == 0 &&
         reloadReceiptCheck(test, reloadReceipts);
   }
@@ -1113,7 +1320,10 @@ class ChromeSuiteRunner extends DdcSuiteRunner {
 
   @override
   Future<bool> runTest(
-      HotReloadTest test, Directory tempDirectory, IOSink outputSink) async {
+    HotReloadTest test,
+    Directory tempDirectory,
+    IOSink outputSink,
+  ) async {
     // TODO(markzipan): Chrome tests are currently only configured for
     // debugging a single test instance. This is due to:
     // 1) Our tests not capturing test success/failure signals. These must be
@@ -1122,14 +1332,18 @@ class ChromeSuiteRunner extends DdcSuiteRunner {
     // 2) Chrome not closing after a test. We need to add logic to detect when
     //    to either shut down Chrome or load the next test (reusing instances).
     _print('Creating Chrome hot reload test suite.', label: test.name);
-    final mainEntrypointJSUri =
-        tempDirectory.uri.resolve('generation0/main_module.bootstrap.js');
-    final bootstrapJSUri =
-        tempDirectory.uri.resolve('generation0/bootstrap.js');
-    final bootstrapHtmlUri =
-        tempDirectory.uri.resolve('generation0/index.html');
+    final mainEntrypointJSUri = tempDirectory.uri.resolve(
+      'generation0/main_module.bootstrap.js',
+    );
+    final bootstrapJSUri = tempDirectory.uri.resolve(
+      'generation0/bootstrap.js',
+    );
+    final bootstrapHtmlUri = tempDirectory.uri.resolve(
+      'generation0/index.html',
+    );
     _print('Preparing to run Chrome test.', label: test.name);
-    var bootstrapHtml = '''
+    var bootstrapHtml =
+        '''
       <html>
           <head>
               <base href="/">
@@ -1139,23 +1353,28 @@ class ChromeSuiteRunner extends DdcSuiteRunner {
           </body>
       </html>
     ''';
-    final entrypointLibraryExportName =
-        ddc_names.libraryUriToJsIdentifier(snapshotEntrypointUri);
-    final (chromeMainEntrypointJS, chromeBootstrapJS) =
-        ddc_helpers.generateChromeBootstrapperFiles(
+    final entrypointLibraryExportName = ddc_names.libraryUriToJsIdentifier(
+      snapshotEntrypointUri,
+    );
+    final (
+      chromeMainEntrypointJS,
+      chromeBootstrapJS,
+    ) = ddc_helpers.generateChromeBootstrapperFiles(
       ddcModuleLoaderJsPath: escapedString(ddcModuleLoaderJSUri.toFilePath()),
       dartSdkJsPath: escapedString(dartSdkJSUri.toFilePath()),
       entrypointModuleName: escapedString(entrypointModuleName),
-      mainModuleEntrypointJsPath:
-          escapedString(mainEntrypointJSUri.toFilePath()),
+      mainModuleEntrypointJsPath: escapedString(
+        mainEntrypointJSUri.toFilePath(),
+      ),
       entrypointLibraryExportName: escapedString(entrypointLibraryExportName),
       scriptDescriptors: filesystem!.scriptDescriptorForBootstrap,
       modifiedFilesPerGeneration: filesystem!.generationsToModifiedFilePaths,
     );
     _debugPrint(
-        'Writing Chrome bootstrap files: '
-        '$mainEntrypointJSUri, $bootstrapJSUri, $bootstrapHtmlUri',
-        label: test.name);
+      'Writing Chrome bootstrap files: '
+      '$mainEntrypointJSUri, $bootstrapJSUri, $bootstrapHtmlUri',
+      label: test.name,
+    );
     File.fromUri(mainEntrypointJSUri).writeAsStringSync(chromeMainEntrypointJS);
     File.fromUri(bootstrapJSUri).writeAsStringSync(chromeBootstrapJS);
     final bootstrapHtmlFile = File.fromUri(bootstrapHtmlUri)
@@ -1165,77 +1384,88 @@ class ChromeSuiteRunner extends DdcSuiteRunner {
     final config = ddc_helpers.ChromeConfiguration(sdkRoot);
     // Specifying '--user-data-dir' forces Chrome to not reuse an instance.
     final chromeDataDir = Directory.systemTemp.createTempSync();
-    final process = await startProcess('Chrome', config.binary.toFilePath(), [
-      '--no-first-run',
-      '--no-default-browser-check',
-      '--allow-file-access-from-files',
-      '--user-data-dir=${chromeDataDir.path}',
-      '--disable-default-apps',
-      '--disable-translate',
-      // These two flags are used to get the Chrome process to output messages
-      // to stderr so we can read the console.log messages.
-      // TODO(nshahan): Update if there is an easier way to get console.log
-      // messages.
-      '--enable-logging=stderr',
-      '--v=1',
-      bootstrapHtmlFile.path,
-    ]).then((process) {
-      StreamSubscription stdoutSubscription;
-      StreamSubscription stderrSubscription;
-      // The console.log messages in the output are prefixed with a header like:
-      // [42029:259:1126/154323.385793:INFO:CONSOLE(27547)]
-      final chromeConsoleLog = RegExp(
-          // Line starts with digits separated by ":", "." or "\"."
-          r'^\[[\d:\.\/]+'
-          // Followed by a console tag then digits in parenthesis and a space.
-          r':INFO:CONSOLE\(\d+\)\] '
-          // Followed by the logged message in quotes.
-          r'"(?<consoleLog>.+)"'
-          // Followed by a comma and the source location.
-          r', source:.+$');
+    final process =
+        await startProcess('Chrome', config.binary.toFilePath(), [
+          '--no-first-run',
+          '--no-default-browser-check',
+          '--allow-file-access-from-files',
+          '--user-data-dir=${chromeDataDir.path}',
+          '--disable-default-apps',
+          '--disable-translate',
+          // These two flags are used to get the Chrome process to output messages
+          // to stderr so we can read the console.log messages.
+          // TODO(nshahan): Update if there is an easier way to get console.log
+          // messages.
+          '--enable-logging=stderr',
+          '--v=1',
+          bootstrapHtmlFile.path,
+        ]).then((process) {
+          StreamSubscription stdoutSubscription;
+          StreamSubscription stderrSubscription;
+          // The console.log messages in the output are prefixed with a header like:
+          // [42029:259:1126/154323.385793:INFO:CONSOLE(27547)]
+          final chromeConsoleLog = RegExp(
+            // Line starts with digits separated by ":", "." or "\"."
+            r'^\[[\d:\.\/]+'
+            // Followed by a console tag then digits in parenthesis and a space.
+            r':INFO:CONSOLE\(\d+\)\] '
+            // Followed by the logged message in quotes.
+            r'"(?<consoleLog>.+)"'
+            // Followed by a comma and the source location.
+            r', source:.+$',
+          );
 
-      var stdoutDone = Completer<void>();
-      var stderrDone = Completer<void>();
+          var stdoutDone = Completer<void>();
+          var stderrDone = Completer<void>();
 
-      void closeStdout([_]) {
-        if (!stdoutDone.isCompleted) stdoutDone.complete();
-      }
+          void closeStdout([_]) {
+            if (!stdoutDone.isCompleted) stdoutDone.complete();
+          }
 
-      void closeStderr([_]) {
-        if (!stderrDone.isCompleted) stderrDone.complete();
-      }
+          void closeStderr([_]) {
+            if (!stderrDone.isCompleted) stderrDone.complete();
+          }
 
-      stdoutSubscription = process.stdout
-          .listen((data) => outputSink.addStream, onDone: closeStderr);
+          stdoutSubscription = process.stdout.listen(
+            (data) => outputSink.addStream,
+            onDone: closeStderr,
+          );
 
-      stderrSubscription = process.stderr
-          .transform(utf8.decoder)
-          .transform(LineSplitter())
-          .listen((rawLine) {
-        final matches = chromeConsoleLog.allMatches(rawLine);
-        // Only considering lines that match the chrome console log format.
-        // All other output is discarded here because the logging is very
-        // chatty.
-        if (matches.isNotEmpty) {
-          final line = matches.single.namedGroup('consoleLog')!;
-          parseReloadReceipt(
-              test, line, reloadReceipts.add, outputSink.writeln);
-        }
-      }, onDone: closeStderr);
+          stderrSubscription = process.stderr
+              .transform(utf8.decoder)
+              .transform(LineSplitter())
+              .listen((rawLine) {
+                final matches = chromeConsoleLog.allMatches(rawLine);
+                // Only considering lines that match the chrome console log format.
+                // All other output is discarded here because the logging is very
+                // chatty.
+                if (matches.isNotEmpty) {
+                  final line = matches.single.namedGroup('consoleLog')!;
+                  parseReloadReceipt(
+                    test,
+                    line,
+                    reloadReceipts.add,
+                    outputSink.writeln,
+                  );
+                }
+              }, onDone: closeStderr);
 
-      process.exitCode.then((exitCode) {
-        stdoutSubscription.cancel();
-        stderrSubscription.cancel();
-        closeStdout();
-        closeStderr();
-      });
+          process.exitCode.then((exitCode) {
+            stdoutSubscription.cancel();
+            stderrSubscription.cancel();
+            closeStdout();
+            closeStderr();
+          });
 
-      Future.wait([stdoutDone.future, stderrDone.future]).then((_) {
-        _debugPrint('Chrome process successfully shut down.', label: test.name);
-      });
+          Future.wait([stdoutDone.future, stderrDone.future]).then((_) {
+            _debugPrint(
+              'Chrome process successfully shut down.',
+              label: test.name,
+            );
+          });
 
-      return process;
-    });
+          return process;
+        });
 
     return await process.exitCode == 0 &&
         reloadReceiptCheck(test, reloadReceipts);
@@ -1246,8 +1476,9 @@ class ChromeSuiteRunner extends DdcSuiteRunner {
     // Only allow Chrome when debugging a single test.
     // TODO(markzipan): Add support for full Chrome testing.
     if (options.runtime == RuntimePlatforms.chrome) {
-      var matchingTests =
-          Directory.fromUri(allTestsUri).listSync().where((testDir) {
+      var matchingTests = Directory.fromUri(allTestsUri).listSync().where((
+        testDir,
+      ) {
         if (testDir is! Directory) return false;
         final testDirParts = testDir.uri.pathSegments;
         final testName = testDirParts[testDirParts.length - 2];
@@ -1255,8 +1486,10 @@ class ChromeSuiteRunner extends DdcSuiteRunner {
       });
 
       if (matchingTests.length > 1) {
-        throw Exception('Chrome is only supported when debugging a single test.'
-            "Please filter on a single test with '-f'.");
+        throw Exception(
+          'Chrome is only supported when debugging a single test.'
+          "Please filter on a single test with '-f'.",
+        );
       }
     }
     await super.runSuite(options);
@@ -1265,52 +1498,62 @@ class ChromeSuiteRunner extends DdcSuiteRunner {
 
 /// Hot reload test suite runner for behavior specific to the VM.
 class VMSuiteRunner extends HotReloadSuiteRunner {
-  final String vmPlatformDillFromSdkRoot = fe_shared.relativizeUri(sdkRoot,
-      buildRootUri.resolve('vm_platform_strong.dill'), fe_shared.isWindows);
+  final String vmPlatformDillFromSdkRoot = fe_shared.relativizeUri(
+    sdkRoot,
+    buildRootUri.resolve('vm_platform_strong.dill'),
+    fe_shared.isWindows,
+  );
 
   VMSuiteRunner(super.options);
 
   @override
   List<String> get platformFrontEndServerArgs => [
-        '--platform=$vmPlatformDillFromSdkRoot',
-        '--target=vm',
-      ];
+    '--platform=$vmPlatformDillFromSdkRoot',
+    '--target=vm',
+  ];
 
   @override
   Future<bool> compileGeneration(
-      HotReloadTest test,
-      int generation,
-      Directory outputDirectory,
-      List<String> updatedFiles,
-      HotReloadFrontendServerController controller) async {
+    HotReloadTest test,
+    int generation,
+    Directory outputDirectory,
+    List<String> updatedFiles,
+    HotReloadFrontendServerController controller,
+  ) async {
     // The first generation calls `compile`, but subsequent ones call
     // `recompile`.
     // Likewise, use the incremental output directory for `recompile` calls.
     // TODO(nshahan): Sending compile/recompile instructions is likely
     // the same across backends and should be shared code.
     String outputDillPath;
-    _print('Compiling generation $generation with the Frontend Server.',
-        label: test.name);
+    _print(
+      'Compiling generation $generation with the Frontend Server.',
+      label: test.name,
+    );
     CompilerOutput compilerOutput;
     if (generation == 0) {
       _debugPrint(
-          'Compiling snapshot entrypoint: $snapshotEntrypointWithScheme',
-          label: test.name);
+        'Compiling snapshot entrypoint: $snapshotEntrypointWithScheme',
+        label: test.name,
+      );
       outputDillPath = outputDillUri.toFilePath();
-      compilerOutput =
-          await controller.sendCompile(snapshotEntrypointWithScheme);
+      compilerOutput = await controller.sendCompile(
+        snapshotEntrypointWithScheme,
+      );
     } else {
       _debugPrint(
-          'Recompiling snapshot entrypoint: $snapshotEntrypointWithScheme',
-          label: test.name);
+        'Recompiling snapshot entrypoint: $snapshotEntrypointWithScheme',
+        label: test.name,
+      );
       outputDillPath = outputIncrementalDillUri.toFilePath();
       // TODO(markzipan): Add logic to reject bad compiles.
       compilerOutput = await controller.sendRecompile(
-          snapshotEntrypointWithScheme,
-          invalidatedFiles: updatedFiles,
-          // The VM never uses the `recompile-restart` instruction as it does
-          // not recompile during a hot restart.
-          recompileRestart: false);
+        snapshotEntrypointWithScheme,
+        invalidatedFiles: updatedFiles,
+        // The VM never uses the `recompile-restart` instruction as it does
+        // not recompile during a hot restart.
+        recompileRestart: false,
+      );
     }
     var hasExpectedCompileError = false;
     final expectedError = test.expectedErrors[generation];
@@ -1322,18 +1565,20 @@ class VMSuiteRunner extends HotReloadSuiteRunner {
           compilerOutput.outputText.contains(expectedError)) {
         hasExpectedCompileError = true;
         _debugPrint(
-            'VM rejected generation $generation: '
-            '"${compilerOutput.outputText}"',
-            label: test.name);
+          'VM rejected generation $generation: '
+          '"${compilerOutput.outputText}"',
+          label: test.name,
+        );
         // Remove the expected error from this test to avoid expecting it to
         // appear as a rejection at runtime.
         test.expectedErrors[generation] =
             HotReloadReceipt.compileTimeErrorMessage;
       } else {
         await reportTestOutcome(
-            test.name,
-            'Test failed with compile error: ${compilerOutput.outputText}',
-            false);
+          test.name,
+          'Test failed with compile error: ${compilerOutput.outputText}',
+          false,
+        );
         return false;
       }
     } else if (test.expectedErrors.containsKey(generation)) {
@@ -1343,17 +1588,21 @@ class VMSuiteRunner extends HotReloadSuiteRunner {
       // accepted generation. The actual rejections will be validated when the
       // test runs on the VM.
       await controller.sendReject();
-      _debugPrint('VM compile automatically rejected generation: $generation.',
-          label: test.name);
+      _debugPrint(
+        'VM compile automatically rejected generation: $generation.',
+        label: test.name,
+      );
     } else {
       controller.sendAccept();
     }
     _debugPrint(
-        'Frontend Server successfully compiled outputs to: '
-        '$outputDillPath',
-        label: test.name);
-    final dillOutputDir =
-        Directory.fromUri(outputDirectory.uri.resolve('generation$generation'));
+      'Frontend Server successfully compiled outputs to: '
+      '$outputDillPath',
+      label: test.name,
+    );
+    final dillOutputDir = Directory.fromUri(
+      outputDirectory.uri.resolve('generation$generation'),
+    );
     dillOutputDir.createSync();
     // Write an .error.dill file as a signal to the runtime utils that this
     // generation contains compile time errors and should not be reloaded.
@@ -1362,17 +1611,23 @@ class VMSuiteRunner extends HotReloadSuiteRunner {
         : dillOutputDir.uri.resolve('${test.name}.dill');
     // Write dills to their respective generation.
     _print('Writing generation $generation assets.', label: test.name);
-    _debugPrint('Writing dill to ${dillOutputUri.toFilePath()}',
-        label: test.name);
+    _debugPrint(
+      'Writing dill to ${dillOutputUri.toFilePath()}',
+      label: test.name,
+    );
     File(outputDillPath).copySync(dillOutputUri.toFilePath());
     return true;
   }
 
   @override
   Future<bool> runTest(
-      HotReloadTest test, Directory tempDirectory, IOSink outputSink) async {
-    final firstGenerationDillUri =
-        tempDirectory.uri.resolve('generation0/${test.name}.dill');
+    HotReloadTest test,
+    Directory tempDirectory,
+    IOSink outputSink,
+  ) async {
+    final firstGenerationDillUri = tempDirectory.uri.resolve(
+      'generation0/${test.name}.dill',
+    );
     // Start the VM at generation 0.
     final vmArgs = [
       '--enable-vm-service=0', // 0 avoids port collisions.
@@ -1381,40 +1636,39 @@ class VMSuiteRunner extends HotReloadSuiteRunner {
       firstGenerationDillUri.toFilePath(),
     ];
     _debugPrint(
-        'Starting VM with command: '
-        '${Platform.executable} ${vmArgs.join(" ")}',
-        label: test.name);
+      'Starting VM with command: '
+      '${Platform.executable} ${vmArgs.join(" ")}',
+      label: test.name,
+    );
     final reloadReceipts = <HotReloadReceipt>[];
     final vm = await Process.start(Platform.executable, vmArgs);
     vm.stdout
         .transform(utf8.decoder)
         .transform(LineSplitter())
-        .listen((line) => parseReloadReceipt(
-              test,
-              line,
-              reloadReceipts.add,
-              (line) {
-                _debugPrint('VM stdout: $line', label: test.name);
-                outputSink.writeln(line);
-              },
-            ));
-    vm.stderr
-        .transform(utf8.decoder)
-        .transform(LineSplitter())
-        .listen((String err) {
+        .listen(
+          (line) => parseReloadReceipt(test, line, reloadReceipts.add, (line) {
+            _debugPrint('VM stdout: $line', label: test.name);
+            outputSink.writeln(line);
+          }),
+        );
+    vm.stderr.transform(utf8.decoder).transform(LineSplitter()).listen((
+      String err,
+    ) {
       _debugPrint('VM stderr: $err', label: test.name);
       outputSink.writeln(err);
     });
     _print('Executing VM test.', label: test.name);
     final testTimeoutSeconds = 10;
-    final vmExitCode = await vm.exitCode
-        .timeout(Duration(seconds: testTimeoutSeconds), onTimeout: () {
-      final timeoutText = 'Test timed out after $testTimeoutSeconds seconds.';
-      _print(timeoutText, label: test.name);
-      outputSink.writeln(timeoutText);
-      vm.kill();
-      return 1;
-    });
+    final vmExitCode = await vm.exitCode.timeout(
+      Duration(seconds: testTimeoutSeconds),
+      onTimeout: () {
+        final timeoutText = 'Test timed out after $testTimeoutSeconds seconds.';
+        _print(timeoutText, label: test.name);
+        outputSink.writeln(timeoutText);
+        vm.kill();
+        return 1;
+      },
+    );
     return vmExitCode == 0 && reloadReceiptCheck(test, reloadReceipts);
   }
 }

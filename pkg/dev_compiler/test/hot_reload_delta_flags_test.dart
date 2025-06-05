@@ -37,9 +37,9 @@ void main() {
 ''';
 
 String _resolvePath(String executableRelativePath) {
-  return Uri.file(Platform.resolvedExecutable)
-      .resolve(executableRelativePath)
-      .toFilePath();
+  return Uri.file(
+    Platform.resolvedExecutable,
+  ).resolve(executableRelativePath).toFilePath();
 }
 
 Future<void> main() async {
@@ -61,11 +61,16 @@ Future<void> main() async {
       tmp.deleteSync(recursive: true);
     });
 
-    void runDDC(List<String> flags, String programSource,
-        {String? expectError}) async {
+    void runDDC(
+      List<String> flags,
+      String programSource, {
+      String? expectError,
+    }) async {
       final sdkPath = p.dirname(Platform.executable);
-      final dartAotRuntime = p.absolute(sdkPath,
-          Platform.isWindows ? 'dartaotruntime.exe' : 'dartaotruntime');
+      final dartAotRuntime = p.absolute(
+        sdkPath,
+        Platform.isWindows ? 'dartaotruntime.exe' : 'dartaotruntime',
+      );
       final snapshotName = _resolvePath('snapshots/dartdevc_aot.dart.snapshot');
       final outlinePath = _resolvePath('../lib/_internal/ddc_outline.dill');
 
@@ -109,34 +114,42 @@ Future<void> main() async {
       expect(outputJs.statSync().size, isNonNegative);
     });
 
-    test('providing delta output and last accepted input flag valid change',
-        () {
-      runDDC(['--reload-delta-kernel=${lastAcceptedDill.path}'], program1);
-      expect(lastAcceptedDill.existsSync(), isTrue);
-      expect(lastAcceptedDill.statSync().size, isNonNegative);
+    test(
+      'providing delta output and last accepted input flag valid change',
+      () {
+        runDDC(['--reload-delta-kernel=${lastAcceptedDill.path}'], program1);
+        expect(lastAcceptedDill.existsSync(), isTrue);
+        expect(lastAcceptedDill.statSync().size, isNonNegative);
 
-      runDDC([
-        '--reload-last-accepted-kernel=${lastAcceptedDill.path}',
-        '--reload-delta-kernel=${deltaDill.path}'
-      ], program2Valid);
-      expect(lastAcceptedDill.existsSync(), isTrue);
-      expect(lastAcceptedDill.statSync().size, isNonNegative);
-      expect(deltaDill.existsSync(), isTrue);
-      expect(deltaDill.statSync().size, isNonNegative);
-      expect(outputJs.existsSync(), isTrue);
-      expect(outputJs.statSync().size, isNonNegative);
-    });
+        runDDC([
+          '--reload-last-accepted-kernel=${lastAcceptedDill.path}',
+          '--reload-delta-kernel=${deltaDill.path}',
+        ], program2Valid);
+        expect(lastAcceptedDill.existsSync(), isTrue);
+        expect(lastAcceptedDill.statSync().size, isNonNegative);
+        expect(deltaDill.existsSync(), isTrue);
+        expect(deltaDill.statSync().size, isNonNegative);
+        expect(outputJs.existsSync(), isTrue);
+        expect(outputJs.statSync().size, isNonNegative);
+      },
+    );
 
-    test('providing delta output and last accepted input flag invalid change',
-        () {
-      runDDC(['--reload-delta-kernel=${lastAcceptedDill.path}'], program1);
-      runDDC([
-        '--reload-last-accepted-kernel=${lastAcceptedDill.path}',
-        '--reload-delta-kernel=${deltaDill.path}'
-      ], program2Error, expectError: 'Const class cannot remove fields');
-      expect(lastAcceptedDill.existsSync(), isTrue);
-      expect(lastAcceptedDill.statSync().size, isNonNegative);
-      expect(deltaDill.existsSync(), isFalse);
-    });
+    test(
+      'providing delta output and last accepted input flag invalid change',
+      () {
+        runDDC(['--reload-delta-kernel=${lastAcceptedDill.path}'], program1);
+        runDDC(
+          [
+            '--reload-last-accepted-kernel=${lastAcceptedDill.path}',
+            '--reload-delta-kernel=${deltaDill.path}',
+          ],
+          program2Error,
+          expectError: 'Const class cannot remove fields',
+        );
+        expect(lastAcceptedDill.existsSync(), isTrue);
+        expect(lastAcceptedDill.statSync().size, isNonNegative);
+        expect(deltaDill.existsSync(), isFalse);
+      },
+    );
   });
 }

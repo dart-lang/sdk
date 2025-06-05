@@ -11,10 +11,7 @@ import 'expression_compiler_suite.dart';
 void main(List<String> args) {
   for (var moduleFormat in [ModuleFormat.amd, ModuleFormat.ddc]) {
     group('Module format: $moduleFormat |', () {
-      runTests(SetupCompilerOptions(
-        moduleFormat: moduleFormat,
-        args: args,
-      ));
+      runTests(SetupCompilerOptions(moduleFormat: moduleFormat, args: args));
     });
   }
 }
@@ -43,24 +40,27 @@ void runTests(SetupCompilerOptions setup) {
     test('successful expression compilations', () async {
       var compiler = await driver.createCompiler();
       await driver.check(
-          compiler: compiler,
-          scope: <String, String>{},
-          expression: 'true',
-          expectedResult: contains('return true;'));
+        compiler: compiler,
+        scope: <String, String>{},
+        expression: 'true',
+        expectedResult: contains('return true;'),
+      );
       await driver.check(
-          compiler: compiler,
-          scope: <String, String>{},
-          expression: 'false',
-          expectedResult: contains('return false;'));
+        compiler: compiler,
+        scope: <String, String>{},
+        expression: 'false',
+        expectedResult: contains('return false;'),
+      );
     });
 
     test('some successful expression compilations', () async {
       var compiler = await driver.createCompiler();
       await driver.check(
-          compiler: compiler,
-          scope: <String, String>{},
-          expression: 'true',
-          expectedResult: contains('return true;'));
+        compiler: compiler,
+        scope: <String, String>{},
+        expression: 'true',
+        expectedResult: contains('return true;'),
+      );
       await driver.check(
         compiler: compiler,
         scope: <String, String>{},
@@ -68,10 +68,11 @@ void runTests(SetupCompilerOptions setup) {
         expectedError: "Undefined name 'blah'",
       );
       await driver.check(
-          compiler: compiler,
-          scope: <String, String>{},
-          expression: 'false',
-          expectedResult: contains('return false;'));
+        compiler: compiler,
+        scope: <String, String>{},
+        expression: 'false',
+        expectedResult: contains('return false;'),
+      );
     });
 
     test('failing expression compilations', () async {
@@ -120,24 +121,29 @@ void runTests(SetupCompilerOptions setup) {
 
     test('expression referencing unnamed import', () async {
       await driver.check(
-          scope: <String, String>{},
-          expression: 'Directory.systemTemp',
-          expectedResult: contains('return io.Directory.systemTemp;'));
+        scope: <String, String>{},
+        expression: 'Directory.systemTemp',
+        expectedResult: contains('return io.Directory.systemTemp;'),
+      );
     });
 
     test('expression referencing named import', () async {
       await driver.check(
-          scope: <String, String>{},
-          expression: 'p.Directory.systemTemp',
-          expectedResult: contains('return io.Directory.systemTemp;'));
+        scope: <String, String>{},
+        expression: 'p.Directory.systemTemp',
+        expectedResult: contains('return io.Directory.systemTemp;'),
+      );
     });
 
-    test('expression referencing another library with the same named import',
-        () async {
-      await driver.check(
+    test(
+      'expression referencing another library with the same named import',
+      () async {
+        await driver.check(
           scope: <String, String>{},
           expression: 'p.utf8.decoder',
-          expectedResult: contains('return convert.utf8.decoder;'));
-    });
+          expectedResult: contains('return convert.utf8.decoder;'),
+        );
+      },
+    );
   });
 }

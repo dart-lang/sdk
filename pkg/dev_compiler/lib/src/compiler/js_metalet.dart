@@ -100,8 +100,10 @@ class MetaLet extends Expression {
     // Because `x` is a declaration, we know it is safe to move.
     // (see also _toAssign)
     var statements = body
-        .map((e) =>
-            e == body.last ? e.toVariableDeclaration(name) : e.toStatement())
+        .map(
+          (e) =>
+              e == body.last ? e.toVariableDeclaration(name) : e.toStatement(),
+        )
         .toList();
     return _finishStatement(statements);
   }
@@ -170,10 +172,13 @@ class MetaLet extends Expression {
     var bodyInstantiators = body.map(visitor.visit);
 
     return (args) => MetaLet(
-        Map.fromIterables(variables.keys,
-            valueInstantiators.map((i) => i(args) as Expression)),
-        bodyInstantiators.map((i) => i(args) as Expression).toList(),
-        statelessResult: statelessResult);
+      Map.fromIterables(
+        variables.keys,
+        valueInstantiators.map((i) => i(args) as Expression),
+      ),
+      bodyInstantiators.map((i) => i(args) as Expression).toList(),
+      statelessResult: statelessResult,
+    );
   }
 
   Expression _toInvokedFunction(Block block) {
@@ -216,7 +221,7 @@ class MetaLet extends Expression {
         initializers.length == 1
             ? first.value!.toVariableDeclaration(first.declaration)
             : VariableDeclarationList('let', initializers).toStatement(),
-        node
+        node,
       ]);
     }
     return node;
@@ -235,8 +240,11 @@ class MetaLet extends Expression {
   ///
   ///     result = ((_) => _.addAll(result), _.add(2), _)([])
   ///
-  MetaLet? _simplifyAssignment(Identifier left,
-      {String? op, bool isDeclaration = false}) {
+  MetaLet? _simplifyAssignment(
+    Identifier left, {
+    String? op,
+    bool isDeclaration = false,
+  }) {
     // See if the result value is a let* temporary variable.
     var result = body.last;
     if (result is MetaLetVariable && variables.containsKey(result)) {
@@ -251,8 +259,9 @@ class MetaLet extends Expression {
         // Technically, putting one of these in a comma expression is not
         // legal. However when isDeclaration is true, toStatement will be
         // called immediately on the MetaLet, which results in legal JS.
-        assign = VariableDeclarationList(
-            'let', [VariableInitialization(left, value)]);
+        assign = VariableDeclarationList('let', [
+          VariableInitialization(left, value),
+        ]);
       } else {
         assign = value.toAssignExpression(left, op);
       }
@@ -260,8 +269,11 @@ class MetaLet extends Expression {
       assert(body.isNotEmpty);
       var newBody = Expression.binary([assign, ...body], ',') as Binary;
       newBody = _substitute(newBody, {result: left});
-      return MetaLet(vars, newBody.commaToExpressionList(),
-          statelessResult: statelessResult);
+      return MetaLet(
+        vars,
+        newBody.commaToExpressionList(),
+        statelessResult: statelessResult,
+      );
     }
     return null;
   }
@@ -269,15 +281,20 @@ class MetaLet extends Expression {
 
 /// Similar to [Template.instantiate] but works with free variables.
 T _substitute<T extends Node>(
-    T tree, Map<MetaLetVariable, Expression> substitutions) {
+  T tree,
+  Map<MetaLetVariable, Expression> substitutions,
+) {
   var generator = InstantiatorGeneratorVisitor(/*forceCopy:*/ false);
   var instantiator = generator.compile(tree);
   var nodes = List<MetaLetVariable>.from(
-      generator.analysis.containsInterpolatedNode.whereType<MetaLetVariable>());
+    generator.analysis.containsInterpolatedNode.whereType<MetaLetVariable>(),
+  );
   if (nodes.isEmpty) return tree;
 
-  return instantiator(
-      {for (var v in nodes) v.nameOrPosition: substitutions[v] ?? v}) as T;
+  return instantiator({
+        for (var v in nodes) v.nameOrPosition: substitutions[v] ?? v,
+      })
+      as T;
 }
 
 /// A temporary variable used in a [MetaLet].

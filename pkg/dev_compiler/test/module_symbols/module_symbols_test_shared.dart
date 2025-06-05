@@ -35,10 +35,11 @@ class TestCompiler {
     var moduleName = 'foo.dart';
     var classHierarchy = compilerResult.classHierarchy;
     var compilerOptions = Options(
-        replCompile: true,
-        moduleName: moduleName,
-        moduleFormats: [setup.moduleFormat],
-        emitDebugSymbols: true);
+      replCompile: true,
+      moduleName: moduleName,
+      moduleFormats: [setup.moduleFormat],
+      emitDebugSymbols: true,
+    );
     var coreTypes = compilerResult.coreTypes;
 
     final importToSummary = Map<Library, Component>.identity();
@@ -49,16 +50,24 @@ class TestCompiler {
     summaryToModule[component] = moduleName;
 
     // Compile Kernel AST to JS AST.
-    var kernel2jsCompiler = ProgramCompiler(component, classHierarchy,
-        compilerOptions, importToSummary, summaryToModule,
-        coreTypes: coreTypes);
+    var kernel2jsCompiler = ProgramCompiler(
+      component,
+      classHierarchy,
+      compilerOptions,
+      importToSummary,
+      summaryToModule,
+      coreTypes: coreTypes,
+    );
     var moduleTree = kernel2jsCompiler.emitModule(component);
 
     // Compile JS AST to code.
-    return jsProgramToCode(moduleTree, ModuleFormat.amd,
-        emitDebugSymbols: true,
-        compiler: kernel2jsCompiler,
-        component: component);
+    return jsProgramToCode(
+      moduleTree,
+      ModuleFormat.amd,
+      emitDebugSymbols: true,
+      compiler: kernel2jsCompiler,
+      component: component,
+    );
   }
 }
 
@@ -93,8 +102,9 @@ class TestDriver {
   }
 
   Future<ModuleSymbols> compileAndGetSymbols() async {
-    var result =
-        await TestCompiler(options).compile(input: input, packages: packages);
+    var result = await TestCompiler(
+      options,
+    ).compile(input: input, packages: packages);
     var symbols = result.symbols;
     if (symbols == null) {
       throw Exception('No symbols found in compilation result.');

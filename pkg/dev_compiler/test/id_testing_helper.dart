@@ -41,76 +41,98 @@ class DdcTestResultData
 }
 
 /// Base class for computing id-test data from a DDC compilation.
-abstract class DdcDataComputer<T> extends DataComputer<T, TestConfig,
-    MemoryCompilerResult, DdcTestResultData> {
+abstract class DdcDataComputer<T>
+    extends
+        DataComputer<T, TestConfig, MemoryCompilerResult, DdcTestResultData> {
   const DdcDataComputer();
 }
 
 /// Creates a test runner for [dataComputer] on [testedConfigs].
 RunTestFunction<T> runTestFor<T>(
-    DdcDataComputer<T> dataComputer, List<DdcTestConfig> testedConfigs) {
-  return (MarkerOptions markerOptions, TestData testData,
-      {required bool testAfterFailures,
-      required bool verbose,
-      required bool succinct,
-      required bool printCode,
-      Map<String, List<String>>? skipMap,
-      required Uri nullUri}) {
-    return runTest(markerOptions, testData, dataComputer, testedConfigs,
-        testAfterFailures: testAfterFailures,
-        verbose: verbose,
-        succinct: succinct,
-        printCode: printCode,
-        onFailure: onFailure,
-        skipMap: skipMap,
-        nullUri: nullUri);
+  DdcDataComputer<T> dataComputer,
+  List<DdcTestConfig> testedConfigs,
+) {
+  return (
+    MarkerOptions markerOptions,
+    TestData testData, {
+    required bool testAfterFailures,
+    required bool verbose,
+    required bool succinct,
+    required bool printCode,
+    Map<String, List<String>>? skipMap,
+    required Uri nullUri,
+  }) {
+    return runTest(
+      markerOptions,
+      testData,
+      dataComputer,
+      testedConfigs,
+      testAfterFailures: testAfterFailures,
+      verbose: verbose,
+      succinct: succinct,
+      printCode: printCode,
+      onFailure: onFailure,
+      skipMap: skipMap,
+      nullUri: nullUri,
+    );
   };
 }
 
 /// Runs [dataComputer] on [testData] for each [testedConfigs].
 Future<Map<String, TestResult<T>>> runTest<T>(
-    MarkerOptions markerOptions,
-    TestData testData,
-    DdcDataComputer<T> dataComputer,
-    List<DdcTestConfig> testedConfigs,
-    {required bool testAfterFailures,
-    required bool verbose,
-    required bool succinct,
-    required bool printCode,
-    bool forUserLibrariesOnly = true,
-    Iterable<Id> globalIds = const <Id>[],
-    required void Function(String message) onFailure,
-    Map<String, List<String>>? skipMap,
-    required Uri nullUri}) async {
+  MarkerOptions markerOptions,
+  TestData testData,
+  DdcDataComputer<T> dataComputer,
+  List<DdcTestConfig> testedConfigs, {
+  required bool testAfterFailures,
+  required bool verbose,
+  required bool succinct,
+  required bool printCode,
+  bool forUserLibrariesOnly = true,
+  Iterable<Id> globalIds = const <Id>[],
+  required void Function(String message) onFailure,
+  Map<String, List<String>>? skipMap,
+  required Uri nullUri,
+}) async {
   var results = <String, TestResult<T>>{};
   for (var config in testedConfigs) {
     results[config.marker] = await runTestForConfig(
-        markerOptions, testData, dataComputer, config,
-        fatalErrors: !testAfterFailures,
-        onFailure: onFailure,
-        verbose: verbose,
-        succinct: succinct,
-        printCode: printCode,
-        nullUri: nullUri);
+      markerOptions,
+      testData,
+      dataComputer,
+      config,
+      fatalErrors: !testAfterFailures,
+      onFailure: onFailure,
+      verbose: verbose,
+      succinct: succinct,
+      printCode: printCode,
+      nullUri: nullUri,
+    );
   }
   return results;
 }
 
 /// Computes the [TestResult] for running [dataComputer] on [testData] for
 /// the given test [config].
-Future<TestResult<T>> runTestForConfig<T>(MarkerOptions markerOptions,
-    TestData testData, DdcDataComputer<T> dataComputer, DdcTestConfig config,
-    {required bool fatalErrors,
-    required bool verbose,
-    required bool succinct,
-    required bool printCode,
-    bool forUserLibrariesOnly = true,
-    Iterable<Id> globalIds = const <Id>[],
-    required void Function(String message) onFailure,
-    required Uri nullUri}) async {
+Future<TestResult<T>> runTestForConfig<T>(
+  MarkerOptions markerOptions,
+  TestData testData,
+  DdcDataComputer<T> dataComputer,
+  DdcTestConfig config, {
+  required bool fatalErrors,
+  required bool verbose,
+  required bool succinct,
+  required bool printCode,
+  bool forUserLibrariesOnly = true,
+  Iterable<Id> globalIds = const <Id>[],
+  required void Function(String message) onFailure,
+  required Uri nullUri,
+}) async {
   var result = await compileFromMemory(
-      testData.memorySourceFiles, testData.entryPoint,
-      explicitExperimentalFlags: config.experimentalFlags);
+    testData.memorySourceFiles,
+    testData.entryPoint,
+    explicitExperimentalFlags: config.experimentalFlags,
+  );
 
   var errors = <FormattedMessage>[];
   for (var error in result.errors) {
@@ -120,12 +142,17 @@ Future<TestResult<T>> runTestForConfig<T>(MarkerOptions markerOptions,
   }
   var testResultData = DdcTestResultData(config, result);
   return processCompiledResult(
-      markerOptions, testData, dataComputer, testResultData, errors,
-      fatalErrors: fatalErrors,
-      verbose: verbose,
-      succinct: succinct,
-      onFailure: onFailure,
-      nullUri: nullUri);
+    markerOptions,
+    testData,
+    dataComputer,
+    testResultData,
+    errors,
+    fatalErrors: fatalErrors,
+    verbose: verbose,
+    succinct: succinct,
+    onFailure: onFailure,
+    nullUri: nullUri,
+  );
 }
 
 /// Base class for extracting AST-based test data from a DDC compilation.
@@ -142,6 +169,10 @@ class DdcDataExtractor<T> extends DataExtractor<T> {
   @override
   void report(Uri uri, int offset, String message) {
     printMessageInLocation(
-        compilerResult.ddcResult.component.uriToSource, uri, offset, message);
+      compilerResult.ddcResult.component.uriToSource,
+      uri,
+      offset,
+      message,
+    );
   }
 }

@@ -20,13 +20,16 @@ class JSTypeRep extends SharedJSTypeRep<DartType> {
   final Class _jsString;
 
   JSTypeRep(this.types, this.hierarchy)
-      : coreTypes = types.coreTypes,
-        _jsBool =
-            types.coreTypes.index.getClass('dart:_interceptors', 'JSBool'),
-        _jsNumber =
-            types.coreTypes.index.getClass('dart:_interceptors', 'JSNumber'),
-        _jsString =
-            types.coreTypes.index.getClass('dart:_interceptors', 'JSString');
+    : coreTypes = types.coreTypes,
+      _jsBool = types.coreTypes.index.getClass('dart:_interceptors', 'JSBool'),
+      _jsNumber = types.coreTypes.index.getClass(
+        'dart:_interceptors',
+        'JSNumber',
+      ),
+      _jsString = types.coreTypes.index.getClass(
+        'dart:_interceptors',
+        'JSString',
+      );
 
   @override
   JSType typeFor(DartType type) {

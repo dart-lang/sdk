@@ -1099,6 +1099,21 @@ class [!A!] {}
     await testContents(contents);
   }
 
+  Future<void> test_unexisting_implicit_new_constructor() async {
+    var contents = '''
+class [!A!] {
+  A.constructor();
+}
+
+void f() {
+  // ignore: new_with_undefined_constructor_default
+  A^();
+}
+''';
+
+    await testContents(contents);
+  }
+
   Future<void> test_unopenFile() async {
     var contents = '''
 [!foo!]() {

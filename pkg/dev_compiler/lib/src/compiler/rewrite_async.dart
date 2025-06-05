@@ -157,17 +157,23 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
   /// [bodyPrefix] will get prepended to the body of the rewritten function and
   /// any references to parameters within it will be replaced with the correct
   /// temporary ID for that parameter.
-  js_ast.Fun rewrite(js_ast.Fun node, Object? bodySourceInformation,
-      Object? exitSourceInformation,
-      {List<js_ast.Statement>? bodyPrefix}) {
+  js_ast.Fun rewrite(
+    js_ast.Fun node,
+    Object? bodySourceInformation,
+    Object? exitSourceInformation, {
+    List<js_ast.Statement>? bodyPrefix,
+  }) {
     _analysis = PreTranslationAnalysis(_unsupported, node)..analyze();
     _scopeCollector = _ScopeCollector(_analysis)..collect(node);
 
     _outerLabelName = _freshLabelName('outer');
 
     final rewrittenFunction = _rewriteFunction(
-        node, bodySourceInformation, exitSourceInformation,
-        bodyPrefix: bodyPrefix);
+      node,
+      bodySourceInformation,
+      exitSourceInformation,
+      bodyPrefix: bodyPrefix,
+    );
     if (bodyPrefix != null) {
       // Prepend the body prefix to the start of the rewritten function.
       rewrittenFunction.body.statements.insertAll(0, bodyPrefix);
@@ -176,8 +182,11 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
   }
 
   js_ast.Expression get _currentErrorHandler {
-    return js_ast.number(_handlerLabels[
-        _jumpTargets.lastWhere((node) => _handlerLabels[node] != null)]!);
+    return js_ast.number(
+      _handlerLabels[_jumpTargets.lastWhere(
+        (node) => _handlerLabels[node] != null,
+      )]!,
+    );
   }
 
   /// Generates a label name based on [originalName] with a suffix to
@@ -255,9 +264,11 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
   /// This should be followed by a break for the goto to be executed. Use
   /// [_gotoAndBreak] or [_addGoto] for this.
   js_ast.Statement _setGotoVariable(int label, Object? sourceInformation) {
-    return js_ast.ExpressionStatement(js_ast
-        .js('# = #', [_goto, js_ast.number(label)]).withSourceInformation(
-            sourceInformation));
+    return js_ast.ExpressionStatement(
+      js_ast
+          .js('# = #', [_goto, js_ast.number(label)])
+          .withSourceInformation(sourceInformation),
+    );
   }
 
   /// Returns a block that has a goto to [label] including the break.
@@ -271,11 +282,13 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
     statements.add(_setGotoVariable(label, sourceInformation));
     if (insideUntranslatedBreakable) {
       hasJumpThoughOuterLabel = true;
-      statements.add(js_ast.Break(_outerLabelName)
-          .withSourceInformation(sourceInformation));
+      statements.add(
+        js_ast.Break(_outerLabelName).withSourceInformation(sourceInformation),
+      );
     } else {
-      statements
-          .add(js_ast.Break(null).withSourceInformation(sourceInformation));
+      statements.add(
+        js_ast.Break(null).withSourceInformation(sourceInformation),
+      );
     }
     return js_ast.Block(statements);
   }
@@ -296,10 +309,13 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
     currentStatementBuffer.add(node);
   }
 
-  void _addExpressionStatement(js_ast.Expression node,
-      [Object? sourceInformation]) {
-    _addStatement(js_ast.ExpressionStatement(node)
-      ..sourceInformation = sourceInformation);
+  void _addExpressionStatement(
+    js_ast.Expression node, [
+    Object? sourceInformation,
+  ]) {
+    _addStatement(
+      js_ast.ExpressionStatement(node)..sourceInformation = sourceInformation,
+    );
   }
 
   /// True if there is an await or yield in [node] or some subexpression.
@@ -309,7 +325,8 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
 
   Never _unsupported(js_ast.Node node) {
     throw UnsupportedError(
-        'Node $node cannot be transformed by the await-sync transformer');
+      'Node $node cannot be transformed by the await-sync transformer',
+    );
   }
 
   Never _unreachable(js_ast.Node node) {
@@ -369,8 +386,10 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
   // TODO(sra): Many calls to this method use `store: false`, and could be
   // replaced with calls to `visitExpression`.
   T _withExpression<T>(
-      js_ast.Expression node, T Function(js_ast.Expression result) fn,
-      {required bool store}) {
+    js_ast.Expression node,
+    T Function(js_ast.Expression result) fn, {
+    required bool store,
+  }) {
     var visited = visitExpression(node);
     if (store) {
       visited = _storeIfNecessary(visited);
@@ -405,9 +424,12 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
   /// cannot `bind` to a constructor tear-off as it would no longer be a
   /// constructor. However, constructors have no `this` context anyway so they
   /// are safe to tear-off without binding.
-  js_ast.Expression withCallTargetExpression(js_ast.Expression node,
-      js_ast.Expression Function(js_ast.Expression result) fn,
-      {required bool store, required bool isCall}) {
+  js_ast.Expression withCallTargetExpression(
+    js_ast.Expression node,
+    js_ast.Expression Function(js_ast.Expression result) fn, {
+    required bool store,
+    required bool isCall,
+  }) {
     var visited = visitExpression(node);
     js_ast.Expression storedIfNeeded;
     if (store) {
@@ -415,14 +437,17 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
         final storedReceiver = _storeIfNecessary(visited.receiver);
         // We handle the `super` literal specially since the bound object in
         // that case is `this`. `super` cannot be passed to `bind`.
-        final bindTarget =
-            storedReceiver is js_ast.Super ? js_ast.This() : storedReceiver;
+        final bindTarget = storedReceiver is js_ast.Super
+            ? js_ast.This()
+            : storedReceiver;
         final jsTearOff = isCall
             ? js_ast.Call(
                 js_ast.PropertyAccess.field(
-                    js_ast.PropertyAccess(storedReceiver, visited.selector),
-                    'bind'),
-                [bindTarget])
+                  js_ast.PropertyAccess(storedReceiver, visited.selector),
+                  'bind',
+                ),
+                [bindTarget],
+              )
             : visited;
         storedIfNeeded = _storeIfNecessary(jsTearOff);
       } else {
@@ -444,11 +469,14 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
   /// an expression, visiting node2 it will output statements that
   /// might have an influence on the value of node1.
   js_ast.Expression withExpression2(
-      js_ast.Expression node1,
-      js_ast.Expression node2,
-      js_ast.Expression Function(
-              js_ast.Expression result1, js_ast.Expression result2)
-          fn) {
+    js_ast.Expression node1,
+    js_ast.Expression node2,
+    js_ast.Expression Function(
+      js_ast.Expression result1,
+      js_ast.Expression result2,
+    )
+    fn,
+  ) {
     var r1 = visitExpression(node1);
     if (_shouldTransform(node2)) {
       r1 = _storeIfNecessary(r1);
@@ -464,8 +492,10 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
   /// in temporary variables.
   ///
   /// See more explanation on [withExpression2].
-  T withExpressions<T>(List<js_ast.Expression> nodes,
-      T Function(List<js_ast.Expression> results) fn) {
+  T withExpressions<T>(
+    List<js_ast.Expression> nodes,
+    T Function(List<js_ast.Expression> results) fn,
+  ) {
     var visited = <js_ast.Expression>[];
     _collectVisited(nodes, visited);
     final result = fn(visited);
@@ -474,8 +504,10 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
 
   /// Like [withExpressions], but permitting `null` nodes. If any of the nodes
   /// are null, they are ignored, and a null is passed to [fn] in that place.
-  T withNullableExpressions<T>(List<js_ast.Expression?> nodes,
-      T Function(List<js_ast.Expression?> results) fn) {
+  T withNullableExpressions<T>(
+    List<js_ast.Expression?> nodes,
+    T Function(List<js_ast.Expression?> results) fn,
+  ) {
     var visited = <js_ast.Expression?>[];
     _collectVisited(nodes, visited);
     final result = fn(visited);
@@ -483,7 +515,9 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
   }
 
   void _collectVisited(
-      List<js_ast.Expression?> nodes, List<js_ast.Expression?> visited) {
+    List<js_ast.Expression?> nodes,
+    List<js_ast.Expression?> visited,
+  ) {
     // Find last occurrence of a 'transform' expression in [nodes].
     // All expressions before that must be stored in temp-vars.
     var lastTransformIndex = 0;
@@ -530,7 +564,8 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
         nodeScope.isCaptured &&
         nodeScope.hasDeclarations) {
       _addExpressionStatement(
-          js_ast.Assignment(nodeScope.scopeObject, _makeEmptyScopeObject()));
+        js_ast.Assignment(nodeScope.scopeObject, _makeEmptyScopeObject()),
+      );
     }
   }
 
@@ -550,14 +585,16 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
 
   /// Returns the rewritten function.
   js_ast.Fun _finishFunction(
-      List<js_ast.Parameter> parameters,
-      js_ast.Statement rewrittenBody,
-      js_ast.VariableDeclarationList variableDeclarationLists,
-      Object? functionSourceInformation,
-      Object? bodySourceInformation);
+    List<js_ast.Parameter> parameters,
+    js_ast.Statement rewrittenBody,
+    js_ast.VariableDeclarationList variableDeclarationLists,
+    Object? functionSourceInformation,
+    Object? bodySourceInformation,
+  );
 
   Iterable<js_ast.VariableInitialization> variableInitializations(
-      Object? sourceInformation);
+    Object? sourceInformation,
+  );
 
   /// Rewrites an async/sync*/async* function to a normal JavaScript function.
   ///
@@ -697,9 +734,12 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
   /// [bodySourceInformation] is used on code generated to execute the function
   /// body and [exitSourceInformation] is used on code generated to exit the
   /// function.
-  js_ast.Fun _rewriteFunction(js_ast.Fun node, Object? bodySourceInformation,
-      Object? exitSourceInformation,
-      {List<js_ast.Statement>? bodyPrefix}) {
+  js_ast.Fun _rewriteFunction(
+    js_ast.Fun node,
+    Object? bodySourceInformation,
+    Object? exitSourceInformation, {
+    List<js_ast.Statement>? bodyPrefix,
+  }) {
     _beginLabel(_newLabel('Function start'));
     _handlerLabels[node] = _rethrowLabel;
     var body = node.body;
@@ -710,10 +750,12 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
 
     var clauses = <js_ast.SwitchClause>[
       for (final entry in labelledParts.entries)
-        js_ast.Case(js_ast.number(entry.key), js_ast.Block(entry.value))
+        js_ast.Case(js_ast.number(entry.key), js_ast.Block(entry.value)),
     ];
-    var rewrittenBody = js_ast.Switch(_goto, clauses)
-        .withSourceInformation(bodySourceInformation);
+    var rewrittenBody = js_ast.Switch(
+      _goto,
+      clauses,
+    ).withSourceInformation(bodySourceInformation);
     if (hasJumpThoughOuterLabel) {
       rewrittenBody = js_ast.LabeledStatement(_outerLabelName, rewrittenBody);
     }
@@ -722,36 +764,67 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
         .withSourceInformation(bodySourceInformation);
     var variables = <js_ast.VariableInitialization>[];
 
-    variables.add(_makeVariableInitializer(
+    variables.add(
+      _makeVariableInitializer(
         _goto,
         js_ast.number(0).withSourceInformation(bodySourceInformation),
-        bodySourceInformation));
+        bodySourceInformation,
+      ),
+    );
     variables.addAll(variableInitializations(bodySourceInformation));
     if (_hasHandlerLabels) {
-      variables.add(_makeVariableInitializer(
-          _handler, js_ast.number(_rethrowLabel), bodySourceInformation));
-      variables.add(_makeVariableInitializer(_errorStack,
-          js_ast.ArrayInitializer(const []), bodySourceInformation));
+      variables.add(
+        _makeVariableInitializer(
+          _handler,
+          js_ast.number(_rethrowLabel),
+          bodySourceInformation,
+        ),
+      );
+      variables.add(
+        _makeVariableInitializer(
+          _errorStack,
+          js_ast.ArrayInitializer(const []),
+          bodySourceInformation,
+        ),
+      );
     }
     if (_analysis.hasFinally || (_isAsyncStar && _analysis.hasYield)) {
-      variables.add(_makeVariableInitializer(
-          _next, js_ast.ArrayInitializer([]), bodySourceInformation));
+      variables.add(
+        _makeVariableInitializer(
+          _next,
+          js_ast.ArrayInitializer([]),
+          bodySourceInformation,
+        ),
+      );
     }
-    variables.addAll(_localVariables.map((js_ast.VariableBinding declaration) {
-      return js_ast.VariableInitialization(declaration, null);
-    }));
-    variables.addAll([
-      for (final scope in _scopeCollector.scopeMapping.values)
-        if (scope.hasDeclarations)
-          js_ast.VariableInitialization(
-              scope.scopeObject, _makeEmptyScopeObject())
-    ].reversed);
-    var variableDeclarationLists =
-        js_ast.VariableDeclarationList('let', variables);
+    variables.addAll(
+      _localVariables.map((js_ast.VariableBinding declaration) {
+        return js_ast.VariableInitialization(declaration, null);
+      }),
+    );
+    variables.addAll(
+      [
+        for (final scope in _scopeCollector.scopeMapping.values)
+          if (scope.hasDeclarations)
+            js_ast.VariableInitialization(
+              scope.scopeObject,
+              _makeEmptyScopeObject(),
+            ),
+      ].reversed,
+    );
+    var variableDeclarationLists = js_ast.VariableDeclarationList(
+      'let',
+      variables,
+    );
 
     // Names are already safe when added.
-    return _finishFunction(node.params, rewrittenBody, variableDeclarationLists,
-        exitSourceInformation, bodySourceInformation);
+    return _finishFunction(
+      node.params,
+      rewrittenBody,
+      variableDeclarationLists,
+      exitSourceInformation,
+      bodySourceInformation,
+    );
   }
 
   js_ast.Expression _visitFunctionExpression(js_ast.FunctionExpression node) {
@@ -796,7 +869,9 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
     //        console.log(capturedAsyncScope.foo);
     //      })(asyncScope);
     return js_ast.Call(
-        js_ast.ArrowFun(capturedScopeVariableList, node), scopeVariableList);
+      js_ast.ArrowFun(capturedScopeVariableList, node),
+      scopeVariableList,
+    );
   }
 
   @override
@@ -812,10 +887,13 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
   @override
   js_ast.Expression visitAccess(js_ast.PropertyAccess node) {
     return withExpression2(
-        node.receiver,
-        node.selector,
-        (receiver, selector) => js_ast.PropertyAccess(receiver, selector)
-            .withSourceInformation(node.sourceInformation));
+      node.receiver,
+      node.selector,
+      (receiver, selector) => js_ast.PropertyAccess(
+        receiver,
+        selector,
+      ).withSourceInformation(node.sourceInformation),
+    );
   }
 
   @override
@@ -833,8 +911,11 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
   @override
   js_ast.Expression visitAssignment(js_ast.Assignment node) {
     if (!_shouldTransform(node)) {
-      return js_ast.Assignment.compound(visitExpression(node.leftHandSide),
-          node.op, visitExpression(node.value));
+      return js_ast.Assignment.compound(
+        visitExpression(node.leftHandSide),
+        node.op,
+        visitExpression(node.value),
+      );
     }
     var leftHandSide = node.leftHandSide;
     if (leftHandSide is js_ast.Identifier) {
@@ -843,24 +924,31 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
         // use [js_ast.Assignment.compound] for all cases.
         // Visit the [js_ast.Identifier] to ensure renaming is done correctly.
         return js_ast.Assignment.compound(
-            visitExpression(leftHandSide), node.op, value);
+          visitExpression(leftHandSide),
+          node.op,
+          value,
+        );
       }, store: false);
     } else if (leftHandSide is js_ast.PropertyAccess) {
       return withExpressions(
-          [leftHandSide.receiver, leftHandSide.selector, node.value],
-          (evaluated) {
-        return js_ast.Assignment.compound(
+        [leftHandSide.receiver, leftHandSide.selector, node.value],
+        (evaluated) {
+          return js_ast.Assignment.compound(
             js_ast.PropertyAccess(evaluated[0], evaluated[1]),
             node.op,
-            evaluated[2]);
-      });
+            evaluated[2],
+          );
+        },
+      );
     } else {
       throw 'Unexpected assignment left hand side $leftHandSide';
     }
   }
 
   js_ast.Statement awaitStatement(
-      js_ast.Expression value, Object? sourceInformation);
+    js_ast.Expression value,
+    Object? sourceInformation,
+  );
 
   /// An await is translated to an [awaitStatement].
   ///
@@ -899,18 +987,22 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
             ? js_ast.Block.empty()
             : js_ast.js.statement('# = #;', [_result, left]);
         if (node.op == '&&') {
-          _addStatement(js_ast.js.statement('if (#) #; else #', [
-            left,
-            _gotoAndBreak(thenLabel, node.sourceInformation),
-            assignLeft
-          ]));
+          _addStatement(
+            js_ast.js.statement('if (#) #; else #', [
+              left,
+              _gotoAndBreak(thenLabel, node.sourceInformation),
+              assignLeft,
+            ]),
+          );
         } else {
           assert(node.op == '||');
-          _addStatement(js_ast.js.statement('if (#) #; else #', [
-            left,
-            assignLeft,
-            _gotoAndBreak(thenLabel, node.sourceInformation)
-          ]));
+          _addStatement(
+            js_ast.js.statement('if (#) #; else #', [
+              left,
+              assignLeft,
+              _gotoAndBreak(thenLabel, node.sourceInformation),
+            ]),
+          );
         }
       }, store: true);
       _addGoto(joinLabel, node.sourceInformation);
@@ -924,8 +1016,11 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
       return _result;
     }
 
-    return withExpression2(node.left, node.right,
-        (left, right) => js_ast.Binary(node.op, left, right));
+    return withExpression2(
+      node.left,
+      node.right,
+      (left, right) => js_ast.Binary(node.op, left, right),
+    );
   }
 
   @override
@@ -949,13 +1044,21 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
   @override
   js_ast.Expression visitCall(js_ast.Call node) {
     var storeTarget = node.arguments.any(_shouldTransform);
-    return withCallTargetExpression(node.target, (target) {
-      return withExpressions(node.arguments,
-          (List<js_ast.Expression> arguments) {
-        return js_ast.Call(target, arguments)
-            .withSourceInformation(node.sourceInformation);
-      });
-    }, store: storeTarget, isCall: true);
+    return withCallTargetExpression(
+      node.target,
+      (target) {
+        return withExpressions(node.arguments, (
+          List<js_ast.Expression> arguments,
+        ) {
+          return js_ast.Call(
+            target,
+            arguments,
+          ).withSourceInformation(node.sourceInformation);
+        });
+      },
+      store: storeTarget,
+      isCall: true,
+    );
   }
 
   @override
@@ -976,22 +1079,26 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
   @override
   js_ast.Expression visitConditional(js_ast.Conditional node) {
     if (!_shouldTransform(node.then) && !_shouldTransform(node.otherwise)) {
-      return js_ast.js('# ? # : #', [
-        visitExpression(node.condition),
-        visitExpression(node.then),
-        visitExpression(node.otherwise)
-      ]).withSourceInformation(node.sourceInformation);
+      return js_ast
+          .js('# ? # : #', [
+            visitExpression(node.condition),
+            visitExpression(node.then),
+            visitExpression(node.otherwise),
+          ])
+          .withSourceInformation(node.sourceInformation);
     }
     var thenLabel = _newLabel('then');
     var joinLabel = _newLabel('join');
     var elseLabel = _newLabel('else');
     _withExpression(node.condition, (js_ast.Expression condition) {
-      _addStatement(js_ast.js.statement('# = # ? # : #;', [
-        _goto,
-        condition,
-        js_ast.number(thenLabel),
-        js_ast.number(elseLabel)
-      ]));
+      _addStatement(
+        js_ast.js.statement('# = # ? # : #;', [
+          _goto,
+          condition,
+          js_ast.number(thenLabel),
+          js_ast.number(elseLabel),
+        ]),
+      );
     }, store: false);
     _addBreak(node.sourceInformation);
     _beginLabel(thenLabel);
@@ -1025,11 +1132,13 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
   void _addBreak(Object? sourceInformation) {
     if (insideUntranslatedBreakable) {
       hasJumpThoughOuterLabel = true;
-      _addStatement(js_ast.Break(_outerLabelName)
-          .withSourceInformation(sourceInformation));
+      _addStatement(
+        js_ast.Break(_outerLabelName).withSourceInformation(sourceInformation),
+      );
     } else {
       _addStatement(
-          js_ast.Break(null).withSourceInformation(sourceInformation));
+        js_ast.Break(null).withSourceInformation(sourceInformation),
+      );
     }
   }
 
@@ -1040,7 +1149,10 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
   ///
   /// See also [_rewriteFunction].
   void _translateJump(
-      js_ast.Node? target, int? targetLabel, Object? sourceInformation) {
+    js_ast.Node? target,
+    int? targetLabel,
+    Object? sourceInformation,
+  ) {
     // Compute a stack of all the 'finally' nodes that must be visited before
     // the jump.
     // The bottom of the stack is the label where the jump goes to.
@@ -1060,9 +1172,15 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
     var firstTarget = jumpStack.removeLast();
     if (jumpStack.isNotEmpty) {
       var jsJumpStack = js_ast.ArrayInitializer(
-          jumpStack.map((int label) => js_ast.number(label)).toList());
-      _addStatement(js_ast.ExpressionStatement(js_ast.js('# = #',
-          [_next, jsJumpStack]).withSourceInformation(sourceInformation)));
+        jumpStack.map((int label) => js_ast.number(label)).toList(),
+      );
+      _addStatement(
+        js_ast.ExpressionStatement(
+          js_ast
+              .js('# = #', [_next, jsJumpStack])
+              .withSourceInformation(sourceInformation),
+        ),
+      );
     }
     _addGoto(firstTarget, sourceInformation);
   }
@@ -1075,8 +1193,12 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
     if (!_shouldTransform(node)) {
       var oldInsideUntranslatedBreakable = insideUntranslatedBreakable;
       insideUntranslatedBreakable = true;
-      _addStatement(js_ast.js.statement('do {#} while (#)',
-          [_translateToStatement(node.body), visitExpression(node.condition)]));
+      _addStatement(
+        js_ast.js.statement('do {#} while (#)', [
+          _translateToStatement(node.body),
+          visitExpression(node.condition),
+        ]),
+      );
       insideUntranslatedBreakable = oldInsideUntranslatedBreakable;
       return;
     }
@@ -1096,8 +1218,12 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
 
     _beginLabel(continueLabel);
     _withExpression(node.condition, (js_ast.Expression condition) {
-      _addStatement(js_ast.js.statement('if (#) #',
-          [condition, _gotoAndBreak(startLabel, node.sourceInformation)]));
+      _addStatement(
+        js_ast.js.statement('if (#) #', [
+          condition,
+          _gotoAndBreak(startLabel, node.sourceInformation),
+        ]),
+      );
     }, store: false);
     _beginLabel(afterLabel);
   }
@@ -1126,19 +1252,31 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
         final newInitializationList = <js_ast.VariableInitialization>[];
         for (final initialization in init.declarations) {
           final value = initialization.value;
-          newInitializationList.add(js_ast.VariableInitialization(
+          newInitializationList.add(
+            js_ast.VariableInitialization(
               initialization.declaration,
-              value != null ? visitExpression(value) : null));
+              value != null ? visitExpression(value) : null,
+            ),
+          );
         }
-        newInit =
-            js_ast.VariableDeclarationList(init.keyword, newInitializationList);
+        newInit = js_ast.VariableDeclarationList(
+          init.keyword,
+          newInitializationList,
+        );
       } else {
         newInit = init != null ? visitExpression(init) : null;
       }
-      withNullableExpressions([node.condition, node.update],
-          (List<js_ast.Expression?> transformed) {
-        _addStatement(js_ast.For(newInit, transformed[0], transformed[1],
-            _translateToStatement(node.body)));
+      withNullableExpressions([node.condition, node.update], (
+        List<js_ast.Expression?> transformed,
+      ) {
+        _addStatement(
+          js_ast.For(
+            newInit,
+            transformed[0],
+            transformed[1],
+            _translateToStatement(node.body),
+          ),
+        );
       });
       insideUntranslatedBreakable = oldInsideUntranslated;
       return;
@@ -1151,8 +1289,9 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
     var startLabel = _newLabel('for condition');
     // If there is no update, continuing the loop is the same as going to the
     // start.
-    var continueLabel =
-        (node.update == null) ? startLabel : _newLabel('for update');
+    var continueLabel = (node.update == null)
+        ? startLabel
+        : _newLabel('for update');
     _continueLabels[node] = continueLabel;
     var afterLabel = _newLabel('after for');
     _breakLabels[node] = afterLabel;
@@ -1163,8 +1302,12 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
       _addStatement(js_ast.Comment('trivial condition'));
     } else {
       _withExpression(condition, (js_ast.Expression condition) {
-        _addStatement(js_ast.If.noElse(js_ast.Prefix('!', condition),
-            _gotoAndBreak(afterLabel, node.sourceInformation)));
+        _addStatement(
+          js_ast.If.noElse(
+            js_ast.Prefix('!', condition),
+            _gotoAndBreak(afterLabel, node.sourceInformation),
+          ),
+        );
       }, store: false);
     }
     _jumpTargets.add(node);
@@ -1190,7 +1333,8 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
       final name = visitExpression(node.name);
       _hoistIfNecessary(name);
       _addExpressionStatement(
-          js_ast.Assignment(visitExpression(name), function));
+        js_ast.Assignment(visitExpression(name), function),
+      );
     }, store: false);
   }
 
@@ -1231,10 +1375,16 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
         : _newLabel('else');
 
     _withExpression(node.condition, (js_ast.Expression condition) {
-      _addExpressionStatement(js_ast.Assignment(
+      _addExpressionStatement(
+        js_ast.Assignment(
           _goto,
           js_ast.Conditional(
-              condition, js_ast.number(thenLabel), js_ast.number(elseLabel))));
+            condition,
+            js_ast.number(thenLabel),
+            js_ast.number(elseLabel),
+          ),
+        ),
+      );
     }, store: false);
     _addBreak(node.sourceInformation);
     _beginLabel(thenLabel);
@@ -1275,8 +1425,9 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
   @override
   void visitLabeledStatement(js_ast.LabeledStatement node) {
     if (!_shouldTransform(node)) {
-      _addStatement(js_ast.LabeledStatement(
-          node.label, _translateToStatement(node.body)));
+      _addStatement(
+        js_ast.LabeledStatement(node.label, _translateToStatement(node.body)),
+      );
       return;
     }
     // `continue label` is really continuing the nested loop.
@@ -1319,29 +1470,39 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
   @override
   js_ast.Expression visitNew(js_ast.New node) {
     var storeTarget = node.arguments.any(_shouldTransform);
-    return withCallTargetExpression(node.target, (target) {
-      return withExpressions(node.arguments,
-          (List<js_ast.Expression> arguments) {
-        return js_ast.New(target, arguments);
-      });
-    }, store: storeTarget, isCall: false);
+    return withCallTargetExpression(
+      node.target,
+      (target) {
+        return withExpressions(node.arguments, (
+          List<js_ast.Expression> arguments,
+        ) {
+          return js_ast.New(target, arguments);
+        });
+      },
+      store: storeTarget,
+      isCall: false,
+    );
   }
 
   @override
   js_ast.Expression visitObjectInitializer(js_ast.ObjectInitializer node) {
     return withExpressions(
-        node.properties
-            .map((js_ast.Property property) => property.value)
-            .toList(), (List<js_ast.Expression> values) {
-      var properties = List<js_ast.Property>.generate(values.length, (int i) {
-        if (node.properties[i] is js_ast.Method) {
-          return js_ast.Method(
-              node.properties[i].name, values[i] as js_ast.Fun);
-        }
-        return js_ast.Property(node.properties[i].name, values[i]);
-      });
-      return js_ast.ObjectInitializer(properties);
-    });
+      node.properties
+          .map((js_ast.Property property) => property.value)
+          .toList(),
+      (List<js_ast.Expression> values) {
+        var properties = List<js_ast.Property>.generate(values.length, (int i) {
+          if (node.properties[i] is js_ast.Method) {
+            return js_ast.Method(
+              node.properties[i].name,
+              values[i] as js_ast.Fun,
+            );
+          }
+          return js_ast.Property(node.properties[i].name, values[i]);
+        });
+        return js_ast.ObjectInitializer(properties);
+      },
+    );
   }
 
   @override
@@ -1351,19 +1512,25 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
       if (argument is js_ast.Identifier) {
         return js_ast.Postfix(node.op, visitExpression(argument));
       } else if (argument is js_ast.PropertyAccess) {
-        return withExpression2(argument.receiver, argument.selector,
-            (receiver, selector) {
+        return withExpression2(argument.receiver, argument.selector, (
+          receiver,
+          selector,
+        ) {
           return js_ast.Postfix(
-              node.op, js_ast.PropertyAccess(receiver, selector));
+            node.op,
+            js_ast.PropertyAccess(receiver, selector),
+          );
         });
       } else {
         throw 'Unexpected postfix ${node.op} '
             'operator argument ${node.argument}';
       }
     }
-    return _withExpression(node.argument,
-        (js_ast.Expression argument) => js_ast.Postfix(node.op, argument),
-        store: false);
+    return _withExpression(
+      node.argument,
+      (js_ast.Expression argument) => js_ast.Postfix(node.op, argument),
+      store: false,
+    );
   }
 
   @override
@@ -1373,19 +1540,25 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
       if (argument is js_ast.Identifier) {
         return js_ast.Prefix(node.op, visitExpression(argument));
       } else if (argument is js_ast.PropertyAccess) {
-        return withExpression2(argument.receiver, argument.selector,
-            (receiver, selector) {
+        return withExpression2(argument.receiver, argument.selector, (
+          receiver,
+          selector,
+        ) {
           return js_ast.Prefix(
-              node.op, js_ast.PropertyAccess(receiver, selector));
+            node.op,
+            js_ast.PropertyAccess(receiver, selector),
+          );
         });
       } else {
         throw 'Unexpected prefix ${node.op} operator '
             'argument ${node.argument}';
       }
     }
-    return _withExpression(node.argument,
-        (js_ast.Expression argument) => js_ast.Prefix(node.op, argument),
-        store: false);
+    return _withExpression(
+      node.argument,
+      (js_ast.Expression argument) => js_ast.Prefix(node.op, argument),
+      store: false,
+    );
   }
 
   @override
@@ -1394,18 +1567,21 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
   @override
   js_ast.Property visitProperty(js_ast.Property node) {
     assert(node.runtimeType == js_ast.Property);
-    return _withExpression(node.value,
-        (js_ast.Expression value) => js_ast.Property(node.name, value),
-        store: false);
+    return _withExpression(
+      node.value,
+      (js_ast.Expression value) => js_ast.Property(node.name, value),
+      store: false,
+    );
   }
 
   @override
   js_ast.Method visitMethod(js_ast.Method node) {
     return _withExpression(
-        node.function,
-        (js_ast.Expression value) =>
-            js_ast.Method(node.name, value as js_ast.Fun),
-        store: false);
+      node.function,
+      (js_ast.Expression value) =>
+          js_ast.Method(node.name, value as js_ast.Fun),
+      store: false,
+    );
   }
 
   @override
@@ -1425,9 +1601,11 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
         _visitExpressionIgnoreResult(expression);
       } else {
         _withExpression(expression, (js_ast.Expression value) {
-          _addStatement(js_ast.js
-              .statement('# = #;', [_returnValue, value]).withSourceInformation(
-                  node.sourceInformation));
+          _addStatement(
+            js_ast.js
+                .statement('# = #;', [_returnValue, value])
+                .withSourceInformation(node.sourceInformation),
+          );
         }, store: false);
       }
     }
@@ -1444,10 +1622,13 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
         var cases = node.cases.map((js_ast.SwitchClause clause) {
           if (clause is js_ast.Case) {
             return js_ast.Case(
-                clause.expression, translateToBlock(clause.body));
+              clause.expression,
+              translateToBlock(clause.body),
+            );
           } else {
             return js_ast.Default(
-                translateToBlock((clause as js_ast.Default).body));
+              translateToBlock((clause as js_ast.Default).body),
+            );
           }
         }).toList();
         _addStatement(js_ast.Switch(key, cases));
@@ -1462,8 +1643,10 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
     _beginLabel(before);
     var labels = List<int>.filled(node.cases.length, -1);
 
-    var anyCaseExpressionTransformed = node.cases.any((js_ast.SwitchClause x) =>
-        x is js_ast.Case && _shouldTransform(x.expression));
+    var anyCaseExpressionTransformed = node.cases.any(
+      (js_ast.SwitchClause x) =>
+          x is js_ast.Case && _shouldTransform(x.expression),
+    );
     if (anyCaseExpressionTransformed) {
       int? defaultIndex; // Null means no default was found.
       // If there is an await in one of the keys, a chain of ifs has to be used.
@@ -1480,9 +1663,12 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
           } else if (clause is js_ast.Case) {
             labels[i] = _newLabel('case');
             _withExpression(clause.expression, (expression) {
-              _addStatement(js_ast.If.noElse(
+              _addStatement(
+                js_ast.If.noElse(
                   js_ast.Binary('===', key, expression),
-                  _gotoAndBreak(labels[i], clause.sourceInformation)));
+                  _gotoAndBreak(labels[i], clause.sourceInformation),
+                ),
+              );
             }, store: false);
           }
           i++;
@@ -1501,12 +1687,17 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
       for (var clause in node.cases) {
         if (clause is js_ast.Case) {
           labels[i] = _newLabel('case');
-          clauses.add(js_ast.Case(visitExpression(clause.expression),
-              _gotoAndBreak(labels[i], clause.sourceInformation)));
+          clauses.add(
+            js_ast.Case(
+              visitExpression(clause.expression),
+              _gotoAndBreak(labels[i], clause.sourceInformation),
+            ),
+          );
         } else if (clause is js_ast.Default) {
           labels[i] = _newLabel('default');
-          clauses.add(js_ast.Default(
-              _gotoAndBreak(labels[i], clause.sourceInformation)));
+          clauses.add(
+            js_ast.Default(_gotoAndBreak(labels[i], clause.sourceInformation)),
+          );
           hasDefault = true;
         } else {
           throw StateError('Unknown clause type $clause');
@@ -1514,8 +1705,9 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
         i++;
       }
       if (!hasDefault) {
-        clauses
-            .add(js_ast.Default(_gotoAndBreak(after, node.sourceInformation)));
+        clauses.add(
+          js_ast.Default(_gotoAndBreak(after, node.sourceInformation)),
+        );
       }
       _withExpression(node.key, (js_ast.Expression key) {
         _addStatement(js_ast.Switch(key, clauses));
@@ -1539,8 +1731,9 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
   @override
   void visitThrow(js_ast.Throw node) {
     _withExpression(node.expression, (js_ast.Expression expression) {
-      _addStatement(js_ast.Throw(expression)
-          .withSourceInformation(node.sourceInformation));
+      _addStatement(
+        js_ast.Throw(expression).withSourceInformation(node.sourceInformation),
+      );
     }, store: false);
   }
 
@@ -1580,12 +1773,16 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
       js_ast.Catch? translatedCatchPart;
       if (catchPart != null) {
         translatedCatchPart = js_ast.Catch(
-            catchPart.declaration, translateToBlock(catchPart.body));
+          catchPart.declaration,
+          translateToBlock(catchPart.body),
+        );
       }
-      var translatedFinallyPart =
-          (finallyPart == null) ? null : translateToBlock(finallyPart);
+      var translatedFinallyPart = (finallyPart == null)
+          ? null
+          : translateToBlock(finallyPart);
       _addStatement(
-          js_ast.Try(body, translatedCatchPart, translatedFinallyPart));
+        js_ast.Try(body, translatedCatchPart, translatedFinallyPart),
+      );
       return;
     }
 
@@ -1617,8 +1814,12 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
       _addGoto(afterFinallyLabel, node.sourceInformation);
     } else {
       // The handler is reset as the first thing in the finally block.
-      _addStatement(js_ast.js
-          .statement('#.push(#);', [_next, js_ast.number(afterFinallyLabel)]));
+      _addStatement(
+        js_ast.js.statement('#.push(#);', [
+          _next,
+          js_ast.number(afterFinallyLabel),
+        ]),
+      );
       _addGoto(finallyLabel, node.sourceInformation);
     }
 
@@ -1635,13 +1836,18 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
       var errorName = visitExpression(catchPart.declaration);
       _hoistIfNecessary(errorName);
       _addStatement(
-          js_ast.js.statement('# = #.pop();', [errorName, _errorStack]));
+        js_ast.js.statement('# = #.pop();', [errorName, _errorStack]),
+      );
       _visitStatement(catchPart.body);
       if (finallyPart != null) {
         // The error has been caught, so after the finally, continue after the
         // try.
-        _addStatement(js_ast.js.statement(
-            '#.push(#);', [_next, js_ast.number(afterFinallyLabel)]));
+        _addStatement(
+          js_ast.js.statement('#.push(#);', [
+            _next,
+            js_ast.number(afterFinallyLabel),
+          ]),
+        );
         _addGoto(finallyLabel, node.sourceInformation);
       } else {
         _addGoto(afterFinallyLabel, node.sourceInformation);
@@ -1660,10 +1866,14 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
     if (enclosingFinallies.isNotEmpty) {
       // [enclosingFinallies] can be empty if there is no surrounding finally
       // blocks. Then [nextLabel] will be [rethrowLabel].
-      _addStatement(js_ast.js.statement('# = #;', [
-        _next,
-        js_ast.ArrayInitializer(enclosingFinallies.map(js_ast.number).toList())
-      ]));
+      _addStatement(
+        js_ast.js.statement('# = #;', [
+          _next,
+          js_ast.ArrayInitializer(
+            enclosingFinallies.map(js_ast.number).toList(),
+          ),
+        ]),
+      );
     }
     if (finallyPart == null) {
       // The finally-block belonging to [node] will be visited because of
@@ -1686,16 +1896,18 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
 
   @override
   js_ast.Expression visitVariableDeclarationList(
-      js_ast.VariableDeclarationList node) {
+    js_ast.VariableDeclarationList node,
+  ) {
     for (final initialization in node.declarations) {
       var declaration = visitExpression(initialization.declaration);
       _hoistIfNecessary(declaration);
       if (initialization.value != null) {
         _withExpression(initialization.value!, (js_ast.Expression value) {
           _addExpressionStatement(
-              js_ast.Assignment(declaration, value)
-                ..sourceInformation = initialization.sourceInformation,
-              node.sourceInformation);
+            js_ast.Assignment(declaration, value)
+              ..sourceInformation = initialization.sourceInformation,
+            node.sourceInformation,
+          );
         }, store: false);
       }
     }
@@ -1718,8 +1930,12 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
       var oldInsideUntranslated = insideUntranslatedBreakable;
       insideUntranslatedBreakable = true;
       _withExpression(node.condition, (js_ast.Expression condition) {
-        _addStatement(js_ast.While(condition, _translateToStatement(node.body))
-            .withSourceInformation(node.sourceInformation));
+        _addStatement(
+          js_ast.While(
+            condition,
+            _translateToStatement(node.body),
+          ).withSourceInformation(node.sourceInformation),
+        );
       }, store: false);
       insideUntranslatedBreakable = oldInsideUntranslated;
       return;
@@ -1734,9 +1950,12 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
     // If the condition is `true`, a test is not needed.
     if (!(condition is js_ast.LiteralBool && condition.value == true)) {
       _withExpression(node.condition, (js_ast.Expression condition) {
-        _addStatement(js_ast.If.noElse(js_ast.Prefix('!', condition),
-                _gotoAndBreak(afterLabel, node.sourceInformation))
-            .withSourceInformation(node.sourceInformation));
+        _addStatement(
+          js_ast.If.noElse(
+            js_ast.Prefix('!', condition),
+            _gotoAndBreak(afterLabel, node.sourceInformation),
+          ).withSourceInformation(node.sourceInformation),
+        );
       }, store: false);
     }
     _jumpTargets.add(node);
@@ -1746,8 +1965,11 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
     _beginLabel(afterLabel);
   }
 
-  void addYield(js_ast.DartYield node, js_ast.Expression expression,
-      Object? sourceInformation);
+  void addYield(
+    js_ast.DartYield node,
+    js_ast.Expression expression,
+    Object? sourceInformation,
+  );
 
   @override
   void visitDartYield(js_ast.DartYield node) {
@@ -1767,30 +1989,39 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
     if (!_shouldTransform(node)) {
       var oldInsideUntranslated = insideUntranslatedBreakable;
       insideUntranslatedBreakable = true;
-      _addStatement(js_ast.ForOf(node.leftHandSide,
-          visitExpression(node.iterable), _translateToStatement(node.body)));
+      _addStatement(
+        js_ast.ForOf(
+          node.leftHandSide,
+          visitExpression(node.iterable),
+          _translateToStatement(node.body),
+        ),
+      );
       insideUntranslatedBreakable = oldInsideUntranslated;
       return;
     }
 
     _visitExpressionIgnoreResult(node.leftHandSide);
     final loopVar = visitExpression(
-        (node.leftHandSide as js_ast.VariableDeclarationList)
-            .declarations
-            .first
-            .declaration);
+      (node.leftHandSide as js_ast.VariableDeclarationList)
+          .declarations
+          .first
+          .declaration,
+    );
 
     final valueWrapperVar = ScopedId('t\$wrappedValue');
     final iteratorVar = ScopedId('t\$iterator');
     _localVariables.add(valueWrapperVar);
     _localVariables.add(iteratorVar);
 
-    // Get the iterator object for the iterable expresion.
+    // Get the iterator object for the iterable expression.
     _withExpression(node.iterable, (js_ast.Expression iterable) {
-      _addExpressionStatement(js_ast.Assignment(
+      _addExpressionStatement(
+        js_ast.Assignment(
           iteratorVar,
           js_ast.js('#[Symbol.iterator]()', [iterable])
-            ..sourceInformation = node.iterable.sourceInformation));
+            ..sourceInformation = node.iterable.sourceInformation,
+        ),
+      );
     }, store: false);
 
     var continueLabel = _newLabel('for-of iterator update');
@@ -1806,12 +2037,18 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
     // 3b) If yes: jump to after the loop body.
     _beginLabel(continueLabel);
     _resetScopeIfNecessary(node);
-    _addExpressionStatement(js_ast.Assignment(
-        valueWrapperVar, js_ast.js('#.next()', [iteratorVar])));
-    _addStatement(js_ast.If.noElse(js_ast.js('#.done', [valueWrapperVar]),
-        _gotoAndBreak(afterLabel, node.sourceInformation)));
     _addExpressionStatement(
-        js_ast.Assignment(loopVar, js_ast.js('#.value', [valueWrapperVar])));
+      js_ast.Assignment(valueWrapperVar, js_ast.js('#.next()', [iteratorVar])),
+    );
+    _addStatement(
+      js_ast.If.noElse(
+        js_ast.js('#.done', [valueWrapperVar]),
+        _gotoAndBreak(afterLabel, node.sourceInformation),
+      ),
+    );
+    _addExpressionStatement(
+      js_ast.Assignment(loopVar, js_ast.js('#.value', [valueWrapperVar])),
+    );
     _jumpTargets.add(node);
     _visitStatement(node.body);
     _jumpTargets.removeLast();
@@ -1822,8 +2059,8 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
 
   @override
   js_ast.ArrayBindingPattern visitArrayBindingPattern(
-          js_ast.ArrayBindingPattern node) =>
-      node;
+    js_ast.ArrayBindingPattern node,
+  ) => node;
 
   @override
   Never visitClassDeclaration(js_ast.ClassDeclaration node) =>
@@ -1834,18 +2071,18 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
 
   @override
   js_ast.CommentExpression visitCommentExpression(
-          js_ast.CommentExpression node) =>
-      node;
+    js_ast.CommentExpression node,
+  ) => node;
 
   @override
   js_ast.DebuggerStatement visitDebuggerStatement(
-          js_ast.DebuggerStatement node) =>
-      node;
+    js_ast.DebuggerStatement node,
+  ) => node;
 
   @override
   js_ast.DestructuredVariable visitDestructuredVariable(
-          js_ast.DestructuredVariable node) =>
-      node;
+    js_ast.DestructuredVariable node,
+  ) => node;
 
   @override
   Never visitExportClause(js_ast.ExportClause node) => _unreachable(node);
@@ -1860,29 +2097,29 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
 
   @override
   js_ast.InterpolatedIdentifier visitInterpolatedIdentifier(
-          js_ast.InterpolatedIdentifier node) =>
-      node;
+    js_ast.InterpolatedIdentifier node,
+  ) => node;
 
   @override
   js_ast.InterpolatedMethod visitInterpolatedMethod(
-          js_ast.InterpolatedMethod node) =>
-      node;
+    js_ast.InterpolatedMethod node,
+  ) => node;
 
   @override
   Never visitNameSpecifier(js_ast.NameSpecifier node) => _unreachable(node);
 
   @override
   js_ast.ObjectBindingPattern visitObjectBindingPattern(
-          js_ast.ObjectBindingPattern node) =>
-      node;
+    js_ast.ObjectBindingPattern node,
+  ) => node;
 
   @override
   js_ast.RestParameter visitRestParameter(js_ast.RestParameter node) => node;
 
   @override
   js_ast.SimpleBindingPattern visitSimpleBindingPattern(
-          js_ast.SimpleBindingPattern node) =>
-      node;
+    js_ast.SimpleBindingPattern node,
+  ) => node;
 
   @override
   js_ast.Spread visitSpread(js_ast.Spread node) => node;
@@ -1901,11 +2138,14 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
 }
 
 js_ast.VariableInitialization _makeVariableInitializer(
-    js_ast.Identifier variable,
-    js_ast.Expression? initValue,
-    Object? sourceInformation) {
-  return js_ast.VariableInitialization(variable, initValue)
-          .withSourceInformation(sourceInformation)
+  js_ast.Identifier variable,
+  js_ast.Expression? initValue,
+  Object? sourceInformation,
+) {
+  return js_ast.VariableInitialization(
+        variable,
+        initValue,
+      ).withSourceInformation(sourceInformation)
       as js_ast.VariableInitialization;
 }
 
@@ -1958,19 +2198,23 @@ class AsyncRewriter extends AsyncRewriterBase {
 
   final js_ast.Expression wrapBody;
 
-  AsyncRewriter(
-      {required this.asyncStart,
-      required this.asyncAwait,
-      required this.asyncReturn,
-      required this.asyncRethrow,
-      required this.completerFactory,
-      required this.completerFactoryTypeArguments,
-      required this.wrapBody,
-      required super.bodyName});
+  AsyncRewriter({
+    required this.asyncStart,
+    required this.asyncAwait,
+    required this.asyncReturn,
+    required this.asyncRethrow,
+    required this.completerFactory,
+    required this.completerFactoryTypeArguments,
+    required this.wrapBody,
+    required super.bodyName,
+  });
 
   @override
-  void addYield(js_ast.DartYield node, js_ast.Expression expression,
-      Object? sourceInformation) {
+  void addYield(
+    js_ast.DartYield node,
+    js_ast.Expression expression,
+    Object? sourceInformation,
+  ) {
     throw StateError('Yield in non-generating async function');
   }
 
@@ -1978,14 +2222,16 @@ class AsyncRewriter extends AsyncRewriterBase {
   void addErrorExit(Object? sourceInformation) {
     if (!_hasHandlerLabels) return; // rethrow handled in method boilerplate.
     _beginLabel(_rethrowLabel);
-    var thenHelperCall = js_ast.js(
-        '#thenHelper(#errorStack.at(-1), #completer)', {
-      'thenHelper': asyncRethrow,
-      'errorStack': _errorStack,
-      'completer': completer
-    }).withSourceInformation(sourceInformation);
+    var thenHelperCall = js_ast
+        .js('#thenHelper(#errorStack.at(-1), #completer)', {
+          'thenHelper': asyncRethrow,
+          'errorStack': _errorStack,
+          'completer': completer,
+        })
+        .withSourceInformation(sourceInformation);
     _addStatement(
-        js_ast.Return(thenHelperCall).withSourceInformation(sourceInformation));
+      js_ast.Return(thenHelperCall).withSourceInformation(sourceInformation),
+    );
   }
 
   /// Returning from an async method calls [asyncStarHelper] with the result.
@@ -1999,70 +2245,85 @@ class AsyncRewriter extends AsyncRewriterBase {
       _addStatement(js_ast.Comment('implicit return'));
     }
 
-    var runtimeHelperCall =
-        js_ast.js('#runtimeHelper(#returnValue, #completer)', {
-      'runtimeHelper': asyncReturn,
-      'returnValue':
-          _analysis.hasExplicitReturns ? _returnValue : js_ast.LiteralNull(),
-      'completer': completer
-    }).withSourceInformation(sourceInformation);
-    _addStatement(js_ast.Return(runtimeHelperCall)
-        .withSourceInformation(sourceInformation));
+    var runtimeHelperCall = js_ast
+        .js('#runtimeHelper(#returnValue, #completer)', {
+          'runtimeHelper': asyncReturn,
+          'returnValue': _analysis.hasExplicitReturns
+              ? _returnValue
+              : js_ast.LiteralNull(),
+          'completer': completer,
+        })
+        .withSourceInformation(sourceInformation);
+    _addStatement(
+      js_ast.Return(runtimeHelperCall).withSourceInformation(sourceInformation),
+    );
   }
 
   @override
   Iterable<js_ast.VariableInitialization> variableInitializations(
-      Object? sourceInformation) {
+    Object? sourceInformation,
+  ) {
     var variables = <js_ast.VariableInitialization>[];
-    variables.add(_makeVariableInitializer(
+    variables.add(
+      _makeVariableInitializer(
         completer,
-        js_ast.js('#(#)', [
-          completerFactory,
-          completerFactoryTypeArguments
-        ]).withSourceInformation(sourceInformation),
-        sourceInformation));
+        js_ast
+            .js('#(#)', [completerFactory, completerFactoryTypeArguments])
+            .withSourceInformation(sourceInformation),
+        sourceInformation,
+      ),
+    );
     if (_analysis.hasExplicitReturns) {
-      variables
-          .add(_makeVariableInitializer(_returnValue, null, sourceInformation));
+      variables.add(
+        _makeVariableInitializer(_returnValue, null, sourceInformation),
+      );
     }
     return variables;
   }
 
   @override
   js_ast.Statement awaitStatement(
-      js_ast.Expression value, Object? sourceInformation) {
-    var asyncHelperCall =
-        js_ast.js('#asyncHelper(#value, #bodyName, #completer)', {
-      'asyncHelper': asyncAwait,
-      'value': value,
-      'bodyName': bodyName,
-      'completer': completer,
-    }).withSourceInformation(sourceInformation);
-    return js_ast.Return(asyncHelperCall)
+    js_ast.Expression value,
+    Object? sourceInformation,
+  ) {
+    var asyncHelperCall = js_ast
+        .js('#asyncHelper(#value, #bodyName, #completer)', {
+          'asyncHelper': asyncAwait,
+          'value': value,
+          'bodyName': bodyName,
+          'completer': completer,
+        })
         .withSourceInformation(sourceInformation);
+    return js_ast.Return(
+      asyncHelperCall,
+    ).withSourceInformation(sourceInformation);
   }
 
   @override
   js_ast.Fun _finishFunction(
-      List<js_ast.Parameter> parameters,
-      js_ast.Statement rewrittenBody,
-      js_ast.VariableDeclarationList variableDeclarationLists,
-      Object? functionSourceInformation,
-      Object? bodySourceInformation) {
+    List<js_ast.Parameter> parameters,
+    js_ast.Statement rewrittenBody,
+    js_ast.VariableDeclarationList variableDeclarationLists,
+    Object? functionSourceInformation,
+    Object? bodySourceInformation,
+  ) {
     js_ast.Statement errorCheck;
     if (_hasHandlerLabels) {
-      errorCheck = js_ast.js.statement('''
+      errorCheck = js_ast.js.statement(
+        '''
             if (#errorCode === #ERROR) {
               #errorStack.push(#result);
               #goto = #handler;
-            }''', {
-        'errorCode': _errorCode,
-        'ERROR': js_ast.number(status_codes.ERROR),
-        'errorStack': _errorStack,
-        'result': _result,
-        'goto': _goto,
-        'handler': _handler,
-      });
+            }''',
+        {
+          'errorCode': _errorCode,
+          'ERROR': js_ast.number(status_codes.ERROR),
+          'errorStack': _errorStack,
+          'result': _result,
+          'goto': _goto,
+          'handler': _handler,
+        },
+      );
     } else {
       var asyncRethrowCall = js_ast.js('#asyncRethrow(#result, #completer)', {
         'result': _result,
@@ -2070,49 +2331,67 @@ class AsyncRewriter extends AsyncRewriterBase {
         'completer': completer,
       });
       var returnAsyncRethrow = js_ast.Return(asyncRethrowCall);
-      errorCheck = js_ast.js.statement('''
+      errorCheck = js_ast.js.statement(
+        '''
             if (#errorCode === #ERROR)
               #returnAsyncRethrow;
-            ''', {
-        'errorCode': _errorCode,
-        'ERROR': js_ast.number(status_codes.ERROR),
-        'returnAsyncRethrow': returnAsyncRethrow,
-      });
+            ''',
+        {
+          'errorCode': _errorCode,
+          'ERROR': js_ast.number(status_codes.ERROR),
+          'returnAsyncRethrow': returnAsyncRethrow,
+        },
+      );
     }
 
     // Use an arrow function so that we can access 'this' from the outer scope.
-    var innerFunction = js_ast.js('''
+    var innerFunction = js_ast
+        .js(
+          '''
       (#errorCode, #result) => {
         #errorCheck;
         #rewrittenBody;
-      }''', {
-      'errorCode': _errorCode,
-      'result': _result,
-      'errorCheck': errorCheck,
-      'rewrittenBody': rewrittenBody,
-    }).withSourceInformation(bodySourceInformation);
-    var asyncStartCall = js_ast.js('#asyncStart(#bodyName, #completer)', {
-      'asyncStart': asyncStart,
-      'bodyName': bodyName,
-      'completer': completer,
-    }).withSourceInformation(bodySourceInformation);
+      }''',
+          {
+            'errorCode': _errorCode,
+            'result': _result,
+            'errorCheck': errorCheck,
+            'rewrittenBody': rewrittenBody,
+          },
+        )
+        .withSourceInformation(bodySourceInformation);
+    var asyncStartCall = js_ast
+        .js('#asyncStart(#bodyName, #completer)', {
+          'asyncStart': asyncStart,
+          'bodyName': bodyName,
+          'completer': completer,
+        })
+        .withSourceInformation(bodySourceInformation);
     var returnAsyncStart = js_ast.Return(asyncStartCall);
-    var wrapBodyCall = js_ast.js('#wrapBody(#innerFunction)', {
-      'wrapBody': wrapBody,
-      'innerFunction': innerFunction,
-    }).withSourceInformation(bodySourceInformation);
-    return (js_ast.js('''
+    var wrapBodyCall = js_ast
+        .js('#wrapBody(#innerFunction)', {
+          'wrapBody': wrapBody,
+          'innerFunction': innerFunction,
+        })
+        .withSourceInformation(bodySourceInformation);
+    return (js_ast
+            .js(
+              '''
         function (#parameters) {
           #variableDeclarationLists;
           var #bodyName = #wrapBodyCall;
           #returnAsyncStart;
-        }''', {
-      'parameters': parameters,
-      'variableDeclarationLists': variableDeclarationLists,
-      'bodyName': bodyName,
-      'wrapBodyCall': wrapBodyCall,
-      'returnAsyncStart': returnAsyncStart,
-    }).withSourceInformation(functionSourceInformation)) as js_ast.Fun;
+        }''',
+              {
+                'parameters': parameters,
+                'variableDeclarationLists': variableDeclarationLists,
+                'bodyName': bodyName,
+                'wrapBodyCall': wrapBodyCall,
+                'returnAsyncStart': returnAsyncStart,
+              },
+            )
+            .withSourceInformation(functionSourceInformation))
+        as js_ast.Fun;
   }
 }
 
@@ -2134,24 +2413,28 @@ class SyncStarRewriter extends AsyncRewriterBase {
   /// Property of the iterator that contains the current value.
   final js_ast.Expression iteratorCurrentValueProperty;
 
-  /// Property of the iterator that contains the uncaught exeception.
+  /// Property of the iterator that contains the uncaught exception.
   final js_ast.Expression iteratorDatumProperty;
 
   /// Property of the iterator that is bound to the `_yieldStar` method.
   final js_ast.Expression yieldStarSelector;
 
-  SyncStarRewriter(
-      {required this.makeSyncStarIterable,
-      required this.syncStarIterableTypeArgument,
-      required this.iteratorCurrentValueProperty,
-      required this.iteratorDatumProperty,
-      required this.yieldStarSelector,
-      required super.bodyName});
+  SyncStarRewriter({
+    required this.makeSyncStarIterable,
+    required this.syncStarIterableTypeArgument,
+    required this.iteratorCurrentValueProperty,
+    required this.iteratorDatumProperty,
+    required this.yieldStarSelector,
+    required super.bodyName,
+  });
 
   /// Translates a yield/yield* in an sync*.
   @override
-  void addYield(js_ast.DartYield node, js_ast.Expression expression,
-      Object? sourceInformation) {
+  void addYield(
+    js_ast.DartYield node,
+    js_ast.Expression expression,
+    Object? sourceInformation,
+  ) {
     if (node.hasStar) {
       // ``yield* expression` is translated to:
       //
@@ -2159,10 +2442,13 @@ class SyncStarRewriter extends AsyncRewriterBase {
       //
       // The `_yieldStar` method updates the state of the Iterator to 'enter'
       // the expression and returns the SYNC_STAR_YIELD_STAR status code.
-      _addStatement(js_ast.Return(js_ast.Call(
-              js_ast.PropertyAccess(iterator, yieldStarSelector),
-              [expression]).withSourceInformation(sourceInformation))
-          .withSourceInformation(sourceInformation));
+      _addStatement(
+        js_ast.Return(
+          js_ast.Call(js_ast.PropertyAccess(iterator, yieldStarSelector), [
+            expression,
+          ]).withSourceInformation(sourceInformation),
+        ).withSourceInformation(sourceInformation),
+      );
     } else {
       // `yield expression` is translated to:
       //
@@ -2171,21 +2457,29 @@ class SyncStarRewriter extends AsyncRewriterBase {
       // This sets the `_current` field of the Iterator and returns the
       // SYNC_STAR_YIELD status code.
       final store = js_ast.Assignment(
-          js_ast.PropertyAccess(iterator, iteratorCurrentValueProperty),
-          expression);
-      _addStatement(js_ast.Return(js_ast.Binary(
-              ',', store, js_ast.number(status_codes.SYNC_STAR_YIELD)))
-          .withSourceInformation(sourceInformation));
+        js_ast.PropertyAccess(iterator, iteratorCurrentValueProperty),
+        expression,
+      );
+      _addStatement(
+        js_ast.Return(
+          js_ast.Binary(
+            ',',
+            store,
+            js_ast.number(status_codes.SYNC_STAR_YIELD),
+          ),
+        ).withSourceInformation(sourceInformation),
+      );
     }
   }
 
   @override
   js_ast.Fun _finishFunction(
-      List<js_ast.Parameter> parameters,
-      js_ast.Statement rewrittenBody,
-      js_ast.VariableDeclarationList variableDeclarationLists,
-      Object? functionSourceInformation,
-      Object? bodySourceInformation) {
+    List<js_ast.Parameter> parameters,
+    js_ast.Statement rewrittenBody,
+    js_ast.VariableDeclarationList variableDeclarationLists,
+    Object? functionSourceInformation,
+    Object? bodySourceInformation,
+  ) {
     // Each iterator invocation on the iterable should work on its own copy of
     // the parameters. Since parameter initialization code at the start of the
     // function may reference the original parameter names, we create an alias
@@ -2201,18 +2495,24 @@ class SyncStarRewriter extends AsyncRewriterBase {
         ScopedId() => ScopedId.from(parameter),
         js_ast.DestructuredVariable() when parameter.name is ScopedId =>
           ScopedId.from(parameter.name as ScopedId),
-        _ => js_ast.Identifier(name)
+        _ => js_ast.Identifier(name),
       };
 
-      innerDeclarationsList
-          .add(js_ast.VariableInitialization(parameterRef, renamedIdentifier));
-      outerDeclarationsList
-          .add(js_ast.VariableInitialization(renamedIdentifier, parameterRef));
+      innerDeclarationsList.add(
+        js_ast.VariableInitialization(parameterRef, renamedIdentifier),
+      );
+      outerDeclarationsList.add(
+        js_ast.VariableInitialization(renamedIdentifier, parameterRef),
+      );
     }
-    var outerDeclarations =
-        js_ast.VariableDeclarationList('let', outerDeclarationsList);
-    var innerDeclarations =
-        js_ast.VariableDeclarationList('let', innerDeclarationsList);
+    var outerDeclarations = js_ast.VariableDeclarationList(
+      'let',
+      outerDeclarationsList,
+    );
+    var innerDeclarations = js_ast.VariableDeclarationList(
+      'let',
+      innerDeclarationsList,
+    );
 
     var pushError = js_ast.js('#errorStack.push(#result)', {
       'result': _result,
@@ -2222,61 +2522,76 @@ class SyncStarRewriter extends AsyncRewriterBase {
       'goto': _goto,
       'handler': _handler,
     });
-    var checkErrorCode = js_ast.js.statement('''
+    var checkErrorCode = js_ast.js.statement(
+      '''
           if (#errorCode === #ERROR) {
               #pushError;
               #setGoto;
-          }''', {
-      'errorCode': _errorCode,
-      'ERROR': js_ast.number(status_codes.ERROR),
-      'pushError': pushError,
-      'setGoto': setGoto,
-    });
+          }''',
+      {
+        'errorCode': _errorCode,
+        'ERROR': js_ast.number(status_codes.ERROR),
+        'pushError': pushError,
+        'setGoto': setGoto,
+      },
+    );
     // Use an arrow function so that we can access 'this' from the outer scope.
-    var innerInnerFunction = js_ast.js('''
+    var innerInnerFunction = js_ast.js(
+      '''
           (#iterator, #errorCode, #result) => {
             #checkErrorCode;
             #helperBody;
-          }''', {
-      'helperBody': rewrittenBody,
-      'errorCode': _errorCode,
-      'iterator': iterator,
-      'result': _result,
-      'checkErrorCode': checkErrorCode,
-    });
+          }''',
+      {
+        'helperBody': rewrittenBody,
+        'errorCode': _errorCode,
+        'iterator': iterator,
+        'result': _result,
+        'checkErrorCode': checkErrorCode,
+      },
+    );
     var returnInnerInnerFunction = js_ast.Return(innerInnerFunction);
     // Use an arrow function so that we can access 'this' from the outer scope.
-    var innerInnerFunctionInvocation = js_ast.js('''
+    var innerInnerFunctionInvocation = js_ast.js(
+      '''
           #makeSyncStarIterable(#iterableType, () => {
             if (#hasParameters) {
               #innerDeclarations;
             }
             #varDecl;
             #returnInnerInnerFunction;
-          })''', {
-      'hasParameters': parameters.isNotEmpty,
-      'innerDeclarations': innerDeclarations,
-      'varDecl': variableDeclarationLists,
-      'returnInnerInnerFunction': returnInnerInnerFunction,
-      'makeSyncStarIterable': makeSyncStarIterable,
-      'iterableType': syncStarIterableTypeArgument,
-    });
+          })''',
+      {
+        'hasParameters': parameters.isNotEmpty,
+        'innerDeclarations': innerDeclarations,
+        'varDecl': variableDeclarationLists,
+        'returnInnerInnerFunction': returnInnerInnerFunction,
+        'makeSyncStarIterable': makeSyncStarIterable,
+        'iterableType': syncStarIterableTypeArgument,
+      },
+    );
     var returnInnerFunction = js_ast.Return(innerInnerFunctionInvocation);
     // Add the copied parameter declarations outside the inner function in case
     // one is a type parameter that gets passed to the inner function.
-    return (js_ast.js('''
+    return (js_ast
+            .js(
+              '''
           function (#parameters) {
             if (#hasParameters) {
               #outerDeclarations;
             }
             #returnInnerFunction;
           }
-          ''', {
-      'hasParameters': parameters.isNotEmpty,
-      'outerDeclarations': outerDeclarations,
-      'parameters': parameters,
-      'returnInnerFunction': returnInnerFunction,
-    }).withSourceInformation(functionSourceInformation)) as js_ast.Fun;
+          ''',
+              {
+                'hasParameters': parameters.isNotEmpty,
+                'outerDeclarations': outerDeclarations,
+                'parameters': parameters,
+                'returnInnerFunction': returnInnerFunction,
+              },
+            )
+            .withSourceInformation(functionSourceInformation))
+        as js_ast.Fun;
   }
 
   @override
@@ -2290,11 +2605,18 @@ class SyncStarRewriter extends AsyncRewriterBase {
     // This stashes the exception on the Iterator and returns the
     // SYNC_STAR_UNCAUGHT_EXCEPTION status code.
     final store = js_ast.Assignment(
-        js_ast.PropertyAccess(iterator, iteratorDatumProperty),
-        js_ast.js('#.at(-1)', [_errorStack]));
-    _addStatement(js_ast.Return(js_ast.Binary(',', store,
-            js_ast.number(status_codes.SYNC_STAR_UNCAUGHT_EXCEPTION)))
-        .withSourceInformation(sourceInformation));
+      js_ast.PropertyAccess(iterator, iteratorDatumProperty),
+      js_ast.js('#.at(-1)', [_errorStack]),
+    );
+    _addStatement(
+      js_ast.Return(
+        js_ast.Binary(
+          ',',
+          store,
+          js_ast.number(status_codes.SYNC_STAR_UNCAUGHT_EXCEPTION),
+        ),
+      ).withSourceInformation(sourceInformation),
+    );
   }
 
   /// Returning from a sync* function returns the SYNC_STAR_DONE status code.
@@ -2305,20 +2627,26 @@ class SyncStarRewriter extends AsyncRewriterBase {
     } else {
       _addStatement(js_ast.Comment('implicit return'));
     }
-    _addStatement(js_ast.Return(js_ast.number(status_codes.SYNC_STAR_DONE))
-        .withSourceInformation(sourceInformation));
+    _addStatement(
+      js_ast.Return(
+        js_ast.number(status_codes.SYNC_STAR_DONE),
+      ).withSourceInformation(sourceInformation),
+    );
   }
 
   @override
   Iterable<js_ast.VariableInitialization> variableInitializations(
-      Object? sourceInformation) {
+    Object? sourceInformation,
+  ) {
     var variables = <js_ast.VariableInitialization>[];
     return variables;
   }
 
   @override
   js_ast.Statement awaitStatement(
-      js_ast.Expression value, Object? sourceInformation) {
+    js_ast.Expression value,
+    Object? sourceInformation,
+  ) {
     throw StateError('Sync* functions cannot contain await statements.');
   }
 }
@@ -2329,8 +2657,9 @@ class AsyncStarRewriter extends AsyncRewriterBase {
 
   /// The stack of labels of finally blocks to assign to [_next] if the
   /// async* [StreamSubscription] was canceled during a yield.
-  late final js_ast.Identifier nextWhenCanceled =
-      ScopedId('t\$nextWhenCanceled');
+  late final js_ast.Identifier nextWhenCanceled = ScopedId(
+    't\$nextWhenCanceled',
+  );
 
   /// The StreamController that controls an async* function.
   late final js_ast.Identifier controller = ScopedId('t\$controller');
@@ -2374,15 +2703,16 @@ class AsyncStarRewriter extends AsyncRewriterBase {
 
   final js_ast.Expression wrapBody;
 
-  AsyncStarRewriter(
-      {required this.asyncStarHelper,
-      required this.streamOfController,
-      required this.newController,
-      required this.newControllerTypeArguments,
-      required this.yieldExpression,
-      required this.yieldStarExpression,
-      required this.wrapBody,
-      required super.bodyName});
+  AsyncStarRewriter({
+    required this.asyncStarHelper,
+    required this.streamOfController,
+    required this.newController,
+    required this.newControllerTypeArguments,
+    required this.yieldExpression,
+    required this.yieldStarExpression,
+    required this.wrapBody,
+    required super.bodyName,
+  });
 
   /// Translates a yield/yield* in an async* function.
   ///
@@ -2393,51 +2723,66 @@ class AsyncStarRewriter extends AsyncRewriterBase {
   /// Also [nextWhenCanceled] is set up to contain the finally blocks that
   /// must be run in case the stream was canceled.
   @override
-  void addYield(js_ast.DartYield node, js_ast.Expression expression,
-      Object? sourceInformation) {
+  void addYield(
+    js_ast.DartYield node,
+    js_ast.Expression expression,
+    Object? sourceInformation,
+  ) {
     // Find all the finally blocks that should be performed if the stream is
     // canceled during the yield.
     var enclosingFinallyLabels = <int>[
       // At the bottom of the stack is the return label.
       _exitLabel,
       for (final node in _jumpTargets)
-        if (_finallyLabels[node] != null) _finallyLabels[node]!
+        if (_finallyLabels[node] != null) _finallyLabels[node]!,
     ];
 
-    _addStatement(js_ast.js.statement('# = #;', [
-      nextWhenCanceled,
-      js_ast.ArrayInitializer(
-          enclosingFinallyLabels.map(js_ast.number).toList())
-    ]).withSourceInformation(sourceInformation));
-    var yieldExpressionCall = js_ast.js('#yieldExpression(#expression)', {
-      'yieldExpression': node.hasStar ? yieldStarExpression : yieldExpression,
-      'expression': expression,
-    }).withSourceInformation(sourceInformation);
+    _addStatement(
+      js_ast.js
+          .statement('# = #;', [
+            nextWhenCanceled,
+            js_ast.ArrayInitializer(
+              enclosingFinallyLabels.map(js_ast.number).toList(),
+            ),
+          ])
+          .withSourceInformation(sourceInformation),
+    );
+    var yieldExpressionCall = js_ast
+        .js('#yieldExpression(#expression)', {
+          'yieldExpression': node.hasStar
+              ? yieldStarExpression
+              : yieldExpression,
+          'expression': expression,
+        })
+        .withSourceInformation(sourceInformation);
     var asyncStarHelperCall = js_ast
         .js('#asyncStarHelper(#yieldExpressionCall, #bodyName, #controller)', {
-      'asyncStarHelper': asyncStarHelper,
-      'yieldExpressionCall': yieldExpressionCall,
-      'bodyName': bodyName,
-      'controller': controller,
-    }).withSourceInformation(sourceInformation);
-    _addStatement(js_ast.Return(asyncStarHelperCall)
-        .withSourceInformation(sourceInformation));
+          'asyncStarHelper': asyncStarHelper,
+          'yieldExpressionCall': yieldExpressionCall,
+          'bodyName': bodyName,
+          'controller': controller,
+        })
+        .withSourceInformation(sourceInformation);
+    _addStatement(
+      js_ast.Return(
+        asyncStarHelperCall,
+      ).withSourceInformation(sourceInformation),
+    );
   }
 
   @override
   js_ast.Fun _finishFunction(
-      List<js_ast.Parameter> parameters,
-      js_ast.Statement rewrittenBody,
-      js_ast.VariableDeclarationList variableDeclarationLists,
-      Object? functionSourceInformation,
-      Object? bodySourceInformation) {
+    List<js_ast.Parameter> parameters,
+    js_ast.Statement rewrittenBody,
+    js_ast.VariableDeclarationList variableDeclarationLists,
+    Object? functionSourceInformation,
+    Object? bodySourceInformation,
+  ) {
     var updateNext = js_ast.js('#next = #nextWhenCanceled', {
       'next': _next,
       'nextWhenCanceled': nextWhenCanceled,
     });
-    var callPop = js_ast.js('#next.pop()', {
-      'next': _next,
-    });
+    var callPop = js_ast.js('#next.pop()', {'next': _next});
     var gotoCancelled = js_ast.js('#goto = #callPop', {
       'goto': _goto,
       'callPop': callPop,
@@ -2451,7 +2796,8 @@ class AsyncStarRewriter extends AsyncRewriterBase {
       'handler': _handler,
     });
     var breakStatement = js_ast.Break(null);
-    var switchCase = js_ast.js.statement('''
+    var switchCase = js_ast.js.statement(
+      '''
         switch (#errorCode) {
           case #STREAM_WAS_CANCELED:
             #updateNext;
@@ -2460,88 +2806,110 @@ class AsyncStarRewriter extends AsyncRewriterBase {
           case #ERROR:
             #pushError;
             #gotoError;
-        }''', {
-      'errorCode': _errorCode,
-      'STREAM_WAS_CANCELED': js_ast.number(status_codes.STREAM_WAS_CANCELED),
-      'updateNext': updateNext,
-      'gotoCancelled': gotoCancelled,
-      'break': breakStatement,
-      'ERROR': js_ast.number(status_codes.ERROR),
-      'pushError': pushError,
-      'gotoError': gotoError,
-    });
-    var ifError = js_ast.js.statement('''
+        }''',
+      {
+        'errorCode': _errorCode,
+        'STREAM_WAS_CANCELED': js_ast.number(status_codes.STREAM_WAS_CANCELED),
+        'updateNext': updateNext,
+        'gotoCancelled': gotoCancelled,
+        'break': breakStatement,
+        'ERROR': js_ast.number(status_codes.ERROR),
+        'pushError': pushError,
+        'gotoError': gotoError,
+      },
+    );
+    var ifError = js_ast.js.statement(
+      '''
         if (#errorCode === #ERROR) {
           #pushError;
           #gotoError;
-        }''', {
-      'errorCode': _errorCode,
-      'ERROR': js_ast.number(status_codes.ERROR),
-      'pushError': pushError,
-      'gotoError': gotoError,
-    });
-    var ifHasYield = js_ast.js.statement('''
+        }''',
+      {
+        'errorCode': _errorCode,
+        'ERROR': js_ast.number(status_codes.ERROR),
+        'pushError': pushError,
+        'gotoError': gotoError,
+      },
+    );
+    var ifHasYield = js_ast.js.statement(
+      '''
         if (#hasYield) {
           #switchCase
         } else {
           #ifError;
         }
-    ''', {
-      'hasYield': _analysis.hasYield,
-      'switchCase': switchCase,
-      'ifError': ifError,
-    });
+    ''',
+      {
+        'hasYield': _analysis.hasYield,
+        'switchCase': switchCase,
+        'ifError': ifError,
+      },
+    );
     // Use an arrow function so that we can access 'this' from the outer scope.
-    var innerFunction = js_ast.js('''
+    var innerFunction = js_ast
+        .js(
+          '''
         (#errorCode, #result) => {
           #ifHasYield;
           #rewrittenBody;
-        }''', {
-      'errorCode': _errorCode,
-      'result': _result,
-      'ifHasYield': ifHasYield,
-      'rewrittenBody': rewrittenBody,
-    }).withSourceInformation(functionSourceInformation);
-    var wrapBodyCall = js_ast.js('#wrapBody(#innerFunction)', {
-      'wrapBody': wrapBody,
-      'innerFunction': innerFunction,
-    }).withSourceInformation(bodySourceInformation);
-    var declareBodyName =
-        js_ast.js.statement('var #bodyName = #wrapBodyCall;', {
-      'bodyName': bodyName,
-      'wrapBodyCall': wrapBodyCall,
-    });
+        }''',
+          {
+            'errorCode': _errorCode,
+            'result': _result,
+            'ifHasYield': ifHasYield,
+            'rewrittenBody': rewrittenBody,
+          },
+        )
+        .withSourceInformation(functionSourceInformation);
+    var wrapBodyCall = js_ast
+        .js('#wrapBody(#innerFunction)', {
+          'wrapBody': wrapBody,
+          'innerFunction': innerFunction,
+        })
+        .withSourceInformation(bodySourceInformation);
+    var declareBodyName = js_ast.js.statement(
+      'var #bodyName = #wrapBodyCall;',
+      {'bodyName': bodyName, 'wrapBodyCall': wrapBodyCall},
+    );
     var streamOfControllerCall = js_ast.js('#streamOfController(#controller)', {
       'streamOfController': streamOfController,
       'controller': controller,
     });
     var returnStreamOfControllerCall = js_ast.Return(streamOfControllerCall);
-    return (js_ast.js('''
+    return (js_ast
+            .js(
+              '''
         function (#parameters) {
           #declareBodyName;
           #variableDeclarationLists;
           #returnStreamOfControllerCall;
-        }''', {
-      'parameters': parameters,
-      'declareBodyName': declareBodyName,
-      'variableDeclarationLists': variableDeclarationLists,
-      'returnStreamOfControllerCall': returnStreamOfControllerCall,
-    }).withSourceInformation(functionSourceInformation)) as js_ast.Fun;
+        }''',
+              {
+                'parameters': parameters,
+                'declareBodyName': declareBodyName,
+                'variableDeclarationLists': variableDeclarationLists,
+                'returnStreamOfControllerCall': returnStreamOfControllerCall,
+              },
+            )
+            .withSourceInformation(functionSourceInformation))
+        as js_ast.Fun;
   }
 
   @override
   void addErrorExit(Object? sourceInformation) {
     _hasHandlerLabels = true;
     _beginLabel(_rethrowLabel);
-    var asyncHelperCall =
-        js_ast.js('#asyncHelper(#errorStack.at(-1), #errorCode, #controller)', {
-      'asyncHelper': asyncStarHelper,
-      'errorCode': js_ast.number(status_codes.ERROR),
-      'errorStack': _errorStack,
-      'controller': controller
-    }).withSourceInformation(sourceInformation);
-    _addStatement(js_ast.Return(asyncHelperCall)
-        .withSourceInformation(sourceInformation));
+    var asyncHelperCall = js_ast
+        .js('#asyncHelper(#errorStack.at(-1), #errorCode, #controller)', {
+          'asyncHelper': asyncStarHelper,
+          'errorCode': js_ast.number(status_codes.ERROR),
+          'errorStack': _errorStack,
+          'controller': controller,
+        })
+        .withSourceInformation(sourceInformation);
+    _addStatement(
+      js_ast.Return(asyncHelperCall).withSourceInformation(sourceInformation),
+    );
   }
 
   /// Returning from an async* function calls the [streamHelper] with an
@@ -2550,47 +2918,60 @@ class AsyncStarRewriter extends AsyncRewriterBase {
   void addSuccessExit(Object? sourceInformation) {
     _beginLabel(_exitLabel);
 
-    var streamHelperCall =
-        js_ast.js('#streamHelper(null, #successCode, #controller)', {
-      'streamHelper': asyncStarHelper,
-      'successCode': js_ast.number(status_codes.SUCCESS),
-      'controller': controller
-    }).withSourceInformation(sourceInformation);
-    _addStatement(js_ast.Return(streamHelperCall)
-        .withSourceInformation(sourceInformation));
+    var streamHelperCall = js_ast
+        .js('#streamHelper(null, #successCode, #controller)', {
+          'streamHelper': asyncStarHelper,
+          'successCode': js_ast.number(status_codes.SUCCESS),
+          'controller': controller,
+        })
+        .withSourceInformation(sourceInformation);
+    _addStatement(
+      js_ast.Return(streamHelperCall).withSourceInformation(sourceInformation),
+    );
   }
 
   @override
   Iterable<js_ast.VariableInitialization> variableInitializations(
-      Object? sourceInformation) {
+    Object? sourceInformation,
+  ) {
     var variables = <js_ast.VariableInitialization>[];
-    variables.add(_makeVariableInitializer(
+    variables.add(
+      _makeVariableInitializer(
         controller,
-        js_ast.js('#(#, #)', [
-          newController,
-          newControllerTypeArguments,
-          bodyName
-        ]).withSourceInformation(sourceInformation),
-        sourceInformation));
+        js_ast
+            .js('#(#, #)', [
+              newController,
+              newControllerTypeArguments,
+              bodyName,
+            ])
+            .withSourceInformation(sourceInformation),
+        sourceInformation,
+      ),
+    );
     if (_analysis.hasYield) {
       variables.add(
-          _makeVariableInitializer(nextWhenCanceled, null, sourceInformation));
+        _makeVariableInitializer(nextWhenCanceled, null, sourceInformation),
+      );
     }
     return variables;
   }
 
   @override
   js_ast.Statement awaitStatement(
-      js_ast.Expression value, Object? sourceInformation) {
-    var asyncHelperCall =
-        js_ast.js('#asyncHelper(#value, #bodyName, #controller)', {
-      'asyncHelper': asyncStarHelper,
-      'value': value,
-      'bodyName': bodyName,
-      'controller': controller
-    }).withSourceInformation(sourceInformation);
-    return js_ast.Return(asyncHelperCall)
+    js_ast.Expression value,
+    Object? sourceInformation,
+  ) {
+    var asyncHelperCall = js_ast
+        .js('#asyncHelper(#value, #bodyName, #controller)', {
+          'asyncHelper': asyncStarHelper,
+          'value': value,
+          'bodyName': bodyName,
+          'controller': controller,
+        })
         .withSourceInformation(sourceInformation);
+    return js_ast.Return(
+      asyncHelperCall,
+    ).withSourceInformation(sourceInformation);
   }
 }
 
@@ -2686,8 +3067,9 @@ class PreTranslationAnalysis extends js_ast.NodeVisitor<bool> {
   @override
   bool visitBreak(js_ast.Break node) {
     if (node.targetLabel != null) {
-      targets[node] =
-          labelledStatements.lastWhere((js_ast.LabeledStatement statement) {
+      targets[node] = labelledStatements.lastWhere((
+        js_ast.LabeledStatement statement,
+      ) {
         return statement.label == node.targetLabel;
       });
     } else {
@@ -2736,11 +3118,13 @@ class PreTranslationAnalysis extends js_ast.NodeVisitor<bool> {
   bool visitContinue(js_ast.Continue node) {
     if (node.targetLabel != null) {
       var targetLabel = labelledStatements.lastWhere(
-          (js_ast.LabeledStatement stm) => stm.label == node.targetLabel);
+        (js_ast.LabeledStatement stm) => stm.label == node.targetLabel,
+      );
       targets[node] = targetLabel.body;
     } else {
-      targets[node] = loopsAndSwitches
-          .lastWhere((js_ast.Node node) => node is! js_ast.Switch);
+      targets[node] = loopsAndSwitches.lastWhere(
+        (js_ast.Node node) => node is! js_ast.Switch,
+      );
     }
     assert(() {
       var target = targets[node];
@@ -2966,8 +3350,9 @@ class PreTranslationAnalysis extends js_ast.NodeVisitor<bool> {
     if (node.finallyPart != null) hasFinally = true;
     var body = visit(node.body);
     var catchPart = (node.catchPart == null) ? false : visit(node.catchPart!);
-    var finallyPart =
-        (node.finallyPart == null) ? false : visit(node.finallyPart!);
+    var finallyPart = (node.finallyPart == null)
+        ? false
+        : visit(node.finallyPart!);
     return body || catchPart || finallyPart;
   }
 
@@ -3135,7 +3520,7 @@ class _ScopeInfo {
   final Map<String, _ScopeInfo> _nameDeclarations;
 
   _ScopeInfo([Map<String, _ScopeInfo>? nameDeclarations])
-      : _nameDeclarations = {...?nameDeclarations};
+    : _nameDeclarations = {...?nameDeclarations};
 
   _ScopeInfo childScope() {
     return _ScopeInfo(_nameDeclarations);
@@ -3143,8 +3528,10 @@ class _ScopeInfo {
 
   void declare(js_ast.Identifier node, bool isUntrackedDeclaration) {
     final key = node.name;
-    assert(_nameDeclarations[key] != this,
-        'Name "$node" already declared in scope.');
+    assert(
+      _nameDeclarations[key] != this,
+      'Name "$node" already declared in scope.',
+    );
     if (isUntrackedDeclaration) {
       _nameDeclarations.remove(key);
     } else {
@@ -3192,7 +3579,7 @@ class _ClosureRenamer extends js_ast.Transformer {
     final captureVariable = closureInfo.usedScopes[declaringScope];
     return captureVariable != null
         ? (js_ast.PropertyAccess.field(captureVariable, node.name)
-          ..sourceInformation = node.sourceInformation)
+            ..sourceInformation = node.sourceInformation)
         : node;
   }
 }
