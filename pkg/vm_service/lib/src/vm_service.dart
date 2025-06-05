@@ -2412,6 +2412,9 @@ abstract class EventKind {
   /// Event from dart:developer.log.
   static const String kLogging = 'Logging';
 
+  /// A timer fired significantly later than expected.
+  static const String kTimerSignificantlyOverdue = 'TimerSignificantlyOverdue';
+
   /// A block of timeline events has been completed.
   ///
   /// This service event is not sent for individual timeline events. It is

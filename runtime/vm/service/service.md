@@ -2781,6 +2781,9 @@ enum EventKind {
   // Event from dart:developer.log.
   Logging,
 
+  // A timer fired significantly later than expected.
+  TimerSignificantlyOverdue,
+
   // A block of timeline events has been completed.
   //
   // This service event is not sent for individual timeline events. It is

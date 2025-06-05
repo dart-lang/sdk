@@ -1,7 +1,9 @@
+## 15.0.2
+- Add `kTimerSignificantlyOverdue` field to `EventKind`.
+
 ## 15.0.1
 - Update to version `4.19` of the spec.
 - Add `Timer` stream.
-- Add `TimerSignificantlyOverdue` event kind.
 - Add `details` property to `Event`.
 - Add `getQueuedMicrotasks` RPC.
 - Add `Microtask` and `QueuedMicrotasks` types.
