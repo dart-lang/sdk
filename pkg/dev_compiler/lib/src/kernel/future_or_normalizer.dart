@@ -44,24 +44,28 @@ class FutureOrNormalizer extends ReplacementVisitor {
       case InterfaceType()
           when typeArgument.classNode == _coreTypes.objectClass:
         // Normalize FutureOr of Object, Object?, Object*.
-        var nullable = futureOr.nullability == Nullability.nullable ||
+        var nullable =
+            futureOr.nullability == Nullability.nullable ||
             typeArgument.nullability == Nullability.nullable;
-        var legacy = futureOr.nullability == Nullability.legacy ||
+        var legacy =
+            futureOr.nullability == Nullability.legacy ||
             typeArgument.nullability == Nullability.legacy;
         var nullability = nullable
             ? Nullability.nullable
             : legacy
-                ? Nullability.legacy
-                : Nullability.nonNullable;
+            ? Nullability.legacy
+            : Nullability.nonNullable;
         return typeArgument.withDeclaredNullability(nullability);
       case NeverType() when typeArgument.nullability == Nullability.nonNullable:
         // FutureOr<Never> --> Future<Never>
-        return InterfaceType(
-            _coreTypes.futureClass, futureOr.nullability, [typeArgument]);
+        return InterfaceType(_coreTypes.futureClass, futureOr.nullability, [
+          typeArgument,
+        ]);
       case NullType():
         // FutureOr<Null> --> Future<Null>?
-        return InterfaceType(
-            _coreTypes.futureClass, Nullability.nullable, [typeArgument]);
+        return InterfaceType(_coreTypes.futureClass, Nullability.nullable, [
+          typeArgument,
+        ]);
       case InterfaceType():
       case NeverType():
       case FunctionType():
@@ -96,7 +100,8 @@ class FutureOrNormalizer extends ReplacementVisitor {
         }
       case ExtensionType():
         throw UnsupportedError(
-            '`ExtensionType`s must be erased before `FutureOr` normalization.');
+          '`ExtensionType`s must be erased before `FutureOr` normalization.',
+        );
       case AuxiliaryType():
         throwUnsupportedAuxiliaryType(typeArgument);
       case InvalidType():

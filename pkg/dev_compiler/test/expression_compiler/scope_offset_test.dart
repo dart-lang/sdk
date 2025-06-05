@@ -12,8 +12,9 @@ import 'package:test/test.dart';
 /// Verbose mode for debugging
 bool get verbose => false;
 
-Uri sdkSummaryPath =
-    computePlatformBinariesLocation().resolve('ddc_outline.dill');
+Uri sdkSummaryPath = computePlatformBinariesLocation().resolve(
+  'ddc_outline.dill',
+);
 
 void main(List<String> args) {
   test('Offsets are present on scoping nodes in SDK', () async {
@@ -21,8 +22,10 @@ void main(List<String> args) {
     var bytes = await entity.readAsBytes();
 
     var component = Component();
-    BinaryBuilderWithMetadata(bytes, disableLazyReading: true)
-        .readComponent(component, checkCanonicalNames: true, createView: true);
+    BinaryBuilderWithMetadata(
+      bytes,
+      disableLazyReading: true,
+    ).readComponent(component, checkCanonicalNames: true, createView: true);
 
     for (var lib in component.libraries) {
       ScopeOffsetValidator.validate(lib);
@@ -44,11 +47,17 @@ class ScopeOffsetValidator extends VisitorDefault<void> with VisitorVoidMixin {
     // TODO(joshualitt): Currently, there's nothing in `dart:_js_types` that
     // would be indexed. Remove this exception when we add things to it.
     if (importUri != 'dart:_js_types' && importUri != 'dart:_ddc_only') {
-      expect(validator.classCount + validator.memberCount, greaterThan(0),
-          reason: 'Validation was not empty');
+      expect(
+        validator.classCount + validator.memberCount,
+        greaterThan(0),
+        reason: 'Validation was not empty',
+      );
     }
-    expect(validator.blockCount, equals(0),
-        reason: 'SDK dill only contains outlines');
+    expect(
+      validator.blockCount,
+      equals(0),
+      reason: 'SDK dill only contains outlines',
+    );
   }
 
   @override
@@ -60,12 +69,19 @@ class ScopeOffsetValidator extends VisitorDefault<void> with VisitorVoidMixin {
   void visitClass(Class cls) {
     classCount++;
     expect(
-        cls,
-        const TypeMatcher<Class>()
-            .having((c) => c.fileOffset, '${cls.name} : fileOffset',
-                isNot(equals(-1)))
-            .having((c) => c.fileEndOffset, '${cls.name} : fileEndOffset',
-                isNot(equals(-1))));
+      cls,
+      const TypeMatcher<Class>()
+          .having(
+            (c) => c.fileOffset,
+            '${cls.name} : fileOffset',
+            isNot(equals(-1)),
+          )
+          .having(
+            (c) => c.fileEndOffset,
+            '${cls.name} : fileEndOffset',
+            isNot(equals(-1)),
+          ),
+    );
 
     super.visitClass(cls);
   }
@@ -77,25 +93,28 @@ class ScopeOffsetValidator extends VisitorDefault<void> with VisitorVoidMixin {
     var noBreakPointPossible = (member is Constructor)
         ? member.isSynthetic
         : (member is Procedure)
-            ? member.isNoSuchMethodForwarder ||
-                member.isAbstract ||
-                member.isForwardingStub ||
-                member.stubKind == ProcedureStubKind.ConcreteMixinStub
-            : false;
+        ? member.isNoSuchMethodForwarder ||
+              member.isAbstract ||
+              member.isForwardingStub ||
+              member.stubKind == ProcedureStubKind.ConcreteMixinStub
+        : false;
 
     if (!noBreakPointPossible) {
       memberCount++;
       expect(
-          member,
-          const TypeMatcher<Member>()
-              .having(
-                  (c) => c.fileOffset,
-                  '${member.enclosingClass}.${member.name} : fileOffset',
-                  isNot(equals(-1)))
-              .having(
-                  (c) => c.fileEndOffset,
-                  '${member.enclosingClass}.${member.name} : fileEndOffset',
-                  isNot(equals(-1))));
+        member,
+        const TypeMatcher<Member>()
+            .having(
+              (c) => c.fileOffset,
+              '${member.enclosingClass}.${member.name} : fileOffset',
+              isNot(equals(-1)),
+            )
+            .having(
+              (c) => c.fileEndOffset,
+              '${member.enclosingClass}.${member.name} : fileEndOffset',
+              isNot(equals(-1)),
+            ),
+      );
 
       super.defaultMember(member);
     }
@@ -104,16 +123,19 @@ class ScopeOffsetValidator extends VisitorDefault<void> with VisitorVoidMixin {
   @override
   void visitFunctionNode(FunctionNode fun) {
     expect(
-        fun,
-        const TypeMatcher<FunctionNode>()
-            .having(
-                (c) => c.fileOffset,
-                '${fun.parent!.toText(astTextStrategyForTesting)} : fileOffset',
-                isNot(equals(-1)))
-            .having(
-                (c) => c.fileEndOffset,
-                '${fun.parent!.toText(astTextStrategyForTesting)} : fileEndOffset',
-                isNot(equals(-1))));
+      fun,
+      const TypeMatcher<FunctionNode>()
+          .having(
+            (c) => c.fileOffset,
+            '${fun.parent!.toText(astTextStrategyForTesting)} : fileOffset',
+            isNot(equals(-1)),
+          )
+          .having(
+            (c) => c.fileEndOffset,
+            '${fun.parent!.toText(astTextStrategyForTesting)} : fileEndOffset',
+            isNot(equals(-1)),
+          ),
+    );
 
     super.visitFunctionNode(fun);
   }
@@ -122,15 +144,20 @@ class ScopeOffsetValidator extends VisitorDefault<void> with VisitorVoidMixin {
   void visitBlock(Block block) {
     blockCount++;
     expect(
-        block,
-        const TypeMatcher<FunctionNode>().having(
-            (c) => c.fileOffset,
-            '${block.toText(astTextStrategyForTesting)} : fileOffset',
-            isNot(equals(-1))));
+      block,
+      const TypeMatcher<FunctionNode>().having(
+        (c) => c.fileOffset,
+        '${block.toText(astTextStrategyForTesting)} : fileOffset',
+        isNot(equals(-1)),
+      ),
+    );
 
     var fileEndOffset = FileEndOffsetCalculator.calculateEndOffset(block);
-    expect(fileEndOffset, isNot(equals(-1)),
-        reason: '${block.toText(astTextStrategyForTesting)} : fileOffset');
+    expect(
+      fileEndOffset,
+      isNot(equals(-1)),
+      reason: '${block.toText(astTextStrategyForTesting)} : fileOffset',
+    );
 
     super.visitBlock(block);
   }

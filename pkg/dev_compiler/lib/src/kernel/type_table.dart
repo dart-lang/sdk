@@ -14,9 +14,10 @@ import '../js_ast/js_ast.dart' show js;
 import 'kernel_helpers.dart';
 
 /// Returns all non-locally defined type parameters referred to by [t].
-Set< /* TypeParameter | StructuralParameter */ Object> freeTypeParameters(
-    DartType t) {
-  var result = < /* TypeParameter | StructuralParameter */ Object>{};
+Set</* TypeParameter | StructuralParameter */ Object> freeTypeParameters(
+  DartType t,
+) {
+  var result = </* TypeParameter | StructuralParameter */ Object>{};
   void find(DartType t) {
     switch (t) {
       case TypeParameterType():
@@ -66,8 +67,8 @@ String _typeString(DartType type, {bool flat = false}) {
   var nullability = type.declaredNullability == Nullability.legacy
       ? 'L'
       : type.declaredNullability == Nullability.nullable
-          ? 'N'
-          : '';
+      ? 'N'
+      : '';
   switch (type) {
     case InterfaceType():
       var name = '${type.classNode.name}$nullability';
@@ -115,8 +116,9 @@ String _typeString(DartType type, {bool flat = false}) {
       return 'Null';
     case RecordType():
       if (flat) return 'Rec';
-      var positional =
-          type.positional.take(3).map((p) => _typeString(p, flat: true));
+      var positional = type.positional
+          .take(3)
+          .map((p) => _typeString(p, flat: true));
       var elements = positional.join('And');
       if (type.positional.length > 3 || type.named.isNotEmpty) {
         elements = '${elements}__';
@@ -137,7 +139,7 @@ class TypeTable {
   /// type variable since the type definition depends on the type
   /// parameter.
   final _scopeDependencies =
-      < /* TypeParameter | StructuralParameter */ Object, List<DartType>>{};
+      </* TypeParameter | StructuralParameter */ Object, List<DartType>>{};
 
   /// Contains types with any free type parameters and maps them to a unique
   /// JS identifier.
@@ -152,8 +154,10 @@ class TypeTable {
   final js_ast.Expression Function(String, [List<Object>]) _runtimeCall;
 
   TypeTable(String name, this._runtimeCall)
-      : typeContainer = ModuleItemContainer<DartType>.asObject(name,
-            keyToString: (DartType t) => escapeIdentifier(_typeString(t)));
+    : typeContainer = ModuleItemContainer<DartType>.asObject(
+        name,
+        keyToString: (DartType t) => escapeIdentifier(_typeString(t)),
+      );
 
   /// Returns true if [type] is already recorded in the table.
   bool _isNamed(DartType type) =>
@@ -176,7 +180,7 @@ class TypeTable {
       var access = js.call('#.#', [data.id, data.jsKey]);
       return js.call('() => ((# = #)())', [
         access,
-        _runtimeCall('constFn(#)', [data.jsValue])
+        _runtimeCall('constFn(#)', [data.jsValue]),
       ]);
     }
 
@@ -197,7 +201,7 @@ class TypeTable {
     return js.statement('var # = () => ((# = #)());', [
       id,
       id,
-      _runtimeCall('constFn(#)', [init])
+      _runtimeCall('constFn(#)', [init]),
     ]);
   }
 
@@ -206,12 +210,16 @@ class TypeTable {
   ///
   /// If [formals] is present, only emit the definitions which depend on the
   /// formals.
-  List<js_ast.Statement> dischargeFreeTypes(
-      [Iterable< /* TypeParameter | StructuralTypeParameter */ Object>?
-          formals]) {
-    assert(formals == null ||
-        formals.every((parameter) =>
-            parameter is TypeParameter || parameter is StructuralParameter));
+  List<js_ast.Statement> dischargeFreeTypes([
+    Iterable</* TypeParameter | StructuralTypeParameter */ Object>? formals,
+  ]) {
+    assert(
+      formals == null ||
+          formals.every(
+            (parameter) =>
+                parameter is TypeParameter || parameter is StructuralParameter,
+          ),
+    );
     var decls = <js_ast.Statement>[];
     var types = formals == null
         ? typeContainer.keys.where((p) => freeTypeParameters(p).isNotEmpty)
@@ -251,9 +259,11 @@ class TypeTable {
     // readability to little or no benefit.  It would be good to do this
     // when we know that we can hoist it to an outer scope, but for
     // now we just disable it.
-    if (freeVariables.any((i) =>
-        i is TypeParameter && i.declaration is GenericFunction ||
-        i is StructuralParameter)) {
+    if (freeVariables.any(
+      (i) =>
+          i is TypeParameter && i.declaration is GenericFunction ||
+          i is StructuralParameter,
+    )) {
       return true;
     }
 
@@ -266,8 +276,9 @@ class TypeTable {
     if (freeVariables.isNotEmpty) {
       // TODO(40273) Remove prepended text when we have a better way to hide
       // these names from debug tools.
-      _unboundTypeIds[type] =
-          js_ast.ScopedId(escapeIdentifier('__t\$${_typeString(type)}'));
+      _unboundTypeIds[type] = js_ast.ScopedId(
+        escapeIdentifier('__t\$${_typeString(type)}'),
+      );
     }
 
     for (var free in freeVariables) {
@@ -296,8 +307,10 @@ class TypeTable {
   /// type itself. This allows better integration with `lazyFn`, avoiding an
   /// extra level of indirection.
   js_ast.Expression nameFunctionType(
-      FunctionType type, js_ast.Expression typeRep,
-      {bool lazy = false}) {
+    FunctionType type,
+    js_ast.Expression typeRep, {
+    bool lazy = false,
+  }) {
     if (recordScopeDependencies(type)) {
       return lazy ? js_ast.ArrowFun([], typeRep) : typeRep;
     }

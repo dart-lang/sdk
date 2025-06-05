@@ -51,8 +51,12 @@ class ExpressionCompilerTestDriver {
   }
 
   Future<TestExpressionCompiler> createCompiler() =>
-      TestExpressionCompiler.init(setup,
-          input: input, output: output, packages: packages);
+      TestExpressionCompiler.init(
+        setup,
+        input: input,
+        output: output,
+        packages: packages,
+      );
 
   Future<TestCompilationResult> compile({
     required TestExpressionCompiler compiler,
@@ -60,11 +64,12 @@ class ExpressionCompilerTestDriver {
     required String expression,
   }) async {
     return compiler.compileExpression(
-        libraryUri: input,
-        line: line,
-        column: 1,
-        scope: scope,
-        expression: expression);
+      libraryUri: input,
+      line: line,
+      column: 1,
+      scope: scope,
+      expression: expression,
+    );
   }
 
   void checkResult(
@@ -76,10 +81,11 @@ class ExpressionCompilerTestDriver {
     var message = success ? expectedResult! : expectedError;
 
     expect(
-        result,
-        const TypeMatcher<TestCompilationResult>()
-            .having((r) => r.result!, 'result', _matches(message))
-            .having((r) => r.isSuccess, 'isSuccess', success));
+      result,
+      const TypeMatcher<TestCompilationResult>()
+          .having((r) => r.result!, 'result', _matches(message))
+          .having((r) => r.isSuccess, 'isSuccess', success),
+    );
   }
 
   Future<void> check({
@@ -90,11 +96,17 @@ class ExpressionCompilerTestDriver {
     dynamic expectedResult,
   }) async {
     compiler ??= await createCompiler();
-    var result =
-        await compile(compiler: compiler, scope: scope, expression: expression);
+    var result = await compile(
+      compiler: compiler,
+      scope: scope,
+      expression: expression,
+    );
 
-    checkResult(result,
-        expectedError: expectedError, expectedResult: expectedResult);
+    checkResult(
+      result,
+      expectedError: expectedError,
+      expectedResult: expectedResult,
+    );
   }
 
   Matcher _matches(dynamic matcher) {

@@ -37,22 +37,32 @@ class TestExpressionCompiler {
   final source_maps.SingleMapping sourceMap;
 
   TestExpressionCompiler._(
-      this.setup, this.component, this.compiler, this.metadata, this.sourceMap);
+    this.setup,
+    this.component,
+    this.compiler,
+    this.metadata,
+    this.sourceMap,
+  );
 
-  static Future<TestExpressionCompiler> init(SetupCompilerOptions setup,
-      {required Uri input,
-      required Uri output,
-      Uri? packages,
-      Map<String, bool> experiments = const {}}) async {
+  static Future<TestExpressionCompiler> init(
+    SetupCompilerOptions setup, {
+    required Uri input,
+    required Uri output,
+    Uri? packages,
+    Map<String, bool> experiments = const {},
+  }) async {
     setup.diagnosticMessages.clear();
     setup.errors.clear();
     // Initialize the incremental compiler and module component.
     // TODO: extend this for multi-module compilations by storing separate
     // compilers/components/names per module.
     setup.options.packagesFileUri = packages;
-    setup.options.explicitExperimentalFlags.addAll(fe.parseExperimentalFlags(
+    setup.options.explicitExperimentalFlags.addAll(
+      fe.parseExperimentalFlags(
         experiments,
-        onError: (message) => throw Exception(message)));
+        onError: (message) => throw Exception(message),
+      ),
+    );
     var frontend = DevelopmentIncrementalCompiler(setup.options, input);
     var compilerResult = await frontend.computeDelta();
     var component = compilerResult.component;
@@ -80,11 +90,22 @@ class TestExpressionCompiler {
     summaryToModule[component] = moduleName;
 
     var kernel2jsCompiler = compilerOptions.emitLibraryBundle
-        ? LibraryBundleCompiler(component, classHierarchy, compilerOptions,
-            importToSummary, summaryToModule, coreTypes: coreTypes)
-        : ProgramCompiler(component, classHierarchy, compilerOptions,
-            importToSummary, summaryToModule,
-            coreTypes: coreTypes);
+        ? LibraryBundleCompiler(
+            component,
+            classHierarchy,
+            compilerOptions,
+            importToSummary,
+            summaryToModule,
+            coreTypes: coreTypes,
+          )
+        : ProgramCompiler(
+            component,
+            classHierarchy,
+            compilerOptions,
+            importToSummary,
+            summaryToModule,
+            coreTypes: coreTypes,
+          );
     var module = kernel2jsCompiler.emitModule(component);
 
     var moduleFormat = compilerOptions.emitLibraryBundle
@@ -128,17 +149,23 @@ class TestExpressionCompiler {
 
     var sourceMap = source_maps.SingleMapping.fromJson(code.sourceMap!);
     return TestExpressionCompiler._(
-        setup, component, compiler, code.metadata, sourceMap);
+      setup,
+      component,
+      compiler,
+      code.metadata,
+      sourceMap,
+    );
   }
 
   // Line and column are 1-based.
-  Future<TestCompilationResult> compileExpression(
-      {required Uri libraryUri,
-      Uri? scriptUri,
-      required int line,
-      required int column,
-      required Map<String, String> scope,
-      required String expression}) async {
+  Future<TestCompilationResult> compileExpression({
+    required Uri libraryUri,
+    Uri? scriptUri,
+    required int line,
+    required int column,
+    required Map<String, String> scope,
+    required String expression,
+  }) async {
     // clear previous errors
     setup.errors.clear();
 
@@ -154,12 +181,18 @@ class TestExpressionCompiler {
       importUri = libraryMetadata.importUri;
     }
     var jsExpression = await compiler.compileExpressionToJs(
-        importUri, scriptUri?.toString(), line, column, scope, expression);
+      importUri,
+      scriptUri?.toString(),
+      line,
+      column,
+      scope,
+      expression,
+    );
     if (setup.errors.isNotEmpty) {
       jsExpression = setup.errors.toString().replaceAll(
-          RegExp(
-              r'org-dartlang-debug:synthetic_debug_expression:[0-9]*:[0-9]*:'),
-          '');
+        RegExp(r'org-dartlang-debug:synthetic_debug_expression:[0-9]*:[0-9]*:'),
+        '',
+      );
 
       return TestCompilationResult(jsExpression, false);
     }
@@ -167,8 +200,9 @@ class TestExpressionCompiler {
     return TestCompilationResult(jsExpression, true);
   }
 
-  LibraryMetadata metadataForLibraryUri(Uri libraryUri) =>
-      metadata!.libraries.entries
-          .firstWhere((entry) => entry.value.fileUri == '$libraryUri')
-          .value;
+  LibraryMetadata metadataForLibraryUri(Uri libraryUri) => metadata!
+      .libraries
+      .entries
+      .firstWhere((entry) => entry.value.fileUri == '$libraryUri')
+      .value;
 }

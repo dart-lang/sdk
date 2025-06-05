@@ -37,7 +37,9 @@ void main(List<String> args) async {
 
 /// Shared tests for language features introduced in version 3.0.0.
 void runSharedTests(
-    SetupCompilerOptions setup, ExpressionEvaluationTestDriver driver) {
+  SetupCompilerOptions setup,
+  ExpressionEvaluationTestDriver driver,
+) {
   group('Records', () {
     const recordsSource = '''
     void main() {
@@ -60,86 +62,98 @@ void runSharedTests(
 
     test('simple record', () async {
       await driver.checkInFrame(
-          breakpointId: 'bp',
-          expression: 'r.toString()',
-          expectedResult: '(true, 3)');
+        breakpointId: 'bp',
+        expression: 'r.toString()',
+        expectedResult: '(true, 3)',
+      );
     });
 
     test('simple record type', () async {
       await driver.checkInFrame(
-          breakpointId: 'bp',
-          expression: 'r.runtimeType.toString()',
-          expectedResult: '(bool, int)');
+        breakpointId: 'bp',
+        expression: 'r.runtimeType.toString()',
+        expectedResult: '(bool, int)',
+      );
     });
 
     test('simple record field one', () async {
       await driver.checkInFrame(
-          breakpointId: 'bp',
-          expression: 'r.\$1.toString()',
-          expectedResult: 'true');
+        breakpointId: 'bp',
+        expression: 'r.\$1.toString()',
+        expectedResult: 'true',
+      );
     });
 
     test('simple record field two', () async {
       await driver.checkInFrame(
-          breakpointId: 'bp',
-          expression: 'r.\$2.toString()',
-          expectedResult: '3');
+        breakpointId: 'bp',
+        expression: 'r.\$2.toString()',
+        expectedResult: '3',
+      );
     });
 
     test('complex record', () async {
       await driver.checkInFrame(
-          breakpointId: 'bp',
-          expression: 'cr.toString()',
-          expectedResult: '(true, {a: 1, b: 2})');
+        breakpointId: 'bp',
+        expression: 'cr.toString()',
+        expectedResult: '(true, {a: 1, b: 2})',
+      );
     });
 
     test('complex record type', () async {
       await driver.checkInFrame(
-          breakpointId: 'bp',
-          expression: 'cr.runtimeType.toString()',
-          expectedResult: '(bool, IdentityMap<String, int>)');
+        breakpointId: 'bp',
+        expression: 'cr.runtimeType.toString()',
+        expectedResult: '(bool, IdentityMap<String, int>)',
+      );
     });
 
     test('complex record field one', () async {
       await driver.checkInFrame(
-          breakpointId: 'bp',
-          expression: 'cr.\$1.toString()',
-          expectedResult: 'true');
+        breakpointId: 'bp',
+        expression: 'cr.\$1.toString()',
+        expectedResult: 'true',
+      );
     });
 
     test('complex record field two', () async {
       await driver.checkInFrame(
-          breakpointId: 'bp',
-          expression: 'cr.\$2.toString()',
-          expectedResult: '{a: 1, b: 2}');
+        breakpointId: 'bp',
+        expression: 'cr.\$2.toString()',
+        expectedResult: '{a: 1, b: 2}',
+      );
     });
 
     test('nested record', () async {
       await driver.checkInFrame(
-          breakpointId: 'bp',
-          expression: 'nr.toString()',
-          expectedResult: '(true, (false, 3))');
+        breakpointId: 'bp',
+        expression: 'nr.toString()',
+        expectedResult: '(true, (false, 3))',
+      );
     });
 
     test('nested record type', () async {
       await driver.checkInFrame(
-          breakpointId: 'bp',
-          expression: 'nr.runtimeType.toString()',
-          expectedResult: '(bool, (bool, int))');
+        breakpointId: 'bp',
+        expression: 'nr.runtimeType.toString()',
+        expectedResult: '(bool, (bool, int))',
+      );
     });
 
     test('nested record field one', () async {
       await driver.checkInFrame(
-          breakpointId: 'bp',
-          expression: 'nr.\$1.toString()',
-          expectedResult: 'true');
+        breakpointId: 'bp',
+        expression: 'nr.\$1.toString()',
+        expectedResult: 'true',
+      );
     });
 
     test('nested record field two', () async {
       await driver.checkInFrame(
-          breakpointId: 'bp',
-          expression: 'nr.\$2.toString()',
-          expectedResult: '(false, 3)');
+        breakpointId: 'bp',
+        expression: 'nr.\$2.toString()',
+        expectedResult: '(false, 3)',
+      );
     });
   });
 
@@ -179,54 +193,64 @@ void runSharedTests(
 
     test('first case match', () async {
       await driver.checkInFrame(
-          breakpointId: 'bp1', expression: 'a.toString()', expectedResult: '1');
+        breakpointId: 'bp1',
+        expression: 'a.toString()',
+        expectedResult: '1',
+      );
     });
 
     test('second case match', () async {
       await driver.checkInFrame(
-          breakpointId: 'bp2',
-          expression: 'a.toString()',
-          expectedResult: '10');
+        breakpointId: 'bp2',
+        expression: 'a.toString()',
+        expectedResult: '10',
+      );
     });
 
     test('default case match', () async {
       await driver.checkInFrame(
-          breakpointId: 'bp3',
-          expression: 'obj.toString()',
-          expectedResult: '0');
+        breakpointId: 'bp3',
+        expression: 'obj.toString()',
+        expectedResult: '0',
+      );
     });
 
     test('first case match result', () async {
       await driver.checkInFrame(
-          breakpointId: 'bp4',
-          expression: 'one.toString()',
-          expectedResult: '1');
+        breakpointId: 'bp4',
+        expression: 'one.toString()',
+        expectedResult: '1',
+      );
     });
 
     test('second case match result', () async {
       await driver.checkInFrame(
-          breakpointId: 'bp4',
-          expression: 'ten.toString()',
-          expectedResult: '10');
+        breakpointId: 'bp4',
+        expression: 'ten.toString()',
+        expectedResult: '10',
+      );
     });
 
     test('default match result', () async {
       await driver.checkInFrame(
-          breakpointId: 'bp4',
-          expression: 'zero.toString()',
-          expectedResult: '0');
+        breakpointId: 'bp4',
+        expression: 'zero.toString()',
+        expectedResult: '0',
+      );
     });
 
     test('first case scope', () async {
       await driver.checkScope(
-          breakpointId: 'bp1',
-          expectedScope: {'a': '1', 'b': '2', 'obj': 'obj'});
+        breakpointId: 'bp1',
+        expectedScope: {'a': '1', 'b': '2', 'obj': 'obj'},
+      );
     });
 
     test('second case scope', () async {
       await driver.checkScope(
-          breakpointId: 'bp2',
-          expectedScope: {'a\$': '10', 'b\$': '\'20\'', 'obj': 'obj'});
+        breakpointId: 'bp2',
+        expectedScope: {'a\$': '10', 'b\$': '\'20\'', 'obj': 'obj'},
+      );
     });
 
     test('default case scope', () async {
@@ -235,8 +259,9 @@ void runSharedTests(
 
     test('result scope', () async {
       await driver.checkScope(
-          breakpointId: 'bp4',
-          expectedScope: {'foo': 'foo', 'one': '1', 'ten': '10', 'zero': '0'});
+        breakpointId: 'bp4',
+        expectedScope: {'foo': 'foo', 'one': '1', 'ten': '10', 'zero': '0'},
+      );
     });
   });
 
@@ -288,150 +313,170 @@ void runSharedTests(
     group('bp1', () {
       test('a', () async {
         await driver.checkInFrame(
-            breakpointId: 'bp1',
-            expression: 'a.toString()',
-            expectedResult: '51');
+          breakpointId: 'bp1',
+          expression: 'a.toString()',
+          expectedResult: '51',
+        );
       });
 
       test('a\$', () async {
         await driver.checkInFrame(
-            breakpointId: 'bp1',
-            expression: 'a\$.toString()',
-            expectedResult: '2');
+          breakpointId: 'bp1',
+          expression: 'a\$.toString()',
+          expectedResult: '2',
+        );
       });
 
       test('a\$0', () async {
         await driver.checkInFrame(
-            breakpointId: 'bp1',
-            expression: 'a\$0.toString()',
-            expectedResult: '3');
+          breakpointId: 'bp1',
+          expression: 'a\$0.toString()',
+          expectedResult: '3',
+        );
       });
 
       test('a\$360', () async {
         await driver.checkInFrame(
-            breakpointId: 'bp1',
-            expression: 'a\$360.toString()',
-            expectedResult: '4');
+          breakpointId: 'bp1',
+          expression: 'a\$360.toString()',
+          expectedResult: '4',
+        );
       });
     });
 
     group('bp2', () {
       test('a', () async {
         await driver.checkInFrame(
-            breakpointId: 'bp2',
-            expression: 'a.toString()',
-            expectedResult: '1');
+          breakpointId: 'bp2',
+          expression: 'a.toString()',
+          expectedResult: '1',
+        );
       });
 
       test('a\$', () async {
         await driver.checkInFrame(
-            breakpointId: 'bp2',
-            expression: 'a\$.toString()',
-            expectedResult: '62');
+          breakpointId: 'bp2',
+          expression: 'a\$.toString()',
+          expectedResult: '62',
+        );
       });
 
       test('a\$0', () async {
         await driver.checkInFrame(
-            breakpointId: 'bp2',
-            expression: 'a\$0.toString()',
-            expectedResult: '3');
+          breakpointId: 'bp2',
+          expression: 'a\$0.toString()',
+          expectedResult: '3',
+        );
       });
 
       test('a\$360', () async {
         await driver.checkInFrame(
-            breakpointId: 'bp2',
-            expression: 'a\$360.toString()',
-            expectedResult: '4');
+          breakpointId: 'bp2',
+          expression: 'a\$360.toString()',
+          expectedResult: '4',
+        );
       });
     });
 
     group('bp3', () {
       test('a', () async {
         await driver.checkInFrame(
-            breakpointId: 'bp3',
-            expression: 'a.toString()',
-            expectedResult: '1');
+          breakpointId: 'bp3',
+          expression: 'a.toString()',
+          expectedResult: '1',
+        );
       });
 
       test('a\$', () async {
         await driver.checkInFrame(
-            breakpointId: 'bp3',
-            expression: 'a\$.toString()',
-            expectedResult: '2');
+          breakpointId: 'bp3',
+          expression: 'a\$.toString()',
+          expectedResult: '2',
+        );
       });
 
       test('a\$0', () async {
         await driver.checkInFrame(
-            breakpointId: 'bp3',
-            expression: 'a\$0.toString()',
-            expectedResult: '73');
+          breakpointId: 'bp3',
+          expression: 'a\$0.toString()',
+          expectedResult: '73',
+        );
       });
 
       test('a\$360', () async {
         await driver.checkInFrame(
-            breakpointId: 'bp3',
-            expression: 'a\$360.toString()',
-            expectedResult: '4');
+          breakpointId: 'bp3',
+          expression: 'a\$360.toString()',
+          expectedResult: '4',
+        );
       });
     });
 
     group('bp4', () {
       test('a', () async {
         await driver.checkInFrame(
-            breakpointId: 'bp4',
-            expression: 'a.toString()',
-            expectedResult: '1');
+          breakpointId: 'bp4',
+          expression: 'a.toString()',
+          expectedResult: '1',
+        );
       });
 
       test('a\$', () async {
         await driver.checkInFrame(
-            breakpointId: 'bp4',
-            expression: 'a\$.toString()',
-            expectedResult: '2');
+          breakpointId: 'bp4',
+          expression: 'a\$.toString()',
+          expectedResult: '2',
+        );
       });
 
       test('a\$0', () async {
         await driver.checkInFrame(
-            breakpointId: 'bp4',
-            expression: 'a\$0.toString()',
-            expectedResult: '3');
+          breakpointId: 'bp4',
+          expression: 'a\$0.toString()',
+          expectedResult: '3',
+        );
       });
 
       test('a\$360', () async {
         await driver.checkInFrame(
-            breakpointId: 'bp4',
-            expression: 'a\$360.toString()',
-            expectedResult: '84');
+          breakpointId: 'bp4',
+          expression: 'a\$360.toString()',
+          expectedResult: '84',
+        );
       });
     });
 
     group('bp5', () {
       test('a', () async {
         await driver.checkInFrame(
-            breakpointId: 'bp5',
-            expression: 'a.toString()',
-            expectedResult: '1');
+          breakpointId: 'bp5',
+          expression: 'a.toString()',
+          expectedResult: '1',
+        );
       });
 
       test('a\$', () async {
         await driver.checkInFrame(
-            breakpointId: 'bp5',
-            expression: 'a\$.toString()',
-            expectedResult: '2');
+          breakpointId: 'bp5',
+          expression: 'a\$.toString()',
+          expectedResult: '2',
+        );
       });
 
       test('a\$0', () async {
         await driver.checkInFrame(
-            breakpointId: 'bp5',
-            expression: 'a\$0.toString()',
-            expectedResult: '3');
+          breakpointId: 'bp5',
+          expression: 'a\$0.toString()',
+          expectedResult: '3',
+        );
       });
 
       test('a\$360', () async {
         await driver.checkInFrame(
-            breakpointId: 'bp5',
-            expression: 'a\$360.toString()',
-            expectedResult: '4');
+          breakpointId: 'bp5',
+          expression: 'a\$360.toString()',
+          expectedResult: '4',
+        );
       });
     });
   });

@@ -13,8 +13,10 @@ void main(List<String> args) async {
   var debug = false;
 
   group('amd module format -', () {
-    var setup =
-        SetupCompilerOptions(moduleFormat: ModuleFormat.amd, args: args);
+    var setup = SetupCompilerOptions(
+      moduleFormat: ModuleFormat.amd,
+      args: args,
+    );
     runTests(setup, verbose: debug);
   });
 }

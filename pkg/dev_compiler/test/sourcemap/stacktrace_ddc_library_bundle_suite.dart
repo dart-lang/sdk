@@ -7,7 +7,9 @@ import 'package:testing/testing.dart';
 import 'stacktrace_suite.dart';
 
 Future<ChainContext> _createContext(
-    Chain suite, Map<String, String> environment) async {
+  Chain suite,
+  Map<String, String> environment,
+) async {
   return StackTraceContext(moduleFormat: 'ddc', canary: true);
 }
 

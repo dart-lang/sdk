@@ -181,7 +181,7 @@ class BindingTypeEnvironment implements DDCTypeEnvironment {
         : BindingTypeEnvironment([
             // Place new parameters first so they can effectively shadow
             // parameters already in the environment.
-            ...parameters, ..._typeParameters
+            ...parameters, ..._typeParameters,
           ]);
   }
 
@@ -235,16 +235,18 @@ class ExtendedTypeEnvironment<T extends ExtendableTypeEnvironment>
         : ExtendedTypeEnvironment(_baseTypeEnvironment, [
             // Place new parameters first so they can effectively shadow
             // parameters already in the environment.
-            ...parameters, ..._typeParameters
+            ...parameters, ..._typeParameters,
           ]);
   }
 
   @override
   DDCTypeEnvironment prune(Iterable<TypeParameter> requiredParameters) {
-    var baseEnvironmentNeeded =
-        requiredParameters.any(_baseTypeEnvironment._typeParameters.contains);
-    var additionalParameters =
-        requiredParameters.where(_typeParameters.contains);
+    var baseEnvironmentNeeded = requiredParameters.any(
+      _baseTypeEnvironment._typeParameters.contains,
+    );
+    var additionalParameters = requiredParameters.where(
+      _typeParameters.contains,
+    );
     if (additionalParameters.isEmpty) {
       return baseEnvironmentNeeded
           // Simply using the base environment has a compact representation
@@ -257,7 +259,9 @@ class ExtendedTypeEnvironment<T extends ExtendableTypeEnvironment>
     if (additionalParameters.length == _typeParameters.length) return this;
     // An extended environment with fewer additional parameters is needed.
     return ExtendedTypeEnvironment(
-        _baseTypeEnvironment, additionalParameters.toList());
+      _baseTypeEnvironment,
+      additionalParameters.toList(),
+    );
   }
 
   @override

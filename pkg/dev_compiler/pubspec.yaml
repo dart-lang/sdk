@@ -3,7 +3,7 @@ name: dev_compiler
 publish_to: none
 
 environment:
-  sdk: ^3.6.0
+  sdk: ^3.8.0
 
 resolution: workspace
 

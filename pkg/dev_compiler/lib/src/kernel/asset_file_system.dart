@@ -25,26 +25,39 @@ class AssetFileSystem implements FileSystem {
   ///
   /// Requests for `file:` entities continue to be resolved by [original].
   AssetFileSystem(FileSystem original, String server, String port)
-      : this._(original, server, port);
+    : this._(original, server, port);
 
   /// Constructor used for unit tests.
   ///
   /// Changes the default the http client behavior to have no delay on retries,
   /// and allow specifying fewer total retries.
-  AssetFileSystem.forTesting(FileSystem original, String server, String port,
-      {required int retries})
-      : this._(original, server, port,
-            retries: retries, delay: (_) => const Duration(seconds: 0));
+  AssetFileSystem.forTesting(
+    FileSystem original,
+    String server,
+    String port, {
+    required int retries,
+  }) : this._(
+         original,
+         server,
+         port,
+         retries: retries,
+         delay: (_) => const Duration(seconds: 0),
+       );
 
-  AssetFileSystem._(this.original, this.server, this.port,
-      {int? retries, Duration Function(int retryCount)? delay})
-      : client = RetryTimeoutClient(
-            HttpClient()
-              ..maxConnectionsPerHost = 200
-              ..connectionTimeout = const Duration(seconds: 30)
-              ..idleTimeout = const Duration(seconds: 30),
-            retries: retries ?? 4,
-            delay: delay);
+  AssetFileSystem._(
+    this.original,
+    this.server,
+    this.port, {
+    int? retries,
+    Duration Function(int retryCount)? delay,
+  }) : client = RetryTimeoutClient(
+         HttpClient()
+           ..maxConnectionsPerHost = 200
+           ..connectionTimeout = const Duration(seconds: 30)
+           ..idleTimeout = const Duration(seconds: 30),
+         retries: retries ?? 4,
+         delay: delay,
+       );
 
   /// Convert the uri to a server uri.
   Uri _resourceUri(Uri uri) => Uri.parse('http://$server:$port/${uri.path}');
@@ -91,7 +104,9 @@ class AssetFileSystemEntity implements FileSystemEntity {
       if (response.statusCode != HttpStatus.ok) {
         unawaited(_ignore(response));
         throw FileSystemException(
-            uri, 'Asset server returned ${response.statusCode}');
+          uri,
+          'Asset server returned ${response.statusCode}',
+        );
       }
       return await collectBytes(response);
     });
@@ -107,7 +122,9 @@ class AssetFileSystemEntity implements FileSystemEntity {
       if (response.statusCode != HttpStatus.ok) {
         unawaited(_ignore(response));
         throw FileSystemException(
-            uri, 'Asset server returned ${response.statusCode}');
+          uri,
+          'Asset server returned ${response.statusCode}',
+        );
       }
       return await response.transform(utf8.decoder).join();
     });
@@ -118,7 +135,8 @@ class AssetFileSystemEntity implements FileSystemEntity {
   /// Throws a [FileSystemException] on failure,
   /// and cleans up the client on return or error.
   Future<T> _runWithClient<T>(
-      Future<T> Function(RetryTimeoutClient httpClient) body) async {
+    Future<T> Function(RetryTimeoutClient httpClient) body,
+  ) async {
     try {
       return await body(fileSystem.client);
     } on Exception catch (e, s) {

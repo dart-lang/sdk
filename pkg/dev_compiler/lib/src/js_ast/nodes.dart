@@ -323,7 +323,9 @@ abstract class Node {
   /// Returns a node equivalent to [this], but with new source position and end
   /// source position.
   T _withSourceInformation<T extends Node>(
-      Object? sourceInformation, T Function() cloneFunc) {
+    Object? sourceInformation,
+    T Function() cloneFunc,
+  ) {
     if (sourceInformation == this.sourceInformation) {
       return this as T;
     }
@@ -362,14 +364,8 @@ abstract class Node {
 class LibraryBundle extends Program {
   final List<Program> libraries;
 
-  LibraryBundle(
-    this.libraries, {
-    super.name,
-    super.scriptTag,
-    super.header,
-  }) : super(
-          const [],
-        );
+  LibraryBundle(this.libraries, {super.name, super.scriptTag, super.header})
+    : super(const []);
 
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitProgram(this);
@@ -382,8 +378,12 @@ class LibraryBundle extends Program {
   }
 
   @override
-  LibraryBundle _clone() => LibraryBundle(libraries,
-      name: name, scriptTag: scriptTag, header: header);
+  LibraryBundle _clone() => LibraryBundle(
+    libraries,
+    name: name,
+    scriptTag: scriptTag,
+    header: header,
+  );
 }
 
 // TODO(nshahan): Rename to convey that this is a single Dart library after
@@ -411,8 +411,13 @@ class Program extends Node {
   // is removed.
   final Identifier? librarySelfVar;
 
-  Program(this.body,
-      {this.scriptTag, this.name, this.header = const [], this.librarySelfVar});
+  Program(
+    this.body, {
+    this.scriptTag,
+    this.name,
+    this.header = const [],
+    this.librarySelfVar,
+  });
 
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitProgram(this);
@@ -480,9 +485,7 @@ class Block extends Statement {
 
   Block(this.statements, {this.isScope = false});
 
-  Block.empty()
-      : statements = <Statement>[],
-        isScope = false;
+  Block.empty() : statements = <Statement>[], isScope = false;
 
   @override
   bool get alwaysReturns =>
@@ -973,8 +976,9 @@ abstract class Expression extends Node {
 
   // TODO(jmesserly): make this work for more cases?
   Statement toVariableDeclaration(VariableBinding name) =>
-      VariableDeclarationList('let', [VariableInitialization(name, this)])
-          .toStatement();
+      VariableDeclarationList('let', [
+        VariableInitialization(name, this),
+      ]).toStatement();
 
   @override
   Expression _clone();
@@ -1119,8 +1123,12 @@ class DestructuredVariable extends Expression implements Parameter {
   final BindingPattern? structure;
   final Expression? defaultValue;
 
-  DestructuredVariable(
-      {required this.name, this.property, this.structure, this.defaultValue});
+  DestructuredVariable({
+    required this.name,
+    this.property,
+    this.structure,
+    this.defaultValue,
+  });
 
   @override
   bool shadows(Set<String> names) {
@@ -1144,10 +1152,11 @@ class DestructuredVariable extends Expression implements Parameter {
   String get parameterName => name.name;
   @override
   DestructuredVariable _clone() => DestructuredVariable(
-      name: name,
-      property: property,
-      structure: structure,
-      defaultValue: defaultValue);
+    name: name,
+    property: property,
+    structure: structure,
+    defaultValue: defaultValue,
+  );
 }
 
 abstract class BindingPattern extends Expression implements VariableBinding {
@@ -1567,8 +1576,12 @@ class Fun extends FunctionExpression {
   @override
   final AsyncModifier asyncModifier;
 
-  Fun(this.params, this.body,
-      {this.isGenerator = false, this.asyncModifier = AsyncModifier.sync});
+  Fun(
+    this.params,
+    this.body, {
+    this.isGenerator = false,
+    this.asyncModifier = AsyncModifier.sync,
+  });
 
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitFun(this);
@@ -1627,10 +1640,11 @@ enum AsyncModifier {
   asyncStar(isAsync: true, isYielding: true, description: 'async*'),
   syncStar(isAsync: false, isYielding: true, description: 'sync*');
 
-  const AsyncModifier(
-      {required this.isAsync,
-      required this.isYielding,
-      required this.description});
+  const AsyncModifier({
+    required this.isAsync,
+    required this.isYielding,
+    required this.description,
+  });
 
   final bool isAsync;
   final bool isYielding;
@@ -1645,9 +1659,9 @@ class PropertyAccess extends Expression {
 
   PropertyAccess(this.receiver, this.selector);
   PropertyAccess.field(this.receiver, String fieldName)
-      : selector = LiteralString('"$fieldName"');
+    : selector = LiteralString('"$fieldName"');
   PropertyAccess.indexed(this.receiver, int index)
-      : selector = LiteralNumber('$index');
+    : selector = LiteralNumber('$index');
 
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitAccess(this);
@@ -1778,7 +1792,7 @@ class ObjectInitializer extends Expression {
 
   /// Constructs a new object-initializer containing the given [properties].
   ObjectInitializer(this.properties, {bool multiline = false})
-      : _multiline = multiline;
+    : _multiline = multiline;
 
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitObjectInitializer(this);
@@ -1811,8 +1825,12 @@ class Property extends Node {
   final bool isStatic;
   final bool isClassProperty;
 
-  Property(this.name, this.value,
-      {this.isStatic = false, this.isClassProperty = false});
+  Property(
+    this.name,
+    this.value, {
+    this.isStatic = false,
+    this.isClassProperty = false,
+  });
 
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitProperty(this);
@@ -1824,8 +1842,12 @@ class Property extends Node {
   }
 
   @override
-  Property _clone() => Property(name, value,
-      isStatic: isStatic, isClassProperty: isClassProperty);
+  Property _clone() => Property(
+    name,
+    value,
+    isStatic: isStatic,
+    isClassProperty: isClassProperty,
+  );
 }
 
 // TODO(jmesserly): parser does not support this yet.
@@ -1974,8 +1996,13 @@ class Method extends Node implements Property {
   @override
   final bool isClassProperty = false;
 
-  Method(this.name, this.function,
-      {this.isGetter = false, this.isSetter = false, this.isStatic = false}) {
+  Method(
+    this.name,
+    this.function, {
+    this.isGetter = false,
+    this.isSetter = false,
+    this.isStatic = false,
+  }) {
     assert(!isGetter || function.params.isEmpty);
     assert(!isSetter || function.params.length == 1);
     assert(!isGetter && !isSetter || !function.isGenerator);
@@ -1994,8 +2021,13 @@ class Method extends Node implements Property {
   }
 
   @override
-  Method _clone() => Method(name, function,
-      isGetter: isGetter, isSetter: isSetter, isStatic: isStatic);
+  Method _clone() => Method(
+    name,
+    function,
+    isGetter: isGetter,
+    isSetter: isSetter,
+    isStatic: isStatic,
+  );
 }
 
 /// Tag class for all interpolated positions.
@@ -2275,8 +2307,11 @@ class ImportDeclaration extends ModuleItem {
 
   final LiteralString from;
 
-  ImportDeclaration(
-      {this.defaultBinding, this.namedImports, required this.from});
+  ImportDeclaration({
+    this.defaultBinding,
+    this.namedImports,
+    required this.from,
+  });
 
   /// The `import "name.js"` form of import.
   ImportDeclaration.all(LiteralString module) : this(from: module);
@@ -2305,7 +2340,10 @@ class ImportDeclaration extends ModuleItem {
 
   @override
   ImportDeclaration _clone() => ImportDeclaration(
-      defaultBinding: defaultBinding, namedImports: namedImports, from: from);
+    defaultBinding: defaultBinding,
+    namedImports: namedImports,
+    from: from,
+  );
 }
 
 class ExportDeclaration extends ModuleItem {
@@ -2320,11 +2358,13 @@ class ExportDeclaration extends ModuleItem {
   final bool isDefault;
 
   ExportDeclaration(this.exported, {this.isDefault = false}) {
-    assert(exported is ClassDeclaration ||
-            exported is FunctionDeclaration ||
-            isDefault
-        ? exported is Expression
-        : exported is VariableDeclarationList || exported is ExportClause);
+    assert(
+      exported is ClassDeclaration ||
+              exported is FunctionDeclaration ||
+              isDefault
+          ? exported is Expression
+          : exported is VariableDeclarationList || exported is ExportClause,
+    );
   }
 
   /// Gets the list of names exported by this export declaration, or `null`
@@ -2368,7 +2408,7 @@ class ExportClause extends Node {
 
   /// The `export * from 'name.js'` form.
   ExportClause.star(LiteralString from)
-      : this([NameSpecifier.star()], from: from);
+    : this([NameSpecifier.star()], from: from);
 
   /// True if this is an `export *`.
   bool get exportStar => exports.length == 1 && exports[0].isStar;
@@ -2447,31 +2487,46 @@ abstract class Transformer extends BaseVisitor<Node> {
   }
 
   N transformIfUnchanged1<N extends Node, T extends Node>(
-      N node, T childNode, N Function(T newChildNode) clone) {
+    N node,
+    T childNode,
+    N Function(T newChildNode) clone,
+  ) {
     final newChildNode = visit<T>(childNode);
     final hasNoChange = isUnchanged(childNode, newChildNode);
     return hasNoChange ? node : clone(newChildNode);
   }
 
   N transformIfUnchanged2<N extends Node, T extends Node, U extends Node>(
-      N node,
-      T childNode1,
-      U childNode2,
-      N Function(T newChildNode1, U newChildNode2) clone) {
+    N node,
+    T childNode1,
+    U childNode2,
+    N Function(T newChildNode1, U newChildNode2) clone,
+  ) {
     final newChildNode1 = visit<T>(childNode1);
     final newChildNode2 = visit<U>(childNode2);
-    final hasNoChange = isUnchanged(childNode1, newChildNode1) &&
+    final hasNoChange =
+        isUnchanged(childNode1, newChildNode1) &&
         isUnchanged(childNode2, newChildNode2);
     return hasNoChange ? node : clone(newChildNode1, newChildNode2);
   }
 
-  N transformIfUnchanged3<N extends Node, T extends Node, U extends Node,
-          V extends Node>(N node, T childNode1, U childNode2, V childNode3,
-      N Function(T newChildNode1, U newChildNode2, V newChildNode3) clone) {
+  N transformIfUnchanged3<
+    N extends Node,
+    T extends Node,
+    U extends Node,
+    V extends Node
+  >(
+    N node,
+    T childNode1,
+    U childNode2,
+    V childNode3,
+    N Function(T newChildNode1, U newChildNode2, V newChildNode3) clone,
+  ) {
     final newChildNode1 = visit<T>(childNode1);
     final newChildNode2 = visit<U>(childNode2);
     final newChildNode3 = visit<V>(childNode3);
-    final hasNoChange = isUnchanged(childNode1, newChildNode1) &&
+    final hasNoChange =
+        isUnchanged(childNode1, newChildNode1) &&
         isUnchanged(childNode2, newChildNode2) &&
         isUnchanged(childNode3, newChildNode3);
     return hasNoChange
@@ -2480,20 +2535,25 @@ abstract class Transformer extends BaseVisitor<Node> {
   }
 
   N transformIfUnchangedList<N extends Node, T extends Node>(
-      N node, List<T> childNodes, N Function(List<T> newChildNodes) clone) {
+    N node,
+    List<T> childNodes,
+    N Function(List<T> newChildNodes) clone,
+  ) {
     final newChildNodes = visitList<T>(childNodes);
     final hasNoChange = isUnchangedList(childNodes, newChildNodes);
     return hasNoChange ? node : clone(newChildNodes);
   }
 
   N transformIfUnchangedList1<N extends Node, T extends Node, U extends Node>(
-      N node,
-      List<T> childNodeList,
-      U childNode,
-      N Function(List<T> newChildNodeList, U childNode) clone) {
+    N node,
+    List<T> childNodeList,
+    U childNode,
+    N Function(List<T> newChildNodeList, U childNode) clone,
+  ) {
     final newChildNodeList = visitList<T>(childNodeList);
     final newChildNode = visit<U>(childNode);
-    final hasNoChange = isUnchangedList(childNodeList, newChildNodeList) &&
+    final hasNoChange =
+        isUnchangedList(childNodeList, newChildNodeList) &&
         isUnchanged(childNode, newChildNode);
     return hasNoChange ? node : clone(newChildNodeList, newChildNode);
   }
@@ -2507,13 +2567,20 @@ abstract class Transformer extends BaseVisitor<Node> {
   @override
   Node visitAccess(PropertyAccess node) {
     return transformIfUnchanged2(
-        node, node.receiver, node.selector, PropertyAccess.new);
+      node,
+      node.receiver,
+      node.selector,
+      PropertyAccess.new,
+    );
   }
 
   @override
   Node visitArrayBindingPattern(ArrayBindingPattern node) {
     return transformIfUnchangedList(
-        node, node.variables, ArrayBindingPattern.new);
+      node,
+      node.variables,
+      ArrayBindingPattern.new,
+    );
   }
 
   @override
@@ -2524,17 +2591,29 @@ abstract class Transformer extends BaseVisitor<Node> {
   @override
   Node visitArrowFun(ArrowFun node) {
     return transformIfUnchangedList1(
-        node, node.params, node.body, ArrowFun.new);
+      node,
+      node.params,
+      node.body,
+      ArrowFun.new,
+    );
   }
 
   @override
   Node visitAssignment(Assignment node) {
     if (node.isCompound) {
-      return transformIfUnchanged2(node, node.leftHandSide, node.value,
-          (e1, e2) => Assignment.compound(e1, node.op, e2));
+      return transformIfUnchanged2(
+        node,
+        node.leftHandSide,
+        node.value,
+        (e1, e2) => Assignment.compound(e1, node.op, e2),
+      );
     }
     return transformIfUnchanged2(
-        node, node.leftHandSide, node.value, Assignment.new);
+      node,
+      node.leftHandSide,
+      node.value,
+      Assignment.new,
+    );
   }
 
   @override
@@ -2545,7 +2624,11 @@ abstract class Transformer extends BaseVisitor<Node> {
   @override
   Node visitBinary(Binary node) {
     return transformIfUnchanged2(
-        node, node.left, node.right, (e1, e2) => Binary(node.op, e1, e2));
+      node,
+      node.left,
+      node.right,
+      (e1, e2) => Binary(node.op, e1, e2),
+    );
   }
 
   @override
@@ -2556,7 +2639,11 @@ abstract class Transformer extends BaseVisitor<Node> {
   @override
   Node visitCall(Call node) {
     return transformIfUnchangedList1(
-        node, node.arguments, node.target, (e1, e2) => Call(e2, e1));
+      node,
+      node.arguments,
+      node.target,
+      (e1, e2) => Call(e2, e1),
+    );
   }
 
   @override
@@ -2590,19 +2677,30 @@ abstract class Transformer extends BaseVisitor<Node> {
   @override
   Node visitCommentExpression(CommentExpression node) {
     return transformIfUnchanged1(
-        node, node.expression, (e) => CommentExpression(node.comment, e));
+      node,
+      node.expression,
+      (e) => CommentExpression(node.comment, e),
+    );
   }
 
   @override
   Node visitConditional(Conditional node) {
     return transformIfUnchanged3(
-        node, node.condition, node.then, node.otherwise, Conditional.new);
+      node,
+      node.condition,
+      node.then,
+      node.otherwise,
+      Conditional.new,
+    );
   }
 
   @override
   Node visitDartYield(DartYield node) {
     return transformIfUnchanged1(
-        node, node.expression, (e) => DartYield(e, node.hasStar));
+      node,
+      node.expression,
+      (e) => DartYield(e, node.hasStar),
+    );
   }
 
   @override
@@ -2624,10 +2722,11 @@ abstract class Transformer extends BaseVisitor<Node> {
       return node;
     }
     return DestructuredVariable(
-        name: name,
-        property: property,
-        structure: structure,
-        defaultValue: defaultValue);
+      name: name,
+      property: property,
+      structure: structure,
+      defaultValue: defaultValue,
+    );
   }
 
   @override
@@ -2648,14 +2747,20 @@ abstract class Transformer extends BaseVisitor<Node> {
 
   @override
   Node visitExportDeclaration(ExportDeclaration node) {
-    return transformIfUnchanged1(node, node.exported,
-        (e) => ExportDeclaration(e, isDefault: node.isDefault));
+    return transformIfUnchanged1(
+      node,
+      node.exported,
+      (e) => ExportDeclaration(e, isDefault: node.isDefault),
+    );
   }
 
   @override
   Node visitExpressionStatement(ExpressionStatement node) {
     return transformIfUnchanged1(
-        node, node.expression, ExpressionStatement.new);
+      node,
+      node.expression,
+      ExpressionStatement.new,
+    );
   }
 
   @override
@@ -2676,35 +2781,59 @@ abstract class Transformer extends BaseVisitor<Node> {
   @override
   Node visitForIn(ForIn node) {
     return transformIfUnchanged3(
-        node, node.leftHandSide, node.object, node.body, ForIn.new);
+      node,
+      node.leftHandSide,
+      node.object,
+      node.body,
+      ForIn.new,
+    );
   }
 
   @override
   Node visitForOf(ForOf node) {
     return transformIfUnchanged3(
-        node, node.leftHandSide, node.iterable, node.body, ForOf.new);
+      node,
+      node.leftHandSide,
+      node.iterable,
+      node.body,
+      ForOf.new,
+    );
   }
 
   @override
   Node visitFun(Fun node) {
     return transformIfUnchangedList1(
-        node,
-        node.params,
-        node.body,
-        (e1, e2) => Fun(e1, e2,
-            isGenerator: node.isGenerator, asyncModifier: node.asyncModifier));
+      node,
+      node.params,
+      node.body,
+      (e1, e2) => Fun(
+        e1,
+        e2,
+        isGenerator: node.isGenerator,
+        asyncModifier: node.asyncModifier,
+      ),
+    );
   }
 
   @override
   Node visitFunctionDeclaration(FunctionDeclaration node) {
     return transformIfUnchanged2(
-        node, node.name, node.function, FunctionDeclaration.new);
+      node,
+      node.name,
+      node.function,
+      FunctionDeclaration.new,
+    );
   }
 
   @override
   Node visitIf(If node) {
     return transformIfUnchanged3(
-        node, node.condition, node.then, node.otherwise, If.new);
+      node,
+      node.condition,
+      node.then,
+      node.otherwise,
+      If.new,
+    );
   }
 
   @override
@@ -2718,25 +2847,35 @@ abstract class Transformer extends BaseVisitor<Node> {
       return node;
     }
     return ImportDeclaration(
-        defaultBinding: defaultBinding, namedImports: namedImports, from: from);
+      defaultBinding: defaultBinding,
+      namedImports: namedImports,
+      from: from,
+    );
   }
 
   @override
   Node visitLabeledStatement(LabeledStatement node) {
     return transformIfUnchanged1(
-        node, node.body, (e) => LabeledStatement(node.label, e));
+      node,
+      node.body,
+      (e) => LabeledStatement(node.label, e),
+    );
   }
 
   @override
   Node visitMethod(Method node) {
     return transformIfUnchanged2(
-        node,
-        node.name,
-        node.function,
-        (e1, e2) => Method(e1, e2,
-            isGetter: node.isGetter,
-            isSetter: node.isSetter,
-            isStatic: node.isStatic));
+      node,
+      node.name,
+      node.function,
+      (e1, e2) => Method(
+        e1,
+        e2,
+        isGetter: node.isGetter,
+        isSetter: node.isSetter,
+        isStatic: node.isStatic,
+      ),
+    );
   }
 
   @override
@@ -2751,38 +2890,58 @@ abstract class Transformer extends BaseVisitor<Node> {
 
   @override
   Node visitNamedFunction(NamedFunction node) {
-    return transformIfUnchanged2(node, node.name, node.function,
-        (e1, e2) => NamedFunction(e1, e2, node.immediatelyInvoked));
+    return transformIfUnchanged2(
+      node,
+      node.name,
+      node.function,
+      (e1, e2) => NamedFunction(e1, e2, node.immediatelyInvoked),
+    );
   }
 
   @override
   Node visitNew(New node) {
     return transformIfUnchangedList1(
-        node, node.arguments, node.target, (e1, e2) => New(e2, e1));
+      node,
+      node.arguments,
+      node.target,
+      (e1, e2) => New(e2, e1),
+    );
   }
 
   @override
   Node visitObjectBindingPattern(ObjectBindingPattern node) {
     return transformIfUnchangedList(
-        node, node.variables, ObjectBindingPattern.new);
+      node,
+      node.variables,
+      ObjectBindingPattern.new,
+    );
   }
 
   @override
   Node visitObjectInitializer(ObjectInitializer node) {
-    return transformIfUnchangedList(node, node.properties,
-        (e) => ObjectInitializer(e, multiline: node.multiline));
+    return transformIfUnchangedList(
+      node,
+      node.properties,
+      (e) => ObjectInitializer(e, multiline: node.multiline),
+    );
   }
 
   @override
   Node visitPostfix(Postfix node) {
     return transformIfUnchanged1(
-        node, node.argument, (e) => Postfix(node.op, e));
+      node,
+      node.argument,
+      (e) => Postfix(node.op, e),
+    );
   }
 
   @override
   Node visitPrefix(Prefix node) {
     return transformIfUnchanged1(
-        node, node.argument, (e) => Prefix(node.op, e));
+      node,
+      node.argument,
+      (e) => Prefix(node.op, e),
+    );
   }
 
   @override
@@ -2793,8 +2952,12 @@ abstract class Transformer extends BaseVisitor<Node> {
         isUnchangedList(node.header, header)) {
       return node;
     }
-    return Program(body,
-        scriptTag: node.scriptTag, name: node.name, header: header);
+    return Program(
+      body,
+      scriptTag: node.scriptTag,
+      name: node.name,
+      header: header,
+    );
   }
 
   @override
@@ -2829,19 +2992,30 @@ abstract class Transformer extends BaseVisitor<Node> {
   @override
   Node visitSwitch(Switch node) {
     return transformIfUnchangedList1(
-        node, node.cases, node.key, (e1, e2) => Switch(e2, e1));
+      node,
+      node.cases,
+      node.key,
+      (e1, e2) => Switch(e2, e1),
+    );
   }
 
   @override
   Node visitTaggedTemplate(TaggedTemplate node) {
     return transformIfUnchanged2(
-        node, node.tag, node.template, TaggedTemplate.new);
+      node,
+      node.tag,
+      node.template,
+      TaggedTemplate.new,
+    );
   }
 
   @override
   Node visitTemplateString(TemplateString node) {
     return transformIfUnchangedList(
-        node, node.interpolations, (e) => TemplateString(node.strings, e));
+      node,
+      node.interpolations,
+      (e) => TemplateString(node.strings, e),
+    );
   }
 
   @override
@@ -2864,8 +3038,11 @@ abstract class Transformer extends BaseVisitor<Node> {
 
   @override
   Node visitVariableDeclarationList(VariableDeclarationList node) {
-    return transformIfUnchangedList(node, node.declarations,
-        (e) => VariableDeclarationList(node.keyword, e));
+    return transformIfUnchangedList(
+      node,
+      node.declarations,
+      (e) => VariableDeclarationList(node.keyword, e),
+    );
   }
 
   @override

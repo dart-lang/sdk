@@ -45,9 +45,9 @@ class ScopedId extends Identifier {
 
   ScopedId(super.name, {this.needsCapture = false}) : _id = _idCounter++;
   ScopedId.from(ScopedId other)
-      : _id = other._id,
-        needsCapture = other.needsCapture,
-        super(other.name);
+    : _id = other._id,
+      needsCapture = other.needsCapture,
+      super(other.name);
 
   @override
   int get hashCode => _id;
@@ -69,7 +69,7 @@ class MaybeQualifiedId extends Expression {
   final Expression name;
 
   MaybeQualifiedId(this.qualifier, this.name)
-      : _expr = PropertyAccess(qualifier, name);
+    : _expr = PropertyAccess(qualifier, name);
 
   /// Helper to create an [Identifier] from something that starts as a property.
   static Identifier identifier(LiteralString propertyName) =>
@@ -124,7 +124,7 @@ class ScopedNamer extends LocalNamer {
   final NameListener? _nameListener;
 
   ScopedNamer(Node node, [this._nameListener])
-      : _scope = _RenameVisitor.build(node).rootScope;
+    : _scope = _RenameVisitor.build(node).rootScope;
 
   @override
   String getName(Identifier node) {
@@ -219,9 +219,11 @@ class _RenameVisitor extends VariableDeclarationVisitor {
     if (rename) {
       usedIn = pendingRenames.putIfAbsent(id, () => HashSet());
     }
-    for (var s = scope, end = declScope.parent;
-        s != end && s != null;
-        s = s.parent) {
+    for (
+      var s = scope, end = declScope.parent;
+      s != end && s != null;
+      s = s.parent
+    ) {
       if (usedIn != null) {
         usedIn.add(s);
       } else {
@@ -285,9 +287,11 @@ class _RenameVisitor extends VariableDeclarationVisitor {
       // TODO(jmesserly): what's the most readable scheme here? Maybe 1-letter
       // names in some cases?
       candidate = name == 'function' ? 'func' : '$name\$';
-      for (var i = 0;
-          scopes.any((scope) => scope.used.contains(candidate));
-          i++) {
+      for (
+        var i = 0;
+        scopes.any((scope) => scope.used.contains(candidate));
+        i++
+      ) {
         candidate = '$name\$$i';
       }
     }
@@ -398,7 +402,7 @@ final objectProperties = <String>{
   '__lookupGetter__',
   '__defineSetter__',
   '__lookupSetter__',
-  '__proto__'
+  '__proto__',
 };
 
 /// Returns the JS member name for a public Dart instance member, before it
@@ -489,9 +493,11 @@ String pathToJSIdentifier(String path) {
   if (path.startsWith('/') || path.startsWith('\\')) {
     path = path.substring(1, path.length);
   }
-  return toJSIdentifier(path
-      .replaceAll('\\', '__')
-      .replaceAll('/', '__')
-      .replaceAll('..', '__')
-      .replaceAll('-', '_'));
+  return toJSIdentifier(
+    path
+        .replaceAll('\\', '__')
+        .replaceAll('/', '__')
+        .replaceAll('..', '__')
+        .replaceAll('-', '_'),
+  );
 }

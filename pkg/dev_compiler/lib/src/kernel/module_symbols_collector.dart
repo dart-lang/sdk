@@ -21,9 +21,13 @@ class ModuleSymbolsCollector extends RecursiveVisitor {
   final Map<Procedure, String> _procedureJsNames;
   final Map<VariableDeclaration, String> _variableJsNames;
 
-  ModuleSymbolsCollector(String moduleName, this._classJsNames,
-      this._memberJsNames, this._procedureJsNames, this._variableJsNames)
-      : _moduleSymbols = ModuleSymbols(moduleName: moduleName);
+  ModuleSymbolsCollector(
+    String moduleName,
+    this._classJsNames,
+    this._memberJsNames,
+    this._procedureJsNames,
+    this._variableJsNames,
+  ) : _moduleSymbols = ModuleSymbols(moduleName: moduleName);
 
   ModuleSymbols collectSymbolInfo(Component node) {
     node.accept(this);
@@ -43,19 +47,21 @@ class ModuleSymbolsCollector extends RecursiveVisitor {
   /// Returns the symbol for the function defined by [node].
   void _createFunctionSymbol(Member node) {
     var functionSymbol = FunctionSymbol(
-        name: node.name.text,
-        // TODO(nshahan) typeId - probably should canonicalize but keep original
-        // type argument names.
-        typeId: null,
-        // TODO(nshahan) Should we mark all constructors static?
-        isStatic: node is Procedure ? node.isStatic : false,
-        isConst: node.isConst,
-        localId: _memberJsNames[node] ?? _procedureJsNames[node]!,
-        scopeId: _scopes.last.id,
-        location: SourceLocation(
-            scriptId: _scriptId(node.location!.file),
-            tokenPos: node.fileOffset,
-            endTokenPos: node.fileEndOffset));
+      name: node.name.text,
+      // TODO(nshahan) typeId - probably should canonicalize but keep original
+      // type argument names.
+      typeId: null,
+      // TODO(nshahan) Should we mark all constructors static?
+      isStatic: node is Procedure ? node.isStatic : false,
+      isConst: node.isConst,
+      localId: _memberJsNames[node] ?? _procedureJsNames[node]!,
+      scopeId: _scopes.last.id,
+      location: SourceLocation(
+        scriptId: _scriptId(node.location!.file),
+        tokenPos: node.fileOffset,
+        endTokenPos: node.fileEndOffset,
+      ),
+    );
 
     _scopes.add(functionSymbol);
     node.visitChildren(this);
@@ -70,25 +76,27 @@ class ModuleSymbolsCollector extends RecursiveVisitor {
     // Some class names are not emitted, i.e. mixin applications.
     if (_classJsNames[node] != null) {
       var classSymbol = ClassSymbol(
-          name: node.name,
-          isAbstract: node.isAbstract,
-          isConst: node.constructors.any((constructor) => constructor.isConst),
-          superClassId: _classJsNames[node.superclass],
-          interfaceIds: [
-            for (var type in node.implementedTypes)
-              _classJsNames[type.classNode]!
-          ],
-          typeParameters: {
-            for (var param in node.typeParameters)
-              // TODO(nshahan) Value should be the JS name.
-              param.name!: param.name!
-          },
-          localId: _classJsNames[node]!,
-          scopeId: _scopes.last.id,
-          location: SourceLocation(
-              scriptId: _scriptId(node.location!.file),
-              tokenPos: node.startFileOffset,
-              endTokenPos: node.fileEndOffset));
+        name: node.name,
+        isAbstract: node.isAbstract,
+        isConst: node.constructors.any((constructor) => constructor.isConst),
+        superClassId: _classJsNames[node.superclass],
+        interfaceIds: [
+          for (var type in node.implementedTypes)
+            _classJsNames[type.classNode]!,
+        ],
+        typeParameters: {
+          for (var param in node.typeParameters)
+            // TODO(nshahan) Value should be the JS name.
+            param.name!: param.name!,
+        },
+        localId: _classJsNames[node]!,
+        scopeId: _scopes.last.id,
+        location: SourceLocation(
+          scriptId: _scriptId(node.location!.file),
+          tokenPos: node.startFileOffset,
+          endTokenPos: node.fileEndOffset,
+        ),
+      );
 
       _scopes.add(classSymbol);
       node.visitChildren(this);
@@ -105,20 +113,22 @@ class ModuleSymbolsCollector extends RecursiveVisitor {
   @override
   void visitField(Field node) {
     var fieldSymbol = VariableSymbol(
-        name: node.name.text,
-        kind: node.parent is Class
-            ? VariableSymbolKind.field
-            : VariableSymbolKind.global,
-        isConst: node.isConst,
-        isFinal: node.isFinal,
-        isStatic: node.isStatic,
-        typeId: _typeId(node.type),
-        localId: _memberJsNames[node]!,
-        scopeId: _scopes.last.id,
-        location: SourceLocation(
-            scriptId: _scriptId(node.location!.file),
-            tokenPos: node.fileOffset,
-            endTokenPos: node.fileEndOffset));
+      name: node.name.text,
+      kind: node.parent is Class
+          ? VariableSymbolKind.field
+          : VariableSymbolKind.global,
+      isConst: node.isConst,
+      isFinal: node.isFinal,
+      isStatic: node.isStatic,
+      typeId: _typeId(node.type),
+      localId: _memberJsNames[node]!,
+      scopeId: _scopes.last.id,
+      location: SourceLocation(
+        scriptId: _scriptId(node.location!.file),
+        tokenPos: node.fileOffset,
+        endTokenPos: node.fileEndOffset,
+      ),
+    );
     node.visitChildren(this);
     _scopes.last.variableIds.add(fieldSymbol.id);
     _moduleSymbols.variables.add(fieldSymbol);
@@ -132,10 +142,11 @@ class ModuleSymbolsCollector extends RecursiveVisitor {
       dependencies: [
         for (var dep in node.dependencies)
           LibrarySymbolDependency(
-              isImport: dep.isImport,
-              isDeferred: dep.isDeferred,
-              // TODO(nshahan) Need to handle prefixes.
-              targetId: dep.targetLibrary.importUri.toString())
+            isImport: dep.isImport,
+            isDeferred: dep.isDeferred,
+            // TODO(nshahan) Need to handle prefixes.
+            targetId: dep.targetLibrary.importUri.toString(),
+          ),
       ],
       scriptIds: [],
     );
@@ -143,14 +154,16 @@ class ModuleSymbolsCollector extends RecursiveVisitor {
     // TODO(nshahan) Save some space by using integers as local ids?
     var scripts = [
       Script(
-          uri: node.fileUri.toString(),
-          localId: _scriptId(node.fileUri),
-          libraryId: librarySymbol.id),
+        uri: node.fileUri.toString(),
+        localId: _scriptId(node.fileUri),
+        libraryId: librarySymbol.id,
+      ),
       for (var part in node.parts)
         Script(
-            uri: node.fileUri.resolve(part.partUri).toString(),
-            localId: _scriptId(node.fileUri.resolve(part.partUri)),
-            libraryId: librarySymbol.id),
+          uri: node.fileUri.resolve(part.partUri).toString(),
+          localId: _scriptId(node.fileUri.resolve(part.partUri)),
+          libraryId: librarySymbol.id,
+        ),
     ];
 
     librarySymbol.scriptIds.addAll(scripts.map((s) => s.id));
@@ -185,18 +198,21 @@ class ModuleSymbolsCollector extends RecursiveVisitor {
   }
 
   VariableSymbol _createVariableSymbol(
-          VariableDeclaration node, VariableSymbolKind kind) =>
-      VariableSymbol(
-          name: node.name!,
-          kind: kind,
-          isConst: node.isConst,
-          isFinal: node.isFinal,
-          // Static fields are visited in `visitField()`.
-          isStatic: false,
-          typeId: _typeId(node.type),
-          localId: _variableJsNames[node]!,
-          scopeId: _scopes.last.id,
-          location: SourceLocation(
-              scriptId: _scriptId(node.location!.file),
-              tokenPos: node.fileOffset));
+    VariableDeclaration node,
+    VariableSymbolKind kind,
+  ) => VariableSymbol(
+    name: node.name!,
+    kind: kind,
+    isConst: node.isConst,
+    isFinal: node.isFinal,
+    // Static fields are visited in `visitField()`.
+    isStatic: false,
+    typeId: _typeId(node.type),
+    localId: _variableJsNames[node]!,
+    scopeId: _scopes.last.id,
+    location: SourceLocation(
+      scriptId: _scriptId(node.location!.file),
+      tokenPos: node.fileOffset,
+    ),
+  );
 }

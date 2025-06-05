@@ -48,8 +48,12 @@ class SourceToSummaryDillStep implements IOModularStep {
   bool get notOnSdk => false;
 
   @override
-  Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
-      List<String> flags) async {
+  Future<void> execute(
+    Module module,
+    Uri root,
+    ModuleDataToRelativeUri toUri,
+    List<String> flags,
+  ) async {
     if (_options.verbose) print('\nstep: source-to-dill on $module');
 
     // We use non file-URI schemes for representing source locations in a
@@ -71,21 +75,19 @@ class SourceToSummaryDillStep implements IOModularStep {
     List<String> extraArgs;
     if (module.isSdk) {
       sources = ['dart:core'];
-      extraArgs = [
-        '--libraries-file',
-        '$rootScheme:///sdk/lib/libraries.json',
-      ];
+      extraArgs = ['--libraries-file', '$rootScheme:///sdk/lib/libraries.json'];
       assert(transitiveDependencies.isEmpty);
     } else {
       sources = module.sources.map(sourceToImportUri).toList();
       extraArgs = [
         '--packages-file',
-        '$rootScheme:/.dart_tool/package_config.json'
+        '$rootScheme:/.dart_tool/package_config.json',
       ];
     }
 
-    var sdkModule =
-        module.isSdk ? module : module.dependencies.firstWhere((m) => m.isSdk);
+    var sdkModule = module.isSdk
+        ? module
+        : module.dependencies.firstWhere((m) => m.isSdk);
 
     var args = [
       _kernelWorkerScript,
@@ -112,7 +114,11 @@ class SourceToSummaryDillStep implements IOModularStep {
     ];
 
     var result = await runProcess(
-        _dartExecutable, args, root.toFilePath(), _options.verbose);
+      _dartExecutable,
+      args,
+      root.toFilePath(),
+      _options.verbose,
+    );
     checkExitCode(result, this, module, _options.verbose);
   }
 
@@ -149,8 +155,12 @@ class DDCStep implements IOModularStep {
   bool get notOnSdk => false;
 
   @override
-  Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
-      List<String> flags) async {
+  Future<void> execute(
+    Module module,
+    Uri root,
+    ModuleDataToRelativeUri toUri,
+    List<String> flags,
+  ) async {
     if (_options.verbose) print('\nstep: ddc on $module');
 
     var transitiveDependencies = computeTransitiveDependencies(module);
@@ -170,8 +180,10 @@ class DDCStep implements IOModularStep {
     } else {
       var sdkModule = module.dependencies.firstWhere((m) => m.isSdk);
       sources = module.sources
-          .map((relativeUri) =>
-              _sourceToImportUri(module, rootScheme, relativeUri))
+          .map(
+            (relativeUri) =>
+                _sourceToImportUri(module, rootScheme, relativeUri),
+          )
           .toList();
       extraArgs = [
         '--dart-sdk-summary',
@@ -202,7 +214,11 @@ class DDCStep implements IOModularStep {
       '$output',
     ];
     var result = await runProcess(
-        _dartExecutable, args, root.toFilePath(), _options.verbose);
+      _dartExecutable,
+      args,
+      root.toFilePath(),
+      _options.verbose,
+    );
     checkExitCode(result, this, module, _options.verbose);
   }
 
@@ -235,8 +251,12 @@ class RunD8 implements IOModularStep {
   bool get notOnSdk => false;
 
   @override
-  Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
-      List<String> flags) async {
+  Future<void> execute(
+    Module module,
+    Uri root,
+    ModuleDataToRelativeUri toUri,
+    List<String> flags,
+  ) async {
     if (_options.verbose) print('\nstep: d8 on $module');
 
     // Rename sdk.js to dart_sdk.js (the alternative, but more hermetic solution
@@ -246,8 +266,9 @@ class RunD8 implements IOModularStep {
       throw 'error: dart_sdk.js already exists.';
     }
 
-    await File.fromUri(root.resolve('sdk.js'))
-        .copy(root.resolve('dart_sdk.js').toFilePath());
+    await File.fromUri(
+      root.resolve('sdk.js'),
+    ).copy(root.resolve('dart_sdk.js').toFilePath());
     var runjs = '''
     import { dart, _isolate_helper } from 'dart_sdk.js';
     import { main } from 'main.js';
@@ -259,13 +280,18 @@ class RunD8 implements IOModularStep {
         '${root.resolveUri(toUri(module, jsId)).toFilePath()}.wrapper.js';
     await File(wrapper).writeAsString(runjs);
     var d8Args = ['--module', wrapper];
-    var result = await runProcess(sdkRoot.resolve(_d8executable).toFilePath(),
-        d8Args, root.toFilePath(), _options.verbose);
+    var result = await runProcess(
+      sdkRoot.resolve(_d8executable).toFilePath(),
+      d8Args,
+      root.toFilePath(),
+      _options.verbose,
+    );
 
     checkExitCode(result, this, module, _options.verbose);
 
-    await File.fromUri(root.resolveUri(toUri(module, txtId)))
-        .writeAsString(result.stdout as String);
+    await File.fromUri(
+      root.resolveUri(toUri(module, txtId)),
+    ).writeAsString(result.stdout as String);
   }
 
   @override
@@ -301,12 +327,14 @@ String _sourceToImportUri(Module module, String rootScheme, Uri relativeUri) {
 Future<void> resolveScripts(Options options) async {
   _options = options;
   Future<String> resolve(
-      String sdkSourcePath, String relativeSnapshotPath) async {
+    String sdkSourcePath,
+    String relativeSnapshotPath,
+  ) async {
     var result = sdkRoot.resolve(sdkSourcePath).toFilePath();
     if (_options.useSdk) {
-      var snapshot = Uri.file(Platform.resolvedExecutable)
-          .resolve(relativeSnapshotPath)
-          .toFilePath();
+      var snapshot = Uri.file(
+        Platform.resolvedExecutable,
+      ).resolve(relativeSnapshotPath).toFilePath();
       if (await File(snapshot).exists()) {
         return snapshot;
       }
@@ -314,11 +342,15 @@ Future<void> resolveScripts(Options options) async {
     return result;
   }
 
-  _dartdevcScript = await resolve('pkg/dev_compiler/bin/dartdevc.dart',
-      'snapshots/dartdevc_aot.dart.snapshot');
+  _dartdevcScript = await resolve(
+    'pkg/dev_compiler/bin/dartdevc.dart',
+    'snapshots/dartdevc_aot.dart.snapshot',
+  );
   if (File(_dartdevcScript).existsSync()) {
-    _kernelWorkerScript = await resolve('utils/bazel/kernel_worker.dart',
-        'snapshots/kernel_worker_aot.dart.snapshot');
+    _kernelWorkerScript = await resolve(
+      'utils/bazel/kernel_worker.dart',
+      'snapshots/kernel_worker_aot.dart.snapshot',
+    );
     var sdkPath = p.dirname(p.dirname(Platform.resolvedExecutable));
     _dartExecutable = p.absolute(
       sdkPath,

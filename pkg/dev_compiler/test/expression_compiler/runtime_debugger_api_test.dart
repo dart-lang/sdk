@@ -20,12 +20,18 @@ Future<void> runAllTests(List<String> args) async {
   });
   group('(AMD module system)', () {
     var setup = SetupCompilerOptions(
-        moduleFormat: ModuleFormat.amd, args: args, enableExperiments: []);
+      moduleFormat: ModuleFormat.amd,
+      args: args,
+      enableExperiments: [],
+    );
     runSharedTests(setup, driver);
   });
   group('(DDC module system)', () {
     final setup = SetupCompilerOptions(
-        moduleFormat: ModuleFormat.ddc, args: args, enableExperiments: []);
+      moduleFormat: ModuleFormat.ddc,
+      args: args,
+      enableExperiments: [],
+    );
     runSharedTests(setup, driver);
   });
 }
@@ -158,35 +164,38 @@ main() {
 ''';
 
 void runSharedTests(
-    SetupCompilerOptions setup, ExpressionEvaluationTestDriver driver) {
-  group('Runtime debugging API after loading sources but before running main |',
-      () {
-    var source = simpleClassSource;
+  SetupCompilerOptions setup,
+  ExpressionEvaluationTestDriver driver,
+) {
+  group(
+    'Runtime debugging API after loading sources but before running main |',
+    () {
+      var source = simpleClassSource;
 
-    // Set up and tear down after every test so that the bootstrapper script is
-    // re-run every time, therefore triggering the `OnScheduleMain` breakpoint.
-    setUp(() async {
-      await driver.initSource(setup, source);
-    });
+      // Set up and tear down after every test so that the bootstrapper script is
+      // re-run every time, therefore triggering the `OnScheduleMain` breakpoint.
+      setUp(() async {
+        await driver.initSource(setup, source);
+      });
 
-    tearDown(() async {
-      await driver.cleanupTest();
-    });
+      tearDown(() async {
+        await driver.cleanupTest();
+      });
 
-    test('getClassesInLibrary', () async {
-      var getClasses = setup.emitLibraryBundle
-          ? 'getClassesInLibrary'
-          : 'getLibraryMetadata';
-      await driver.checkRuntimeInFrame(
-        breakpointId: 'OnScheduleMain',
-        // Query a user definition to test if it's initialized.
-        expression: 'dart.$getClasses("package:eval_test/test.dart")',
-        expectedResult: ['BaseClass', 'DerivedClass', 'AnotherClass'],
-      );
-    });
+      test('getClassesInLibrary', () async {
+        var getClasses = setup.emitLibraryBundle
+            ? 'getClassesInLibrary'
+            : 'getLibraryMetadata';
+        await driver.checkRuntimeInFrame(
+          breakpointId: 'OnScheduleMain',
+          // Query a user definition to test if it's initialized.
+          expression: 'dart.$getClasses("package:eval_test/test.dart")',
+          expectedResult: ['BaseClass', 'DerivedClass', 'AnotherClass'],
+        );
+      });
 
-    test('getClassMetadata in non-SDK library', () async {
-      await driver.checkRuntimeInFrame(
+      test('getClassMetadata in non-SDK library', () async {
+        await driver.checkRuntimeInFrame(
           breakpointId: 'OnScheduleMain',
           // Query a user definition to test if it's initialized.
           expression:
@@ -218,12 +227,14 @@ void runSharedTests(
               'extensionTypeGetter': {'isGetter': true},
               '_privateExtensionTypeGetter': {'isGetter': true},
             },
-          });
-    });
-  },
-      // DDC module format doesn't guarantee that libraries are initialized when
-      // using debugging APIs before main is started.
-      skip: setup.moduleFormat == ModuleFormat.ddc && !setup.canaryFeatures);
+          },
+        );
+      });
+    },
+    // DDC module format doesn't guarantee that libraries are initialized when
+    // using debugging APIs before main is started.
+    skip: setup.moduleFormat == ModuleFormat.ddc && !setup.canaryFeatures,
+  );
 
   group('Runtime debugging API |', () {
     var source = simpleClassSource;
@@ -249,266 +260,278 @@ void runSharedTests(
 
     test('getClassMetadata (object)', () async {
       await driver.checkRuntimeInFrame(
-          breakpointId: 'BP',
-          expression: 'dart.getClassMetadata("dart:core", "Object")',
-          expectedResult: {
-            'className': 'Object',
-            'fields': {},
-            'methods': {
-              '_equals': {},
-              'toString': {},
-              'noSuchMethod': {},
-              'hashCode': {'isGetter': true},
-              'runtimeType': {'isGetter': true},
-              'hash': {'isStatic': true},
-              'hashAll': {'isStatic': true},
-              'hashAllUnordered': {'isStatic': true},
-            }
-          });
+        breakpointId: 'BP',
+        expression: 'dart.getClassMetadata("dart:core", "Object")',
+        expectedResult: {
+          'className': 'Object',
+          'fields': {},
+          'methods': {
+            '_equals': {},
+            'toString': {},
+            'noSuchMethod': {},
+            'hashCode': {'isGetter': true},
+            'runtimeType': {'isGetter': true},
+            'hash': {'isStatic': true},
+            'hashAll': {'isStatic': true},
+            'hashAllUnordered': {'isStatic': true},
+          },
+        },
+      );
     });
 
     test('getClassMetadata (base class)', () async {
       await driver.checkRuntimeInFrame(
-          breakpointId: 'BP',
-          expression:
-              'dart.getClassMetadata("package:eval_test/test.dart", "BaseClass", base)',
-          expectedResult: {
-            'className': 'BaseClass',
-            'superClassName': 'Object',
-            'superClassLibraryId': 'dart:core',
-            'fields': {
-              'field': {'className': 'int', 'classLibraryId': 'dart:core'},
-              'functionField': {'className': '() => void'},
-              'nullableField': {
-                'className': 'BaseClass<num>?',
-                'classLibraryId': 'package:eval_test/test.dart',
-              },
-              'nonNullableField': {
-                'className': 'AnotherClass',
-                'classLibraryId': 'package:eval_test/test.dart',
-              },
-              '_field': {'className': 'int', 'classLibraryId': 'dart:core'},
-              'genericField': {'className': 'int'},
-              '_unusedField': {
-                'className': 'int',
-                'classLibraryId': 'dart:core',
-              },
-              'lateFinalField': {
-                'className': 'int?',
-                'classLibraryId': 'dart:core',
-              },
-              'staticConstField': {'isStatic': true},
-              'staticField': {'isStatic': true},
-              '_staticField': {'isStatic': true},
-              '_unusedStaticField': {'isStatic': true},
-              // NOTE: Fields typed as an extension type appear as their static
-              // erased type for now. This isn't necessarily the runtime type
-              // of the value either.
-              'extensionTypeField': {
-                'className': 'String',
-                'classLibraryId': 'dart:core',
-              },
-              '_privateExtensionTypeField': {
-                'className': 'String',
-                'classLibraryId': 'dart:core',
-              },
-              'staticConstExtensionTypeField': {'isStatic': true},
-              'staticExtensionTypeField': {'isStatic': true},
-              'staticFinalExtensionTypeField': {'isStatic': true},
+        breakpointId: 'BP',
+        expression:
+            'dart.getClassMetadata("package:eval_test/test.dart", "BaseClass", base)',
+        expectedResult: {
+          'className': 'BaseClass',
+          'superClassName': 'Object',
+          'superClassLibraryId': 'dart:core',
+          'fields': {
+            'field': {'className': 'int', 'classLibraryId': 'dart:core'},
+            'functionField': {'className': '() => void'},
+            'nullableField': {
+              'className': 'BaseClass<num>?',
+              'classLibraryId': 'package:eval_test/test.dart',
             },
-            'methods': {
-              'method': {},
-              '_privateMethod': {},
-              'lateFinalField': {'isGetter': true},
-              'getter': {'isGetter': true},
-              '_privateGetter': {'isGetter': true},
-              'factory': {'isStatic': true},
-              'staticMethod': {'isStatic': true},
-              'extensionTypeGetter': {'isGetter': true},
-              '_privateExtensionTypeGetter': {'isGetter': true},
+            'nonNullableField': {
+              'className': 'AnotherClass',
+              'classLibraryId': 'package:eval_test/test.dart',
             },
-          });
+            '_field': {'className': 'int', 'classLibraryId': 'dart:core'},
+            'genericField': {'className': 'int'},
+            '_unusedField': {'className': 'int', 'classLibraryId': 'dart:core'},
+            'lateFinalField': {
+              'className': 'int?',
+              'classLibraryId': 'dart:core',
+            },
+            'staticConstField': {'isStatic': true},
+            'staticField': {'isStatic': true},
+            '_staticField': {'isStatic': true},
+            '_unusedStaticField': {'isStatic': true},
+            // NOTE: Fields typed as an extension type appear as their static
+            // erased type for now. This isn't necessarily the runtime type
+            // of the value either.
+            'extensionTypeField': {
+              'className': 'String',
+              'classLibraryId': 'dart:core',
+            },
+            '_privateExtensionTypeField': {
+              'className': 'String',
+              'classLibraryId': 'dart:core',
+            },
+            'staticConstExtensionTypeField': {'isStatic': true},
+            'staticExtensionTypeField': {'isStatic': true},
+            'staticFinalExtensionTypeField': {'isStatic': true},
+          },
+          'methods': {
+            'method': {},
+            '_privateMethod': {},
+            'lateFinalField': {'isGetter': true},
+            'getter': {'isGetter': true},
+            '_privateGetter': {'isGetter': true},
+            'factory': {'isStatic': true},
+            'staticMethod': {'isStatic': true},
+            'extensionTypeGetter': {'isGetter': true},
+            '_privateExtensionTypeGetter': {'isGetter': true},
+          },
+        },
+      );
     });
 
     test('getClassMetadata (derived class)', () async {
       await driver.checkRuntimeInFrame(
-          breakpointId: 'BP',
-          expression:
-              'dart.getClassMetadata("package:eval_test/test.dart", "DerivedClass")',
-          expectedResult: {
-            'className': 'DerivedClass',
-            'superClassName': 'BaseClass',
-            'superClassLibraryId': 'package:eval_test/test.dart',
-            'fields': {
-              'newPublicField': {
-                'isFinal': true,
-                'className': 'int',
-                'classLibraryId': 'dart:core',
-              },
-              '_newPrivateField': {
-                'isFinal': true,
-                'className': 'int',
-                'classLibraryId': 'dart:core',
-              },
-              '_newStaticConstPrivateField': {'isStatic': true},
+        breakpointId: 'BP',
+        expression:
+            'dart.getClassMetadata("package:eval_test/test.dart", "DerivedClass")',
+        expectedResult: {
+          'className': 'DerivedClass',
+          'superClassName': 'BaseClass',
+          'superClassLibraryId': 'package:eval_test/test.dart',
+          'fields': {
+            'newPublicField': {
+              'isFinal': true,
+              'className': 'int',
+              'classLibraryId': 'dart:core',
             },
-            'methods': {
-              'stringLength': {},
-              'lateFinalField': {'isGetter': true},
-              'getter': {'isGetter': true},
-              '_privateGetter': {'isGetter': true},
-              'factory': {'isStatic': true},
-              'staticMethod': {'isStatic': true},
-              'extensionTypeGetter': {'isGetter': true},
-              '_privateExtensionTypeGetter': {'isGetter': true},
+            '_newPrivateField': {
+              'isFinal': true,
+              'className': 'int',
+              'classLibraryId': 'dart:core',
             },
-          });
+            '_newStaticConstPrivateField': {'isStatic': true},
+          },
+          'methods': {
+            'stringLength': {},
+            'lateFinalField': {'isGetter': true},
+            'getter': {'isGetter': true},
+            '_privateGetter': {'isGetter': true},
+            'factory': {'isStatic': true},
+            'staticMethod': {'isStatic': true},
+            'extensionTypeGetter': {'isGetter': true},
+            '_privateExtensionTypeGetter': {'isGetter': true},
+          },
+        },
+      );
     });
 
     test('getClassMetadata (Record)', () async {
       await driver.checkRuntimeInFrame(
-          breakpointId: 'BP',
-          expression: 'dart.getClassMetadata("dart:core", "Record")',
-          expectedResult: {
-            'className': 'Record',
-            'superClassName': 'Object',
-            'superClassLibraryId': 'dart:core',
-            'fields': {},
-            'methods': {
-              '_equals': {},
-              'toString': {},
-              'noSuchMethod': {},
-              'hashCode': {'isGetter': true},
-              'runtimeType': {'isGetter': true},
-              'hash': {'isStatic': true},
-              'hashAll': {'isStatic': true},
-              'hashAllUnordered': {'isStatic': true},
-            }
-          });
+        breakpointId: 'BP',
+        expression: 'dart.getClassMetadata("dart:core", "Record")',
+        expectedResult: {
+          'className': 'Record',
+          'superClassName': 'Object',
+          'superClassLibraryId': 'dart:core',
+          'fields': {},
+          'methods': {
+            '_equals': {},
+            'toString': {},
+            'noSuchMethod': {},
+            'hashCode': {'isGetter': true},
+            'runtimeType': {'isGetter': true},
+            'hash': {'isStatic': true},
+            'hashAll': {'isStatic': true},
+            'hashAllUnordered': {'isStatic': true},
+          },
+        },
+      );
     });
 
     test('getObjectMetadata (int)', () async {
       await driver.checkRuntimeInFrame(
-          breakpointId: 'BP',
-          expression: 'dart.getObjectMetadata(x)',
-          expectedResult: {});
+        breakpointId: 'BP',
+        expression: 'dart.getObjectMetadata(x)',
+        expectedResult: {},
+      );
     });
 
     test('getObjectMetadata (object)', () async {
       await driver.checkRuntimeInFrame(
-          breakpointId: 'BP',
-          expression: 'dart.getObjectMetadata(object)',
-          expectedResult: {
-            'className': 'Object',
-            'libraryId': 'dart:core',
-            'runtimeKind': 'object',
-            'length': 0,
-          });
+        breakpointId: 'BP',
+        expression: 'dart.getObjectMetadata(object)',
+        expectedResult: {
+          'className': 'Object',
+          'libraryId': 'dart:core',
+          'runtimeKind': 'object',
+          'length': 0,
+        },
+      );
     });
 
     test('getObjectMetadata (object of derived class)', () async {
       await driver.checkRuntimeInFrame(
-          breakpointId: 'BP',
-          expression: 'dart.getObjectMetadata(base)',
-          expectedResult: {
-            'className': 'BaseClass<int>',
-            'libraryId': 'package:eval_test/test.dart',
-            'runtimeKind': 'object',
-            'length': 10,
-          });
+        breakpointId: 'BP',
+        expression: 'dart.getObjectMetadata(base)',
+        expectedResult: {
+          'className': 'BaseClass<int>',
+          'libraryId': 'package:eval_test/test.dart',
+          'runtimeKind': 'object',
+          'length': 10,
+        },
+      );
     });
 
     test('getObjectMetadata (Set)', () async {
       await driver.checkRuntimeInFrame(
-          breakpointId: 'BP',
-          expression: 'dart.getObjectMetadata(set)',
-          expectedResult: {
-            'className': 'LinkedSet<String>',
-            'libraryId': 'dart:_js_helper',
-            'runtimeKind': 'set',
-            'length': 3,
-          });
+        breakpointId: 'BP',
+        expression: 'dart.getObjectMetadata(set)',
+        expectedResult: {
+          'className': 'LinkedSet<String>',
+          'libraryId': 'dart:_js_helper',
+          'runtimeKind': 'set',
+          'length': 3,
+        },
+      );
     });
 
     test('getObjectMetadata (List)', () async {
       await driver.checkRuntimeInFrame(
-          breakpointId: 'BP',
-          expression: 'dart.getObjectMetadata(list)',
-          expectedResult: {
-            'className': 'JSArray<int>',
-            'libraryId': 'dart:_interceptors',
-            'runtimeKind': 'list',
-            'length': 3,
-          });
+        breakpointId: 'BP',
+        expression: 'dart.getObjectMetadata(list)',
+        expectedResult: {
+          'className': 'JSArray<int>',
+          'libraryId': 'dart:_interceptors',
+          'runtimeKind': 'list',
+          'length': 3,
+        },
+      );
     });
 
     test('getObjectMetadata (Map)', () async {
       await driver.checkRuntimeInFrame(
-          breakpointId: 'BP',
-          expression: 'dart.getObjectMetadata(map)',
-          expectedResult: {
-            'className': 'IdentityMap<String, int>',
-            'libraryId': 'dart:_js_helper',
-            'runtimeKind': 'map',
-            'length': 2,
-          });
+        breakpointId: 'BP',
+        expression: 'dart.getObjectMetadata(map)',
+        expectedResult: {
+          'className': 'IdentityMap<String, int>',
+          'libraryId': 'dart:_js_helper',
+          'runtimeKind': 'map',
+          'length': 2,
+        },
+      );
     });
 
     test('getObjectMetadata (Stream)', () async {
       await driver.checkRuntimeInFrame(
-          breakpointId: 'BP',
-          expression: 'dart.getObjectMetadata(stream)',
-          expectedResult: {
-            'className': '_MultiStream<int>',
-            'libraryId': 'dart:async',
-            'runtimeKind': 'object',
-            'length': 2,
-          });
+        breakpointId: 'BP',
+        expression: 'dart.getObjectMetadata(stream)',
+        expectedResult: {
+          'className': '_MultiStream<int>',
+          'libraryId': 'dart:async',
+          'runtimeKind': 'object',
+          'length': 2,
+        },
+      );
     });
 
     test('getObjectMetadata (Record)', () async {
       await driver.checkRuntimeInFrame(
-          breakpointId: 'BP',
-          expression: 'dart.getObjectMetadata(record)',
-          expectedResult: {
-            'className': 'Record',
-            'libraryId': 'dart:core',
-            'runtimeKind': 'record',
-            'length': 3,
-          });
+        breakpointId: 'BP',
+        expression: 'dart.getObjectMetadata(record)',
+        expectedResult: {
+          'className': 'Record',
+          'libraryId': 'dart:core',
+          'runtimeKind': 'record',
+          'length': 3,
+        },
+      );
     });
 
     test('getObjectMetadata (LegacyJavaScriptObject)', () async {
       await driver.checkRuntimeInFrame(
-          breakpointId: 'BP',
-          expression: 'dart.getObjectMetadata({})',
-          expectedResult: {
-            'className': 'LegacyJavaScriptObject',
-            'libraryId': 'dart:_interceptors',
-            'runtimeKind': 'nativeObject',
-          });
+        breakpointId: 'BP',
+        expression: 'dart.getObjectMetadata({})',
+        expectedResult: {
+          'className': 'LegacyJavaScriptObject',
+          'libraryId': 'dart:_interceptors',
+          'runtimeKind': 'nativeObject',
+        },
+      );
     });
 
     test('getObjectMetadata (NativeError)', () async {
       await driver.checkRuntimeInFrame(
-          breakpointId: 'BP',
-          expression: 'dart.getObjectMetadata(new Error())',
-          expectedResult: {
-            'className': 'NativeError',
-            'libraryId': 'dart:_interceptors',
-            'runtimeKind': 'nativeError',
-          });
+        breakpointId: 'BP',
+        expression: 'dart.getObjectMetadata(new Error())',
+        expectedResult: {
+          'className': 'NativeError',
+          'libraryId': 'dart:_interceptors',
+          'runtimeKind': 'nativeError',
+        },
+      );
     });
 
     test('getObjectMetadata (DartError)', () async {
       await driver.checkRuntimeInFrame(
-          breakpointId: 'BP',
-          expression: 'dart.getObjectMetadata(error)',
-          expectedResult: {
-            'className': 'NativeError',
-            'libraryId': 'dart:_interceptors',
-            'runtimeKind': 'nativeError',
-          });
+        breakpointId: 'BP',
+        expression: 'dart.getObjectMetadata(error)',
+        expectedResult: {
+          'className': 'NativeError',
+          'libraryId': 'dart:_interceptors',
+          'runtimeKind': 'nativeError',
+        },
+      );
     });
 
     test('typeName (int type)', () async {
@@ -533,14 +556,15 @@ void runSharedTests(
         expression: 'xType.toString()',
       );
       await driver.checkRuntimeInFrame(
-          breakpointId: 'BP',
-          expression: 'dart.getObjectMetadata(xType)',
-          expectedResult: {
-            'className': 'Type',
-            'libraryId': 'dart:core',
-            'runtimeKind': 'type',
-            'typeName': typeName,
-          });
+        breakpointId: 'BP',
+        expression: 'dart.getObjectMetadata(xType)',
+        expectedResult: {
+          'className': 'Type',
+          'libraryId': 'dart:core',
+          'runtimeKind': 'type',
+          'typeName': typeName,
+        },
+      );
     });
 
     test('getObjectMetadata (base type)', () async {
@@ -549,14 +573,15 @@ void runSharedTests(
         expression: 'baseType.toString()',
       );
       await driver.checkRuntimeInFrame(
-          breakpointId: 'BP',
-          expression: 'dart.getObjectMetadata(baseType)',
-          expectedResult: {
-            'className': 'Type',
-            'libraryId': 'dart:core',
-            'runtimeKind': 'type',
-            'typeName': typeName,
-          });
+        breakpointId: 'BP',
+        expression: 'dart.getObjectMetadata(baseType)',
+        expectedResult: {
+          'className': 'Type',
+          'libraryId': 'dart:core',
+          'runtimeKind': 'type',
+          'typeName': typeName,
+        },
+      );
     });
 
     test('getObjectMetadata (type)', () async {
@@ -565,14 +590,15 @@ void runSharedTests(
         expression: 'baseTypeType.toString()',
       );
       await driver.checkRuntimeInFrame(
-          breakpointId: 'BP',
-          expression: 'dart.getObjectMetadata(baseTypeType)',
-          expectedResult: {
-            'className': 'Type',
-            'libraryId': 'dart:core',
-            'runtimeKind': 'type',
-            'typeName': typeName,
-          });
+        breakpointId: 'BP',
+        expression: 'dart.getObjectMetadata(baseTypeType)',
+        expectedResult: {
+          'className': 'Type',
+          'libraryId': 'dart:core',
+          'runtimeKind': 'type',
+          'typeName': typeName,
+        },
+      );
     });
 
     test('getObjectMetadata (Set type)', () async {
@@ -581,14 +607,15 @@ void runSharedTests(
         expression: 'setType.toString()',
       );
       await driver.checkRuntimeInFrame(
-          breakpointId: 'BP',
-          expression: 'dart.getObjectMetadata(setType)',
-          expectedResult: {
-            'className': 'Type',
-            'libraryId': 'dart:core',
-            'runtimeKind': 'type',
-            'typeName': typeName,
-          });
+        breakpointId: 'BP',
+        expression: 'dart.getObjectMetadata(setType)',
+        expectedResult: {
+          'className': 'Type',
+          'libraryId': 'dart:core',
+          'runtimeKind': 'type',
+          'typeName': typeName,
+        },
+      );
     });
 
     test('getObjectMetadata (List type)', () async {
@@ -597,14 +624,15 @@ void runSharedTests(
         expression: 'listType.toString()',
       );
       await driver.checkRuntimeInFrame(
-          breakpointId: 'BP',
-          expression: 'dart.getObjectMetadata(listType)',
-          expectedResult: {
-            'className': 'Type',
-            'libraryId': 'dart:core',
-            'runtimeKind': 'type',
-            'typeName': typeName,
-          });
+        breakpointId: 'BP',
+        expression: 'dart.getObjectMetadata(listType)',
+        expectedResult: {
+          'className': 'Type',
+          'libraryId': 'dart:core',
+          'runtimeKind': 'type',
+          'typeName': typeName,
+        },
+      );
     });
 
     test('getObjectMetadata (Map type)', () async {
@@ -613,14 +641,15 @@ void runSharedTests(
         expression: 'mapType.toString()',
       );
       await driver.checkRuntimeInFrame(
-          breakpointId: 'BP',
-          expression: 'dart.getObjectMetadata(mapType)',
-          expectedResult: {
-            'className': 'Type',
-            'libraryId': 'dart:core',
-            'runtimeKind': 'type',
-            'typeName': typeName,
-          });
+        breakpointId: 'BP',
+        expression: 'dart.getObjectMetadata(mapType)',
+        expectedResult: {
+          'className': 'Type',
+          'libraryId': 'dart:core',
+          'runtimeKind': 'type',
+          'typeName': typeName,
+        },
+      );
     });
 
     test('getObjectMetadata (Record type)', () async {
@@ -631,14 +660,15 @@ void runSharedTests(
       expect(typeName, '(int, int, {String name})');
 
       await driver.checkRuntimeInFrame(
-          breakpointId: 'BP',
-          expression: 'dart.getObjectMetadata(recordType)',
-          expectedResult: {
-            'className': 'Type',
-            'libraryId': 'dart:core',
-            'runtimeKind': 'recordType',
-            'length': 3,
-          });
+        breakpointId: 'BP',
+        expression: 'dart.getObjectMetadata(recordType)',
+        expectedResult: {
+          'className': 'Type',
+          'libraryId': 'dart:core',
+          'runtimeKind': 'recordType',
+          'length': 3,
+        },
+      );
 
       await driver.checkInFrame(
         breakpointId: 'BP',
@@ -655,175 +685,203 @@ void runSharedTests(
 
     test('getObjectFieldNames (object)', () async {
       await driver.checkRuntimeInFrame(
-          breakpointId: 'BP',
-          expression: 'dart.getObjectFieldNames(object)',
-          expectedResult: []);
+        breakpointId: 'BP',
+        expression: 'dart.getObjectFieldNames(object)',
+        expectedResult: [],
+      );
     });
 
     test('getObjectFieldNames (derived class)', () async {
       await driver.checkRuntimeInFrame(
-          breakpointId: 'BP',
-          expression: 'dart.getObjectFieldNames(derived)',
-          expectedResult: [
-            '_field',
-            '_newPrivateField',
-            '_privateExtensionTypeField',
-            '_unusedField',
-            'extensionTypeField',
-            'field',
-            'functionField',
-            'genericField',
-            'lateFinalField',
-            'newPublicField',
-            'nonNullableField',
-            'nullableField',
-          ]);
+        breakpointId: 'BP',
+        expression: 'dart.getObjectFieldNames(derived)',
+        expectedResult: [
+          '_field',
+          '_newPrivateField',
+          '_privateExtensionTypeField',
+          '_unusedField',
+          'extensionTypeField',
+          'field',
+          'functionField',
+          'genericField',
+          'lateFinalField',
+          'newPublicField',
+          'nonNullableField',
+          'nullableField',
+        ],
+      );
     });
 
     test('getObjectFieldNames (base class)', () async {
       await driver.checkRuntimeInFrame(
-          breakpointId: 'BP',
-          expression: 'dart.getObjectFieldNames(base)',
-          expectedResult: [
-            '_field',
-            '_privateExtensionTypeField',
-            '_unusedField',
-            'extensionTypeField',
-            'field',
-            'functionField',
-            'genericField',
-            'lateFinalField',
-            'nonNullableField',
-            'nullableField',
-          ]);
+        breakpointId: 'BP',
+        expression: 'dart.getObjectFieldNames(base)',
+        expectedResult: [
+          '_field',
+          '_privateExtensionTypeField',
+          '_unusedField',
+          'extensionTypeField',
+          'field',
+          'functionField',
+          'genericField',
+          'lateFinalField',
+          'nonNullableField',
+          'nullableField',
+        ],
+      );
     });
 
     test('getSetElements', () async {
       await driver.checkRuntimeInFrame(
-          breakpointId: 'BP',
-          expression: 'dart.getSetElements(set)',
-          expectedResult: {
-            'entries': ['a', 'b', 'c'],
-          });
+        breakpointId: 'BP',
+        expression: 'dart.getSetElements(set)',
+        expectedResult: {
+          'entries': ['a', 'b', 'c'],
+        },
+      );
     });
 
     test('getMapElements', () async {
       await driver.checkRuntimeInFrame(
-          breakpointId: 'BP',
-          expression: 'dart.getMapElements(map)',
-          expectedResult: {
-            'keys': ['a', 'b'],
-            'values': [1, 2],
-          });
+        breakpointId: 'BP',
+        expression: 'dart.getMapElements(map)',
+        expectedResult: {
+          'keys': ['a', 'b'],
+          'values': [1, 2],
+        },
+      );
     });
 
     test('getRecordFields', () async {
       await driver.checkRuntimeInFrame(
-          breakpointId: 'BP',
-          expression: 'dart.getRecordFields(record)',
-          expectedResult: {
-            'positionalCount': 2,
-            'named': ['name'],
-            'values': [0, 2, 'cat'],
-          });
+        breakpointId: 'BP',
+        expression: 'dart.getRecordFields(record)',
+        expectedResult: {
+          'positionalCount': 2,
+          'named': ['name'],
+          'values': [0, 2, 'cat'],
+        },
+      );
     });
 
     // TODO(annagrin): Add recursive check for nested objects.
     test('getRecordTypeFields', () async {
       await driver.checkRuntimeInFrame(
-          breakpointId: 'BP',
-          expression: 'dart.getRecordTypeFields(recordType)',
-          expectedResult: {
-            'positionalCount': 2,
-            'named': ['name'],
-            'types': [{}, {}, {}],
-          });
+        breakpointId: 'BP',
+        expression: 'dart.getRecordTypeFields(recordType)',
+        expectedResult: {
+          'positionalCount': 2,
+          'named': ['name'],
+          'types': [{}, {}, {}],
+        },
+      );
     });
 
     test('getFunctionName (method)', () async {
-      var getFunctionName =
-          setup.emitLibraryBundle ? 'getFunctionName' : 'getFunctionMetadata';
+      var getFunctionName = setup.emitLibraryBundle
+          ? 'getFunctionName'
+          : 'getFunctionMetadata';
       await driver.checkRuntimeInFrame(
-          breakpointId: 'BP',
-          expression: 'dart.$getFunctionName(base.method)',
-          expectedResult: 'method');
+        breakpointId: 'BP',
+        expression: 'dart.$getFunctionName(base.method)',
+        expectedResult: 'method',
+      );
     });
 
     test('getFunctionName (static method)', () async {
-      var getFunctionName =
-          setup.emitLibraryBundle ? 'getFunctionName' : 'getFunctionMetadata';
+      var getFunctionName = setup.emitLibraryBundle
+          ? 'getFunctionName'
+          : 'getFunctionMetadata';
       var expectedName = 'BaseClass.staticMethod';
 
       await driver.checkRuntimeInFrame(
-          breakpointId: 'BP',
-          expression: 'dart.$getFunctionName(staticMethod)',
-          expectedResult: expectedName);
+        breakpointId: 'BP',
+        expression: 'dart.$getFunctionName(staticMethod)',
+        expectedResult: expectedName,
+      );
     });
 
     test('getFunctionName (global method)', () async {
-      var getFunctionName =
-          setup.emitLibraryBundle ? 'getFunctionName' : 'getFunctionMetadata';
+      var getFunctionName = setup.emitLibraryBundle
+          ? 'getFunctionName'
+          : 'getFunctionMetadata';
 
       await driver.checkRuntimeInFrame(
-          breakpointId: 'BP',
-          expression: 'dart.$getFunctionName(globalMethod)',
-          expectedResult: 'globalFunction');
+        breakpointId: 'BP',
+        expression: 'dart.$getFunctionName(globalMethod)',
+        expectedResult: 'globalFunction',
+      );
     });
 
     test('getSubRange (set)', () async {
       await driver.checkRuntimeInFrame(
-          breakpointId: 'BP',
-          expression: 'dart.getSubRange(set, 0, 3)',
-          expectedResult: ['a', 'b', 'c']);
+        breakpointId: 'BP',
+        expression: 'dart.getSubRange(set, 0, 3)',
+        expectedResult: ['a', 'b', 'c'],
+      );
 
       await driver.checkRuntimeInFrame(
-          breakpointId: 'BP',
-          expression: 'dart.getSubRange(set, 1, 2)',
-          expectedResult: ['b', 'c']);
+        breakpointId: 'BP',
+        expression: 'dart.getSubRange(set, 1, 2)',
+        expectedResult: ['b', 'c'],
+      );
 
       await driver.checkRuntimeInFrame(
-          breakpointId: 'BP',
-          expression: 'dart.getSubRange(set, 1, 5)',
-          expectedResult: ['b', 'c']);
+        breakpointId: 'BP',
+        expression: 'dart.getSubRange(set, 1, 5)',
+        expectedResult: ['b', 'c'],
+      );
     });
 
     test('getSubRange (list)', () async {
       await driver.checkRuntimeInFrame(
-          breakpointId: 'BP',
-          expression: 'dart.getSubRange(list, 0, 3)',
-          expectedResult: [1, 2, 3]);
+        breakpointId: 'BP',
+        expression: 'dart.getSubRange(list, 0, 3)',
+        expectedResult: [1, 2, 3],
+      );
 
       await driver.checkRuntimeInFrame(
-          breakpointId: 'BP',
-          expression: 'dart.getSubRange(list, 1, 2)',
-          expectedResult: [2, 3]);
+        breakpointId: 'BP',
+        expression: 'dart.getSubRange(list, 1, 2)',
+        expectedResult: [2, 3],
+      );
 
       await driver.checkRuntimeInFrame(
-          breakpointId: 'BP',
-          expression: 'dart.getSubRange(list, 1, 5)',
-          expectedResult: [2, 3]);
+        breakpointId: 'BP',
+        expression: 'dart.getSubRange(list, 1, 5)',
+        expectedResult: [2, 3],
+      );
     });
 
     test('getSubRange (map)', () async {
       await driver.checkRuntimeInFrame(
         breakpointId: 'BP',
         expression: 'dart.getSubRange(map, 0, 3)',
-        expectedResult:
-            isA<List>().having((p) => p.length, 'length', equals(2)),
+        expectedResult: isA<List>().having(
+          (p) => p.length,
+          'length',
+          equals(2),
+        ),
       );
 
       await driver.checkRuntimeInFrame(
         breakpointId: 'BP',
         expression: 'dart.getSubRange(map, 1, 2)',
-        expectedResult:
-            isA<List>().having((p) => p.length, 'length', equals(1)),
+        expectedResult: isA<List>().having(
+          (p) => p.length,
+          'length',
+          equals(1),
+        ),
       );
 
       await driver.checkRuntimeInFrame(
         breakpointId: 'BP',
         expression: 'dart.getSubRange(map, 1, 5)',
-        expectedResult:
-            isA<List>().having((p) => p.length, 'length', equals(1)),
+        expectedResult: isA<List>().having(
+          (p) => p.length,
+          'length',
+          equals(1),
+        ),
       );
     });
 
@@ -836,7 +894,7 @@ void runSharedTests(
           'className': 'DerivedClass',
           'libraryId': 'package:eval_test/test.dart',
           'runtimeKind': 'object',
-          'length': 12
+          'length': 12,
         },
       );
     }, skip: !setup.emitLibraryBundle);

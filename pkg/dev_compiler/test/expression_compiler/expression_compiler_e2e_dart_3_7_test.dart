@@ -40,7 +40,9 @@ void main(List<String> args) async {
 /// Wildcards create local variables in scope that are unused. They should not
 /// interfere with expression evaluation in any way.
 void runSharedTests(
-    SetupCompilerOptions setup, ExpressionEvaluationTestDriver driver) {
+  SetupCompilerOptions setup,
+  ExpressionEvaluationTestDriver driver,
+) {
   group('Wildcard', () {
     const recordsSource = '''
     // @dart=3.7
@@ -84,39 +86,46 @@ void runSharedTests(
 
     test('method argument in scope do not break other evaluations', () async {
       await driver.checkInFrame(
-          breakpointId: 'bp',
-          expression: 'd.toString()',
-          expectedResult: '0:00:03.000000');
+        breakpointId: 'bp',
+        expression: 'd.toString()',
+        expectedResult: '0:00:03.000000',
+      );
       await driver.checkInFrame(
-          breakpointId: 'bp',
-          expression: '__.toString()',
-          expectedResult: 'two');
+        breakpointId: 'bp',
+        expression: '__.toString()',
+        expectedResult: 'two',
+      );
     });
 
     test('local variable in scope do not break other evaluations', () async {
       await driver.checkInFrame(
-          breakpointId: 'bp2',
-          expression: 'd.toString()',
-          expectedResult: '0:00:03.000000');
+        breakpointId: 'bp2',
+        expression: 'd.toString()',
+        expectedResult: '0:00:03.000000',
+      );
       await driver.checkInFrame(
-          breakpointId: 'bp2',
-          expression: '__.toString()',
-          expectedResult: 'hello');
+        breakpointId: 'bp2',
+        expression: '__.toString()',
+        expectedResult: 'hello',
+      );
     });
 
     test('type argument in scope do not break other evaluations', () async {
       await driver.checkInFrame(
-          breakpointId: 'bp3',
-          expression: 'd.toString()',
-          expectedResult: '0:00:03.000000');
+        breakpointId: 'bp3',
+        expression: 'd.toString()',
+        expectedResult: '0:00:03.000000',
+      );
       await driver.checkInFrame(
-          breakpointId: 'bp3',
-          expression: '__.toString()',
-          expectedResult: 'world');
+        breakpointId: 'bp3',
+        expression: '__.toString()',
+        expectedResult: 'world',
+      );
       await driver.checkInFrame(
-          breakpointId: 'bp3',
-          expression: 'T.toString()',
-          expectedResult: 'String');
+        breakpointId: 'bp3',
+        expression: 'T.toString()',
+        expectedResult: 'String',
+      );
     });
   });
 
@@ -173,39 +182,46 @@ void runSharedTests(
 
     test('method argument in scope do not break other evaluations', () async {
       await driver.checkInFrame(
-          breakpointId: 'bp',
-          expression: 'd.toString()',
-          expectedResult: '0:00:03.000000');
+        breakpointId: 'bp',
+        expression: 'd.toString()',
+        expectedResult: '0:00:03.000000',
+      );
       await driver.checkInFrame(
-          breakpointId: 'bp',
-          expression: '__.toString()',
-          expectedResult: 'two');
+        breakpointId: 'bp',
+        expression: '__.toString()',
+        expectedResult: 'two',
+      );
     });
 
     test('local variable in scope do not break other evaluations', () async {
       await driver.checkInFrame(
-          breakpointId: 'bp2',
-          expression: 'd.toString()',
-          expectedResult: '0:00:03.000000');
+        breakpointId: 'bp2',
+        expression: 'd.toString()',
+        expectedResult: '0:00:03.000000',
+      );
       await driver.checkInFrame(
-          breakpointId: 'bp2',
-          expression: '__.toString()',
-          expectedResult: 'hello');
+        breakpointId: 'bp2',
+        expression: '__.toString()',
+        expectedResult: 'hello',
+      );
     });
 
     test('type argument in scope do not break other evaluations', () async {
       await driver.checkInFrame(
-          breakpointId: 'bp3',
-          expression: 'd.toString()',
-          expectedResult: '0:00:03.000000');
+        breakpointId: 'bp3',
+        expression: 'd.toString()',
+        expectedResult: '0:00:03.000000',
+      );
       await driver.checkInFrame(
-          breakpointId: 'bp3',
-          expression: '__.toString()',
-          expectedResult: 'world');
+        breakpointId: 'bp3',
+        expression: '__.toString()',
+        expectedResult: 'world',
+      );
       await driver.checkInFrame(
-          breakpointId: 'bp3',
-          expression: 'T.toString()',
-          expectedResult: 'String');
+        breakpointId: 'bp3',
+        expression: 'T.toString()',
+        expectedResult: 'String',
+      );
     });
   });
 }

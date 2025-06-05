@@ -13,7 +13,8 @@ void main(List<String> args) async {
   final debug = false;
   final driver = await ExpressionEvaluationTestDriver.init();
   runTests(
-      driver,
-      SetupCompilerOptions(moduleFormat: ModuleFormat.ddc, args: args)
-        ..options.verbose = debug);
+    driver,
+    SetupCompilerOptions(moduleFormat: ModuleFormat.ddc, args: args)
+      ..options.verbose = debug,
+  );
 }

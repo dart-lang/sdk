@@ -92,7 +92,8 @@ class SourceMapPrintingContext extends SimpleJavaScriptPrintingContext {
       emit('*/');
     } else if (srcInfo is! NodeEnd) {
       throw StateError(
-          'wrong kind of source map data: `$srcInfo` <${srcInfo.runtimeType}>');
+        'wrong kind of source map data: `$srcInfo` <${srcInfo.runtimeType}>',
+      );
     }
 
     if (dartStart != null) {
@@ -118,7 +119,8 @@ class SourceMapPrintingContext extends SimpleJavaScriptPrintingContext {
       dartEnd = srcInfo.end;
     } else if (srcInfo is! SourceLocation && srcInfo is! HoverComment) {
       throw StateError(
-          'wrong kind of source map data: `$srcInfo` <${srcInfo.runtimeType}>');
+        'wrong kind of source map data: `$srcInfo` <${srcInfo.runtimeType}>',
+      );
     }
 
     if (dartEnd != null) {
@@ -127,10 +129,13 @@ class SourceMapPrintingContext extends SimpleJavaScriptPrintingContext {
         // at its exit, so this provides a mapping for that location.
         var column = _column - 1;
         if (column >= 0) {
-          // Adjust the column, because any ending brace or semicolon is already in
-          // the output.
-          var jsEnd =
-              SourceLocation(buffer.length - 1, line: _line, column: column);
+          // Adjust the column, because any ending brace or semicolon is already
+          // in the output.
+          var jsEnd = SourceLocation(
+            buffer.length - 1,
+            line: _line,
+            column: column,
+          );
           _mark(dartEnd, jsEnd);
         }
       } else {

@@ -40,12 +40,14 @@ ModuleFormat parseModuleFormat(String s) {
     'ddc': ModuleFormat.ddc,
     // Deprecated:
     'node': ModuleFormat.common,
-    'legacy': ModuleFormat.ddc
+    'legacy': ModuleFormat.ddc,
   };
   var selected = formats[s];
   if (selected == null) {
-    throw ArgumentError('Invalid module format `$s`, allowed formats are: '
-        '`${formats.keys.join(', ')}`');
+    throw ArgumentError(
+      'Invalid module format `$s`, allowed formats are: '
+      '`${formats.keys.join(', ')}`',
+    );
   }
   return selected;
 }
@@ -59,21 +61,25 @@ List<ModuleFormat> parseModuleFormatOption(ArgResults args) {
 /// [allowMultiple] formats to be specified, with each emitted into a separate
 /// file.
 void addModuleFormatOptions(ArgParser argParser, {bool hide = true}) {
-  argParser.addMultiOption('modules', help: 'module pattern to emit', allowed: [
-    'es6',
-    'common',
-    'amd',
-    'ddc',
-    'legacy', // renamed to ddc
-    'node', // renamed to commonjs
-    'all' // to emit all flavors for the SDK
-  ], allowedHelp: {
-    'es6': 'ECMAScript 6 modules',
-    'common': 'CommonJS/Node.js modules',
-    'amd': 'AMD/RequireJS modules'
-  }, defaultsTo: [
-    'amd'
-  ]);
+  argParser.addMultiOption(
+    'modules',
+    help: 'module pattern to emit',
+    allowed: [
+      'es6',
+      'common',
+      'amd',
+      'ddc',
+      'legacy', // renamed to ddc
+      'node', // renamed to commonjs
+      'all', // to emit all flavors for the SDK
+    ],
+    allowedHelp: {
+      'es6': 'ECMAScript 6 modules',
+      'common': 'CommonJS/Node.js modules',
+      'amd': 'AMD/RequireJS modules',
+    },
+    defaultsTo: ['amd'],
+  );
 }
 
 /// Transforms an ES6 [module] into a given module [format].
@@ -108,18 +114,24 @@ Program transformModuleFormat(ModuleFormat format, Program module) {
 /// Returns a new function that combines all statements from transformed imports
 /// from [items] and the body of the [function].
 Fun transformFunctionModuleFormat(
-    List<ModuleItem> items, Fun function, ModuleFormat format) {
+  List<ModuleItem> items,
+  Fun function,
+  ModuleFormat format,
+) {
   switch (format) {
     case ModuleFormat.ddc:
       return DdcModuleBuilder().buildFunctionWithImports(items, function);
     case ModuleFormat.amd:
       return AmdModuleBuilder().buildFunctionWithImports(items, function);
     case ModuleFormat.ddcLibraryBundle:
-      return DdcLibraryBundleBuilder()
-          .buildFunctionWithImports(items, function);
+      return DdcLibraryBundleBuilder().buildFunctionWithImports(
+        items,
+        function,
+      );
     default:
       throw UnsupportedError(
-          'Incremental build does not support $format module format');
+        'Incremental build does not support $format module format',
+      );
   }
 }
 
@@ -184,13 +196,19 @@ class DdcModuleBuilder extends _ModuleBuilder {
   /// Used to load modules referenced in the expression during expression
   /// evaluation.
   static Statement buildLoadModule(
-          Identifier moduleVar, ImportDeclaration import) =>
-      js.statement(
-          'const # = dart_library.import(#);', [moduleVar, import.from]);
+    Identifier moduleVar,
+    ImportDeclaration import,
+  ) => js.statement('const # = dart_library.import(#);', [
+    moduleVar,
+    import.from,
+  ]);
 
   /// Build library variable definitions for all libraries from [import].
   static List<Statement> buildImports(
-      Identifier moduleVar, ImportDeclaration import, bool deferModules) {
+    Identifier moduleVar,
+    ImportDeclaration import,
+    bool deferModules,
+  ) {
     var items = <Statement>[];
 
     for (var importName in import.namedImports!) {
@@ -201,12 +219,15 @@ class DdcModuleBuilder extends _ModuleBuilder {
       var asName = importName.asName ?? importName.name;
       if (deferModules && import.from.valueWithoutQuotes != dartSdkModule) {
         // Load non-SDK modules on demand (i.e., deferred).
-        items.add(js.statement(
+        items.add(
+          js.statement(
             'let # = dart_library.defer(#, #, function (mod, lib) {'
             '  # = mod;'
             '  # = lib;'
             '});',
-            [asName, moduleVar, js.string(fromName), moduleVar, asName]));
+            [asName, moduleVar, js.string(fromName), moduleVar, asName],
+          ),
+        );
       } else {
         items.add(js.statement('const # = #.#', [asName, moduleVar, fromName]));
       }
@@ -216,7 +237,9 @@ class DdcModuleBuilder extends _ModuleBuilder {
 
   /// Build statements for [exports].
   static List<Statement> buildExports(
-      Identifier exportsVar, List<ExportDeclaration> exports) {
+    Identifier exportsVar,
+    List<ExportDeclaration> exports,
+  ) {
     var items = <Statement>[];
 
     if (exports.isNotEmpty) {
@@ -229,7 +252,8 @@ class DdcModuleBuilder extends _ModuleBuilder {
         for (var name in names) {
           var alias = name.asName ?? name.name!;
           items.add(
-              js.statement('#.# = #;', [exportsVar, alias.name, name.name]));
+            js.statement('#.# = #;', [exportsVar, alias.name, name.name]),
+          );
         }
       }
     }
@@ -291,17 +315,20 @@ class DdcModuleBuilder extends _ModuleBuilder {
 
     var moduleName = module.name!;
     var resultModule = NamedFunction(
-        loadFunctionIdentifier(moduleName),
-        js.fun("function(#) { 'use strict'; #; }", [parameters, statements]),
-        true);
+      loadFunctionIdentifier(moduleName),
+      js.fun("function(#) { 'use strict'; #; }", [parameters, statements]),
+      true,
+    );
 
     var moduleDef = js.statement('dart_library.library(#, #, #, #, #)', [
       js.string(moduleName, "'"),
       LiteralNull(),
       js.commentExpression(
-          'Imports', ArrayInitializer(importNames, multiline: true)),
+        'Imports',
+        ArrayInitializer(importNames, multiline: true),
+      ),
       resultModule,
-      ProgramCompiler.metricsLocationID
+      ProgramCompiler.metricsLocationID,
     ]);
     return Program(<ModuleItem>[...module.header, moduleDef]);
   }
@@ -310,19 +337,19 @@ class DdcModuleBuilder extends _ModuleBuilder {
 /// Generates CommonJS modules (used by Node.js).
 class CommonJSModuleBuilder extends _ModuleBuilder {
   Program build(Program module) {
-    var importStatements = [
-      js.statement("'use strict';"),
-    ];
+    var importStatements = [js.statement("'use strict';")];
 
     // Collect imports/exports/statements.
     visitProgram(module);
 
     for (var import in imports) {
       // TODO(jmesserly): we could use destructuring here.
-      var moduleVar =
-          ScopedId(pathToJSIdentifier(import.from.valueWithoutQuotes));
-      importStatements
-          .add(js.statement('const # = require(#);', [moduleVar, import.from]));
+      var moduleVar = ScopedId(
+        pathToJSIdentifier(import.from.valueWithoutQuotes),
+      );
+      importStatements.add(
+        js.statement('const # = require(#);', [moduleVar, import.from]),
+      );
 
       // TODO(jmesserly): optimize for the common case of a single import.
       for (var importName in import.namedImports!) {
@@ -332,7 +359,8 @@ class CommonJSModuleBuilder extends _ModuleBuilder {
         var libraryName = importName.name!.name;
         var asName = importName.asName ?? importName.name;
         importStatements.add(
-            js.statement('const # = #.#', [asName, moduleVar, libraryName]));
+          js.statement('const # = #.#', [asName, moduleVar, libraryName]),
+        );
       }
     }
     statements.insertAll(0, importStatements);
@@ -347,7 +375,8 @@ class CommonJSModuleBuilder extends _ModuleBuilder {
         for (var name in names) {
           var alias = name.asName ?? name.name!;
           statements.add(
-              js.statement('#.# = #;', [exportsVar, alias.name, name.name]));
+            js.statement('#.# = #;', [exportsVar, alias.name, name.name]),
+          );
         }
       }
     }
@@ -365,12 +394,15 @@ class AmdModuleBuilder extends _ModuleBuilder {
   /// Used to load modules referenced in the expression during expression
   /// evaluation.
   static Statement buildLoadModule(
-          Identifier moduleVar, ImportDeclaration import) =>
-      js.statement('const # = require(#);', [moduleVar, import.from]);
+    Identifier moduleVar,
+    ImportDeclaration import,
+  ) => js.statement('const # = require(#);', [moduleVar, import.from]);
 
   /// Build library variable definitions for all libraries from [import].
   static List<Statement> buildImports(
-      Identifier moduleVar, ImportDeclaration import) {
+    Identifier moduleVar,
+    ImportDeclaration import,
+  ) {
     var items = <Statement>[];
 
     for (var importName in import.namedImports!) {
@@ -379,8 +411,9 @@ class AmdModuleBuilder extends _ModuleBuilder {
 
       var libraryName = importName.name!.name;
       var asName = importName.asName ?? importName.name;
-      items
-          .add(js.statement('const # = #.#', [asName, moduleVar, libraryName]));
+      items.add(
+        js.statement('const # = #.#', [asName, moduleVar, libraryName]),
+      );
     }
     return items;
   }
@@ -458,11 +491,14 @@ class AmdModuleBuilder extends _ModuleBuilder {
     statements.addAll(buildExports(exports));
 
     var resultModule = NamedFunction(
-        loadFunctionIdentifier(module.name!),
-        js.fun("function(#) { 'use strict'; #; }", [fnParams, statements]),
-        true);
-    var block = js.statement(
-        'define(#, #);', [ArrayInitializer(dependencies), resultModule]);
+      loadFunctionIdentifier(module.name!),
+      js.fun("function(#) { 'use strict'; #; }", [fnParams, statements]),
+      true,
+    );
+    var block = js.statement('define(#, #);', [
+      ArrayInitializer(dependencies),
+      resultModule,
+    ]);
 
     return Program([...module.header, block]);
   }
@@ -473,7 +509,9 @@ class AmdModuleBuilder extends _ModuleBuilder {
 class DdcLibraryBundleBuilder extends _ModuleBuilder {
   /// Build library variable definitions for all libraries from [import].
   static List<Statement> buildImports(
-      Identifier? moduleVar, ImportDeclaration import) {
+    Identifier? moduleVar,
+    ImportDeclaration import,
+  ) {
     var items = <Statement>[];
 
     var fromName = import.from;
@@ -484,13 +522,20 @@ class DdcLibraryBundleBuilder extends _ModuleBuilder {
       var asName = importName.asName ?? importName.name;
       if (import.from.valueWithoutQuotes != dartSdkModule) {
         // Load non-SDK modules on demand (i.e., deferred).
-        items.add(js.statement(
+        items.add(
+          js.statement(
             'let # = dartDevEmbedder.importLibrary(#, function (lib) { '
             '# = lib; });',
-            [asName, fromName, asName]));
+            [asName, fromName, asName],
+          ),
+        );
       } else {
-        items.add(js.statement(
-            'const # = dartDevEmbedder.importLibrary(#)', [asName, fromName]));
+        items.add(
+          js.statement('const # = dartDevEmbedder.importLibrary(#)', [
+            asName,
+            fromName,
+          ]),
+        );
       }
     }
     return items;
@@ -528,9 +573,10 @@ class DdcLibraryBundleBuilder extends _ModuleBuilder {
       // TODO(nshahan): Delete and update the argument type when this is the
       // only supported module format.
       throw ArgumentError.value(
-          module,
-          '`DdcLibraryBundleBuilder` requires `LibraryBundle`s as input to '
-          '`.build()`.');
+        module,
+        '`DdcLibraryBundleBuilder` requires `LibraryBundle`s as input to '
+        '`.build()`.',
+      );
     }
     var body = <ModuleItem>[];
     // Collect imports/exports/statements.
@@ -551,21 +597,26 @@ class DdcLibraryBundleBuilder extends _ModuleBuilder {
       statements.insertAll(0, importStatements);
       // Package the library into an initialization function.
       var initFunction = NamedFunction(
-          loadFunctionIdentifier(library.name!),
-          js.fun("function(#) { 'use strict'; #; return #; }",
-              [library.librarySelfVar!, statements, library.librarySelfVar!]),
-          true);
-      var resultModule = js.statement('dartDevEmbedder.defineLibrary(#, #)',
-          [js.string(library.name!), initFunction]);
+        loadFunctionIdentifier(library.name!),
+        js.fun("function(#) { 'use strict'; #; return #; }", [
+          library.librarySelfVar!,
+          statements,
+          library.librarySelfVar!,
+        ]),
+        true,
+      );
+      var resultModule = js.statement('dartDevEmbedder.defineLibrary(#, #)', [
+        js.string(library.name!),
+        initFunction,
+      ]);
       body.add(resultModule);
     }
     // The library bundle format only needs to keep track of source maps and
     // doesn't need the full `trackLibraries` call that other formats use.
-    var setSourceMap =
-        js.statement('dartDevEmbedder.debugger.setSourceMap(#, #)', [
-      js.string(module.name!),
-      LibraryCompiler.sourceMapLocationID,
-    ]);
+    var setSourceMap = js.statement(
+      'dartDevEmbedder.debugger.setSourceMap(#, #)',
+      [js.string(module.name!), LibraryCompiler.sourceMapLocationID],
+    );
     // Append all library definitions into a single file.
     return Program([...module.header, ...body, setSourceMap]);
   }
@@ -613,12 +664,14 @@ final encodedSeparator = '__';
 
 /// Group libraries from [imports] by modules.
 List<MapEntry<Identifier, ImportDeclaration>> _collectModuleImports(
-    List<ImportDeclaration> imports) {
+  List<ImportDeclaration> imports,
+) {
   var result = <MapEntry<Identifier, ImportDeclaration>>[];
   for (var import in imports) {
     // TODO(jmesserly): we could use destructuring once Atom supports it.
-    var moduleVar =
-        ScopedId(pathToJSIdentifier(import.from.valueWithoutQuotes));
+    var moduleVar = ScopedId(
+      pathToJSIdentifier(import.from.valueWithoutQuotes),
+    );
 
     result.add(MapEntry<Identifier, ImportDeclaration>(moduleVar, import));
   }
