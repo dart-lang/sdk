@@ -330,9 +330,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   /// used to access the types from the core library. The [errorListener] is the
   /// error listener that will be informed of any errors that are found during
   /// resolution.
-  ///
-  // TODO(paulberry): make [featureSet] a required parameter (this will be a
-  // breaking change).
   ResolverVisitor(
     InheritanceManager3 inheritanceManager,
     LibraryElementImpl definingLibrary,
