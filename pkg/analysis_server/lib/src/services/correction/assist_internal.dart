@@ -13,6 +13,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_class_to_mi
 import 'package:analysis_server/src/services/correction/dart/convert_conditional_expression_to_if_element.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_documentation_into_block.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_documentation_into_line.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_field_formal_to_normal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_into_async_body.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_into_block_body.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_into_final_field.dart';
@@ -90,6 +91,7 @@ const Set<ProducerGenerator> _builtInGenerators = {
   ConvertConditionalExpressionToIfElement.new,
   ConvertDocumentationIntoBlock.new,
   ConvertDocumentationIntoLine.new,
+  ConvertFieldFormalToNormal.new,
   ConvertIfStatementToSwitchStatement.new,
   ConvertIntoAsyncBody.new,
   ConvertIntoBlockBody.missingBody,

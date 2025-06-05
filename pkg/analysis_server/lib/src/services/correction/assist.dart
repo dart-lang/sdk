@@ -51,6 +51,11 @@ abstract final class DartAssistKind {
     DartAssistKindPriority.DEFAULT,
     'Convert to line documentation comment',
   );
+  static const CONVERT_FIELD_FORMAL_TO_NORMAL = AssistKind(
+    'dart.assist.convert.fieldFormalToNormal',
+    DartAssistKindPriority.DEFAULT,
+    'Convert to a normal parameter',
+  );
   static const CONVERT_INTO_ASYNC_BODY = AssistKind(
     'dart.assist.convert.bodyToAsync',
     DartAssistKindPriority.PRIORITY,
