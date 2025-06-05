@@ -25,6 +25,55 @@ class InlineValueTest extends AbstractLspAnalysisServerTest {
   /// client configuration passed during initialization.
   bool experimentalInlineValuesProperties = false;
 
+  Future<void> test_block_ifStatement_inside() async {
+    code = TestCode.parse(r'''
+void f(int a, int b, int c) {
+  if (a == 1) {
+    /*[0*/a/*0]*/;
+    /*[1*/b/*1]*/;
+    /*[2*/c/*2]*/;
+    ^
+  }
+}
+''');
+
+    await verify_values(code, ofType: InlineValueVariableLookup);
+  }
+
+  Future<void> test_block_ifStatement_notInside() async {
+    code = TestCode.parse(r'''
+void f(int a, int /*[0*/b/*0]*/, int c) {
+  if (/*[1*/a/*1]*/ == 1) {
+    // Code inside blocks is excluded
+    a;
+    b;
+    c;
+  }
+  ^/*[2*/c/*2]*/;
+}
+''');
+
+    await verify_values(code, ofType: InlineValueVariableLookup);
+  }
+
+  Future<void> test_block_switchStatement() async {
+    code = TestCode.parse(r'''
+void f(int a, int /*[0*/b/*0]*/, int c) {
+  switch (/*[1*/a/*1]*/) {
+    case 0:
+      // Ignored because not in this case
+      a;
+      b;
+      c;
+    case 1:
+      ^/*[2*/c/*2]*/;
+  }
+}
+''');
+
+    await verify_values(code, ofType: InlineValueVariableLookup);
+  }
+
   Future<void> test_iterables() async {
     experimentalInlineValuesProperties = true;
 
