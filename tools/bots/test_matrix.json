@@ -3272,16 +3272,8 @@
           ]
         },
         {
-          "name": "analyze flutter/engine",
-          "script": "tools/bots/flutter/analyze_flutter_engine.sh"
-        },
-        {
-          "name": "analyze flutter/flutter",
-          "script": "tools/bots/flutter/analyze_flutter_flutter.sh"
-        },
-        {
-          "name": "analyze flutter/packages",
-          "script": "tools/bots/flutter/analyze_flutter_packages.sh"
+          "name": "analyze Flutter repositories",
+          "script": "tools/bots/flutter/analyze_flutter.sh"
         }
       ]
     },

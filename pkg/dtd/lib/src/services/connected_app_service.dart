@@ -54,10 +54,10 @@ extension ConnectedAppsExtension on DartToolingDaemon {
     return _callOnConnectedAppService<Success>(
       ConnectedAppServiceConstants.registerVmService,
       params: {
-        EventParameters.uri: uri,
-        EventParameters.secret: secret,
-        if (exposedUri != null) EventParameters.exposedUri: exposedUri,
-        if (name != null) EventParameters.name: name,
+        DtdParameters.uri: uri,
+        DtdParameters.secret: secret,
+        if (exposedUri != null) DtdParameters.exposedUri: exposedUri,
+        if (name != null) DtdParameters.name: name,
       },
       parseResponse: Success.fromDTDResponse,
     );
@@ -83,7 +83,7 @@ extension ConnectedAppsExtension on DartToolingDaemon {
   }) {
     return _callOnConnectedAppService<Success>(
       ConnectedAppServiceConstants.unregisterVmService,
-      params: {EventParameters.uri: uri, EventParameters.secret: secret},
+      params: {DtdParameters.uri: uri, DtdParameters.secret: secret},
       parseResponse: Success.fromDTDResponse,
     );
   }

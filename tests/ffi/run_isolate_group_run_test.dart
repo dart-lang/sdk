@@ -13,7 +13,6 @@
 // VMOptions=--experimental-shared-data --profiler --profile_vm=false
 
 import 'package:dart_internal/isolate_group.dart' show IsolateGroup;
-import 'dart:concurrent';
 import 'dart:isolate';
 
 import "package:expect/expect.dart";

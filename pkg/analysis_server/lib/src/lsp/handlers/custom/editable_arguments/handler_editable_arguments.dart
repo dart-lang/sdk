@@ -16,7 +16,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/lint/constants.dart';
 
 /// Information about the values for a parameter/argument.
 typedef _Values = ({DartObject? parameterValue, DartObject? argumentValue});
@@ -147,7 +146,7 @@ class EditableArgumentsHandler
     Expression? argumentExpression,
   ) {
     var parameterValue = parameter.computeConstantValue();
-    var argumentValue = argumentExpression?.computeConstantValue().value;
+    var argumentValue = argumentExpression?.computeConstantValue()?.value;
 
     return (parameterValue: parameterValue, argumentValue: argumentValue);
   }

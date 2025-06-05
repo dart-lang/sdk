@@ -30,7 +30,7 @@ class C {
   Future<int> operator +(C other) async => 7;
 }
 ''',
-      [lint(27, 6)],
+      [lint(27, 5)],
     );
   }
 
@@ -86,7 +86,7 @@ void f(Future2 p) async {
 Future2 g(Future2 p) => p;
 abstract class Future2 implements Future {}
 ''',
-      [lint(28, 5)],
+      [lint(28, 1)],
     );
   }
 
@@ -108,7 +108,7 @@ void f() async {
 }
 Future<int> g() => Future.value(0);
 ''',
-      [lint(22, 3)],
+      [lint(22, 1)],
     );
   }
 
@@ -133,7 +133,7 @@ Future2<int> g() => f2;
 abstract class Future2<T> implements Future<T> {}
 external Future2<int> f2;
 ''',
-      [lint(22, 3)],
+      [lint(22, 1)],
     );
   }
 
@@ -145,7 +145,7 @@ void f() async {
 }
 Future<int>? g() => Future.value(0);
 ''',
-      [lint(19, 4)],
+      [lint(19, 1)],
     );
   }
 
@@ -166,7 +166,7 @@ void f() async {
 }
 Future<int> g() => Future.value(0);
 ''',
-      [lint(19, 4)],
+      [lint(19, 1)],
     );
   }
 
@@ -191,7 +191,7 @@ class C {
   Future<void> doAsync() async {}
 }
 ''',
-      [lint(22, 11)],
+      [lint(24, 7)],
     );
   }
 
@@ -270,7 +270,7 @@ abstract class C {
   Future<int> get p;
 }
 ''',
-      [lint(22, 4)],
+      [lint(24, 1)],
     );
   }
 
@@ -310,7 +310,7 @@ void f(Future<int> p) async {
   p;
 }
 ''',
-      [lint(32, 2)],
+      [lint(32, 1)],
     );
   }
 
@@ -324,7 +324,7 @@ class C {
   Future<int> operator -() async => 7;
 }
 ''',
-      [lint(22, 3)],
+      [lint(22, 2)],
     );
   }
 

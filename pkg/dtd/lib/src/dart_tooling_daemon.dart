@@ -15,9 +15,6 @@ typedef DTDServiceCallback = Future<Map<String, Object?>> Function(
   Parameters params,
 );
 
-// TODO(kenz): replace all raw string values with constants from
-//  `constants.dart` that can be shared with the dtd_impl package.
-
 // TODO(danchevalier): add a serviceMethodIsAvailable experience. it will listen
 // to a stream that announces servicemethods getting registered and
 // unregistered. The state can then be presented as a listenable so that clients
@@ -33,13 +30,14 @@ class DartToolingDaemon {
   /// To over a WebSocket, the [DartToolingDaemon.connect] helper can be used.
   DartToolingDaemon.fromStreamChannel(StreamChannel<String> streamChannel)
       : _clientPeer = Peer(streamChannel) {
-    _clientPeer.registerMethod('streamNotify', (Parameters params) {
+    _clientPeer.registerMethod(CoreDtdServiceConstants.streamNotify,
+        (Parameters params) {
       try {
-        final streamId = params[EventParameters.streamId].asString;
-        final eventKind = params[EventParameters.eventKind].asString;
+        final streamId = params[DtdParameters.streamId].asString;
+        final eventKind = params[DtdParameters.eventKind].asString;
         final eventData =
-            params[EventParameters.eventData].asMap as Map<String, Object?>;
-        final timestamp = params[EventParameters.timestamp].asInt;
+            params[DtdParameters.eventData].asMap as Map<String, Object?>;
+        final timestamp = params[DtdParameters.timestamp].asInt;
 
         _subscribedStreamControllers[streamId]?.add(
           DTDEvent(
@@ -105,10 +103,10 @@ class DartToolingDaemon {
     Map<String, Object?>? capabilities,
   }) async {
     final combinedName = '$service.$method';
-    await _clientPeer.sendRequest('registerService', {
-      'service': service,
-      'method': method,
-      if (capabilities != null) 'capabilities': capabilities,
+    await _clientPeer.sendRequest(CoreDtdServiceConstants.registerService, {
+      DtdParameters.service: service,
+      DtdParameters.method: method,
+      if (capabilities != null) DtdParameters.capabilities: capabilities,
     });
 
     _clientPeer.registerMethod(
@@ -121,7 +119,7 @@ class DartToolingDaemon {
   /// available on this DTD instance.
   Future<RegisteredServicesResponse> getRegisteredServices() async {
     final json = await _clientPeer.sendRequest(
-      'getRegisteredServices',
+      CoreDtdServiceConstants.getRegisteredServices,
     ) as Map<String, Object?>;
 
     final dtdResponse = _dtdResponseFromJson(json);
@@ -138,9 +136,9 @@ class DartToolingDaemon {
   /// [RpcErrorCodes.kStreamAlreadySubscribed] will be thrown.
   Future<void> streamListen(String streamId) {
     return _clientPeer.sendRequest(
-      'streamListen',
+      CoreDtdServiceConstants.streamListen,
       {
-        'streamId': streamId,
+        DtdParameters.streamId: streamId,
       },
     );
   }
@@ -154,9 +152,9 @@ class DartToolingDaemon {
   /// [RpcErrorCodes.kStreamNotSubscribed] will be thrown.
   Future<void> streamCancel(String streamId) {
     return _clientPeer.sendRequest(
-      'streamCancel',
+      CoreDtdServiceConstants.streamCancel,
       {
-        'streamId': streamId,
+        DtdParameters.streamId: streamId,
       },
     );
   }
@@ -186,11 +184,11 @@ class DartToolingDaemon {
     Map<String, Object?> eventData,
   ) async {
     await _clientPeer.sendRequest(
-      'postEvent',
+      CoreDtdServiceConstants.postEvent,
       {
-        'streamId': streamId,
-        'eventKind': eventKind,
-        'eventData': eventData,
+        DtdParameters.streamId: streamId,
+        DtdParameters.eventKind: eventKind,
+        DtdParameters.eventData: eventData,
       },
     );
   }
@@ -225,7 +223,7 @@ class DartToolingDaemon {
   }
 
   DTDResponse _dtdResponseFromJson(Map<String, Object?> json) {
-    final type = json['type'] as String?;
+    final type = json[DtdParameters.type] as String?;
     if (type == null) {
       throw DartToolingDaemonConnectionException.callResponseMissingType(json);
     }
@@ -267,10 +265,10 @@ class DTDEvent {
   @override
   String toString() {
     return jsonEncode({
-      'stream': stream,
-      'timestamp': timestamp,
-      'kind': kind,
-      'data': data,
+      DtdParameters.stream: stream,
+      DtdParameters.timestamp: timestamp,
+      DtdParameters.kind: kind,
+      DtdParameters.data: data,
     });
   }
 }

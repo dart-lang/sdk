@@ -446,6 +446,7 @@ class ProtocolConverter {
     ThreadInfo thread,
     vm.Response response, {
     required bool allowCallingToString,
+    bool allowTruncatedValue = true,
     VariableFormat? format,
   }) async {
     if (response is vm.InstanceRef) {
@@ -454,6 +455,7 @@ class ProtocolConverter {
         response,
         allowCallingToString: allowCallingToString,
         format: format,
+        allowTruncatedValue: allowTruncatedValue,
       );
     } else if (response is vm.ErrorRef) {
       final errorMessage = response.message;
@@ -505,6 +507,7 @@ class ProtocolConverter {
     required String? name,
     required String? evaluateName,
     required bool allowCallingToString,
+    bool allowTruncatedValue = true,
     VariableFormat? format,
   }) async {
     if (response is vm.InstanceRef) {
@@ -521,6 +524,7 @@ class ProtocolConverter {
           thread,
           response,
           allowCallingToString: allowCallingToString,
+          allowTruncatedValue: allowTruncatedValue,
           format: format,
         ),
         indexedVariables:

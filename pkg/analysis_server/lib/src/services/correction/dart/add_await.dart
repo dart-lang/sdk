@@ -68,7 +68,13 @@ class AddAwait extends ResolvedCorrectionProducer {
           await _addAwait(builder, convertToAsync: _functionBodyIfNotAsync);
         }
       case _CorrectionKind.unawaited:
-        if (node.parent is! CascadeExpression) {
+        // The reported node may be the `identifier` in a PrefixedIdentifier,
+        // the `propertyName` in a PropertyAccess, or the `methodName` in a
+        // MethodInvocation. Check whether the grandparent is a
+        // CascadeExpression. If it is, we cannot simply add an await
+        // expression; we must also change the cascade(s) into a regular
+        // property access or method call.
+        if (node.parent?.parent is! CascadeExpression) {
           await _addAwait(builder);
         }
       case _CorrectionKind.forIn:

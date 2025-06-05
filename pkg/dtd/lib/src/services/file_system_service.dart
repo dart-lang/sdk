@@ -29,11 +29,11 @@ extension FileSystemService on DartToolingDaemon {
     Encoding encoding = utf8,
   }) async {
     final result = await call(
-      kFileSystemServiceName,
-      'readFileAsString',
+      FileSystemServiceConstants.serviceName,
+      FileSystemServiceConstants.readFileAsString,
       params: {
-        'uri': uri.toString(),
-        'encoding': encoding.name,
+        DtdParameters.uri: uri.toString(),
+        DtdParameters.encoding: encoding.name,
       },
     );
     return FileContent.fromDTDResponse(result);
@@ -56,12 +56,12 @@ extension FileSystemService on DartToolingDaemon {
     Encoding encoding = utf8,
   }) async {
     await call(
-      kFileSystemServiceName,
-      'writeFileAsString',
+      FileSystemServiceConstants.serviceName,
+      FileSystemServiceConstants.writeFileAsString,
       params: {
-        'uri': uri.toString(),
-        'contents': contents,
-        'encoding': encoding.name,
+        DtdParameters.uri: uri.toString(),
+        DtdParameters.contents: contents,
+        DtdParameters.encoding: encoding.name,
       },
     );
   }
@@ -81,10 +81,10 @@ extension FileSystemService on DartToolingDaemon {
   /// The returned uris will be `file://` Uris.
   Future<UriList> listDirectoryContents(Uri uri) async {
     final result = await call(
-      kFileSystemServiceName,
-      'listDirectoryContents',
+      FileSystemServiceConstants.serviceName,
+      FileSystemServiceConstants.listDirectoryContents,
       params: {
-        'uri': uri.toString(),
+        DtdParameters.uri: uri.toString(),
       },
     );
     return UriList.fromDTDResponse(result);
@@ -106,11 +106,11 @@ extension FileSystemService on DartToolingDaemon {
   /// with [RpcErrorCodes.kExpectsUriParamWithFileScheme] is thrown.
   Future<void> setIDEWorkspaceRoots(String secret, List<Uri> roots) async {
     await call(
-      kFileSystemServiceName,
-      'setIDEWorkspaceRoots',
+      FileSystemServiceConstants.serviceName,
+      FileSystemServiceConstants.setIDEWorkspaceRoots,
       params: {
-        'roots': roots.map<String>((e) => e.toString()).toList(),
-        'secret': secret,
+        DtdParameters.roots: roots.map<String>((e) => e.toString()).toList(),
+        DtdParameters.secret: secret,
       },
     );
   }
@@ -120,8 +120,8 @@ extension FileSystemService on DartToolingDaemon {
   /// The returned uris will be `file://` Uris.
   Future<IDEWorkspaceRoots> getIDEWorkspaceRoots() async {
     final result = await call(
-      kFileSystemServiceName,
-      'getIDEWorkspaceRoots',
+      FileSystemServiceConstants.serviceName,
+      FileSystemServiceConstants.getIDEWorkspaceRoots,
     );
     return IDEWorkspaceRoots.fromDTDResponse(result);
   }
@@ -141,9 +141,9 @@ extension FileSystemService on DartToolingDaemon {
     int depth = defaultGetProjectRootsDepth,
   }) async {
     final result = await call(
-      kFileSystemServiceName,
-      'getProjectRoots',
-      params: {'depth': depth},
+      FileSystemServiceConstants.serviceName,
+      FileSystemServiceConstants.getProjectRoots,
+      params: {DtdParameters.depth: depth},
     );
     return UriList.fromDTDResponse(result);
   }

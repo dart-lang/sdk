@@ -39,7 +39,7 @@ void main() {
       const messageEvent = 'message';
       const message1 = {'message': 'hello'};
 
-      test('streamListen', () async {
+      test(CoreDtdServiceConstants.streamListen, () async {
         await clientB.streamListen(notificationStream);
         final eventFuture = clientB.onEvent(notificationStream).first;
         await clientA.postEvent(notificationStream, messageEvent, message1);
@@ -47,7 +47,7 @@ void main() {
         expect(event.data, message1);
       });
 
-      test('streamCancel', () async {
+      test(CoreDtdServiceConstants.streamCancel, () async {
         await clientB.streamListen(notificationStream);
         final eventFuture = clientB.onEvent(notificationStream).first;
         await clientB.streamCancel(notificationStream);
@@ -99,7 +99,7 @@ void main() {
         );
       });
 
-      test('getRegisteredServices', () async {
+      test(CoreDtdServiceConstants.getRegisteredServices, () async {
         await clientA.registerService(
           'TestService',
           'foo',
@@ -204,12 +204,12 @@ void main() {
   test('dtd can use streams directly', () async {
     const exampleEventToSend = {
       'jsonrpc': '2.0',
-      'method': 'streamNotify',
+      'method': CoreDtdServiceConstants.streamNotify,
       'params': {
-        'streamId': 'testStream',
-        'eventKind': 'x',
-        'eventData': <String, Object?>{'foo': 'bar'},
-        'timestamp': 1,
+        DtdParameters.streamId: 'testStream',
+        DtdParameters.eventKind: 'x',
+        DtdParameters.eventData: <String, Object?>{'foo': 'bar'},
+        DtdParameters.timestamp: 1,
       },
     };
 

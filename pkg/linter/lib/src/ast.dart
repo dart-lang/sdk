@@ -12,8 +12,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor2.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/lint/constants.dart' // ignore: implementation_imports
-    show ExpressionExtension;
 import 'package:analyzer/workspace/workspace.dart';
 import 'package:path/path.dart' as path;
 
@@ -125,7 +123,7 @@ Element? getWriteOrReadElement(SimpleIdentifier node) =>
     _getWriteElement(node) ?? node.element;
 
 bool hasConstantError(Expression node) =>
-    node.computeConstantValue().errors.isNotEmpty;
+    node.computeConstantValue()?.diagnostics.isNotEmpty ?? true;
 
 /// Returns `true` if this element is the `==` method declaration.
 bool isEquals(ClassMember element) =>
@@ -317,7 +315,7 @@ int? _getIntValue(
   if (expression is IntegerLiteral) {
     value = expression.value;
   } else if (expression is SimpleIdentifier && context != null) {
-    value = expression.computeConstantValue().value?.toIntValue();
+    value = expression.computeConstantValue()?.value?.toIntValue();
   }
   if (value is! int) return null;
 

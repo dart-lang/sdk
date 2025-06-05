@@ -46,8 +46,7 @@ class LeakFinder extends vmService.LaunchingVMServiceHelper {
     });
 
     Completer<String> cRunDone = new Completer();
-    // ignore: unawaited_futures
-    runInternal(
+    unawaited(runInternal(
         isolateRef,
         classInfo,
         instanceCounts,
@@ -57,7 +56,7 @@ class LeakFinder extends vmService.LaunchingVMServiceHelper {
             cTimeout.isCompleted ||
             cProcessExited.isCompleted).then((value) {
       cRunDone.complete("Done");
-    });
+    }));
 
     await Future.any([cRunDone.future, cTimeout.future, cProcessExited.future]);
     timer.cancel();

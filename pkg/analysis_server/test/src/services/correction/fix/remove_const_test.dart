@@ -179,14 +179,13 @@ var v = [const A(), B()];
   }
 
   Future<void> test_recursive_alternating() async {
-    useLineEndingsForPlatform = false;
     await resolveTestCode(r'''
 class A {
   const A();
 }
 class B {}
 Object f() {
-  return const [A(), B(), [A(), B()]];
+  return const [A(), /*0*/B(), [A(), /*1*/B()]];
 }
 ''');
     await assertHasFix(
@@ -201,7 +200,7 @@ Object f() {
 ''',
       errorFilter:
           (error) =>
-              error.offset == testCode.indexOf('B()') &&
+              error.offset == parsedTestCode.positions[0].offset &&
               error.errorCode == CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT,
     );
     await assertHasFix(
@@ -216,20 +215,19 @@ Object f() {
 ''',
       errorFilter:
           (error) =>
-              error.offset == testCode.lastIndexOf('B()') &&
+              error.offset == parsedTestCode.positions[1].offset &&
               error.errorCode == CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT,
     );
   }
 
   Future<void> test_recursive_equal() async {
-    useLineEndingsForPlatform = false;
     await resolveTestCode(r'''
 class A {
   const A();
 }
 class B {}
 Object f() {
-  return const [A(), B(), [A(), A()]];
+  return const [A(), ^B(), [A(), A()]];
 }
 ''');
     await assertHasFix(
@@ -244,7 +242,7 @@ Object f() {
 ''',
       errorFilter:
           (error) =>
-              error.offset == testCode.indexOf('B()') &&
+              error.offset == parsedTestCode.position.offset &&
               error.errorCode == CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT,
     );
   }

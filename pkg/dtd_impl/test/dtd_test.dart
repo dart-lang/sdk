@@ -5,9 +5,9 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:dtd/dtd.dart' show RpcErrorCodes, kFileSystemServiceName;
+import 'package:dtd/dtd.dart'
+    show CoreDtdServiceConstants, FileSystemServiceConstants, RpcErrorCodes;
 import 'package:dtd_impl/dtd.dart';
-import 'package:dtd_impl/src/dtd_stream_manager.dart';
 import 'package:json_rpc_2/json_rpc_2.dart';
 import 'package:test/test.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
@@ -371,7 +371,7 @@ void main() {
       test('clients cannot register an internal service', () async {
         expect(
           () => client.sendRequest('registerService', {
-            "service": kFileSystemServiceName,
+            "service": FileSystemServiceConstants.serviceName,
             "method": method2,
           }),
           throwsA(
@@ -438,12 +438,12 @@ void main() {
           final serviceStream = StreamController<Map<Object?, Object?>>();
           client.registerMethod('streamNotify', (Parameters parameters) {
             if (parameters['streamId'].asString ==
-                DTDStreamManager.servicesStreamId) {
+                CoreDtdServiceConstants.servicesStreamId) {
               serviceStream.add(parameters.asMap);
             }
           });
           await client.sendRequest('streamListen', {
-            'streamId': DTDStreamManager.servicesStreamId,
+            'streamId': CoreDtdServiceConstants.servicesStreamId,
           });
 
           // Register a method on a second client.
@@ -460,8 +460,14 @@ void main() {
           final event = await serviceStream.stream.firstWhere(
             (event) => (event['eventData'] as Map?)?['service'] == 'foo1',
           );
-          expect(event['streamId'], DTDStreamManager.servicesStreamId);
-          expect(event['eventKind'], DTDStreamManager.serviceRegisteredId);
+          expect(
+            event['streamId'],
+            CoreDtdServiceConstants.servicesStreamId,
+          );
+          expect(
+            event['eventKind'],
+            CoreDtdServiceConstants.serviceRegisteredKind,
+          );
           expect(
             event['eventData'],
             {
@@ -488,18 +494,24 @@ void main() {
           var serviceStream = StreamController<Map<Object?, Object?>>();
           client.registerMethod('streamNotify', (Parameters parameters) {
             if (parameters['streamId'].asString ==
-                DTDStreamManager.servicesStreamId) {
+                CoreDtdServiceConstants.servicesStreamId) {
               serviceStream.add(parameters.asMap);
             }
           });
           await client.sendRequest('streamListen', {
-            'streamId': DTDStreamManager.servicesStreamId,
+            'streamId': CoreDtdServiceConstants.servicesStreamId,
           });
 
           // Expect we had a service registered event.
           final event = await serviceStream.stream.first;
-          expect(event['streamId'], DTDStreamManager.servicesStreamId);
-          expect(event['eventKind'], DTDStreamManager.serviceRegisteredId);
+          expect(
+            event['streamId'],
+            CoreDtdServiceConstants.servicesStreamId,
+          );
+          expect(
+            event['eventKind'],
+            CoreDtdServiceConstants.serviceRegisteredKind,
+          );
           expect(
             event['eventData'],
             {
@@ -515,12 +527,12 @@ void main() {
           var serviceStream = StreamController<Map<Object?, Object?>>();
           client.registerMethod('streamNotify', (Parameters parameters) {
             if (parameters['streamId'].asString ==
-                DTDStreamManager.servicesStreamId) {
+                CoreDtdServiceConstants.servicesStreamId) {
               serviceStream.add(parameters.asMap);
             }
           });
           await client.sendRequest('streamListen', {
-            'streamId': DTDStreamManager.servicesStreamId,
+            'streamId': CoreDtdServiceConstants.servicesStreamId,
           });
 
           // Register a method on a second client and then close it so the
@@ -539,10 +551,13 @@ void main() {
           // event).
           final event = await serviceStream.stream.skip(1).firstWhere((event) {
             return event['eventKind'] ==
-                    DTDStreamManager.serviceUnregisteredId &&
+                    CoreDtdServiceConstants.serviceUnregisteredKind &&
                 (event['eventData'] as Map?)?['service'] == 'foo1';
           });
-          expect(event['streamId'], DTDStreamManager.servicesStreamId);
+          expect(
+            event['streamId'],
+            CoreDtdServiceConstants.servicesStreamId,
+          );
           expect(
             event['eventData'],
             {

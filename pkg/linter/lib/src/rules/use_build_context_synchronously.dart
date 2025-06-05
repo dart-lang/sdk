@@ -9,7 +9,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/resolver/exit_detector.dart'; // ignore: implementation_imports
-import 'package:analyzer/src/lint/constants.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
@@ -1445,7 +1444,7 @@ extension on Statement {
 }
 
 extension on Expression {
-  bool? get constantBoolValue => computeConstantValue().value?.toBoolValue();
+  bool? get constantBoolValue => computeConstantValue()?.value?.toBoolValue();
 }
 
 @visibleForTesting

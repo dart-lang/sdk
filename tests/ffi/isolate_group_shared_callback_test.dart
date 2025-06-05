@@ -17,10 +17,8 @@
 import 'dart:async';
 import 'dart:concurrent';
 import 'dart:ffi';
-import 'dart:io';
 import 'dart:isolate';
 
-import 'package:dart_internal/isolate_group.dart' show IsolateGroup;
 import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
 
@@ -204,13 +202,13 @@ void testNativeCallableSync() {
 
 void testNativeCallableSyncThrows() {
   final callback =
-      NativeCallable<CallbackReturningIntNativeType>.isolateGroupShared((
-        int a,
-        int b,
-      ) {
-        throw "foo";
-        return a + b;
-      }, exceptionalReturn: 1111);
+      NativeCallable<CallbackReturningIntNativeType>.isolateGroupShared(
+        (int a, int b) {
+              throw "foo";
+            }
+            as int Function(int, int),
+        exceptionalReturn: 1111,
+      );
 
   Expect.equals(
     1111,
@@ -242,15 +240,17 @@ Future<void> testKeepIsolateAliveTrue() async {
   mutexCondvar = Mutex();
   conditionVariable = ConditionVariable();
   ReceivePort rpOnExit = ReceivePort("onExit");
-  Isolate.spawn(
-    (_) async {
-      final callback = NativeCallable<CallbackNativeType>.isolateGroupShared(
-        simpleFunction,
-      );
-      callback.keepIsolateAlive = true;
-    },
-    /*message=*/ null,
-    onExit: rpOnExit.sendPort,
+  unawaited(
+    Isolate.spawn(
+      (_) async {
+        final callback = NativeCallable<CallbackNativeType>.isolateGroupShared(
+          simpleFunction,
+        );
+        callback.keepIsolateAlive = true;
+      },
+      /*message=*/ null,
+      onExit: rpOnExit.sendPort,
+    ),
   );
   try {
     await rpOnExit.first.timeout(Duration(seconds: 5));
@@ -267,15 +267,17 @@ Future<void> testKeepIsolateAliveFalse() async {
   mutexCondvar = Mutex();
   conditionVariable = ConditionVariable();
   ReceivePort rpOnExit = ReceivePort("onExit");
-  Isolate.spawn(
-    (_) async {
-      final callback = NativeCallable<CallbackNativeType>.isolateGroupShared(
-        simpleFunction,
-      );
-      callback.keepIsolateAlive = false;
-    },
-    /*message=*/ null,
-    onExit: rpOnExit.sendPort,
+  unawaited(
+    Isolate.spawn(
+      (_) async {
+        final callback = NativeCallable<CallbackNativeType>.isolateGroupShared(
+          simpleFunction,
+        );
+        callback.keepIsolateAlive = false;
+      },
+      /*message=*/ null,
+      onExit: rpOnExit.sendPort,
+    ),
   );
   try {
     await rpOnExit.first.timeout(Duration(seconds: 30));

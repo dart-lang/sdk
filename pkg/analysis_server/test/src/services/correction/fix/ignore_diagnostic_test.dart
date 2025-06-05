@@ -21,12 +21,6 @@ class IgnoreDiagnosticAnalysisOptionFileTest extends FixProcessorTest {
   @override
   FixKind get kind => ignoreErrorAnalysisFileKind;
 
-  @override
-  void setUp() {
-    useLineEndingsForPlatform = true;
-    super.setUp();
-  }
-
   Future<void> test_addFixToExistingErrorMap() async {
     createAnalysisOptionsFile(errors: {'unused_label': 'ignore'});
 

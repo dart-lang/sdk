@@ -7,8 +7,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/lint/constants.dart' // ignore: implementation_imports
-    show ExpressionExtension;
 import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
@@ -76,7 +74,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     //   rule.reportLint(arg);
     // } else ...
     if (value != null && value.hasKnownValue) {
-      var expressionValue = arg.computeConstantValue().value;
+      var expressionValue = arg.computeConstantValue()?.value;
       if ((expressionValue?.hasKnownValue ?? false) &&
           expressionValue == value) {
         rule.reportAtNode(arg);
