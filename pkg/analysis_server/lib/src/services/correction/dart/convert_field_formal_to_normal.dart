@@ -23,7 +23,7 @@ class ConvertFieldFormalToNormal extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var parameter = node;
-    if (parameter is! FieldFormalParameter) {
+    if (parameter is! FieldFormalParameter || parameter.parameters != null) {
       return;
     }
     var field = parameter.declaredFragment?.element.field2;

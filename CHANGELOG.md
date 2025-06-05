@@ -18,6 +18,7 @@ constraint][language version] lower bound to 3.9 or greater (`sdk: '^3.9.0'`).
 
 - Add the [`switch_on_type`][] lint rule.
 - Add the [`unnecessary_unawaited`][] lint rule.
+- Add an assist to convert a field formal parameter to a normal parameter.
 
 [`switch_on_type`]: http://dart.dev/lints/switch_on_type
 [`unnecessary_unawaited`]: http://dart.dev/lints/unnecessary_unawaited

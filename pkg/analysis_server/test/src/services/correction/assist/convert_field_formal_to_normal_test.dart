@@ -281,7 +281,7 @@ class C {
 ''');
   }
 
-  Future<void> test_withFunctionTypedField() async {
+  Future<void> test_withFunctionTypedField_functionTypedParameter() async {
     await resolveTestCode('''
 class C {
   void Function() f;
@@ -289,11 +289,22 @@ class C {
   C({required this.f^()});
 }
 ''');
+    await assertNoAssist();
+  }
+
+  Future<void> test_withFunctionTypedField_normalParameter() async {
+    await resolveTestCode('''
+class C {
+  void Function() f;
+
+  C({required this.f^});
+}
+''');
     await assertHasAssist('''
 class C {
   void Function() f;
 
-  C({required void Function() f()}) : f = f;
+  C({required void Function() f}) : f = f;
 }
 ''');
   }
