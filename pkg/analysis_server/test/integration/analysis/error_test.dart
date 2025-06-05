@@ -18,38 +18,7 @@ void main() {
 @reflectiveTest
 class AnalysisErrorIntegrationTest
     extends AbstractAnalysisServerIntegrationTest {
-  Future<void> test_analysisRootDeleted_rebuildsContexts() async {
-    // To simplify testing, use two analysis roots. When we delete one of them
-    // we can use the notification of diagnostics sent for the other as
-    // validation that contexts were rebuilt.
-    var rootToKeepPath = sourcePath('packageKeep');
-    var filetoKeepPath = sourcePath('packageKeep/lib/test.dart');
-    var rootToDeletePath = sourcePath('packageDelete');
-    var fileToDeletePath = sourcePath('packageDelete/lib/test.dart');
-    var content = 'invalidCode';
-
-    // Create the folders/files up-front.
-    writeFile(filetoKeepPath, content);
-    writeFile(fileToDeletePath, content);
-
-    await sendServerSetSubscriptions([ServerService.STATUS]);
-    await sendAnalysisSetAnalysisRoots([rootToKeepPath, rootToDeletePath], []);
-    await analysisFinished;
-
-    // Start listening for the kept root being re-analyzed as a signal that
-    // the rebuild has completed.
-    var keptFileDiagnostics = onAnalysisErrors.firstWhere(
-      (params) => params.file == filetoKeepPath,
-    );
-
-    // Delete the folder which should trigger a rebuild.
-    deleteFolder(rootToDeletePath);
-
-    // Ensure this completes.
-    await keptFileDiagnostics;
-  }
-
-  Future<void> test_analysisRootDoesNotExist_addOverlay() async {
+  Future<void> test_analysisRootDoesNotExist() async {
     var packagePath = sourcePath('package');
     var filePath = sourcePath('package/lib/test.dart');
     var content = '''

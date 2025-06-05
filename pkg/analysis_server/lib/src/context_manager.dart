@@ -227,7 +227,7 @@ class ContextManagerImpl implements ContextManager {
       HashMap<Folder, AnalysisDriver>();
 
   /// Subscriptions to watch included resources for changes.
-  final Set<StreamSubscription<WatchEvent>> watcherSubscriptions = {};
+  final List<StreamSubscription<WatchEvent>> watcherSubscriptions = [];
 
   /// Whether or not the watchers have been paused.
   ///
@@ -623,24 +623,12 @@ class ContextManagerImpl implements ContextManager {
           for (var included in analysisContext.contextRoot.included) {
             var watcher = included.watch();
             watchers.add(watcher);
-            var watcherSubscription = watcher.changes.listen(
-              _scheduleWatchEvent,
-              onError: _handleWatchInterruption,
+            watcherSubscriptions.add(
+              watcher.changes.listen(
+                _scheduleWatchEvent,
+                onError: _handleWatchInterruption,
+              ),
             );
-            watcherSubscriptions.add(watcherSubscription);
-            // When a directory is deleted, the watcher will be closed. Detect
-            // this by checking whether the watcher is still active in
-            // `changeSubscriptions` (it will first be removed if we are
-            // closing the watcher ourselves).
-            watcherSubscription.onDone(() {
-              if (watcherSubscriptions.contains(watcherSubscription)) {
-                _instrumentationService.logInfo(
-                  'Watcher for $rootFolder unexpectedly closed. '
-                  'Assuming root was deleted, rebuilding...',
-                );
-                refresh();
-              }
-            });
           }
 
           _watchBlazeFilesIfNeeded(rootFolder, driver);
@@ -778,14 +766,10 @@ class ContextManagerImpl implements ContextManager {
   }
 
   Future<void> _destroyAnalysisContexts() async {
-    // Clear `watcherSubscriptions` before cancelling each subscription
-    // because the presences of a watcher in `watcherSubscriptions` is used
-    // to know if the watcher closed prematurely.
-    var subscriptionsToCancel = watcherSubscriptions.toSet();
+    for (var subscription in watcherSubscriptions) {
+      await subscription.cancel();
+    }
     watcherSubscriptions.clear();
-    await Future.wait(
-      subscriptionsToCancel.map((subscription) => subscription.cancel()),
-    );
 
     var collection = _collection;
     _collection = null;
