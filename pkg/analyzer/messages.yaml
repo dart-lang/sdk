@@ -3879,6 +3879,51 @@ CompileTimeErrorCode:
     experiment: dot-shorthands
     problemMessage: "A dot shorthand can't be used where there is no context type."
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a dot shorthand is used where
+      there is no context type.
+
+      #### Example
+
+      The following code produces this diagnostic because there is no context
+      type for the expression `.a`:
+
+      ```dart
+      void f() {
+        var e = [!.a!];
+        print(e);
+      }
+
+      enum E {a, b}
+      ```
+
+      #### Common fixes
+
+      If you want to use a dot shorthand, then add a context type, which in this
+      example means adding the explicit type `E` to the local variable:
+
+      ```dart
+      void f() {
+        E e = .a;
+        print(e);
+      }
+
+      enum E {a, b}
+      ```
+
+      If you don't want to add a context type, then specify the name of the
+      type containing the member being referenced, which in this case is `E`:
+
+      ```dart
+      void f() {
+        var e = E.a;
+        print(e);
+      }
+
+      enum E {a, b}
+      ```
   DOT_SHORTHAND_UNDEFINED_GETTER:
     sharedName: DOT_SHORTHAND_UNDEFINED_MEMBER
     experiment: dot-shorthands
@@ -3889,10 +3934,55 @@ CompileTimeErrorCode:
       Parameters:
       0: the name of the static getter
       1: the name of the enclosing type where the getter is being looked for
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a dot shorthand is used to
+      reference a member, but that member doesn't exist.
+
+      #### Example
+
+      The following code produces this diagnostic because the enum `E` doesn't
+      define a static member named `c`:
+
+      ```dart
+      void f() {
+        E e = .[!c!];
+        print(e);
+      }
+
+      enum E {a, b}
+      ```
+
+      #### Common fixes
+
+      If the name is correct, then define a member with that name in the context
+      type, which in this case is the enum `E`:
+
+      ```dart
+      void f() {
+        E e = .c;
+        print(e);
+      }
+
+      enum E {a, b, c}
+      ```
+
+      If the name is not correct, then replace the name with the name of an
+      existing member from the context type, which in this case is the enum `E`:
+
+      ```dart
+      void f() {
+        E e = .b;
+        print(e);
+      }
+
+      enum E {a, b}
+      ```
   DOT_SHORTHAND_UNDEFINED_INVOCATION:
     sharedName: DOT_SHORTHAND_UNDEFINED_MEMBER
     experiment: dot-shorthands
-    problemMessage: "The static method or constructor '{0}' isn't defined for the type '{1}'."
+    problemMessage: "The static method or constructor '{0}' isn't defined for the context type '{1}'."
     correctionMessage: "Try correcting the name to the name of an existing static method or constructor, or defining a static method or constructor named '{0}'."
     hasPublishedDocs: false
     comment: |-

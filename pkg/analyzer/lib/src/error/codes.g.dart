@@ -1417,7 +1417,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   static const CompileTimeErrorCode
   DOT_SHORTHAND_UNDEFINED_INVOCATION = CompileTimeErrorCode(
     'DOT_SHORTHAND_UNDEFINED_MEMBER',
-    "The static method or constructor '{0}' isn't defined for the type '{1}'.",
+    "The static method or constructor '{0}' isn't defined for the context type "
+        "'{1}'.",
     correctionMessage:
         "Try correcting the name to the name of an existing static method or "
         "constructor, or defining a static method or constructor named '{0}'.",
