@@ -122,7 +122,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   @override
   final variableIdentifiers = <VariableDeclaration, js_ast.Identifier>{};
 
-  /// Identifiers for kernel variables with an analgous identifier in JS.
+  /// Identifiers for kernel variables with an analogous identifier in JS.
   ///
   /// [VariableDeclaration.name] is not necessarily a safe identifier for JS
   /// transpiled code. The same name can be used in shadowing contexts. We map
@@ -4395,13 +4395,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   /// Rewrites a `for(;;)` style loop as a while loop to produce the correct
-  /// semantics when loop variable initialziers contain function expressions
+  /// semantics when loop variable initializers contain function expressions
   /// that close over other loop variables.
   ///
   /// The Dart semantics expect that every loop iteration gets fresh loop
   /// variables that can be closed over. The initialization is only executed
   /// for the first iteration. In later iterations, the fresh loop variables are
-  /// initalized to the values from the end of the previous iteration.
+  /// initialized to the values from the end of the previous iteration.
   ///
   /// These semantics differ from JavaScript when there are closures capturing
   /// loop variables so the simple lowering doesn't work as expected.
@@ -4455,7 +4455,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         ]),
     ]);
     var prevInits = js_ast.Block([
-      // Intialize fresh loop variables with the value from the previous
+      // Initialize fresh loop variables with the value from the previous
       // iteration.
       for (var variable in node.variables)
         js.statement('# = #;',
@@ -4464,7 +4464,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       for (var update in node.updates) _visitExpression(update).toStatement(),
     ]);
     return js_ast.Block([
-      // Create temporary variables for the intialization flag and previous
+      // Create temporary variables for the initialization flag and previous
       // loop variables.
       js_ast.VariableDeclarationList('let', [
         js_ast.VariableInitialization(initFlagTempId, js_ast.LiteralBool(true)),
@@ -4499,7 +4499,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
                 // stepping.
                 ..sourceInformation = _nodeStart(variable),
           ]))
-        // The while loop gets mapped to the orginal for loop location.
+        // The while loop gets mapped to the original for loop location.
         ..sourceInformation = _nodeStart(node),
     ])
       // Clear the source mapping on the outer block so it doesn't automatically

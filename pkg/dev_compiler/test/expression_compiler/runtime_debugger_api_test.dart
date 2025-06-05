@@ -1057,7 +1057,7 @@ extension Baz on Bar {
   });
 
   group('part files expression compilations |', () {
-    // WARNING: The (main) source and the part source have been constructred
+    // WARNING: The (main) source and the part source have been constructed
     // so that the same offset (71) is valid on both, and both have an 'x'
     // variable, where one is a String and the other is an int. The 4 dots after
     // 'padding' for instance is not a mistake.

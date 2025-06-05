@@ -98,7 +98,7 @@ class HotReloadHelper {
     return HotReloadHelper._(vmService, id);
   }
 
-  /// Triggter a hot-reload on the current isolate.
+  /// Trigger a hot-reload on the current isolate.
   Future<ReloadReport> reload() => _vmService.reloadSources(_id);
 }
 

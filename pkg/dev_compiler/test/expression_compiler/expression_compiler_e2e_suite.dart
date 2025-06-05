@@ -423,7 +423,7 @@ class ExpressionEvaluationTestDriver {
   ///
   /// Internally, this navigates to the bootstrapper page or ensures that the
   /// bootstrapper page has already been loaded. The page only loads code
-  /// without running the DDC app main method. Once the resouces are loaded we
+  /// without running the DDC app main method. Once the resources are loaded we
   /// wait until after the breakpoint is registered before scheduling a call to
   /// the app's main method.
   Future<T> _onBreakpoint<T>(String breakpointId,
@@ -629,7 +629,7 @@ class ExpressionEvaluationTestDriver {
   /// Evaluates a dart [expression] under the scope of [libraryUri] without
   /// a breakpoint and validates the result.
   ///
-  /// When [libraryUri] is ommitted, the expression is evaluated in the [input]
+  /// When [libraryUri] is omitted, the expression is evaluated in the [input]
   /// library.
   ///
   /// [expectedResult] is the JSON for the returned remote object.
@@ -1067,7 +1067,7 @@ final _ddcTemporaryTypeVariableRegExp = RegExp(r'^__t[\$\w*]+$');
 ///
 /// A few steps in the test driver need to wait for a response from the browser.
 /// These are set up with a timeout of usually 5 seconds, but the total time may
-/// vary by machine and architecture. Occationally tests fail with flaky
+/// vary by machine and architecture. Occasionally tests fail with flaky
 /// failures due to a timeout that is too short.
 ///
 /// We use this class to help log information from flaky failures that can
@@ -1091,7 +1091,7 @@ class TimeoutTracker {
 
   /// Record under [key] a single event that took [milliseconds].
   ///
-  /// This makes an incremental update to the aggreagate average, max, and count
+  /// This makes an incremental update to the aggregate average, max, and count
   /// values in [_data].
   void _addOneRecord(String key, int milliseconds) {
     (_data[key] ??= []).add(milliseconds);

@@ -1785,7 +1785,7 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
     _localVariables.add(valueWrapperVar);
     _localVariables.add(iteratorVar);
 
-    // Get the iterator object for the iterable expresion.
+    // Get the iterator object for the iterable expression.
     _withExpression(node.iterable, (js_ast.Expression iterable) {
       _addExpressionStatement(js_ast.Assignment(
           iteratorVar,
@@ -2134,7 +2134,7 @@ class SyncStarRewriter extends AsyncRewriterBase {
   /// Property of the iterator that contains the current value.
   final js_ast.Expression iteratorCurrentValueProperty;
 
-  /// Property of the iterator that contains the uncaught exeception.
+  /// Property of the iterator that contains the uncaught exception.
   final js_ast.Expression iteratorDatumProperty;
 
   /// Property of the iterator that is bound to the `_yieldStar` method.
