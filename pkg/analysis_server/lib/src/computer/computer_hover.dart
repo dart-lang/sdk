@@ -112,11 +112,14 @@ class DartUnitHoverComputer {
   String? _elementDisplayString(AstNode node, Element? element) {
     var displayString = element?.displayString2(multiline: true);
 
-    if (displayString != null &&
-        node is InstanceCreationExpression &&
-        node.keyword == null) {
-      var prefix = node.isConst ? '(const) ' : '(new) ';
-      displayString = prefix + displayString;
+    if (displayString != null) {
+      if (node is InstanceCreationExpression && node.keyword == null) {
+        var prefix = node.isConst ? '(const) ' : '(new) ';
+        displayString = prefix + displayString;
+      } else if (node is DotShorthandConstructorInvocation) {
+        var prefix = node.isConst ? '(const) ' : '(new) ';
+        displayString = prefix + displayString;
+      }
     }
 
     return displayString;
@@ -134,6 +137,8 @@ class DartUnitHoverComputer {
         offset: node.constructorName.offset,
         length: node.constructorName.length,
       );
+    } else if (node is DotShorthandConstructorInvocation) {
+      return (offset: node.offset, length: node.length);
     } else if (node is ConstructorDeclaration) {
       var offset = node.returnType.offset;
       var end = node.name?.end ?? node.returnType.end;
@@ -237,6 +242,9 @@ class DartUnitHoverComputer {
         parent is ConstructorDeclaration &&
         parent.name != null) {
       return parent;
+    } else if (node is SimpleIdentifier &&
+        parent is DotShorthandConstructorInvocation) {
+      return parent;
     }
     return node;
   }
@@ -254,6 +262,11 @@ class DartUnitHoverComputer {
     } else if (element is VariableElement) {
       staticType = element.type;
     } else if (parent is MethodInvocation && parent.methodName == node) {
+      staticType = parent.staticInvokeType;
+      if (staticType != null && staticType is DynamicType) {
+        staticType = null;
+      }
+    } else if (parent is DotShorthandInvocation && parent.memberName == node) {
       staticType = parent.staticInvokeType;
       if (staticType != null && staticType is DynamicType) {
         staticType = null;
