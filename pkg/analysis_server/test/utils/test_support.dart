@@ -269,21 +269,19 @@ class GatheringDiagnosticListener implements DiagnosticListener {
       }
       expectedCounts[code] = count;
     }
-    //
-    // Compute the actual number of each type of error.
-    //
-    var errorsByCode = <DiagnosticCode, List<Diagnostic>>{};
+
+    // Compute the actual number of each type of diagnostic.
+    var diagnosticsByCode = <DiagnosticCode, List<Diagnostic>>{};
     for (var diagnostic in _diagnostics) {
-      errorsByCode
+      diagnosticsByCode
           .putIfAbsent(diagnostic.errorCode, () => <Diagnostic>[])
           .add(diagnostic);
     }
-    //
-    // Compare the expected and actual number of each type of error.
-    //
+
+    // Compare the expected and actual number of each type of diagnostic.
     expectedCounts.forEach((DiagnosticCode code, int expectedCount) {
       int actualCount;
-      var list = errorsByCode.remove(code);
+      var list = diagnosticsByCode.remove(code);
       if (list == null) {
         actualCount = 0;
       } else {
@@ -306,8 +304,11 @@ class GatheringDiagnosticListener implements DiagnosticListener {
     // Check that there are no more errors in the actual-errors map,
     // otherwise record message.
     //
-    errorsByCode.forEach((code, actualErrors) {
-      var actualCount = actualErrors.length;
+    diagnosticsByCode.forEach((
+      DiagnosticCode code,
+      List<Diagnostic> actualDiagnostics,
+    ) {
+      var actualCount = actualDiagnostics.length;
       if (buffer.length == 0) {
         buffer.write('Expected ');
       } else {
@@ -318,8 +319,8 @@ class GatheringDiagnosticListener implements DiagnosticListener {
       buffer.write(', found ');
       buffer.write(actualCount);
       buffer.write(' (');
-      for (var i = 0; i < actualErrors.length; i++) {
-        var error = actualErrors[i];
+      for (var i = 0; i < actualDiagnostics.length; i++) {
+        var error = actualDiagnostics[i];
         if (i > 0) {
           buffer.write(', ');
         }

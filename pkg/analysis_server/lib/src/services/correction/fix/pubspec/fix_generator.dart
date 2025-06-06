@@ -31,7 +31,7 @@ class PubspecFixGenerator {
   /// The resource provider used to access the file system.
   final ResourceProvider resourceProvider;
 
-  /// The error for which fixes are being generated.
+  /// The diagnostic for which fixes are being generated.
   final Diagnostic error;
 
   /// The offset of the [error] for which fixes are being generated.

@@ -878,11 +878,10 @@ class BulkFixProcessor {
 
     var analysisOptions = errorsResult.session.analysisContext
         .getAnalysisOptionsForFile(errorsResult.file);
-    var filteredErrors = _filterDiagnostics(
+    return _filterDiagnostics(
       analysisOptions,
       errorsResult.errors,
-    );
-    return filteredErrors.any(_isFixableError);
+    ).any((d) => d.isFixable);
   }
 
   Future<BulkFixRequestResult> _organizeDirectives(
@@ -998,22 +997,6 @@ class BulkFixProcessor {
           ) ||
           BulkFixProcessor.nonLintMultiProducerMap.containsKey(diagnosticCode);
     });
-  }
-
-  /// Returns whether [diagnostic] is something that might be fixable.
-  static bool _isFixableError(Diagnostic diagnostic) {
-    var errorCode = diagnostic.errorCode;
-
-    // Special cases that can be bulk fixed by this class but not by
-    // FixProcessor.
-    if (errorCode == WarningCode.DUPLICATE_IMPORT ||
-        errorCode == HintCode.UNNECESSARY_IMPORT ||
-        errorCode == WarningCode.UNUSED_IMPORT ||
-        (DirectivesOrdering.allCodes.contains(errorCode))) {
-      return true;
-    }
-
-    return _canBulkFix(errorCode);
   }
 }
 
@@ -1147,6 +1130,22 @@ class IterativeBulkFixProcessor {
 class _PubspecDeps {
   final Set<String> packages = <String>{};
   final Set<String> devPackages = <String>{};
+}
+
+extension on Diagnostic {
+  /// Returns whether this diagnostic is something that might be fixable.
+  bool get isFixable {
+    // Special cases that can be bulk fixed by this class but not by
+    // FixProcessor.
+    if (errorCode == WarningCode.DUPLICATE_IMPORT ||
+        errorCode == HintCode.UNNECESSARY_IMPORT ||
+        errorCode == WarningCode.UNUSED_IMPORT ||
+        (DirectivesOrdering.allCodes.contains(errorCode))) {
+      return true;
+    }
+
+    return BulkFixProcessor._canBulkFix(errorCode);
+  }
 }
 
 extension on int {
