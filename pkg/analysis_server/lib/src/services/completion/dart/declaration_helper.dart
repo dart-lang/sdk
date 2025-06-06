@@ -11,6 +11,7 @@ import 'package:analysis_server/src/services/completion/dart/not_imported_comple
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
 import 'package:analysis_server/src/services/completion/dart/visibility_tracker.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -292,16 +293,25 @@ class DeclarationHelper {
   void addGetters({
     required DartType type,
     required Set<String> excludedGetters,
+    required bool isKeywordNeeded,
+    required bool isTypeNeeded,
   }) {
     if (type is InterfaceType) {
       _addInstanceMembers(
         type: type,
         excludedGetters: excludedGetters,
-        includeMethods: false,
+        isKeywordNeeded: isKeywordNeeded,
+        isTypeNeeded: isTypeNeeded,
+        includeMethods: true,
         includeSetters: false,
       );
     } else if (type is RecordType) {
-      _addFieldsOfRecordType(type: type, excludedFields: excludedGetters);
+      _addFieldsOfRecordType(
+        type: type,
+        excludedFields: excludedGetters,
+        isKeywordNeeded: isKeywordNeeded,
+        isTypeNeeded: isTypeNeeded,
+      );
     }
   }
 
@@ -363,7 +373,12 @@ class DeclarationHelper {
         onlySuper: onlySuper,
       );
     } else if (type is RecordType) {
-      _addFieldsOfRecordType(type: type, excludedFields: const {});
+      _addFieldsOfRecordType(
+        type: type,
+        excludedFields: const {},
+        isKeywordNeeded: false,
+        isTypeNeeded: false,
+      );
       _addMembersOfDartCoreObject();
       _addExtensionMembers(
         type: type,
@@ -765,6 +780,8 @@ class DeclarationHelper {
     required Set<String> excludedGetters,
     required bool includeMethods,
     required bool includeSetters,
+    bool isKeywordNeeded = false,
+    bool isTypeNeeded = false,
   }) {
     var libraryElement = request.libraryElement;
     var libraryFragment = request.libraryFragment;
@@ -788,7 +805,11 @@ class DeclarationHelper {
             if (method.isOperator) {
               continue;
             }
-            _suggestMethod(method: method);
+            _suggestMethod(
+              method: method,
+              isKeywordNeeded: isKeywordNeeded,
+              isTypeNeeded: isTypeNeeded,
+            );
           }
         }
       }
@@ -797,12 +818,20 @@ class DeclarationHelper {
           continue;
         }
         if (!getter.isSynthetic) {
-          _suggestProperty(accessor: getter);
+          _suggestProperty(
+            accessor: getter,
+            isKeywordNeeded: isKeywordNeeded,
+            isTypeNeeded: isTypeNeeded,
+          );
         } else {
           // All fields induce a getter.
           var variable = getter.variable3;
           if (variable is FieldElement) {
-            _suggestField(field: variable);
+            _suggestField(
+              field: variable,
+              isKeywordNeeded: isKeywordNeeded,
+              isTypeNeeded: isTypeNeeded,
+            );
           }
         }
       }
@@ -881,14 +910,26 @@ class DeclarationHelper {
   void _addFieldsOfRecordType({
     required RecordType type,
     required Set<String> excludedFields,
+    required bool isKeywordNeeded,
+    required bool isTypeNeeded,
   }) {
     for (var (index, field) in type.positionalFields.indexed) {
-      _suggestRecordField(field: field, name: '\$${index + 1}');
+      _suggestRecordField(
+        field: field,
+        name: '\$${index + 1}',
+        isKeywordNeeded: false,
+        isTypeNeeded: false,
+      );
     }
 
     for (var field in type.namedFields) {
       if (!excludedFields.contains(field.name)) {
-        _suggestRecordField(field: field, name: field.name);
+        _suggestRecordField(
+          field: field,
+          name: field.name,
+          isKeywordNeeded: isKeywordNeeded,
+          isTypeNeeded: isTypeNeeded,
+        );
       }
     }
   }
@@ -1030,6 +1071,9 @@ class DeclarationHelper {
     for (var member in members.values) {
       switch (member) {
         case MethodElement():
+          if (member.isOperator) {
+            continue;
+          }
           _suggestMethod(
             method: member,
             referencingInterface: referencingInterface,
@@ -1058,6 +1102,8 @@ class DeclarationHelper {
     required Set<String> excludedGetters,
     required bool includeMethods,
     required bool includeSetters,
+    bool isKeywordNeeded = false,
+    bool isTypeNeeded = false,
     bool onlySuper = false,
   }) {
     var substitution = Substitution.fromInterfaceType(type);
@@ -1089,6 +1135,8 @@ class DeclarationHelper {
           _suggestMethod(
             method: member as MethodElement,
             referencingInterface: referencingInterface,
+            isKeywordNeeded: isKeywordNeeded,
+            isTypeNeeded: isTypeNeeded,
           );
         }
       } else if (rawMember is GetterElement) {
@@ -1097,6 +1145,8 @@ class DeclarationHelper {
           _suggestProperty(
             accessor: member as PropertyAccessorElement,
             referencingInterface: referencingInterface,
+            isKeywordNeeded: isKeywordNeeded,
+            isTypeNeeded: isTypeNeeded,
           );
         }
       } else if (rawMember is SetterElement) {
@@ -1122,6 +1172,8 @@ class DeclarationHelper {
       excludedGetters: excludedGetters,
       includeMethods: includeMethods,
       includeSetters: includeSetters,
+      isKeywordNeeded: isKeywordNeeded,
+      isTypeNeeded: isTypeNeeded,
     );
     _recordOperation(
       InstanceExtensionMembersOperation(
@@ -1321,7 +1373,12 @@ class DeclarationHelper {
         includeSetters: true,
       );
     } else if (thisType is RecordType) {
-      _addFieldsOfRecordType(type: thisType, excludedFields: {});
+      _addFieldsOfRecordType(
+        type: thisType,
+        excludedFields: {},
+        isKeywordNeeded: false,
+        isTypeNeeded: false,
+      );
     }
   }
 
@@ -1879,6 +1936,8 @@ class DeclarationHelper {
     required FieldElement field,
     InterfaceElement? referencingInterface,
     bool isInDeclaration = false,
+    bool isKeywordNeeded = false,
+    bool isTypeNeeded = false,
   }) {
     if (visibilityTracker.isVisible(element: field, importData: null)) {
       if ((mustBeAssignable && field.setter2 == null) ||
@@ -1889,6 +1948,7 @@ class DeclarationHelper {
       if (matcherScore != -1) {
         var suggestion = FieldSuggestion(
           element: field,
+          replacementRange: state.request.replacementRange,
           matcherScore: matcherScore,
           referencingInterface: referencingInterface,
           isInDeclaration: isInDeclaration,
@@ -1944,6 +2004,8 @@ class DeclarationHelper {
     bool ignoreVisibility = false,
     ImportData? importData,
     InterfaceElement? referencingInterface,
+    bool isKeywordNeeded = false,
+    bool isTypeNeeded = false,
   }) {
     if (ignoreVisibility ||
         visibilityTracker.isVisible(element: method, importData: importData)) {
@@ -1955,25 +2017,40 @@ class DeclarationHelper {
       var matcherScore = state.matcher.score(method.displayName);
       if (matcherScore != -1) {
         var enclosingElement = method.enclosingElement;
+        var addTypeAnnotation = isTypeNeeded && state.includeTypes;
+        Keyword? keyword;
+        if (isKeywordNeeded) {
+          if (state.codeStyleOptions.makeLocalsFinal) {
+            keyword = Keyword.FINAL;
+          } else if (!state.includeTypes) {
+            keyword = Keyword.VAR;
+          }
+        }
         if (method.name3 == 'setState' &&
             enclosingElement is ClassElement &&
             enclosingElement.isExactState) {
           var suggestion = SetStateMethodSuggestion(
             element: method,
+            replacementRange: state.request.replacementRange,
             importData: importData,
             referencingInterface: referencingInterface,
             matcherScore: matcherScore,
             indent: state.indent,
+            addTypeAnnotation: addTypeAnnotation,
+            keyword: keyword,
           );
           collector.addSuggestion(suggestion);
           return;
         }
         var suggestion = MethodSuggestion(
           kind: _executableSuggestionKind,
+          replacementRange: state.request.replacementRange,
           element: method,
           importData: importData,
           matcherScore: matcherScore,
           referencingInterface: referencingInterface,
+          addTypeAnnotation: addTypeAnnotation,
+          keyword: keyword,
         );
         collector.addSuggestion(suggestion);
       }
@@ -2037,6 +2114,8 @@ class DeclarationHelper {
     ImportData? importData,
     InterfaceElement? referencingInterface,
     bool isInDeclaration = false,
+    bool isKeywordNeeded = false,
+    bool isTypeNeeded = false,
   }) {
     if (ignoreVisibility ||
         visibilityTracker.isVisible(
@@ -2052,6 +2131,16 @@ class DeclarationHelper {
       }
       var matcherScore = state.matcher.score(accessor.displayName);
       if (matcherScore != -1) {
+        var addTypeAnnotation =
+            isTypeNeeded && state.includeTypes && !isInDeclaration;
+        Keyword? keyword;
+        if (isKeywordNeeded) {
+          if (state.codeStyleOptions.makeLocalsFinal) {
+            keyword = Keyword.FINAL;
+          } else if (!state.includeTypes) {
+            keyword = Keyword.VAR;
+          }
+        }
         if (accessor.isSynthetic) {
           // Avoid visiting a field twice. All fields induce a getter, but only
           // non-final fields induce a setter, so we don't add a suggestion for a
@@ -2064,6 +2153,9 @@ class DeclarationHelper {
                 matcherScore: matcherScore,
                 referencingInterface: referencingInterface,
                 isInDeclaration: isInDeclaration,
+                addTypeAnnotation: addTypeAnnotation,
+                replacementRange: state.request.replacementRange,
+                keyword: keyword,
               );
               collector.addSuggestion(suggestion);
             }
@@ -2072,9 +2164,12 @@ class DeclarationHelper {
           if (accessor is GetterElement) {
             var suggestion = GetterSuggestion(
               element: accessor,
+              replacementRange: state.request.replacementRange,
               importData: importData,
               matcherScore: matcherScore,
               referencingInterface: referencingInterface,
+              addTypeAnnotation: addTypeAnnotation,
+              keyword: keyword,
             );
             collector.addSuggestion(suggestion);
           } else {
@@ -2095,13 +2190,26 @@ class DeclarationHelper {
   void _suggestRecordField({
     required RecordTypeField field,
     required String name,
+    required bool isKeywordNeeded,
+    required bool isTypeNeeded,
   }) {
     var matcherScore = state.matcher.score(name);
     if (matcherScore != -1) {
+      Keyword? keyword;
+      if (isKeywordNeeded) {
+        if (state.codeStyleOptions.makeLocalsFinal) {
+          keyword = Keyword.FINAL;
+        } else if (!state.includeTypes) {
+          keyword = Keyword.VAR;
+        }
+      }
       collector.addSuggestion(
         RecordFieldSuggestion(
           field: field,
           name: name,
+          addTypeAnnotation: isTypeNeeded && state.includeTypes,
+          replacementRange: state.request.replacementRange,
+          keyword: keyword,
           matcherScore: matcherScore,
         ),
       );
@@ -2149,6 +2257,7 @@ class DeclarationHelper {
                     matcherScore: matcherScore,
                     referencingInterface: null,
                     isInDeclaration: false,
+                    replacementRange: state.request.replacementRange,
                   );
                   collector.addSuggestion(suggestion);
                 }
@@ -2159,6 +2268,7 @@ class DeclarationHelper {
                   referencingInterface: null,
                   matcherScore: matcherScore,
                   withEnclosingName: true,
+                  replacementRange: state.request.replacementRange,
                 );
                 collector.addSuggestion(suggestion);
               }
