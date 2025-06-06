@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/lint/io.dart'; // ignore: implementation_imports
-import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 
 import 'ast.dart';
 import 'util/ascii_utils.dart';
@@ -103,20 +101,6 @@ bool isValidPackageName(String id) =>
 /// Uses the shared [outSink] for redirecting in tests.
 void printToConsole(Object? object) {
   outSink.writeln(object);
-}
-
-/// Reports a diagnostic at a minimal sub-node of [expr],
-// TODO(srawlins): Move this to a shared visitor between
-//`discardeed_futures.dart` and `unawaited_futures.dart`.
-void reportOnExpression(AnalysisRule rule, Expression expr) {
-  rule.reportAtNode(switch (expr) {
-    MethodInvocation(:var methodName) => methodName,
-    InstanceCreationExpression(:var constructorName) => constructorName,
-    FunctionExpressionInvocation(:var function) => function,
-    PrefixedIdentifier(:var identifier) => identifier,
-    PropertyAccess(:var propertyName) => propertyName,
-    _ => expr,
-  });
 }
 
 class CamelCaseString {

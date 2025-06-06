@@ -90,6 +90,15 @@ Expression checkPromoted(Promotable promotable, String? expectedTypeStr) =>
       location: computeLocation(),
     );
 
+Expression checkPromotionChain(
+  Promotable promotable,
+  List<String> expectedPromotionChain,
+) => new CheckPromotionChain._(
+  promotable,
+  expectedPromotionChain,
+  location: computeLocation(),
+);
+
 /// Creates a pseudo-expression whose function is to verify that flow analysis
 /// considers the current location's reachability state to be
 /// [expectedReachable].
@@ -1083,6 +1092,42 @@ class CheckPromoted extends Expression {
   ExpressionTypeAnalysisResult visit(Harness h, SharedTypeSchemaView schema) {
     var promotedType = promotable._getPromotedType(h);
     expect(promotedType?.type, expectedTypeStr, reason: 'at $location');
+    return ExpressionTypeAnalysisResult(
+      type: SharedTypeView(NullType.instance),
+    );
+  }
+}
+
+class CheckPromotionChain extends Expression {
+  final Promotable promotable;
+  final List<String> expectedPromotionChain;
+
+  CheckPromotionChain._(
+    this.promotable,
+    this.expectedPromotionChain, {
+    required super.location,
+  });
+
+  @override
+  void preVisit(PreVisitor visitor) {
+    promotable.preVisit(visitor);
+  }
+
+  @override
+  String toString() =>
+      'check $promotable has promotion chain $expectedPromotionChain';
+
+  @override
+  shared.ExpressionTypeAnalysisResult visit(
+    Harness h,
+    SharedTypeSchemaView schema,
+  ) {
+    var promotionChain = promotable._getPromotionChain(h);
+    expect(
+      [for (var t in promotionChain) t.type],
+      expectedPromotionChain,
+      reason: 'at $location',
+    );
     return ExpressionTypeAnalysisResult(
       type: SharedTypeView(NullType.instance),
     );
@@ -4296,6 +4341,11 @@ abstract class Promotable {
   /// Queries the current promotion status of `this`.  Return value is either a
   /// type (if `this` is promoted), or `null` (if it isn't).
   Type? _getPromotedType(Harness h);
+
+  /// Queries the current promotion status of `this`.  Return value is a list of
+  /// types, in order from least promoted type to most promoted type, or an
+  ///  empty list if `this` is not promoted.
+  List<Type> _getPromotionChain(Harness h);
 }
 
 /// Base class for l-values that, at a given point in flow analysis, might or
@@ -4342,8 +4392,7 @@ class Property extends PromotableLValue {
     );
   }
 
-  @override
-  Type? _getPromotedType(Harness h) {
+  _PropertyElement? _computeMember(Harness h) {
     if (isNullAware) {
       fail(
         "at $location: it doesn't make sense to compute the promoted type of "
@@ -4355,6 +4404,12 @@ class Property extends PromotableLValue {
             .analyzeExpression(target, h.operations.unknownType)
             .unwrapTypeView<Type>();
     var member = h.typeAnalyzer._lookupMember(receiverType, propertyName);
+    return member;
+  }
+
+  @override
+  Type? _getPromotedType(Harness h) {
+    _PropertyElement? member = _computeMember(h);
     return h.flow
         .promotedPropertyType(
           ExpressionPropertyTarget(target),
@@ -4363,6 +4418,19 @@ class Property extends PromotableLValue {
           SharedTypeView(member!._type),
         )
         ?.unwrapTypeView();
+  }
+
+  @override
+  List<Type> _getPromotionChain(Harness h) {
+    _PropertyElement? member = _computeMember(h);
+    return h.flow
+        .propertyPromotionChainForTesting(
+          ExpressionPropertyTarget(target),
+          propertyName,
+          member,
+        )
+        .map((t) => t.unwrapTypeView<Type>())
+        .toList();
   }
 
   @override
@@ -5224,8 +5292,7 @@ class ThisOrSuperProperty extends PromotableLValue {
     return result;
   }
 
-  @override
-  Type? _getPromotedType(Harness h) {
+  _PropertyElement? _computeMember(Harness h) {
     var thisOrSuper = isSuperAccess ? 'super' : 'this';
     h.irBuilder.atom(
       '$thisOrSuper.$propertyName',
@@ -5233,6 +5300,12 @@ class ThisOrSuperProperty extends PromotableLValue {
       location: location,
     );
     var member = h.typeAnalyzer._lookupMember(h._thisType!, propertyName);
+    return member;
+  }
+
+  @override
+  Type? _getPromotedType(Harness h) {
+    _PropertyElement? member = _computeMember(h);
     return h.flow
         .promotedPropertyType(
           isSuperAccess
@@ -5243,6 +5316,21 @@ class ThisOrSuperProperty extends PromotableLValue {
           SharedTypeView(member!._type),
         )
         ?.unwrapTypeView();
+  }
+
+  @override
+  List<Type> _getPromotionChain(Harness h) {
+    _PropertyElement? member = _computeMember(h);
+    return h.flow
+        .propertyPromotionChainForTesting(
+          isSuperAccess
+              ? SuperPropertyTarget.singleton
+              : ThisPropertyTarget.singleton,
+          propertyName,
+          member,
+        )
+        .map((t) => t.unwrapTypeView<Type>())
+        .toList();
   }
 
   @override
@@ -5492,6 +5580,15 @@ class Var extends Node
   Type? _getPromotedType(Harness h) {
     h.irBuilder.atom(name, Kind.expression, location: location);
     return h.flow.promotedType(this)?.unwrapTypeView();
+  }
+
+  @override
+  List<Type> _getPromotionChain(Harness h) {
+    h.irBuilder.atom(name, Kind.expression, location: location);
+    return h.flow
+        .variablePromotionChainForTesting(this)
+        .map((t) => t.unwrapTypeView<Type>())
+        .toList();
   }
 }
 

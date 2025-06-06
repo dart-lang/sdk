@@ -970,6 +970,34 @@ abstract class FlowAnalysis<
     Type unpromotedType,
   );
 
+  /// The promotion chain associated with the property named [propertyName].
+  ///
+  /// **For testing only!**
+  ///
+  /// The promotion chain only contains the promoted-to types, not the original
+  /// declared type at the top of the chain. Thus, the list is empty if the
+  /// property is not currently promoted.
+  ///
+  /// The type of [target] determines how the property is looked up:
+  /// - If [target] is an [ExpressionPropertyTarget], a property of an
+  ///   expression is queried, and this method should be called just after
+  ///   calling the method(s) that would normally be called when performing flow
+  ///   analysis on the target expression (e.g., [propertyGet] or
+  ///   [variableRead]).
+  /// - If [target] is [ThisPropertyTarget], a property of `this` is queried.
+  /// - If [target] is [SuperPropertyTarget], a property of `super` is queried.
+  ///
+  /// [propertyMember] should be whatever data structure the client uses to keep
+  /// track of the field or property being accessed. If not `null`, and field
+  /// promotion is enabled for the current library,
+  /// [FlowAnalysisOperations.isPropertyPromotable] will be consulted to find
+  /// out whether the property is promotable.
+  List<Type> propertyPromotionChainForTesting(
+    PropertyTarget<Expression> target,
+    String propertyName,
+    Object? propertyMember,
+  );
+
   /// Call this method just before analyzing a subpattern of an object pattern.
   ///
   /// [propertyName] is the name of the property being accessed by this
@@ -1180,6 +1208,15 @@ abstract class FlowAnalysis<
   /// [AssignedVariables.endNode] for the "try" part of the try/finally
   /// statement.
   void tryFinallyStatement_finallyBegin(Node body);
+
+  /// The promotion chain associated with [variable].
+  ///
+  /// **For testing only!**
+  ///
+  /// The promotion chain only contains the promoted-to types, not the original
+  /// declared type at the top of the chain. Thus, the list is empty if the
+  /// variable is not currently promoted.
+  List<Type> variablePromotionChainForTesting(Variable variable);
 
   /// Call this method when encountering an expression that reads the value of
   /// a variable.
@@ -2180,6 +2217,24 @@ class FlowAnalysisDebug<
   }
 
   @override
+  List<Type> propertyPromotionChainForTesting(
+    PropertyTarget<Expression> target,
+    String propertyName,
+    Object? propertyMember,
+  ) {
+    return _wrap(
+      'propertyPromotionChainForTesting($target, $propertyName, '
+      '$propertyMember)',
+      () => _wrapped.propertyPromotionChainForTesting(
+        target,
+        propertyName,
+        propertyMember,
+      ),
+      isQuery: true,
+    );
+  }
+
+  @override
   Type? pushPropertySubpattern(
     String propertyName,
     Object? propertyMember,
@@ -2372,6 +2427,15 @@ class FlowAnalysisDebug<
     return _wrap(
       'tryFinallyStatement_finallyBegin($body)',
       () => _wrapped.tryFinallyStatement_finallyBegin(body),
+    );
+  }
+
+  @override
+  List<Type> variablePromotionChainForTesting(Variable variable) {
+    return _wrap(
+      'variablePromotionChainForTesting($variable)',
+      () => _wrapped.variablePromotionChainForTesting(variable),
+      isQuery: true,
     );
   }
 
@@ -6383,6 +6447,36 @@ class _FlowAnalysisImpl<
   }
 
   @override
+  List<Type> propertyPromotionChainForTesting(
+    PropertyTarget<Expression> target,
+    String propertyName,
+    Object? propertyMember,
+  ) {
+    SsaNode<Type>? targetSsaNode = target._getSsaNode(this);
+    if (targetSsaNode == null) return const [];
+    // Find the SSA node for the target of the property access, and figure out
+    // whether the property in question is promotable.
+    bool isPromotable =
+        propertyMember != null &&
+        typeAnalyzerOptions.fieldPromotionEnabled &&
+        operations.isPropertyPromotable(propertyMember);
+    if (!isPromotable) return const [];
+    _PropertySsaNode<Type> propertySsaNode = targetSsaNode
+        .getOrCreatePropertyNode(
+          propertyName,
+          promotionKeyStore,
+          isPromotable: isPromotable,
+        );
+    PromotionModel<Type>? promotionInfo = _current.promotionInfo?.get(
+      this,
+      propertySsaNode.promotionKey,
+    );
+    if (promotionInfo == null) return const [];
+    assert(promotionInfo.ssaNode == propertySsaNode);
+    return promotionInfo.promotedTypes ?? const [];
+  }
+
+  @override
   Type? pushPropertySubpattern(
     String propertyName,
     Object? propertyMember,
@@ -6686,6 +6780,13 @@ class _FlowAnalysisImpl<
     );
     context._beforeFinally = _current;
   }
+
+  @override
+  List<Type> variablePromotionChainForTesting(Variable variable) =>
+      _current.promotionInfo
+          ?.get(this, promotionKeyStore.keyForVariable(variable))
+          ?.promotedTypes ??
+      const [];
 
   @override
   Type? variableRead(Expression expression, Variable variable) {
