@@ -12,14 +12,170 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(CreateClassTest);
+    defineReflectiveTests(CreateClassLowercaseTest);
+    defineReflectiveTests(CreateClassPriorityTest);
+    defineReflectiveTests(CreateClassUppercaseTest);
   });
 }
 
 @reflectiveTest
-class CreateClassTest extends FixProcessorTest {
+class CreateClassLowercaseTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_CLASS;
+  FixKind get kind => DartFixKind.CREATE_CLASS_LOWERCASE;
+
+  Future<void> test_lowercaseAssignment() async {
+    await resolveTestCode('''
+void f() {
+  var _ = newName();
+}
+''');
+    await assertHasFix('''
+void f() {
+  var _ = newName();
+}
+
+class newName {
+}
+''');
+  }
+
+  Future<void> test_multiple() async {
+    await resolveTestCode(r'''
+void f() {
+  var _ = _$_newName();
+}
+''');
+    await assertHasFix(r'''
+void f() {
+  var _ = _$_newName();
+}
+
+class _$_newName {
+}
+''');
+  }
+
+  Future<void> test_number() async {
+    await resolveTestCode(r'''
+void f() {
+  var _ = _0newName();
+}
+''');
+    await assertHasFix(r'''
+void f() {
+  var _ = _0newName();
+}
+
+class _0newName {
+}
+''');
+  }
+
+  Future<void> test_startWithDollarSign() async {
+    await resolveTestCode(r'''
+void f() {
+  var _ = $newName();
+}
+''');
+    await assertHasFix(r'''
+void f() {
+  var _ = $newName();
+}
+
+class $newName {
+}
+''');
+  }
+
+  Future<void> test_startWithUnderscore() async {
+    await resolveTestCode('''
+void f() {
+  var _ = _newName();
+}
+''');
+    await assertHasFix('''
+void f() {
+  var _ = _newName();
+}
+
+class _newName {
+}
+''');
+  }
+}
+
+@reflectiveTest
+class CreateClassPriorityTest extends FixPriorityTest {
+  Future<void> test_classFirst_function() async {
+    await resolveTestCode('''
+void f() {
+  var _ = NewName();
+}
+''');
+    await assertFixPriorityOrder([
+      DartFixKind.CREATE_CLASS_UPPERCASE,
+      DartFixKind.CREATE_FUNCTION,
+    ]);
+  }
+
+  Future<void> test_classFirst_method() async {
+    await resolveTestCode('''
+class A {
+  void m() {
+    var _ = NewName();
+  }
+}
+''');
+    await assertFixPriorityOrder([
+      DartFixKind.CREATE_CLASS_UPPERCASE,
+      DartFixKind.CREATE_METHOD,
+    ]);
+  }
+
+  Future<void> test_classLast_function() async {
+    await resolveTestCode('''
+void f() {
+  var _ = newName();
+}
+''');
+    await assertFixPriorityOrder([
+      DartFixKind.CREATE_FUNCTION,
+      DartFixKind.CREATE_CLASS_LOWERCASE,
+    ]);
+  }
+
+  Future<void> test_classLast_import() async {
+    newFile('$testPackageLibPath/lib.dart', r'''
+class A {}
+''');
+    await resolveTestCode('''
+A? a;
+''');
+    await assertFixPriorityOrder([
+      DartFixKind.IMPORT_LIBRARY_PROJECT1,
+      DartFixKind.CREATE_CLASS_UPPERCASE,
+    ]);
+  }
+
+  Future<void> test_classLast_method() async {
+    await resolveTestCode('''
+class A {
+  void m() {
+    var _ = newName();
+  }
+}
+''');
+    await assertFixPriorityOrder([
+      DartFixKind.CREATE_METHOD,
+      DartFixKind.CREATE_CLASS_LOWERCASE,
+    ]);
+  }
+}
+
+@reflectiveTest
+class CreateClassUppercaseTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.CREATE_CLASS_UPPERCASE;
 
   Future<void> test_annotation() async {
     await resolveTestCode('''
@@ -300,6 +456,22 @@ class Test {
 }
 ''');
     assertLinkedGroup(change.linkedEditGroups[0], ['Test v =', 'Test {']);
+  }
+
+  Future<void> test_startWithUnderscore() async {
+    await resolveTestCode('''
+void f() {
+  var _ = _NewName();
+}
+''');
+    await assertHasFix('''
+void f() {
+  var _ = _NewName();
+}
+
+class _NewName {
+}
+''');
   }
 
   Future<void> test_with() async {
