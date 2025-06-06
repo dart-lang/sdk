@@ -12291,10 +12291,14 @@ main() {
 
     group('Try/finally layering order:', () {
       group('Local variables:', () {
-        test('When disabled, promotions in `finally` applied first', () {
-          h.disableSoundFlowAnalysis();
-          var x = Var('x');
-          var y = Var('y');
+        late Var x, y;
+
+        setUp(() {
+          x = Var('x');
+          y = Var('y');
+        });
+
+        void checkPromotionsAfterTryFinally(List<ProtoStatement> expectations) {
           h.run([
             declare(x, initializer: expr('Object')),
             declare(y, initializer: expr('Object')),
@@ -12314,6 +12318,13 @@ main() {
               checkPromoted(x, 'int'),
               checkPromoted(y, 'num'),
             ]),
+            ...expectations,
+          ]);
+        }
+
+        test('When disabled, promotions in `finally` applied first', () {
+          h.disableSoundFlowAnalysis();
+          checkPromotionsAfterTryFinally([
             // After the try/finally, both `x` and `y` are fully promoted to
             // `int`. But since the promotions from the `try` block are layered
             // over the promotions from the `finally` block, `x` has promotion
@@ -12324,27 +12335,7 @@ main() {
         });
 
         test('When enabled, promotions in `try` applied first', () {
-          var x = Var('x');
-          var y = Var('y');
-          h.run([
-            declare(x, initializer: expr('Object')),
-            declare(y, initializer: expr('Object')),
-            try_([
-              x.as_('num'),
-              y.as_('int'),
-              checkPromoted(x, 'num'),
-              checkPromoted(y, 'int'),
-            ]).finally_([
-              // Neither `x` nor `y` is promoted at this point, because in
-              // principle an exception could have occurred at any point in the
-              // `try` block.
-              checkNotPromoted(x),
-              checkNotPromoted(y),
-              x.as_('int'),
-              y.as_('num'),
-              checkPromoted(x, 'int'),
-              checkPromoted(y, 'num'),
-            ]),
+          checkPromotionsAfterTryFinally([
             // After the try/finally, both `x` and `y` are fully promoted to
             // `int`. But since the promotions from the `finally` block are
             // layered over the promotions from the `try` block, `x` has
@@ -12357,11 +12348,15 @@ main() {
       });
 
       group('Fields of unmodified local variables:', () {
-        test('When disabled, promotions in `finally` applied first', () {
-          h.disableSoundFlowAnalysis();
+        late Var x, y;
+
+        setUp(() {
+          x = Var('x');
+          y = Var('y');
+        });
+
+        void checkPromotionsAfterTryFinally(List<ProtoStatement> expectations) {
           h.addMember('C', '_f', 'Object', promotable: true);
-          var x = Var('x');
-          var y = Var('y');
           h.run([
             declare(x, initializer: expr('C')),
             declare(y, initializer: expr('C')),
@@ -12381,6 +12376,13 @@ main() {
               checkPromoted(x.property('_f'), 'int'),
               checkPromoted(y.property('_f'), 'num'),
             ]),
+            ...expectations,
+          ]);
+        }
+
+        test('When disabled, promotions in `finally` applied first', () {
+          h.disableSoundFlowAnalysis();
+          checkPromotionsAfterTryFinally([
             // After the try/finally, both `x._f` and `y._f` are fully promoted
             // to `int`. But since the promotions from the `try` block are
             // layered over the promotions from the `finally` block, `x._f` has
@@ -12392,28 +12394,7 @@ main() {
         });
 
         test('When enabled, promotions in `try` applied first', () {
-          h.addMember('C', '_f', 'Object', promotable: true);
-          var x = Var('x');
-          var y = Var('y');
-          h.run([
-            declare(x, initializer: expr('C')),
-            declare(y, initializer: expr('C')),
-            try_([
-              x.property('_f').as_('num'),
-              y.property('_f').as_('int'),
-              checkPromoted(x.property('_f'), 'num'),
-              checkPromoted(y.property('_f'), 'int'),
-            ]).finally_([
-              // Neither `x._f` nor `y._f` is promoted at this point, because in
-              // principle an exception could have occurred at any point in the
-              // `try` block.
-              checkNotPromoted(x.property('_f')),
-              checkNotPromoted(y.property('_f')),
-              x.property('_f').as_('int'),
-              y.property('_f').as_('num'),
-              checkPromoted(x.property('_f'), 'int'),
-              checkPromoted(y.property('_f'), 'num'),
-            ]),
+          checkPromotionsAfterTryFinally([
             // After the try/finally, both `x._f` and `y._f` are fully promoted
             // to `int`. But since the promotions from the `finally` block are
             // layered over the promotions from the `try` block, `x._f` has
@@ -12426,11 +12407,15 @@ main() {
       });
 
       group('Fields of local variables modified in try clause:', () {
-        test('When disabled, promotions in `try` applied first', () {
-          h.disableSoundFlowAnalysis();
+        late Var x, y;
+
+        setUp(() {
+          x = Var('x');
+          y = Var('y');
+        });
+
+        void checkPromotionsAfterTryFinally(List<ProtoStatement> expectations) {
           h.addMember('C', '_f', 'Object', promotable: true);
-          var x = Var('x');
-          var y = Var('y');
           h.run([
             declare(x, initializer: expr('C')),
             declare(y, initializer: expr('C')),
@@ -12452,6 +12437,13 @@ main() {
               checkPromoted(x.property('_f'), 'int'),
               checkPromoted(y.property('_f'), 'num'),
             ]),
+            ...expectations,
+          ]);
+        }
+
+        test('When disabled, promotions in `try` applied first', () {
+          h.disableSoundFlowAnalysis();
+          checkPromotionsAfterTryFinally([
             // After the try/finally, both `x._f` and `y._f` are fully promoted
             // to `int`. But since the promotions from the `finally` block are
             // layered over the promotions from the `try` block, `x._f` has
@@ -12463,30 +12455,7 @@ main() {
         });
 
         test('When enabled, promotions in `try` applied first', () {
-          h.addMember('C', '_f', 'Object', promotable: true);
-          var x = Var('x');
-          var y = Var('y');
-          h.run([
-            declare(x, initializer: expr('C')),
-            declare(y, initializer: expr('C')),
-            try_([
-              x.write(expr('C')),
-              y.write(expr('C')),
-              x.property('_f').as_('num'),
-              y.property('_f').as_('int'),
-              checkPromoted(x.property('_f'), 'num'),
-              checkPromoted(y.property('_f'), 'int'),
-            ]).finally_([
-              // Neither `x._f` nor `y._f` is promoted at this point, because in
-              // principle an exception could have occurred at any point in the
-              // `try` block.
-              checkNotPromoted(x.property('_f')),
-              checkNotPromoted(y.property('_f')),
-              x.property('_f').as_('int'),
-              y.property('_f').as_('num'),
-              checkPromoted(x.property('_f'), 'int'),
-              checkPromoted(y.property('_f'), 'num'),
-            ]),
+          checkPromotionsAfterTryFinally([
             // After the try/finally, both `x._f` and `y._f` are fully promoted
             // to `int`. But since the promotions from the `finally` block are
             // layered over the promotions from the `try` block, `x._f` has
