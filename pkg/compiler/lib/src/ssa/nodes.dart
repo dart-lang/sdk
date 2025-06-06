@@ -3978,7 +3978,7 @@ abstract class HLateCheck extends HCheck {
     HInstruction? name,
     this.isTrusted,
     AbstractValue type,
-  ) : super([input, if (name != null) name], type);
+  ) : super([input, ?name], type);
 
   bool get hasName => inputs.length > 1;
 
@@ -4989,13 +4989,7 @@ class HArrayFlagsCheck extends HCheck {
     HInstruction? operation,
     HInstruction? verb,
     AbstractValue type,
-  ) : super([
-        array,
-        arrayFlags,
-        checkFlags,
-        if (operation != null) operation,
-        if (verb != null) verb,
-      ], type);
+  ) : super([array, arrayFlags, checkFlags, ?operation, ?verb], type);
 
   HInstruction get array => inputs[0];
   HInstruction get arrayFlags => inputs[1];

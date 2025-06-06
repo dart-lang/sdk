@@ -1532,8 +1532,7 @@ class _DartTypeToStringVisitor extends DartTypeVisitor<void, void> {
       // Assign names to _DeferredNames that were not assigned while visiting a
       // generic function type.
       Set<String> usedNames = {
-        for (final deferred in variableToName.values)
-          if (deferred.name != null) deferred.name!,
+        for (final deferred in variableToName.values) ?deferred.name,
       };
       int startGroup = (_genericFunctions?.length ?? 0) + 1;
       for (var entry in variableToName.entries) {
