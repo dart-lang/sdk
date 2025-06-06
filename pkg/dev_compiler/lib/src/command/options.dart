@@ -131,55 +131,57 @@ class Options {
     this.dynamicModule = false,
     this.precompiledMacros = const [],
     this.macroSerializationMode,
-  }) : emitLibraryBundle = canaryFeatures &&
-            moduleFormats.length == 1 &&
-            moduleFormats.single == ModuleFormat.ddc;
+  }) : emitLibraryBundle =
+           canaryFeatures &&
+           moduleFormats.length == 1 &&
+           moduleFormats.single == ModuleFormat.ddc;
 
   Options.fromArguments(ArgResults args)
-      : this(
-          sourceMap: args['source-map'] as bool,
-          inlineSourceMap: args['inline-source-map'] as bool,
-          summarizeApi: args['summarize'] as bool,
-          enableAsserts: args['enable-asserts'] as bool,
-          replCompile: args['repl-compile'] as bool,
-          emitDebugMetadata: args['experimental-emit-debug-metadata'] as bool,
-          emitDebugSymbols: args['emit-debug-symbols'] as bool,
-          emitFullCompiledKernel:
-              args['experimental-output-compiled-kernel'] as bool,
-          reloadLastAcceptedKernel:
-              args['reload-last-accepted-kernel'] as String?,
-          reloadDeltaKernel: args['reload-delta-kernel'] as String?,
-          summaryModules: _parseCustomSummaryModules(
-            args['summary'] as List<String>,
-          ),
-          moduleFormats: parseModuleFormatOption(args),
-          moduleName: _getModuleName(args),
-          multiRootScheme: args['multi-root-scheme'] as String,
-          multiRootOutputPath: args['multi-root-output-path'] as String?,
-          experiments: parseExperimentalArguments(
-            args['enable-experiment'] as List<String>,
-          ),
-          canaryFeatures: args['canary'] as bool,
-          dynamicModule: args['dynamic-module'] as bool,
-          precompiledMacros: args['precompiled-macro'] as List<String>,
-          macroSerializationMode: args['macro-serialization-mode'] as String?,
-        );
+    : this(
+        sourceMap: args['source-map'] as bool,
+        inlineSourceMap: args['inline-source-map'] as bool,
+        summarizeApi: args['summarize'] as bool,
+        enableAsserts: args['enable-asserts'] as bool,
+        replCompile: args['repl-compile'] as bool,
+        emitDebugMetadata: args['experimental-emit-debug-metadata'] as bool,
+        emitDebugSymbols: args['emit-debug-symbols'] as bool,
+        emitFullCompiledKernel:
+            args['experimental-output-compiled-kernel'] as bool,
+        reloadLastAcceptedKernel:
+            args['reload-last-accepted-kernel'] as String?,
+        reloadDeltaKernel: args['reload-delta-kernel'] as String?,
+        summaryModules: _parseCustomSummaryModules(
+          args['summary'] as List<String>,
+        ),
+        moduleFormats: parseModuleFormatOption(args),
+        moduleName: _getModuleName(args),
+        multiRootScheme: args['multi-root-scheme'] as String,
+        multiRootOutputPath: args['multi-root-output-path'] as String?,
+        experiments: parseExperimentalArguments(
+          args['enable-experiment'] as List<String>,
+        ),
+        canaryFeatures: args['canary'] as bool,
+        dynamicModule: args['dynamic-module'] as bool,
+        precompiledMacros: args['precompiled-macro'] as List<String>,
+        macroSerializationMode: args['macro-serialization-mode'] as String?,
+      );
 
   Options.fromSdkRequiredArguments(ArgResults args)
-      : this(
-          summarizeApi: false,
-          moduleFormats: parseModuleFormatOption(args),
-          // When compiling the SDK use dart_sdk as the default. This is the
-          // assumed name in various places around the build systems.
-          moduleName:
-              args['module-name'] != null ? _getModuleName(args) : 'dart_sdk',
-          multiRootScheme: args['multi-root-scheme'] as String,
-          multiRootOutputPath: args['multi-root-output-path'] as String?,
-          experiments: parseExperimentalArguments(
-            args['enable-experiment'] as List<String>,
-          ),
-          canaryFeatures: args['canary'] as bool,
-        );
+    : this(
+        summarizeApi: false,
+        moduleFormats: parseModuleFormatOption(args),
+        // When compiling the SDK use dart_sdk as the default. This is the
+        // assumed name in various places around the build systems.
+        moduleName: args['module-name'] != null
+            ? _getModuleName(args)
+            : 'dart_sdk',
+        multiRootScheme: args['multi-root-scheme'] as String,
+        multiRootOutputPath: args['multi-root-output-path'] as String?,
+        experiments: parseExperimentalArguments(
+          args['enable-experiment'] as List<String>,
+        ),
+        canaryFeatures: args['canary'] as bool,
+      );
 
   static void addArguments(ArgParser parser, {bool hide = true}) {
     addSdkRequiredArguments(parser, hide: hide);
@@ -188,7 +190,8 @@ class Options {
       ..addMultiOption(
         'summary',
         abbr: 's',
-        help: 'API summary file(s) of imported libraries, optionally\n'
+        help:
+            'API summary file(s) of imported libraries, optionally\n'
             'with module import path: -s path.dill=js/import/path',
       )
       ..addFlag(
@@ -217,7 +220,8 @@ class Options {
       )
       ..addFlag(
         'repl-compile',
-        help: 'Compile in a more permissive REPL mode, allowing access'
+        help:
+            'Compile in a more permissive REPL mode, allowing access'
             ' to private members across library boundaries. This should'
             ' only be used by debugging tools.',
         defaultsTo: false,
@@ -227,21 +231,24 @@ class Options {
       // from experimental.
       ..addFlag(
         'experimental-emit-debug-metadata',
-        help: 'Experimental option for compiler development.\n'
+        help:
+            'Experimental option for compiler development.\n'
             'Output a metadata file for debug tools next to the .js output.',
         defaultsTo: false,
         hide: true,
       )
       ..addFlag(
         'emit-debug-symbols',
-        help: 'Experimental option for compiler development.\n'
+        help:
+            'Experimental option for compiler development.\n'
             'Output a symbols file for debug tools next to the .js output.',
         defaultsTo: false,
         hide: true,
       )
       ..addFlag(
         'experimental-output-compiled-kernel',
-        help: 'Experimental option for compiler development.\n'
+        help:
+            'Experimental option for compiler development.\n'
             'Output a full kernel file for currently compiled module next to '
             'the .js output.',
         defaultsTo: false,
@@ -249,14 +256,16 @@ class Options {
       )
       ..addOption(
         'reload-last-accepted-kernel',
-        help: 'Provides a file path to read a dill file. The enclosed kernel '
+        help:
+            'Provides a file path to read a dill file. The enclosed kernel '
             'will be diffed against the kernel produced by this compilation '
             'as an incremental hot reload step.',
         hide: true,
       )
       ..addOption(
         'reload-delta-kernel',
-        help: 'Provides a file path to write a dill file to. The resulting '
+        help:
+            'Provides a file path to write a dill file to. The resulting '
             'kernel can be passed to future compilations via '
             '`reload-last-accepted-kernel` to get incremental hot reload '
             'checks.',
@@ -264,7 +273,8 @@ class Options {
       )
       ..addMultiOption(
         'precompiled-macro',
-        help: 'Configuration for precompiled macro binaries or kernel files.\n'
+        help:
+            'Configuration for precompiled macro binaries or kernel files.\n'
             'The expected format of this option is as follows: '
             '<absolute-path-to-binary>;<macro-library-uri>\nFor example: '
             '--precompiled-macro="/path/to/compiled/macro;'
@@ -297,7 +307,8 @@ class Options {
       ..addMultiOption('out', abbr: 'o', help: 'Output file (required).')
       ..addOption(
         'module-name',
-        help: 'The output module name, used in some JS module formats.\n'
+        help:
+            'The output module name, used in some JS module formats.\n'
             'Defaults to the output file name (without .js).',
       )
       ..addOption(
@@ -307,7 +318,8 @@ class Options {
       )
       ..addOption(
         'multi-root-output-path',
-        help: 'Path to set multi-root files relative to when generating'
+        help:
+            'Path to set multi-root files relative to when generating'
             ' source-maps.',
         hide: true,
       )
@@ -318,14 +330,16 @@ class Options {
       )
       ..addFlag(
         'sound-null-safety',
-        help: 'Ignored and will be removed in a future version. '
+        help:
+            'Ignored and will be removed in a future version. '
             'Sound null safety is always used.',
         negatable: false,
         defaultsTo: true,
       )
       ..addFlag(
         'canary',
-        help: 'Enable all compiler features under active development. '
+        help:
+            'Enable all compiler features under active development. '
             'This option is intended for compiler development only. '
             'Canary features are likely to be unstable and can be removed '
             'without warning.',

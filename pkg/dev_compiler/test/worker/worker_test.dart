@@ -47,7 +47,8 @@ void main() {
     final argsFile = file('hello_world.args');
     final inputDartFile = file('hello_world.dart');
     final outputJsFile = file('out/hello_world.js');
-    final compilerArgs = baseArgs +
+    final compilerArgs =
+        baseArgs +
         [
           '--no-source-map',
           '--no-summarize',
@@ -396,8 +397,9 @@ Future<WorkResponse> _readResponse(MessageGrouper messageGrouper) async {
   try {
     return WorkResponse.fromBuffer(buffer!);
   } catch (_) {
-    var bufferAsString =
-        buffer == null ? '' : 'String: ${utf8.decode(buffer)}\n';
+    var bufferAsString = buffer == null
+        ? ''
+        : 'String: ${utf8.decode(buffer)}\n';
     throw 'Failed to parse response:\nbytes: $buffer\n$bufferAsString';
   }
 }
