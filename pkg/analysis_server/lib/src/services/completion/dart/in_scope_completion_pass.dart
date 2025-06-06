@@ -2568,6 +2568,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
     var name = node.name;
     var noRequired = node.requiredKeyword == null;
+    bool suggestCovariant = true;
+    bool suggestThis = true;
     if (name != null && node.isSingleIdentifier) {
       collector.completionLocation = 'FormalParameterList_parameter';
       keywordHelper.addFormalParameterKeywords(
@@ -2576,6 +2578,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         suggestCovariant: name.keyword != Keyword.COVARIANT,
         suggestVariableName: true,
       );
+      suggestCovariant = false;
+      suggestThis = false;
       _forTypeAnnotation(node);
       if (name.isKeyword) {
         return;
@@ -2621,6 +2625,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
             list,
             suggestRequired: noRequired,
             suggestVariableName: name.coversOffset(offset),
+            suggestCovariant: suggestCovariant,
+            suggestThis : suggestThis,
           );
         }
         _forTypeAnnotation(node);
