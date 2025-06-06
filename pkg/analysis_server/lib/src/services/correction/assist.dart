@@ -16,6 +16,11 @@ abstract final class DartAssistKind {
     DartAssistKindPriority.DEFAULT,
     'Add digit separators',
   );
+  static const ADD_LATE = AssistKind(
+    'dart.assist.add.late',
+    DartAssistKindPriority.DEFAULT,
+    "Add 'late' modifier",
+  );
   static const ADD_RETURN_TYPE = AssistKind(
     'dart.assist.add.returnType',
     DartAssistKindPriority.DEFAULT,
@@ -50,6 +55,11 @@ abstract final class DartAssistKind {
     'dart.assist.convert.lineComment',
     DartAssistKindPriority.DEFAULT,
     'Convert to line documentation comment',
+  );
+  static const CONVERT_FIELD_FORMAL_TO_NORMAL = AssistKind(
+    'dart.assist.convert.fieldFormalToNormal',
+    DartAssistKindPriority.DEFAULT,
+    'Convert to a normal parameter',
   );
   static const CONVERT_INTO_ASYNC_BODY = AssistKind(
     'dart.assist.convert.bodyToAsync',

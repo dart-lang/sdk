@@ -1821,8 +1821,46 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
       }
     }
 
+    // HFieldGet of a final field from an allocator can be replaced with the
+    // field's value.
+    //
+    // Load Elimination is more powerful as it can handle non-final fields, but
+    // doing this earlier in the simplifier generates more opportunities for the
+    // first GVN pass.
+    if (receiver is HCreate && !node.isAssignable) {
+      int index = _indexOfFieldInAllocatorInputs(
+        receiver.element,
+        node.element,
+      );
+      if (index >= 0) return receiver.inputs[index];
+    }
+
     return node;
   }
+
+  int _indexOfFieldInAllocatorInputs(ClassEntity cls, FieldEntity field) {
+    final classCache = _indexOfFieldInAllocatorCache ??= {};
+    final fieldCache = classCache[cls] ??= {};
+    final index = fieldCache[field];
+    if (index != null) return index;
+
+    int argumentIndex = 0;
+    _closedWorld.elementEnvironment.forEachInstanceField(cls, (
+      _,
+      FieldEntity member,
+    ) {
+      FieldAnalysisData fieldData = _closedWorld.fieldAnalysis.getFieldData(
+        member,
+      );
+      int index = (fieldData.isElided || fieldData.isInitializedInAllocator)
+          ? -1
+          : argumentIndex++;
+      fieldCache[member] = index;
+    });
+    return fieldCache[field]!;
+  }
+
+  Map<ClassEntity, Map<FieldEntity, int>>? _indexOfFieldInAllocatorCache;
 
   @override
   HInstruction visitGetLength(HGetLength node) {
@@ -2595,7 +2633,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
       node.checkedTypeExpression = recipe.type;
     }
 
-    if (node.isRedundant(_closedWorld, _options)) {
+    if (node.isRedundantOn(node.checkedInput, _closedWorld)) {
       return node.checkedInput;
     }
 
@@ -2621,7 +2659,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
 
   @override
   HInstruction visitAsCheckSimple(HAsCheckSimple node) {
-    if (node.isRedundant(_closedWorld, _options)) {
+    if (node.isRedundantOn(node.checkedInput, _closedWorld)) {
       return node.checkedInput;
     }
     return node;
@@ -2637,7 +2675,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
       node.dartType = recipe.type;
     }
 
-    AbstractBool result = node.evaluate(_closedWorld, _options);
+    AbstractBool result = node.evaluateOn(node.checkedInput, _closedWorld);
     if (result.isDefinitelyFalse) {
       _metrics.countIsTestDecided.add();
       return _graph.addConstantBool(false, _closedWorld);
@@ -2686,7 +2724,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
 
   @override
   HInstruction visitIsTestSimple(HIsTestSimple node) {
-    AbstractBool result = node.evaluate(_closedWorld, _options);
+    AbstractBool result = node.evaluateOn(node.checkedInput, _closedWorld);
     if (result.isDefinitelyFalse) {
       _metrics.countIsTestDecided.add();
       return _graph.addConstantBool(false, _closedWorld);

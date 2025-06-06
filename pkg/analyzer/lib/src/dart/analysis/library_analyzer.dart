@@ -128,10 +128,10 @@ class LibraryAnalyzer {
     // Return full results.
     var results = <UnitAnalysisResult>[];
     for (var fileAnalysis in _libraryFiles.values) {
-      var errors = fileAnalysis.errorListener.errors;
-      errors = _filterIgnoredDiagnostics(fileAnalysis, errors);
+      var diagnostics = fileAnalysis.diagnosticListener.diagnostics;
+      diagnostics = _filterIgnoredDiagnostics(fileAnalysis, diagnostics);
       results.add(
-        UnitAnalysisResult(fileAnalysis.file, fileAnalysis.unit, errors),
+        UnitAnalysisResult(fileAnalysis.file, fileAnalysis.unit, diagnostics),
       );
     }
     return results;
@@ -152,7 +152,7 @@ class LibraryAnalyzer {
     });
     var parsedUnit = fileAnalysis.unit;
     var node = parsedUnit.nodeCovering(offset: offset);
-    var errorListener = RecordingErrorListener();
+    var diagnosticListener = RecordingDiagnosticListener();
 
     return performance.run('resolve', (performance) {
       TypeConstraintGenerationDataForTesting? inferenceDataForTesting =
@@ -164,7 +164,7 @@ class LibraryAnalyzer {
       parsedUnit.accept(
         ResolutionVisitor(
           unitElement: unitElement,
-          errorListener: errorListener,
+          diagnosticListener: diagnosticListener,
           nameScope: unitElement.scope,
           strictInference: _analysisOptions.strictInference,
           strictCasts: _analysisOptions.strictCasts,
@@ -207,7 +207,7 @@ class LibraryAnalyzer {
         libraryResolutionContext,
         file.source,
         _typeProvider,
-        errorListener,
+        diagnosticListener,
         featureSet: _libraryElement.featureSet,
         analysisOptions: _library.file.analysisOptions,
         flowAnalysisHelper: flowAnalysisHelper,
@@ -371,7 +371,7 @@ class LibraryAnalyzer {
     .whereNot((f) => f.file.source.isGenerated)) {
       IgnoreValidator(
         fileAnalysis.errorReporter,
-        fileAnalysis.errorListener.errors,
+        fileAnalysis.diagnosticListener.diagnostics,
         fileAnalysis.ignoreInfo,
         fileAnalysis.unit.lineInfo,
         _analysisOptions.unignorableNames,
@@ -541,7 +541,7 @@ class LibraryAnalyzer {
     // Unused local elements.
     unit.accept(
       UnusedLocalElementsVerifier(
-        fileAnalysis.errorListener,
+        fileAnalysis.diagnosticListener,
         usedElements,
         _libraryElement,
       ),
@@ -616,7 +616,9 @@ class LibraryAnalyzer {
   bool _hasDiagnosticReportedThatPreventsImportWarnings() {
     var errorCodes =
         _libraryFiles.values.map((analysis) {
-          return analysis.errorListener.errors.map((e) => e.errorCode);
+          return analysis.diagnosticListener.diagnostics.map(
+            (e) => e.errorCode,
+          );
         }).flattenedToSet;
 
     for (var errorCode in errorCodes) {
@@ -648,9 +650,9 @@ class LibraryAnalyzer {
     required FileState file,
     required LibraryFragmentImpl unitElement,
   }) {
-    var errorListener = RecordingErrorListener();
+    var diagnosticListener = RecordingDiagnosticListener();
     var unit = file.parse(
-      errorListener: errorListener,
+      diagnosticListener: diagnosticListener,
       performance: OperationPerformanceImpl('<root>'),
     );
     unit.declaredFragment = unitElement;
@@ -659,7 +661,7 @@ class LibraryAnalyzer {
 
     var result = FileAnalysis(
       file: file,
-      errorListener: errorListener,
+      diagnosticListener: diagnosticListener,
       unit: unit,
       element: unitElement,
     );
@@ -812,7 +814,7 @@ class LibraryAnalyzer {
 
   void _resolveFile(FileAnalysis fileAnalysis) {
     var source = fileAnalysis.file.source;
-    var errorListener = fileAnalysis.errorListener;
+    var diagnosticListener = fileAnalysis.diagnosticListener;
     var unit = fileAnalysis.unit;
     var unitElement = fileAnalysis.element;
 
@@ -822,7 +824,7 @@ class LibraryAnalyzer {
     unit.accept(
       ResolutionVisitor(
         unitElement: unitElement,
-        errorListener: errorListener,
+        diagnosticListener: diagnosticListener,
         nameScope: unitElement.scope,
         strictInference: _analysisOptions.strictInference,
         strictCasts: _analysisOptions.strictCasts,
@@ -875,7 +877,7 @@ class LibraryAnalyzer {
       libraryResolutionContext,
       source,
       _typeProvider,
-      errorListener,
+      diagnosticListener,
       analysisOptions: _library.file.analysisOptions,
       featureSet: unit.featureSet,
       flowAnalysisHelper: flowAnalysisHelper,

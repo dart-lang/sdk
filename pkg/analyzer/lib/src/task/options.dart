@@ -252,12 +252,12 @@ List<Diagnostic> _validateLegacyPluginsOption(
   required YamlMap options,
   String? firstEnabledPluginName,
 }) {
-  RecordingErrorListener recorder = RecordingErrorListener();
+  RecordingDiagnosticListener recorder = RecordingDiagnosticListener();
   ErrorReporter reporter = ErrorReporter(recorder, source);
   _LegacyPluginsOptionValidator(
     firstEnabledPluginName,
   ).validate(reporter, options);
-  return recorder.errors;
+  return recorder.diagnostics;
 }
 
 /// Options (keys) that can be specified in an analysis options file.
@@ -407,12 +407,12 @@ class OptionsFileValidator {
        ];
 
   List<Diagnostic> validate(YamlMap options) {
-    RecordingErrorListener recorder = RecordingErrorListener();
+    RecordingDiagnosticListener recorder = RecordingDiagnosticListener();
     ErrorReporter reporter = ErrorReporter(recorder, _source);
     for (var validator in _validators) {
       validator.validate(reporter, options);
     }
-    return recorder.errors;
+    return recorder.diagnostics;
   }
 }
 

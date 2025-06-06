@@ -163,7 +163,6 @@ namespace dart {
   V(InitLateInstanceField)                                                     \
   V(InitLateFinalInstanceField)                                                \
   V(InitSharedLateStaticField)                                                 \
-  V(InitSharedLateFinalStaticField)                                            \
   V(Throw)                                                                     \
   V(ReThrow)                                                                   \
   V(InstanceOf)                                                                \

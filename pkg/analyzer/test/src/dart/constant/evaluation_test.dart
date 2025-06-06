@@ -5381,7 +5381,7 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
   }) {
     var unit = this.result.unit;
     var source = unit.declaredFragment!.source;
-    var errorListener = GatheringErrorListener();
+    var errorListener = GatheringDiagnosticListener();
     var errorReporter = ErrorReporter(errorListener, source);
     var constantVisitor = ConstantVisitor(
       ConstantEvaluationEngine(

@@ -1021,7 +1021,7 @@ class DataSinkWriter {
         writeConstant(constant.referenced);
         writeOutputUnitReference(constant.unit);
         break;
-      case ConstantValueKind.dummyInterceptor:
+      case ConstantValueKind.dummy:
         break;
       case ConstantValueKind.lateSentinel:
         break;

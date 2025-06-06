@@ -834,7 +834,7 @@ CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS:
 CompileTimeErrorCode.IMPLEMENTS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
   status: hasFix
 CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER:
-  status: noFix
+  status: hasFix
 CompileTimeErrorCode.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS:
   status: hasFix
 CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY:

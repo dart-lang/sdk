@@ -296,21 +296,43 @@ Future<ProxyServer> setupProxyServer({ipV6 = false}) {
 testInvalidProxy() {
   HttpClient client = new HttpClient(context: clientContext);
 
+  // User without password.
+  client.findProxy = (Uri uri) => "PROXY user@localhost:80";
+  Future<HttpClientRequest?>.value(
+    client.getUrl(Uri.parse("http://www.google.com/test")),
+  ).catchError((error) {}, test: (e) => e is HttpException);
+
+  // User with empty password.
+  client.findProxy = (Uri uri) => "PROXY user:@localhost:80";
+  Future<HttpClientRequest?>.value(
+    client.getUrl(Uri.parse("http://www.google.com/test")),
+  ).catchError((error) {}, test: (e) => e is HttpException);
+
+  // User but no username.
+  client.findProxy = (Uri uri) => "PROXY :password@localhost:80";
+  Future<HttpClientRequest?>.value(
+    client.getUrl(Uri.parse("http://www.google.com/test")),
+  ).catchError((error) {}, test: (e) => e is HttpException);
+
+  // Empty proxy configuration.
   client.findProxy = (Uri uri) => "";
   Future<HttpClientRequest?>.value(
     client.getUrl(Uri.parse("http://www.google.com/test")),
   ).catchError((error) {}, test: (e) => e is HttpException);
 
+  // No 'PROXY' prefix.
   client.findProxy = (Uri uri) => "XXX";
   Future<HttpClientRequest?>.value(
     client.getUrl(Uri.parse("http://www.google.com/test")),
   ).catchError((error) {}, test: (e) => e is HttpException);
 
+  // No port.
   client.findProxy = (Uri uri) => "PROXY www.google.com";
   Future<HttpClientRequest?>.value(
     client.getUrl(Uri.parse("http://www.google.com/test")),
   ).catchError((error) {}, test: (e) => e is HttpException);
 
+  // Port string is non an integer.
   client.findProxy = (Uri uri) => "PROXY www.google.com:http";
   Future<HttpClientRequest?>.value(
     client.getUrl(Uri.parse("http://www.google.com/test")),

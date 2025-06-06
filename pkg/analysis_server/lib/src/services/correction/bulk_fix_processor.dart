@@ -273,12 +273,12 @@ class BulkFixProcessor {
           break;
         }
         if (parsedLibrary is ParsedLibraryResult) {
-          var errorListener = RecordingErrorListener();
+          var diagnosticListener = RecordingDiagnosticListener();
           var contextUnits = <RuleContextUnit>[];
 
           for (var parsedUnit in parsedLibrary.units) {
             var errorReporter = ErrorReporter(
-              errorListener,
+              diagnosticListener,
               StringSource(parsedUnit.content, null),
             );
             contextUnits.add(
@@ -295,7 +295,7 @@ class BulkFixProcessor {
           }
           await _fixErrorsInParsedLibrary(
             parsedLibrary,
-            errorListener.errors,
+            diagnosticListener.diagnostics,
             stopAfterFirst: false,
           );
           if (isCancelled) {

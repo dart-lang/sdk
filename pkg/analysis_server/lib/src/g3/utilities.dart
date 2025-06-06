@@ -57,13 +57,13 @@ ParseStringResult sortDirectives(String contents, {String? fileName}) {
   String? fullName,
 }) {
   var source = StringSource(contents, fullName);
-  var errorListener = RecordingErrorListener();
+  var diagnosticListener = RecordingDiagnosticListener();
   var reader = CharSequenceReader(contents);
   var featureSet = FeatureSet.fromEnableFlags2(
     sdkLanguageVersion: ExperimentStatus.currentVersion,
     flags: [],
   );
-  var scanner = Scanner(source, reader, errorListener)..configureFeatures(
+  var scanner = Scanner(source, reader, diagnosticListener)..configureFeatures(
     featureSetForOverriding: FeatureSet.latestLanguageVersion(),
     featureSet: featureSet,
   );
@@ -76,12 +76,12 @@ ParseStringResult sortDirectives(String contents, {String? fileName}) {
 
   var parser = p.Parser(
     source,
-    errorListener,
+    diagnosticListener,
     featureSet: scanner.featureSet,
     lineInfo: lineInfo,
     languageVersion: languageVersion,
   );
 
   var unit = parser.parseCompilationUnit(token);
-  return (unit, errorListener.errors);
+  return (unit, diagnosticListener.diagnostics);
 }

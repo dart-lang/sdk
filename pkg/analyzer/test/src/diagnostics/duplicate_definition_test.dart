@@ -4753,7 +4753,7 @@ class A {}
     await resolveFile(lib);
 
     var aResult = await resolveFile(a);
-    GatheringErrorListener()
+    GatheringDiagnosticListener()
       ..addAll(aResult.errors)
       ..assertErrors([
         error(
@@ -4786,12 +4786,12 @@ class A {}
     await resolveFile(lib);
 
     var aResult = await resolveFile(a);
-    GatheringErrorListener()
+    GatheringDiagnosticListener()
       ..addAll(aResult.errors)
       ..assertNoErrors();
 
     var bResult = await resolveFile(b);
-    GatheringErrorListener()
+    GatheringDiagnosticListener()
       ..addAll(bResult.errors)
       ..assertErrors([
         error(
@@ -4837,7 +4837,7 @@ extension A on int {}
     await resolveFile(lib);
 
     var aResult = await resolveFile(a);
-    GatheringErrorListener()
+    GatheringDiagnosticListener()
       ..addAll(aResult.errors)
       ..assertErrors([
         error(
@@ -4883,7 +4883,7 @@ extension type A(int it) {}
     await resolveFile(lib);
 
     var aResult = await resolveFile(a);
-    GatheringErrorListener()
+    GatheringDiagnosticListener()
       ..addAll(aResult.errors)
       ..assertErrors([
         error(
@@ -4950,7 +4950,7 @@ mixin A {}
     await resolveFile(lib);
 
     var aResult = await resolveFile(a);
-    GatheringErrorListener()
+    GatheringDiagnosticListener()
       ..addAll(aResult.errors)
       ..assertErrors([
         error(

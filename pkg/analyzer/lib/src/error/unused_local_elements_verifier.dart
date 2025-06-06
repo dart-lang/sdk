@@ -493,7 +493,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
 /// [WarningCode.UNUSED_LOCAL_VARIABLE], etc.
 class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   /// The error listener to which errors will be reported.
-  final AnalysisErrorListener _errorListener;
+  final DiagnosticListener _diagnosticListener;
 
   /// The elements know to be used.
   final UsedLocalElements _usedElements;
@@ -510,7 +510,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
 
   /// Create a new instance of the [UnusedLocalElementsVerifier].
   UnusedLocalElementsVerifier(
-    this._errorListener,
+    this._diagnosticListener,
     this._usedElements,
     LibraryElement library,
   ) : _libraryUri = library.uri,
@@ -1011,7 +1011,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   ) {
     if (element != null) {
       var fragment = element.firstFragment;
-      _errorListener.onError(
+      _diagnosticListener.onError(
         Diagnostic.tmp(
           source: fragment.libraryFragment!.source,
           offset:

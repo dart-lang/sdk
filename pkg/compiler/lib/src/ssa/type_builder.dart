@@ -70,7 +70,7 @@ abstract class TypeBuilder {
     // similar operation on `registry`; otherwise, this one might not be needed.
     builder.registry.registerTypeUse(TypeUse.isCheck(type));
     if (other is HAsCheck &&
-        other.isRedundant(builder.closedWorld, builder.options)) {
+        other.isRedundantOn(other.checkedInput, builder.closedWorld)) {
       return original;
     }
     return other;

@@ -1335,8 +1335,8 @@ class DataSourceReader {
         ConstantValue constant = readConstant();
         OutputUnit unit = readOutputUnitReference();
         return DeferredGlobalConstantValue(constant, unit);
-      case ConstantValueKind.dummyInterceptor:
-        return DummyInterceptorConstantValue();
+      case ConstantValueKind.dummy:
+        return DummyConstantValue();
       case ConstantValueKind.lateSentinel:
         return LateSentinelConstantValue();
       case ConstantValueKind.unreachable:

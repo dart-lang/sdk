@@ -45,7 +45,7 @@ abstract class AbstractRecoveryTest extends FastaParserTestCase {
     }
 
     // Compare the structures before asserting valid errors.
-    GatheringErrorListener listener = GatheringErrorListener();
+    GatheringDiagnosticListener listener = GatheringDiagnosticListener();
     var invalidUnit = parseCompilationUnit2(
       invalidCode,
       listener,

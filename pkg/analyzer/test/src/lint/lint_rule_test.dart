@@ -21,7 +21,7 @@ main() {
       test('reportLintForToken (custom)', () {
         var rule = TestRule();
         var reporter = CollectingReporter(
-          GatheringErrorListener(),
+          GatheringDiagnosticListener(),
           _MockSource('mock'),
         );
         rule.reporter = reporter;
@@ -35,7 +35,7 @@ main() {
       test('reportLintForToken (default)', () {
         var rule = TestRule();
         var reporter = CollectingReporter(
-          GatheringErrorListener(),
+          GatheringDiagnosticListener(),
           _MockSource('mock'),
         );
         rule.reporter = reporter;
@@ -49,7 +49,7 @@ main() {
       test('reportLint (custom)', () {
         var rule = TestRule();
         var reporter = CollectingReporter(
-          GatheringErrorListener(),
+          GatheringDiagnosticListener(),
           _MockSource('mock'),
         );
         rule.reporter = reporter;
@@ -63,7 +63,7 @@ main() {
       test('reportLint (default)', () {
         var rule = TestRule();
         var reporter = CollectingReporter(
-          GatheringErrorListener(),
+          GatheringDiagnosticListener(),
           _MockSource('mock'),
         );
         rule.reporter = reporter;

@@ -572,7 +572,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     TypeImpl returnType = UnknownInferredType.instance,
     bool expectError = false,
   }) {
-    var listener = RecordingErrorListener();
+    var listener = RecordingDiagnosticListener();
 
     var reporter = ErrorReporter(
       listener,
@@ -602,12 +602,16 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
 
     if (expectError) {
       expect(
-        listener.errors.map((e) => e.errorCode).toList(),
+        listener.diagnostics.map((e) => e.errorCode).toList(),
         [CompileTimeErrorCode.COULD_NOT_INFER],
         reason: 'expected exactly 1 could not infer error.',
       );
     } else {
-      expect(listener.errors, isEmpty, reason: 'did not expect any errors.');
+      expect(
+        listener.diagnostics,
+        isEmpty,
+        reason: 'did not expect any errors.',
+      );
     }
     return typeArguments;
   }

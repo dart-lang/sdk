@@ -129,26 +129,26 @@ vars = {
   ### /third_party/pkg dependencies
   # 'tools/rev_sdk_deps.dart' will rev pkg dependencies to their latest; put an
   # EOL comment after a dependency to instead pin at the current revision.
-  "ai_rev": "6a71aebe2b9c19e992dc6333a4111cdb8f9cd2b2",
+  "ai_rev": "1d9d60c959d30bf56b99eb8182170e218ecf3088",
   "core_rev": "635dfa32c261ba078438b74de397f2207904ca78",
   "dartdoc_rev": "4ceea6b8240bf1dd9694a170368264e40c67d66b",
-  "ecosystem_rev": "8cebaf083e9107995811f1f0d2b40b570a0bbb66",
+  "ecosystem_rev": "64aac3a9c4606950bcf6c8729f01ed8548b9ed87",
   "flute_rev": "e4ea0459a7debae5e9592c85141707b01fac86c9",
   "http_rev": "e70a41b8b841ada9ba124b3b9e1a4d3c525b8bf9",
-  "i18n_rev": "e44af5483a051d546716b6aa3a57e478c59a5d8d",
+  "i18n_rev": "43214dde639f496377b6151115d1415128298c53",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "native_rev": "7f5bfa6973becbb0b4d6ecc34f41f9cdc5701d83", # rolled manually while native assets are experimental
-  "protobuf_rev": "c69077d83ce5a66d21127019f45b81bcd1e777c4",
+  "protobuf_rev": "32d53dad4565fc6ccd69196b8fd213454f3e8ed5",
   "pub_rev": "818f10b4bf9249bd0b2c212dd8709675eeb14cd2", # rolled manually
   "shelf_rev": "082d3ac2d13a98700d8148e8fad8f3e12a6fd0e1",
   "sync_http_rev": "dc54465f07d9652875deeade643256dafa2fbc6c",
   "tar_rev": "5a1ea943e70cdf3fa5e1102cdbb9418bd9b4b81a",
-  "test_rev": "e2ddae9f2943eac2f6c5caf30bc6316e4bff4a8c",
-  "tools_rev": "04c684955a9ffdfbafff07fcad62840658efe283",
+  "test_rev": "0793a2b3262ac900558c49c76e9bbe4f29f91ea4",
+  "tools_rev": "e84cbd9e1b111d80763ae8b3e04685bd66866f08",
   "vector_math_rev": "13f185f7e97d559e003f5ac79201da12f9a01049",
   "web_rev": "f1becf07db9faa56559d2844c3c6d430dc9b37de",
-  "webdev_rev": "64492b2da3d8b5ec30c9ea1fa0c83fb7b69c90c6",
+  "webdev_rev": "55941b0ce5a2eb8a5799ee39f675b40c116f268d",
   "webdriver_rev": "b8f511d7719e2ae2c21eb4d94f68564eee32cbe2",
   "webkit_inspection_protocol_rev": "effa75205516757795683d527c3dea9546eb0c32",
 

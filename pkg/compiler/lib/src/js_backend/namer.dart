@@ -1498,8 +1498,8 @@ class ConstantNamingVisitor implements ConstantValueVisitor<void, Null> {
   }
 
   @override
-  void visitDummyInterceptor(DummyInterceptorConstantValue constant, [_]) {
-    add('dummy_interceptor');
+  void visitDummy(DummyConstantValue constant, [_]) {
+    add('dummy');
   }
 
   @override
@@ -1669,10 +1669,10 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   }
 
   @override
-  int visitDummyInterceptor(DummyInterceptorConstantValue constant, [_]) {
+  int visitDummy(DummyConstantValue constant, [_]) {
     throw failedAt(
       noLocationSpannable,
-      'DummyInterceptorConstantValue should never be named and '
+      'DummyConstantValue should never be named and '
       'never be subconstant',
     );
   }

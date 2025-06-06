@@ -33,9 +33,9 @@ abstract class AbstractAnalysisOptionsTest
       '/',
       sdkVersionConstraint,
     );
-    var errorListener = GatheringErrorListener();
-    errorListener.addAll(diagnostics);
-    errorListener.assertErrors(expectedErrors);
+    var diagnosticListener = GatheringDiagnosticListener();
+    diagnosticListener.addAll(diagnostics);
+    diagnosticListener.assertErrors(expectedErrors);
   }
 
   ExpectedError error(

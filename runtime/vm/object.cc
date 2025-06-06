@@ -13430,7 +13430,6 @@ TypePtr Class::GetInstantiationOf(Zone* zone, const Type& type) const {
 }
 
 void Field::SetStaticValue(const Object& value) const {
-  ASSERT(!is_shared());
   auto thread = Thread::Current();
   ASSERT(thread->IsDartMutatorThread());
   ASSERT(value.IsNull() || value.IsSentinel() || value.IsInstance());
@@ -13440,7 +13439,11 @@ void Field::SetStaticValue(const Object& value) const {
   ASSERT(id >= 0);
 
   SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
-  thread->isolate()->field_table()->SetAt(id, value.ptr());
+  if (is_shared()) {
+    thread->isolate_group()->shared_field_table()->SetAt(id, value.ptr());
+  } else {
+    thread->isolate()->field_table()->SetAt(id, value.ptr());
+  }
 }
 
 static StaticTypeExactnessState TrivialTypeExactnessFor(const Class& cls) {

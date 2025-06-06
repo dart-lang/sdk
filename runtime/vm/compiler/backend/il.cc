@@ -4574,10 +4574,7 @@ void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           original_field.EnsureInitializerFunction();
         }
         stub = field().is_shared()
-                   ? (field().is_final()
-                          ? object_store
-                                ->init_shared_late_final_static_field_stub()
-                          : object_store->init_shared_late_static_field_stub())
+                   ? object_store->init_shared_late_static_field_stub()
                    : (field().is_final()
                           ? object_store->init_late_final_static_field_stub()
                           : object_store->init_late_static_field_stub());

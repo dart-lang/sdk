@@ -604,9 +604,10 @@ class OptionsProviderTest with ResourceProviderMixin {
     List<Diagnostic> diagnostics,
     List<ExpectedError> expectedErrors,
   ) {
-    GatheringErrorListener errorListener = GatheringErrorListener();
-    errorListener.addAll(diagnostics);
-    errorListener.assertErrors(expectedErrors);
+    GatheringDiagnosticListener diagnosticListener =
+        GatheringDiagnosticListener();
+    diagnosticListener.addAll(diagnostics);
+    diagnosticListener.assertErrors(expectedErrors);
   }
 
   void assertErrorsInOptionsFile(
