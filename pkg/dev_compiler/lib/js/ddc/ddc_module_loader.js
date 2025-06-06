@@ -26,7 +26,7 @@ if (!self.dart_library) {
     /**
      * Returns true if we're running in d8.
      *
-     * TOOD(markzipan): Determine if this d8 check is too inexact.
+     * TODO(markzipan): Determine if this d8 check is too inexact.
      */
     self.dart_library.isD8 = self.document.head == void 0;
 
@@ -70,12 +70,14 @@ if (!self.dart_library) {
           lastLoadEnd = Math.max(lastLoadEnd, data.loadEnd);
         }
       }
+      let loadTimeMs =
+        lastLoadEnd === Number.MIN_VALUE ? 0 : lastLoadEnd - firstLoadStart;
       return {
         'dartSize': dartSize,
         'jsSize': jsSize,
         'sourceMapSize': sourceMapSize,
         'evaluatedModules': evaluatedModules,
-        'loadTimeMs': lastLoadEnd - firstLoadStart
+        'loadTimeMs': loadTimeMs
       };
     }
     self.dart_library.appMetrics = appMetrics;
@@ -375,7 +377,7 @@ if (!self.dart_library) {
      * Returns an instantiated module given its module name.
      *
      * Note: this method is not meant to be used outside DDC generated code,
-     * however it is currently being used in many places becase DDC lacks an
+     * however it is currently being used in many places because DDC lacks an
      * Embedding API. This API will be removed in the future once the Embedding
      * API is established.
      */
@@ -779,8 +781,7 @@ if (!self.dart_library) {
           return import_(moduleName, appName).__dynamic_module_entrypoint__();
         });
       }
-    }
-
+    };
   })(dart_library);
 }
 
@@ -875,7 +876,7 @@ if (!self.dart_library) {
       onLoad?.();
       return;
     }
-    let script = dart_library.createScript();
+    let script = self.dart_library.createScript();
     let policy = {
       createScriptURL: function (src) { return src; }
     };
@@ -1358,7 +1359,7 @@ if (!self.deferred_loader) {
    *    point the library is known to exist but is not yet usable. It is an
    *    error to import a library that has not been defined.
    *  - Initialization Phase: The library's initialization function is evaluated
-   *    to create a library object containing all of it's members. After
+   *    to create a library object containing all of its members. After
    *    initialization a library is ready to be linked.
    *  - Link Phase: The link function (a library member synthesized by the
    *    compiler) is called to connect class hierarchies of the classes defined
@@ -1447,7 +1448,7 @@ if (!self.deferred_loader) {
       } else if (libraryName in this.libraryInitializers) {
         throw 'Library ' + libraryName +
         ' was previously defined but DDC is not currently executing a hot ' +
-        ' reload or a hot restart. Failed to define the library.'
+        ' reload or a hot restart. Failed to define the library.';
       } else {
         this.libraryInitializers[libraryName] = initializer;
       }
@@ -1623,7 +1624,7 @@ if (!self.deferred_loader) {
       for (let file of this.pendingHotReloadFileUrls) {
         reloadFilePromises.push(
           new Promise((resolve) => {
-            self.$dartLoader.forceLoadScript(file, resolve)
+            self.$dartLoader.forceLoadScript(file, resolve);
           })
         );
       }
@@ -1728,7 +1729,7 @@ if (!self.deferred_loader) {
   }
 
   function dartDeveloperLibrary() {
-    return libraryManager.initializeAndLinkLibrary('dart:developer')
+    return libraryManager.initializeAndLinkLibrary('dart:developer');
   }
 
   function dartRuntimeLibrary() {
