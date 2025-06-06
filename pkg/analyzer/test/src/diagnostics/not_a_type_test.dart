@@ -24,7 +24,14 @@ class A {
 
 A.foo bar() {}
 ''',
-      [error(CompileTimeErrorCode.NOT_A_TYPE, 24, 5)],
+      [
+        error(
+          CompileTimeErrorCode.NOT_A_TYPE,
+          24,
+          5,
+          contextMessages: [message(testFile, 14, 3)],
+        ),
+      ],
     );
   }
 
@@ -37,7 +44,14 @@ class A {
 
 A.foo bar() {}
 ''',
-      [error(CompileTimeErrorCode.NOT_A_TYPE, 36, 5)],
+      [
+        error(
+          CompileTimeErrorCode.NOT_A_TYPE,
+          36,
+          5,
+          contextMessages: [message(testFile, 24, 3)],
+        ),
+      ],
     );
   }
 
@@ -47,7 +61,14 @@ A.foo bar() {}
 extension E on int {}
 E a;
 ''',
-      [error(CompileTimeErrorCode.NOT_A_TYPE, 22, 1)],
+      [
+        error(
+          CompileTimeErrorCode.NOT_A_TYPE,
+          22,
+          1,
+          contextMessages: [message(testFile, 10, 1)],
+        ),
+      ],
     );
 
     var node = findNode.namedType('E a;');
@@ -67,7 +88,12 @@ main() {
   f v = null;
 }''',
       [
-        error(CompileTimeErrorCode.NOT_A_TYPE, 18, 1),
+        error(
+          CompileTimeErrorCode.NOT_A_TYPE,
+          18,
+          1,
+          contextMessages: [message(testFile, 0, 1)],
+        ),
         error(WarningCode.UNUSED_LOCAL_VARIABLE, 20, 1),
       ],
     );
