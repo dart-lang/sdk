@@ -19,7 +19,7 @@ void main() {
 
 @reflectiveTest
 class OrganizeDirectivesTest extends AbstractSingleUnitTest {
-  late List<Diagnostic> testErrors;
+  late List<Diagnostic> testDiagnostics;
 
   @override
   void setUp() {
@@ -996,7 +996,7 @@ class NonLibraryAnnotation {
     var organizer = ImportOrganizer(
       testCode,
       testUnit,
-      testErrors,
+      testDiagnostics,
       removeUnused: removeUnused,
     );
     var edits = organizer.organize();
@@ -1007,12 +1007,12 @@ class NonLibraryAnnotation {
   Future<void> _computeUnitAndErrors(String code) async {
     verifyNoTestUnitErrors = false;
     await resolveTestCode(code);
-    testErrors = testAnalysisResult.errors;
+    testDiagnostics = testAnalysisResult.errors;
   }
 
   Future<void> _parseUnitAndErrors(String code) async {
     verifyNoTestUnitErrors = false;
     await parseTestCode(code);
-    testErrors = testParsedResult.errors;
+    testDiagnostics = testParsedResult.errors;
   }
 }

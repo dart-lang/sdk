@@ -170,7 +170,7 @@ class ListFactorySpecializer extends BaseSpecializer {
     )..fileOffset = node.fileOffset;
 
     return BlockExpression(
-      Block([if (lengthVariable != null) lengthVariable!, listVariable, loop]),
+      Block([?lengthVariable, listVariable, loop]),
       VariableGet(listVariable)..fileOffset = node.fileOffset,
     );
   }

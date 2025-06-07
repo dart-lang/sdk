@@ -279,10 +279,12 @@ class SuggestionBuilder {
   /// computed for the field (or `-1.0` if the field is a static field).
   void suggestField(
     FieldElement field, {
+    String? completion,
+    String? displayString,
     required double inheritanceDistance,
     int? relevance,
   }) {
-    var completion = _getCompletionString(field);
+    completion ??= _getCompletionString(field);
     if (completion == null) return;
     if (_couldMatch(completion, null)) {
       var featureComputer = request.featureComputer;
@@ -316,6 +318,8 @@ class SuggestionBuilder {
       _addBuilder(
         _createCompletionSuggestionBuilder(
           field,
+          completion: completion,
+          displayString: displayString,
           kind: CompletionSuggestionKind.IDENTIFIER,
           relevance: relevance,
           isNotImported: isNotImportedLibrary,
@@ -397,6 +401,7 @@ class SuggestionBuilder {
     bool withEnclosingName = false,
     int? relevance,
     String? completion,
+    String? displayString,
   }) {
     var enclosingPrefix = '';
     var enclosingName = _enclosingClassOrExtensionName(getter);
@@ -442,6 +447,7 @@ class SuggestionBuilder {
         _createCompletionSuggestionBuilder(
           getter,
           completion: completion,
+          displayString: displayString,
           kind: CompletionSuggestionKind.IDENTIFIER,
           relevance: relevance,
           isNotImported: isNotImportedLibrary,
@@ -625,6 +631,8 @@ class SuggestionBuilder {
   /// the inheritance distance feature computed for the method.
   void suggestMethod(
     MethodElement method, {
+    String? completion,
+    String? displayString,
     required CompletionSuggestionKind kind,
     required double inheritanceDistance,
     int? relevance,
@@ -672,6 +680,8 @@ class SuggestionBuilder {
     _addBuilder(
       _createCompletionSuggestionBuilder(
         method,
+        completion: completion,
+        displayString: displayString,
         kind: kind,
         relevance: relevance,
         isNotImported: isNotImportedLibrary,
@@ -874,7 +884,8 @@ class SuggestionBuilder {
 
   void suggestRecordField({
     required RecordTypeField field,
-    required String name,
+    required String completion,
+    required String displayText,
     int? relevance,
   }) {
     var type = field.type;
@@ -886,17 +897,18 @@ class SuggestionBuilder {
     relevance ??= relevanceComputer.computeScore(contextType: contextType);
 
     var returnType = field.type.getDisplayString();
-
     _addSuggestion(
-      CompletionSuggestion(
+      DartCompletionSuggestion(
         CompletionSuggestionKind.IDENTIFIER,
         relevance,
-        name,
-        name.length,
+        completion,
+        completion.length,
         0,
         false,
         false,
+        displayText: displayText,
         returnType: returnType,
+        requiredImports: requiredImports,
       ),
     );
   }
@@ -1369,6 +1381,7 @@ class SuggestionBuilder {
   CompletionSuggestionBuilder? _createCompletionSuggestionBuilder(
     Element element, {
     String? completion,
+    String? displayString,
     required CompletionSuggestionKind kind,
     required int relevance,
     required bool isNotImported,
@@ -1392,6 +1405,7 @@ class SuggestionBuilder {
       libraryUriStr: libraryUriStr,
       requiredImports: requiredImports,
       isNotImported: isNotImported,
+      displayString: displayString,
     );
   }
 
@@ -1653,6 +1667,7 @@ class _CompletionSuggestionBuilderImpl implements CompletionSuggestionBuilder {
 
   @override
   final String completion;
+  final String? displayString;
   final String? libraryUriStr;
   final List<Uri> requiredImports;
   final bool isNotImported;
@@ -1666,6 +1681,7 @@ class _CompletionSuggestionBuilderImpl implements CompletionSuggestionBuilder {
     required this.libraryUriStr,
     required this.requiredImports,
     required this.isNotImported,
+    required this.displayString,
   });
 
   @override
@@ -1695,6 +1711,7 @@ class _CompletionSuggestionBuilderImpl implements CompletionSuggestionBuilder {
       0 /*selectionLength*/,
       element.isDeprecated,
       false /*isPotential*/,
+      displayText: displayString,
       element: element.element,
       docSummary: element.documentation?.summary,
       docComplete: element.documentation?.full,

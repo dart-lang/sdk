@@ -2558,8 +2558,7 @@ class AsyncStarRewriter extends AsyncRewriterBase {
     List<int> enclosingFinallyLabels = [
       // At the bottom of the stack is the return label.
       exitLabel!,
-      for (final node in jumpTargets)
-        if (finallyLabels[node] != null) finallyLabels[node]!,
+      for (final node in jumpTargets) ?finallyLabels[node],
     ];
 
     addStatement(

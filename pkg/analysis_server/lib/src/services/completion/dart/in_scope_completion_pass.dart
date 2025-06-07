@@ -60,7 +60,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   IdentifierHelper? _identifierHelper;
 
   /// The helper used to suggest keywords.
-  late final KeywordHelper keywordHelper = KeywordHelper(
+  late final keywordHelper = KeywordHelper(
     state: state,
     collector: collector,
     featureSet: featureSet,
@@ -68,16 +68,13 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   );
 
   /// The helper used to suggest labels.
-  late final LabelHelper labelHelper = LabelHelper(
-    state: state,
-    collector: collector,
-  );
+  late final labelHelper = LabelHelper(state: state, collector: collector);
 
   /// The helper used to suggest declarations that are in scope.
   DeclarationHelper? _declarationHelper;
 
   /// The helper used to suggest overrides of inherited members.
-  late final OverrideHelper overrideHelper = OverrideHelper(
+  late final overrideHelper = OverrideHelper(
     collector: collector,
     state: state,
   );
@@ -2124,9 +2121,14 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (node.leftParenthesis.end <= offset &&
         offset <= node.rightParenthesis.offset) {
       collector.completionLocation = 'ObjectPattern_fieldName';
-      declarationHelper(mustBeNonVoid: true).addGetters(
+      declarationHelper(
+        mustBeNonVoid: true,
+        preferNonInvocation: true,
+      ).addGetters(
         type: node.type.typeOrThrow,
         excludedGetters: node.fields.fieldNames,
+        isKeywordNeeded: false,
+        isTypeNeeded: false,
       );
     }
   }
@@ -2197,7 +2199,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       } else {
         collector.completionLocation = 'PatternField_pattern';
       }
-      _forPatternFieldName(name);
+      _forPatternFieldName(name, isKeywordNeeded: false, isTypeNeeded: false);
       return;
     }
     if (name == null) {
@@ -2207,6 +2209,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         declarationHelper(mustBeNonVoid: true).addGetters(
           type: parent.type.typeOrThrow,
           excludedGetters: parent.fields.fieldNames,
+          isKeywordNeeded: false,
+          isTypeNeeded: false,
         );
       } else if (parent is RecordPattern) {
         collector.completionLocation = 'PatternField_pattern';
@@ -2220,7 +2224,15 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       if (parent == null) {
         _forVariablePattern();
       }
-      _forPatternFieldName(name);
+      var isKeywordNeeded = false;
+      if (node.parent?.parent is GuardedPattern) {
+        isKeywordNeeded = true;
+      }
+      _forPatternFieldName(
+        name,
+        isKeywordNeeded: isKeywordNeeded,
+        isTypeNeeded: true,
+      );
     } else {
       collector.completionLocation = 'PatternField_pattern';
       _forPattern(node, mustBeConst: false);
@@ -2236,7 +2248,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       } else {
         collector.completionLocation = 'PatternField_pattern';
       }
-      _forPatternFieldName(node);
+      _forPatternFieldName(node, isKeywordNeeded: false, isTypeNeeded: false);
     }
   }
 
@@ -2401,6 +2413,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           declarationHelper(mustBeNonVoid: true).addGetters(
             type: node.matchedValueTypeOrThrow,
             excludedGetters: node.fields.fieldNames,
+            isKeywordNeeded: false,
+            isTypeNeeded: false,
           );
         }
       }
@@ -2568,6 +2582,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
     var name = node.name;
     var noRequired = node.requiredKeyword == null;
+    bool suggestCovariant = true;
+    bool suggestThis = true;
     if (name != null && node.isSingleIdentifier) {
       collector.completionLocation = 'FormalParameterList_parameter';
       keywordHelper.addFormalParameterKeywords(
@@ -2576,6 +2592,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         suggestCovariant: name.keyword != Keyword.COVARIANT,
         suggestVariableName: true,
       );
+      suggestCovariant = false;
+      suggestThis = false;
       _forTypeAnnotation(node);
       if (name.isKeyword) {
         return;
@@ -2621,6 +2639,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
             list,
             suggestRequired: noRequired,
             suggestVariableName: name.coversOffset(offset),
+            suggestCovariant: suggestCovariant,
+            suggestThis : suggestThis,
           );
         }
         _forTypeAnnotation(node);
@@ -3598,7 +3618,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       var outerPattern = parent.parent;
       if (outerPattern is DartPattern) {
         collector.completionLocation = 'PatternField_pattern';
-        _forPatternFieldNameInPattern(outerPattern);
+        _forPatternFieldNameInPattern(
+          outerPattern,
+          isKeywordNeeded: (node.type ?? node.keyword) == null,
+          isTypeNeeded: false,
+        );
       }
     }
   }
@@ -3685,24 +3709,46 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   /// Adds the suggestions that are appropriate for the name of a pattern field.
-  void _forPatternFieldName(PatternFieldName node) {
+  void _forPatternFieldName(
+    PatternFieldName node, {
+    required bool isKeywordNeeded,
+    required bool isTypeNeeded,
+  }) {
     var pattern = node.parent?.parent;
     if (pattern is DartPattern) {
-      _forPatternFieldNameInPattern(pattern);
+      _forPatternFieldNameInPattern(
+        pattern,
+        isKeywordNeeded: isKeywordNeeded,
+        isTypeNeeded: isTypeNeeded,
+      );
     }
   }
 
   /// Adds the suggestions that are appropriate for the name of a pattern field.
-  void _forPatternFieldNameInPattern(DartPattern? pattern) {
+  void _forPatternFieldNameInPattern(
+    DartPattern? pattern, {
+    required bool isKeywordNeeded,
+    required bool isTypeNeeded,
+  }) {
     if (pattern is ObjectPattern) {
-      declarationHelper(mustBeNonVoid: true).addGetters(
+      declarationHelper(
+        mustBeNonVoid: true,
+        preferNonInvocation: true,
+      ).addGetters(
         type: pattern.type.typeOrThrow,
         excludedGetters: pattern.fields.fieldNames,
+        isKeywordNeeded: isKeywordNeeded,
+        isTypeNeeded: isTypeNeeded,
       );
     } else if (pattern is RecordPattern) {
-      declarationHelper(mustBeNonVoid: true).addGetters(
+      declarationHelper(
+        mustBeNonVoid: true,
+        preferNonInvocation: true,
+      ).addGetters(
         type: pattern.matchedValueTypeOrThrow,
         excludedGetters: pattern.fields.fieldNames,
+        isKeywordNeeded: isKeywordNeeded,
+        isTypeNeeded: isTypeNeeded,
       );
     }
   }

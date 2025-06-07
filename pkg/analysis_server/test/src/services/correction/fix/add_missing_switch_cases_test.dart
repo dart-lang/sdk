@@ -366,9 +366,9 @@ class AddMissingSwitchCasesTest_SwitchStatement extends FixProcessorTest {
 
   bool Function(Diagnostic) get _filter {
     var hasError = false;
-    return (error) {
+    return (diagnostic) {
       if (!hasError &&
-          error.errorCode ==
+          diagnostic.errorCode ==
               CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT) {
         hasError = true;
         return true;

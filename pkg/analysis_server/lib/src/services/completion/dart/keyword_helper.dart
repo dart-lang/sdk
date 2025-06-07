@@ -429,6 +429,7 @@ class KeywordHelper {
     required bool suggestRequired,
     required bool suggestVariableName,
     bool suggestCovariant = true,
+    bool suggestThis = true,
   }) {
     if (suggestCovariant) {
       addKeyword(Keyword.COVARIANT);
@@ -445,7 +446,9 @@ class KeywordHelper {
       if (featureSet.isEnabled(Feature.super_parameters)) {
         addKeyword(Keyword.SUPER);
       }
-      addKeyword(Keyword.THIS);
+      if (suggestThis) {
+        addKeyword(Keyword.THIS);
+      }
     }
   }
 

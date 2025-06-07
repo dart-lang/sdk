@@ -24,6 +24,7 @@ import 'package:analysis_server/src/services/completion/yaml/yaml_completion_gen
 import 'package:analysis_server/src/services/snippets/dart_snippet_request.dart';
 import 'package:analysis_server/src/services/snippets/snippet_manager.dart';
 import 'package:analysis_server/src/utilities/element_location2.dart';
+import 'package:analysis_server/src/utilities/extensions/object.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart' as ast;
@@ -443,6 +444,8 @@ class CompletionHandler
             item,
             completionRequest,
           );
+        } else if (item is TypedSuggestion) {
+          item.data = await createTypedSuggestionData(item, completionRequest);
         }
         var itemReplacementOffset = completionRequest.replacementOffset;
         var itemReplacementLength = completionRequest.replacementLength;
@@ -498,6 +501,22 @@ class CompletionHandler
               file: unit.path,
               importUris: importUris.map((uri) => uri.toString()).toList(),
               ref: ElementLocation.forElement(element)?.encoding,
+            );
+          }
+        } else if (item is TypedSuggestion) {
+          var typedData = item.data;
+          if (typedData != null && typedData.imports.isNotEmpty) {
+            var element = item.ifTypeOrNull<ElementBasedSuggestion>()?.element;
+            ElementLocation? elementLocation;
+            if (element != null) {
+              elementLocation = ElementLocation.forElement(element);
+            }
+
+            var importUris = typedData.imports;
+            resolutionInfo = DartCompletionResolutionInfo(
+              file: unit.path,
+              importUris: importUris.map((uri) => uri.toString()).toList(),
+              ref: elementLocation?.encoding,
             );
           }
         }

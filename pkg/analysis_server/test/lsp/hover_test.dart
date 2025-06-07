@@ -163,6 +163,188 @@ class HoverTest extends AbstractLspAnalysisServerTest {
   Future<void> test_dartDocPreference_unset() =>
       assertDocumentation(null, includesSummary: true, includesFull: true);
 
+  Future<void> test_dotShorthand_constructor_named() async {
+    var content = '''
+class A {
+  A.named();
+}
+void f() {
+  A a = [!.nam^ed()!];
+}
+''';
+    var expected = '''
+```dart
+(new) A A.named()
+```
+Declared in: `A`
+
+*package:test/main.dart*''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_dotShorthand_constructor_named_const() async {
+    var content = '''
+class A {
+  const A.named();
+}
+void f() {
+  const A a = [!.nam^ed()!];
+}
+''';
+    var expected = '''
+```dart
+(const) A A.named()
+```
+Declared in: `A`
+
+*package:test/main.dart*''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_dotShorthand_constructor_unnamed() async {
+    var content = '''
+class A {}
+void f() {
+  A a = [!.ne^w()!];
+}
+''';
+    var expected = '''
+```dart
+(new) A A()
+```
+Declared in: `A`
+
+*package:test/main.dart*''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_dotShorthand_constructor_unnamed_const() async {
+    var content = '''
+class A {
+  const A();
+}
+void f() {
+  const A a = [!.ne^w()!];
+}
+''';
+    var expected = '''
+```dart
+(const) A A()
+```
+Declared in: `A`
+
+*package:test/main.dart*''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_dotShorthand_method() async {
+    var content = '''
+class A {
+  static A method() => A();
+}
+void f() {
+  A a = .[!meth^od!]();
+}
+''';
+    var expected = '''
+```dart
+A method()
+```
+Type: `A Function()`
+
+Declared in: `A`
+
+*package:test/main.dart*''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_dotShorthand_method_subclass() async {
+    var content = '''
+class A {
+  static B method() => B();
+}
+
+class B extends A {}
+
+void g(A a) {}
+
+void f() {
+  g(.[!met^hod!]());
+}
+''';
+    var expected = '''
+```dart
+B method()
+```
+Type: `B Function()`
+
+Declared in: `A`
+
+*package:test/main.dart*''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_dotShorthand_propertyAccess() async {
+    var content = '''
+class A {
+  static A field = A();
+}
+void f() {
+  A a = .[!fie^ld!];
+}
+''';
+    var expected = '''
+```dart
+A get field
+```
+Type: `A`
+
+Declared in: `A`
+
+*package:test/main.dart*''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_dotShorthand_propertyAccess_enum() async {
+    var content = '''
+enum A { one }
+void f() {
+  A a = .[!on^e!];
+}
+''';
+    var expected = '''
+```dart
+A get one
+```
+Type: `A`
+
+Declared in: `A`
+
+*package:test/main.dart*''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_dotShorthand_propertyAccess_extensionType() async {
+    var content = '''
+extension type A(int x) {
+  static A get getter => A(1);
+}
+void f() {
+  A a = .[!gette^r!];
+}
+''';
+    var expected = '''
+```dart
+A get getter
+```
+Type: `A`
+
+Declared in: `A`
+
+*package:test/main.dart*''';
+    await assertStringContents(content, equals(expected));
+  }
+
   Future<void> test_enum_member() async {
     var content = '''
 enum MyEnum { one }
@@ -176,6 +358,8 @@ void f() {
 MyEnum get one
 ```
 Type: `MyEnum`
+
+Declared in: `MyEnum`
 
 *package:test/main.dart*''';
     await assertStringContents(content, equals(expected));
@@ -195,6 +379,8 @@ List<MyEnum> get values
 ```
 Type: `List<MyEnum>`
 
+Declared in: `MyEnum`
+
 *package:test/main.dart*''';
     await assertStringContents(content, equals(expected));
   }
@@ -211,6 +397,8 @@ class A {
 int get _
 ```
 Type: `int`
+
+Declared in: `A`
 
 *package:test/main.dart*''';
     await assertStringContents(content, equals(expected));
@@ -459,6 +647,8 @@ class A {
 int _()
 ```
 Type: `int Function()`
+
+Declared in: `A`
 
 *package:test/main.dart*''';
     await assertStringContents(content, equals(expected));
@@ -749,6 +939,8 @@ String? get myField
 ```
 Type: `String?`
 
+Declared in: `A`
+
 *package:test/main.dart*
 '''.trim();
 
@@ -770,6 +962,8 @@ final data = A().[!myG^etter!];
 String get myGetter
 ```
 Type: `String`
+
+Declared in: `A`
 
 *package:test/main.dart*
 '''.trim();
@@ -793,6 +987,8 @@ final data = A<String?>().[!myG^etter!];
 String? get myGetter
 ```
 Type: `String?`
+
+Declared in: `A`
 
 *package:test/main.dart*
 '''.trim();
@@ -818,6 +1014,8 @@ set mySetter(String value)
 ```
 Type: `String`
 
+Declared in: `A`
+
 *package:test/main.dart*
 '''.trim();
 
@@ -841,6 +1039,8 @@ void f() {
 set mySetter(String value)
 ```
 Type: `String`
+
+Declared in: `A`
 
 *package:test/main.dart*
 '''.trim();

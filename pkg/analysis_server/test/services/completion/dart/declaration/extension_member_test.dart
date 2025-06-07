@@ -597,6 +597,8 @@ void f(int p) {
 ''');
     assertResponse(r'''
 suggestions
+  a0
+    kind: method
   b0
     kind: getter
 ''');

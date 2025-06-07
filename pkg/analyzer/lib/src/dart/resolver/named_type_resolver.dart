@@ -17,6 +17,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/scope_helpers.dart';
@@ -386,11 +387,36 @@ class NamedTypeResolver with ScopeHelpers {
       _ErrorHelper(errorReporter).reportNewWithNonType(node);
     } else {
       node.type = InvalidTypeImpl.instance;
+      Element? element = importPrefixElement;
+      String name = node.name.lexeme;
+      if (importPrefixElement is InstanceElement) {
+        if (importPrefixElement is InterfaceElement) {
+          element = importPrefixElement.getNamedConstructor2(name);
+        }
+        element ??=
+            importPrefixElement.getField(name) ??
+            importPrefixElement.getGetter(name) ??
+            importPrefixElement.getMethod(name) ??
+            importPrefixElement.getSetter(name);
+      }
+      var fragment = element?.firstFragment;
+      var source = fragment?.libraryFragment?.source;
+      var nameOffset = fragment?.nameOffset2;
       errorReporter.atOffset(
         offset: importPrefix.offset,
         length: nameToken.end - importPrefix.offset,
         diagnosticCode: CompileTimeErrorCode.NOT_A_TYPE,
         arguments: ['${importPrefix.name.lexeme}.${nameToken.lexeme}'],
+        contextMessages: [
+          if (source != null && nameOffset != null)
+            DiagnosticMessageImpl(
+              filePath: source.fullName,
+              message: "The declaration of '$name' is here.",
+              offset: nameOffset,
+              length: name.length,
+              url: null,
+            ),
+        ],
       );
     }
   }
@@ -639,11 +665,25 @@ class _ErrorHelper {
 
     if (element != null) {
       var errorRange = _getErrorRange(node);
+      var name = node.name.lexeme;
+      var fragment = element.firstFragment;
+      var source = fragment.libraryFragment?.source;
+      var nameOffset = fragment.nameOffset2;
       errorReporter.atOffset(
         offset: errorRange.offset,
         length: errorRange.length,
         diagnosticCode: CompileTimeErrorCode.NOT_A_TYPE,
-        arguments: [node.name.lexeme],
+        arguments: [name],
+        contextMessages: [
+          if (source != null && nameOffset != null)
+            DiagnosticMessageImpl(
+              filePath: source.fullName,
+              message: "The declaration of '$name' is here.",
+              offset: nameOffset,
+              length: name.length,
+              url: null,
+            ),
+        ],
       );
       return;
     }

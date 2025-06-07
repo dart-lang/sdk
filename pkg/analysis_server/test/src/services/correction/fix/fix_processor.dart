@@ -596,8 +596,8 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
   }
 
   /// Computes fixes and verifies that there are [expectedNumberOfFixesForKind]
-  /// fixes for the given [diagnostic] of the appropriate kind, and that the messages
-  /// of the fixes are equal to [matchFixMessages].
+  /// fixes for the given [diagnostic] of the appropriate kind, and that the
+  /// messages of the fixes are equal to [matchFixMessages].
   Future<void> _assertHasFixes(
     Diagnostic diagnostic, {
     required int expectedNumberOfFixesForKind,
