@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:benchmark_harness/benchmark_harness.dart';
 import 'dart:js_interop';
+
+import 'package:benchmark_harness/benchmark_harness.dart';
 
 // Static js-interop benchmarks.
 //
@@ -140,6 +141,7 @@ abstract class CastsBase extends Base {
 class Casts1 extends CastsBase {
   Casts1() : super('JSObject', data: allJSObjects());
 
+  @override
   void run() {
     for (final o in data) {
       sink = o as JSObject;
@@ -150,6 +152,7 @@ class Casts1 extends CastsBase {
 class Casts2 extends CastsBase {
   Casts2() : super('JSAny', data: allJSAnys());
 
+  @override
   void run() {
     for (final o in data) {
       sink = o as JSAny;
@@ -160,6 +163,7 @@ class Casts2 extends CastsBase {
 class Casts3 extends CastsBase {
   Casts3() : super('JSAnyQ', data: allJSAnyQs());
 
+  @override
   void run() {
     for (final o in data) {
       sink = o as JSAny?;
@@ -170,6 +174,7 @@ class Casts3 extends CastsBase {
 class Casts4 extends CastsBase {
   Casts4() : super('JSNumber', data: allJSNumbers);
 
+  @override
   void run() {
     for (final o in data) {
       sink = o as JSNumber;
@@ -180,6 +185,7 @@ class Casts4 extends CastsBase {
 class Casts5 extends CastsBase {
   Casts5() : super('JSString', data: allJSStrings);
 
+  @override
   void run() {
     for (final o in data) {
       sink = o as JSString;
@@ -190,6 +196,7 @@ class Casts5 extends CastsBase {
 class Casts6 extends CastsBase {
   Casts6() : super('JSUint8Array', data: allJSUint8Array);
 
+  @override
   void run() {
     for (final o in data) {
       sink = o as JSUint8Array;
@@ -200,6 +207,7 @@ class Casts6 extends CastsBase {
 class CastsT<T> extends CastsBase {
   CastsT(String name, {required super.data}) : super('T.$name');
 
+  @override
   void run() {
     for (final o in data) {
       sink = o as T;
@@ -210,6 +218,7 @@ class CastsT<T> extends CastsBase {
 class Calls1SSS extends Base {
   Calls1SSS() : super('JSInterop.calls.inline3ArgsSSS');
 
+  @override
   void run() {
     String s = 'hello';
     for (int i = 0; i < N; i++) {
@@ -225,6 +234,7 @@ class Calls1SSS extends Base {
 class Calls1NNN extends Base {
   Calls1NNN() : super('JSInterop.calls.inline3ArgsIII');
 
+  @override
   void run() {
     String s = 'hello';
     for (int i = 0; i < N; i++) {
@@ -244,6 +254,7 @@ class Calls2SSS extends Base {
   static final _b = 'b'.toJS;
   static final _c = 'c'.toJS;
 
+  @override
   void run() {
     String s = 'hello';
     for (int i = 0; i < N; i++) {
@@ -262,6 +273,7 @@ class Calls2NNN extends Base {
   static final _b = 2.toJS;
   static final _c = 3.toJS;
 
+  @override
   void run() {
     String s = 'hello';
     for (int i = 0; i < N; i++) {
@@ -276,6 +288,7 @@ class Calls2NNN extends Base {
 class Calls3SSS extends Base {
   Calls3SSS() : super('JSInterop.calls.implicit3ArgsSSS');
 
+  @override
   void run() {
     String s = 'hello';
     for (int i = 0; i < N; i++) {
@@ -289,6 +302,7 @@ class Calls3SSS extends Base {
 class Calls3NNN extends Base {
   Calls3NNN() : super('JSInterop.calls.implicit3ArgsIII');
 
+  @override
   void run() {
     String s = 'hello';
     for (int i = 0; i < N; i++) {
@@ -302,6 +316,7 @@ class Calls3NNN extends Base {
 class Calls4 extends Base {
   Calls4() : super('JSInterop.calls.inline7Args');
 
+  @override
   void run() {
     String s = 'hello';
     for (int i = 0; i < N; i++) {
@@ -324,6 +339,8 @@ class Calls5 extends Base {
   Calls5() : super('JSInterop.calls.moveJSObject');
 
   static final _o = JSObject();
+
+  @override
   void run() {
     JSObject o = _o;
     for (int i = 0; i < N; i++) {
@@ -337,6 +354,8 @@ class Calls6 extends Base {
   Calls6() : super('JSInterop.calls.moveJSArray');
 
   static final _o = JSArray.withLength(2);
+
+  @override
   void run() {
     JSArray o = _o;
     for (int i = 0; i < N; i++) {
@@ -350,6 +369,8 @@ class Calls7 extends Base {
   Calls7() : super('JSInterop.calls.moveJSUint8Array');
 
   static final _o = JSUint8Array.withLength(2);
+
+  @override
   void run() {
     JSUint8Array o = _o;
     for (int i = 0; i < N; i++) {
@@ -382,6 +403,8 @@ abstract class IsABase extends Base {
 
 class IsA1 extends IsABase {
   IsA1() : super('JSObject');
+
+  @override
   void run() {
     for (final o in objects) {
       sink = o.isA<JSObject>();
@@ -391,6 +414,8 @@ class IsA1 extends IsABase {
 
 class IsA2 extends IsABase {
   IsA2() : super('JSAny');
+
+  @override
   void run() {
     for (final o in objects) {
       sink = o.isA<JSAny>();
@@ -400,6 +425,8 @@ class IsA2 extends IsABase {
 
 class IsA3 extends IsABase {
   IsA3() : super('JSString');
+
+  @override
   void run() {
     for (final o in objects) {
       sink = o.isA<JSString>();
@@ -409,6 +436,8 @@ class IsA3 extends IsABase {
 
 class IsA4 extends IsABase {
   IsA4() : super('JSArray');
+
+  @override
   void run() {
     for (final o in objects) {
       sink = o.isA<JSArray>();
@@ -418,6 +447,8 @@ class IsA4 extends IsABase {
 
 class IsA5 extends IsABase {
   IsA5() : super('Date');
+
+  @override
   void run() {
     for (final o in objects) {
       sink = o.isA<Date>();
@@ -427,6 +458,8 @@ class IsA5 extends IsABase {
 
 class IsA6 extends IsABase {
   IsA6() : super('DateQ');
+
+  @override
   void run() {
     for (final o in objects) {
       sink = o.isA<Date?>();
@@ -436,6 +469,8 @@ class IsA6 extends IsABase {
 
 class IsA7 extends IsABase {
   IsA7() : super('JSUint8Array');
+
+  @override
   void run() {
     for (final o in objects) {
       sink = o.isA<JSUint8Array>();
