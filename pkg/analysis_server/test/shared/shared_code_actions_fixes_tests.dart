@@ -435,7 +435,7 @@ void main() {
         // Non-ignore fixes (order doesn't matter here, but this is what
         // server produces).
         'quickfix.create.class.uppercase',
-        'quickfix.create.mixin',
+        'quickfix.create.mixin.uppercase',
         'quickfix.create.localVariable',
         'quickfix.remove.unusedLocalVariable',
         // Ignore fixes last, with line sorted above file.

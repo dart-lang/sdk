@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/utilities/extensions/string.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -12,8 +13,6 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class CreateClass extends MultiCorrectionProducer {
-  static final _lowerCaseRegex = RegExp(r'([_\$]||[_\$]+[0-9])*[a-z]');
-
   CreateClass({required super.context});
 
   @override
@@ -22,6 +21,7 @@ class CreateClass extends MultiCorrectionProducer {
     Element? prefixElement;
     ArgumentList? arguments;
 
+    var withKeyword = false;
     String? className;
     bool requiresConstConstructor = false;
     if (targetNode is Annotation) {
@@ -43,11 +43,17 @@ class CreateClass extends MultiCorrectionProducer {
           return const [];
         }
       }
+      withKeyword = node.parent is WithClause;
       className = targetNode.name.lexeme;
       requiresConstConstructor |= _requiresConstConstructor(targetNode);
     } else if (targetNode case SimpleIdentifier(
       :var parent,
     ) when parent is! PropertyAccess && parent is! PrefixedIdentifier) {
+      className = targetNode.nameOfType ?? targetNode.name;
+      requiresConstConstructor |= _requiresConstConstructor(targetNode);
+    } else if (targetNode case SimpleIdentifier(
+      parent: PrefixedIdentifier(:var identifier),
+    ) when targetNode != identifier) {
       className = targetNode.nameOfType ?? targetNode.name;
       requiresConstConstructor |= _requiresConstConstructor(targetNode);
     } else if (targetNode is PrefixedIdentifier) {
@@ -65,7 +71,7 @@ class CreateClass extends MultiCorrectionProducer {
       return const [];
     }
     // Lowercase class names are valid but not idiomatic so lower the priority.
-    if (className.startsWith(_lowerCaseRegex)) {
+    if (className.firstLetterIsLowercase) {
       return [
         _CreateClass.lowercase(
           context: context,
@@ -73,6 +79,7 @@ class CreateClass extends MultiCorrectionProducer {
           prefixElement: prefixElement,
           className: className,
           requiresConstConstructor: requiresConstConstructor,
+          withKeyword: withKeyword,
           arguments: arguments,
         ),
       ];
@@ -84,6 +91,7 @@ class CreateClass extends MultiCorrectionProducer {
           prefixElement: prefixElement,
           className: className,
           requiresConstConstructor: requiresConstConstructor,
+          withKeyword: withKeyword,
           arguments: arguments,
         ),
       ];
@@ -126,12 +134,16 @@ class _CreateClass extends ResolvedCorrectionProducer {
     required AstNode targetNode,
     required Element? prefixElement,
     required String className,
+    required bool withKeyword,
   }) : _className = className,
        _prefixElement = prefixElement,
        _targetNode = targetNode,
        _requiresConstConstructor = requiresConstConstructor,
        _arguments = arguments,
-       fixKind = DartFixKind.CREATE_CLASS_LOWERCASE;
+       fixKind =
+           withKeyword
+               ? DartFixKind.CREATE_CLASS_LOWERCASE_WITH
+               : DartFixKind.CREATE_CLASS_LOWERCASE;
 
   _CreateClass.uppercase({
     required super.context,
@@ -140,12 +152,16 @@ class _CreateClass extends ResolvedCorrectionProducer {
     required AstNode targetNode,
     required Element? prefixElement,
     required String className,
+    required bool withKeyword,
   }) : _className = className,
        _prefixElement = prefixElement,
        _targetNode = targetNode,
        _requiresConstConstructor = requiresConstConstructor,
        _arguments = arguments,
-       fixKind = DartFixKind.CREATE_CLASS_UPPERCASE;
+       fixKind =
+           withKeyword
+               ? DartFixKind.CREATE_CLASS_UPPERCASE_WITH
+               : DartFixKind.CREATE_CLASS_UPPERCASE;
 
   @override
   CorrectionApplicability get applicability =>

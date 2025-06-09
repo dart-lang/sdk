@@ -602,10 +602,7 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   ],
   CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT: [AddAsync.new],
   CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY: [AddAsync.missingReturn],
-  CompileTimeErrorCode.CAST_TO_NON_TYPE: [
-    ChangeTo.classOrMixin,
-    CreateMixin.new,
-  ],
+  CompileTimeErrorCode.CAST_TO_NON_TYPE: [ChangeTo.classOrMixin],
   CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_STATIC_MEMBER: [
     RemoveTypeArguments.new,
   ],
@@ -853,8 +850,7 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     AddMissingSwitchCases.new,
   ],
   CompileTimeErrorCode.NON_FINAL_FIELD_IN_ENUM: [MakeFinal.new],
-  CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT: [CreateMixin.new],
-  CompileTimeErrorCode.NOT_A_TYPE: [ChangeTo.classOrMixin, CreateMixin.new],
+  CompileTimeErrorCode.NOT_A_TYPE: [ChangeTo.classOrMixin],
   CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD: [
     AddLate.new,
   ],
@@ -909,10 +905,7 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   ],
   CompileTimeErrorCode.SUPER_INVOCATION_NOT_LAST: [MakeSuperInvocationLast.new],
   CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY: [AddSwitchCaseBreak.new],
-  CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME: [
-    ChangeTo.classOrMixin,
-    CreateMixin.new,
-  ],
+  CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME: [ChangeTo.classOrMixin],
   CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE: [
     AddNullCheck.new,
   ],
@@ -947,10 +940,7 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     AddNullCheck.new,
   ],
   CompileTimeErrorCode.UNDEFINED_ANNOTATION: [ChangeTo.annotation],
-  CompileTimeErrorCode.UNDEFINED_CLASS: [
-    ChangeTo.classOrMixin,
-    CreateMixin.new,
-  ],
+  CompileTimeErrorCode.UNDEFINED_CLASS: [ChangeTo.classOrMixin],
   CompileTimeErrorCode.UNDEFINED_CLASS_BOOLEAN: [ReplaceBooleanWithBool.new],
   CompileTimeErrorCode.UNDEFINED_ENUM_CONSTANT: [
     AddEnumConstant.new,
@@ -987,7 +977,6 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     CreateGetter.new,
     CreateLocalVariable.new,
     CreateMethodOrFunction.new,
-    CreateMixin.new,
   ],
   CompileTimeErrorCode.UNDEFINED_IDENTIFIER: [
     ChangeTo.getterOrSetter,
@@ -996,7 +985,6 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     CreateLocalVariable.new,
     CreateParameter.new,
     CreateMethodOrFunction.new,
-    CreateMixin.new,
     CreateSetter.new,
     CreateExtensionGetter.new,
     CreateExtensionMethod.new,
@@ -1306,6 +1294,7 @@ final _builtInNonLintMultiGenerators = {
   CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE: [DataDriven.new],
   CompileTimeErrorCode.CAST_TO_NON_TYPE: [
     CreateClass.new,
+    CreateMixin.new,
     DataDriven.new,
     ImportLibrary.forType,
   ],
@@ -1344,6 +1333,7 @@ final _builtInNonLintMultiGenerators = {
   CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT: [DataDriven.new],
   CompileTimeErrorCode.MIXIN_OF_NON_CLASS: [
     CreateClass.new,
+    CreateMixin.new,
     DataDriven.new,
     ImportLibrary.forType,
   ],
@@ -1362,10 +1352,15 @@ final _builtInNonLintMultiGenerators = {
   CompileTimeErrorCode.NON_TYPE_IN_CATCH_CLAUSE: [ImportLibrary.forType],
   CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT: [
     CreateClass.new,
+    CreateMixin.new,
     DataDriven.new,
     ImportLibrary.forType,
   ],
-  CompileTimeErrorCode.NOT_A_TYPE: [CreateClass.new, ImportLibrary.forType],
+  CompileTimeErrorCode.NOT_A_TYPE: [
+    CreateClass.new,
+    ImportLibrary.forType,
+    CreateMixin.new,
+  ],
   CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL: [
     DataDriven.new,
   ],
@@ -1378,6 +1373,7 @@ final _builtInNonLintMultiGenerators = {
   ],
   CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME: [
     CreateClass.new,
+    CreateMixin.new,
     ImportLibrary.forType,
   ],
   CompileTimeErrorCode.UNDEFINED_ANNOTATION: [
@@ -1389,6 +1385,7 @@ final _builtInNonLintMultiGenerators = {
     CreateClass.new,
     DataDriven.new,
     ImportLibrary.forType,
+    CreateMixin.new,
   ],
   CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT: [
     AddSuperConstructorInvocation.new,
@@ -1408,6 +1405,7 @@ final _builtInNonLintMultiGenerators = {
     ImportLibrary.forExtensionMember,
     ImportLibrary.forTopLevelVariable,
     ImportLibrary.forType,
+    CreateMixin.new,
   ],
   CompileTimeErrorCode.UNDEFINED_IDENTIFIER: [
     CreateClass.new,
@@ -1417,6 +1415,7 @@ final _builtInNonLintMultiGenerators = {
     ImportLibrary.forFunction,
     ImportLibrary.forTopLevelVariable,
     ImportLibrary.forType,
+    CreateMixin.new,
   ],
   CompileTimeErrorCode.UNDEFINED_METHOD: [
     CreateClass.new,

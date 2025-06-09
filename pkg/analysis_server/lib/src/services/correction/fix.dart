@@ -733,9 +733,19 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard + 2,
     "Create class '{0}'",
   );
+  static const CREATE_CLASS_UPPERCASE_WITH = FixKind(
+    'dart.fix.create.class.uppercase.with',
+    DartFixKindPriority.standard + 1,
+    "Create class '{0}'",
+  );
   static const CREATE_CLASS_LOWERCASE = FixKind(
     'dart.fix.create.class.lowercase',
     DartFixKindPriority.standard - 5,
+    "Create class '{0}'",
+  );
+  static const CREATE_CLASS_LOWERCASE_WITH = FixKind(
+    'dart.fix.create.class.lowercase.with',
+    DartFixKindPriority.standard - 6,
     "Create class '{0}'",
   );
   static const CREATE_CONSTRUCTOR = FixKind(
@@ -820,9 +830,24 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard + 1,
     'Create {0} missing override{1}',
   );
-  static const CREATE_MIXIN = FixKind(
-    'dart.fix.create.mixin',
+  static const CREATE_MIXIN_UPPERCASE = FixKind(
+    'dart.fix.create.mixin.uppercase',
     DartFixKindPriority.standard,
+    "Create mixin '{0}'",
+  );
+  static const CREATE_MIXIN_UPPERCASE_WITH = FixKind(
+    'dart.fix.create.mixin.uppercase.with',
+    DartFixKindPriority.standard + 2,
+    "Create mixin '{0}'",
+  );
+  static const CREATE_MIXIN_LOWERCASE = FixKind(
+    'dart.fix.create.mixin.lowercase',
+    DartFixKindPriority.standard - 6,
+    "Create mixin '{0}'",
+  );
+  static const CREATE_MIXIN_LOWERCASE_WITH = FixKind(
+    'dart.fix.create.mixin.lowercase.with',
+    DartFixKindPriority.standard - 5,
     "Create mixin '{0}'",
   );
   static const CREATE_NO_SUCH_METHOD = FixKind(

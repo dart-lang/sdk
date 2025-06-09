@@ -12,14 +12,165 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(CreateMixinTest);
+    defineReflectiveTests(CreateMixinLowercaseTest);
+    defineReflectiveTests(CreateMixinLowercaseWithTest);
+    defineReflectiveTests(CreateMixinPriorityTest);
+    defineReflectiveTests(CreateMixinUppercaseTest);
+    defineReflectiveTests(CreateMixinUppercaseWithTest);
   });
 }
 
 @reflectiveTest
-class CreateMixinTest extends FixProcessorTest {
+class CreateMixinLowercaseTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_MIXIN;
+  FixKind get kind => DartFixKind.CREATE_MIXIN_LOWERCASE;
+
+  Future<void> test_lowercaseAssignment() async {
+    await resolveTestCode('''
+newName? a;
+''');
+    await assertHasFix('''
+newName? a;
+
+mixin newName {
+}
+''');
+  }
+
+  Future<void> test_multiple() async {
+    await resolveTestCode(r'''
+_$_newName? a;
+''');
+    await assertHasFix(r'''
+_$_newName? a;
+
+mixin _$_newName {
+}
+''');
+  }
+
+  Future<void> test_number() async {
+    await resolveTestCode(r'''
+_0newName? a;
+''');
+    await assertHasFix(r'''
+_0newName? a;
+
+mixin _0newName {
+}
+''');
+  }
+
+  Future<void> test_startWithDollarSign() async {
+    await resolveTestCode(r'''
+$newName? a;
+''');
+    await assertHasFix(r'''
+$newName? a;
+
+mixin $newName {
+}
+''');
+  }
+
+  Future<void> test_startWithUnderscore() async {
+    await resolveTestCode('''
+_newName? a;
+''');
+    await assertHasFix('''
+_newName? a;
+
+mixin _newName {
+}
+''');
+  }
+
+  Future<void> test_with() async {
+    await resolveTestCode('''
+class MyClass with myMixin {}
+''');
+    await assertNoFix();
+  }
+}
+
+@reflectiveTest
+class CreateMixinLowercaseWithTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.CREATE_MIXIN_LOWERCASE_WITH;
+
+  Future<void> test_with() async {
+    await resolveTestCode('''
+class MyClass with myMixin {}
+''');
+    await assertHasFix('''
+class MyClass with myMixin {}
+
+mixin myMixin {
+}
+''');
+  }
+}
+
+@reflectiveTest
+class CreateMixinPriorityTest extends FixPriorityTest {
+  Future<void> test_mixinFirst_class_lowercaseWith() async {
+    await resolveTestCode('''
+class Class with myMixin {}
+''');
+    await assertFixPriorityOrder([
+      DartFixKind.CREATE_MIXIN_LOWERCASE_WITH,
+      DartFixKind.CREATE_CLASS_LOWERCASE_WITH,
+    ]);
+  }
+
+  Future<void> test_mixinFirst_class_with() async {
+    await resolveTestCode('''
+class Class with MyMixin {}
+''');
+    await assertFixPriorityOrder([
+      DartFixKind.CREATE_MIXIN_UPPERCASE_WITH,
+      DartFixKind.CREATE_CLASS_UPPERCASE_WITH,
+    ]);
+  }
+
+  Future<void> test_mixinLast_class() async {
+    await resolveTestCode('''
+void f(M m) {}
+''');
+    await assertFixPriorityOrder([
+      DartFixKind.CREATE_CLASS_UPPERCASE,
+      DartFixKind.CREATE_MIXIN_UPPERCASE,
+    ]);
+  }
+
+  Future<void> test_mixinLast_class_lowercase() async {
+    await resolveTestCode('''
+void f(newName m) {}
+''');
+    await assertFixPriorityOrder([
+      DartFixKind.CREATE_CLASS_LOWERCASE,
+      DartFixKind.CREATE_MIXIN_LOWERCASE,
+    ]);
+  }
+
+  Future<void> test_mixinLast_import() async {
+    newFile('$testPackageLibPath/lib.dart', r'''
+class A {}
+''');
+    await resolveTestCode('''
+A? a;
+''');
+    await assertFixPriorityOrder([
+      DartFixKind.IMPORT_LIBRARY_PROJECT1,
+      DartFixKind.CREATE_MIXIN_UPPERCASE,
+    ]);
+  }
+}
+
+@reflectiveTest
+class CreateMixinUppercaseTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.CREATE_MIXIN_UPPERCASE;
 
   Future<void> test_hasUnresolvedPrefix() async {
     await resolveTestCode('''
@@ -210,5 +361,42 @@ mixin Test {
 }
 ''');
     assertLinkedGroup(change.linkedEditGroups[0], ['Test v =', 'Test {']);
+  }
+
+  Future<void> test_with() async {
+    await resolveTestCode('''
+class MyClass with MyMixin {}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_withStaticName() async {
+    await resolveTestCode('''
+var a = [Foo.bar];
+''');
+    await assertHasFix('''
+var a = [Foo.bar];
+
+mixin Foo {
+}
+''');
+  }
+}
+
+@reflectiveTest
+class CreateMixinUppercaseWithTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.CREATE_MIXIN_UPPERCASE_WITH;
+
+  Future<void> test_with() async {
+    await resolveTestCode('''
+class MyClass with MyMixin {}
+''');
+    await assertHasFix('''
+class MyClass with MyMixin {}
+
+mixin MyMixin {
+}
+''');
   }
 }
