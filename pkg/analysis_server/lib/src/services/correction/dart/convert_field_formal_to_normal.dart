@@ -18,7 +18,7 @@ class ConvertFieldFormalToNormal extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind get assistKind => DartAssistKind.CONVERT_FIELD_FORMAL_TO_NORMAL;
+  AssistKind get assistKind => DartAssistKind.convertFieldFormalToNormal;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

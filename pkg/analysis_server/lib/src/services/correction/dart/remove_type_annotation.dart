@@ -27,7 +27,7 @@ class RemoveTypeAnnotation extends ParsedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  AssistKind get assistKind => DartAssistKind.REMOVE_TYPE_ANNOTATION;
+  AssistKind get assistKind => DartAssistKind.removeTypeAnnotation;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_TYPE_ANNOTATION;

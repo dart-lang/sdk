@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class ConvertToForElementTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_TO_FOR_ELEMENT;
+  AssistKind get kind => DartAssistKind.convertToForElement;
 
   Future<void> test_mapFromIterable_complexKey() async {
     await resolveTestCode('''

@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class ConvertIntoFinalFieldTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_INTO_FINAL_FIELD;
+  AssistKind get kind => DartAssistKind.convertIntoFinalField;
 
   Future<void> test_blockBody_onlyReturnStatement() async {
     await resolveTestCode('''

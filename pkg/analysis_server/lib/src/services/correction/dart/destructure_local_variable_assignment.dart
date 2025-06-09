@@ -27,7 +27,7 @@ class DestructureLocalVariableAssignment extends ResolvedCorrectionProducer {
 
   @override
   AssistKind get assistKind =>
-      DartAssistKind.DESTRUCTURE_LOCAL_VARIABLE_ASSIGNMENT;
+      DartAssistKind.destructureLocalVariableAssignment;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

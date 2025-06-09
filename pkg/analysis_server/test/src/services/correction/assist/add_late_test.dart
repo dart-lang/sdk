@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class AddLateTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.ADD_LATE;
+  AssistKind get kind => DartAssistKind.addLate;
 
   Future<void> test_field_const() async {
     verifyNoTestUnitErrors = false;

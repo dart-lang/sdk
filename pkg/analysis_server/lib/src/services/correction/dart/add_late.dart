@@ -27,7 +27,7 @@ class AddLate extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind? get assistKind => DartAssistKind.ADD_LATE;
+  AssistKind? get assistKind => DartAssistKind.addLate;
 
   @override
   FixKind get fixKind => DartFixKind.ADD_LATE;

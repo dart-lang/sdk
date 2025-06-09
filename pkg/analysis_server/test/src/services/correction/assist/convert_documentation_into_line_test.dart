@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class ConvertDocumentationIntoLineTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_DOCUMENTATION_INTO_LINE;
+  AssistKind get kind => DartAssistKind.convertDocumentationIntoLine;
 
   Future<void> test_alreadyLine() async {
     await resolveTestCode('''

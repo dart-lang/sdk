@@ -20,7 +20,7 @@ class ConvertIntoIsNotEmpty extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind get assistKind => DartAssistKind.CONVERT_INTO_IS_NOT_EMPTY;
+  AssistKind get assistKind => DartAssistKind.convertIntoIsNotEmpty;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

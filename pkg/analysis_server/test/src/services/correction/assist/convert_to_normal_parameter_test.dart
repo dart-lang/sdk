@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class ConvertToNormalParameterTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_TO_NORMAL_PARAMETER;
+  AssistKind get kind => DartAssistKind.convertToNormalParameter;
 
   Future<void> test_dynamic() async {
     await resolveTestCode('''

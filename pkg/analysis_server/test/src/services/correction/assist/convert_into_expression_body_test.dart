@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class ConvertIntoExpressionBodyTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_INTO_EXPRESSION_BODY;
+  AssistKind get kind => DartAssistKind.convertIntoExpressionBody;
 
   Future<void> test_already() async {
     await resolveTestCode('''

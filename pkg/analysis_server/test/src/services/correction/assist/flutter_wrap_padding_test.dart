@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class FlutterWrapPaddingTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.FLUTTER_WRAP_PADDING;
+  AssistKind get kind => DartAssistKind.flutterWrapPadding;
 
   @override
   void setUp() {

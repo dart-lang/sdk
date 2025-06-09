@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class JoinIfWithInnerTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.JOIN_IF_WITH_INNER;
+  AssistKind get kind => DartAssistKind.joinIfWithInner;
 
   Future<void> test_bothOuterAndInnerAreIfCase() async {
     await resolveTestCode('''

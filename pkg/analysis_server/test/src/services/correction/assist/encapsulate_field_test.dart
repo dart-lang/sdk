@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class EncapsulateFieldTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.ENCAPSULATE_FIELD;
+  AssistKind get kind => DartAssistKind.encapsulateField;
 
   Future<void> test_alreadyPrivate() async {
     await resolveTestCode('''

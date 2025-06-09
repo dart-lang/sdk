@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class ConvertToPackageImportTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_TO_PACKAGE_IMPORT;
+  AssistKind get kind => DartAssistKind.convertToPackageImport;
 
   Future<void> test_fileName_onImport() async {
     newFile('$testPackageLibPath/foo.dart', '');

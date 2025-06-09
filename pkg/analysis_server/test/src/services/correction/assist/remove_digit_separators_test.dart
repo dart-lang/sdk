@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class RemoveDigitSeparatorsTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.REMOVE_DIGIT_SEPARATORS;
+  AssistKind get kind => DartAssistKind.removeDigitSeparators;
 
   Future<void> test_double_noSeparators() async {
     await resolveTestCode('var i = ^123456.78;');

@@ -49,7 +49,7 @@ class ConvertToDoubleQuotes extends _ConvertQuotes {
       CorrectionApplicability.automatically;
 
   @override
-  AssistKind get assistKind => DartAssistKind.CONVERT_TO_DOUBLE_QUOTED_STRING;
+  AssistKind get assistKind => DartAssistKind.convertToDoubleQuotedString;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_DOUBLE_QUOTED_STRING;
@@ -69,7 +69,7 @@ class ConvertToSingleQuotes extends _ConvertQuotes {
       CorrectionApplicability.automatically;
 
   @override
-  AssistKind get assistKind => DartAssistKind.CONVERT_TO_SINGLE_QUOTED_STRING;
+  AssistKind get assistKind => DartAssistKind.convertToSingleQuotedString;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_SINGLE_QUOTED_STRING;

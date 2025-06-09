@@ -21,7 +21,7 @@ class ConvertClassToMixin extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind get assistKind => DartAssistKind.CONVERT_CLASS_TO_MIXIN;
+  AssistKind get assistKind => DartAssistKind.convertClassToMixin;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

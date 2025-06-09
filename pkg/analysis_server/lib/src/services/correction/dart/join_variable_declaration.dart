@@ -19,7 +19,7 @@ class JoinVariableDeclaration extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind get assistKind => DartAssistKind.JOIN_VARIABLE_DECLARATION;
+  AssistKind get assistKind => DartAssistKind.joinVariableDeclaration;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

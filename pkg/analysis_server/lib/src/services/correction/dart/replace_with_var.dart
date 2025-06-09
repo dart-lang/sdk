@@ -21,7 +21,7 @@ class ReplaceWithVar extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  AssistKind get assistKind => DartAssistKind.REPLACE_WITH_VAR;
+  AssistKind get assistKind => DartAssistKind.replaceWithVar;
 
   @override
   FixKind get fixKind => DartFixKind.REPLACE_WITH_VAR;

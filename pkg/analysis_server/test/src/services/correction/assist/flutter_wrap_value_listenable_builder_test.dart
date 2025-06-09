@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class FlutterWrapValueListenableBuilderTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.FLUTTER_WRAP_VALUE_LISTENABLE_BUILDER;
+  AssistKind get kind => DartAssistKind.flutterWrapValueListenableBuilder;
 
   @override
   void setUp() {

@@ -21,7 +21,7 @@ class EncapsulateField extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind get assistKind => DartAssistKind.ENCAPSULATE_FIELD;
+  AssistKind get assistKind => DartAssistKind.encapsulateField;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

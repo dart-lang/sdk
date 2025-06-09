@@ -21,8 +21,7 @@ class ConvertToGenericFunctionSyntax extends ParsedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  AssistKind get assistKind =>
-      DartAssistKind.CONVERT_INTO_GENERIC_FUNCTION_SYNTAX;
+  AssistKind get assistKind => DartAssistKind.convertIntoGenericFunctionSyntax;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_GENERIC_FUNCTION_SYNTAX;

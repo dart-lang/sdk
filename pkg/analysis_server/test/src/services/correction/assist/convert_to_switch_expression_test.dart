@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class ConvertToSwitchExpressionTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_TO_SWITCH_EXPRESSION;
+  AssistKind get kind => DartAssistKind.convertToSwitchExpression;
 
   Future<void> test_argument_differentFunctions() async {
     await resolveTestCode('''
@@ -101,7 +101,7 @@ void f(Color color) {
     Color.blue => 'blue',
     // Not green.
     Color.green =>  throw 'Green is bad',
-    Color.yellow => 
+    Color.yellow => /**/
       // Yellow is OK.
       'yellow'
   });
@@ -165,7 +165,7 @@ void f(Color color) {
     Color.blue => 'blue',
     // Not green.
     Color.green =>  throw 'Green is bad',
-    Color.yellow => 
+    Color.yellow => /**/
       // Yellow is OK.
       'yellow'
   });

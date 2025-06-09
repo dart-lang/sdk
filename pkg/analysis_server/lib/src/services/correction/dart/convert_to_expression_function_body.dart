@@ -19,7 +19,7 @@ class ConvertToExpressionFunctionBody extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  AssistKind get assistKind => DartAssistKind.CONVERT_INTO_EXPRESSION_BODY;
+  AssistKind get assistKind => DartAssistKind.convertIntoExpressionBody;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_INTO_EXPRESSION_BODY;

@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class ShadowFieldTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.SHADOW_FIELD;
+  AssistKind get kind => DartAssistKind.shadowField;
 
   Future<void> test_is_assigned() async {
     await resolveTestCode('''

@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class ConvertIntoForIndexTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_INTO_FOR_INDEX;
+  AssistKind get kind => DartAssistKind.convertIntoForIndex;
 
   Future<void> test_bodyNotBlock() async {
     await resolveTestCode('''

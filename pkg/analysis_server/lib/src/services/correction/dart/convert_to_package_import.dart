@@ -20,7 +20,7 @@ class ConvertToPackageImport extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  AssistKind get assistKind => DartAssistKind.CONVERT_TO_PACKAGE_IMPORT;
+  AssistKind get assistKind => DartAssistKind.convertToPackageImport;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_PACKAGE_IMPORT;

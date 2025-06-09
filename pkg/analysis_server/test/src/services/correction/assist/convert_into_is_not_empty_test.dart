@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class ConvertIntoIsNotEmptyTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_INTO_IS_NOT_EMPTY;
+  AssistKind get kind => DartAssistKind.convertIntoIsNotEmpty;
 
   Future<void> test_noBang() async {
     verifyNoTestUnitErrors = false;

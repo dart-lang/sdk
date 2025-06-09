@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class FlutterWrapColumnTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.FLUTTER_WRAP_COLUMN;
+  AssistKind get kind => DartAssistKind.flutterWrapColumn;
 
   @override
   void setUp() {

@@ -21,7 +21,7 @@ class ShadowField extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind get assistKind => DartAssistKind.SHADOW_FIELD;
+  AssistKind get assistKind => DartAssistKind.shadowField;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

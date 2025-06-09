@@ -30,7 +30,7 @@ class ConvertIntoGetter extends ResolvedCorrectionProducer {
   List<String>? get assistArguments => [_memberName];
 
   @override
-  AssistKind get assistKind => DartAssistKind.CONVERT_INTO_GETTER;
+  AssistKind get assistKind => DartAssistKind.convertIntoGetter;
 
   @override
   List<String>? get fixArguments => assistArguments;

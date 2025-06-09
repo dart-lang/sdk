@@ -26,7 +26,7 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  AssistKind get assistKind => DartAssistKind.ADD_DIAGNOSTIC_PROPERTY_REFERENCE;
+  AssistKind get assistKind => DartAssistKind.addDiagnosticPropertyReference;
 
   @override
   FixKind get fixKind => DartFixKind.ADD_DIAGNOSTIC_PROPERTY_REFERENCE;

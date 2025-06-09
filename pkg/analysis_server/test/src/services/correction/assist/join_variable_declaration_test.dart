@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class JoinVariableDeclarationTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.JOIN_VARIABLE_DECLARATION;
+  AssistKind get kind => DartAssistKind.joinVariableDeclaration;
 
   Future<void> test_onAssignment() async {
     await resolveTestCode('''

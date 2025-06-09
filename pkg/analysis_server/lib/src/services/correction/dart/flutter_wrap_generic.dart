@@ -19,7 +19,7 @@ class FlutterWrapGeneric extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind get assistKind => DartAssistKind.FLUTTER_WRAP_GENERIC;
+  AssistKind get assistKind => DartAssistKind.flutterWrapGeneric;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

@@ -26,7 +26,7 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  AssistKind get assistKind => DartAssistKind.CONVERT_TO_SUPER_PARAMETERS;
+  AssistKind get assistKind => DartAssistKind.convertToSuperParameters;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_SUPER_PARAMETERS;

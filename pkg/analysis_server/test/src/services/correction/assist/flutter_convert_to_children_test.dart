@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class FlutterConvertToChildrenTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.FLUTTER_CONVERT_TO_CHILDREN;
+  AssistKind get kind => DartAssistKind.flutterConvertToChildren;
 
   @override
   void setUp() {

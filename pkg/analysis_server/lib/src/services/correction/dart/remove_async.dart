@@ -29,7 +29,7 @@ class RemoveAsync extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind get assistKind => DartAssistKind.REMOVE_ASYNC;
+  AssistKind get assistKind => DartAssistKind.removeAsync;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_ASYNC;

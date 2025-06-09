@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class SurroundWithBlockTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.SURROUND_WITH_BLOCK;
+  AssistKind get kind => DartAssistKind.surroundWithBlock;
 
   Future<void> test_notStatementInBlock() async {
     await resolveTestCode('''
