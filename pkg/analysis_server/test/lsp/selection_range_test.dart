@@ -22,6 +22,107 @@ void main() {
 /// test/src/computer/selection_range_computer_test.dart
 @reflectiveTest
 class SelectionRangeTest extends AbstractLspAnalysisServerTest {
+  Future<void> test_dotShorthand_constructorInvocation() async {
+    var code = TestCode.parse('''
+class A {}
+void f() {
+  A a = .^new();
+}
+''');
+
+    await initialize();
+    await openFile(mainFileUri, code.code);
+    var lineInfo = LineInfo.fromContent(code.code);
+    var regions = await getSelectionRanges(mainFileUri, [
+      code.position.position,
+    ]);
+    expect(regions!.length, equals(1));
+    var regionTexts =
+        _getSelectionRangeText(lineInfo, code.code, regions.first).toList();
+
+    expect(
+      regionTexts,
+      equals([
+        'new',
+        '.new()',
+        'a = .new()',
+        'A a = .new()',
+        'A a = .new();',
+        '{\n  A a = .new();\n}',
+        '() {\n  A a = .new();\n}',
+        'void f() {\n  A a = .new();\n}',
+      ]),
+    );
+  }
+
+  Future<void> test_dotShorthand_methodInvocation() async {
+    var code = TestCode.parse('''
+class A {
+  static A method() => A();
+}
+void f() {
+  A a = .me^thod();
+}
+''');
+
+    await initialize();
+    await openFile(mainFileUri, code.code);
+    var lineInfo = LineInfo.fromContent(code.code);
+    var regions = await getSelectionRanges(mainFileUri, [
+      code.position.position,
+    ]);
+    expect(regions!.length, equals(1));
+    var regionTexts =
+        _getSelectionRangeText(lineInfo, code.code, regions.first).toList();
+
+    expect(
+      regionTexts,
+      equals([
+        'method',
+        '.method()',
+        'a = .method()',
+        'A a = .method()',
+        'A a = .method();',
+        '{\n  A a = .method();\n}',
+        '() {\n  A a = .method();\n}',
+        'void f() {\n  A a = .method();\n}',
+      ]),
+    );
+  }
+
+  Future<void> test_dotShorthand_propertyAccess() async {
+    var code = TestCode.parse('''
+enum A { a }
+void f() {
+  A a = .^a;
+}
+''');
+
+    await initialize();
+    await openFile(mainFileUri, code.code);
+    var lineInfo = LineInfo.fromContent(code.code);
+    var regions = await getSelectionRanges(mainFileUri, [
+      code.position.position,
+    ]);
+    expect(regions!.length, equals(1));
+    var regionTexts =
+        _getSelectionRangeText(lineInfo, code.code, regions.first).toList();
+
+    expect(
+      regionTexts,
+      equals([
+        'a',
+        '.a',
+        'a = .a',
+        'A a = .a',
+        'A a = .a;',
+        '{\n  A a = .a;\n}',
+        '() {\n  A a = .a;\n}',
+        'void f() {\n  A a = .a;\n}',
+      ]),
+    );
+  }
+
   Future<void> test_multiple() async {
     var content = '''
 class Foo {
