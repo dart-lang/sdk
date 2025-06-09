@@ -210,8 +210,8 @@ class FlutterMetricsComputer {
           } else if (hasError(resolvedUnitResult)) {
             print('');
             print('File $filePath skipped due to errors:');
-            for (var error in resolvedUnitResult.errors) {
-              print('  ${error.toString()}');
+            for (var diagnostic in resolvedUnitResult.diagnostics) {
+              print('  ${diagnostic.toString()}');
             }
             continue;
           }
@@ -290,10 +290,10 @@ class FlutterMetricsComputer {
     }
   }
 
-  /// Return `true` if the [result] contains an error.
+  /// Whether the [result] contains an error.
   static bool hasError(ResolvedUnitResult result) {
-    for (var error in result.errors) {
-      if (error.severity == Severity.error) {
+    for (var diagnostic in result.diagnostics) {
+      if (diagnostic.severity == Severity.error) {
         return true;
       }
     }

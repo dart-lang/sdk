@@ -1110,10 +1110,9 @@ class LibraryAnalyzer {
 class UnitAnalysisResult {
   final FileState file;
   final CompilationUnitImpl unit;
-  // TODO(srawlins): Renamed to `diagnostics`.
-  final List<Diagnostic> errors;
+  final List<Diagnostic> diagnostics;
 
-  UnitAnalysisResult(this.file, this.unit, this.errors);
+  UnitAnalysisResult(this.file, this.unit, this.diagnostics);
 }
 
 extension on file_state.DirectiveUri {

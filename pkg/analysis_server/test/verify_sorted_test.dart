@@ -150,9 +150,9 @@ void buildTestsIn(
         }
         var code = result.content;
         var unit = result.unit;
-        var errors = result.errors;
-        if (errors.isNotEmpty) {
-          fail('Errors found when parsing $path');
+        var diagnostics = result.diagnostics;
+        if (diagnostics.isNotEmpty) {
+          fail('Diagnostics found when parsing $path');
         }
         var sorter = MemberSorter(
           code,

@@ -176,20 +176,20 @@ class AddConst extends ResolvedCorrectionProducer {
   /// If other diagnostics are to be fixed with this CorrectionProducer the
   /// inner test for `prefer_const_constructors` will need to be amended.
   bool _declarationListIsFullyConst(NodeList<VariableDeclaration> variables) {
-    var errors = [
-      ...unitResult.errors.where(
+    var diagnostics = [
+      ...unitResult.diagnostics.where(
         (error) =>
             error.diagnosticCode == LinterLintCode.prefer_const_constructors,
       ),
     ];
-    var errorsRanges = errors.map(range.error);
+    var ranges = diagnostics.map(range.error);
     var variablesRanges = variables.map((v) {
       var initializer = v.initializer;
       if (initializer == null) return range.node(v);
       return range.node(initializer);
     });
     // If each of the variable ranges is contained in the list of error ranges.
-    return variablesRanges.every(errorsRanges.contains);
+    return variablesRanges.every(ranges.contains);
   }
 
   /// Inserts `const ` before [targetNode].

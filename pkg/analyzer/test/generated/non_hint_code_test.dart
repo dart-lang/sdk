@@ -213,7 +213,7 @@ import 'package:somepackage/other.dart';
     result = await resolveFile(file);
 
     var diagnosticListener = GatheringDiagnosticListener();
-    diagnosticListener.addAll(result.errors);
+    diagnosticListener.addAll(result.diagnostics);
     diagnosticListener.assertErrors(expectedErrors);
   }
 }

@@ -164,7 +164,7 @@ Future<TestResult<T>> runTestForConfig<T>(
     var result = await analysisSession.getResolvedUnit(testFile.path);
     result as ResolvedUnitResult;
     var errors =
-        result.errors.where((e) => e.severity == Severity.error).toList();
+        result.diagnostics.where((e) => e.severity == Severity.error).toList();
     if (errors.isNotEmpty) {
       if (dataComputer.supportsErrors) {
         var diagnosticMap = <int, List<Diagnostic>>{};

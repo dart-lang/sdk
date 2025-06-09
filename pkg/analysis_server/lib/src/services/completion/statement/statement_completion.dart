@@ -186,11 +186,11 @@ class StatementCompletionProcessor {
     if (_isEmptyStatementOrEmptyBlock(node)) {
       node = node.parent!;
     }
-    for (var error in statementContext.resolveResult.errors) {
-      if (error.offset >= node.offset && error.offset <= node.end) {
-        if (error.diagnosticCode is! HintCode &&
-            error.diagnosticCode is! WarningCode) {
-          diagnostics.add(error);
+    for (var diagnostic in statementContext.resolveResult.diagnostics) {
+      if (diagnostic.offset >= node.offset && diagnostic.offset <= node.end) {
+        if (diagnostic.diagnosticCode is! HintCode &&
+            diagnostic.diagnosticCode is! WarningCode) {
+          diagnostics.add(diagnostic);
         }
       }
     }

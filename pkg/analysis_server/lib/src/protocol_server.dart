@@ -34,7 +34,11 @@ export 'package:analyzer_plugin/protocol/protocol_common.dart';
 List<AnalysisError> doAnalysisError_listFromEngine(
   engine.AnalysisResultWithErrors result,
 ) {
-  return mapEngineErrors(result, result.errors, newAnalysisError_fromEngine);
+  return mapEngineErrors(
+    result,
+    result.diagnostics,
+    newAnalysisError_fromEngine,
+  );
 }
 
 /// Adds [edit] to the file containing the given [fragment].

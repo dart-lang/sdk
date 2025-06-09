@@ -49,9 +49,9 @@ class EditOrganizeDirectivesHandler extends LegacyHandler {
     var fileStamp = -1;
     var code = result.content;
     var unit = result.unit;
-    var errors = result.errors;
-    // check if there are scan/parse errors in the file
-    var numScanParseErrors = numberOfSyntacticErrors(errors);
+    var diagnostics = result.diagnostics;
+    // Check if there are scan/parse errors in the file.
+    var numScanParseErrors = numberOfSyntacticErrors(diagnostics);
     if (numScanParseErrors != 0) {
       sendResponse(
         Response.organizeDirectivesError(
@@ -62,7 +62,7 @@ class EditOrganizeDirectivesHandler extends LegacyHandler {
       return;
     }
     // do organize
-    var sorter = ImportOrganizer(code, unit, errors);
+    var sorter = ImportOrganizer(code, unit, diagnostics);
     var edits = sorter.organize();
     var fileEdit = SourceFileEdit(file, fileStamp, edits: edits);
     sendResult(EditOrganizeDirectivesResult(fileEdit));

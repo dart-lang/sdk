@@ -446,7 +446,8 @@ package:analyzer/dart/analysis/results.dart:
     session (getter: AnalysisSession)
   AnalysisResultWithErrors (class extends Object implements FileResult):
     new (constructor: AnalysisResultWithErrors Function())
-    errors (getter: List<Diagnostic>)
+    diagnostics (getter: List<Diagnostic>)
+    errors (getter: List<Diagnostic>, deprecated)
   CannotResolveUriResult (class extends Object implements InvalidResult, SomeLibraryElementResult, SomeParsedLibraryResult, SomeResolvedLibraryResult):
     new (constructor: CannotResolveUriResult Function())
   DisposedAnalysisContextResult (class extends Object implements InvalidResult, SomeErrorsResult, SomeFileResult, SomeParsedLibraryResult, SomeParsedUnitResult, SomeResolvedLibraryResult, SomeResolvedUnitResult, SomeUnitElementResult):

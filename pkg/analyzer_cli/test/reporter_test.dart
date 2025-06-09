@@ -135,7 +135,7 @@ ErrorsResultImpl mockResult(DiagnosticType type, DiagnosticSeverity severity) {
     lineInfo: lineInfo,
     isLibrary: true,
     isPart: false,
-    errors: [error],
+    diagnostics: [error],
     analysisOptions: AnalysisOptionsImpl(),
   );
 }

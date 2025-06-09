@@ -415,7 +415,7 @@ void main() {
 }
 ''');
     var otherFileResult = await resolveFile(other);
-    expect(otherFileResult.errors, isEmpty);
+    expect(otherFileResult.diagnostics, isEmpty);
   }
 
   test_CastError_intToDouble_constructor_importAnalyzedBefore() async {
@@ -444,7 +444,7 @@ void main() {
 }
 ''');
     var otherFileResult = await resolveFile(other);
-    expect(otherFileResult.errors, isEmpty);
+    expect(otherFileResult.diagnostics, isEmpty);
   }
 
   test_default_constructor_arg_empty_map_import() async {
@@ -466,7 +466,7 @@ main() {
       [error(WarningCode.UNUSED_LOCAL_VARIABLE, 37, 1)],
     );
     var otherFileResult = await resolveFile(other);
-    assertErrorsInList(otherFileResult.errors, [
+    assertErrorsInList(otherFileResult.diagnostics, [
       error(WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE, 97, 7),
     ]);
   }

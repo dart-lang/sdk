@@ -26,8 +26,11 @@ abstract class AnalysisResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class AnalysisResultWithErrors implements FileResult {
-  /// The analysis errors that were computed during analysis.
-  List<Diagnostic> get errors;
+  /// The diagnostics that were computed during analysis.
+  List<Diagnostic> get diagnostics;
+
+  @Deprecated("Use 'diagnostics' instead")
+  List<Diagnostic> get errors => diagnostics;
 }
 
 /// The type of [InvalidResult] returned when the given URI cannot be resolved.

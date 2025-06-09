@@ -6066,7 +6066,7 @@ main() {
   ) async {
     await resolveTestCode(code);
     assertErrorsInList(
-      result.errors.where((e) {
+      result.diagnostics.where((e) {
         return e.diagnosticCode != WarningCode.UNUSED_LOCAL_VARIABLE &&
             e.diagnosticCode is! TodoCode;
       }).toList(),

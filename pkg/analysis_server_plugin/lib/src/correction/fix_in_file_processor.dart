@@ -47,9 +47,9 @@ final class FixInFileProcessor {
       return const <Fix>[];
     }
 
-    var errors = _fixContext.unitResult.errors
+    var diagnostics = _fixContext.unitResult.diagnostics
         .where((e) => error.diagnosticCode.name == e.diagnosticCode.name);
-    if (errors.length < 2) {
+    if (diagnostics.length < 2) {
       return const <Fix>[];
     }
 
@@ -79,17 +79,17 @@ final class FixInFileProcessor {
         }
 
         // Compute fixes for the rest of the errors.
-        for (var error in errors.where((item) => item != error)) {
+        for (var diagnostic in diagnostics.where((item) => item != error)) {
           var fixContext = DartFixContext(
             instrumentationService: _fixContext.instrumentationService,
             workspace: _fixContext.workspace,
             libraryResult: _fixContext.libraryResult,
             unitResult: _fixContext.unitResult,
-            error: error,
+            error: diagnostic,
             correctionUtils: _fixContext.correctionUtils,
           );
           fixState =
-              await _fixDiagnostic(fixContext, fixState, generator, error);
+              await _fixDiagnostic(fixContext, fixState, generator, diagnostic);
         }
         if (fixState is _NotEmptyFixState) {
           var sourceChange = fixState.builder.sourceChange;

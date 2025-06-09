@@ -206,16 +206,16 @@ abstract class ErrorFormatter {
     var diagnostics = <Diagnostic>[];
     var diagnosticToLine = <Diagnostic, ErrorsResult>{};
     for (var result in results) {
-      for (var error in result.errors) {
-        if (_computeSeverity(error) != null) {
-          diagnostics.add(error);
-          diagnosticToLine[error] = result;
+      for (var diagnostic in result.diagnostics) {
+        if (_computeSeverity(diagnostic) != null) {
+          diagnostics.add(diagnostic);
+          diagnosticToLine[diagnostic] = result;
         }
       }
     }
 
-    for (var error in diagnostics) {
-      await formatDiagnostic(diagnosticToLine, error);
+    for (var diagnostic in diagnostics) {
+      await formatDiagnostic(diagnosticToLine, diagnostic);
     }
   }
 
@@ -413,7 +413,7 @@ class JsonErrorFormatter extends ErrorFormatter {
 
     var diagnostics = <Map<String, dynamic>>[];
     for (var result in results) {
-      var errors = result.errors;
+      var errors = result.diagnostics;
       var lineInfo = result.lineInfo;
       for (var error in errors) {
         var severity = _computeSeverity(error);

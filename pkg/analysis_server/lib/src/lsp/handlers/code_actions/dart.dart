@@ -212,7 +212,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
           willBeDeduplicated ? {} : null;
       var workspace = DartChangeWorkspace(await server.currentSessions);
       CorrectionUtils? correctionUtils;
-      for (var error in unitResult.errors) {
+      for (var error in unitResult.diagnostics) {
         // Return fixes for any part of the line where a diagnostic is.
         // If a diagnostic spans multiple lines, the fix will be included for
         // all of those lines.

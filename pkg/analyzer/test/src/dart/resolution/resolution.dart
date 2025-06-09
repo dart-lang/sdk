@@ -210,7 +210,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     ResolvedUnitResult result,
     List<ExpectedError> expectedErrors,
   ) {
-    assertErrorsInList(result.errors, expectedErrors);
+    assertErrorsInList(result.diagnostics, expectedErrors);
   }
 
   void assertErrorsInResult(List<ExpectedError> expectedErrors) {
@@ -218,7 +218,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }
 
   void assertHasTestErrors() {
-    expect(result.errors, isNotEmpty);
+    expect(result.diagnostics, isNotEmpty);
   }
 
   /// Resolve the [code], and ensure that it can be resolved without a crash,

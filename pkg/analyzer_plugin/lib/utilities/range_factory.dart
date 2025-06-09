@@ -125,6 +125,7 @@ class RangeFactory {
 
   /// Returns a source range that covers the same range as the given
   /// [diagnostic].
+  // TODO(srawlins): Rename to 'diagnostic'.
   SourceRange error(Diagnostic diagnostic) {
     return SourceRange(diagnostic.offset, diagnostic.length);
   }

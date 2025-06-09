@@ -125,12 +125,12 @@ class AssistProcessor {
     }
 
     var fileOffset = node.offset;
-    for (var error in _assistContext.unitResult.errors) {
-      var errorSource = error.source;
+    for (var diagnostic in _assistContext.unitResult.diagnostics) {
+      var errorSource = diagnostic.source;
       if (_assistContext.unitResult.path == errorSource.fullName) {
-        if (fileOffset >= error.offset &&
-            fileOffset <= error.offset + error.length) {
-          if (lintCodes.contains(error.diagnosticCode)) {
+        if (fileOffset >= diagnostic.offset &&
+            fileOffset <= diagnostic.offset + diagnostic.length) {
+          if (lintCodes.contains(diagnostic.diagnosticCode)) {
             return true;
           }
         }

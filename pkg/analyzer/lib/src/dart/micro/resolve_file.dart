@@ -338,7 +338,7 @@ class FileResolver {
             }).toList();
       } else {
         var unitResult = await resolve(path: path, performance: performance);
-        diagnostics = unitResult.errors;
+        diagnostics = unitResult.diagnostics;
 
         _errorResultsCache.put(
           errorsKey,
@@ -356,7 +356,7 @@ class FileResolver {
         lineInfo: file.lineInfo,
         isLibrary: file.kind is LibraryFileKind,
         isPart: file.kind is PartFileKind,
-        errors: diagnostics,
+        diagnostics: diagnostics,
         analysisOptions: file.analysisOptions,
       );
     });
@@ -661,7 +661,7 @@ class FileResolver {
               session: contextObjects!.analysisSession,
               fileState: file,
               unit: fileResult.unit,
-              errors: fileResult.errors,
+              diagnostics: fileResult.diagnostics,
             );
           }).toList();
 

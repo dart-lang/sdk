@@ -183,7 +183,7 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
 
   /// The diagnostics that were computed during analysis.
   List<Diagnostic> get _diagnostics =>
-      result.errors
+      result.diagnostics
           .where(
             (e) => !ignoredDiagnosticCodes.any((c) => e.diagnosticCode == c),
           )
@@ -359,7 +359,7 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   ) async {
     for (var (path, expectedDiagnostics) in unitsAndDiagnostics) {
       result = await resolveFile(convertPath(path));
-      assertDiagnosticsIn(result.errors, expectedDiagnostics);
+      assertDiagnosticsIn(result.diagnostics, expectedDiagnostics);
     }
   }
 

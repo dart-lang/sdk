@@ -127,7 +127,7 @@ class EditGetFixesHandler extends LegacyHandler
     );
     var sdkVersionConstraint =
         (package is PubPackage) ? package.sdkVersionConstraint : null;
-    var errors = analyzeAnalysisOptions(
+    var diagnostics = analyzeAnalysisOptions(
       FileSource(optionsFile),
       content,
       sourceFactory,
@@ -138,10 +138,10 @@ class EditGetFixesHandler extends LegacyHandler
     if (options == null) {
       return errorFixesList;
     }
-    for (var error in errors) {
+    for (var diagnostic in diagnostics) {
       var generator = AnalysisOptionsFixGenerator(
         resourceProvider,
-        error,
+        diagnostic,
         content,
         options,
       );
@@ -160,10 +160,10 @@ class EditGetFixesHandler extends LegacyHandler
           lineInfo: lineInfo,
           isLibrary: true,
           isPart: false,
-          errors: errors,
+          diagnostics: diagnostics,
           analysisOptions: analysisOptions,
         );
-        var serverError = newAnalysisError_fromEngine(result, error);
+        var serverError = newAnalysisError_fromEngine(result, diagnostic);
         var errorFixes = AnalysisErrorFixes(serverError);
         errorFixesList.add(errorFixes);
         for (var fix in fixes) {
@@ -188,8 +188,8 @@ class EditGetFixesHandler extends LegacyHandler
       var unitResult = libraryResult.unitWithPath(file)!;
       var lineInfo = unitResult.lineInfo;
       var requestLine = lineInfo.getLocation(offset).lineNumber;
-      for (var error in unitResult.errors) {
-        var errorLine = lineInfo.getLocation(error.offset).lineNumber;
+      for (var diagnostic in unitResult.diagnostics) {
+        var errorLine = lineInfo.getLocation(diagnostic.offset).lineNumber;
         if (errorLine == requestLine) {
           var workspace = DartChangeWorkspace(await server.currentSessions);
           var context = DartFixContext(
@@ -197,7 +197,7 @@ class EditGetFixesHandler extends LegacyHandler
             workspace: workspace,
             libraryResult: libraryResult,
             unitResult: unitResult,
-            error: error,
+            error: diagnostic,
           );
 
           List<Fix> fixes;
@@ -223,8 +223,8 @@ class EditGetFixesHandler extends LegacyHandler
           } catch (exception, stackTrace) {
             var parametersFile = '''
 offset: $offset
-error: $error
-error.errorCode: ${error.diagnosticCode}
+error: $diagnostic
+error.errorCode: ${diagnostic.diagnosticCode}
 ''';
             throw CaughtExceptionWithFiles(exception, stackTrace, {
               file: unitResult.content,
@@ -234,7 +234,10 @@ error.errorCode: ${error.diagnosticCode}
 
           if (fixes.isNotEmpty) {
             fixes.sort(Fix.compareFixes);
-            var serverError = newAnalysisError_fromEngine(unitResult, error);
+            var serverError = newAnalysisError_fromEngine(
+              unitResult,
+              diagnostic,
+            );
             var errorFixes = AnalysisErrorFixes(serverError);
             errorFixesList.add(errorFixes);
             for (var fix in fixes) {
@@ -282,16 +285,16 @@ error.errorCode: ${error.diagnosticCode}
     }
 
     var analysisOptions = fileResult.analysisOptions;
-    var errors = validatePubspec(
+    var diagnostics = validatePubspec(
       contents: node,
       source: FileSource(pubspecFile),
       provider: resourceProvider,
       analysisOptions: analysisOptions,
     );
-    for (var error in errors) {
+    for (var diagnostic in diagnostics) {
       var generator = PubspecFixGenerator(
         resourceProvider,
-        error,
+        diagnostic,
         content,
         node,
       );
@@ -310,10 +313,10 @@ error.errorCode: ${error.diagnosticCode}
           lineInfo: lineInfo,
           isLibrary: true,
           isPart: false,
-          errors: errors,
+          diagnostics: diagnostics,
           analysisOptions: analysisOptions,
         );
-        var serverError = newAnalysisError_fromEngine(result, error);
+        var serverError = newAnalysisError_fromEngine(result, diagnostic);
         var errorFixes = AnalysisErrorFixes(serverError);
         errorFixesList.add(errorFixes);
         for (var fix in fixes) {

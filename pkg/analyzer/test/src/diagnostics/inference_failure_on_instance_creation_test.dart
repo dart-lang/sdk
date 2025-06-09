@@ -36,7 +36,7 @@ void f() {
 ''',
       [error(WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 39, 12)],
     );
-    expect(result.errors[0].message, contains("'HashMap.from'"));
+    expect(result.diagnostics[0].message, contains("'HashMap.from'"));
   }
 
   test_constructorNames_named_importPrefix() async {
@@ -49,7 +49,7 @@ void f() {
 ''',
       [error(WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 44, 14)],
     );
-    expect(result.errors[0].message, contains("'c.HashMap.from'"));
+    expect(result.diagnostics[0].message, contains("'c.HashMap.from'"));
   }
 
   test_constructorNames_unnamed() async {
@@ -62,7 +62,7 @@ void f() {
 ''',
       [error(WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 39, 7)],
     );
-    expect(result.errors[0].message, contains("'HashMap'"));
+    expect(result.diagnostics[0].message, contains("'HashMap'"));
   }
 
   test_constructorNames_unnamed_importPrefix() async {
@@ -75,7 +75,7 @@ void f() {
 ''',
       [error(WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 44, 9)],
     );
-    expect(result.errors[0].message, contains("'c.HashMap'"));
+    expect(result.diagnostics[0].message, contains("'c.HashMap'"));
   }
 
   test_explicitTypeArgument() async {

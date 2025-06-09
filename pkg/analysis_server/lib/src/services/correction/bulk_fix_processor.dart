@@ -261,7 +261,7 @@ class BulkFixProcessor {
           continue;
         }
 
-        if (!await _hasFixableErrors(context, path)) {
+        if (!await _hasFixableDiagnostics(context, path)) {
           continue;
         }
 
@@ -501,7 +501,7 @@ class BulkFixProcessor {
           continue;
         }
 
-        if (!await _hasFixableErrors(context, path)) {
+        if (!await _hasFixableDiagnostics(context, path)) {
           continue;
         }
 
@@ -557,16 +557,16 @@ class BulkFixProcessor {
     AnalysisOptions analysisOptions,
     List<Diagnostic> originalDiagnostics,
   ) sync* {
-    var errors = originalDiagnostics.toList();
-    errors.sort((a, b) => a.offset.compareTo(b.offset));
-    for (var error in errors) {
+    var diagnostics = originalDiagnostics.toList();
+    diagnostics.sort((a, b) => a.offset.compareTo(b.offset));
+    for (var diagnostic in diagnostics) {
       if (_codes != null &&
-          !_codes.contains(error.diagnosticCode.name.toLowerCase())) {
+          !_codes.contains(diagnostic.diagnosticCode.name.toLowerCase())) {
         continue;
       }
-      var processor = ErrorProcessor.getProcessor(analysisOptions, error);
+      var processor = ErrorProcessor.getProcessor(analysisOptions, diagnostic);
       if (processor == null || processor.severity != null) {
-        yield error;
+        yield diagnostic;
       }
     }
   }
@@ -629,7 +629,7 @@ class BulkFixProcessor {
     //
     for (var diagnostic in _filterDiagnostics(
       analysisOptions,
-      unitResult.errors,
+      unitResult.diagnostics,
     )) {
       var context = fixContext(diagnostic);
       await _fixSingleDiagnostic(
@@ -655,7 +655,7 @@ class BulkFixProcessor {
     var unusedImportDiagnostics = <Diagnostic>[];
     for (var diagnostic in _filterDiagnostics(
       analysisOptions,
-      unitResult.errors,
+      unitResult.diagnostics,
     )) {
       var diagnosticCode = diagnostic.diagnosticCode;
       if (diagnosticCode is LintCode) {
@@ -829,7 +829,7 @@ class BulkFixProcessor {
         }
         var unitResult =
             context.currentSession.getParsedUnit(path) as ParsedUnitResult;
-        if (unitResult.errors.isNotEmpty) {
+        if (unitResult.diagnostics.isNotEmpty) {
           continue;
         }
 
@@ -876,8 +876,11 @@ class BulkFixProcessor {
     }
   }
 
-  /// Returns whether [path] has any errors that might be fixable.
-  Future<bool> _hasFixableErrors(AnalysisContext context, String path) async {
+  /// Returns whether [path] has any diagnostics that might be fixable.
+  Future<bool> _hasFixableDiagnostics(
+    AnalysisContext context,
+    String path,
+  ) async {
     var errorsResult = await context.currentSession.getErrors(path);
     if (errorsResult is! ErrorsResult) {
       return false;
@@ -887,7 +890,7 @@ class BulkFixProcessor {
         .getAnalysisOptionsForFile(errorsResult.file);
     return _filterDiagnostics(
       analysisOptions,
-      errorsResult.errors,
+      errorsResult.diagnostics,
     ).any((d) => d.isFixable);
   }
 
@@ -904,18 +907,18 @@ class BulkFixProcessor {
         var unitResult =
             context.currentSession.getParsedUnit(path) as ParsedUnitResult;
         var code = unitResult.content;
-        var errors = unitResult.errors;
+        var diagnostics = unitResult.diagnostics;
         // Check if there are scan/parse errors in the file.
-        var hasParseErrors = errors.any(
-          (error) =>
-              error.diagnosticCode is ScannerErrorCode ||
-              error.diagnosticCode is ParserErrorCode,
+        var hasParseErrors = diagnostics.any(
+          (d) =>
+              d.diagnosticCode is ScannerErrorCode ||
+              d.diagnosticCode is ParserErrorCode,
         );
         if (hasParseErrors) {
           // Cannot process files with parse errors.
           continue;
         }
-        var sorter = ImportOrganizer(code, unitResult.unit, errors);
+        var sorter = ImportOrganizer(code, unitResult.unit, diagnostics);
         var edits = sorter.organize();
         await builder.addDartFileEdit(path, (builder) {
           for (var edit in edits) {

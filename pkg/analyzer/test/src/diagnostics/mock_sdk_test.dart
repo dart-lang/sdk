@@ -45,7 +45,7 @@ class MockSdkTest extends PubPackageResolutionTest {
 
   void _assertOnlyWarningsInUnit(ResolvedUnitResult resolvedUnit) {
     var notHints =
-        resolvedUnit.errors
+        resolvedUnit.diagnostics
             .where(
               (element) =>
                   element.diagnosticCode.type != DiagnosticType.HINT &&

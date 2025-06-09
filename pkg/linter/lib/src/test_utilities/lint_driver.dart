@@ -55,7 +55,9 @@ class LintDriver {
       var analysisSession = contextCollection.contextFor(path).currentSession;
       var errorsResult = await analysisSession.getErrors(path);
       if (errorsResult is ErrorsResult) {
-        result.add(DiagnosticInfo(errorsResult.errors, errorsResult.lineInfo));
+        result.add(
+          DiagnosticInfo(errorsResult.diagnostics, errorsResult.lineInfo),
+        );
       }
     }
     return result;

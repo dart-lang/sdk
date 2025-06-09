@@ -298,7 +298,7 @@ Future<List<StaticError>> _runAnalyzerOnFile(
   // Convert the analyzer errors to test_runner [StaticErrors].
   var errors = <StaticError>[];
   if (errorsResult is ErrorsResult) {
-    for (var diagnostic in errorsResult.errors) {
+    for (var diagnostic in errorsResult.diagnostics) {
       switch (diagnostic.severity) {
         case Severity.error:
         case Severity.warning
