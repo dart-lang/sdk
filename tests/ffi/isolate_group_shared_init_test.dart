@@ -42,7 +42,7 @@ late final String foo = () {
 }();
 
 testInitStrings() async {
-  const int nWorkers = 20;
+  const int nWorkers = 100;
   mutex = Mutex();
   final rp = ReceivePort();
   final rpExitAndErrors = ReceivePort()
@@ -78,7 +78,7 @@ testInitStrings() async {
 }
 
 testInitThrows() async {
-  const int nWorkers = 20;
+  const int nWorkers = 100;
   final rp = ReceivePort();
   int exitCounter = 0;
   final completer = Completer();

@@ -489,7 +489,7 @@ void Thread::ExitIsolate(bool isolate_shutdown) {
   // occupying a mutator again (decreases its max size).
   ASSERT(!(isolate_shutdown && is_nested_exit));
   if (!(is_nested_exit && thread->OwnsSafepoint())) {
-    group->DecreaseMutatorCount(isolate, is_nested_exit);
+    group->DecreaseMutatorCount(is_nested_exit);
   }
 }
 
@@ -538,6 +538,10 @@ void Thread::EnterIsolateGroupAsMutator(IsolateGroup* isolate_group,
   thread->SetStackLimit(OSThread::Current()->overflow_stack_limit());
 #endif
 
+  isolate_group->IncreaseMutatorCount(/*thread=*/thread,
+                                      /*is_nested_reenter=*/false,
+                                      /*was_stolen=*/true);
+
   thread->AssertDartMutatorInvariants();
 }
 
@@ -551,6 +555,7 @@ void Thread::ExitIsolateGroupAsMutator(bool bypass_safepoint) {
   thread->ResetMutatorState();
   thread->ClearStackLimit();
   SuspendThreadInternal(thread, VMTag::kInvalidTagId);
+  thread->isolate_group()->DecreaseMutatorCount(/*is_nested_exit=*/true);
   FreeActiveThread(thread, /*isolate=*/nullptr, bypass_safepoint);
 }
 
