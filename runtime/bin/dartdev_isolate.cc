@@ -67,9 +67,10 @@ bool DartDevIsolate::ShouldParseCommand(const char* script_uri) {
       (strcmp(script_uri, "devtools") == 0) ||
       (strcmp(script_uri, "doc") == 0) || (strcmp(script_uri, "fix") == 0) ||
       (strcmp(script_uri, "format") == 0) ||
-      (strcmp(script_uri, "info") == 0) || (strcmp(script_uri, "pub") == 0) ||
-      (strcmp(script_uri, "run") == 0) || (strcmp(script_uri, "test") == 0) ||
       (strcmp(script_uri, "info") == 0) ||
+      (strcmp(script_uri, "mcp-server") == 0) ||
+      (strcmp(script_uri, "pub") == 0) || (strcmp(script_uri, "run") == 0) ||
+      (strcmp(script_uri, "test") == 0) || (strcmp(script_uri, "info") == 0) ||
       (strcmp(script_uri, "language-server") == 0) ||
       (strcmp(script_uri, "tooling-daemon") == 0) ||
       (!File::ExistsUri(nullptr, script_uri) &&
