@@ -219,7 +219,7 @@ int _maxSeverity(List<DiagnosticInfo> infos) {
   var filteredErrors = infos.expand((i) => i.diagnostics);
   return filteredErrors.fold(
     0,
-    (value, e) => math.max(value, e.errorCode.severity.ordinal),
+    (value, e) => math.max(value, e.diagnosticCode.severity.ordinal),
   );
 }
 

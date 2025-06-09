@@ -78,7 +78,7 @@ vars = {
   "clang_version": "git_revision:8c7a2ce01a77c96028fe2c8566f65c45ad9408d3",
 
   # https://chrome-infra-packages.appspot.com/p/gn/gn
-  "gn_version": "git_revision:afd24ed11bc5fbef775a3ffe46c72e6bdca0fa60",
+  "gn_version": "git_revision:e5c4d1881b85b82789b7013233a944cf1a46370f",
 
   "reclient_version": "re_client_version:0.178.0.5ee9d3e8-gomaip",
   "download_reclient": True,
@@ -97,7 +97,7 @@ vars = {
 
   # Prefer to use hashes of binaryen that have been reviewed & rolled into g3.
   "binaryen_rev" : "b4bdcc33115b31758c56b83bb9de4642c411a042",
-  "boringssl_rev": "a934ee9e1fe4397e682f9f18b1f4f061d7400f9d",
+  "boringssl_rev": "035e720641f385e82c72b7b0a9e1d89e58cb5ed5",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
   "cpu_features_rev": "936b9ab5515dead115606559502e3864958f7f6e",
   "devtools_rev": "c65f3f2e353750614b66c664d4dd451853d1035e",
@@ -129,7 +129,7 @@ vars = {
   ### /third_party/pkg dependencies
   # 'tools/rev_sdk_deps.dart' will rev pkg dependencies to their latest; put an
   # EOL comment after a dependency to instead pin at the current revision.
-  "ai_rev": "1d9d60c959d30bf56b99eb8182170e218ecf3088",
+  "ai_rev": "f2b48c6bf688e27f41b0b73ee3ff0164a05da157",
   "core_rev": "635dfa32c261ba078438b74de397f2207904ca78",
   "dartdoc_rev": "4ceea6b8240bf1dd9694a170368264e40c67d66b",
   "ecosystem_rev": "64aac3a9c4606950bcf6c8729f01ed8548b9ed87",
@@ -147,8 +147,8 @@ vars = {
   "test_rev": "0793a2b3262ac900558c49c76e9bbe4f29f91ea4",
   "tools_rev": "e84cbd9e1b111d80763ae8b3e04685bd66866f08",
   "vector_math_rev": "13f185f7e97d559e003f5ac79201da12f9a01049",
-  "web_rev": "f1becf07db9faa56559d2844c3c6d430dc9b37de",
-  "webdev_rev": "55941b0ce5a2eb8a5799ee39f675b40c116f268d",
+  "web_rev": "de6b3e40826bde1653573d5c8e36aec3df2f4927",
+  "webdev_rev": "661dafd4a050e4325253155af092d2243721ab28",
   "webdriver_rev": "b8f511d7719e2ae2c21eb4d94f68564eee32cbe2",
   "webkit_inspection_protocol_rev": "effa75205516757795683d527c3dea9546eb0c32",
 

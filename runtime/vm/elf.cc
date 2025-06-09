@@ -1174,7 +1174,6 @@ void ElfWriter::CreateBSS() {
     } else {
       // Not VM or isolate text.
       UNREACHABLE();
-      continue;
     }
 
     uint8_t* bytes = nullptr;

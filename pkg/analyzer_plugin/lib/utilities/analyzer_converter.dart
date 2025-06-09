@@ -30,8 +30,8 @@ class AnalyzerConverter {
     analyzer.LineInfo? lineInfo,
     analyzer.DiagnosticSeverity? severity,
   }) {
-    var errorCode = diagnostic.errorCode;
-    severity ??= errorCode.severity;
+    var diagnosticCode = diagnostic.diagnosticCode;
+    severity ??= diagnosticCode.severity;
     var offset = diagnostic.offset;
     var startLine = -1;
     var startColumn = -1;
@@ -54,12 +54,12 @@ class AnalyzerConverter {
     }
     return plugin.AnalysisError(
         convertErrorSeverity(severity),
-        convertErrorType(errorCode.type),
+        convertErrorType(diagnosticCode.type),
         plugin.Location(diagnostic.source.fullName, offset, diagnostic.length,
             startLine, startColumn,
             endLine: endLine, endColumn: endColumn),
         diagnostic.message,
-        errorCode.name.toLowerCase(),
+        diagnosticCode.name.toLowerCase(),
         contextMessages: contextMessages,
         correction: diagnostic.correctionMessage,
         hasFix: true);

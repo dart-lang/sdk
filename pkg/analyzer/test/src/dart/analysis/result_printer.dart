@@ -265,7 +265,7 @@ class DriverEventsPrinter {
   }
 
   void _writeDiagnostic(Diagnostic d) {
-    sink.writelnWithIndent('${d.offset} +${d.length} ${d.errorCode.name}');
+    sink.writelnWithIndent('${d.offset} +${d.length} ${d.diagnosticCode.name}');
   }
 
   void _writeErrorsEvent(GetErrorsEvent event) {
@@ -1532,7 +1532,7 @@ class ResolvedUnitResultPrinter {
   }
 
   void _writeDiagnostic(Diagnostic d) {
-    sink.writelnWithIndent('${d.offset} +${d.length} ${d.errorCode.name}');
+    sink.writelnWithIndent('${d.offset} +${d.length} ${d.diagnosticCode.name}');
   }
 
   void _writeResolvedUnitResult(ResolvedUnitResultImpl result) {

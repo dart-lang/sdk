@@ -647,14 +647,11 @@ void IsolateGroup::IncreaseMutatorCount(Thread* thread,
   }
 }
 
-void IsolateGroup::DecreaseMutatorCount(Isolate* mutator, bool is_nested_exit) {
-  ASSERT(mutator->group() == this);
-
+void IsolateGroup::DecreaseMutatorCount(bool is_nested_exit) {
   // If the mutator thread has an active stack and runs on our thread pool we
   // will mark the worker as blocked, thereby possibly spawning a new worker for
   // pending tasks (if there are any).
   if (is_nested_exit) {
-    ASSERT(mutator->mutator_thread() != nullptr);
     thread_pool()->MarkCurrentWorkerAsBlocked();
   }
 

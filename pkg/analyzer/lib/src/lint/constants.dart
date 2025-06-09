@@ -25,7 +25,7 @@ class _ConstantDiagnosticListener extends DiagnosticListener {
 
   @override
   void onError(Diagnostic diagnostic) {
-    DiagnosticCode diagnosticCode = diagnostic.errorCode;
+    DiagnosticCode diagnosticCode = diagnostic.diagnosticCode;
     if (diagnosticCode is CompileTimeErrorCode) {
       switch (diagnosticCode) {
         case CompileTimeErrorCode

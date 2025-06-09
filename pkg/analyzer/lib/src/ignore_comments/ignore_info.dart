@@ -194,7 +194,7 @@ class IgnoreInfo {
   /// Whether [diagnostic] is ignored via an inline "ignore" comment.
   bool ignored(Diagnostic diagnostic, {String? pluginName}) {
     var line = _lineInfo.getLocation(diagnostic.offset).lineNumber;
-    return _ignoredAt(diagnostic.errorCode, line, pluginName: pluginName);
+    return _ignoredAt(diagnostic.diagnosticCode, line, pluginName: pluginName);
   }
 
   /// Returns whether the [diagnosticCode] is ignored at the given [line].

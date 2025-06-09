@@ -96,7 +96,8 @@ class OrganizeImportsDirectivesOrderingTest extends FixProcessorLintTest {
   bool Function(Diagnostic diagnostic) get _firstUnusedShownNameErrorFilter {
     var firstError = true;
     return (Diagnostic diagnostic) {
-      if (firstError && diagnostic.errorCode == WarningCode.UNUSED_SHOWN_NAME) {
+      if (firstError &&
+          diagnostic.diagnosticCode == WarningCode.UNUSED_SHOWN_NAME) {
         firstError = false;
         return true;
       }

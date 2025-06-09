@@ -548,7 +548,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   void IncreaseMutatorCount(Thread* thread,
                             bool is_nested_reenter,
                             bool was_stolen);
-  void DecreaseMutatorCount(Isolate* mutator, bool is_nested_exit);
+  void DecreaseMutatorCount(bool is_nested_exit);
   NO_SANITIZE_THREAD
   intptr_t MutatorCount() const { return active_mutators_; }
 

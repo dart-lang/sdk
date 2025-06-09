@@ -93,7 +93,8 @@ import 'package:test/foo';
 import 'foo';
 ''',
       errorFilter:
-          (error) => error.errorCode != CompileTimeErrorCode.URI_DOES_NOT_EXIST,
+          (error) =>
+              error.diagnosticCode != CompileTimeErrorCode.URI_DOES_NOT_EXIST,
     );
   }
 

@@ -285,10 +285,10 @@ class IgnoreValidator {
 }
 
 extension on Diagnostic {
-  String get ignoreName => errorCode.name.toLowerCase();
+  String get ignoreName => diagnosticCode.name.toLowerCase();
 
   String get ignoreUniqueName {
-    String uniqueName = errorCode.uniqueName;
+    String uniqueName = diagnosticCode.uniqueName;
     int period = uniqueName.indexOf('.');
     if (period >= 0) {
       uniqueName = uniqueName.substring(period + 1);

@@ -56,7 +56,7 @@ class A {
 ''',
       errorFilter:
           (e) =>
-              e.errorCode.name ==
+              e.diagnosticCode.name ==
               LintNames.avoid_single_cascade_in_expression_statements,
     );
   }
@@ -100,7 +100,7 @@ f() {
 ''',
       errorFilter:
           (e) =>
-              e.errorCode.name ==
+              e.diagnosticCode.name ==
               LintNames.avoid_single_cascade_in_expression_statements,
     );
   }

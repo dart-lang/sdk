@@ -390,7 +390,7 @@ void g(int i) {
 ''');
     await assertNoFix(
       errorFilter: (error) {
-        return error.errorCode ==
+        return error.diagnosticCode ==
             CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE;
       },
     );
@@ -433,7 +433,7 @@ void g(int i, int? x) {
 }
 ''',
       errorFilter: (error) {
-        return error.errorCode ==
+        return error.diagnosticCode ==
             CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE;
       },
     );
@@ -448,7 +448,7 @@ void g(int i, int x) {
 ''');
     await assertNoFix(
       errorFilter: (error) {
-        return error.errorCode ==
+        return error.diagnosticCode ==
             CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE;
       },
     );
@@ -463,7 +463,7 @@ void g(int i, int? x) {
 ''');
     await assertNoFix(
       errorFilter: (error) {
-        return error.errorCode ==
+        return error.diagnosticCode ==
             CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE;
       },
     );
@@ -552,7 +552,7 @@ void f (List<int>? args) {
     await assertNoFix(
       errorFilter:
           (diagnostic) =>
-              diagnostic.errorCode !=
+              diagnostic.diagnosticCode !=
               CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,
     );
   }
@@ -603,7 +603,7 @@ f(List<String>? args) {
 ''',
       errorFilter:
           (diagnostic) =>
-              diagnostic.errorCode !=
+              diagnostic.diagnosticCode !=
               CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE,
     );
   }
@@ -626,7 +626,7 @@ g() {
 ''',
       errorFilter:
           (diagnostic) =>
-              diagnostic.errorCode ==
+              diagnostic.diagnosticCode ==
               CompileTimeErrorCode
                   .UNCHECKED_USE_OF_NULLABLE_VALUE_IN_YIELD_EACH,
     );
@@ -650,7 +650,7 @@ class C {
 ''',
       errorFilter:
           (diagnostic) =>
-              diagnostic.errorCode !=
+              diagnostic.diagnosticCode !=
               CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE,
     );
   }
@@ -669,7 +669,7 @@ Iterable<String> f(List<String>? args) sync* {
 ''',
       errorFilter:
           (diagnostic) =>
-              diagnostic.errorCode !=
+              diagnostic.diagnosticCode !=
               CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE,
     );
   }

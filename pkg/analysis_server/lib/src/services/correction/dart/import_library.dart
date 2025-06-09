@@ -726,7 +726,7 @@ class ImportLibrary extends MultiCorrectionProducer {
         <Diagnostic, List<MultiProducerGenerator>>{}..addEntries(
           unitResult.errors.map((error) {
             if (error == diagnostic) return null;
-            var generators = errorsForThisFix[error.errorCode];
+            var generators = errorsForThisFix[error.diagnosticCode];
             if (generators == null) return null;
             return MapEntry(error, generators);
           }).nonNulls,

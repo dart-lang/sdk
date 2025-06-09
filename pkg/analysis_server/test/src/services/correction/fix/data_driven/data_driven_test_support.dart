@@ -52,7 +52,7 @@ abstract class DataDrivenFixProcessorTest extends FixProcessorTest {
   /// A method that can be used as an error filter to ignore any unused_import
   /// diagnostics.
   bool ignoreUnusedImport(Diagnostic diagnostic) =>
-      diagnostic.errorCode != WarningCode.UNUSED_IMPORT;
+      diagnostic.diagnosticCode != WarningCode.UNUSED_IMPORT;
 
   /// Set the content of the library that defines the element referenced by the
   /// data on which this test is based.

@@ -178,7 +178,8 @@ class AddConst extends ResolvedCorrectionProducer {
   bool _declarationListIsFullyConst(NodeList<VariableDeclaration> variables) {
     var errors = [
       ...unitResult.errors.where(
-        (error) => error.errorCode == LinterLintCode.prefer_const_constructors,
+        (error) =>
+            error.diagnosticCode == LinterLintCode.prefer_const_constructors,
       ),
     ];
     var errorsRanges = errors.map(range.error);

@@ -115,7 +115,7 @@ class ExpectedError {
   bool matches(Diagnostic error) {
     if (error.offset != offset ||
         error.length != length ||
-        error.errorCode != code) {
+        error.diagnosticCode != code) {
       return false;
     }
     if (message != null && error.message != message) {
@@ -245,7 +245,7 @@ class GatheringDiagnosticListener implements DiagnosticListener {
       buffer.writeln('Found but did not expect:');
       for (Diagnostic actual in unmatchedActual) {
         buffer.write('  ');
-        buffer.write(actual.errorCode);
+        buffer.write(actual.diagnosticCode);
         buffer.write(' [');
         buffer.write(actual.offset);
         buffer.write(', ');
@@ -271,7 +271,7 @@ class GatheringDiagnosticListener implements DiagnosticListener {
         for (Diagnostic actual in diagnostics) {
           List<DiagnosticMessage> contextMessages = actual.contextMessages;
           buffer.write('  error(');
-          buffer.write(actual.errorCode);
+          buffer.write(actual.diagnosticCode);
           buffer.write(', ');
           buffer.write(actual.offset);
           buffer.write(', ');
@@ -335,7 +335,7 @@ class GatheringDiagnosticListener implements DiagnosticListener {
         <DiagnosticCode, List<Diagnostic>>{};
     for (Diagnostic diagnostic in _diagnostics) {
       diagnosticsByCode
-          .putIfAbsent(diagnostic.errorCode, () => <Diagnostic>[])
+          .putIfAbsent(diagnostic.diagnosticCode, () => <Diagnostic>[])
           .add(diagnostic);
     }
     //
@@ -412,7 +412,7 @@ class GatheringDiagnosticListener implements DiagnosticListener {
     int actualErrorCount = 0;
     int actualWarningCount = 0;
     for (Diagnostic diagnostic in _diagnostics) {
-      if (diagnostic.errorCode.severity == DiagnosticSeverity.ERROR) {
+      if (diagnostic.diagnosticCode.severity == DiagnosticSeverity.ERROR) {
         actualErrorCount++;
       } else {
         actualWarningCount++;

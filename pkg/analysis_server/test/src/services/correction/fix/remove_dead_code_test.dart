@@ -1167,5 +1167,5 @@ void f(int i, int j) => i;
         'DEAD_NULL_AWARE_EXPRESSION',
         'INVALID_NULL_AWARE_OPERATOR',
         'UNNECESSARY_NULL_COMPARISON',
-      }.contains(diagnostic.errorCode.name);
+      }.contains(diagnostic.diagnosticCode.name);
 }

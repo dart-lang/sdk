@@ -581,7 +581,7 @@ class LibraryAnalyzer {
     var unignorableCodes = _analysisOptions.unignorableNames;
 
     bool isIgnored(Diagnostic diagnostic) {
-      var code = diagnostic.errorCode;
+      var code = diagnostic.diagnosticCode;
       // Don't allow un-ignorable codes to be ignored.
       if (unignorableCodes.contains(code.name) ||
           unignorableCodes.contains(code.uniqueName) ||
@@ -617,7 +617,7 @@ class LibraryAnalyzer {
     var errorCodes =
         _libraryFiles.values.map((analysis) {
           return analysis.diagnosticListener.diagnostics.map(
-            (e) => e.errorCode,
+            (e) => e.diagnosticCode,
           );
         }).flattenedToSet;
 

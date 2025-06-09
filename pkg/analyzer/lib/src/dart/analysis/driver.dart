@@ -2350,7 +2350,7 @@ class AnalysisDriver {
     List<Diagnostic> diagnostics,
   ) {
     for (var diagnostic in diagnostics) {
-      var severity = diagnostic.errorCode.severity;
+      var severity = diagnostic.diagnosticCode.severity;
       if (severity == DiagnosticSeverity.ERROR) {
         file.hasErrorOrWarning = true;
         return;
@@ -2733,7 +2733,7 @@ class ErrorEncoding {
     return AnalysisDriverUnitErrorBuilder(
       offset: diagnostic.offset,
       length: diagnostic.length,
-      uniqueName: diagnostic.errorCode.uniqueName,
+      uniqueName: diagnostic.diagnosticCode.uniqueName,
       message: diagnostic.message,
       correction: diagnostic.correctionMessage ?? '',
       contextMessages: contextMessages,

@@ -6067,8 +6067,8 @@ main() {
     await resolveTestCode(code);
     assertErrorsInList(
       result.errors.where((e) {
-        return e.errorCode != WarningCode.UNUSED_LOCAL_VARIABLE &&
-            e.errorCode is! TodoCode;
+        return e.diagnosticCode != WarningCode.UNUSED_LOCAL_VARIABLE &&
+            e.diagnosticCode is! TodoCode;
       }).toList(),
       expectedErrors,
     );

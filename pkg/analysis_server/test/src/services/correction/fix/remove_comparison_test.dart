@@ -22,7 +22,7 @@ void main() {
 }
 
 bool _ignoreDeadCode(Diagnostic diagnostic) =>
-    diagnostic.errorCode != WarningCode.DEAD_CODE;
+    diagnostic.diagnosticCode != WarningCode.DEAD_CODE;
 
 @reflectiveTest
 class RemoveComparisonTest extends FixProcessorTest {

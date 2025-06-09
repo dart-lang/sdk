@@ -73,7 +73,7 @@ linter:
   void validate(String source, List<DiagnosticCode> expected) {
     var options = AnalysisOptionsProvider().getOptionsFromString(source);
     validator.validate(reporter, options);
-    expect(diagnostics.map((e) => e.errorCode), unorderedEquals(expected));
+    expect(diagnostics.map((e) => e.diagnosticCode), unorderedEquals(expected));
   }
 }
 

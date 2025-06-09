@@ -8341,7 +8341,7 @@ sealed class ExpressionImpl extends AstNodeImpl
 
     var constant = visitor.evaluateAndReportInvalidConstant(this);
     var isInvalidConstant = diagnosticListener.diagnostics.any(
-      (e) => e.errorCode == CompileTimeErrorCode.INVALID_CONSTANT,
+      (e) => e.diagnosticCode == CompileTimeErrorCode.INVALID_CONSTANT,
     );
     if (isInvalidConstant) {
       return null;

@@ -3443,7 +3443,9 @@ class B<T2, U2> {
   void _expectInferenceError(String errorMessage) {
     var errors =
         result.errors
-            .where((e) => e.errorCode == CompileTimeErrorCode.COULD_NOT_INFER)
+            .where(
+              (e) => e.diagnosticCode == CompileTimeErrorCode.COULD_NOT_INFER,
+            )
             .map((e) => e.message)
             .toList();
     expect(errors.length, 1);

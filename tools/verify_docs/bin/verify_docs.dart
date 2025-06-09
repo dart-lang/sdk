@@ -115,7 +115,7 @@ Future<bool> verifyFile(
 
   // Throw if there are syntactic errors.
   var syntacticErrors = parseResult.errors.where((error) {
-    return error.errorCode.type == DiagnosticType.SYNTACTIC_ERROR;
+    return error.diagnosticCode.type == DiagnosticType.SYNTACTIC_ERROR;
   }).toList();
   if (syntacticErrors.isNotEmpty) {
     throw Exception(syntacticErrors);
@@ -341,21 +341,22 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
 
       // Filter out unused imports, since we speculatively add imports to some
       // samples.
-      diagnostics.removeWhere((e) => e.errorCode == WarningCode.UNUSED_IMPORT);
+      diagnostics
+          .removeWhere((e) => e.diagnosticCode == WarningCode.UNUSED_IMPORT);
 
       // Also, don't worry about 'unused_local_variable' and related; this may
       // be intentional in samples.
       diagnostics.removeWhere(
         (e) =>
-            e.errorCode == WarningCode.UNUSED_LOCAL_VARIABLE ||
-            e.errorCode == WarningCode.UNUSED_ELEMENT,
+            e.diagnosticCode == WarningCode.UNUSED_LOCAL_VARIABLE ||
+            e.diagnosticCode == WarningCode.UNUSED_ELEMENT,
       );
 
       // Handle edge case around dart:_http
       diagnostics.removeWhere((e) {
         if (e.message.contains("'dart:_http'")) {
-          return e.errorCode == HintCode.UNNECESSARY_IMPORT ||
-              e.errorCode == CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY;
+          return e.diagnosticCode == HintCode.UNNECESSARY_IMPORT ||
+              e.diagnosticCode == CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY;
         }
         return false;
       });
@@ -370,7 +371,7 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
           final location = result.lineInfo.getLocation(diagnostic.offset);
           print(
             '  ${_severity(diagnostic.severity)}: ${diagnostic.message} '
-            '[$location] (${diagnostic.errorCode.name.toLowerCase()})',
+            '[$location] (${diagnostic.diagnosticCode.name.toLowerCase()})',
           );
         }
         print('');

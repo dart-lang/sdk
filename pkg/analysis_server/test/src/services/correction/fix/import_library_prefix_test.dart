@@ -71,7 +71,7 @@ void f() {
 }
 ''',
       errorFilter: (error) {
-        return error.errorCode == CompileTimeErrorCode.UNDEFINED_CLASS;
+        return error.diagnosticCode == CompileTimeErrorCode.UNDEFINED_CLASS;
       },
     );
   }
@@ -99,7 +99,7 @@ void f() {
 }
 ''',
       errorFilter: (error) {
-        return error.errorCode == CompileTimeErrorCode.UNDEFINED_CLASS;
+        return error.diagnosticCode == CompileTimeErrorCode.UNDEFINED_CLASS;
       },
     );
   }

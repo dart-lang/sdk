@@ -367,7 +367,10 @@ class MockAnalysisError implements engine.Diagnostic {
   Object? get data => throw UnimplementedError();
 
   @override
-  engine.DiagnosticCode get errorCode => _diagnosticCode!;
+  engine.DiagnosticCode get diagnosticCode => _diagnosticCode!;
+
+  @override
+  engine.DiagnosticCode get errorCode => diagnosticCode;
 
   @override
   int get length => _length!;

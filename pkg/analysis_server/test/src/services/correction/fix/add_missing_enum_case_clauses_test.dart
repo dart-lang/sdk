@@ -31,7 +31,7 @@ class AddMissingEnumCaseClausesTest extends FixProcessorTest {
     var hasError = false;
     return (error) {
       if (!hasError &&
-          error.errorCode ==
+          error.diagnosticCode ==
               StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH) {
         hasError = true;
         return true;

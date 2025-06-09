@@ -107,12 +107,12 @@ class AssistProcessor {
   }
 
   /// Returns whether [generator] applies to any enabled lint rule, among
-  /// [errorCodes].
+  /// [lintCodes].
   bool _generatorAppliesToAnyLintRule(
     ProducerGenerator generator,
-    Set<LintCode> errorCodes,
+    Set<LintCode> lintCodes,
   ) {
-    if (errorCodes.isEmpty) {
+    if (lintCodes.isEmpty) {
       return false;
     }
 
@@ -130,7 +130,7 @@ class AssistProcessor {
       if (_assistContext.unitResult.path == errorSource.fullName) {
         if (fileOffset >= error.offset &&
             fileOffset <= error.offset + error.length) {
-          if (errorCodes.contains(error.errorCode)) {
+          if (lintCodes.contains(error.diagnosticCode)) {
             return true;
           }
         }
