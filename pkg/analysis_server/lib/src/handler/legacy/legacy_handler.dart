@@ -82,9 +82,9 @@ abstract class LegacyHandler {
   /// Return the number of syntactic errors in the list of [diagnostics].
   int numberOfSyntacticErrors(List<Diagnostic> diagnostics) {
     var numScanParseErrors = 0;
-    for (var error in diagnostics) {
-      if (error.errorCode is ScannerErrorCode ||
-          error.errorCode is ParserErrorCode) {
+    for (var diagnostic in diagnostics) {
+      if (diagnostic.diagnosticCode is ScannerErrorCode ||
+          diagnostic.diagnosticCode is ParserErrorCode) {
         numScanParseErrors++;
       }
     }

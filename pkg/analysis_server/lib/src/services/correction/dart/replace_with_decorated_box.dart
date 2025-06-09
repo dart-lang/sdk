@@ -118,7 +118,7 @@ class ReplaceWithDecoratedBox extends ResolvedCorrectionProducer {
   bool _hasLint(InstanceCreationExpression expression) {
     var constructorName = expression.constructorName;
     return unitResult.errors.any((error) {
-      var errorCode = error.errorCode;
+      var errorCode = error.diagnosticCode;
       return errorCode.type == DiagnosticType.LINT &&
           errorCode == LinterLintCode.use_decorated_box &&
           error.offset == constructorName.offset &&

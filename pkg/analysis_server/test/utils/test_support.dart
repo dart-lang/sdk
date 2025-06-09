@@ -81,7 +81,7 @@ class ExpectedError {
   bool matches(Diagnostic diagnostic) {
     if (diagnostic.offset != offset ||
         diagnostic.length != length ||
-        diagnostic.errorCode != code) {
+        diagnostic.diagnosticCode != code) {
       return false;
     }
     if (message != null && diagnostic.message != message) {
@@ -202,7 +202,7 @@ class GatheringDiagnosticListener implements DiagnosticListener {
       buffer.writeln('Found but did not expect:');
       for (var actual in unmatchedActual) {
         buffer.write('  ');
-        buffer.write(actual.errorCode);
+        buffer.write(actual.diagnosticCode);
         buffer.write(' [');
         buffer.write(actual.offset);
         buffer.write(', ');
@@ -221,7 +221,7 @@ class GatheringDiagnosticListener implements DiagnosticListener {
       for (var actual in diagnostics) {
         var contextMessages = actual.contextMessages;
         buffer.write('  error(');
-        buffer.write(actual.errorCode);
+        buffer.write(actual.diagnosticCode);
         buffer.write(', ');
         buffer.write(actual.offset);
         buffer.write(', ');
@@ -274,7 +274,7 @@ class GatheringDiagnosticListener implements DiagnosticListener {
     var diagnosticsByCode = <DiagnosticCode, List<Diagnostic>>{};
     for (var diagnostic in _diagnostics) {
       diagnosticsByCode
-          .putIfAbsent(diagnostic.errorCode, () => <Diagnostic>[])
+          .putIfAbsent(diagnostic.diagnosticCode, () => <Diagnostic>[])
           .add(diagnostic);
     }
 
@@ -350,7 +350,7 @@ class GatheringDiagnosticListener implements DiagnosticListener {
     var actualErrorCount = 0;
     var actualWarningCount = 0;
     for (var diagnostic in _diagnostics) {
-      if (diagnostic.errorCode.severity == DiagnosticSeverity.ERROR) {
+      if (diagnostic.diagnosticCode.severity == DiagnosticSeverity.ERROR) {
         actualErrorCount++;
       } else {
         actualWarningCount++;
@@ -380,7 +380,7 @@ class GatheringDiagnosticListener implements DiagnosticListener {
   /// gathered.
   bool hasDiagnostic(DiagnosticCode diagnosticCode) {
     for (var diagnostic in _diagnostics) {
-      if (identical(diagnostic.errorCode, diagnosticCode)) {
+      if (identical(diagnostic.diagnosticCode, diagnosticCode)) {
         return true;
       }
     }

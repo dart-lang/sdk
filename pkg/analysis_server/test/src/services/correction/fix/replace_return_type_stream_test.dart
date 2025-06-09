@@ -31,7 +31,7 @@ import 'dart:async';
 Stream<List<int>> f() async* {}
 ''',
       errorFilter: (error) {
-        return error.errorCode ==
+        return error.diagnosticCode ==
             CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE;
       },
     );
@@ -57,7 +57,7 @@ import 'dart:async' as al;
 al.Stream<int> f() async* {}
 ''',
       errorFilter: (error) {
-        return error.errorCode ==
+        return error.diagnosticCode ==
             CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE;
       },
     );
@@ -74,7 +74,7 @@ import 'dart:async';
 Stream<int> f() async* {}
 ''',
       errorFilter: (error) {
-        return error.errorCode ==
+        return error.diagnosticCode ==
             CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE;
       },
     );

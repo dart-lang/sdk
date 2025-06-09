@@ -224,7 +224,7 @@ class EditGetFixesHandler extends LegacyHandler
             var parametersFile = '''
 offset: $offset
 error: $error
-error.errorCode: ${error.errorCode}
+error.errorCode: ${error.diagnosticCode}
 ''';
             throw CaughtExceptionWithFiles(exception, stackTrace, {
               file: unitResult.content,

@@ -92,7 +92,7 @@ void top() {
 }
 ''',
       errorFilter: (error) {
-        return error.errorCode ==
+        return error.diagnosticCode ==
             CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION;
       },
     );
@@ -136,7 +136,7 @@ class B extends A {
 }
 ''',
       errorFilter: (error) {
-        return error.errorCode ==
+        return error.diagnosticCode ==
             CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD;
       },
     );
@@ -214,7 +214,7 @@ num f() {
 }
 ''',
       errorFilter: (error) {
-        return error.errorCode ==
+        return error.diagnosticCode ==
             CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION;
       },
     );
@@ -243,7 +243,7 @@ class A {
 }
 ''',
       errorFilter: (error) {
-        return error.errorCode ==
+        return error.diagnosticCode ==
             CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD;
       },
     );

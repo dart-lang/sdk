@@ -272,7 +272,8 @@ final class S extends Struct {}
 final class C {}
 ''',
       errorFilter:
-          (error) => error.errorCode == FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH,
+          (error) =>
+              error.diagnosticCode == FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH,
     );
   }
 }

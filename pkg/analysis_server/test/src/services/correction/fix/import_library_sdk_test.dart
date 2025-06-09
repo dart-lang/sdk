@@ -269,7 +269,8 @@ class MyAnnotation {
 void f() {}
 ''',
       errorFilter: (error) {
-        return error.errorCode == CompileTimeErrorCode.UNDEFINED_IDENTIFIER;
+        return error.diagnosticCode ==
+            CompileTimeErrorCode.UNDEFINED_IDENTIFIER;
       },
     );
   }

@@ -54,39 +54,40 @@ abstract class BaseFixProcessorTest extends AbstractSingleUnitTest {
     return await computeFixes(context);
   }
 
-  /// Find the error that is to be fixed by computing the errors in the file,
-  /// using the [errorFilter] to filter out errors that should be ignored, and
-  /// expecting that there is a single remaining error. The error filter should
-  /// return `true` if the error should not be ignored.
-  Future<Diagnostic> _findErrorToFix({ErrorFilter? errorFilter}) async {
+  /// Finds the diagnostic that is to be fixed by computing the diagnostics in
+  /// the file, using the [filter] to filter out diagnostics that should be
+  /// ignored, and expecting that there is a single remaining diagnostic. The
+  /// diagnostic filter should return `true` if the diagnostic should not be
+  /// ignored.
+  Future<Diagnostic> _findDiagnosticToFix({ErrorFilter? filter}) async {
     var errors = testAnalysisResult.errors;
-    if (errorFilter != null) {
+    if (filter != null) {
       if (errors.length == 1) {
         fail('Unnecessary error filter');
       }
-      errors = errors.where(errorFilter).toList();
+      errors = errors.where(filter).toList();
     }
     if (errors.isEmpty) {
-      fail('Expected one error, found: none');
+      fail('Expected one diagnostic, found: none');
     } else if (errors.length > 1) {
       var buffer = StringBuffer();
-      buffer.writeln('Expected one error, found:');
+      buffer.writeln('Expected one diagnostic, found:');
       for (var error in errors) {
-        buffer.writeln('  $error [${error.errorCode}]');
+        buffer.writeln('  $error [${error.diagnosticCode}]');
       }
       fail(buffer.toString());
     }
     return errors[0];
   }
 
-  Future<Diagnostic> _findErrorToFixOfType(DiagnosticCode code) async {
+  Future<Diagnostic> _findDiagnosticToFixOfType(DiagnosticCode code) async {
     var errors = testAnalysisResult.errors;
     for (var error in errors) {
-      if (error.errorCode == code) {
+      if (error.diagnosticCode == code) {
         return error;
       }
     }
-    fail('Expected to find an error with the code: $code');
+    fail('Expected to find an diagnostic with the code: $code');
   }
 }
 
@@ -252,10 +253,10 @@ abstract class FixInFileProcessorTest extends BaseFixProcessorTest {
   Future<List<Fix>> getFixesForFirst(ErrorFilter test) async {
     var errors = testAnalysisResult.errors.where(test);
     expect(errors, isNotEmpty);
-    String? errorCode;
+    String? diagnosticCode;
     for (var error in errors) {
-      errorCode ??= error.errorCode.name;
-      if (errorCode != error.errorCode.name) {
+      diagnosticCode ??= error.diagnosticCode.name;
+      if (diagnosticCode != error.diagnosticCode.name) {
         fail('Expected only errors of one type but found: $errors');
       }
     }
@@ -267,10 +268,10 @@ abstract class FixInFileProcessorTest extends BaseFixProcessorTest {
   Future<List<Fix>> getFixesForFirstError() async {
     var errors = testAnalysisResult.errors;
     expect(errors, isNotEmpty);
-    String? errorCode;
+    String? diagnosticCode;
     for (var error in errors) {
-      errorCode ??= error.errorCode.name;
-      if (errorCode != error.errorCode.name) {
+      diagnosticCode ??= error.diagnosticCode.name;
+      if (diagnosticCode != error.diagnosticCode.name) {
         fail('Expected only errors of one type but found: $errors');
       }
     }
@@ -316,7 +317,7 @@ abstract class FixPriorityTest extends BaseFixProcessorTest {
     List<FixKind> fixKinds, {
     ErrorFilter? errorFilter,
   }) async {
-    var error = await _findErrorToFix(errorFilter: errorFilter);
+    var error = await _findDiagnosticToFix(filter: errorFilter);
     var computedFixes = await _computeFixes(error);
     var kinds = computedFixes.map((fix) => fix.kind).toList();
     kinds.sort((a, b) => b.priority.compareTo(a.priority));
@@ -349,9 +350,9 @@ abstract class FixProcessorLintTest extends FixProcessorTest {
     var errors = testAnalysisResult.errors;
     var lintCodeSet =
         errors
-            .map((error) => error.errorCode)
+            .map((error) => error.diagnosticCode)
             .whereType<LintCode>()
-            .where((errorCode) => errorCode.name == name)
+            .where((lintCode) => lintCode.name == name)
             .toSet();
     if (lintCodeSet.length != 1) {
       fail('Expected exactly one LintCode, actually: $lintCodeSet');
@@ -361,7 +362,7 @@ abstract class FixProcessorLintTest extends FixProcessorTest {
 
   ErrorFilter lintNameFilter(String name) {
     return (e) {
-      return e.errorCode is LintCode && e.errorCode.name == name;
+      return e.diagnosticCode is LintCode && e.diagnosticCode.name == name;
     };
   }
 
@@ -388,7 +389,7 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
     bool allowFixAllFixes = false,
   }) async {
     expected = normalizeSource(expected);
-    var error = await _findErrorToFix(errorFilter: errorFilter);
+    var error = await _findDiagnosticToFix(filter: errorFilter);
     var fix = await _assertHasFix(
       error,
       expectedNumberOfFixesForKind: expectedNumberOfFixesForKind,
@@ -417,7 +418,7 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
     String? target,
   }) async {
     expected = normalizeSource(expected);
-    var error = await _findErrorToFixOfType(diagnosticCode);
+    var error = await _findDiagnosticToFixOfType(diagnosticCode);
     var fix = await _assertHasFixAllFix(error);
     change = fix.change;
 
@@ -443,7 +444,7 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
     required int expectedNumberOfFixesForKind,
     required List<String> matchFixMessages,
   }) async {
-    var error = await _findErrorToFix(errorFilter: errorFilter);
+    var error = await _findDiagnosticToFix(filter: errorFilter);
     await _assertHasFixes(
       error,
       expectedNumberOfFixesForKind: expectedNumberOfFixesForKind,
@@ -452,7 +453,7 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
   }
 
   Future<void> assertHasFixWithoutApplying({ErrorFilter? errorFilter}) async {
-    var error = await _findErrorToFix(errorFilter: errorFilter);
+    var error = await _findDiagnosticToFix(filter: errorFilter);
     var fix = await _assertHasFix(error);
     change = fix.change;
   }
@@ -481,12 +482,12 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
   /// Compute fixes and ensure that there is no fix of the [kind] being tested by
   /// this class.
   Future<void> assertNoFix({ErrorFilter? errorFilter}) async {
-    var error = await _findErrorToFix(errorFilter: errorFilter);
+    var error = await _findDiagnosticToFix(filter: errorFilter);
     await _assertNoFix(error);
   }
 
   Future<void> assertNoFixAllFix(DiagnosticCode diagnosticCode) async {
-    var error = await _findErrorToFixOfType(diagnosticCode);
+    var error = await _findDiagnosticToFixOfType(diagnosticCode);
     await _assertNoFixAllFix(error);
   }
 

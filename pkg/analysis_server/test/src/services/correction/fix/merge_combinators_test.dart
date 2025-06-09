@@ -34,7 +34,7 @@ import 'other.dart' show Stream, Future hide Stream;
         DartFixKind.MERGE_COMBINATORS_HIDE_SHOW,
       ],
       errorFilter: (error) {
-        return error.errorCode == WarningCode.MULTIPLE_COMBINATORS;
+        return error.diagnosticCode == WarningCode.MULTIPLE_COMBINATORS;
       },
     );
   }
@@ -49,7 +49,7 @@ import 'other.dart' hide Stream hide Future;
         DartFixKind.MERGE_COMBINATORS_SHOW_HIDE,
       ],
       errorFilter: (error) {
-        return error.errorCode == WarningCode.MULTIPLE_COMBINATORS;
+        return error.diagnosticCode == WarningCode.MULTIPLE_COMBINATORS;
       },
     );
   }
@@ -593,7 +593,7 @@ abstract class _MergeCombinatorTest extends FixProcessorErrorCodeTest
 
 mixin _MergeCombinatorTestMixin on FixProcessorErrorCodeTest {
   bool diagnosticCodeFilter(Diagnostic d) {
-    return d.errorCode == diagnosticCode;
+    return d.diagnosticCode == diagnosticCode;
   }
 
   @override

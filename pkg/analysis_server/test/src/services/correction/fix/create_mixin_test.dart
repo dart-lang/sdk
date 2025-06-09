@@ -147,7 +147,8 @@ mixin Test {
 }
 ''',
       errorFilter: (error) {
-        return error.errorCode == CompileTimeErrorCode.UNDEFINED_IDENTIFIER;
+        return error.diagnosticCode ==
+            CompileTimeErrorCode.UNDEFINED_IDENTIFIER;
       },
     );
     assertLinkedGroup(change.linkedEditGroups[0], ['Test])', 'Test {']);

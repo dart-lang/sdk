@@ -65,7 +65,7 @@ class _InheritanceDataComputer extends DataComputer<String> {
     Id id,
     List<Diagnostic> diagnostics,
   ) {
-    return diagnostics.map((e) => e.errorCode).join(',');
+    return diagnostics.map((e) => e.diagnosticCode).join(',');
   }
 
   @override

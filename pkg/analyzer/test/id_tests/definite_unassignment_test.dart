@@ -51,14 +51,14 @@ class _DefiniteAssignmentDataComputer extends DataComputer<String> {
     Id id,
     List<Diagnostic> diagnostics,
   ) {
-    var errorCodes = diagnostics
-        .map((e) => e.errorCode)
+    var diagnosticCodes = diagnostics
+        .map((e) => e.diagnosticCode)
         .where(
-          (errorCode) =>
-              errorCode !=
+          (c) =>
+              c !=
               CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE,
         );
-    return errorCodes.isNotEmpty ? errorCodes.join(',') : null;
+    return diagnosticCodes.isNotEmpty ? diagnosticCodes.join(',') : null;
   }
 
   @override

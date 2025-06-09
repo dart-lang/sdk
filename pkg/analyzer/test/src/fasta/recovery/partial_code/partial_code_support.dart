@@ -189,23 +189,25 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
       //
       GatheringDiagnosticListener listener = GatheringDiagnosticListener();
       parseCompilationUnit2(base.toString(), listener, featureSet: featureSet);
-      var baseErrorCodes = <DiagnosticCode>[];
+      var baseDiagnosticCodes = <DiagnosticCode>[];
       for (var diagnostic in listener.diagnostics) {
-        if (diagnostic.errorCode == ParserErrorCode.BREAK_OUTSIDE_OF_LOOP ||
-            diagnostic.errorCode == ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP ||
-            diagnostic.errorCode ==
+        if (diagnostic.diagnosticCode ==
+                ParserErrorCode.BREAK_OUTSIDE_OF_LOOP ||
+            diagnostic.diagnosticCode ==
+                ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP ||
+            diagnostic.diagnosticCode ==
                 ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE) {
-          baseErrorCodes.add(diagnostic.errorCode);
+          baseDiagnosticCodes.add(diagnostic.diagnosticCode);
         }
       }
 
       var expectedValidCodeDiagnostics = <DiagnosticCode>[
-        ...baseErrorCodes,
+        ...baseDiagnosticCodes,
         ...?descriptor.expectedDiagnosticsInValidCode,
       ];
 
       var expectedInvalidCodeErrors = <DiagnosticCode>[
-        ...baseErrorCodes,
+        ...baseDiagnosticCodes,
         ...?descriptor.diagnosticCodes,
       ];
       //

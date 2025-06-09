@@ -33,21 +33,21 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
       {analyzer.DiagnosticSeverity? severity,
       int startColumn = -1,
       int startLine = -1}) {
-    var errorCode = analyzerDiagnostic.errorCode;
+    var diagnosticCode = analyzerDiagnostic.diagnosticCode;
     expect(pluginError, isNotNull);
     var location = pluginError.location;
-    expect(pluginError.code, errorCode.name.toLowerCase());
-    expect(pluginError.correction, errorCode.correctionMessage);
+    expect(pluginError.code, diagnosticCode.name.toLowerCase());
+    expect(pluginError.correction, diagnosticCode.correctionMessage);
     expect(location, isNotNull);
     expect(location.file, analyzerDiagnostic.source.fullName);
     expect(location.length, analyzerDiagnostic.length);
     expect(location.offset, analyzerDiagnostic.offset);
     expect(location.startColumn, startColumn);
     expect(location.startLine, startLine);
-    expect(pluginError.message, errorCode.problemMessage);
+    expect(pluginError.message, diagnosticCode.problemMessage);
     expect(pluginError.severity,
-        converter.convertErrorSeverity(severity ?? errorCode.severity));
-    expect(pluginError.type, converter.convertErrorType(errorCode.type));
+        converter.convertErrorSeverity(severity ?? diagnosticCode.severity));
+    expect(pluginError.type, converter.convertErrorType(diagnosticCode.type));
   }
 
   Future<analyzer.Diagnostic> createError(
@@ -164,7 +164,7 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
     var severity = analyzer.DiagnosticSeverity.WARNING;
     var options = (analyzer.AnalysisOptionsBuilder()
           ..errorProcessors.add(analyzer.ErrorProcessor(
-              analyzerErrors[0].errorCode.name, severity)))
+              analyzerErrors[0].diagnosticCode.name, severity)))
         .build();
 
     var pluginErrors = converter.convertAnalysisErrors(analyzerErrors,
@@ -199,7 +199,7 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
     var severity = analyzer.DiagnosticSeverity.WARNING;
     var options = (analyzer.AnalysisOptionsBuilder()
           ..errorProcessors.add(analyzer.ErrorProcessor(
-              analyzerErrors[0].errorCode.name, severity)))
+              analyzerErrors[0].diagnosticCode.name, severity)))
         .build();
 
     var pluginErrors =

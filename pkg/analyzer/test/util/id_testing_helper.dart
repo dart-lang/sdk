@@ -192,7 +192,7 @@ Future<TestResult<T>> runTestForConfig<T>(
       } else {
         String formatError(Diagnostic e) {
           var locationInfo = result.unit.lineInfo.getLocation(e.offset);
-          return '$locationInfo: ${e.errorCode}: ${e.message}';
+          return '$locationInfo: ${e.diagnosticCode}: ${e.message}';
         }
 
         onFailure('Errors found:\n  ${errors.map(formatError).join('\n  ')}');

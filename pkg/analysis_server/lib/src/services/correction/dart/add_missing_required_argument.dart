@@ -74,7 +74,8 @@ class AddMissingRequiredArgument extends ResolvedCorrectionProducer {
 
     var validErrors = _codesWhereThisIsValid;
     var errors = unitResult.errors.where(
-      (e) => diagnostic.sameRangeAs(e) && validErrors.contains(e.errorCode),
+      (e) =>
+          diagnostic.sameRangeAs(e) && validErrors.contains(e.diagnosticCode),
     );
 
     // Should not happen since the current diagnostic is in the list of errors

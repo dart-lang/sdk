@@ -177,7 +177,7 @@ void f() {
 }
 ''',
       errorFilter: (e) {
-        return e.errorCode == CompileTimeErrorCode.UNDEFINED_ENUM_CONSTANT;
+        return e.diagnosticCode == CompileTimeErrorCode.UNDEFINED_ENUM_CONSTANT;
       },
     );
   }

@@ -97,7 +97,7 @@ class Driver {
               if (result is ErrorsResult) {
                 var filtered =
                     result.errors
-                        .where((e) => e.errorCode.name != 'TODO')
+                        .where((e) => e.diagnosticCode.name != 'TODO')
                         .toList();
                 if (filtered.isNotEmpty) {
                   errors.add(DiagnosticInfo(filtered, result.lineInfo));

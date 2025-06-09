@@ -28,7 +28,7 @@ f() {
 ''');
     await resolveTestFile();
     expect(
-      result.errors[0].errorCode,
+      result.errors[0].diagnosticCode,
       CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT,
     );
   }
@@ -45,7 +45,7 @@ f() {
 ''');
     await resolveTestFile();
     expect(
-      result.errors[0].errorCode,
+      result.errors[0].diagnosticCode,
       CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT,
     );
   }

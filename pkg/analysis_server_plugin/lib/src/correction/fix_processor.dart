@@ -122,16 +122,17 @@ class FixProcessor {
       }
     }
 
-    var errorCode = error.errorCode;
+    var diagnosticCode = error.diagnosticCode;
     List<ProducerGenerator>? generators;
     List<MultiProducerGenerator>? multiGenerators;
-    if (errorCode is LintCode) {
-      generators = registeredFixGenerators.lintProducers[errorCode];
-      multiGenerators = registeredFixGenerators.lintMultiProducers[errorCode];
-    } else {
-      generators = registeredFixGenerators.nonLintProducers[errorCode];
+    if (diagnosticCode is LintCode) {
+      generators = registeredFixGenerators.lintProducers[diagnosticCode];
       multiGenerators =
-          registeredFixGenerators.nonLintMultiProducers[errorCode];
+          registeredFixGenerators.lintMultiProducers[diagnosticCode];
+    } else {
+      generators = registeredFixGenerators.nonLintProducers[diagnosticCode];
+      multiGenerators =
+          registeredFixGenerators.nonLintMultiProducers[diagnosticCode];
     }
 
     if (generators != null) {
@@ -148,15 +149,15 @@ class FixProcessor {
       }
     }
 
-    if (errorCode is LintCode ||
-        errorCode is HintCode ||
-        errorCode is WarningCode) {
+    if (diagnosticCode is LintCode ||
+        diagnosticCode is HintCode ||
+        diagnosticCode is WarningCode) {
       for (var generator in registeredFixGenerators.ignoreProducerGenerators) {
         var producer = generator(context: context);
         if (producer.fixKind == ignoreErrorAnalysisFileKind) {
           if (alreadyCalculated?.add('${generator.hashCode}|'
                   '${ignoreErrorAnalysisFileKind.id}|'
-                  '${error.errorCode.name}') ==
+                  '${error.diagnosticCode.name}') ==
               false) {
             // We did this before and was asked to not do it again. Skip.
             continue;

@@ -17,14 +17,13 @@ import 'package:analyzer/src/generated/java_core.dart';
 /// [guidelines]: https://github.com/dart-lang/sdk/blob/main/pkg/analyzer/doc/implementation/diagnostics.md
 class Diagnostic {
   /// The diagnostic code associated with the diagnostic.
-  // TODO(srawlins): Rename this to `diagnosticCode`.
-  final DiagnosticCode errorCode;
+  final DiagnosticCode diagnosticCode;
 
   /// A list of messages that provide context for understanding the problem
   /// being reported. The list will be empty if there are no such messages.
   final List<DiagnosticMessage> contextMessages;
 
-  /// Data associated with this diagnostic, specific for [errorCode].
+  /// Data associated with this diagnostic, specific for [diagnosticCode].
   final Object? data;
 
   /// A description of how to fix the problem, or `null` if there is no such
@@ -41,12 +40,13 @@ class Diagnostic {
     required this.source,
     required int offset,
     required int length,
-    required this.errorCode,
+    required DiagnosticCode errorCode,
     required String message,
     this.correctionMessage,
     this.contextMessages = const [],
     this.data,
-  }) : problemMessage = DiagnosticMessageImpl(
+  }) : diagnosticCode = errorCode,
+       problemMessage = DiagnosticMessageImpl(
          filePath: source.fullName,
          length: length,
          message: message,
@@ -104,6 +104,9 @@ class Diagnostic {
   @Deprecated("Use 'correctionMessage' instead.")
   String? get correction => correctionMessage;
 
+  @Deprecated("Use 'diagnosticCode' instead")
+  DiagnosticCode get errorCode => diagnosticCode;
+
   @override
   int get hashCode {
     int hashCode = offset;
@@ -126,7 +129,7 @@ class Diagnostic {
   int get offset => problemMessage.offset;
 
   Severity get severity {
-    switch (errorCode.severity) {
+    switch (diagnosticCode.severity) {
       case DiagnosticSeverity.ERROR:
         return Severity.error;
       case DiagnosticSeverity.WARNING:
@@ -134,7 +137,7 @@ class Diagnostic {
       case DiagnosticSeverity.INFO:
         return Severity.info;
       default:
-        throw StateError('Invalid error severity: ${errorCode.severity}');
+        throw StateError('Invalid severity: ${diagnosticCode.severity}');
     }
   }
 
@@ -146,7 +149,7 @@ class Diagnostic {
     // prepare the other Diagnostic.
     if (other is Diagnostic) {
       // Quick checks.
-      if (!identical(errorCode, other.errorCode)) {
+      if (!identical(diagnosticCode, other.diagnosticCode)) {
         return false;
       }
       if (offset != other.offset || length != other.length) {

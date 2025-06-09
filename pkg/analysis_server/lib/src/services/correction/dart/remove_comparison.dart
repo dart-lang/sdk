@@ -37,17 +37,18 @@ class RemoveComparison extends ResolvedCorrectionProducer {
 
   /// Whether the condition will always return `false`.
   bool get _conditionIsFalse {
-    var errorCode = (diagnostic as Diagnostic).errorCode;
-    return errorCode == WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE ||
-        errorCode ==
+    var diagnosticCode = (diagnostic as Diagnostic).diagnosticCode;
+    return diagnosticCode == WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE ||
+        diagnosticCode ==
             WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE ||
-        errorCode == WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_FALSE ||
-        errorCode == WarningCode.UNNECESSARY_TYPE_CHECK_FALSE;
+        diagnosticCode ==
+            WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_FALSE ||
+        diagnosticCode == WarningCode.UNNECESSARY_TYPE_CHECK_FALSE;
   }
 
   /// Whether the condition will always return `true`.
   bool get _conditionIsTrue {
-    var errorCode = (diagnostic as Diagnostic).errorCode;
+    var errorCode = (diagnostic as Diagnostic).diagnosticCode;
     return errorCode == WarningCode.UNNECESSARY_NAN_COMPARISON_TRUE ||
         errorCode == WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE ||
         errorCode == WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE ||

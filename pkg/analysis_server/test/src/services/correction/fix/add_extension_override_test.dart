@@ -51,7 +51,7 @@ void f(String str) {
       matchFixMessage: "Add an extension override for 'StringExt1'",
       errorFilter:
           (error) =>
-              error.errorCode ==
+              error.diagnosticCode ==
               CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO,
     );
 
@@ -63,7 +63,7 @@ void f(String str) {
       ],
       errorFilter:
           (error) =>
-              error.errorCode ==
+              error.diagnosticCode ==
               CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO,
     );
   }
@@ -127,7 +127,7 @@ f() {
 ''',
       expectedNumberOfFixesForKind: 1,
       errorFilter: (error) {
-        return error.errorCode ==
+        return error.diagnosticCode ==
             CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO;
       },
     );
@@ -205,7 +205,7 @@ extension E2 on A {
       matchFixMessage: "Add an extension override for 'E2'",
       errorFilter:
           (error) =>
-              error.errorCode ==
+              error.diagnosticCode ==
               CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO,
     );
   }
@@ -241,7 +241,7 @@ extension E2 on A {
       matchFixMessage: "Add an extension override for 'E2'",
       errorFilter:
           (error) =>
-              error.errorCode ==
+              error.diagnosticCode ==
               CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO,
     );
   }
@@ -281,7 +281,7 @@ extension E2 on A {
       matchFixMessage: "Add an extension override for 'E2'",
       errorFilter:
           (error) =>
-              error.errorCode ==
+              error.diagnosticCode ==
               CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO,
     );
   }
@@ -390,7 +390,7 @@ void f(String str) {
       matchFixMessage: "Add an extension override for 'StringExt1'",
       errorFilter:
           (error) =>
-              error.errorCode ==
+              error.diagnosticCode ==
               CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO,
     );
 
@@ -402,7 +402,7 @@ void f(String str) {
       ],
       errorFilter:
           (error) =>
-              error.errorCode ==
+              error.diagnosticCode ==
               CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO,
     );
   }

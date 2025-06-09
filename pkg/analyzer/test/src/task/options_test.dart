@@ -585,7 +585,7 @@ plugins:
     var options = optionsProvider.getOptionsFromString(source);
     var diagnostics = validator.validate(options);
     expect(
-      diagnostics.map((Diagnostic e) => e.errorCode),
+      diagnostics.map((Diagnostic e) => e.diagnosticCode),
       unorderedEquals(expected),
     );
     return diagnostics;
@@ -809,7 +809,7 @@ analyzer:
       null /*sdkVersionConstraint*/,
     );
     expect(
-      diagnostics.map((Diagnostic e) => e.errorCode),
+      diagnostics.map((Diagnostic e) => e.diagnosticCode),
       unorderedEquals(expected),
     );
     return diagnostics;

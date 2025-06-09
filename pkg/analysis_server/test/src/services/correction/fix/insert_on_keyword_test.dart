@@ -25,7 +25,7 @@ extension String {}
 extension String {}
 ''');
     var fixes = await getFixesForFirst(
-      (e) => e.errorCode == ParserErrorCode.EXPECTED_TOKEN,
+      (e) => e.diagnosticCode == ParserErrorCode.EXPECTED_TOKEN,
     );
     expect(fixes, hasLength(1));
     assertProduces(fixes.first, r'''
@@ -49,7 +49,7 @@ extension int {}
 extension on int {}
 ''',
       errorFilter: (error) {
-        return error.errorCode == ParserErrorCode.EXPECTED_TOKEN;
+        return error.diagnosticCode == ParserErrorCode.EXPECTED_TOKEN;
       },
     );
   }
@@ -90,7 +90,7 @@ extension List<int> {}
 extension on List<int> {}
 ''',
       errorFilter: (error) {
-        return error.errorCode == ParserErrorCode.EXPECTED_TOKEN;
+        return error.diagnosticCode == ParserErrorCode.EXPECTED_TOKEN;
       },
     );
   }

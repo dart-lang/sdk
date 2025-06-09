@@ -78,13 +78,13 @@ class SingleUnitTest with ResourceProviderMixin {
     var testUnit = result.unit;
 
     expect(result.errors.where((error) {
-      return error.errorCode != WarningCode.DEAD_CODE &&
-          error.errorCode != WarningCode.UNUSED_CATCH_CLAUSE &&
-          error.errorCode != WarningCode.UNUSED_CATCH_STACK &&
-          error.errorCode != WarningCode.UNUSED_ELEMENT &&
-          error.errorCode != WarningCode.UNUSED_FIELD &&
-          error.errorCode != WarningCode.UNUSED_IMPORT &&
-          error.errorCode != WarningCode.UNUSED_LOCAL_VARIABLE;
+      return error.diagnosticCode != WarningCode.DEAD_CODE &&
+          error.diagnosticCode != WarningCode.UNUSED_CATCH_CLAUSE &&
+          error.diagnosticCode != WarningCode.UNUSED_CATCH_STACK &&
+          error.diagnosticCode != WarningCode.UNUSED_ELEMENT &&
+          error.diagnosticCode != WarningCode.UNUSED_FIELD &&
+          error.diagnosticCode != WarningCode.UNUSED_IMPORT &&
+          error.diagnosticCode != WarningCode.UNUSED_LOCAL_VARIABLE;
     }), isEmpty);
 
     findNode = FindNode(testCode, testUnit);

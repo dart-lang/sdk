@@ -212,11 +212,11 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
     ChangeBuilder builder,
     ClassDeclaration declaration,
   ) async {
-    var propertyErrors = _getAllDiagnosticsInClass(declaration);
+    var propertyDiagnostics = _getAllDiagnosticsInClass(declaration);
 
-    // Create fixes only when its the first error.
-    if (propertyErrors.isNotEmpty &&
-        errorOffset != propertyErrors.first.offset) {
+    // Create fixes only when its the first diagnostic.
+    if (propertyDiagnostics.isNotEmpty &&
+        errorOffset != propertyDiagnostics.first.offset) {
       return;
     }
 
@@ -252,7 +252,7 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
     var properties = <_PropertyInfo>[];
 
     // Compute the information for all the properties to be added.
-    for (var error in propertyErrors) {
+    for (var error in propertyDiagnostics) {
       var node = unitResult.unit.nodeCovering(
         offset: error.offset,
         length: error.length,
@@ -330,7 +330,7 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
     var startOffset = declaration.offset;
     var endOffset = startOffset + declaration.length;
     for (var error in unitResult.errors) {
-      var errorCode = error.errorCode;
+      var errorCode = error.diagnosticCode;
       if (errorCode.type == DiagnosticType.LINT &&
           errorCode == LinterLintCode.diagnostic_describe_all_properties &&
           error.offset > startOffset &&

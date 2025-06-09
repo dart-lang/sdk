@@ -29,7 +29,7 @@ class MockDiagnostic implements Diagnostic {
   MockSource source;
 
   @override
-  MockErrorCode errorCode;
+  MockErrorCode diagnosticCode;
 
   @override
   int offset;
@@ -40,7 +40,7 @@ class MockDiagnostic implements Diagnostic {
   @override
   int length = 3;
 
-  MockDiagnostic(this.source, this.errorCode, this.offset, this.message);
+  MockDiagnostic(this.source, this.diagnosticCode, this.offset, this.message);
 
   @override
   List<DiagnosticMessage> get contextMessages => const [];
@@ -53,6 +53,9 @@ class MockDiagnostic implements Diagnostic {
 
   @override
   Object? get data => throw UnimplementedError();
+
+  @override
+  MockErrorCode get errorCode => diagnosticCode;
 
   @override
   DiagnosticMessage get problemMessage => DiagnosticMessageImpl(

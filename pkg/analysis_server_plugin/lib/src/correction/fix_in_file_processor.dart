@@ -28,10 +28,10 @@ final class FixInFileProcessor {
   Future<List<Fix>> compute() async {
     var error = _fixContext.error;
 
-    var generators = _getGenerators(error.errorCode);
+    var generators = _getGenerators(error.diagnosticCode);
 
     String getAlreadyCalculatedValue(ProducerGenerator generator) {
-      return '${generator.hashCode}|${error.errorCode.name}';
+      return '${generator.hashCode}|${error.diagnosticCode.name}';
     }
 
     // Remove generators for which we've already calculated and we were asked to
@@ -48,7 +48,7 @@ final class FixInFileProcessor {
     }
 
     var errors = _fixContext.unitResult.errors
-        .where((e) => error.errorCode.name == e.errorCode.name);
+        .where((e) => error.diagnosticCode.name == e.diagnosticCode.name);
     if (errors.length < 2) {
       return const <Fix>[];
     }

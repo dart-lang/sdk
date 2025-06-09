@@ -271,7 +271,8 @@ void f() {
 ''',
       errorFilter:
           (e) =>
-              e.errorCode != CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+              e.diagnosticCode !=
+              CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
     );
   }
 }

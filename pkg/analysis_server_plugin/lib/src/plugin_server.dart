@@ -379,7 +379,7 @@ class PluginServer {
 
     var ignoreInfo = IgnoreInfo.forDart(unitResult.unit, unitResult.content);
     var diagnostics = listener.diagnostics.where((e) {
-      var pluginName = pluginCodeMapping[e.errorCode.name];
+      var pluginName = pluginCodeMapping[e.diagnosticCode.name];
       if (pluginName == null) {
         // If [e] is somehow not mapped, something is wrong; but don't mark it
         // as ignored.
@@ -399,7 +399,7 @@ class PluginServer {
             protocol.AnalysisErrorType.STATIC_WARNING,
             _locationFor(currentUnit.unit, path, diagnostic),
             diagnostic.message,
-            diagnostic.errorCode.name,
+            diagnostic.diagnosticCode.name,
             correction: diagnostic.correctionMessage,
             // TODO(srawlins): Use a valid value here.
             hasFix: true,

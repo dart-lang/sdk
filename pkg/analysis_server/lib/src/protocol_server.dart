@@ -144,8 +144,8 @@ AnalysisError newAnalysisError_fromEngine(
   engine.Diagnostic diagnostic, [
   engine.DiagnosticSeverity? diagnosticSeverity,
 ]) {
-  var errorCode = diagnostic.errorCode;
-  // prepare location
+  var diagnosticCode = diagnostic.diagnosticCode;
+  // Prepare location.
   Location location;
   {
     var file = diagnostic.source.fullName;
@@ -172,14 +172,14 @@ AnalysisError newAnalysisError_fromEngine(
     );
   }
 
-  // Default to the error's severity if none is specified.
-  diagnosticSeverity ??= errorCode.severity;
+  // Default to the diagnostic's severity if none is specified.
+  diagnosticSeverity ??= diagnosticCode.severity;
 
   // done
   var severity = AnalysisErrorSeverity.values.byName(diagnosticSeverity.name);
-  var type = AnalysisErrorType.values.byName(errorCode.type.name);
+  var type = AnalysisErrorType.values.byName(diagnosticCode.type.name);
   var message = diagnostic.message;
-  var code = errorCode.name.toLowerCase();
+  var code = diagnosticCode.name.toLowerCase();
   List<DiagnosticMessage>? contextMessages;
   if (diagnostic.contextMessages.isNotEmpty) {
     contextMessages =
@@ -188,7 +188,7 @@ AnalysisError newAnalysisError_fromEngine(
             .toList();
   }
   var correction = diagnostic.correctionMessage;
-  var url = errorCode.url;
+  var url = diagnosticCode.url;
   return AnalysisError(
     severity,
     type,

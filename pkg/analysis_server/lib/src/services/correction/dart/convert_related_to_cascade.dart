@@ -32,7 +32,9 @@ class ConvertRelatedToCascade extends ResolvedCorrectionProducer {
     if (block is! Block) return;
 
     var errors = unitResult.errors
-        .where((error) => error.errorCode.name == LintNames.cascade_invocations)
+        .where(
+          (error) => error.diagnosticCode.name == LintNames.cascade_invocations,
+        )
         .whereNot(
           (error) => error.offset == node.offset && error.length == node.length,
         );

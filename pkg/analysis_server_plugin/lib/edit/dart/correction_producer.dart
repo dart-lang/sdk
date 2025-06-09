@@ -166,18 +166,20 @@ sealed class CorrectionProducer<T extends ParsedUnitResult>
     if (diagnostic == null) {
       return null;
     }
-    var errorOffset = diagnostic.problemMessage.offset;
-    var errorLength = diagnostic.problemMessage.length;
+    var diagnosticOffset = diagnostic.problemMessage.offset;
+    var diagnosticLength = diagnostic.problemMessage.length;
     return _coveringNode =
-        unit.nodeCovering(offset: errorOffset, length: errorLength);
+        unit.nodeCovering(offset: diagnosticOffset, length: diagnosticLength);
   }
 
-  /// The length of the source range associated with the error message being
+  /// The length of the source range associated with the diagnostic being
   /// fixed, or `null` if there is no diagnostic.
+  // TODO(srawlins): Rename to 'diagnosticLength'.
   int? get errorLength => diagnostic?.problemMessage.length;
 
-  /// The offset of the source range associated with the error message being
+  /// The offset of the source range associated with the diagnostic being
   /// fixed, or `null` if there is no diagnostic.
+  // TODO(srawlins): Rename to 'diagnosticOffset'.
   int? get errorOffset => diagnostic?.problemMessage.offset;
 
   /// The arguments that should be used when composing the message for a fix, or
