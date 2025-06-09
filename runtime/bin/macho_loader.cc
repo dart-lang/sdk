@@ -539,7 +539,7 @@ DART_EXPORT Dart_LoadedMachODylib* Dart_LoadMachODylib_Memory(
     return nullptr;
   }
   std::unique_ptr<LoadedMachODylib> macho(
-      new LoadedMachODylib(std::move(mappable), /*file_offset=*/0));
+      new LoadedMachODylib(std::move(mappable), /*macho_data_offset=*/0));
 
   if (!macho->Load() ||
       !macho->ResolveSymbols(vm_snapshot_data, vm_snapshot_instrs,
