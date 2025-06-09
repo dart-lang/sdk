@@ -121,7 +121,7 @@ double dartifyBoolBenchmark() =>
     }, minimumMeasureDurationMillis) /
     ITERATIONS;
 
-bool? nullableBoolSink = null;
+bool? nullableBoolSink;
 
 double dartifyNullableBoolBenchmark() =>
     BenchmarkBase.measureFor(() {
@@ -141,7 +141,7 @@ double dartifyNumBenchmark() =>
     }, minimumMeasureDurationMillis) /
     ITERATIONS;
 
-num? nullableNumSink = null;
+num? nullableNumSink;
 
 double dartifyNullableNumBenchmark() =>
     BenchmarkBase.measureFor(() {
@@ -161,7 +161,7 @@ double dartifyDoubleBenchmark() =>
     }, minimumMeasureDurationMillis) /
     ITERATIONS;
 
-double? nullableDoubleSink = null;
+double? nullableDoubleSink;
 
 double dartifyNullableDoubleBenchmark() =>
     BenchmarkBase.measureFor(() {
@@ -181,7 +181,7 @@ double dartifyIntBenchmark() =>
     }, minimumMeasureDurationMillis) /
     ITERATIONS;
 
-int? nullableIntSink = null;
+int? nullableIntSink;
 
 double dartifyNullableIntBenchmark() =>
     BenchmarkBase.measureFor(() {
@@ -191,7 +191,7 @@ double dartifyNullableIntBenchmark() =>
     }, minimumMeasureDurationMillis) /
     ITERATIONS;
 
-String stringSink = "";
+String stringSink = '';
 
 double dartifyStringBenchmark() =>
     BenchmarkBase.measureFor(() {
@@ -201,7 +201,7 @@ double dartifyStringBenchmark() =>
     }, minimumMeasureDurationMillis) /
     ITERATIONS;
 
-String? nullableStringSink = null;
+String? nullableStringSink;
 
 double dartifyNullableStringBenchmark() =>
     BenchmarkBase.measureFor(() {
@@ -221,7 +221,7 @@ double dartifyJSArrayBenchmark() =>
     }, minimumMeasureDurationMillis) /
     ITERATIONS;
 
-JSArray? nullableJsArraySink = null;
+JSArray? nullableJsArraySink;
 
 double dartifyNullableJSArrayBenchmark() =>
     BenchmarkBase.measureFor(() {
@@ -241,7 +241,7 @@ double dartifyJSUint8ArrayBenchmark() =>
     }, minimumMeasureDurationMillis) /
     ITERATIONS;
 
-JSUint8Array? nullableJsUint8ArraySink = null;
+JSUint8Array? nullableJsUint8ArraySink;
 
 double dartifyNullableJSUint8ArrayBenchmark() =>
     BenchmarkBase.measureFor(() {
