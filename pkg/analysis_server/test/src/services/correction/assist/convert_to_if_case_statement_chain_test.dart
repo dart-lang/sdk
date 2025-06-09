@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class ConvertToIfCaseStatementChainTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_TO_IF_CASE_STATEMENT_CHAIN;
+  AssistKind get kind => DartAssistKind.convertToIfCaseStatementChain;
 
   Future<void> test_hasBreak() async {
     await resolveTestCode('''

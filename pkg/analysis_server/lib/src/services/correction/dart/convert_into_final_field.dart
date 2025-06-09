@@ -21,7 +21,7 @@ class ConvertIntoFinalField extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind get assistKind => DartAssistKind.CONVERT_INTO_FINAL_FIELD;
+  AssistKind get assistKind => DartAssistKind.convertIntoFinalField;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

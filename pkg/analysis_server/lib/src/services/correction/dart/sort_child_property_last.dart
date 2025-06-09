@@ -22,7 +22,7 @@ class SortChildPropertyLast extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  AssistKind get assistKind => DartAssistKind.SORT_CHILD_PROPERTY_LAST;
+  AssistKind get assistKind => DartAssistKind.sortChildPropertyLast;
 
   @override
   FixKind get fixKind => DartFixKind.SORT_CHILD_PROPERTY_LAST;

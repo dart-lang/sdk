@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class ConvertClassToEnumTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_CLASS_TO_ENUM;
+  AssistKind get kind => DartAssistKind.convertClassToEnum;
 
   Future<void> test_documentationComments_mix() async {
     await resolveTestCode('''

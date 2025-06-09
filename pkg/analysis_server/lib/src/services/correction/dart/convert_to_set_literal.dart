@@ -21,7 +21,7 @@ class ConvertToSetLiteral extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  AssistKind get assistKind => DartAssistKind.CONVERT_TO_SET_LITERAL;
+  AssistKind get assistKind => DartAssistKind.convertToSetLiteral;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_SET_LITERAL;

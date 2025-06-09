@@ -22,7 +22,7 @@ class ConvertMapFromIterableToForLiteral extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  AssistKind get assistKind => DartAssistKind.CONVERT_TO_FOR_ELEMENT;
+  AssistKind get assistKind => DartAssistKind.convertToForElement;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_FOR_ELEMENT;

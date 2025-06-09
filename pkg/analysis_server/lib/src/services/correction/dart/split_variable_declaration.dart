@@ -20,7 +20,7 @@ class SplitVariableDeclaration extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind get assistKind => DartAssistKind.SPLIT_VARIABLE_DECLARATION;
+  AssistKind get assistKind => DartAssistKind.splitVariableDeclaration;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

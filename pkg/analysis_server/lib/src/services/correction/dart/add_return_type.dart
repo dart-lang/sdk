@@ -22,7 +22,7 @@ class AddReturnType extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  AssistKind get assistKind => DartAssistKind.ADD_RETURN_TYPE;
+  AssistKind get assistKind => DartAssistKind.addReturnType;
 
   @override
   FixKind get fixKind => DartFixKind.ADD_RETURN_TYPE;

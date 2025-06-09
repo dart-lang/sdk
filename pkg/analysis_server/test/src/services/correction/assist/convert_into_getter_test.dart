@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class ConvertIntoGetterTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_INTO_GETTER;
+  AssistKind get kind => DartAssistKind.convertIntoGetter;
 
   Future<void> test_extension_static() async {
     await resolveTestCode('''

@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class ConvertFieldFormalToNormalTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_FIELD_FORMAL_TO_NORMAL;
+  AssistKind get kind => DartAssistKind.convertFieldFormalToNormal;
 
   Future<void> test_optionalNamed_explicitType() async {
     await resolveTestCode('''

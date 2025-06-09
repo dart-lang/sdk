@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class InvertConditionalExpressionTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.INVERT_CONDITIONAL_EXPRESSION;
+  AssistKind get kind => DartAssistKind.invertConditionalExpression;
 
   Future<void> test_thenStatement_elseStatement_on_colon() async {
     await resolveTestCode('''

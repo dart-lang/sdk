@@ -115,7 +115,7 @@ class _FlutterWrapBuilder extends _FlutterBaseWrapBuilder {
       );
 
   @override
-  AssistKind get assistKind => DartAssistKind.FLUTTER_WRAP_BUILDER;
+  AssistKind get assistKind => DartAssistKind.flutterWrapBuilder;
 }
 
 class _FlutterWrapFutureBuilder extends _FlutterBaseWrapBuilder {
@@ -127,7 +127,7 @@ class _FlutterWrapFutureBuilder extends _FlutterBaseWrapBuilder {
       );
 
   @override
-  AssistKind get assistKind => DartAssistKind.FLUTTER_WRAP_FUTURE_BUILDER;
+  AssistKind get assistKind => DartAssistKind.flutterWrapFutureBuilder;
 }
 
 class _FlutterWrapStreamBuilder extends _FlutterBaseWrapBuilder {
@@ -139,7 +139,7 @@ class _FlutterWrapStreamBuilder extends _FlutterBaseWrapBuilder {
       );
 
   @override
-  AssistKind get assistKind => DartAssistKind.FLUTTER_WRAP_STREAM_BUILDER;
+  AssistKind get assistKind => DartAssistKind.flutterWrapStreamBuilder;
 }
 
 class _FlutterWrapValueListenableBuilder extends _FlutterBaseWrapBuilder {
@@ -151,6 +151,5 @@ class _FlutterWrapValueListenableBuilder extends _FlutterBaseWrapBuilder {
       );
 
   @override
-  AssistKind get assistKind =>
-      DartAssistKind.FLUTTER_WRAP_VALUE_LISTENABLE_BUILDER;
+  AssistKind get assistKind => DartAssistKind.flutterWrapValueListenableBuilder;
 }

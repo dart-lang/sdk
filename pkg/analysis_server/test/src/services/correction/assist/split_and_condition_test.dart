@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class SplitAndConditionTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.SPLIT_AND_CONDITION;
+  AssistKind get kind => DartAssistKind.splitAndCondition;
 
   Future<void> test_hasElse() async {
     await resolveTestCode('''

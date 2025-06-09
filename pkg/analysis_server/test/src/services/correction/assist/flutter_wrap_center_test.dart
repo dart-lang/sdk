@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class FlutterWrapCenterTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.FLUTTER_WRAP_CENTER;
+  AssistKind get kind => DartAssistKind.flutterWrapCenter;
 
   @override
   void setUp() {

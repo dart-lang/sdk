@@ -112,7 +112,7 @@ class _FlutterWrapCenter extends _WrapSingleWidget {
   _FlutterWrapCenter(super.widgetExpr, {required super.context});
 
   @override
-  AssistKind get assistKind => DartAssistKind.FLUTTER_WRAP_CENTER;
+  AssistKind get assistKind => DartAssistKind.flutterWrapCenter;
 
   @override
   String get _parentClassName => 'Center';
@@ -131,7 +131,7 @@ class _FlutterWrapColumn extends _WrapMultipleWidgets {
   });
 
   @override
-  AssistKind get assistKind => DartAssistKind.FLUTTER_WRAP_COLUMN;
+  AssistKind get assistKind => DartAssistKind.flutterWrapColumn;
 
   @override
   String get _parentClassName => 'Column';
@@ -143,7 +143,7 @@ class _FlutterWrapContainer extends _WrapSingleWidget {
   _FlutterWrapContainer(super.widgetExpr, {required super.context});
 
   @override
-  AssistKind get assistKind => DartAssistKind.FLUTTER_WRAP_CONTAINER;
+  AssistKind get assistKind => DartAssistKind.flutterWrapContainer;
 
   @override
   String get _parentClassName => 'Container';
@@ -158,7 +158,7 @@ class _FlutterWrapExpanded extends _WrapSingleWidget {
   _FlutterWrapExpanded(super.widgetExpr, {required super.context});
 
   @override
-  AssistKind get assistKind => DartAssistKind.FLUTTER_WRAP_EXPANDED;
+  AssistKind get assistKind => DartAssistKind.flutterWrapExpanded;
 
   @override
   String get _parentClassName => 'Expanded';
@@ -173,7 +173,7 @@ class _FlutterWrapFlexible extends _WrapSingleWidget {
   _FlutterWrapFlexible(super.widgetExpr, {required super.context});
 
   @override
-  AssistKind get assistKind => DartAssistKind.FLUTTER_WRAP_FLEXIBLE;
+  AssistKind get assistKind => DartAssistKind.flutterWrapFlexible;
 
   @override
   String get _parentClassName => 'Flexible';
@@ -188,7 +188,7 @@ class _FlutterWrapGeneric extends _WrapSingleWidget {
   _FlutterWrapGeneric(super.widgetExpr, {required super.context});
 
   @override
-  AssistKind get assistKind => DartAssistKind.FLUTTER_WRAP_GENERIC;
+  AssistKind get assistKind => DartAssistKind.flutterWrapGeneric;
 }
 
 /// A correction processor that can make one of the possible changes computed by
@@ -197,7 +197,7 @@ class _FlutterWrapPadding extends _WrapSingleWidget {
   _FlutterWrapPadding(super.widgetExpr, {required super.context});
 
   @override
-  AssistKind get assistKind => DartAssistKind.FLUTTER_WRAP_PADDING;
+  AssistKind get assistKind => DartAssistKind.flutterWrapPadding;
 
   @override
   List<String> get _leadingLines {
@@ -224,7 +224,7 @@ class _FlutterWrapRow extends _WrapMultipleWidgets {
   });
 
   @override
-  AssistKind get assistKind => DartAssistKind.FLUTTER_WRAP_ROW;
+  AssistKind get assistKind => DartAssistKind.flutterWrapRow;
 
   @override
   String get _parentClassName => 'Row';
@@ -236,7 +236,7 @@ class _FlutterWrapSizedBox extends _WrapSingleWidget {
   _FlutterWrapSizedBox(super.widgetExpr, {required super.context});
 
   @override
-  AssistKind get assistKind => DartAssistKind.FLUTTER_WRAP_SIZED_BOX;
+  AssistKind get assistKind => DartAssistKind.flutterWrapSizedBox;
 
   @override
   String get _parentClassName => 'SizedBox';

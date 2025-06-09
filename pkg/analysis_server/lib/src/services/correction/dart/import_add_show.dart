@@ -24,7 +24,7 @@ class ImportAddShow extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind get assistKind => DartAssistKind.IMPORT_ADD_SHOW;
+  AssistKind get assistKind => DartAssistKind.importAddShow;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

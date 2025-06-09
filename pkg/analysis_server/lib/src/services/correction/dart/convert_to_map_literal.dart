@@ -21,7 +21,7 @@ class ConvertToMapLiteral extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  AssistKind get assistKind => DartAssistKind.CONVERT_TO_MAP_LITERAL;
+  AssistKind get assistKind => DartAssistKind.convertToMapLiteral;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_MAP_LITERAL;

@@ -19,7 +19,7 @@ void main() {
 @reflectiveTest
 class AssignToLocalVariableTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.ASSIGN_TO_LOCAL_VARIABLE;
+  AssistKind get kind => DartAssistKind.assignToLocalVariable;
 
   Future<void> test_alreadyAssignment() async {
     await resolveTestCode('''

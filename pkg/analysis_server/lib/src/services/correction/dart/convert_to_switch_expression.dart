@@ -35,7 +35,7 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind get assistKind => DartAssistKind.CONVERT_TO_SWITCH_EXPRESSION;
+  AssistKind get assistKind => DartAssistKind.convertToSwitchExpression;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

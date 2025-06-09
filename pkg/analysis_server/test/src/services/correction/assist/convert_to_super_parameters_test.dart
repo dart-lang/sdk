@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class ConvertToSuperParametersTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_TO_SUPER_PARAMETERS;
+  AssistKind get kind => DartAssistKind.convertToSuperParameters;
 
   Future<void> test_cursorLocation_named_onClassName() async {
     await resolveTestCode('''

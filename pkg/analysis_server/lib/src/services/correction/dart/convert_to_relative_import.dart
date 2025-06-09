@@ -21,7 +21,7 @@ class ConvertToRelativeImport extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  AssistKind get assistKind => DartAssistKind.CONVERT_TO_RELATIVE_IMPORT;
+  AssistKind get assistKind => DartAssistKind.convertToRelativeImport;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_RELATIVE_IMPORT;

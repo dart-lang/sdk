@@ -29,7 +29,7 @@ class ConvertClassToEnum extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  AssistKind get assistKind => DartAssistKind.CONVERT_CLASS_TO_ENUM;
+  AssistKind get assistKind => DartAssistKind.convertClassToEnum;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_CLASS_TO_ENUM;

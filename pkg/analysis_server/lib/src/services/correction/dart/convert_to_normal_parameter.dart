@@ -19,7 +19,7 @@ class ConvertToNormalParameter extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind get assistKind => DartAssistKind.CONVERT_TO_NORMAL_PARAMETER;
+  AssistKind get assistKind => DartAssistKind.convertToNormalParameter;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

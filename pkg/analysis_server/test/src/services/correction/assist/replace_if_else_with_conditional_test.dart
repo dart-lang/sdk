@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class ReplaceIfElseWithConditionalTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.REPLACE_IF_ELSE_WITH_CONDITIONAL;
+  AssistKind get kind => DartAssistKind.replaceIfElseWithConditional;
 
   Future<void> test_assignment() async {
     await resolveTestCode('''

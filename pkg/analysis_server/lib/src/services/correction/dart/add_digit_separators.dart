@@ -53,7 +53,7 @@ abstract class _AddDigitSeparators extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  AssistKind get assistKind => DartAssistKind.ADD_DIGIT_SEPARATORS;
+  AssistKind get assistKind => DartAssistKind.addDigitSeparators;
 
   /// The number of digits in each group, to be separated by a separator.
   int get _digitsPerGroup;

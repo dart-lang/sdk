@@ -18,7 +18,7 @@ class InvertConditionalExpression extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind get assistKind => DartAssistKind.INVERT_CONDITIONAL_EXPRESSION;
+  AssistKind get assistKind => DartAssistKind.invertConditionalExpression;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

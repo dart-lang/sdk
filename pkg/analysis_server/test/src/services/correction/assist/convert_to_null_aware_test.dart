@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class ConvertToNullAwareTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_TO_NULL_AWARE;
+  AssistKind get kind => DartAssistKind.convertToNullAware;
 
   Future<void> test_equal_differentTarget() async {
     await resolveTestCode('''

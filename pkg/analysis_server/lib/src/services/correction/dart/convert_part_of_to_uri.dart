@@ -18,7 +18,7 @@ class ConvertPartOfToUri extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind get assistKind => DartAssistKind.CONVERT_PART_OF_TO_URI;
+  AssistKind get assistKind => DartAssistKind.convertPartOfToUri;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

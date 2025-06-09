@@ -31,7 +31,7 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
     : applicability = CorrectionApplicability.automatically;
 
   @override
-  AssistKind get assistKind => DartAssistKind.ADD_TYPE_ANNOTATION;
+  AssistKind get assistKind => DartAssistKind.addTypeAnnotation;
 
   @override
   FixKind get fixKind => DartFixKind.ADD_TYPE_ANNOTATION;

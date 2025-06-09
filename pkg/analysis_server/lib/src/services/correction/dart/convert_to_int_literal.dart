@@ -19,7 +19,7 @@ class ConvertToIntLiteral extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  AssistKind get assistKind => DartAssistKind.CONVERT_TO_INT_LITERAL;
+  AssistKind get assistKind => DartAssistKind.convertToIntLiteral;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_INT_LITERAL;

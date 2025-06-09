@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class ConvertIntoIsNotTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_INTO_IS_NOT;
+  AssistKind get kind => DartAssistKind.convertIntoIsNot;
 
   Future<void> test_childOfIs_left() async {
     await resolveTestCode('''

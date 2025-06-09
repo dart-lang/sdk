@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class InlineInvocationTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.INLINE_INVOCATION;
+  AssistKind get kind => DartAssistKind.inlineInvocation;
 
   Future<void> test_add_emptyTarget() async {
     await resolveTestCode('''

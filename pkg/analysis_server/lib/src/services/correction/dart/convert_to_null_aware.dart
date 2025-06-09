@@ -21,7 +21,7 @@ class ConvertToNullAware extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  AssistKind get assistKind => DartAssistKind.CONVERT_TO_NULL_AWARE;
+  AssistKind get assistKind => DartAssistKind.convertToNullAware;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_NULL_AWARE;

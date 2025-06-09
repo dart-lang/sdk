@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class ImportAddShowTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.IMPORT_ADD_SHOW;
+  AssistKind get kind => DartAssistKind.importAddShow;
 
   Future<void> test_aliased() async {
     newFile('$testPackageLibPath/lib.dart', '''

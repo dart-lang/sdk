@@ -26,8 +26,7 @@ class FlutterConvertToStatelessWidget extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind get assistKind =>
-      DartAssistKind.FLUTTER_CONVERT_TO_STATELESS_WIDGET;
+  AssistKind get assistKind => DartAssistKind.flutterConvertToStatelessWidget;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

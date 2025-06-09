@@ -18,7 +18,7 @@ class RemoveDigitSeparators extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  AssistKind get assistKind => DartAssistKind.REMOVE_DIGIT_SEPARATORS;
+  AssistKind get assistKind => DartAssistKind.removeDigitSeparators;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

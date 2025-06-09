@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class ConvertToDoubleQuotedStringTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_TO_DOUBLE_QUOTED_STRING;
+  AssistKind get kind => DartAssistKind.convertToDoubleQuotedString;
 
   Future<void> test_interpolation_surroundedByEscapedQuote() async {
     await resolveTestCode(r'''

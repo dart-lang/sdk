@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class AddTypeAnnotationTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.ADD_TYPE_ANNOTATION;
+  AssistKind get kind => DartAssistKind.addTypeAnnotation;
 
   Future<void> test_classField_final() async {
     await resolveTestCode('''
