@@ -1867,7 +1867,7 @@ void foo() {
 }
 ''');
     await resolveTestFile();
-    expect(result.errors, isNotEmpty);
+    expect(result.diagnostics, isNotEmpty);
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/47839')
@@ -1880,7 +1880,7 @@ void foo() {
 }
 ''');
     await resolveTestFile();
-    expect(result.errors, isNotEmpty);
+    expect(result.diagnostics, isNotEmpty);
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/47839')
@@ -1895,7 +1895,7 @@ void foo() {
 }
 ''');
     await resolveTestFile();
-    expect(result.errors, isNotEmpty);
+    expect(result.diagnostics, isNotEmpty);
   }
 
   test_optionalParameter_notUsed_named() async {

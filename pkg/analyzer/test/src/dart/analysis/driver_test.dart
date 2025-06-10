@@ -126,7 +126,7 @@ class AnalysisDriver_LintTest extends PubPackageResolutionTest
     await resolveTestFile();
 
     // Existing/empty file triggers the lint.
-    _assertHasLintReported(result.errors, _AlwaysReportedLint.code.name);
+    _assertHasLintReported(result.diagnostics, _AlwaysReportedLint.code.name);
   }
 
   test_getResolvedUnit_lint_notExistingFile() async {
@@ -2020,7 +2020,7 @@ class B {}
     expect(result.units[0].path, a.path);
     expect(result.units[0].content, content);
     expect(result.units[0].unit, isNotNull);
-    expect(result.units[0].errors, isEmpty);
+    expect(result.units[0].diagnostics, isEmpty);
   }
 
   test_getParsedLibrary_invalidPath_notAbsolute() async {
@@ -3323,7 +3323,7 @@ elementFactory
     var a = newFile('$testPackageLibPath/a.dart', '');
     var result = await driver.getErrors(a.path);
     result as ErrorsResult;
-    assertErrorsInList(result.errors, [
+    assertErrorsInList(result.diagnostics, [
       error(CompileTimeErrorCode.MISSING_DART_LIBRARY, 0, 0),
     ]);
   }
@@ -3336,7 +3336,7 @@ elementFactory
     var a = newFile('$testPackageLibPath/a.dart', '');
     var result = await driver.getErrors(a.path);
     result as ErrorsResult;
-    assertErrorsInList(result.errors, [
+    assertErrorsInList(result.diagnostics, [
       error(CompileTimeErrorCode.MISSING_DART_LIBRARY, 0, 0),
     ]);
   }

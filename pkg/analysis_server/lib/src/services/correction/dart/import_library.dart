@@ -722,18 +722,18 @@ class ImportLibrary extends MultiCorrectionProducer {
   /// names where this fix can be applied besides the current diagnostic.
   Future<Set<String>> _otherUnresolvedNames(String? prefix, String name) async {
     var errorsForThisFix = _codesWhereThisIsValid;
-    var errors =
+    var diagnostics =
         <Diagnostic, List<MultiProducerGenerator>>{}..addEntries(
-          unitResult.errors.map((error) {
-            if (error == diagnostic) return null;
-            var generators = errorsForThisFix[error.diagnosticCode];
+          unitResult.diagnostics.map((d) {
+            if (d == diagnostic) return null;
+            var generators = errorsForThisFix[d.diagnosticCode];
             if (generators == null) return null;
-            return MapEntry(error, generators);
+            return MapEntry(d, generators);
           }).nonNulls,
         );
     var otherNames = <String>{};
-    if (errors.isNotEmpty) {
-      for (var MapEntry(:key, :value) in errors.entries) {
+    if (diagnostics.isNotEmpty) {
+      for (var MapEntry(:key, :value) in diagnostics.entries) {
         for (var generator in value) {
           DartFixContext? dartFixContext;
           if (context.dartFixContext case var context?) {

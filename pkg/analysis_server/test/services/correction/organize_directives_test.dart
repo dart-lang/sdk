@@ -1007,12 +1007,12 @@ class NonLibraryAnnotation {
   Future<void> _computeUnitAndErrors(String code) async {
     verifyNoTestUnitErrors = false;
     await resolveTestCode(code);
-    testDiagnostics = testAnalysisResult.errors;
+    testDiagnostics = testAnalysisResult.diagnostics;
   }
 
   Future<void> _parseUnitAndErrors(String code) async {
     verifyNoTestUnitErrors = false;
     await parseTestCode(code);
-    testDiagnostics = testParsedResult.errors;
+    testDiagnostics = testParsedResult.diagnostics;
   }
 }

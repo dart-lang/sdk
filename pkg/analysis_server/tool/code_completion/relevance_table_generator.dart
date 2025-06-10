@@ -1686,10 +1686,10 @@ class RelevanceMetricsComputer {
           } else if (hasError(resolvedUnitResult)) {
             if (verbose) {
               print('File $filePath skipped due to errors:');
-              for (var error in resolvedUnitResult.errors.where(
+              for (var diagnostic in resolvedUnitResult.diagnostics.where(
                 (e) => e.severity == Severity.error,
               )) {
-                print('  ${error.toString()}');
+                print('  ${diagnostic.toString()}');
               }
               print('');
             } else {
@@ -1711,8 +1711,8 @@ class RelevanceMetricsComputer {
 
   /// Return `true` if the [result] contains an error.
   static bool hasError(ResolvedUnitResult result) {
-    for (var error in result.errors) {
-      if (error.severity == Severity.error) {
+    for (var diagnostic in result.diagnostics) {
+      if (diagnostic.severity == Severity.error) {
         return true;
       }
     }

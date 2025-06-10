@@ -45,16 +45,16 @@ class CiderFixesComputer {
     var lineInfo = resolvedUnit.lineInfo;
 
     await _logger.runAsync('Compute fixes', () async {
-      for (var error in resolvedUnit.errors) {
-        var errorLine = lineInfo.getLocation(error.offset).lineNumber;
-        if (errorLine == lineNumber) {
+      for (var diagnostic in resolvedUnit.diagnostics) {
+        var diagnosticLine = lineInfo.getLocation(diagnostic.offset).lineNumber;
+        if (diagnosticLine == lineNumber) {
           var workspace = DartChangeWorkspace([resolvedUnit.session]);
           var context = _CiderDartFixContextImpl(
             _fileResolver,
             workspace: workspace,
             libraryResult: resolvedLibrary,
             unitResult: resolvedUnit,
-            error: error,
+            error: diagnostic,
           );
 
           var fixes = await computeFixes(context);
@@ -62,7 +62,7 @@ class CiderFixesComputer {
 
           result.add(
             CiderErrorFixes(
-              diagnostic: error,
+              diagnostic: diagnostic,
               fixes: fixes,
               lineInfo: lineInfo,
             ),

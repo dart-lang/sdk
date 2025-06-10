@@ -303,7 +303,7 @@ class DriverEventsPrinter {
             sink.writeln('---');
           }
 
-          sink.writeElements('errors', result.errors, _writeDiagnostic);
+          sink.writeElements('errors', result.diagnostics, _writeDiagnostic);
         });
       default:
         throw UnimplementedError('${result.runtimeType}');
@@ -1568,7 +1568,7 @@ class ResolvedUnitResultPrinter {
         sink.writeln('---');
       }
 
-      sink.writeElements('errors', result.errors, _writeDiagnostic);
+      sink.writeElements('errors', result.diagnostics, _writeDiagnostic);
 
       var nodeToWrite = configuration.nodeSelector(result);
       if (nodeToWrite != null) {

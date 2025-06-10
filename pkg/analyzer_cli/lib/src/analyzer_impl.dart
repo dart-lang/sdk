@@ -119,11 +119,13 @@ class AnalyzerImpl {
   DiagnosticSeverity computeMaxSeverity() {
     var status = DiagnosticSeverity.NONE;
     for (var result in errorsResults) {
-      for (var error in result.errors) {
-        if (_defaultSeverityProcessor(error) == null) {
+      for (var diagnostic in result.diagnostics) {
+        if (_defaultSeverityProcessor(diagnostic) == null) {
           continue;
         }
-        status = status.max(computeSeverity(error, options, analysisOptions)!);
+        status = status.max(
+          computeSeverity(diagnostic, options, analysisOptions)!,
+        );
       }
     }
     return status;

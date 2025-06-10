@@ -331,7 +331,8 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
     final result = await analysisHelper.resolveFile(text);
 
     if (result is ResolvedUnitResult) {
-      var diagnostics = SplayTreeSet<Diagnostic>.from(result.errors, (a, b) {
+      var diagnostics =
+          SplayTreeSet<Diagnostic>.from(result.diagnostics, (a, b) {
         var value = a.offset.compareTo(b.offset);
         if (value == 0) {
           value = a.message.compareTo(b.message);

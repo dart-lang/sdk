@@ -197,7 +197,7 @@ class ElementDeclarationResultImpl
 
 class ErrorsResultImpl implements ErrorsResult {
   @override
-  final List<Diagnostic> errors;
+  final List<Diagnostic> diagnostics;
 
   @override
   final bool isLibrary;
@@ -231,9 +231,12 @@ class ErrorsResultImpl implements ErrorsResult {
     required this.lineInfo,
     required this.isLibrary,
     required this.isPart,
-    required this.errors,
+    required this.diagnostics,
     required this.analysisOptions,
   });
+
+  @override
+  List<Diagnostic> get errors => diagnostics;
 
   @override
   String get path => file.path;
@@ -334,14 +337,17 @@ class ParsedUnitResultImpl extends FileResultImpl implements ParsedUnitResult {
   final CompilationUnit unit;
 
   @override
-  final List<Diagnostic> errors;
+  final List<Diagnostic> diagnostics;
 
   ParsedUnitResultImpl({
     required super.session,
     required super.fileState,
     required this.unit,
-    required this.errors,
+    required this.diagnostics,
   });
+
+  @override
+  List<Diagnostic> get errors => diagnostics;
 }
 
 class ParseStringResultImpl implements ParseStringResult {
@@ -481,14 +487,17 @@ class ResolvedUnitResultImpl extends FileResultImpl
   final CompilationUnitImpl unit;
 
   @override
-  final List<Diagnostic> errors;
+  final List<Diagnostic> diagnostics;
 
   ResolvedUnitResultImpl({
     required super.session,
     required super.fileState,
     required this.unit,
-    required this.errors,
+    required this.diagnostics,
   });
+
+  @override
+  List<Diagnostic> get errors => diagnostics;
 
   @override
   bool get exists => fileState.exists;

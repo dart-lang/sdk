@@ -1040,7 +1040,7 @@ class CallHierarchyComputerIncomingCallsTest extends AbstractCallHierarchyTest {
   ) async {
     var targetFile = getFile(target.file);
     var result = await getResolvedUnit(targetFile);
-    expect(result.errors, isEmpty);
+    expect(result.diagnostics, isEmpty);
 
     return DartCallHierarchyComputer(
       result,
@@ -2024,7 +2024,7 @@ class CallHierarchyComputerOutgoingCallsTest extends AbstractCallHierarchyTest {
   ) async {
     var targetFile = getFile(target.file);
     var result = await getResolvedUnit(targetFile);
-    expect(result.errors, isEmpty);
+    expect(result.diagnostics, isEmpty);
 
     return DartCallHierarchyComputer(result).findOutgoingCalls(target);
   }

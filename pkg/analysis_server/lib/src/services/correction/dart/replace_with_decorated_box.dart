@@ -113,16 +113,15 @@ class ReplaceWithDecoratedBox extends ResolvedCorrectionProducer {
     });
   }
 
-  /// Return `true` if the specified [expression] has the lint fixed by this
-  /// producer.
+  /// Whether the specified [expression] has the lint fixed by this producer.
   bool _hasLint(InstanceCreationExpression expression) {
     var constructorName = expression.constructorName;
-    return unitResult.errors.any((error) {
-      var errorCode = error.diagnosticCode;
-      return errorCode.type == DiagnosticType.LINT &&
-          errorCode == LinterLintCode.use_decorated_box &&
-          error.offset == constructorName.offset &&
-          error.length == constructorName.length;
+    return unitResult.diagnostics.any((d) {
+      var diagnosticCode = d.diagnosticCode;
+      return diagnosticCode.type == DiagnosticType.LINT &&
+          diagnosticCode == LinterLintCode.use_decorated_box &&
+          d.offset == constructorName.offset &&
+          d.length == constructorName.length;
     });
   }
 }

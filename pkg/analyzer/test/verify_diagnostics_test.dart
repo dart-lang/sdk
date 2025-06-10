@@ -424,7 +424,7 @@ class DocumentationValidator {
     _SnippetTest test = _SnippetTest(snippet);
     test.setUp();
     await test.resolveTestFile();
-    List<Diagnostic> diagnostics = test.result.errors;
+    List<Diagnostic> diagnostics = test.result.diagnostics;
     int errorCount = diagnostics.length;
     if (snippet.offset < 0) {
       if (errorCount > 0) {

@@ -171,7 +171,7 @@ abstract class _RemoveConst extends ParsedCorrectionProducer {
         var constantContext = expression.constantContext(includeSelf: true);
         if (constantContext case (var node, var constKeyword?)) {
           var validDiagnostics = [
-            for (var e in unitResult.errors)
+            for (var e in unitResult.diagnostics)
               if (_codesWhereThisIsValid.contains(e.diagnosticCode)) e,
           ];
           switch (node) {

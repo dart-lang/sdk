@@ -3,6 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 extension StringExtension on String {
+  static final _lowerCaseRegex = RegExp(r'([_\$]||[_\$]+[0-9])*[a-z]');
+
+  bool get firstLetterIsLowercase => startsWith(_lowerCaseRegex);
+
   /// Returns this string if not empty, otherwise null.
   String? get nullIfEmpty => isEmpty ? null : this;
 

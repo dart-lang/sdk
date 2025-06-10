@@ -252,10 +252,10 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
     var properties = <_PropertyInfo>[];
 
     // Compute the information for all the properties to be added.
-    for (var error in propertyDiagnostics) {
+    for (var diagnostic in propertyDiagnostics) {
       var node = unitResult.unit.nodeCovering(
-        offset: error.offset,
-        length: error.length,
+        offset: diagnostic.offset,
+        length: diagnostic.length,
       );
       if (node == null) {
         continue;
@@ -329,13 +329,13 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
     var propertyDiagnostics = <Diagnostic>[];
     var startOffset = declaration.offset;
     var endOffset = startOffset + declaration.length;
-    for (var error in unitResult.errors) {
-      var errorCode = error.diagnosticCode;
-      if (errorCode.type == DiagnosticType.LINT &&
-          errorCode == LinterLintCode.diagnostic_describe_all_properties &&
-          error.offset > startOffset &&
-          error.offset < endOffset) {
-        propertyDiagnostics.add(error);
+    for (var diagnostic in unitResult.diagnostics) {
+      var diagnosticCode = diagnostic.diagnosticCode;
+      if (diagnosticCode.type == DiagnosticType.LINT &&
+          diagnosticCode == LinterLintCode.diagnostic_describe_all_properties &&
+          diagnostic.offset > startOffset &&
+          diagnostic.offset < endOffset) {
+        propertyDiagnostics.add(diagnostic);
       }
     }
 

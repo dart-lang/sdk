@@ -162,9 +162,9 @@ abstract class CompletionMetricsComputer {
   static Diagnostic? getFirstErrorOrNull(
     ResolvedUnitResult resolvedUnitResult,
   ) {
-    for (var error in resolvedUnitResult.errors) {
-      if (error.severity == Severity.error) {
-        return error;
+    for (var diagnostic in resolvedUnitResult.diagnostics) {
+      if (diagnostic.severity == Severity.error) {
+        return diagnostic;
       }
     }
     return null;

@@ -99,8 +99,8 @@ Future<void> _findFailingTestAnnotationsIn(
         fail('Could not parse $path');
       }
       var unit = result.unit;
-      var errors = result.errors;
-      if (errors.isNotEmpty) {
+      var diagnostics = result.diagnostics;
+      if (diagnostics.isNotEmpty) {
         fail('Errors found when parsing $path');
       }
       var tracker = FailingTestAnnotationTracker(child);

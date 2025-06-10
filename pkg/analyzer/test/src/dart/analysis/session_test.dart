@@ -43,7 +43,7 @@ class AnalysisSessionImpl_BlazeWorkspaceTest
     var session = contextFor(a).currentSession;
     var result = await session.getErrorsValid(a);
     expect(result.path, a.path);
-    expect(result.errors, hasLength(1));
+    expect(result.diagnostics, hasLength(1));
     expect(result.uri.toString(), 'package:dart.my/a.dart');
   }
 
@@ -83,7 +83,7 @@ class AnalysisSessionImpl_BlazeWorkspaceTest
     var session = contextFor(file).currentSession;
     var result = await session.getResolvedUnit(file.path) as ResolvedUnitResult;
     expect(result.path, file.path);
-    expect(result.errors, isEmpty);
+    expect(result.diagnostics, isEmpty);
     expect(result.uri.toString(), 'package:dart.my/a.dart');
   }
 
@@ -183,7 +183,7 @@ class AnalysisSessionImplTest extends PubPackageResolutionTest {
     var errorsResult = await session.getErrorsValid(testFile);
     expect(errorsResult.session, session);
     expect(errorsResult.path, testFile.path);
-    expect(errorsResult.errors, isNotEmpty);
+    expect(errorsResult.diagnostics, isNotEmpty);
   }
 
   test_getErrors_inconsistent() async {
@@ -560,7 +560,7 @@ class B2 extends X {}
     expect(aUnitResult.unit, isNotNull);
     expect(aUnitResult.unit.directives, hasLength(1));
     expect(aUnitResult.unit.declarations, hasLength(1));
-    expect(aUnitResult.errors, isEmpty);
+    expect(aUnitResult.diagnostics, isEmpty);
 
     var bUnitResult = resolvedLibrary.units[1];
     expect(bUnitResult.path, b.path);
@@ -569,7 +569,7 @@ class B2 extends X {}
     expect(bUnitResult.unit, isNotNull);
     expect(bUnitResult.unit.directives, hasLength(1));
     expect(bUnitResult.unit.declarations, hasLength(2));
-    expect(bUnitResult.errors, isNotEmpty);
+    expect(bUnitResult.diagnostics, isNotEmpty);
 
     var aDeclaration =
         resolvedLibrary.getFragmentDeclaration(aClass.firstFragment)!;

@@ -160,7 +160,7 @@ $snippet
       await context.applyPendingFileChanges();
       var results = await context.currentSession.getErrors(snippetPath);
       if (results is ErrorsResult) {
-        Iterable<Diagnostic> diagnostics = results.errors.where((error) {
+        Iterable<Diagnostic> diagnostics = results.diagnostics.where((error) {
           DiagnosticCode diagnosticCode = error.diagnosticCode;
           // TODO(brianwilkerson): .
           return diagnosticCode != WarningCode.UNUSED_IMPORT &&

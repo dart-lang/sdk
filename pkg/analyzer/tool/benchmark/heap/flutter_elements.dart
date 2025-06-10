@@ -101,7 +101,7 @@ Future<void> _analyzeFiles(AnalysisContextCollectionImpl collection) async {
         var errorsResult = await analysisSession.getErrors(filePath);
         if (errorsResult is ErrorsResult) {
           var errors =
-              errorsResult.errors
+              errorsResult.diagnostics
                   .where(
                     (element) =>
                         element.diagnosticCode.type ==

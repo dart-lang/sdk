@@ -22,6 +22,8 @@
 * Deprecate `RecordingErrorListener.errors`; use
   `RecordingDiagnosticListener.diagnostics` instead.
 * Deprecate `RecordingErrorListener.getErrorsForSource`; no longer supported.
+* Deprecate `AnalysisResultWithErrors.errors`; use
+  `AnalysisResultWithErrors.diagnostics` instead.
 * Deprecate `ErrorType`; use `DiagnosticType` instead.
 * Change `ElementDirective` from `sealed` to `abstract`.
   This allows the analyzer to have an internal implementation

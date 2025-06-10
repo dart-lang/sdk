@@ -1373,7 +1373,7 @@ var foo = 0;
     var result = await getTestErrors();
     expect(result.path, convertPath('/workspace/dart/test/lib/test.dart'));
     expect(result.uri.toString(), 'package:dart.test/test.dart');
-    assertErrorsInList(result.errors, [
+    assertErrorsInList(result.diagnostics, [
       error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 8, 1),
     ]);
     expect(result.lineInfo.lineStarts, [0, 11, 24]);
@@ -1388,7 +1388,7 @@ library;
 ''');
 
     var errorsResult = await fileResolver.getErrors2(path: b.path);
-    assertErrorsInList(errorsResult.errors, []);
+    assertErrorsInList(errorsResult.diagnostics, []);
   }
 
   test_getErrors_library() async {
@@ -1397,7 +1397,7 @@ var a = 42
 ''');
 
     var errorsResult = await fileResolver.getErrors2(path: a.path);
-    assertErrorsInList(errorsResult.errors, [
+    assertErrorsInList(errorsResult.diagnostics, [
       error(ParserErrorCode.EXPECTED_TOKEN, 8, 2),
     ]);
   }
@@ -1413,7 +1413,7 @@ var a = 42
 ''');
 
     var errorsResult = await fileResolver.getErrors2(path: b.path);
-    assertErrorsInList(errorsResult.errors, [
+    assertErrorsInList(errorsResult.diagnostics, [
       error(ParserErrorCode.EXPECTED_TOKEN, 26, 2),
     ]);
   }
@@ -1425,17 +1425,17 @@ var a = 42
     _assertResolvedFiles([]);
 
     // No cached, will resolve once.
-    expect((await getTestErrors()).errors, hasLength(1));
+    expect((await getTestErrors()).diagnostics, hasLength(1));
     _assertResolvedFiles([testFile]);
 
     // Has cached, will be not resolved again.
-    expect((await getTestErrors()).errors, hasLength(1));
+    expect((await getTestErrors()).diagnostics, hasLength(1));
     _assertResolvedFiles([]);
 
     // Change the file, will be resolved again.
     addTestFile('var a = c;');
     fileResolver.changeFiles([testFile.path]);
-    expect((await getTestErrors()).errors, hasLength(1));
+    expect((await getTestErrors()).diagnostics, hasLength(1));
     _assertResolvedFiles([testFile]);
   }
 
@@ -1453,11 +1453,11 @@ var b = a.foo;
     _assertResolvedFiles([]);
 
     // No cached, will resolve once.
-    expect((await getTestErrors()).errors, hasLength(1));
+    expect((await getTestErrors()).diagnostics, hasLength(1));
     _assertResolvedFiles([testFile]);
 
     // Has cached, will be not resolved again.
-    expect((await getTestErrors()).errors, hasLength(1));
+    expect((await getTestErrors()).diagnostics, hasLength(1));
     _assertResolvedFiles([]);
 
     // Change the dependency.
@@ -1467,7 +1467,7 @@ var b = a.foo;
 var a = 4.2;
 ''');
     fileResolver.changeFiles([a.path]);
-    expect((await getTestErrors()).errors, hasLength(1));
+    expect((await getTestErrors()).diagnostics, hasLength(1));
     _assertResolvedFiles([testFile]);
   }
 
@@ -1796,7 +1796,7 @@ byteStore
     var result = await getTestErrors();
     expect(result.path, testFile.path);
     expect(result.uri.toString(), 'package:dart.test/test.dart');
-    assertErrorsInList(result.errors, [
+    assertErrorsInList(result.diagnostics, [
       error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 8, 1),
     ]);
     expect(result.lineInfo.lineStarts, [0, 11, 24]);

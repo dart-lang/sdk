@@ -52,7 +52,7 @@ class OrganizeImportsCommandHandler extends SimpleEditCommandHandler {
       var code = result.content;
       var unit = result.unit;
 
-      if (hasScanParseErrors(result.errors)) {
+      if (hasScanParseErrors(result.diagnostics)) {
         if (autoTriggered) {
           return success(null);
         }
@@ -66,7 +66,7 @@ class OrganizeImportsCommandHandler extends SimpleEditCommandHandler {
         );
       }
 
-      var organizer = ImportOrganizer(code, unit, result.errors);
+      var organizer = ImportOrganizer(code, unit, result.diagnostics);
       var edits = organizer.organize();
 
       if (edits.isEmpty) {

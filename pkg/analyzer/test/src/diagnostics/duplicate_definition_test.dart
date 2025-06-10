@@ -4754,7 +4754,7 @@ class A {}
 
     var aResult = await resolveFile(a);
     GatheringDiagnosticListener()
-      ..addAll(aResult.errors)
+      ..addAll(aResult.diagnostics)
       ..assertErrors([
         error(
           CompileTimeErrorCode.DUPLICATE_DEFINITION,
@@ -4787,12 +4787,12 @@ class A {}
 
     var aResult = await resolveFile(a);
     GatheringDiagnosticListener()
-      ..addAll(aResult.errors)
+      ..addAll(aResult.diagnostics)
       ..assertNoErrors();
 
     var bResult = await resolveFile(b);
     GatheringDiagnosticListener()
-      ..addAll(bResult.errors)
+      ..addAll(bResult.diagnostics)
       ..assertErrors([
         error(
           CompileTimeErrorCode.DUPLICATE_DEFINITION,
@@ -4838,7 +4838,7 @@ extension A on int {}
 
     var aResult = await resolveFile(a);
     GatheringDiagnosticListener()
-      ..addAll(aResult.errors)
+      ..addAll(aResult.diagnostics)
       ..assertErrors([
         error(
           CompileTimeErrorCode.DUPLICATE_DEFINITION,
@@ -4884,7 +4884,7 @@ extension type A(int it) {}
 
     var aResult = await resolveFile(a);
     GatheringDiagnosticListener()
-      ..addAll(aResult.errors)
+      ..addAll(aResult.diagnostics)
       ..assertErrors([
         error(
           CompileTimeErrorCode.DUPLICATE_DEFINITION,
@@ -4951,7 +4951,7 @@ mixin A {}
 
     var aResult = await resolveFile(a);
     GatheringDiagnosticListener()
-      ..addAll(aResult.errors)
+      ..addAll(aResult.diagnostics)
       ..assertErrors([
         error(
           CompileTimeErrorCode.DUPLICATE_DEFINITION,

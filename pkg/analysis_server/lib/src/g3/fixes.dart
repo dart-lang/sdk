@@ -73,7 +73,7 @@ class LintFixTester {
     var unitResult = resolvedLibrary.unitWithPath(path)!;
 
     Diagnostic diagnostic;
-    var errors = unitResult.errors;
+    var errors = unitResult.diagnostics;
     if (inFile) {
       var groups = errors.groupListsBy((error) => error.diagnosticCode);
       if (groups.length != 1) {

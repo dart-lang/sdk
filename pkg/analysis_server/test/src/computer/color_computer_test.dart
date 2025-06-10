@@ -197,7 +197,7 @@ class ColorComputerTest extends AbstractContextTest {
   void expectNoErrors(ResolvedUnitResult result) {
     // If the test code has errors, generate a suitable failure to help debug.
     var errors =
-        result.errors
+        result.diagnostics
             .where((error) => error.severity == Severity.error)
             .toList();
     if (errors.isNotEmpty) {

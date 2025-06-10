@@ -1162,7 +1162,7 @@ class AnalysisDriver {
       session: currentSession,
       fileState: file,
       unit: unit,
-      errors: listener.diagnostics,
+      diagnostics: listener.diagnostics,
     );
   }
 
@@ -1421,7 +1421,7 @@ class AnalysisDriver {
             unitFile.path,
             _createErrorsResultImpl(
               file: unitFile,
-              diagnostics: unitResult.errors,
+              diagnostics: unitResult.diagnostics,
             ),
           );
 
@@ -1434,9 +1434,9 @@ class AnalysisDriver {
             var unitBytes =
                 AnalysisDriverResolvedUnitBuilder(
                   errors:
-                      unitResult.errors.map((error) {
-                        return ErrorEncoding.encode(error);
-                      }).toList(),
+                      unitResult.diagnostics
+                          .map((d) => ErrorEncoding.encode(d))
+                          .toList(),
                   index: index,
                 ).toBuffer();
             _byteStore.putGet(unitKey, unitBytes);
@@ -1451,7 +1451,7 @@ class AnalysisDriver {
             _priorityResults[unitFile.path] = resolvedUnit;
           }
 
-          _updateHasErrorOrWarningFlag(unitFile, resolvedUnit.errors);
+          _updateHasErrorOrWarningFlag(unitFile, resolvedUnit.diagnostics);
         }
 
         if (withFineDependencies && requirements != null) {
@@ -1605,7 +1605,7 @@ class AnalysisDriver {
       uri: file.uri,
       isLibrary: file.kind is LibraryFileKind,
       isPart: file.kind is PartFileKind,
-      errors: diagnostics,
+      diagnostics: diagnostics,
       analysisOptions: file.analysisOptions,
     );
   }
@@ -1649,7 +1649,7 @@ class AnalysisDriver {
       session: currentSession,
       fileState: file,
       unit: unitResult.unit,
-      errors: unitResult.errors,
+      diagnostics: unitResult.diagnostics,
     );
   }
 
@@ -1971,7 +1971,7 @@ class AnalysisDriver {
       uri: file.uri,
       isLibrary: file.kind is LibraryFileKind,
       isPart: file.kind is PartFileKind,
-      errors: [
+      diagnostics: [
         Diagnostic.tmp(
           source: file.source,
           offset: 0,

@@ -96,7 +96,7 @@ class Driver {
               var result = await context.currentSession.getErrors(filePath);
               if (result is ErrorsResult) {
                 var filtered =
-                    result.errors
+                    result.diagnostics
                         .where((e) => e.diagnosticCode.name != 'TODO')
                         .toList();
                 if (filtered.isNotEmpty) {

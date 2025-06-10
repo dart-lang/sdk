@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/utilities/extensions/string.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -11,10 +12,99 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class CreateMixin extends ResolvedCorrectionProducer {
-  String _mixinName = '';
-
+class CreateMixin extends MultiCorrectionProducer {
   CreateMixin({required super.context});
+
+  @override
+  Future<List<ResolvedCorrectionProducer>> get producers async {
+    String mixinName = '';
+    Element? prefixElement;
+    var withKeyword = false;
+    var node = this.node;
+    if (node is NamedType) {
+      var importPrefix = node.importPrefix;
+      if (importPrefix != null) {
+        prefixElement = importPrefix.element2;
+        if (prefixElement == null) {
+          return const [];
+        }
+      }
+      withKeyword = node.parent is WithClause;
+      mixinName = node.name.lexeme;
+    } else if (node is SimpleIdentifier) {
+      var parent = node.parent;
+      switch (parent) {
+        // Not the first identifier or the body of a function
+        case PrefixedIdentifier(identifier: Expression invalid) ||
+            PropertyAccess(propertyName: Expression invalid) ||
+            ExpressionFunctionBody(expression: var invalid):
+          if (invalid == node) {
+            return const [];
+          }
+      }
+      mixinName = node.name;
+    } else if (node is PrefixedIdentifier) {
+      if (node.parent is InstanceCreationExpression) {
+        return const [];
+      }
+      prefixElement = node.prefix.element;
+      if (prefixElement == null) {
+        return const [];
+      }
+      mixinName = node.identifier.name;
+    } else {
+      return const [];
+    }
+    if (mixinName.isEmpty) {
+      return const [];
+    }
+    return [
+      // Lowercase mixin names are valid but not idiomatic so lower the
+      // priority.
+      if (mixinName.firstLetterIsLowercase)
+        _CreateMixin.lowercase(
+          mixinName,
+          prefixElement,
+          withKeyword: withKeyword,
+          context: context,
+        )
+      else
+        _CreateMixin.uppercase(
+          mixinName,
+          prefixElement,
+          withKeyword: withKeyword,
+          context: context,
+        ),
+    ];
+  }
+}
+
+class _CreateMixin extends ResolvedCorrectionProducer {
+  final String _mixinName;
+  final Element? prefixElement;
+
+  @override
+  final FixKind fixKind;
+
+  _CreateMixin.lowercase(
+    this._mixinName,
+    this.prefixElement, {
+    required bool withKeyword,
+    required super.context,
+  }) : fixKind =
+           withKeyword
+               ? DartFixKind.CREATE_MIXIN_LOWERCASE_WITH
+               : DartFixKind.CREATE_MIXIN_LOWERCASE;
+
+  _CreateMixin.uppercase(
+    this._mixinName,
+    this.prefixElement, {
+    required bool withKeyword,
+    required super.context,
+  }) : fixKind =
+           withKeyword
+               ? DartFixKind.CREATE_MIXIN_UPPERCASE_WITH
+               : DartFixKind.CREATE_MIXIN_UPPERCASE;
 
   @override
   CorrectionApplicability get applicability =>
@@ -25,50 +115,7 @@ class CreateMixin extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_mixinName];
 
   @override
-  FixKind get fixKind => DartFixKind.CREATE_MIXIN;
-
-  @override
   Future<void> compute(ChangeBuilder builder) async {
-    Element? prefixElement;
-    var node = this.node;
-    if (node is NamedType) {
-      var importPrefix = node.importPrefix;
-      if (importPrefix != null) {
-        prefixElement = importPrefix.element2;
-        if (prefixElement == null) {
-          return;
-        }
-      }
-      _mixinName = node.name.lexeme;
-    } else if (node is SimpleIdentifier) {
-      var parent = node.parent;
-      switch (parent) {
-        case PrefixedIdentifier():
-          if (parent.identifier == node) {
-            return;
-          }
-        case PropertyAccess():
-          if (parent.propertyName == node) {
-            return;
-          }
-        case ExpressionFunctionBody():
-          if (parent.expression == node) {
-            return;
-          }
-      }
-      _mixinName = node.name;
-    } else if (node is PrefixedIdentifier) {
-      if (node.parent is InstanceCreationExpression) {
-        return;
-      }
-      prefixElement = node.prefix.element;
-      if (prefixElement == null) {
-        return;
-      }
-      _mixinName = node.identifier.name;
-    } else {
-      return;
-    }
     // prepare environment
     LibraryFragment targetUnit;
     var prefix = '';
