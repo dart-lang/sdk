@@ -1821,8 +1821,60 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
       }
     }
 
+    // HFieldGet of a final field from an allocator can be replaced with the
+    // field's value.
+    //
+    // Load Elimination is more powerful as it can handle non-final fields, but
+    // doing this earlier in the simplifier generates more opportunities for the
+    // first GVN pass.
+    if (receiver is HCreate && !node.isAssignable) {
+      int index = _indexOfFieldInAllocatorInputs(
+        receiver.element,
+        node.element,
+      );
+      if (index >= 0) return receiver.inputs[index];
+    }
+
     return node;
   }
+
+  int _indexOfFieldInAllocatorInputs(ClassEntity cls, FieldEntity field) {
+    final classCache = _indexOfFieldInAllocatorCache ??= {};
+    final fieldCache = classCache[cls] ??= {};
+    final index = fieldCache[field];
+    if (index != null) return index;
+
+    int argumentIndex = 0;
+    _closedWorld.elementEnvironment.forEachInstanceField(cls, (
+      _,
+      FieldEntity member,
+    ) {
+      FieldAnalysisData fieldData = _closedWorld.fieldAnalysis.getFieldData(
+        member,
+      );
+      int index = (fieldData.isElided || fieldData.isInitializedInAllocator)
+          ? -1
+          : argumentIndex++;
+
+      // TODO(https://github.com/dart-lang/sdk/issues/26775): dart2js has a bug
+      // with using the same mixin twice, the fields are not separated, so can
+      // occur here twice. If we already have an index, one of them is wrong.
+      if (fieldCache[member] != null) index = -1;
+
+      fieldCache[member] = index;
+    });
+
+    if (fieldCache[field] == null) {
+      // The field should not be missing but it might be possible (1) with
+      // unsound optimizations due to 'trusted' checks (-O3), and (2) attempting
+      // to compile an abstract class generative constructor (a bit unclear why
+      // this happens, see b/422944368).
+      return fieldCache[field] = -1;
+    }
+    return fieldCache[field]!;
+  }
+
+  Map<ClassEntity, Map<FieldEntity, int>>? _indexOfFieldInAllocatorCache;
 
   @override
   HInstruction visitGetLength(HGetLength node) {
