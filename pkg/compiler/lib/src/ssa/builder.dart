@@ -5983,9 +5983,6 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       'JS_EMBEDDED_GLOBAL',
       'second ',
     )!;
-    js.Template expr = js.js.expressionTemplateYielding(
-      _emitter.generateEmbeddedGlobalAccess(globalName),
-    );
 
     NativeBehavior nativeBehavior = _elementMap
         .getNativeBehaviorForJsEmbeddedGlobalCall(invocation);
@@ -5995,12 +5992,8 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       closedWorld,
     );
     push(
-      HForeignCode(
-        expr,
-        ssaType,
-        const <HInstruction>[],
-        nativeBehavior: nativeBehavior,
-      )..sourceInformation = sourceInformation,
+      HEmbeddedGlobalGet(globalName, nativeBehavior, ssaType)
+        ..sourceInformation = sourceInformation,
     );
   }
 

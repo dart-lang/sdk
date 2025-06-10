@@ -298,6 +298,11 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitDivide(HDivide node) => handleInvokeBinary(node, 'Divide');
 
   @override
+  String visitEmbeddedGlobalGet(HEmbeddedGlobalGet node) {
+    return 'EmbeddedGlobalGet: "${node.name}"';
+  }
+
+  @override
   String visitExit(HExit node) => "Exit";
 
   @override
