@@ -219,7 +219,7 @@ abstract class FlowAnalysis<
     );
   }
 
-  /// Return `true` if the current state is reachable.
+  /// Whether the current state is reachable.
   bool get isReachable;
 
   FlowAnalysisOperations<Variable, Type> get operations;
@@ -268,16 +268,19 @@ abstract class FlowAnalysis<
   void assert_end();
 
   /// Call this method after visiting a reference to a variable inside a pattern
-  /// assignment.  [node] is the pattern, [variable] is the referenced variable,
-  /// and [writtenType] is the type that's written to that variable by the
+  /// assignment.
+  ///
+  /// [node] is the pattern, [variable] is the referenced variable, and
+  /// [writtenType] is the type that's written to that variable by the
   /// assignment.
   void assignedVariablePattern(Node node, Variable variable, Type writtenType);
 
   /// Call this method when the temporary variable holding the result of a
-  /// pattern match is assigned to a user-accessible variable.  (Depending on
-  /// the client's model, this might happen right after a variable pattern is
-  /// matched, or later, after one or more logical-or patterns have been
-  /// handled).
+  /// pattern match is assigned to a user-accessible variable.
+  ///
+  /// Depending on the client's model, this might happen right after a variable
+  /// pattern is matched, or later, after one or more logical-or patterns have
+  /// been handled).
   ///
   /// [promotionKey] is the promotion key used by flow analysis to represent the
   /// temporary variable holding the result of the pattern match, and [variable]
@@ -293,6 +296,7 @@ abstract class FlowAnalysis<
   void booleanLiteral(Expression expression, bool value);
 
   /// Call this method just after visiting the target of a cascade expression.
+  ///
   /// [target] is the target expression (the expression before the first `..` or
   /// `?..`), and [targetType] is its static type. [isNullAware] indicates
   /// whether the cascade expression is null-aware (meaning its first separator
@@ -315,8 +319,9 @@ abstract class FlowAnalysis<
     required bool isNullAware,
   });
 
-  /// Call this method just after visiting a cascade expression. See
-  /// [cascadeExpression_afterTarget] for details.
+  /// Call this method just after visiting a cascade expression.
+  ///
+  /// See [cascadeExpression_afterTarget] for details.
   ///
   /// [wholeExpression] should be the whole cascade expression.
   void cascadeExpression_end(Expression wholeExpression);
@@ -325,12 +330,16 @@ abstract class FlowAnalysis<
   void conditional_conditionBegin();
 
   /// Call this method upon reaching the ":" part of a conditional expression
-  /// ("?:").  [thenExpression] should be the expression preceding the ":".
-  /// [thenType] should be the static type of the expression preceding the ":".
+  /// ("?:").
+  ///
+  /// [thenExpression] should be the expression preceding the ":". [thenType]
+  /// should be the static type of the expression preceding the ":".
   void conditional_elseBegin(Expression thenExpression, Type thenType);
 
   /// Call this method when finishing the visit of a conditional expression
-  /// ("?:").  [elseExpression] should be the expression following the ":", and
+  /// ("?:").
+  ///
+  /// [elseExpression] should be the expression following the ":", and
   /// [conditionalExpression] should be the whole conditional expression.
   /// [elseType] should be the static type of the expression following the ":",
   /// and [conditionalExpressionType] should be the static type of the whole
@@ -343,18 +352,21 @@ abstract class FlowAnalysis<
   );
 
   /// Call this method upon reaching the "?" part of a conditional expression
-  /// ("?:").  [condition] should be the expression preceding the "?".
+  /// ("?:").
+  ///
+  /// [condition] should be the expression preceding the "?".
   /// [conditionalExpression] should be the entire conditional expression.
   void conditional_thenBegin(Expression condition, Node conditionalExpression);
 
-  /// Call this method after processing a constant pattern.  [expression] should
-  /// be the pattern's constant expression, and [type] should be its static
-  /// type.
+  /// Call this method after processing a constant pattern.
+  ///
+  /// [expression] should be the pattern's constant expression, and [type]
+  /// should be its static type.
   ///
   /// [matchedValueType] should be the type returned by [getMatchedValueType].
   ///
   /// If [patternsEnabled] is `true`, pattern support is enabled and this is an
-  /// ordinary constant pattern.  if [patternsEnabled] is `false`, pattern
+  /// ordinary constant pattern. If [patternsEnabled] is `false`, pattern
   /// support is disabled and this constant pattern is one of the cases of a
   /// legacy switch statement.
   void constantPattern_end(
@@ -364,15 +376,17 @@ abstract class FlowAnalysis<
     required Type matchedValueType,
   });
 
-  /// Copy promotion data associated with one promotion key to another.  This
-  /// is used after analyzing a branch of a logical-or pattern, to move the
+  /// Copies promotion data associated with one promotion key to another.
+  ///
+  /// This is used after analyzing a branch of a logical-or pattern, to move the
   /// promotion data associated with the result of a pattern match on the left
   /// hand and right hand sides of the logical-or into a common promotion key,
   /// so that promotions will be properly unified when the control flow paths
   /// are joined.
   void copyPromotionData({required int sourceKey, required int destinationKey});
 
-  /// Register a declaration of the [variable] in the current state.
+  /// Registers a declaration of the [variable] in the current state.
+  ///
   /// Should also be called for function parameters.
   ///
   /// [staticType] should be the static type of the variable (after type
@@ -382,7 +396,7 @@ abstract class FlowAnalysis<
   /// A function parameter is always initialized, so [initialized] is `true`.
   ///
   /// In debug builds, an assertion will normally verify that no variable gets
-  /// declared more than once.  This assertion may be disabled by passing `true`
+  /// declared more than once. This assertion may be disabled by passing `true`
   /// to [skipDuplicateCheck].
   ///
   /// TODO(paulberry): try to remove all uses of skipDuplicateCheck
@@ -418,6 +432,7 @@ abstract class FlowAnalysis<
   });
 
   /// Call this method before visiting the body of a "do-while" statement.
+  ///
   /// [doStatement] should be the same node that was passed to
   /// [AssignedVariables.endNode] for the do-while statement.
   void doStatement_bodyBegin(Statement doStatement);
@@ -454,9 +469,11 @@ abstract class FlowAnalysis<
   });
 
   /// Call this method after processing a relational pattern that uses an
-  /// equality operator (either `==` or `!=`).  [operand] should be the operand
-  /// to the right of the operator, [operandType] should be its static type, and
-  /// [notEqual] should be `true` iff the operator was `!=`.
+  /// equality operator (either `==` or `!=`).
+  ///
+  /// [operand] should be the operand to the right of the operator,
+  /// [operandType] should be its static type, and [notEqual] should be `true`
+  /// iff the operator was `!=`.
   ///
   /// [matchedValueType] should be the type returned by [getMatchedValueType].
   void equalityRelationalPattern_end(
@@ -466,37 +483,43 @@ abstract class FlowAnalysis<
     required Type matchedValueType,
   });
 
-  /// Retrieves the [ExpressionInfo] associated with [target], if known.  Will
-  /// return `null` if (a) no info is associated with [target], or (b) another
-  /// expression with info has been visited more recently than [target].  For
-  /// testing only.
+  /// The [ExpressionInfo] associated with [target], if known.
+  ///
+  /// **For testing only!**
+  ///
+  /// Returns `null` if (a) no info is associated with [target], or (b) another
+  /// expression with info has been visited more recently than [target].
   ExpressionInfo<Type>? expressionInfoForTesting(Expression target);
 
+  /// Performs assertion checks at the conclusion of flow analysis.
+  ///
   /// This method should be called at the conclusion of flow analysis for a top
-  /// level function or method.  Performs assertion checks.
+  /// level function or method, when `this` is no longer needed.
   void finish();
 
   /// Call this method just before visiting the body of a conventional "for"
-  /// statement or collection element.  See [for_conditionBegin] for details.
+  /// statement or collection element.
+  ///
+  /// See [for_conditionBegin] for details.
   ///
   /// If a "for" statement is being entered, [node] is an opaque representation
   /// of the loop, for use as the target of future calls to [handleBreak] or
-  /// [handleContinue].  If a "for" collection element is being entered, [node]
+  /// [handleContinue]. If a "for" collection element is being entered, [node]
   /// should be `null`.
   ///
   /// [condition] is an opaque representation of the loop condition; it is
   /// matched against expressions passed to previous calls to determine whether
-  /// the loop condition should cause any promotions to occur.  If [condition]
-  /// is null, the condition is understood to be empty (equivalent to a
-  /// condition of `true`).
+  /// the loop condition should cause any promotions to occur. If [condition] is
+  /// null, the condition is understood to be empty (equivalent to a condition
+  /// of `true`).
   void for_bodyBegin(Statement? node, Expression? condition);
 
   /// Call this method just before visiting the condition of a conventional
   /// "for" statement or collection element.
   ///
   /// Note that a conventional "for" statement is a statement of the form
-  /// `for (initializers; condition; updaters) body`.  Statements of the form
-  /// `for (variable in iterable) body` should use [forEach_bodyBegin].  Similar
+  /// `for (initializers; condition; updaters) body`. Statements of the form
+  /// `for (variable in iterable) body` should use [forEach_bodyBegin]. Similar
   /// for "for" collection elements.
   ///
   /// The order of visiting a "for" statement or collection element should be:
@@ -514,11 +537,15 @@ abstract class FlowAnalysis<
   void for_conditionBegin(Node node);
 
   /// Call this method just after visiting the updaters of a conventional "for"
-  /// statement or collection element.  See [for_conditionBegin] for details.
+  /// statement or collection element.
+  ///
+  /// See [for_conditionBegin] for details.
   void for_end();
 
   /// Call this method just before visiting the updaters of a conventional "for"
-  /// statement or collection element.  See [for_conditionBegin] for details.
+  /// statement or collection element.
+  ///
+  /// See [for_conditionBegin] for details.
   void for_updaterBegin();
 
   /// Call this method just before visiting the body of a "for-in" statement or
@@ -536,7 +563,9 @@ abstract class FlowAnalysis<
   void forEach_bodyBegin(Node node);
 
   /// Call this method just before visiting the body of a "for-in" statement or
-  /// collection element.  See [forEach_bodyBegin] for details.
+  /// collection element.
+  ///
+  /// See [forEach_bodyBegin] for details.
   void forEach_end();
 
   /// Call this method to forward information on [oldExpression] to
@@ -579,23 +608,25 @@ abstract class FlowAnalysis<
   /// May only be called in the context of a pattern.
   Type getMatchedValueType();
 
-  /// Call this method when visiting a break statement.  [target] should be the
-  /// statement targeted by the break.
+  /// Call this method when visiting a break statement.
+  ///
+  /// [target] should be the statement targeted by the break.
   ///
   /// To facilitate error recovery, [target] is allowed to be `null`; if this
   /// happens, the break statement is analyzed as though it's an unconditional
   /// branch to nowhere (i.e. similar to a `return` or `throw`).
   void handleBreak(Statement? target);
 
-  /// Call this method when visiting a continue statement.  [target] should be
-  /// the statement targeted by the continue.
+  /// Call this method when visiting a continue statement.
+  ///
+  /// [target] should be the statement targeted by the continue.
   ///
   /// To facilitate error recovery, [target] is allowed to be `null`; if this
   /// happens, the continue statement is analyzed as though it's an
   /// unconditional branch to nowhere (i.e. similar to a `return` or `throw`).
   void handleContinue(Statement? target);
 
-  /// Register the fact that the current state definitely exists, e.g. returns
+  /// Register the fact that the current state definitely exits, e.g. returns
   /// from the body, throws an exception, etc.
   ///
   /// Should also be called if a subexpression's type is Never.
@@ -684,7 +715,8 @@ abstract class FlowAnalysis<
   void ifStatement_end(bool hasElse);
 
   /// Call this method after visiting the condition part of an if statement.
-  /// [condition] should be the if statement's condition.  [ifNode] should be
+  ///
+  /// [condition] should be the if statement's condition. [ifNode] should be
   /// the entire `if` statement (or the collection literal entry).
   void ifStatement_thenBegin(Expression condition, Node ifNode);
 
@@ -703,12 +735,12 @@ abstract class FlowAnalysis<
     required bool isImplicitlyTyped,
   });
 
-  /// Return whether the [variable] is definitely assigned in the current state.
+  /// Whether the [variable] is definitely assigned in the current state.
   bool isAssigned(Variable variable);
 
   /// Call this method after visiting the LHS of an "is" expression.
   ///
-  /// [isExpression] should be the complete expression.  [subExpression] should
+  /// [isExpression] should be the complete expression. [subExpression] should
   /// be the expression to which the "is" check was applied, and
   /// [subExpressionType] should be its static type. [isNot] should be a
   /// boolean indicating whether this is an "is" or an "is!" expression.
@@ -721,11 +753,11 @@ abstract class FlowAnalysis<
     required Type checkedType,
   });
 
-  /// Return whether the [variable] is definitely unassigned in the current
-  /// state.
+  /// Whether the [variable] is definitely unassigned in the current state.
   bool isUnassigned(Variable variable);
 
   /// Call this method before visiting a labeled statement.
+  ///
   /// Call [labeledStatement_end] after visiting the statement.
   void labeledStatement_begin(Statement node);
 
@@ -744,8 +776,9 @@ abstract class FlowAnalysis<
 
   /// Call this method after visiting the RHS of a logical binary operation
   /// ("||" or "&&").
+  ///
   /// [wholeExpression] should be the whole logical binary expression.
-  /// [rightOperand] should be the RHS.  [isAnd] should indicate whether the
+  /// [rightOperand] should be the RHS. [isAnd] should indicate whether the
   /// logical operator is "&&" or "||".
   void logicalBinaryOp_end(
     Expression wholeExpression,
@@ -755,8 +788,9 @@ abstract class FlowAnalysis<
 
   /// Call this method after visiting the LHS of a logical binary operation
   /// ("||" or "&&").
-  /// [leftOperand] should be the LHS.  [isAnd] should indicate whether the
-  /// logical operator is "&&" or "||".  [wholeExpression] should be the whole
+  ///
+  /// [leftOperand] should be the LHS. [isAnd] should indicate whether the
+  /// logical operator is "&&" or "||". [wholeExpression] should be the whole
   /// logical binary expression.
   void logicalBinaryOp_rightBegin(
     Expression leftOperand,
@@ -765,8 +799,9 @@ abstract class FlowAnalysis<
   });
 
   /// Call this method after visiting a logical not ("!") expression.
-  /// [notExpression] should be the complete expression.  [operand] should be
-  /// the subexpression whose logical value is being negated.
+  ///
+  /// [notExpression] should be the complete expression. [operand] should be the
+  /// subexpression whose logical value is being negated.
   void logicalNot_end(Expression notExpression, Expression operand);
 
   /// Call this method after visiting the left hand side of a logical-or (`||`)
@@ -798,8 +833,10 @@ abstract class FlowAnalysis<
   });
 
   /// Call this method before visiting the subpattern of a null-check or a
-  /// null-assert pattern. [isAssert] indicates whether the pattern is a
-  /// null-check or a null-assert pattern.
+  /// null-assert pattern.
+  ///
+  /// [isAssert] indicates whether the pattern is a null-check or a null-assert
+  /// pattern.
   ///
   /// [matchedValueType] should be the type returned by [getMatchedValueType].
   bool nullCheckOrAssertPattern_begin({
@@ -812,6 +849,7 @@ abstract class FlowAnalysis<
   void nullCheckOrAssertPattern_end();
 
   /// Call this method when encountering an expression that is a `null` literal.
+  ///
   /// [type] should be the static type of the literal (i.e. the type `Null`).
   void nullLiteral(Expression expression, Type type);
 
@@ -869,8 +907,10 @@ abstract class FlowAnalysis<
   /// a postfix increment or decrement operation.
   void postIncDec(Node node, Variable variable, Type writtenType);
 
-  /// Retrieves the type that a property named [propertyName] is promoted to, if
-  /// the property is currently promoted.  Otherwise returns `null`.
+  /// The type that a property named [propertyName] is promoted to, if
+  /// the property is currently promoted.
+  ///
+  /// If the property isn't currently promoted, returns `null`.
   ///
   /// The [target] parameter determines how the property is being looked up. If
   /// it is [ExpressionPropertyTarget], a property of an expression is being
@@ -880,10 +920,10 @@ abstract class FlowAnalysis<
   /// queried.
   ///
   /// [propertyMember] should be whatever data structure the client uses to keep
-  /// track of the field or property being accessed.  If not `null`, and field
+  /// track of the field or property being accessed. If not `null`, and field
   /// promotion is enabled for the current library,
   /// [FlowAnalysisOperations.isPropertyPromotable] will be consulted to find
-  /// out whether the property is promotable.  [unpromotedType] should be the
+  /// out whether the property is promotable. [unpromotedType] should be the
   /// static type of the value returned by the property get.
   ///
   /// Note: although only fields can be promoted, this method uses the
@@ -898,15 +938,18 @@ abstract class FlowAnalysis<
     Type unpromotedType,
   );
 
-  /// Retrieves the type that the [variable] is promoted to, if the [variable]
-  /// is currently promoted.  Otherwise returns `null`.
+  /// Retrieves the type that [variable] is promoted to, if it is currently
+  /// promoted.
+  ///
+  /// If the variable isn't currently promoted, returns `null`.
   Type? promotedType(Variable variable);
 
   /// Call this method when visiting a pattern whose semantics constrain the
-  /// type of the matched value.  This could be due to a required type of a
-  /// declared variable pattern, list pattern, map pattern, record pattern,
-  /// object pattern, or wildcard pattern, or it could be due to the
-  /// demonstrated type of a record pattern.
+  /// type of the matched value.
+  ///
+  /// This could be due to a required type of a declared variable pattern, list
+  /// pattern, map pattern, record pattern, object pattern, or wildcard pattern,
+  /// or it could be due to the demonstrated type of a record pattern.
   ///
   /// [matchedType] should be the matched value type, and [knownType] should
   /// be the type that the matched value is now known to satisfy.
@@ -933,13 +976,15 @@ abstract class FlowAnalysis<
   });
 
   /// Call this method just after visiting a property get expression.
+  ///
   /// [wholeExpression] should be the whole property get, and [propertyName]
   /// should be the identifier to the right hand side of the `.`.
   /// [unpromotedType] should be the static type of the value returned by the
   /// property get.
   ///
-  /// The [target] parameter determines how the property is being looked up. If
-  /// it is [ExpressionPropertyTarget], a property of an expression was just
+  /// The [target] parameter determines how the property is being looked up.
+  ///
+  /// If it is [ExpressionPropertyTarget], a property of an expression was just
   /// visited, and this method should be called just after visiting the
   /// expression. If it is [ThisPropertyTarget], a property of `this` was just
   /// visited. If it is [SuperPropertyTarget], a property of `super` was just
@@ -953,15 +998,15 @@ abstract class FlowAnalysis<
   /// of a compound assignment), [wholeExpression] may be `null`.
   ///
   /// [propertyMember] should be whatever data structure the client uses to keep
-  /// track of the field or property being accessed.  If not `null`, and field
+  /// track of the field or property being accessed. If not `null`, and field
   /// promotion is enabled for the current library,
   /// [FlowAnalysisOperations.isPropertyPromotable] will be consulted to find
-  /// out whether the property is promotable.  In the event of non-promotion of
-  /// a property get, this value can be retrieved from
+  /// out whether the property is promotable. In the event of non-promotion of a
+  /// property get, this value can be retrieved from
   /// [PropertyNotPromoted.propertyMember].
   ///
   /// If the property's type is currently promoted, the promoted type is
-  /// returned.  Otherwise `null` is returned.
+  /// returned. Otherwise `null` is returned.
   Type? propertyGet(
     Expression? wholeExpression,
     PropertyTarget<Expression> target,
@@ -1007,7 +1052,7 @@ abstract class FlowAnalysis<
   /// property.
   ///
   /// If the property's type is currently promoted, the promoted type is
-  /// returned.  Otherwise `null` is returned.
+  /// returned. Otherwise `null` is returned.
   Type? pushPropertySubpattern(
     String propertyName,
     Object? propertyMember,
@@ -1023,30 +1068,37 @@ abstract class FlowAnalysis<
   /// value for the outer pattern and the subpattern.
   void pushSubpattern(Type matchedType);
 
-  /// Retrieves the SSA node associated with [variable], or `null` if [variable]
-  /// is not associated with an SSA node because it is write captured.  For
-  /// testing only.
+  /// Retrieves the SSA node associated with [variable].
+  ///
+  /// **For testing only!**
+  ///
+  /// Returns `null` if [variable] is not associated with an SSA node because it
+  /// is write captured.
   @visibleForTesting
   SsaNode<Type>? ssaNodeForTesting(Variable variable);
 
-  /// Call this method just after visiting a `case` or `default` body.  See
-  /// [switchStatement_expressionEnd] for details.
+  /// Call this method just after visiting a `case` or `default` body.
+  ///
+  /// See [switchStatement_expressionEnd] for details.
   ///
   /// This method returns a boolean indicating whether the end of the case body
   /// is "locally reachable" (i.e. reachable from its start).
   bool switchStatement_afterCase();
 
-  /// Call this method just before visiting a `case` or `default` clause.  See
-  /// [switchStatement_expressionEnd] for details.
+  /// Call this method just before visiting a `case` or `default` clause.
+  ///
+  /// See [switchStatement_expressionEnd] for details.
   void switchStatement_beginAlternative();
 
   /// Call this method just before visiting a sequence of one or more `case` or
-  /// `default` clauses that share a body.  See [switchStatement_expressionEnd]
-  /// for details.
+  /// `default` clauses that share a body.
+  ///
+  /// See [switchStatement_expressionEnd] for details.
   void switchStatement_beginAlternatives();
 
-  /// Call this method just after visiting the body of a switch statement.  See
-  /// [switchStatement_expressionEnd] for details.
+  /// Call this method just after visiting the body of a switch statement.
+  ///
+  /// See [switchStatement_expressionEnd] for details.
   ///
   /// [isExhaustive] indicates whether the switch statement had a "default"
   /// case, or is based on an enumeration and all the enumeration constants
@@ -1057,14 +1109,15 @@ abstract class FlowAnalysis<
   /// clause, or a pattern that is guaranteed to match the scrutinee type).
   bool switchStatement_end(bool isExhaustive);
 
-  /// Call this method just after visiting a `case` or `default` clause.  See
-  /// [switchStatement_expressionEnd] for details.`
+  /// Call this method just after visiting a `case` or `default` clause.
+  ///
+  /// See [switchStatement_expressionEnd] for details.`
   ///
   /// [guard] should be the expression following the `when` keyword, if present.
   ///
   /// If the clause is a `case` clause, [variables] should contain an entry for
   /// all variables defined by the clause's pattern; the key should be the
-  /// variable name and the value should be the variable itself.  If the clause
+  /// variable name and the value should be the variable itself. If the clause
   /// is a `default` clause, [variables] should be an empty map.
   void switchStatement_endAlternative(
     Expression? guard,
@@ -1072,8 +1125,9 @@ abstract class FlowAnalysis<
   );
 
   /// Call this method just after visiting a sequence of one or more `case` or
-  /// `default` clauses that share a body.  See [switchStatement_expressionEnd]
-  /// for details.`
+  /// `default` clauses that share a body.
+  ///
+  /// See [switchStatement_expressionEnd] for details.
   ///
   /// [node] should be the same node that was passed to
   /// [AssignedVariables.endNode] for the switch statement.
@@ -1088,8 +1142,10 @@ abstract class FlowAnalysis<
   });
 
   /// Call this method just after visiting the expression part of a switch
-  /// statement or expression.  [switchStatement] should be the switch statement
-  /// itself (or `null` if this is a switch expression).
+  /// statement or expression.
+  ///
+  /// [switchStatement] should be the switch statement itself (or `null` if this
+  /// is a switch expression).
   ///
   /// The order of visiting a switch statement should be:
   /// - Visit the switch expression.
@@ -1116,9 +1172,10 @@ abstract class FlowAnalysis<
 
   /// Call this method just after visiting the expression `this` (or the
   /// pseudo-expression `super`, in the case of the analyzer, which represents
-  /// `super.x` as a property get whose target is `super`).  [expression] should
-  /// be the `this` or `super` expression.  [staticType] should be the static
-  /// type of `this`.
+  /// `super.x` as a property get whose target is `super`).
+  ///
+  /// [expression] should be the `this` or `super` expression. [staticType]
+  /// should be the static type of `this`.
   ///
   /// [isSuper] indicates whether the expression that was visited was the
   /// pseudo-expression `super`.
@@ -1158,6 +1215,7 @@ abstract class FlowAnalysis<
   void tryCatchStatement_bodyBegin();
 
   /// Call this method just after visiting the body of a "try/catch" statement.
+  ///
   /// See [tryCatchStatement_bodyBegin] for details.
   ///
   /// [body] should be the same node that was passed to
@@ -1165,10 +1223,12 @@ abstract class FlowAnalysis<
   void tryCatchStatement_bodyEnd(Node body);
 
   /// Call this method just before visiting a catch clause of a "try/catch"
-  /// statement.  See [tryCatchStatement_bodyBegin] for details.
+  /// statement.
+  ///
+  /// See [tryCatchStatement_bodyBegin] for details.
   ///
   /// [exceptionVariable] should be the exception variable declared by the catch
-  /// clause, or `null` if there is no exception variable.  Similar for
+  /// clause, or `null` if there is no exception variable. Similar for
   /// [stackTraceVariable].
   void tryCatchStatement_catchBegin(
     Variable? exceptionVariable,
@@ -1176,11 +1236,14 @@ abstract class FlowAnalysis<
   );
 
   /// Call this method just after visiting a catch clause of a "try/catch"
-  /// statement.  See [tryCatchStatement_bodyBegin] for details.
+  /// statement.
+  ///
+  /// See [tryCatchStatement_bodyBegin] for details.
   void tryCatchStatement_catchEnd();
 
-  /// Call this method just after visiting a "try/catch" statement.  See
-  /// [tryCatchStatement_bodyBegin] for details.
+  /// Call this method just after visiting a "try/catch" statement.
+  ///
+  /// See [tryCatchStatement_bodyBegin] for details.
   void tryCatchStatement_end();
 
   /// Call this method just before visiting the body of a "try/finally"
@@ -1198,11 +1261,14 @@ abstract class FlowAnalysis<
   void tryFinallyStatement_bodyBegin();
 
   /// Call this method just after visiting a "try/finally" statement.
+  ///
   /// See [tryFinallyStatement_bodyBegin] for details.
   void tryFinallyStatement_end();
 
   /// Call this method just before visiting the finally block of a "try/finally"
-  /// statement.  See [tryFinallyStatement_bodyBegin] for details.
+  /// statement.
+  ///
+  /// See [tryFinallyStatement_bodyBegin] for details.
   ///
   /// [body] should be the same node that was passed to
   /// [AssignedVariables.endNode] for the "try" part of the try/finally
@@ -1222,12 +1288,13 @@ abstract class FlowAnalysis<
   /// a variable.
   ///
   /// If the variable's type is currently promoted, the promoted type is
-  /// returned.  Otherwise `null` is returned.
+  /// returned. Otherwise `null` is returned.
   Type? variableRead(Expression expression, Variable variable);
 
   /// Call this method after visiting the condition part of a "while" statement.
-  /// [whileStatement] should be the full while statement.  [condition] should
-  /// be the condition part of the while statement.
+  ///
+  /// [whileStatement] should be the full while statement. [condition] should be
+  /// the condition part of the while statement.
   void whileStatement_bodyBegin(Statement whileStatement, Expression condition);
 
   /// Call this method before visiting the condition part of a "while"
@@ -1242,25 +1309,26 @@ abstract class FlowAnalysis<
 
   /// Call this method when an error occurs that may be due to a lack of type
   /// promotion, to retrieve information about why [target] was not promoted.
+  ///
   /// This call must be made right after visiting [target].
   ///
   /// The returned value is a function yielding a map whose keys are types that
   /// the user might have been expecting the target to be promoted to, and whose
-  /// values are reasons why the corresponding promotion did not occur.  The
+  /// values are reasons why the corresponding promotion did not occur. The
   /// caller is expected to select which non-promotion reason to report to the
-  /// user by seeing which promotion would have prevented the error.  (For
+  /// user by seeing which promotion would have prevented the error. (For
   /// example, if an error occurs due to the target having a nullable type, the
   /// caller should report a non-promotion reason associated with non-promotion
   /// to a non-nullable type).
   ///
   /// This method is expected to execute fairly efficiently; the bulk of the
-  /// expensive computation is deferred to the function it returns.  The reason
+  /// expensive computation is deferred to the function it returns. The reason
   /// for this is that in certain cases, it's not possible to know whether "why
   /// not promoted" information will be needed until long after visiting a node.
   /// (For example, in resolving a call like
   /// `(x as Future<T>).then(y, onError: z)`, we don't know whether an error
   /// should be reported at `y` until we've inferred the type argument to
-  /// `then`, which doesn't occur until after visiting `z`).  So the caller may
+  /// `then`, which doesn't occur until after visiting `z`). So the caller may
   /// freely call this method after any expression for which an error *might*
   /// need to be generated, and then defer invoking the returned function until
   /// it is determined that an error actually occurred.
@@ -1268,25 +1336,27 @@ abstract class FlowAnalysis<
 
   /// Call this method when an error occurs that may be due to a lack of type
   /// promotion, to retrieve information about why an implicit reference to
-  /// `this` was not promoted.  [staticType] is the (unpromoted) type of `this`.
+  /// `this` was not promoted.
+  ///
+  /// [staticType] is the (unpromoted) type of `this`.
   ///
   /// The returned value is a function yielding a map whose keys are types that
   /// the user might have been expecting `this` to be promoted to, and whose
-  /// values are reasons why the corresponding promotion did not occur.  The
+  /// values are reasons why the corresponding promotion did not occur. The
   /// caller is expected to select which non-promotion reason to report to the
-  /// user by seeing which promotion would have prevented the error.  (For
+  /// user by seeing which promotion would have prevented the error. (For
   /// example, if an error occurs due to the target having a nullable type, the
   /// caller should report a non-promotion reason associated with non-promotion
   /// to a non-nullable type).
   ///
   /// This method is expected to execute fairly efficiently; the bulk of the
-  /// expensive computation is deferred to the function it returns.  The reason
+  /// expensive computation is deferred to the function it returns. The reason
   /// for this is that in certain cases, it's not possible to know whether "why
   /// not promoted" information will be needed until long after visiting a node.
   /// (For example, in resolving a call like
   /// `(x as Future<T>).then(y, onError: z)`, we don't know whether an error
   /// should be reported at `y` until we've inferred the type argument to
-  /// `then`, which doesn't occur until after visiting `z`).  So the caller may
+  /// `then`, which doesn't occur until after visiting `z`). So the caller may
   /// freely call this method after any expression for which an error *might*
   /// need to be generated, and then defer invoking the returned function until
   /// it is determined that an error actually occurred.
@@ -1294,7 +1364,8 @@ abstract class FlowAnalysis<
     Type staticType,
   );
 
-  /// Register write of the given [variable] in the current state.
+  /// Registers a write of the given [variable] in the current state.
+  ///
   /// [writtenType] should be the type of the value that was written.
   /// [node] should be the syntactic construct performing the write.
   /// [writtenExpression] should be the expression that was written, or `null`
