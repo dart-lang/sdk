@@ -414,8 +414,13 @@ config("compiler") {
     defines = [ "TOOLCHAIN_VERSION=${toolchain_cipd_version.instance_id}" ]
 
     if (is_linux) {
-      sysroot_stamp_file =
-          "//buildtools/sysroot/focal/.versions/sysroot.cipd_version"
+      if (current_cpu == "riscv64") {
+        sysroot_stamp_file =
+            "//buildtools/sysroot/focal/.versions/sysroot.cipd_version"
+      } else {
+        sysroot_stamp_file =
+            "//buildtools/sysroot/linux/.versions/sysroot.cipd_version"
+      }
       sysroot_cipd_version = read_file(sysroot_stamp_file, "json")
       defines += [ "SYSROOT_VERSION=${sysroot_cipd_version.instance_id}" ]
     }
