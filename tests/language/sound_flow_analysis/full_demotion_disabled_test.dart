@@ -10,7 +10,7 @@
 import '../static_type_helper.dart';
 
 // If an assignment fully demotes a variable, types of interest are cleared.
-testFullDemotion(Object x, num n) {
+void testFullDemotion(Object x, num n) {
   x as num;
   x.expectStaticType<Exactly<num>>();
   x = '';

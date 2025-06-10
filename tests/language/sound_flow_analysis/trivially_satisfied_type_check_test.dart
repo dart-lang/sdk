@@ -11,7 +11,7 @@ import '../static_type_helper.dart';
 
 // If `x` is of type `T`, flow analysis considers `x is T` to be guaranteed to
 // evaluate to `true`.
-testIsExact({required int intValue, required int Function() intFunction}) {
+void testIsExact({required int intValue, required int Function() intFunction}) {
   {
     // <var> is int
     int? shouldBePromoted;
@@ -46,7 +46,10 @@ testIsExact({required int intValue, required int Function() intFunction}) {
 
 // If `x` is of type `T`, flow analysis considers `x is! T` to be guaranteed
 // to evaluate to `false`.
-testIsNotExact({required int intValue, required int Function() intFunction}) {
+void testIsNotExact({
+  required int intValue,
+  required int Function() intFunction,
+}) {
   {
     // <var> is! int
     int? shouldNotBeDemoted = 0;
@@ -81,7 +84,10 @@ testIsNotExact({required int intValue, required int Function() intFunction}) {
 
 // If `x` is of type `T`, and `T <: U`, flow analysis considers `x is U` to be
 // guaranteed to evaluate to `true`.
-testIsSupertype({required int intValue, required int Function() intFunction}) {
+void testIsSupertype({
+  required int intValue,
+  required int Function() intFunction,
+}) {
   {
     // <var> is num
     int? shouldBePromoted;
@@ -116,7 +122,7 @@ testIsSupertype({required int intValue, required int Function() intFunction}) {
 
 // If `x` is of type `T`, and `T <: U`, flow analysis considers `x is! U` to be
 // guaranteed to evaluate to `false`.
-testIsNotSupertype({
+void testIsNotSupertype({
   required int intValue,
   required int Function() intFunction,
 }) {

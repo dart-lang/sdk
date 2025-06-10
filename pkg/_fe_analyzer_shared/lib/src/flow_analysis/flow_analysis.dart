@@ -3206,11 +3206,9 @@ class FlowModel<Type extends Object> {
       // Do not promote to `Never` (even if it would be sound to do so); it's
       // not useful.
       typeIfFalse = null;
-      if (helper.typeAnalyzerOptions.soundFlowAnalysisEnabled) {
-        ifFalseIsUnreachable = true;
-      } else {
-        // The code path might be reachable due to mixed mode unsoundness.
-      }
+      // If not sound, it might still be reachable.
+      ifFalseIsUnreachable =
+          helper.typeAnalyzerOptions.soundFlowAnalysisEnabled;
     } else if (!helper.isValidPromotionStep(
       previousType: previousType,
       newType: factoredType,
@@ -7345,9 +7343,8 @@ class _FlowAnalysisImpl<
     }
   }
 
-  /// Determines whether an expression having the given [staticType] is
-  /// guaranteed to fail an `is` or `as` check using [checkedType] due to sound
-  /// null safety.
+  /// Whether an expression having the given [staticType] is guaranteed to fail
+  /// an `is` or `as` check using [checkedType] due to sound null safety.
   ///
   /// If [TypeAnalyzerOptions.soundFlowAnalysisEnabled] is `false`, this method
   /// will return `false` regardless of its input. This reflects the fact that
@@ -7358,8 +7355,8 @@ class _FlowAnalysisImpl<
     required Type staticType,
     required Type checkedType,
   }) {
-    if (!typeAnalyzerOptions.soundFlowAnalysisEnabled) return false;
-    return typeOperations.isSubtypeOf(staticType, checkedType);
+    return typeAnalyzerOptions.soundFlowAnalysisEnabled &&
+        typeOperations.isSubtypeOf(staticType, checkedType);
   }
 
   FlowModel<Type> _join(FlowModel<Type>? first, FlowModel<Type>? second) =>
