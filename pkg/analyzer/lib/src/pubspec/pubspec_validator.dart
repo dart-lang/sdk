@@ -46,7 +46,7 @@ List<Diagnostic> validatePubspec({
   AnalysisOptions? analysisOptions,
 }) {
   var recorder = RecordingDiagnosticListener();
-  ErrorReporter reporter = ErrorReporter(recorder, source);
+  DiagnosticReporter reporter = DiagnosticReporter(recorder, source);
   var ctx = PubspecValidationContext._(
     contents: contents,
     source: source,
@@ -137,7 +137,7 @@ final class PubspecValidationContext {
   final Source source;
 
   /// The reporter to which errors should be reported.
-  final ErrorReporter reporter;
+  final DiagnosticReporter reporter;
 
   /// The resource provider used to access the file system.
   final ResourceProvider provider;

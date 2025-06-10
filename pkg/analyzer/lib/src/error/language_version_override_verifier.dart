@@ -11,9 +11,9 @@ import 'package:analyzer/src/error/codes.dart';
 class LanguageVersionOverrideVerifier {
   static final _overrideCommentLine = RegExp(r'^\s*//\s*@dart\s*=\s*\d+\.\d+');
 
-  final ErrorReporter _errorReporter;
+  final DiagnosticReporter _diagnosticReporter;
 
-  LanguageVersionOverrideVerifier(this._errorReporter);
+  LanguageVersionOverrideVerifier(this._diagnosticReporter);
 
   void verify(CompilationUnit unit) {
     _verifyMisplaced(unit);
@@ -186,7 +186,7 @@ class LanguageVersionOverrideVerifier {
     // language version override comment.
 
     if (slashCount > 2) {
-      _errorReporter.atOffset(
+      _diagnosticReporter.atOffset(
         offset: offset,
         length: length,
         diagnosticCode:
@@ -196,7 +196,7 @@ class LanguageVersionOverrideVerifier {
     }
 
     if (!atSignPresent) {
-      _errorReporter.atOffset(
+      _diagnosticReporter.atOffset(
         offset: offset,
         length: length,
         diagnosticCode: WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN,
@@ -206,7 +206,7 @@ class LanguageVersionOverrideVerifier {
 
     if (possibleDart != 'dart') {
       // The 4 characters after `@` are "dart", but in the wrong case.
-      _errorReporter.atOffset(
+      _diagnosticReporter.atOffset(
         offset: offset,
         length: length,
         diagnosticCode:
@@ -219,7 +219,7 @@ class LanguageVersionOverrideVerifier {
         comment.codeUnitAt(dartVersionSeparatorStartIndex) != 0x3D) {
       // The separator between "@dart" and the version number is either not
       // present, or is not a single "=" character.
-      _errorReporter.atOffset(
+      _diagnosticReporter.atOffset(
         offset: offset,
         length: length,
         diagnosticCode: WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS,
@@ -228,7 +228,7 @@ class LanguageVersionOverrideVerifier {
     }
 
     if (containsInvalidVersionNumberPrefix) {
-      _errorReporter.atOffset(
+      _diagnosticReporter.atOffset(
         offset: offset,
         length: length,
         diagnosticCode: WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX,
@@ -237,7 +237,7 @@ class LanguageVersionOverrideVerifier {
     }
 
     void reportInvalidNumber() {
-      _errorReporter.atOffset(
+      _diagnosticReporter.atOffset(
         offset: offset,
         length: length,
         diagnosticCode: WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER,
@@ -273,7 +273,7 @@ class LanguageVersionOverrideVerifier {
 
     // This comment is a valid language version override, except for trailing
     // characters.
-    _errorReporter.atOffset(
+    _diagnosticReporter.atOffset(
       offset: offset,
       length: length,
       diagnosticCode:
@@ -303,7 +303,7 @@ class LanguageVersionOverrideVerifier {
           var match = _overrideCommentLine.firstMatch(lexeme);
           if (match != null) {
             var atDartStart = lexeme.indexOf('@dart');
-            _errorReporter.atOffset(
+            _diagnosticReporter.atOffset(
               offset: commentToken.offset + atDartStart,
               length: match.end - atDartStart,
               diagnosticCode:

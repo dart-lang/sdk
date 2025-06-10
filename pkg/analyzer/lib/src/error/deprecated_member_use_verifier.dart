@@ -357,11 +357,11 @@ abstract class BaseDeprecatedMemberUseVerifier {
 
 class DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
   final WorkspacePackageImpl? _workspacePackage;
-  final ErrorReporter _errorReporter;
+  final DiagnosticReporter _diagnosticReporter;
 
   DeprecatedMemberUseVerifier(
     this._workspacePackage,
-    this._errorReporter, {
+    this._diagnosticReporter, {
     required super.strictCasts,
   });
 
@@ -376,7 +376,7 @@ class DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
 
     message = message?.trim();
     if (message == null || message.isEmpty || message == '.') {
-      _errorReporter.atEntity(
+      _diagnosticReporter.atEntity(
         errorEntity,
         _isLibraryInWorkspacePackage(library)
             ? HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE
@@ -389,7 +389,7 @@ class DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
           !message.endsWith('!')) {
         message = '$message.';
       }
-      _errorReporter.atEntity(
+      _diagnosticReporter.atEntity(
         errorEntity,
         _isLibraryInWorkspacePackage(library)
             ? HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE

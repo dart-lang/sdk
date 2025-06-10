@@ -9,7 +9,7 @@ import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/listener.dart' show ErrorReporter;
+import 'package:analyzer/error/listener.dart' show DiagnosticReporter;
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -57,12 +57,12 @@ class GenericInferrer {
   /// The list of type parameters being inferred.
   final List<TypeParameterElementImpl2> _typeFormals;
 
-  /// The [ErrorReporter] to which inference errors should be reported, or
-  /// `null` if errors shouldn't be reported.
-  final ErrorReporter? errorReporter;
+  /// The [DiagnosticReporter] to which inference diagnostics should be reported, or
+  /// `null` if diagnostics shouldn't be reported.
+  final DiagnosticReporter? _diagnosticReporter;
 
   /// The [SyntacticEntity] to which errors should be attached.  May be `null`
-  /// if errors are not being reported (that is, if [errorReporter] is also
+  /// if errors are not being reported (that is, if [_diagnosticReporter] is also
   /// `null`).
   final SyntacticEntity? errorEntity;
 
@@ -108,20 +108,20 @@ class GenericInferrer {
   GenericInferrer(
     this._typeSystem,
     List<TypeParameterElement> typeFormals, {
-    this.errorReporter,
+    DiagnosticReporter? diagnosticReporter,
     this.errorEntity,
     required this.genericMetadataIsEnabled,
     required this.inferenceUsingBoundsIsEnabled,
     required bool strictInference,
     required TypeSystemOperations typeSystemOperations,
     required this.dataForTesting,
-  })
-    // TODO(paulberry): make this cast unnecessary by changing `typeFormals`
-    // to `List<TypeParameterElementImpl2>`.
-    : _typeFormals = typeFormals.cast(),
+  }) : _diagnosticReporter = diagnosticReporter,
+       // TODO(paulberry): make this cast unnecessary by changing `typeFormals`
+       // to `List<TypeParameterElementImpl2>`.
+       _typeFormals = typeFormals.cast(),
        _strictInference = strictInference,
        _typeSystemOperations = typeSystemOperations {
-    if (errorReporter != null) {
+    if (_diagnosticReporter != null) {
       assert(errorEntity != null);
     }
     _typeParameters.addAll(_typeFormals);
@@ -330,7 +330,7 @@ class GenericInferrer {
           return null;
         }
 
-        errorReporter?.atEntity(
+        _diagnosticReporter?.atEntity(
           errorEntity!,
           CompileTimeErrorCode.COULD_NOT_INFER,
           arguments: [name, _formatError(parameter, inferred, constraints)],
@@ -345,7 +345,7 @@ class GenericInferrer {
       if (inferred is FunctionTypeImpl &&
           inferred.typeFormals.isNotEmpty &&
           !genericMetadataIsEnabled &&
-          errorReporter != null) {
+          _diagnosticReporter != null) {
         if (failAtError) {
           inferenceLogWriter?.exitGenericInference(failed: true);
           return null;
@@ -359,7 +359,7 @@ class GenericInferrer {
 
         var typeFormals = inferred.typeFormals;
         var typeFormalsStr = typeFormals.map(_elementStr).join(', ');
-        errorReporter!.atEntity(
+        _diagnosticReporter.atEntity(
           errorEntity!,
           CompileTimeErrorCode.COULD_NOT_INFER,
           arguments: [
@@ -379,7 +379,7 @@ class GenericInferrer {
         // considered a failure of inference, under the "strict-inference"
         // mode.
         _reportInferenceFailure(
-          errorReporter: errorReporter,
+          diagnosticReporter: _diagnosticReporter,
           errorEntity: errorEntity,
           genericMetadataIsEnabled: genericMetadataIsEnabled,
         );
@@ -414,7 +414,7 @@ class GenericInferrer {
           inferredTypes,
         ).substituteType(typeParam.bound ?? typeProvider.objectType);
         // TODO(jmesserly): improve this error message.
-        errorReporter?.atEntity(
+        _diagnosticReporter?.atEntity(
           errorEntity!,
           CompileTimeErrorCode.COULD_NOT_INFER,
           arguments: [
@@ -430,7 +430,7 @@ class GenericInferrer {
     if (!hasErrorReported) {
       _checkArgumentsNotMatchingBounds(
         errorEntity: errorEntity,
-        errorReporter: errorReporter,
+        diagnosticReporter: _diagnosticReporter,
         typeArguments: result,
       );
     }
@@ -443,7 +443,7 @@ class GenericInferrer {
   /// Check that inferred [typeArguments] satisfy the [_typeParameters] bounds.
   void _checkArgumentsNotMatchingBounds({
     required SyntacticEntity? errorEntity,
-    required ErrorReporter? errorReporter,
+    required DiagnosticReporter? diagnosticReporter,
     required List<TypeImpl> typeArguments,
   }) {
     for (int i = 0; i < _typeFormals.length; i++) {
@@ -466,7 +466,7 @@ class GenericInferrer {
       );
       var bound = substitution.substituteType(rawBound);
       if (!_typeSystem.isSubtypeOf(argument, bound)) {
-        errorReporter?.atEntity(
+        diagnosticReporter?.atEntity(
           errorEntity!,
           CompileTimeErrorCode.COULD_NOT_INFER,
           arguments: [
@@ -778,11 +778,11 @@ class GenericInferrer {
 
   /// Reports an inference failure on [errorEntity] according to its type.
   void _reportInferenceFailure({
-    ErrorReporter? errorReporter,
+    DiagnosticReporter? diagnosticReporter,
     SyntacticEntity? errorEntity,
     required bool genericMetadataIsEnabled,
   }) {
-    if (errorReporter == null || errorEntity == null) {
+    if (diagnosticReporter == null || errorEntity == null) {
       return;
     }
     if (errorEntity is AstNode &&
@@ -802,7 +802,7 @@ class GenericInferrer {
           errorEntity.name == null
               ? errorEntity.type.qualifiedName
               : '${errorEntity.type}.${errorEntity.name}';
-      errorReporter.atNode(
+      diagnosticReporter.atNode(
         errorEntity,
         WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION,
         arguments: [constructorName],
@@ -816,7 +816,7 @@ class GenericInferrer {
               errorEntity.constructorName == null
                   ? errorEntity.name.name
                   : '${errorEntity.name.name}.${errorEntity.constructorName}';
-          errorReporter.atNode(
+          diagnosticReporter.atNode(
             errorEntity,
             WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION,
             arguments: [constructorName],
@@ -830,8 +830,7 @@ class GenericInferrer {
           // For variable elements, we check their type and possible alias type.
           var type = element.type;
           var typeElement = type is InterfaceType ? type.element3 : null;
-          if (typeElement != null &&
-              typeElement.metadata.hasOptionalTypeArgs) {
+          if (typeElement != null && typeElement.metadata.hasOptionalTypeArgs) {
             return;
           }
           var typeAliasElement = type.alias?.element2;
@@ -841,7 +840,7 @@ class GenericInferrer {
           }
         }
         if (!element.hasOptionalTypeArgs) {
-          errorReporter.atNode(
+          diagnosticReporter.atNode(
             errorEntity,
             WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION,
             arguments: [errorEntity.name],
@@ -853,7 +852,7 @@ class GenericInferrer {
       var type = errorEntity.staticType;
       if (type != null) {
         var typeDisplayString = _typeStr(type);
-        errorReporter.atNode(
+        diagnosticReporter.atNode(
           errorEntity,
           WarningCode.INFERENCE_FAILURE_ON_GENERIC_INVOCATION,
           arguments: [typeDisplayString],

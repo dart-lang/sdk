@@ -138,8 +138,8 @@ class TransformSetParser {
   /// includes removing support for keys and adding a new required key.
   static const int currentVersion = 1;
 
-  /// The error reporter to which diagnostics will be reported.
-  final ErrorReporter errorReporter;
+  /// The diagnostic reporter to which diagnostics will be reported.
+  final DiagnosticReporter _diagnosticReporter;
 
   /// The name of the package from which the data file being translated was
   /// found, or `null` for the SDK.
@@ -159,8 +159,8 @@ class TransformSetParser {
   List<ParameterModification>? _parameterModifications;
 
   /// Initialize a newly created parser to report diagnostics to the
-  /// [errorReporter].
-  TransformSetParser(this.errorReporter, this.packageName);
+  /// [_diagnosticReporter].
+  TransformSetParser(this._diagnosticReporter, this.packageName);
 
   /// Return the result of parsing the file [content] into a transform set, or
   /// `null` if the content does not represent a valid transform set.
@@ -192,7 +192,7 @@ class TransformSetParser {
       }
       var endIndex = template.indexOf(_closeComponent, variableStart + 2);
       if (endIndex < 0) {
-        errorReporter.atOffset(
+        _diagnosticReporter.atOffset(
           offset: templateOffset + variableStart,
           length: 2,
           diagnosticCode: TransformSetErrorCode.missingTemplateEnd,
@@ -204,7 +204,7 @@ class TransformSetParser {
         var name = template.substring(variableStart + 2, endIndex).trim();
         var generator = variableScope.lookup(name);
         if (generator == null) {
-          errorReporter.atOffset(
+          _diagnosticReporter.atOffset(
             offset: templateOffset + template.indexOf(name, variableStart),
             length: name.length,
             diagnosticCode: TransformSetErrorCode.undefinedVariable,
@@ -258,7 +258,7 @@ class TransformSetParser {
       var span = e.span;
       var offset = span?.start.offset ?? 0;
       var length = span?.length ?? 0;
-      errorReporter.atOffset(
+      _diagnosticReporter.atOffset(
         offset: offset,
         length: length,
         diagnosticCode: TransformSetErrorCode.yamlSyntaxError,
@@ -277,7 +277,7 @@ class TransformSetParser {
     List<String> arguments = const [],
   ]) {
     var span = node.span;
-    errorReporter.atOffset(
+    _diagnosticReporter.atOffset(
       offset: span.start.offset,
       length: span.length,
       diagnosticCode: code,
@@ -670,7 +670,7 @@ class TransformSetParser {
       return null;
     }
     var accessors = CodeFragmentParser(
-      errorReporter,
+      _diagnosticReporter,
     ).parseAccessors(value, _offsetOfString(valueNode));
     if (accessors == null) {
       // The error has already been reported.
@@ -718,7 +718,7 @@ class TransformSetParser {
         );
         if (requiredIfNode is YamlScalar && requiredIfText != null) {
           requiredIfCondition = CodeFragmentParser(
-            errorReporter,
+            _diagnosticReporter,
             scope: variableScope,
           ).parseCondition(requiredIfText, _offsetOfString(requiredIfNode));
           if (requiredIfCondition == null) {
@@ -780,7 +780,7 @@ class TransformSetParser {
           expressionText != null &&
           changes != null) {
         var expression = CodeFragmentParser(
-          errorReporter,
+          _diagnosticReporter,
           scope: transformVariableScope,
         ).parseCondition(expressionText, _offsetOfString(expressionNode));
         if (expression != null) {

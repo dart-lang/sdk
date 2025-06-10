@@ -275,7 +275,7 @@ class BulkFixProcessor {
           var contextUnits = <RuleContextUnit>[];
 
           for (var parsedUnit in parsedLibrary.units) {
-            var errorReporter = ErrorReporter(
+            var diagnosticReporter = DiagnosticReporter(
               diagnosticListener,
               StringSource(parsedUnit.content, null),
             );
@@ -283,7 +283,7 @@ class BulkFixProcessor {
               RuleContextUnit(
                 file: parsedUnit.file,
                 content: parsedUnit.content,
-                errorReporter: errorReporter,
+                diagnosticReporter: diagnosticReporter,
                 unit: parsedUnit.unit,
               ),
             );
@@ -542,7 +542,7 @@ class BulkFixProcessor {
             .map((name) => Registry.ruleRegistry.getRule(name))
             .nonNulls;
     for (var lintRule in lintRules) {
-      lintRule.reporter = currentUnit.errorReporter;
+      lintRule.reporter = currentUnit.diagnosticReporter;
       lintRule.registerNodeProcessors(nodeRegistry, context);
     }
 

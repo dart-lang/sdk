@@ -43,7 +43,7 @@ class CorrectOverrideHelper {
   /// error.
   void verify({
     required ExecutableElement2OrMember superMember,
-    required ErrorReporter errorReporter,
+    required DiagnosticReporter diagnosticReporter,
     required SyntacticEntity errorNode,
     required DiagnosticCode diagnosticCode,
   }) {
@@ -52,9 +52,9 @@ class CorrectOverrideHelper {
       var member = _thisMember;
       var memberName = member.name3;
       if (memberName != null) {
-        errorReporter.reportError(
+        diagnosticReporter.reportError(
           _diagnosticFactory.invalidOverride(
-            errorReporter.source,
+            diagnosticReporter.source,
             diagnosticCode,
             errorNode,
             _thisMember,
@@ -106,7 +106,7 @@ class CovariantParametersVerifier {
       _thisMember = thisMember;
 
   void verify({
-    required ErrorReporter errorReporter,
+    required DiagnosticReporter errorReporter,
     required SyntacticEntity errorEntity,
   }) {
     var superParameters = _superParameters();

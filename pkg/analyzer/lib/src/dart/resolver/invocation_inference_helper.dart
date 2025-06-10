@@ -64,18 +64,18 @@ class ConstructorElementToInfer {
 
 class InvocationInferenceHelper {
   final ResolverVisitor _resolver;
-  final ErrorReporter _errorReporter;
+  final DiagnosticReporter _diagnosticReporter;
   final TypeSystemImpl _typeSystem;
   final bool _genericMetadataIsEnabled;
   final TypeConstraintGenerationDataForTesting? dataForTesting;
 
   InvocationInferenceHelper({
     required ResolverVisitor resolver,
-    required ErrorReporter errorReporter,
+    required DiagnosticReporter diagnosticReporter,
     required TypeSystemImpl typeSystem,
     required this.dataForTesting,
   }) : _resolver = resolver,
-       _errorReporter = errorReporter,
+       _diagnosticReporter = diagnosticReporter,
        _typeSystem = typeSystem,
        _genericMetadataIsEnabled = resolver.definingLibrary.featureSet
            .isEnabled(Feature.generic_metadata);
@@ -137,7 +137,7 @@ class InvocationInferenceHelper {
       var typeArguments = _typeSystem.inferFunctionTypeInstantiation(
         contextType,
         tearOffType,
-        errorReporter: _errorReporter,
+        diagnosticReporter: _diagnosticReporter,
         errorNode: expression,
         genericMetadataIsEnabled: _genericMetadataIsEnabled,
         inferenceUsingBoundsIsEnabled: _resolver.inferenceUsingBoundsIsEnabled,

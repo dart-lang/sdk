@@ -22,6 +22,9 @@ typedef AnalysisErrorListener = DiagnosticListener;
 @Deprecated("Use 'BooleanDiagnosticListener' instead")
 typedef BooleanErrorListener = BooleanDiagnosticListener;
 
+@Deprecated("Use 'DiagnosticReporter' instead")
+typedef ErrorReporter = DiagnosticReporter;
+
 @Deprecated("Use 'RecordingDiagnosticListener' instead")
 typedef RecorderingErrorListener = RecordingDiagnosticListener;
 
@@ -54,8 +57,7 @@ abstract class DiagnosticListener {
 
 /// An object used to create diagnostics and report them to a diagnostic
 /// listener.
-// TODO(srawlins): Rename to 'DiagnosticReporter'.
-class ErrorReporter {
+class DiagnosticReporter {
   /// The diagnostic listener to which diagnostics are reported.
   final DiagnosticListener _diagnosticListener;
 
@@ -73,7 +75,7 @@ class ErrorReporter {
   ///
   /// Diagnostics are reported against the [_source] unless another source is
   /// provided later.
-  ErrorReporter(this._diagnosticListener, this._source);
+  DiagnosticReporter(this._diagnosticListener, this._source);
 
   Source get source => _source;
 

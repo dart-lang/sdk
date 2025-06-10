@@ -76,7 +76,7 @@ import 'package:pub_semver/pub_semver.dart';
 
 /// A parser listener that builds the analyzer's AST structure.
 class AstBuilder extends StackListener {
-  final FastaErrorReporter errorReporter;
+  final FastaErrorReporter diagnosticReporter;
   final Uri fileUri;
   ScriptTagImpl? scriptTag;
   final List<DirectiveImpl> directives = [];
@@ -175,14 +175,14 @@ class AstBuilder extends StackListener {
   Token? _enclosingDeclarationAugmentToken;
 
   AstBuilder(
-    ErrorReporter? errorReporter,
+    DiagnosticReporter? errorReporter,
     this.fileUri,
     this.isFullAst,
     this._featureSet,
     this._languageVersion,
     this._lineInfo, [
     Uri? uri,
-  ]) : errorReporter = FastaErrorReporter(errorReporter),
+  ]) : diagnosticReporter = FastaErrorReporter(errorReporter),
        enableAugmentations = _featureSet.isEnabled(Feature.augmentations),
        enableTripleShift = _featureSet.isEnabled(Feature.triple_shift),
        enableNonFunctionTypeAliases = _featureSet.isEnabled(
@@ -230,7 +230,7 @@ class AstBuilder extends StackListener {
             false)) {
       message = messageDirectiveAfterDeclaration;
     }
-    errorReporter.reportMessage(message, charOffset, length);
+    diagnosticReporter.reportMessage(message, charOffset, length);
   }
 
   @override
@@ -1912,7 +1912,7 @@ class AstBuilder extends StackListener {
       // Check for extension type name conflict.
       var representationName = representation.fieldName;
       if (representationName.lexeme == builder.name.lexeme) {
-        errorReporter.errorReporter?.atToken(
+        diagnosticReporter.diagnosticReporter?.atToken(
           representationName,
           ParserErrorCode.MEMBER_WITH_CLASS_NAME,
         );
@@ -2884,7 +2884,7 @@ class AstBuilder extends StackListener {
     var withClause = pop(NullValues.WithClause) as WithClauseImpl;
     var superclass = pop() as TypeAnnotationImpl;
     if (superclass is! NamedTypeImpl) {
-      errorReporter.errorReporter?.atNode(
+      diagnosticReporter.diagnosticReporter?.atNode(
         superclass,
         ParserErrorCode.EXPECTED_NAMED_TYPE_EXTENDS,
       );
@@ -3045,7 +3045,10 @@ class AstBuilder extends StackListener {
         components: libraryNameOrUri as List<SimpleIdentifierImpl>,
       );
       if (_featureSet.isEnabled(Feature.enhanced_parts)) {
-        errorReporter.errorReporter?.atNode(name, ParserErrorCode.PART_OF_NAME);
+        diagnosticReporter.diagnosticReporter?.atNode(
+          name,
+          ParserErrorCode.PART_OF_NAME,
+        );
       }
     }
     var metadata = pop() as List<AnnotationImpl>?;
@@ -3108,7 +3111,7 @@ class AstBuilder extends StackListener {
         case var formalParameterType?:
           fieldType = formalParameterType;
         case null:
-          errorReporter.errorReporter?.atToken(
+          diagnosticReporter.diagnosticReporter?.atToken(
             leftParenthesis.next!,
             ParserErrorCode.EXPECTED_REPRESENTATION_TYPE,
           );
@@ -3124,7 +3127,7 @@ class AstBuilder extends StackListener {
       }
       if (firstFormalParameter.keyword case var keyword?) {
         if (keyword.keyword != Keyword.CONST) {
-          errorReporter.errorReporter?.atToken(
+          diagnosticReporter.diagnosticReporter?.atToken(
             keyword,
             ParserErrorCode.REPRESENTATION_FIELD_MODIFIER,
           );
@@ -3135,19 +3138,19 @@ class AstBuilder extends StackListener {
       var maybeComma = firstFormalParameter.endToken.next;
       if (maybeComma != null && maybeComma.type == TokenType.COMMA) {
         if (formalParameterList.parameters.length == 1) {
-          errorReporter.errorReporter?.atToken(
+          diagnosticReporter.diagnosticReporter?.atToken(
             maybeComma,
             ParserErrorCode.REPRESENTATION_FIELD_TRAILING_COMMA,
           );
         } else {
-          errorReporter.errorReporter?.atToken(
+          diagnosticReporter.diagnosticReporter?.atToken(
             maybeComma,
             ParserErrorCode.MULTIPLE_REPRESENTATION_FIELDS,
           );
         }
       }
     } else {
-      errorReporter.errorReporter?.atToken(
+      diagnosticReporter.diagnosticReporter?.atToken(
         leftParenthesis.next!,
         ParserErrorCode.EXPECTED_REPRESENTATION_FIELD,
       );
@@ -4185,7 +4188,7 @@ class AstBuilder extends StackListener {
       //  any type annotation for recovery purposes, and (b) extending the
       //  parser to parse a generic function type at this location.
       if (supertype != null) {
-        errorReporter.errorReporter?.atNode(
+        diagnosticReporter.diagnosticReporter?.atNode(
           supertype,
           ParserErrorCode.EXPECTED_NAMED_TYPE_EXTENDS,
         );
@@ -4303,7 +4306,7 @@ class AstBuilder extends StackListener {
 
     if (_enclosingDeclarationAugmentToken != null) {
       if (variable.lexeme == 'augmented') {
-        errorReporter.errorReporter?.atToken(
+        diagnosticReporter.diagnosticReporter?.atToken(
           variable,
           ParserErrorCode.DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION,
         );
@@ -4547,7 +4550,7 @@ class AstBuilder extends StackListener {
 
   @override
   void handleErrorToken(ErrorToken token) {
-    translateErrorToken(token, errorReporter.reportScannerError);
+    translateErrorToken(token, diagnosticReporter.reportScannerError);
   }
 
   @override
@@ -4790,7 +4793,7 @@ class AstBuilder extends StackListener {
     if (_enclosingDeclarationAugmentToken != null) {
       if (token.lexeme == 'augmented') {
         if (context.inDeclaration) {
-          errorReporter.errorReporter?.atToken(
+          diagnosticReporter.diagnosticReporter?.atToken(
             token,
             ParserErrorCode.DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION,
           );
@@ -5307,7 +5310,7 @@ class AstBuilder extends StackListener {
     SimpleIdentifierImpl name;
     var nameCandidate = pop();
     if (nameCandidate is AugmentedExpressionImpl) {
-      errorReporter.errorReporter?.atNode(
+      diagnosticReporter.diagnosticReporter?.atNode(
         nameCandidate,
         ParserErrorCode.INVALID_USE_OF_IDENTIFIER_AUGMENTED,
       );
@@ -5683,7 +5686,7 @@ class AstBuilder extends StackListener {
     }
     debugEvent("Error: ${message.problemMessage}");
     if (message.code.analyzerCodes == null && startToken is ErrorToken) {
-      translateErrorToken(startToken, errorReporter.reportScannerError);
+      translateErrorToken(startToken, diagnosticReporter.reportScannerError);
     } else {
       int offset = startToken.offset;
       int length = endToken.end - offset;
@@ -5923,7 +5926,7 @@ class AstBuilder extends StackListener {
     IdentifierImpl name;
     var nameCandidate = pop();
     if (nameCandidate is AugmentedExpressionImpl) {
-      errorReporter.errorReporter?.atNode(
+      diagnosticReporter.diagnosticReporter?.atNode(
         nameCandidate,
         ParserErrorCode.INVALID_USE_OF_IDENTIFIER_AUGMENTED,
       );
@@ -6074,7 +6077,7 @@ class AstBuilder extends StackListener {
     // Build and return the comment.
     return DocCommentBuilder(
       parser,
-      errorReporter.errorReporter,
+      diagnosticReporter.diagnosticReporter,
       uri,
       _featureSet,
       _languageVersion,
@@ -6213,7 +6216,7 @@ class AstBuilder extends StackListener {
       for (var formalParameter in parameters.parameters) {
         var notDefault = formalParameter.notDefault;
         if (notDefault is FieldFormalParameterImpl) {
-          errorReporter.errorReporter?.atToken(
+          diagnosticReporter.diagnosticReporter?.atToken(
             notDefault.thisKeyword,
             ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS,
           );
@@ -6371,7 +6374,7 @@ class AstBuilder extends StackListener {
       if (type is NamedTypeImpl) {
         namedTypes.add(type);
       } else {
-        errorReporter.errorReporter?.atNode(type, code);
+        diagnosticReporter.diagnosticReporter?.atNode(type, code);
       }
     }
     return namedTypes;

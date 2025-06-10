@@ -456,9 +456,12 @@ class FastaParserTestCase
     _fastaTokens = result.tokens;
 
     // Run parser
-    ErrorReporter errorReporter = ErrorReporter(listener, source);
+    DiagnosticReporter diagnosticReporter = DiagnosticReporter(
+      listener,
+      source,
+    );
     AstBuilder astBuilder = AstBuilder(
-      errorReporter,
+      diagnosticReporter,
       source.uri,
       true,
       featureSet!,

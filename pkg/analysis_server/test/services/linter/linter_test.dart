@@ -23,7 +23,7 @@ void main() {
 class LinterRuleOptionsValidatorTest {
   late RecordingDiagnosticListener recorder;
 
-  late ErrorReporter reporter;
+  late DiagnosticReporter reporter;
 
   List<Diagnostic> get diagnostics => recorder.diagnostics;
 
@@ -32,7 +32,7 @@ class LinterRuleOptionsValidatorTest {
   void setUp() {
     registerLintRules();
     recorder = RecordingDiagnosticListener();
-    reporter = ErrorReporter(recorder, _TestSource());
+    reporter = DiagnosticReporter(recorder, _TestSource());
   }
 
   void test_linter_defined_rules() {

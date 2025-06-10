@@ -78,7 +78,7 @@ main() {
   });
 }
 
-class CollectingReporter extends ErrorReporter {
+class CollectingReporter extends DiagnosticReporter {
   DiagnosticCode? code;
 
   CollectingReporter(super.listener, super.source);

@@ -17,13 +17,13 @@ import 'package:analyzer/src/error/codes.dart';
 class GetterSetterTypesVerifier {
   final LibraryElementImpl library;
   final TypeSystemImpl _typeSystem;
-  final ErrorReporter _errorReporter;
+  final DiagnosticReporter _diagnosticReporter;
 
   GetterSetterTypesVerifier({
     required this.library,
-    required ErrorReporter errorReporter,
+    required DiagnosticReporter diagnosticReporter,
   }) : _typeSystem = library.typeSystem,
-       _errorReporter = errorReporter;
+       _diagnosticReporter = diagnosticReporter;
 
   bool get _skipGetterSetterTypesCheck {
     return library.featureSet.isEnabled(Feature.getter_setter_error);
@@ -96,7 +96,7 @@ class GetterSetterTypesVerifier {
               setterName = '$setterClassName.$setterName';
             }
 
-            _errorReporter.atElement2(
+            _diagnosticReporter.atElement2(
               errorElement,
               CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES,
               arguments: [getterName, getterType, setterType, setterName],
@@ -137,7 +137,7 @@ class GetterSetterTypesVerifier {
 
     var getterType = _getGetterType(getter);
     if (!_typeSystem.isSubtypeOf(getterType, setterType)) {
-      _errorReporter.atElement2(
+      _diagnosticReporter.atElement2(
         getter,
         CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES,
         arguments: [name, getterType, setterType, name],

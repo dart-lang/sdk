@@ -574,7 +574,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
   }) {
     var listener = RecordingDiagnosticListener();
 
-    var reporter = ErrorReporter(
+    var reporter = DiagnosticReporter(
       listener,
       NonExistingSource('/test.dart', toUri('/test.dart')),
     );
@@ -583,7 +583,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
       typeParameters: ft.typeParameters,
       declaredReturnType: ft.returnType,
       contextReturnType: returnType,
-      errorReporter: reporter,
+      diagnosticReporter: reporter,
       errorEntity: NullLiteralImpl(literal: KeywordToken(Keyword.NULL, 0)),
       genericMetadataIsEnabled: true,
       inferenceUsingBoundsIsEnabled: true,

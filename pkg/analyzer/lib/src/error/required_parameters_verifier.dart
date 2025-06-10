@@ -14,7 +14,7 @@ import 'package:collection/collection.dart';
 
 /// Checks for missing arguments for required named parameters.
 class RequiredParametersVerifier extends SimpleAstVisitor<void> {
-  final ErrorReporter _errorReporter;
+  final DiagnosticReporter _errorReporter;
 
   RequiredParametersVerifier(this._errorReporter);
 

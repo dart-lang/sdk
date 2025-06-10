@@ -21,7 +21,7 @@ class YieldStatementResolver {
   YieldStatementResolver({required ResolverVisitor resolver})
     : _resolver = resolver;
 
-  ErrorReporter get _errorReporter => _resolver.errorReporter;
+  DiagnosticReporter get _diagnosticReporter => _resolver.diagnosticReporter;
 
   TypeProviderImpl get _typeProvider => _resolver.typeProvider;
 
@@ -50,12 +50,12 @@ class YieldStatementResolver {
     }
 
     if (expression is MethodInvocation) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         expression.methodName,
         CompileTimeErrorCode.USE_OF_VOID_RESULT,
       );
     } else {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         expression,
         CompileTimeErrorCode.USE_OF_VOID_RESULT,
       );
@@ -93,7 +93,7 @@ class YieldStatementResolver {
           imposedReturnType,
           strictCasts: _resolver.analysisOptions.strictCasts,
         )) {
-          _errorReporter.atNode(
+          _diagnosticReporter.atNode(
             expression,
             CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE,
             arguments: [impliedReturnType, imposedReturnType],
@@ -113,7 +113,7 @@ class YieldStatementResolver {
             imposedValueType,
             strictCasts: _resolver.analysisOptions.strictCasts,
           )) {
-            _errorReporter.atNode(
+            _diagnosticReporter.atNode(
               expression,
               CompileTimeErrorCode.YIELD_OF_INVALID_TYPE,
               arguments: [expressionType, imposedValueType],
@@ -140,7 +140,7 @@ class YieldStatementResolver {
         requiredReturnType,
         strictCasts: _resolver.analysisOptions.strictCasts,
       )) {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           expression,
           CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE,
           arguments: [impliedReturnType, requiredReturnType],
@@ -202,7 +202,7 @@ class YieldStatementResolver {
     );
     _resolver.popRewrite();
 
-    _errorReporter.atNode(
+    _diagnosticReporter.atNode(
       node,
       node.star != null
           ? CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR

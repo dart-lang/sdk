@@ -34,7 +34,7 @@ class FunctionReferenceResolver {
     : _extensionResolver = _resolver.extensionResolver,
       _typeType = _resolver.typeProvider.typeType;
 
-  ErrorReporter get _errorReporter => _resolver.errorReporter;
+  DiagnosticReporter get _diagnosticReporter => _resolver.diagnosticReporter;
 
   void resolve(FunctionReferenceImpl node) {
     var function = node.function;
@@ -55,7 +55,7 @@ class FunctionReferenceResolver {
         // We can safely assume `function.constructorName.name` is non-null
         // because if no name had been given, the construct would have been
         // interpreted as a type literal (e.g. `List<int>`).
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           typeArguments,
           CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
           arguments: [
@@ -107,7 +107,7 @@ class FunctionReferenceResolver {
     }
 
     if (prefixType is DynamicType) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         function,
         CompileTimeErrorCode.GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC,
       );
@@ -130,14 +130,14 @@ class FunctionReferenceResolver {
         errorCode =
             CompileTimeErrorCode
                 .WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION;
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           typeArgumentList,
           errorCode,
           arguments: [typeParameters.length, typeArgumentList.arguments.length],
         );
       } else {
         assert(name != null);
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           typeArgumentList,
           errorCode,
           arguments: [
@@ -190,14 +190,14 @@ class FunctionReferenceResolver {
     var enclosingElement = element.enclosingElement!;
     if (implicitReceiver) {
       if (_resolver.enclosingExtension != null) {
-        _resolver.errorReporter.atNode(
+        _resolver.diagnosticReporter.atNode(
           nameNode,
           CompileTimeErrorCode
               .UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE,
           arguments: [enclosingElement.displayName],
         );
       } else {
-        _resolver.errorReporter.atNode(
+        _resolver.diagnosticReporter.atNode(
           nameNode,
           CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
           arguments: [enclosingElement.displayName],
@@ -205,7 +205,7 @@ class FunctionReferenceResolver {
       }
     } else if (enclosingElement is ExtensionElement &&
         enclosingElement.name3 == null) {
-      _resolver.errorReporter.atNode(
+      _resolver.diagnosticReporter.atNode(
         nameNode,
         CompileTimeErrorCode
             .INSTANCE_ACCESS_TO_STATIC_MEMBER_OF_UNNAMED_EXTENSION,
@@ -214,7 +214,7 @@ class FunctionReferenceResolver {
     } else {
       // It is safe to assume that `enclosingElement.name` is non-`null` because
       // it can only be `null` for extensions, and we handle that case above.
-      _resolver.errorReporter.atNode(
+      _resolver.diagnosticReporter.atNode(
         nameNode,
         CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
         arguments: [
@@ -280,7 +280,7 @@ class FunctionReferenceResolver {
       if (_resolver.isConstructorTearoffsEnabled) {
         // Only report constructor tearoff-related errors if the constructor
         // tearoff feature is enabled.
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           node.function,
           CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
         );
@@ -355,7 +355,7 @@ class FunctionReferenceResolver {
     if (_resolver.isConstructorTearoffsEnabled) {
       // Only report constructor tearoff-related errors if the constructor
       // tearoff feature is enabled.
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         node.function,
         CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
       );
@@ -381,7 +381,7 @@ class FunctionReferenceResolver {
     }
 
     if (member.isStatic) {
-      _resolver.errorReporter.atNode(
+      _resolver.diagnosticReporter.atNode(
         function.propertyName,
         CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
       );
@@ -389,7 +389,7 @@ class FunctionReferenceResolver {
     }
 
     if (function.isCascaded) {
-      _resolver.errorReporter.atToken(
+      _resolver.diagnosticReporter.atToken(
         override.name,
         CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE,
       );
@@ -443,7 +443,7 @@ class FunctionReferenceResolver {
     var prefixElement = function.prefix.scopeLookupResult!.getter2;
 
     if (prefixElement == null) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         function.prefix,
         CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
         arguments: [function.name],
@@ -467,7 +467,7 @@ class FunctionReferenceResolver {
     if (prefixElement is PrefixElement) {
       var functionElement = prefixElement.scope.lookup(functionName).getter2;
       if (functionElement == null) {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           function.identifier,
           CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME,
           arguments: [functionName, function.prefix.name],
@@ -512,7 +512,7 @@ class FunctionReferenceResolver {
     if (propertyType != null) {
       // If the property is unknown, [UNDEFINED_GETTER] is reported elsewhere.
       // If it is known, we must report the bad type instantiation here.
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         function.identifier,
         CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
       );
@@ -562,7 +562,7 @@ class FunctionReferenceResolver {
     } else {
       var targetType = target.staticType;
       if (targetType is DynamicType) {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           node,
           CompileTimeErrorCode.GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC,
         );
@@ -589,7 +589,7 @@ class FunctionReferenceResolver {
       } else if (functionType != null) {
         // If the property is unknown, [UNDEFINED_GETTER] is reported elsewhere.
         // If it is known, we must report the bad type instantiation here.
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           function.propertyName,
           CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
         );
@@ -710,7 +710,7 @@ class FunctionReferenceResolver {
         if (enclosingExtension != null) {
           receiverType = enclosingExtension.extendedType;
         } else {
-          _errorReporter.atNode(
+          _diagnosticReporter.atNode(
             function,
             CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
             arguments: [function.name],
@@ -760,7 +760,7 @@ class FunctionReferenceResolver {
         _resolve(node: node, rawType: method.type, name: function.name);
         return;
       } else {
-        _resolver.errorReporter.atNode(
+        _resolver.diagnosticReporter.atNode(
           function,
           CompileTimeErrorCode.UNDEFINED_METHOD,
           arguments: [function.name, receiverType],

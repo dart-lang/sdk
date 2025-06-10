@@ -16,17 +16,17 @@ import 'package:analyzer/src/generated/resolver.dart';
 /// Helper for verifying expression that should be of type bool.
 class BoolExpressionVerifier {
   final ResolverVisitor _resolver;
-  final ErrorReporter _errorReporter;
+  final DiagnosticReporter _diagnosticReporter;
   final NullableDereferenceVerifier _nullableDereferenceVerifier;
 
   final InterfaceTypeImpl _boolType;
 
   BoolExpressionVerifier({
     required ResolverVisitor resolver,
-    required ErrorReporter errorReporter,
+    required DiagnosticReporter diagnosticReporter,
     required NullableDereferenceVerifier nullableDereferenceVerifier,
   }) : _resolver = resolver,
-       _errorReporter = errorReporter,
+       _diagnosticReporter = diagnosticReporter,
        _nullableDereferenceVerifier = nullableDereferenceVerifier,
        _boolType = resolver.typeSystem.typeProvider.boolType;
 
@@ -72,7 +72,11 @@ class BoolExpressionVerifier {
           ),
         );
       } else {
-        _errorReporter.atNode(expression, diagnosticCode, arguments: arguments);
+        _diagnosticReporter.atNode(
+          expression,
+          diagnosticCode,
+          arguments: arguments,
+        );
       }
     }
   }
@@ -100,12 +104,12 @@ class BoolExpressionVerifier {
 
     if (expression is MethodInvocation) {
       SimpleIdentifier methodName = expression.methodName;
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         methodName,
         CompileTimeErrorCode.USE_OF_VOID_RESULT,
       );
     } else {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         expression,
         CompileTimeErrorCode.USE_OF_VOID_RESULT,
       );

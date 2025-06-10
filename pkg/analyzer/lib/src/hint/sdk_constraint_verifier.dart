@@ -17,7 +17,7 @@ import 'package:pub_semver/pub_semver.dart';
 /// minimum version required by the SDK constraints in `pubspec.yaml`.
 class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   /// The error reporter to be used to report errors.
-  final ErrorReporter _errorReporter;
+  final DiagnosticReporter _errorReporter;
 
   /// The version constraint for the SDK.
   final VersionConstraint _versionConstraint;

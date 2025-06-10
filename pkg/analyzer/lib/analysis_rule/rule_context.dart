@@ -56,13 +56,13 @@ abstract class RuleContext {
 class RuleContextUnit {
   final File file;
   final String content;
-  final ErrorReporter errorReporter;
+  final DiagnosticReporter diagnosticReporter;
   final CompilationUnit unit;
 
   RuleContextUnit({
     required this.file,
     required this.content,
-    required this.errorReporter,
+    required this.diagnosticReporter,
     required this.unit,
   });
 }
