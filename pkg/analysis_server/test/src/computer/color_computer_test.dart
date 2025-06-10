@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/src/computer/computer_color.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/diagnostic/diagnostic.dart';
+import 'package:analyzer/src/utilities/extensions/diagnostic.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -196,10 +196,7 @@ class ColorComputerTest extends AbstractContextTest {
 
   void expectNoErrors(ResolvedUnitResult result) {
     // If the test code has errors, generate a suitable failure to help debug.
-    var errors =
-        result.diagnostics
-            .where((error) => error.severity == Severity.error)
-            .toList();
+    var errors = result.diagnostics.errors;
     if (errors.isNotEmpty) {
       throw 'Code has errors: $errors\n\n${result.content}';
     }

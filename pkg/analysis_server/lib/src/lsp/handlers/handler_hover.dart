@@ -87,19 +87,23 @@ class HoverHandler
         ..writeln();
     }
 
-    var containingClassDescription = hover.containingClassDescription;
-    if (containingClassDescription != null &&
-        containingClassDescription.isNotEmpty) {
-      content
-        ..writeln('Declared in: `$containingClassDescription`')
-        ..writeln();
+    var declaredInDescription = StringBuffer();
+    if (hover.containingClassDescription?.isNotEmpty ?? false) {
+      declaredInDescription
+        ..write(' in `')
+        ..write(hover.containingClassDescription)
+        ..write('`');
+    }
+    if (hover.containingLibraryName?.isNotEmpty ?? false) {
+      declaredInDescription
+        ..write(' in _')
+        ..write(hover.containingLibraryName)
+        ..write('_');
     }
 
-    // Source library.
-    var containingLibraryName = hover.containingLibraryName;
-    if (containingLibraryName != null && containingLibraryName.isNotEmpty) {
+    if (declaredInDescription.isNotEmpty) {
       content
-        ..writeln('*$containingLibraryName*')
+        ..writeln('Declared$declaredInDescription.')
         ..writeln();
     }
 

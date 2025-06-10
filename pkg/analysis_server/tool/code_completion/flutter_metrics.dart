@@ -9,9 +9,9 @@ import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/utilities/extensions/diagnostic.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
 import 'package:args/args.dart';
 
@@ -207,7 +207,7 @@ class FlutterMetricsComputer {
             print('');
             print('File $filePath skipped because it could not be analyzed.');
             continue;
-          } else if (hasError(resolvedUnitResult)) {
+          } else if (resolvedUnitResult.diagnostics.errors.isNotEmpty) {
             print('');
             print('File $filePath skipped due to errors:');
             for (var diagnostic in resolvedUnitResult.diagnostics) {
@@ -288,15 +288,5 @@ class FlutterMetricsComputer {
       var percent = _formatPercent(entry.value, total);
       sink.writeln('  $percent%: ${entry.key} (${entry.value})');
     }
-  }
-
-  /// Whether the [result] contains an error.
-  static bool hasError(ResolvedUnitResult result) {
-    for (var diagnostic in result.diagnostics) {
-      if (diagnostic.severity == Severity.error) {
-        return true;
-      }
-    }
-    return false;
   }
 }
