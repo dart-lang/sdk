@@ -22,7 +22,7 @@ $ sudo apt-get install g++-riscv64-linux-gnu    # To target riscv64
 
 ## Android
 
-Follow instructions under ["One-time Setup" under Android](Building-the-Dart-VM-for-Android)
+Follow instructions under ["One-time Setup" under Android](https://github.com/dart-lang/sdk/blob/main/docs/Building-the-Dart-VM-for-Android.md)
 
 # Building
 
