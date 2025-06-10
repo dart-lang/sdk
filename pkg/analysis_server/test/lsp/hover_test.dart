@@ -163,6 +163,54 @@ class HoverTest extends AbstractLspAnalysisServerTest {
   Future<void> test_dartDocPreference_unset() =>
       assertDocumentation(null, includesSummary: true, includesFull: true);
 
+  Future<void> test_declaredIn_classAndLibrary() async {
+    var content = '''
+class A {
+  String? [!a^!];
+}
+''';
+    var expected = '''
+```dart
+String? a
+```
+Type: `String?`
+
+Declared in `A` in _package:test/main.dart_.''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_declaredIn_emptyClassName() async {
+    failTestOnErrorDiagnostic = false;
+
+    var content = '''
+class {
+  String? [!a^!];
+}
+''';
+    var expected = '''
+```dart
+String? a
+```
+Type: `String?`
+
+Declared in _package:test/main.dart_.''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_declaredIn_onlyLibrary() async {
+    var content = '''
+class A {}
+
+[!A^!]? a;
+''';
+    var expected = '''
+```dart
+class A
+```
+Declared in _package:test/main.dart_.''';
+    await assertStringContents(content, equals(expected));
+  }
+
   Future<void> test_dotShorthand_constructor_named() async {
     var content = '''
 class A {
@@ -176,9 +224,7 @@ void f() {
 ```dart
 (new) A A.named()
 ```
-Declared in: `A`
-
-*package:test/main.dart*''';
+Declared in `A` in _package:test/main.dart_.''';
     await assertStringContents(content, equals(expected));
   }
 
@@ -195,9 +241,7 @@ void f() {
 ```dart
 (const) A A.named()
 ```
-Declared in: `A`
-
-*package:test/main.dart*''';
+Declared in `A` in _package:test/main.dart_.''';
     await assertStringContents(content, equals(expected));
   }
 
@@ -212,9 +256,7 @@ void f() {
 ```dart
 (new) A A()
 ```
-Declared in: `A`
-
-*package:test/main.dart*''';
+Declared in `A` in _package:test/main.dart_.''';
     await assertStringContents(content, equals(expected));
   }
 
@@ -231,9 +273,7 @@ void f() {
 ```dart
 (const) A A()
 ```
-Declared in: `A`
-
-*package:test/main.dart*''';
+Declared in `A` in _package:test/main.dart_.''';
     await assertStringContents(content, equals(expected));
   }
 
@@ -252,9 +292,7 @@ A method()
 ```
 Type: `A Function()`
 
-Declared in: `A`
-
-*package:test/main.dart*''';
+Declared in `A` in _package:test/main.dart_.''';
     await assertStringContents(content, equals(expected));
   }
 
@@ -278,9 +316,7 @@ B method()
 ```
 Type: `B Function()`
 
-Declared in: `A`
-
-*package:test/main.dart*''';
+Declared in `A` in _package:test/main.dart_.''';
     await assertStringContents(content, equals(expected));
   }
 
@@ -299,9 +335,7 @@ A get field
 ```
 Type: `A`
 
-Declared in: `A`
-
-*package:test/main.dart*''';
+Declared in `A` in _package:test/main.dart_.''';
     await assertStringContents(content, equals(expected));
   }
 
@@ -318,9 +352,7 @@ A get one
 ```
 Type: `A`
 
-Declared in: `A`
-
-*package:test/main.dart*''';
+Declared in `A` in _package:test/main.dart_.''';
     await assertStringContents(content, equals(expected));
   }
 
@@ -339,9 +371,7 @@ A get getter
 ```
 Type: `A`
 
-Declared in: `A`
-
-*package:test/main.dart*''';
+Declared in `A` in _package:test/main.dart_.''';
     await assertStringContents(content, equals(expected));
   }
 
@@ -359,9 +389,7 @@ MyEnum get one
 ```
 Type: `MyEnum`
 
-Declared in: `MyEnum`
-
-*package:test/main.dart*''';
+Declared in `MyEnum` in _package:test/main.dart_.''';
     await assertStringContents(content, equals(expected));
   }
 
@@ -379,9 +407,7 @@ List<MyEnum> get values
 ```
 Type: `List<MyEnum>`
 
-Declared in: `MyEnum`
-
-*package:test/main.dart*''';
+Declared in `MyEnum` in _package:test/main.dart_.''';
     await assertStringContents(content, equals(expected));
   }
 
@@ -398,9 +424,7 @@ int get _
 ```
 Type: `int`
 
-Declared in: `A`
-
-*package:test/main.dart*''';
+Declared in `A` in _package:test/main.dart_.''';
     await assertStringContents(content, equals(expected));
   }
 
@@ -462,7 +486,7 @@ import 'dart:core' as [!l^ib!];
 ```dart
 import 'dart:core' as lib;
 ```
-*package:test/main.dart*''';
+Declared in _package:test/main.dart_.''';
     await assertStringContents(content, equals(expected));
   }
 
@@ -476,7 +500,7 @@ const bug = 'bug';
 ```dart
 import '<unknown>' as lib;
 ```
-*package:test/main.dart*''';
+Declared in _package:test/main.dart_.''';
     await assertStringContents(content, equals(expected));
   }
 
@@ -494,7 +518,7 @@ import 'lib.dart' as [!l^ib!];
 import 'dart:math' as lib;
 import 'lib.dart' as lib;
 ```
-*package:test/main.dart*''';
+Declared in _package:test/main.dart_.''';
     await assertStringContents(content, equals(expected));
   }
 
@@ -510,7 +534,7 @@ import 'package:test/lib.dart' as [!l^ib!];
 ```dart
 import 'package:test/lib.dart' as lib;
 ```
-*package:test/main.dart*''';
+Declared in _package:test/main.dart_.''';
     await assertStringContents(content, equals(expected));
   }
 
@@ -524,7 +548,7 @@ import 'lib.dart' as [!l^ib!];
 ```dart
 import 'lib.dart' as lib;
 ```
-*package:test/main.dart*''';
+Declared in _package:test/main.dart_.''';
     await assertStringContents(content, equals(expected));
   }
 
@@ -542,7 +566,7 @@ import 'lib.dart' as lib;
 ```dart
 import 'lib.dart' as lib;
 ```
-*package:test/main.dart*''';
+Declared in _package:test/main.dart_.''';
     await assertStringContents(content, equals(expected));
   }
 
@@ -582,7 +606,7 @@ String? abc
 ```
 Type: `String?`
 
-*package:test/main.dart*
+Declared in _package:test/main.dart_.
 
 ---
 This is a string.
@@ -648,9 +672,7 @@ int _()
 ```
 Type: `int Function()`
 
-Declared in: `A`
-
-*package:test/main.dart*''';
+Declared in `A` in _package:test/main.dart_.''';
     await assertStringContents(content, equals(expected));
   }
 
@@ -688,7 +710,7 @@ String? abc
 ```
 Type: `String?`
 
-*package:test/main.dart*
+Declared in _package:test/main.dart_.
     '''.trim();
 
     await assertStringContents(content, equals(expectedHoverContent));
@@ -939,9 +961,7 @@ String? get myField
 ```
 Type: `String?`
 
-Declared in: `A`
-
-*package:test/main.dart*
+Declared in `A` in _package:test/main.dart_.
 '''.trim();
 
     await assertStringContents(content, equals(expectedHoverContent));
@@ -963,9 +983,7 @@ String get myGetter
 ```
 Type: `String`
 
-Declared in: `A`
-
-*package:test/main.dart*
+Declared in `A` in _package:test/main.dart_.
 '''.trim();
 
     await assertStringContents(content, equals(expectedHoverContent));
@@ -988,9 +1006,7 @@ String? get myGetter
 ```
 Type: `String?`
 
-Declared in: `A`
-
-*package:test/main.dart*
+Declared in `A` in _package:test/main.dart_.
 '''.trim();
 
     await assertStringContents(content, equals(expectedHoverContent));
@@ -1014,9 +1030,7 @@ set mySetter(String value)
 ```
 Type: `String`
 
-Declared in: `A`
-
-*package:test/main.dart*
+Declared in `A` in _package:test/main.dart_.
 '''.trim();
 
     await assertStringContents(content, equals(expectedHoverContent));
@@ -1040,9 +1054,7 @@ set mySetter(String value)
 ```
 Type: `String`
 
-Declared in: `A`
-
-*package:test/main.dart*
+Declared in `A` in _package:test/main.dart_.
 '''.trim();
 
     await assertStringContents(content, equals(expectedHoverContent));
@@ -1060,7 +1072,7 @@ String? abc
 ```
 Type: `String?`
 
-*package:test/main.dart*
+Declared in _package:test/main.dart_.
     '''.trim();
 
     await assertStringContents(content, equals(expectedHoverContent));
@@ -1101,7 +1113,7 @@ String? abc
 ```
 Type: `String?`
 
-*package:test/main.dart*
+Declared in _package:test/main.dart_.
 
 ---
 This is a string.''';
@@ -1119,7 +1131,7 @@ int _()
 ```
 Type: `int Function()`
 
-*package:test/main.dart*''';
+Declared in _package:test/main.dart_.''';
     await assertStringContents(content, equals(expected));
   }
 
@@ -1134,7 +1146,7 @@ int get _
 ```
 Type: `int`
 
-*package:test/main.dart*''';
+Declared in _package:test/main.dart_.''';
     await assertStringContents(content, equals(expected));
   }
 
@@ -1161,7 +1173,7 @@ class C<[!^_!]> {}
 ```dart
 library package:test/main.dart
 ```
-*package:test/main.dart*
+Declared in _package:test/main.dart_.
 
 ---
 This is a string.''';
@@ -1179,7 +1191,7 @@ String? abc
 ```
 Type: `String?`
 
-*package:test/main.dart*
+Declared in _package:test/main.dart_.
 
 ---
 This is a string.''';
