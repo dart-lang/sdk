@@ -10,9 +10,9 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/utilities/extensions/diagnostic.dart';
 import 'package:args/args.dart';
 
 /// Compute and print lexical and semantic information about a package.
@@ -1309,7 +1309,7 @@ class CodeShapeMetricsComputer {
             print('File $filePath skipped because it could not be analyzed.');
             print('');
             continue;
-          } else if (hasError(resolvedUnitResult)) {
+          } else if (resolvedUnitResult.diagnostics.errors.isNotEmpty) {
             print('File $filePath skipped due to errors:');
             for (var diagnostic in resolvedUnitResult.diagnostics) {
               print('  ${diagnostic.toString()}');
@@ -1417,15 +1417,5 @@ class CodeShapeMetricsComputer {
         sink.writeln('  $nodeClass');
       }
     }
-  }
-
-  /// Whether the [result] contains an error.
-  static bool hasError(ResolvedUnitResult result) {
-    for (var diagnostic in result.diagnostics) {
-      if (diagnostic.severity == Severity.error) {
-        return true;
-      }
-    }
-    return false;
   }
 }

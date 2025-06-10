@@ -18,10 +18,10 @@ import 'package:analyzer/dart/element/element.dart'
     show Element, InterfaceElement, LibraryElement;
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
-import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/utilities/extensions/diagnostic.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
 import 'package:analyzer_testing/package_root.dart' as package_root;
 import 'package:analyzer_utilities/tools.dart';
@@ -1683,12 +1683,10 @@ class RelevanceMetricsComputer {
               print('');
             }
             continue;
-          } else if (hasError(resolvedUnitResult)) {
+          } else if (resolvedUnitResult.diagnostics.errors.isNotEmpty) {
             if (verbose) {
               print('File $filePath skipped due to errors:');
-              for (var diagnostic in resolvedUnitResult.diagnostics.where(
-                (e) => e.severity == Severity.error,
-              )) {
+              for (var diagnostic in resolvedUnitResult.diagnostics.errors) {
                 print('  ${diagnostic.toString()}');
               }
               print('');
@@ -1707,16 +1705,6 @@ class RelevanceMetricsComputer {
         }
       }
     }
-  }
-
-  /// Return `true` if the [result] contains an error.
-  static bool hasError(ResolvedUnitResult result) {
-    for (var diagnostic in result.diagnostics) {
-      if (diagnostic.severity == Severity.error) {
-        return true;
-      }
-    }
-    return false;
   }
 }
 

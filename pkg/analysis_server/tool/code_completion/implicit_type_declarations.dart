@@ -11,9 +11,9 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/utilities/extensions/diagnostic.dart';
 import 'package:args/args.dart';
 
 /// Compute metrics to determine which untyped variable declarations can be used
@@ -193,12 +193,10 @@ class ImpliedTypeComputer {
               print('');
             }
             continue;
-          } else if (hasError(resolvedUnitResult)) {
+          } else if (resolvedUnitResult.diagnostics.errors.isNotEmpty) {
             if (verbose) {
               print('File $filePath skipped due to errors:');
-              for (var diagnostics in resolvedUnitResult.diagnostics.where(
-                (e) => e.severity == Severity.error,
-              )) {
+              for (var diagnostics in resolvedUnitResult.diagnostics.errors) {
                 print('  ${diagnostics.toString()}');
               }
               print('');
@@ -216,16 +214,6 @@ class ImpliedTypeComputer {
         }
       }
     }
-  }
-
-  /// Return `true` if the [result] contains an error.
-  static bool hasError(ResolvedUnitResult result) {
-    for (var diagnostic in result.diagnostics) {
-      if (diagnostic.severity == Severity.error) {
-        return true;
-      }
-    }
-    return false;
   }
 }
 

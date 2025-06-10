@@ -19,6 +19,7 @@ import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
+import 'package:analyzer/src/utilities/extensions/diagnostic.dart';
 import 'package:analyzer_testing/utilities/extensions/resource_provider.dart';
 
 /// Test configuration used for testing the analyzer without experiments.
@@ -163,8 +164,7 @@ Future<TestResult<T>> runTestForConfig<T>(
     var testUri = testFile.uri;
     var result = await analysisSession.getResolvedUnit(testFile.path);
     result as ResolvedUnitResult;
-    var errors =
-        result.diagnostics.where((e) => e.severity == Severity.error).toList();
+    var errors = result.diagnostics.errors;
     if (errors.isNotEmpty) {
       if (dataComputer.supportsErrors) {
         var diagnosticMap = <int, List<Diagnostic>>{};
