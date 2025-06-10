@@ -5021,6 +5021,7 @@ class Script : public Object {
   }
 
   TypedDataPtr line_starts() const;
+  void set_line_starts(const TypedData& value) const;
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   TypedDataViewPtr constant_coverage() const;

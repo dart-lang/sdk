@@ -1041,7 +1041,10 @@ ObjectPtr BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
     }
     case kScript: {
       const String& uri = String::CheckedHandle(Z, ReadObject());
-      RELEASE_ASSERT((flags & kFlagHasSourceFile) == 0);
+      if ((flags & kFlagHasSourceFile) != 0) {
+        return ReadSourceFile(uri, bytecode_component_->GetSourceFilesOffset() +
+                                       reader_.ReadUInt());
+      }
       return Script::New(uri, Object::null_string());
     }
     case kType: {
@@ -1464,6 +1467,72 @@ StringPtr BytecodeReaderHelper::ReadString(bool is_canonical) {
                                (end_offs - start_offs) >> 1, Heap::kOld);
     }
   }
+}
+
+TypedDataPtr BytecodeReaderHelper::ReadLineStartsData(
+    intptr_t line_starts_offset) {
+  AlternativeReadingScope alt(&reader_, line_starts_offset);
+
+  const intptr_t num_line_starts = reader_.ReadUInt();
+
+  // Choose representation between Uint16 and Uint32 typed data.
+  intptr_t max_start = 0;
+  {
+    AlternativeReadingScope alt2(&reader_, reader_.offset());
+    for (intptr_t i = 0; i < num_line_starts; ++i) {
+      const intptr_t delta = reader_.ReadUInt();
+      max_start += delta;
+    }
+  }
+
+  const intptr_t cid = (max_start <= kMaxUint16) ? kTypedDataUint16ArrayCid
+                                                 : kTypedDataUint32ArrayCid;
+  const TypedData& line_starts_data =
+      TypedData::Handle(Z, TypedData::New(cid, num_line_starts, Heap::kOld));
+
+  intptr_t current_start = 0;
+  for (intptr_t i = 0; i < num_line_starts; ++i) {
+    const intptr_t delta = reader_.ReadUInt();
+    current_start += delta;
+    if (cid == kTypedDataUint16ArrayCid) {
+      line_starts_data.SetUint16(i << 1, static_cast<uint16_t>(current_start));
+    } else {
+      line_starts_data.SetUint32(i << 2, current_start);
+    }
+  }
+
+  return line_starts_data.ptr();
+}
+
+ScriptPtr BytecodeReaderHelper::ReadSourceFile(const String& uri,
+                                               intptr_t offset) {
+  // SourceFile flags, must be in sync with SourceFile constants in
+  // pkg/dart2bytecode/lib/declarations.dart.
+  const int kHasLineStartsFlag = 1 << 0;
+  const int kHasSourceFlag = 1 << 1;
+
+  AlternativeReadingScope alt(&reader_, offset);
+
+  const intptr_t flags = reader_.ReadUInt();
+  const String& import_uri = String::CheckedHandle(Z, ReadObject());
+
+  TypedData& line_starts = TypedData::Handle(Z);
+  if ((flags & kHasLineStartsFlag) != 0) {
+    const intptr_t line_starts_offset =
+        bytecode_component_->GetLineStartsOffset() + reader_.ReadUInt();
+    line_starts = ReadLineStartsData(line_starts_offset);
+  }
+
+  String& source = String::Handle(Z);
+  if ((flags & kHasSourceFlag) != 0) {
+    source = ReadString(/* is_canonical = */ false);
+  }
+
+  const Script& script =
+      Script::Handle(Z, Script::New(import_uri, uri, source));
+  script.set_line_starts(line_starts);
+
+  return script.ptr();
 }
 
 TypeArgumentsPtr BytecodeReaderHelper::ReadTypeArguments() {

@@ -1,4 +1,4 @@
-// Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2025, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,7 +6,7 @@
 
 #include "platform/globals.h"
 
-#include "vm/kernel.h"
+#include "vm/line_starts_reader.h"
 #include "vm/object.h"
 #include "vm/unit_test.h"
 
@@ -27,12 +27,12 @@ const dart::TypedData& CreateLineStartsData() {
   return line_starts_data;
 }
 
-ISOLATE_UNIT_TEST_CASE(KernelLineStartsReader_MaxPosition) {
-  kernel::KernelLineStartsReader reader(CreateLineStartsData(), thread->zone());
+ISOLATE_UNIT_TEST_CASE(LineStartsReader_MaxPosition) {
+  LineStartsReader reader(CreateLineStartsData());
   EXPECT_EQ(33u, reader.MaxPosition());
 }
 
-void ExpectLocationForPosition(const kernel::KernelLineStartsReader& reader,
+void ExpectLocationForPosition(const LineStartsReader& reader,
                                intptr_t position,
                                intptr_t expected_line,
                                intptr_t expected_col) {
@@ -43,8 +43,8 @@ void ExpectLocationForPosition(const kernel::KernelLineStartsReader& reader,
   EXPECT_EQ(expected_col, col);
 }
 
-ISOLATE_UNIT_TEST_CASE(KernelLineStartsReader_LocationForPosition) {
-  kernel::KernelLineStartsReader reader(CreateLineStartsData(), thread->zone());
+ISOLATE_UNIT_TEST_CASE(LineStartsReader_LocationForPosition) {
+  LineStartsReader reader(CreateLineStartsData());
   ExpectLocationForPosition(reader, 0, 1, 1);
   ExpectLocationForPosition(reader, 4, 1, 5);
   ExpectLocationForPosition(reader, 8, 2, 1);
@@ -63,7 +63,7 @@ ISOLATE_UNIT_TEST_CASE(KernelLineStartsReader_LocationForPosition) {
   EXPECT_EQ(false, reader.LocationForPosition(34, &line, &col));
 }
 
-void ExpectTokenRangeAtLine(const kernel::KernelLineStartsReader& reader,
+void ExpectTokenRangeAtLine(const LineStartsReader& reader,
                             intptr_t line,
                             intptr_t expected_first_token,
                             intptr_t expected_last_token) {
@@ -74,8 +74,8 @@ void ExpectTokenRangeAtLine(const kernel::KernelLineStartsReader& reader,
   EXPECT_EQ(expected_last_token, last_token.Serialize());
 }
 
-ISOLATE_UNIT_TEST_CASE(KernelLineStartsReader_TokenRangeAtLine) {
-  kernel::KernelLineStartsReader reader(CreateLineStartsData(), thread->zone());
+ISOLATE_UNIT_TEST_CASE(LineStartsReader_TokenRangeAtLine) {
+  LineStartsReader reader(CreateLineStartsData());
   ExpectTokenRangeAtLine(reader, 1, 0, 7);
   ExpectTokenRangeAtLine(reader, 2, 8, 11);
   ExpectTokenRangeAtLine(reader, 3, 12, 16);

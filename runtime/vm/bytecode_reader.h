@@ -346,6 +346,8 @@ class BytecodeReaderHelper : public ValueObject {
   ObjectPtr ReadConstObject(intptr_t tag);
   ObjectPtr ReadType(intptr_t tag, Nullability nullability);
   StringPtr ReadString(bool is_canonical = true);
+  TypedDataPtr ReadLineStartsData(intptr_t line_starts_offset);
+  ScriptPtr ReadSourceFile(const String& uri, intptr_t offset);
   TypeArgumentsPtr ReadTypeArguments();
   void SetupFieldAccessorFunction(const Class& klass,
                                   const Function& function,
