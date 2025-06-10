@@ -211,7 +211,7 @@ _nightly_builder(
     category = "vm|aot|rv",
     properties = [slow_shards],
 )
-_nightly_builder(
+_vm_builder(
     "vm-aot-linux-release-arm64",
     category = "vm|aot|a6",
     dimensions = [arm64],
