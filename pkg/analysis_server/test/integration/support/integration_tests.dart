@@ -730,7 +730,7 @@ class Server {
     _time.start();
 
     var dartBinary = path.join(dartSdkPath, 'bin', 'dart');
-    var serverPath = getAnalysisServerPath(dartSdkPath);
+    var serverPath = await getAnalysisServerPath(dartSdkPath);
 
     var arguments = <String>['--disable-dart-dev', '--no-dds'];
     //

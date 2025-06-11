@@ -7,6 +7,11 @@ import 'dart:isolate';
 
 import 'package:path/path.dart' as path;
 
+/// A temporary file that the server was compiled to from source by
+/// [getAnalysisServerPath] because `TEST_SERVER_SNAPSHOT` was set to disable
+/// running from the SDK snapshot.
+String? _temporaryCompiledServerPath;
+
 /// The path of the `pkg/analysis_server` folder, resolved using the active
 /// `package_config.json`.
 String get analysisServerPackagePath {
@@ -33,10 +38,14 @@ String get sdkRootPath {
   return path.normalize(path.join(analysisServerPackagePath, '..', '..'));
 }
 
-/// Gets the path of the analysis server entry point which may be a snapshot
-/// or the source script depending on the `TEST_SERVER_SNAPSHOT` environment
-/// variable.
-String getAnalysisServerPath(String dartSdkPath) {
+/// Gets the path of the analysis server entry point which may be the snapshot
+/// from the current SDK (default) or a compiled version of the source script
+/// depending on the `TEST_SERVER_SNAPSHOT` environment variable.
+///
+/// When running from source, the server will be compiled to disk for the first
+/// request to speed up subsequent tests in the same process.
+Future<String> getAnalysisServerPath(String dartSdkPath) async {
+  var dartBinary = path.join(dartSdkPath, 'bin', 'dart');
   var snapshotPath = path.join(
     dartSdkPath,
     'bin',
@@ -45,9 +54,40 @@ String getAnalysisServerPath(String dartSdkPath) {
   );
   var sourcePath = path.join(analysisServerPackagePath, 'bin', 'server.dart');
 
-  // Setting the `TEST_SERVER_SNAPSHOT` env var to 'false' will disable the
-  // snapshot and run from source.
+  // Use the SDK snapshot unless this env var is set.
   var useSnapshot = Platform.environment['TEST_SERVER_SNAPSHOT'] != 'false';
-  var serverPath = useSnapshot ? snapshotPath : sourcePath;
-  return path.normalize(serverPath);
+  if (useSnapshot) {
+    return path.normalize(snapshotPath);
+  }
+
+  // If we've already compiled a copy in this process, use that.
+  if (_temporaryCompiledServerPath case var temporaryCompiledServerPath?) {
+    return temporaryCompiledServerPath;
+  }
+
+  // Otherwise, we're running from source. But to avoid having to compile the
+  // server for every test as it spawns the process, pre-compile it once here
+  // into a temp file and then use that for future invocations in this run.
+  var tempSnapshotDirectory = Directory.systemTemp.createTempSync(
+    'dart_analysis_server_tests',
+  );
+  var tempSnapshotFilePath =
+      _temporaryCompiledServerPath = path.join(
+        tempSnapshotDirectory.path,
+        'analysis_server.dart.snapshot',
+      );
+  var result = await Process.run(dartBinary, [
+    'compile',
+    'kernel',
+    sourcePath,
+    '-o',
+    tempSnapshotFilePath,
+  ]);
+  if (result.exitCode != 0) {
+    throw 'Failed to compile analysis server:\n'
+        'Exit code: ${result.exitCode}\n'
+        'stdout: ${result.stdout}\n'
+        'stderr: ${result.stderr}\n';
+  }
+  return tempSnapshotFilePath;
 }
