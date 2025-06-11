@@ -34,15 +34,15 @@ class CorrectOverrideHelper {
   }
 
   /// Return `true` if [_thisMember] is a correct override of [superMember].
-  bool isCorrectOverrideOf({required ExecutableElement2OrMember superMember}) {
-    var superType = superMember.type;
+  bool isCorrectOverrideOf({required ExecutableElement superMember}) {
+    var superType = superMember.type as TypeImpl;
     return _typeSystem.isSubtypeOf(_thisTypeForSubtype!, superType);
   }
 
   /// If [_thisMember] is not a correct override of [superMember], report the
   /// error.
   void verify({
-    required ExecutableElement2OrMember superMember,
+    required ExecutableElement superMember,
     required DiagnosticReporter diagnosticReporter,
     required SyntacticEntity errorNode,
     required DiagnosticCode diagnosticCode,

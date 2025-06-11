@@ -389,7 +389,7 @@ class _ClassVerifier {
     );
 
     for (var superType in directSuperInterfaces) {
-      var superMember = inheritance.getMember(
+      var superMember = inheritance.getMember3(
         superType,
         name,
         forMixinIndex: mixinIndex,
@@ -405,7 +405,7 @@ class _ClassVerifier {
       }
 
       correctOverrideHelper.verify(
-        superMember: superMember.asElement2,
+        superMember: superMember,
         diagnosticReporter: reporter,
         errorNode: node,
         diagnosticCode:
@@ -667,15 +667,15 @@ class _ClassVerifier {
     }
 
     if (implementsDartCoreEnum) {
-      var concreteMap = inheritance.getInheritedConcreteMap2(classElement);
-
       void checkSingle(
         String memberName,
         bool Function(ClassElement enclosingClass) filter,
       ) {
-        var member = concreteMap[Name(libraryUri, memberName)];
+        var member = classElement.element.getInheritedConcreteMember(
+          Name(libraryUri, memberName),
+        );
         if (member != null) {
-          var enclosingClass = member.asElement2.enclosingElement;
+          var enclosingClass = member.enclosingElement;
           if (enclosingClass != null) {
             if (enclosingClass is! ClassElement || filter(enclosingClass)) {
               reporter.atToken(

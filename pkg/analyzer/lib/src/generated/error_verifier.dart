@@ -4421,7 +4421,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         return true;
       }
 
-      var mixinMember = _inheritanceManager.getMember(
+      var mixinMember = _inheritanceManager.getMember3(
         mixinType,
         nameObject,
         forSuper: true,
@@ -4431,7 +4431,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         var isCorrect = CorrectOverrideHelper(
           typeSystem: typeSystem,
           thisMember: superMember.asElement2,
-        ).isCorrectOverrideOf(superMember: mixinMember.asElement2);
+        ).isCorrectOverrideOf(superMember: mixinMember);
         if (!isCorrect) {
           diagnosticReporter.atNode(
             mixinName,
