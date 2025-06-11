@@ -1019,7 +1019,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
               fragment.enclosingFragment?.nameOffset2 ??
               0,
           length: fragment.name2?.length ?? 0,
-          errorCode: code,
+          diagnosticCode: code,
           arguments: arguments,
         ),
       );

@@ -432,7 +432,7 @@ class OptionsTest extends BaseTest {
       source: TestSource(),
       offset: 0,
       length: 1,
-      errorCode: WarningCode.UNUSED_LOCAL_VARIABLE,
+      diagnosticCode: WarningCode.UNUSED_LOCAL_VARIABLE,
       arguments: [
         ['x'],
       ],
@@ -444,7 +444,7 @@ class OptionsTest extends BaseTest {
       source: TestSource(),
       offset: 0,
       length: 1,
-      errorCode: WarningCode.ASSIGNMENT_OF_DO_NOT_STORE,
+      diagnosticCode: WarningCode.ASSIGNMENT_OF_DO_NOT_STORE,
       arguments: [
         ['x'],
       ],

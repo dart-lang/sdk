@@ -574,7 +574,7 @@ class FastaErrorReporter {
             source: diagnosticReporter!.source,
             offset: offset,
             length: length,
-            errorCode: errorCode,
+            diagnosticCode: errorCode,
             arguments: message.arguments.values.toList(),
           ),
         );
@@ -611,7 +611,7 @@ class FastaErrorReporter {
           source: diagnosticReporter!.source,
           offset: offset,
           length: length,
-          errorCode: code,
+          diagnosticCode: code,
           arguments: message.arguments.values.toList(),
         ),
       );

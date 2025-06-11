@@ -844,7 +844,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           source: _diagnosticReporter.source,
           offset: error.offset,
           length: error.length,
-          errorCode: error.diagnosticCode,
+          diagnosticCode: error.diagnosticCode,
           arguments: error.arguments,
           contextMessages: error.contextMessages,
         ),
@@ -855,7 +855,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           source: _diagnosticReporter.source,
           offset: error.offset,
           length: error.length,
-          errorCode: defaultDiagnosticCode,
+          diagnosticCode: defaultDiagnosticCode,
         ),
       );
     }
