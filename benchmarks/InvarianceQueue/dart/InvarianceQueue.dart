@@ -350,11 +350,14 @@ final class ListQueue<E> implements Queue<E> {
 
   // Iterable interface.
 
-  Queue<R> cast<R>() => throw UnimplementedError('Iteratble.cast');
+  @override
+  Queue<R> cast<R>() => throw UnimplementedError('Iterable.cast');
 
+  @override
   Iterator<E> get iterator => _ListQueueIterator<E>(this);
 
-  void forEach(void f(E element)) {
+  @override
+  void forEach(void Function(E element) f) {
     int modificationCount = _modificationCount;
     for (int i = _head; i != _tail; i = (i + 1) & (_table.length - 1)) {
       f(_table[i] as E);
@@ -362,33 +365,41 @@ final class ListQueue<E> implements Queue<E> {
     }
   }
 
+  @override
   bool get isEmpty => _head == _tail;
 
+  @override
   bool get isNotEmpty => !isEmpty;
 
+  @override
   int get length => (_tail - _head) & (_table.length - 1);
 
+  @override
   E get first {
     if (_head == _tail) throw IterableElementError.noElement();
     return _table[_head] as E;
   }
 
+  @override
   E get last {
     if (_head == _tail) throw IterableElementError.noElement();
     return _table[(_tail - 1) & (_table.length - 1)] as E;
   }
 
+  @override
   E get single {
     if (_head == _tail) throw IterableElementError.noElement();
     if (length > 1) throw IterableElementError.tooMany();
     return _table[_head] as E;
   }
 
+  @override
   E elementAt(int index) {
     IndexError.check(index, length, indexable: this);
     return _table[(_head + index) & (_table.length - 1)] as E;
   }
 
+  @override
   List<E> toList({bool growable = true}) {
     int mask = _table.length - 1;
     int length = (_tail - _head) & mask;
@@ -403,10 +414,12 @@ final class ListQueue<E> implements Queue<E> {
 
   // Collection interface.
 
+  @override
   void add(E value) {
     _add(value);
   }
 
+  @override
   void addAll(Iterable<E> elements) {
     if (elements is List<E>) {
       List<E> list = elements;
@@ -432,10 +445,13 @@ final class ListQueue<E> implements Queue<E> {
       }
       _modificationCount++;
     } else {
-      for (E element in elements) _add(element);
+      for (E element in elements) {
+        _add(element);
+      }
     }
   }
 
+  @override
   bool remove(Object? value) {
     for (int i = _head; i != _tail; i = (i + 1) & (_table.length - 1)) {
       E? element = _table[i];
@@ -448,6 +464,7 @@ final class ListQueue<E> implements Queue<E> {
     return false;
   }
 
+  @override
   void clear() {
     if (_head != _tail) {
       for (int i = _head; i != _tail; i = (i + 1) & (_table.length - 1)) {
@@ -458,14 +475,17 @@ final class ListQueue<E> implements Queue<E> {
     }
   }
 
-  String toString() => Iterable.iterableToFullString(this, "{", "}");
+  @override
+  String toString() => Iterable.iterableToFullString(this, '{', '}');
 
   // Queue interface.
 
+  @override
   void addLast(E value) {
     _add(value);
   }
 
+  @override
   void addFirst(E value) {
     _head = (_head - 1) & (_table.length - 1);
     _table[_head] = value;
@@ -473,6 +493,7 @@ final class ListQueue<E> implements Queue<E> {
     _modificationCount++;
   }
 
+  @override
   E removeFirst() {
     if (_head == _tail) throw IterableElementError.noElement();
     _modificationCount++;
@@ -482,6 +503,7 @@ final class ListQueue<E> implements Queue<E> {
     return result;
   }
 
+  @override
   E removeLast() {
     if (_head == _tail) throw IterableElementError.noElement();
     _modificationCount++;
@@ -605,24 +627,43 @@ final class ListQueue<E> implements Queue<E> {
 
   /// Unimplemented Iterable methods
 
+  @override
   Never any(_) => throw UnimplementedError();
+  @override
   Never contains(_) => throw UnimplementedError();
+  @override
   Never every(_) => throw UnimplementedError();
+  @override
   Never expand<T>(_) => throw UnimplementedError();
-  Never firstWhere(_, {E orElse()?}) => throw UnimplementedError();
-  Never fold<E>(_, _) => throw UnimplementedError();
+  @override
+  Never firstWhere(_, {E Function()? orElse}) => throw UnimplementedError();
+  @override
+  Never fold<T>(_, _) => throw UnimplementedError();
+  @override
   Never followedBy(_) => throw UnimplementedError();
+  @override
   Never join([String _ = '']) => throw UnimplementedError();
-  Never lastWhere(_, {E orElse()?}) => throw UnimplementedError();
+  @override
+  Never lastWhere(_, {E Function()? orElse}) => throw UnimplementedError();
+  @override
   Never map<T>(_) => throw UnimplementedError();
+  @override
   Never reduce(_) => throw UnimplementedError();
-  Never singleWhere(_, {E orElse()?}) => throw UnimplementedError();
+  @override
+  Never singleWhere(_, {E Function()? orElse}) => throw UnimplementedError();
+  @override
   Never skip(_) => throw UnimplementedError();
+  @override
   Never skipWhile(_) => throw UnimplementedError();
+  @override
   Never take(_) => throw UnimplementedError();
+  @override
   Never takeWhile(_) => throw UnimplementedError();
+  @override
   Never toSet() => throw UnimplementedError();
+  @override
   Never where(_) => throw UnimplementedError();
+  @override
   Never whereType<T>() => throw UnimplementedError();
 }
 
@@ -642,8 +683,10 @@ class _ListQueueIterator<E> implements Iterator<E> {
       _modificationCount = queue._modificationCount,
       _position = queue._head;
 
+  @override
   E get current => _current as E;
 
+  @override
   bool moveNext() {
     _queue._checkModification(_modificationCount);
     if (_position == _end) {
@@ -657,6 +700,6 @@ class _ListQueueIterator<E> implements Iterator<E> {
 }
 
 abstract class IterableElementError {
-  static StateError noElement() => StateError("No element");
-  static StateError tooMany() => StateError("Too many elements");
+  static StateError noElement() => StateError('No element');
+  static StateError tooMany() => StateError('Too many elements');
 }
