@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/snippets/dart/test_group_definition.dart';
-import 'package:analyzer/src/test_utilities/test_code_format.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'test_support.dart';
@@ -29,78 +27,61 @@ class TestGroupDefinitionTest extends DartSnippetProducerTest {
 
   Future<void> test_import_dart() async {
     testFilePath = convertPath('$testPackageLibPath/test/foo_test.dart');
-    var code = TestCode.parse(r'''
+    var code = r'''
 void f() {
   group^
 }
-''');
-    var snippet = await expectValidSnippet(code);
-    var result = applySnippet(code, snippet);
-    expect(result, '''
+''';
+    var expectedCode = r'''
 import 'package:test/test.dart';
 
 void f() {
-  group('group name', () {
-    
+  group('[!group name!]', () {
+    ^
   });
 }
-''');
+''';
+    await assertSnippetResult(code, expectedCode);
   }
 
   Future<void> test_import_dart_existing() async {
     testFilePath = convertPath('$testPackageLibPath/test/foo_test.dart');
-    var code = TestCode.parse(r'''
+    var code = r'''
 import 'package:test/test.dart';
 
 void f() {
   group^
 }
-''');
-    var snippet = await expectValidSnippet(code);
-    var result = applySnippet(code, snippet);
-    expect(result, '''
+''';
+    var expectedCode = r'''
 import 'package:test/test.dart';
 
 void f() {
-  group('group name', () {
-    
+  group('[!group name!]', () {
+    ^
   });
 }
-''');
+''';
+    await assertSnippetResult(code, expectedCode);
   }
 
   Future<void> test_inTestFile() async {
     testFilePath = convertPath('$testPackageLibPath/test/foo_test.dart');
-    var code = TestCode.parse(r'''
+    var code = r'''
 void f() {
   group^
 }
-''');
-    var snippet = await expectValidSnippet(code);
-    expect(snippet.prefix, prefix);
-    expect(snippet.label, label);
-    expect(snippet.change.edits, hasLength(1));
-    var result = applySnippet(code, snippet);
-    expect(result, '''
+''';
+    var expectedCode = r'''
 import 'package:test/test.dart';
 
 void f() {
-  group('group name', () {
-    
+  group('[!group name!]', () {
+    ^
   });
 }
-''');
-    expect(snippet.change.selection!.file, testFile.path);
-    expect(snippet.change.selection!.offset, 76);
-    expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
-      {
-        'positions': [
-          {'file': testFile.path, 'offset': 54},
-        ],
-        'length': 10,
-        'suggestions': [],
-      },
-    ]);
+''';
+    await assertSnippetResult(code, expectedCode);
   }
 
   Future<void> test_notTestFile() async {
@@ -129,67 +110,64 @@ class TestGroupWithFlutterDefinitionTest extends DartSnippetProducerTest {
 
   Future<void> test_import_flutter() async {
     testFilePath = convertPath('$testPackageLibPath/test/foo_test.dart');
-    var code = TestCode.parse(r'''
+    var code = r'''
 void f() {
   group^
 }
-''');
-    var snippet = await expectValidSnippet(code);
-    var result = applySnippet(code, snippet);
-    expect(result, '''
+''';
+    var expectedCode = r'''
 import 'package:flutter_test/flutter_test.dart';
 
 void f() {
-  group('group name', () {
-    
+  group('[!group name!]', () {
+    ^
   });
 }
-''');
+''';
+    await assertSnippetResult(code, expectedCode);
   }
 
   Future<void> test_import_flutter_existing() async {
     testFilePath = convertPath('$testPackageLibPath/test/foo_test.dart');
-    var code = TestCode.parse(r'''
+    var code = r'''
 import 'package:flutter_test/flutter_test.dart';
 
 void f() {
   group^
 }
-''');
-    var snippet = await expectValidSnippet(code);
-    var result = applySnippet(code, snippet);
-    expect(result, '''
+''';
+    var expectedCode = r'''
 import 'package:flutter_test/flutter_test.dart';
 
 void f() {
-  group('group name', () {
-    
+  group('[!group name!]', () {
+    ^
   });
 }
-''');
+''';
+    await assertSnippetResult(code, expectedCode);
   }
 
   /// Ensure we don't import package:flutter_test if package:test is already
   /// imported.
   Future<void> test_import_flutter_existingDart() async {
     testFilePath = convertPath('$testPackageLibPath/test/foo_test.dart');
-    var code = TestCode.parse(r'''
+    var code = r'''
 import 'package:test/test.dart';
 
 void f() {
   group^
 }
-''');
-    var snippet = await expectValidSnippet(code);
-    var result = applySnippet(code, snippet);
-    expect(result, '''
+''';
+    var expectedCode = r'''
 import 'package:test/test.dart';
 
 void f() {
-  group('group name', () {
-    
+  group('[!group name!]', () {
+    ^
   });
 }
-''');
+''';
+    await assertSnippetResult(code, expectedCode);
   }
 }

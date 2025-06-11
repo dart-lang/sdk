@@ -17,6 +17,10 @@ class UnwindingRecordsPlatform : public AllStatic {
   static void RegisterExecutableMemory(void* start,
                                        intptr_t size,
                                        void** pp_dynamic_table);
+  static void RegisterExecutableMemory(void* start,
+                                       intptr_t size,
+                                       void* records_start,
+                                       void** pp_dynamic_table);
   static void UnregisterDynamicTable(void* p_dynamic_table);
 };
 

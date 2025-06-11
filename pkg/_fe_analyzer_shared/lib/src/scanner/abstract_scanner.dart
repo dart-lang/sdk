@@ -439,7 +439,12 @@ abstract class AbstractScanner implements Scanner {
       if (previous.isA(TokenType.CLOSE_PAREN)) {
         Token closeParen = token.previous!;
         Token? candidate = closeParen.previous;
-        while (candidate != null && candidate.endGroup != closeParen) {
+        while (candidate != null) {
+          if (candidate.endGroup == closeParen) break;
+          if (candidate.isEof) break;
+          if (candidate.endGroup != null) {
+            if (candidate.endGroup!.offset > closeParen.offset) break;
+          }
           candidate = candidate.previous;
         }
         if (candidate?.endGroup == closeParen && candidate!.previous != null) {

@@ -2,10 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/snippets/dart/switch_statement.dart';
-import 'package:analyzer/src/test_utilities/test_code_format.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'test_support.dart';
@@ -28,98 +25,44 @@ class SwitchStatementTest extends DartSnippetProducerTest {
   String get prefix => SwitchStatement.prefix;
 
   Future<void> test_switch() async {
-    var code = TestCode.parse(r'''
+    var code = r'''
 void f() {
   sw^
 }
-''');
-    var snippet = await expectValidSnippet(code);
-    expect(snippet.prefix, prefix);
-    expect(snippet.label, label);
-    expect(snippet.change.edits, hasLength(1));
-    var result = code.code;
-    for (var edit in snippet.change.edits) {
-      result = SourceEdit.applySequence(result, edit.edits);
-    }
-    expect(result, '''
+''';
+    var expectedCode = r'''
 void f() {
-  switch (expression) {
-    case value:
-      
+  switch (/*[0*/expression/*0]*/) {
+    case /*[1*/value/*1]*/:
+      ^
       break;
     default:
   }
 }
-''');
-    expect(snippet.change.selection!.file, testFile.path);
-    expect(snippet.change.selection!.offset, 57);
-    expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
-      // expression
-      {
-        'positions': [
-          {'file': testFile.path, 'offset': 21},
-        ],
-        'length': 10,
-        'suggestions': [],
-      },
-      // value
-      {
-        'positions': [
-          {'file': testFile.path, 'offset': 44},
-        ],
-        'length': 5,
-        'suggestions': [],
-      },
-    ]);
+''';
+    await assertSnippetResult(code, expectedCode);
   }
 
   Future<void> test_switch_indentedInsideBlock() async {
-    var code = TestCode.parse(r'''
+    var code = r'''
 void f() {
   if (true) {
     sw^
   }
 }
-''');
-    var snippet = await expectValidSnippet(code);
-    expect(snippet.prefix, prefix);
-    expect(snippet.label, label);
-    expect(snippet.change.edits, hasLength(1));
-    var result = code.code;
-    for (var edit in snippet.change.edits) {
-      result = SourceEdit.applySequence(result, edit.edits);
-    }
-    expect(result, '''
+''';
+    var expectedCode = r'''
 void f() {
   if (true) {
-    switch (expression) {
-      case value:
-        
+    switch (/*[0*/expression/*0]*/) {
+      case /*[1*/value/*1]*/:
+        ^
         break;
       default:
     }
   }
 }
-''');
-    expect(snippet.change.selection!.file, testFile.path);
-    expect(snippet.change.selection!.offset, 77);
-    expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
-      // expression
-      {
-        'positions': [
-          {'file': testFile.path, 'offset': 37},
-        ],
-        'length': 10,
-        'suggestions': [],
-      },
-      // value
-      {
-        'positions': [
-          {'file': testFile.path, 'offset': 62},
-        ],
-        'length': 5,
-        'suggestions': [],
-      },
-    ]);
+''';
+    await assertSnippetResult(code, expectedCode);
   }
 }

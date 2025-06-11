@@ -210,7 +210,7 @@ class LspServerClient {
     }
 
     var dartBinary = path.join(dartSdkPath, 'bin', 'dart');
-    var serverPath = getAnalysisServerPath(dartSdkPath);
+    var serverPath = await getAnalysisServerPath(dartSdkPath);
 
     var arguments = [...?vmArgs, serverPath, '--lsp', '--suppress-analytics'];
     var process = await Process.start(

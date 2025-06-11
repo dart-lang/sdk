@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/snippets/dart/flutter_stateless_widget.dart';
-import 'package:analyzer/src/test_utilities/test_code_format.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'test_support.dart';
@@ -29,10 +27,8 @@ class FlutterStatelessWidgetTest extends FlutterSnippetProducerTest {
   Future<void> test_noSuperParams() async {
     writeTestPackageConfig(flutter: true, languageVersion: '2.16');
 
-    var snippet = await expectValidSnippet(TestCode.empty);
-    expect(snippet.prefix, prefix);
-    expect(snippet.label, label);
-    var expected = TestCode.parse('''
+    var code = '^';
+    var expectedCode = r'''
 import 'package:flutter/widgets.dart';
 
 class /*0*/MyWidget extends StatelessWidget {
@@ -42,8 +38,8 @@ class /*0*/MyWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return /*[0*/const Placeholder()/*0]*/;
   }
-}''');
-    assertFlutterSnippetChange(snippet.change, 'MyWidget', expected);
+}''';
+    await assertFlutterSnippetResult(code, expectedCode, 'MyWidget');
   }
 
   Future<void> test_notValid_notFlutterProject() async {
@@ -55,10 +51,8 @@ class /*0*/MyWidget extends StatelessWidget {
   Future<void> test_valid() async {
     writeTestPackageConfig(flutter: true);
 
-    var snippet = await expectValidSnippet(TestCode.empty);
-    expect(snippet.prefix, prefix);
-    expect(snippet.label, label);
-    var expected = TestCode.parse('''
+    var code = '^';
+    var expectedCode = r'''
 import 'package:flutter/widgets.dart';
 
 class /*0*/MyWidget extends StatelessWidget {
@@ -68,7 +62,7 @@ class /*0*/MyWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return /*[0*/const Placeholder()/*0]*/;
   }
-}''');
-    assertFlutterSnippetChange(snippet.change, 'MyWidget', expected);
+}''';
+    await assertFlutterSnippetResult(code, expectedCode, 'MyWidget');
   }
 }

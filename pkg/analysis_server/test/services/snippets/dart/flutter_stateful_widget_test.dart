@@ -2,10 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/snippets/dart/flutter_stateful_widget.dart';
-import 'package:analyzer/src/test_utilities/test_code_format.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'test_support.dart';
@@ -30,31 +27,24 @@ class FlutterStatefulWidgetTest extends FlutterSnippetProducerTest {
   Future<void> test_noSuperParams() async {
     writeTestPackageConfig(flutter: true, languageVersion: '2.16');
 
-    var code = TestCode.empty;
-    var snippet = await expectValidSnippet(code);
-    expect(snippet.prefix, prefix);
-    expect(snippet.label, label);
-    var result = code.code;
-    expect(snippet.change.edits, hasLength(1));
-    for (var edit in snippet.change.edits) {
-      result = SourceEdit.applySequence(result, edit.edits);
-    }
-    expect(result, '''
+    var code = '^';
+    var expectedCode = r'''
 import 'package:flutter/widgets.dart';
 
-class MyWidget extends StatefulWidget {
-  const MyWidget({Key? key}) : super(key: key);
+class /*0*/MyWidget extends StatefulWidget {
+  const /*1*/MyWidget({Key? key}) : super(key: key);
 
   @override
-  State<MyWidget> createState() => _MyWidgetState();
+  State</*2*/MyWidget> createState() => _/*3*/MyWidgetState();
 }
 
-class _MyWidgetState extends State<MyWidget> {
+class _/*4*/MyWidgetState extends State</*5*/MyWidget> {
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    return [!const Placeholder()!];
   }
-}''');
+}''';
+    await assertFlutterSnippetResult(code, expectedCode, 'MyWidget');
   }
 
   Future<void> test_notValid_notFlutterProject() async {
@@ -66,10 +56,8 @@ class _MyWidgetState extends State<MyWidget> {
   Future<void> test_valid() async {
     writeTestPackageConfig(flutter: true);
 
-    var snippet = await expectValidSnippet(TestCode.empty);
-    expect(snippet.prefix, prefix);
-    expect(snippet.label, label);
-    var expected = TestCode.parse('''
+    var code = '^';
+    var expectedCode = r'''
 import 'package:flutter/widgets.dart';
 
 class /*0*/MyWidget extends StatefulWidget {
@@ -84,7 +72,7 @@ class _/*4*/MyWidgetState extends State</*5*/MyWidget> {
   Widget build(BuildContext context) {
     return /*[0*/const Placeholder()/*0]*/;
   }
-}''');
-    assertFlutterSnippetChange(snippet.change, 'MyWidget', expected);
+}''';
+    await assertFlutterSnippetResult(code, expectedCode, 'MyWidget');
   }
 }

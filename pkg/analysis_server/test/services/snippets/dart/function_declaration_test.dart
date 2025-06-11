@@ -2,10 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/snippets/dart/function_declaration.dart';
-import 'package:analyzer/src/test_utilities/test_code_format.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'test_support.dart';
@@ -28,150 +25,54 @@ class FunctionDeclarationTest extends DartSnippetProducerTest {
   String get prefix => FunctionDeclaration.prefix;
 
   Future<void> test_classMethod() async {
-    var code = TestCode.parse(r'''
+    var code = r'''
 class A {
   ^
 }
-''');
-    var snippet = await expectValidSnippet(code);
-    expect(snippet.prefix, prefix);
-    expect(snippet.label, label);
-    expect(snippet.change.edits, hasLength(1));
-    var result = code.code;
-    for (var edit in snippet.change.edits) {
-      result = SourceEdit.applySequence(result, edit.edits);
-    }
-    expect(result, '''
+''';
+    var expectedCode = r'''
 class A {
-  void name(params) {
-    
+  /*[0*/void/*0]*/ /*[1*/name/*1]*/(/*[2*/params/*2]*/) {
+    ^
   }
 }
-''');
-    expect(snippet.change.selection!.file, testFile.path);
-    expect(snippet.change.selection!.offset, 36);
-    expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
-      {
-        'positions': [
-          {'file': testFile.path, 'offset': 12},
-        ],
-        'length': 4,
-        'suggestions': [],
-      },
-      {
-        'positions': [
-          {'file': testFile.path, 'offset': 17},
-        ],
-        'length': 4,
-        'suggestions': [],
-      },
-      {
-        'positions': [
-          {'file': testFile.path, 'offset': 22},
-        ],
-        'length': 6,
-        'suggestions': [],
-      },
-    ]);
+''';
+    await assertSnippetResult(code, expectedCode);
   }
 
   Future<void> test_nested() async {
-    var code = TestCode.parse(r'''
+    var code = r'''
 void a() {
   ^
 }
-''');
-    var snippet = await expectValidSnippet(code);
-    expect(snippet.prefix, prefix);
-    expect(snippet.label, label);
-    expect(snippet.change.edits, hasLength(1));
-    var result = code.code;
-    for (var edit in snippet.change.edits) {
-      result = SourceEdit.applySequence(result, edit.edits);
-    }
-    expect(result, '''
+''';
+    var expectedCode = r'''
 void a() {
-  void name(params) {
-    
+  /*[0*/void/*0]*/ /*[1*/name/*1]*/(/*[2*/params/*2]*/) {
+    ^
   }
 }
-''');
-    expect(snippet.change.selection!.file, testFile.path);
-    expect(snippet.change.selection!.offset, 37);
-    expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
-      {
-        'positions': [
-          {'file': testFile.path, 'offset': 13},
-        ],
-        'length': 4,
-        'suggestions': [],
-      },
-      {
-        'positions': [
-          {'file': testFile.path, 'offset': 18},
-        ],
-        'length': 4,
-        'suggestions': [],
-      },
-      {
-        'positions': [
-          {'file': testFile.path, 'offset': 23},
-        ],
-        'length': 6,
-        'suggestions': [],
-      },
-    ]);
+''';
+    await assertSnippetResult(code, expectedCode);
   }
 
   Future<void> test_topLevel() async {
-    var code = TestCode.parse(r'''
+    var code = r'''
 class A {}
-  
+
 ^
 
 class B {}
-''');
-    var snippet = await expectValidSnippet(code);
-    expect(snippet.prefix, prefix);
-    expect(snippet.label, label);
-    expect(snippet.change.edits, hasLength(1));
-    var result = code.code;
-    for (var edit in snippet.change.edits) {
-      result = SourceEdit.applySequence(result, edit.edits);
-    }
-    expect(result, '''
+''';
+    var expectedCode = r'''
 class A {}
-  
-void name(params) {
-  
+
+/*[0*/void/*0]*/ /*[1*/name/*1]*/(/*[2*/params/*2]*/) {
+  ^
 }
 
 class B {}
-''');
-    expect(snippet.change.selection!.file, testFile.path);
-    expect(snippet.change.selection!.offset, 36);
-    expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
-      {
-        'positions': [
-          {'file': testFile.path, 'offset': 14},
-        ],
-        'length': 4,
-        'suggestions': [],
-      },
-      {
-        'positions': [
-          {'file': testFile.path, 'offset': 19},
-        ],
-        'length': 4,
-        'suggestions': [],
-      },
-      {
-        'positions': [
-          {'file': testFile.path, 'offset': 24},
-        ],
-        'length': 6,
-        'suggestions': [],
-      },
-    ]);
+''';
+    await assertSnippetResult(code, expectedCode);
   }
 }

@@ -28,7 +28,10 @@ class FlutterStatelessWidget extends FlutterSnippetProducer
 
   @override
   Future<Snippet> compute() async {
-    var builder = ChangeBuilder(session: request.analysisSession);
+    var builder = ChangeBuilder(
+      session: request.analysisSession,
+      eol: utils.endOfLine,
+    );
 
     // Checked by isValid().
     var classStatelessWidget = this.classStatelessWidget!;
