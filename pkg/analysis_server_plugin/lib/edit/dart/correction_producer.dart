@@ -174,13 +174,17 @@ sealed class CorrectionProducer<T extends ParsedUnitResult>
 
   /// The length of the source range associated with the diagnostic being
   /// fixed, or `null` if there is no diagnostic.
-  // TODO(srawlins): Rename to 'diagnosticLength'.
-  int? get errorLength => diagnostic?.problemMessage.length;
+  int? get diagnosticLength => diagnostic?.problemMessage.length;
 
   /// The offset of the source range associated with the diagnostic being
   /// fixed, or `null` if there is no diagnostic.
-  // TODO(srawlins): Rename to 'diagnosticOffset'.
-  int? get errorOffset => diagnostic?.problemMessage.offset;
+  int? get diagnosticOffset => diagnostic?.problemMessage.offset;
+
+  @Deprecated("Use 'diagnosticLength' instead")
+  int? get errorLength => diagnosticLength;
+
+  @Deprecated("Use 'diagnosticOffset' instead")
+  int? get errorOffset => diagnosticOffset;
 
   /// The arguments that should be used when composing the message for a fix, or
   /// `null` if the fix message has no parameters or if this producer doesn't
