@@ -77,7 +77,7 @@ class FunctionExpressionResolver {
       //
       // This is only needed for local functions because top-level and
       checkForTypeParameterBoundRecursion(
-        _resolver.errorReporter,
+        _resolver.diagnosticReporter,
         typeParameterList.typeParameters,
       );
       var map = <Fragment, TypeParameter>{};

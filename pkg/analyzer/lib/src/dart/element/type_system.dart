@@ -11,7 +11,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
-import 'package:analyzer/error/listener.dart' show ErrorReporter;
+import 'package:analyzer/error/listener.dart' show DiagnosticReporter;
 import 'package:analyzer/src/dart/ast/ast.dart' show AstNodeImpl;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
@@ -654,7 +654,7 @@ class TypeSystemImpl implements TypeSystem {
   List<TypeImpl> inferFunctionTypeInstantiation(
     FunctionTypeImpl contextType,
     FunctionTypeImpl fnType, {
-    ErrorReporter? errorReporter,
+    DiagnosticReporter? diagnosticReporter,
     AstNode? errorNode,
     required TypeSystemOperations typeSystemOperations,
     required bool genericMetadataIsEnabled,
@@ -676,7 +676,7 @@ class TypeSystemImpl implements TypeSystem {
     var inferrer = GenericInferrer(
       this,
       fnType.typeParameters,
-      errorReporter: errorReporter,
+      diagnosticReporter: diagnosticReporter,
       errorEntity: errorNode,
       genericMetadataIsEnabled: genericMetadataIsEnabled,
       inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
@@ -1701,7 +1701,7 @@ class TypeSystemImpl implements TypeSystem {
     required List<TypeParameterElement> typeParameters,
     required TypeImpl declaredReturnType,
     required TypeImpl contextReturnType,
-    ErrorReporter? errorReporter,
+    DiagnosticReporter? diagnosticReporter,
     SyntacticEntity? errorEntity,
     required bool genericMetadataIsEnabled,
     required bool inferenceUsingBoundsIsEnabled,
@@ -1719,7 +1719,7 @@ class TypeSystemImpl implements TypeSystem {
     var inferrer = GenericInferrer(
       this,
       typeParameters,
-      errorReporter: errorReporter,
+      diagnosticReporter: diagnosticReporter,
       errorEntity: errorEntity,
       genericMetadataIsEnabled: genericMetadataIsEnabled,
       inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,

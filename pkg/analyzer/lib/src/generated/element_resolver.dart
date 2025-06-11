@@ -105,7 +105,7 @@ class ElementResolver {
     return false;
   }
 
-  ErrorReporter get _errorReporter => _resolver.errorReporter;
+  DiagnosticReporter get _diagnosticReporter => _resolver.diagnosticReporter;
 
   TypeProviderImpl get _typeProvider => _resolver.typeProvider;
 
@@ -393,13 +393,13 @@ class ElementResolver {
     var element = superType.lookUpConstructor2(superName, _definingLibrary);
     if (element == null || !element.isAccessibleIn2(_definingLibrary)) {
       if (name != null) {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           node,
           CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER,
           arguments: [superType, name.name],
         );
       } else {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           node,
           CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT,
           arguments: [superType],
@@ -412,7 +412,7 @@ class ElementResolver {
           !element.enclosingElement.constructors.every(
             (constructor) => constructor.isFactory,
           )) {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           node,
           CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR,
           arguments: [element],
@@ -449,14 +449,17 @@ class ElementResolver {
     switch (context) {
       case SuperContext.annotation:
       case SuperContext.static:
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           node,
           CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT,
         );
       case SuperContext.extension:
-        _errorReporter.atNode(node, CompileTimeErrorCode.SUPER_IN_EXTENSION);
+        _diagnosticReporter.atNode(
+          node,
+          CompileTimeErrorCode.SUPER_IN_EXTENSION,
+        );
       case SuperContext.extensionType:
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           node,
           CompileTimeErrorCode.SUPER_IN_EXTENSION_TYPE,
         );
@@ -491,7 +494,7 @@ class ElementResolver {
     return ResolverVisitor.resolveArgumentsToParameters(
       argumentList: argumentList,
       formalParameters: executableElement.formalParameters,
-      errorReporter: _errorReporter,
+      diagnosticReporter: _diagnosticReporter,
       enclosingConstructor: enclosingConstructor,
     );
   }

@@ -278,7 +278,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
               bound = substitution.substituteType(bound);
               var typeArgument = typeArgumentTypes[i];
               if (!resolver.typeSystem.isSubtypeOf(typeArgument, bound)) {
-                resolver.errorReporter.atNode(
+                resolver.diagnosticReporter.atNode(
                   typeArgumentList.arguments[i],
                   CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
                   arguments: [typeArgument, typeParameter.name3!, bound],
@@ -312,7 +312,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
         declaredReturnType: rawType.returnType,
         contextReturnType: contextType,
         isConst: _isConst,
-        errorReporter: resolver.errorReporter,
+        diagnosticReporter: resolver.diagnosticReporter,
         errorEntity: _errorEntity,
         genericMetadataIsEnabled: resolver.genericMetadataIsEnabled,
         inferenceUsingBoundsIsEnabled: resolver.inferenceUsingBoundsIsEnabled,
@@ -383,7 +383,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
           ResolverVisitor.resolveArgumentsToParameters(
             argumentList: argumentList,
             formalParameters: parameters,
-            errorReporter: resolver.errorReporter,
+            diagnosticReporter: resolver.diagnosticReporter,
           );
     }
     var returnType = _refineReturnType(
@@ -419,7 +419,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
     FunctionType rawType,
     List<TypeParameterElement> typeParameters,
   ) {
-    resolver.errorReporter.atNode(
+    resolver.diagnosticReporter.atNode(
       typeArgumentList,
       _wrongNumberOfTypeArgumentsErrorCode,
       arguments: [

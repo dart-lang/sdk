@@ -49,8 +49,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// `@doNotStore`.
   bool _inDoNotStoreMember = false;
 
-  /// The error reporter by which errors will be reported.
-  final ErrorReporter _errorReporter;
+  /// The error reporter by which diagnostics will be reported.
+  final DiagnosticReporter _diagnosticReporter;
 
   /// The type [Null].
   final InterfaceType _nullType;
@@ -74,7 +74,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   final NullSafeApiVerifier _nullSafeApiVerifier;
 
   late final DocCommentVerifier _docCommentVerifier = DocCommentVerifier(
-    _errorReporter,
+    _diagnosticReporter,
   );
 
   final WidgetPreviewVerifier _widgetPreviewVerifier;
@@ -91,7 +91,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       _workspacePackage.sourceIsInPublicApi(_currentLibrary.source);
 
   BestPracticesVerifier(
-    this._errorReporter,
+    this._diagnosticReporter,
     TypeProviderImpl typeProvider,
     this._currentLibrary,
     CompilationUnit unit, {
@@ -102,30 +102,33 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
        _typeSystem = typeSystem,
        _strictInference = analysisOptions.strictInference,
        _annotationVerifier = AnnotationVerifier(
-         _errorReporter,
+         _diagnosticReporter,
          _currentLibrary,
          workspacePackage,
        ),
        _deprecatedVerifier = DeprecatedMemberUseVerifier(
          workspacePackage,
-         _errorReporter,
+         _diagnosticReporter,
          strictCasts: analysisOptions.strictCasts,
        ),
        _errorHandlerVerifier = ErrorHandlerVerifier(
-         _errorReporter,
+         _diagnosticReporter,
          typeProvider,
          typeSystem,
          strictCasts: analysisOptions.strictCasts,
        ),
        _invalidAccessVerifier = _InvalidAccessVerifier(
-         _errorReporter,
+         _diagnosticReporter,
          unit,
          _currentLibrary,
          workspacePackage,
        ),
-       _mustCallSuperVerifier = MustCallSuperVerifier(_errorReporter),
-       _nullSafeApiVerifier = NullSafeApiVerifier(_errorReporter, typeSystem),
-       _widgetPreviewVerifier = WidgetPreviewVerifier(_errorReporter),
+       _mustCallSuperVerifier = MustCallSuperVerifier(_diagnosticReporter),
+       _nullSafeApiVerifier = NullSafeApiVerifier(
+         _diagnosticReporter,
+         typeSystem,
+       ),
+       _widgetPreviewVerifier = WidgetPreviewVerifier(_diagnosticReporter),
        _workspacePackage = workspacePackage {
     _deprecatedVerifier.pushInDeprecatedValue(
       _currentLibrary.metadata.hasDeprecated,
@@ -149,13 +152,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitAsExpression(AsExpression node) {
     if (_isUnnecessaryCast(node, _typeSystem)) {
-      _errorReporter.atNode(node, WarningCode.UNNECESSARY_CAST);
+      _diagnosticReporter.atNode(node, WarningCode.UNNECESSARY_CAST);
     }
     var type = node.type.type;
     if (type != null &&
         _typeSystem.isNonNullable(type) &&
         node.expression.typeOrThrow.isDartCoreNull) {
-      _errorReporter.atNode(node, WarningCode.CAST_FROM_NULL_ALWAYS_FAILS);
+      _diagnosticReporter.atNode(node, WarningCode.CAST_FROM_NULL_ALWAYS_FAILS);
     }
     super.visitAsExpression(node);
   }
@@ -183,7 +186,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         _typeSystem.isNonNullable(type) &&
         matchedValueType != null &&
         matchedValueType.isDartCoreNull) {
-      _errorReporter.atNode(node, WarningCode.CAST_FROM_NULL_ALWAYS_FAILS);
+      _diagnosticReporter.atNode(node, WarningCode.CAST_FROM_NULL_ALWAYS_FAILS);
     }
     super.visitCastPattern(node);
   }
@@ -250,7 +253,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     var newKeyword = node.newKeyword;
     if (newKeyword != null &&
         _currentLibrary.featureSet.isEnabled(Feature.constructor_tearoffs)) {
-      _errorReporter.atToken(
+      _diagnosticReporter.atToken(
         newKeyword,
         WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE,
       );
@@ -261,7 +264,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitConstantPattern(ConstantPattern node) {
     if (node.expression.isDoubleNan) {
-      _errorReporter.atNode(node, WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE);
+      _diagnosticReporter.atNode(
+        node,
+        WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE,
+      );
     }
     super.visitConstantPattern(node);
   }
@@ -297,12 +303,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       // This is a warning in code whose language version is < 3.0, but an error
       // in code whose language version is >= 3.0.
       if (_currentLibrary.languageVersion.effective.major < 3) {
-        _errorReporter.atToken(
+        _diagnosticReporter.atToken(
           separator,
           HintCode.DEPRECATED_COLON_FOR_DEFAULT_VALUE,
         );
       } else {
-        _errorReporter.atToken(
+        _diagnosticReporter.atToken(
           separator,
           CompileTimeErrorCode.OBSOLETE_COLON_FOR_DEFAULT_VALUE,
         );
@@ -411,7 +417,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           // Overridden members are always inside classes or mixins, which are
           // always named, so we can safely assume
           // `overriddenElement.enclosingElement3.name` is non-`null`.
-          _errorReporter.atToken(
+          _diagnosticReporter.atToken(
             field.name,
             WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER,
             arguments: [
@@ -622,7 +628,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         // Overridden members are always inside classes or mixins, which are
         // always named, so we can safely assume
         // `overriddenElement.enclosingElement3.name` is non-`null`.
-        _errorReporter.atToken(
+        _diagnosticReporter.atToken(
           node.name,
           WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER,
           arguments: [
@@ -679,7 +685,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       if ((type is InterfaceType && type.element3 == _nullType.element3 ||
               (type is DynamicType && node.name.lexeme == 'dynamic')) &&
           type.alias == null) {
-        _errorReporter.atToken(
+        _diagnosticReporter.atToken(
           question,
           WarningCode.UNNECESSARY_QUESTION_MARK,
           arguments: [node.qualifiedName],
@@ -701,7 +707,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     _deprecatedVerifier.postfixExpression(node);
     if (node.operator.type == TokenType.BANG &&
         node.operand.typeOrThrow.isDartCoreNull) {
-      _errorReporter.atNode(node, WarningCode.NULL_CHECK_ALWAYS_FAILS);
+      _diagnosticReporter.atNode(node, WarningCode.NULL_CHECK_ALWAYS_FAILS);
     }
     super.visitPostfixExpression(node);
   }
@@ -788,7 +794,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     var rightType = rightNode.typeOrThrow;
 
     void report() {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         node,
         node.notOperator == null
             ? WarningCode.UNNECESSARY_TYPE_CHECK_TRUE
@@ -817,7 +823,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       if (leftNode is NullLiteral) {
         report();
       } else {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           node,
           node.notOperator == null
               ? WarningCode.TYPE_CHECK_IS_NULL
@@ -837,7 +843,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   void _checkFinalParameter(FormalParameter node, Token? keyword) {
     if (node.isFinal) {
-      _errorReporter.atToken(keyword!, WarningCode.UNNECESSARY_FINAL);
+      _diagnosticReporter.atToken(keyword!, WarningCode.UNNECESSARY_FINAL);
     }
   }
 
@@ -847,7 +853,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       // All the elements returned by [_getSubExpressionsMarkedDoNotStore] are
       // named elements, so we can safely assume `entry.value.name` is
       // non-`null`.
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         entry.key,
         WarningCode.ASSIGNMENT_OF_DO_NOT_STORE,
         arguments: [entry.value.name3!],
@@ -879,7 +885,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
               node.isSet
                   ? WarningCode.EQUAL_ELEMENTS_IN_SET
                   : WarningCode.EQUAL_KEYS_IN_MAP;
-          _errorReporter.atNode(expression, errorCode);
+          _diagnosticReporter.atNode(expression, errorCode);
         }
       }
     }
@@ -960,7 +966,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
             HashSet<InterfaceElement>(),
           );
       if (nonFinalFields.isNotEmpty) {
-        _errorReporter.atToken(
+        _diagnosticReporter.atToken(
           node.name,
           WarningCode.MUST_BE_IMMUTABLE,
           arguments: [nonFinalFields.join(', ')],
@@ -981,7 +987,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     if (libraryElement == null) return;
 
     if (libraryElement.metadata.hasInternal) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         node,
         WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT,
         arguments: [libraryElement.displayName],
@@ -993,7 +999,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     exportNamespace.definedNames2.forEach((String name, Element element) {
       if (element case Annotatable annotatable) {
         if (annotatable.metadata.hasInternal) {
-          _errorReporter.atNode(
+          _diagnosticReporter.atNode(
             node,
             WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT,
             arguments: [element.displayName],
@@ -1010,7 +1016,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         for (var type in signatureTypes) {
           var aliasElement = type?.alias?.element2;
           if (aliasElement != null && aliasElement.metadata.hasInternal) {
-            _errorReporter.atNode(
+            _diagnosticReporter.atNode(
               node,
               WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY,
               arguments: [aliasElement.name3!, element.displayName],
@@ -1041,14 +1047,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
               element.superclassConstraints.contains(supertype)) {
             // This is a special violation of the sealed class contract,
             // requiring specific messaging.
-            _errorReporter.atNode(
+            _diagnosticReporter.atNode(
               node,
               WarningCode.MIXIN_ON_SEALED_CLASS,
               arguments: [superclass.name3.toString()],
             );
           } else {
             // This is a regular violation of the sealed class contract.
-            _errorReporter.atNode(
+            _diagnosticReporter.atNode(
               node,
               WarningCode.SUBTYPE_OF_SEALED_CLASS,
               arguments: [superclass.name3.toString()],
@@ -1066,7 +1072,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       SyntacticEntity endEntity,
     ) {
       var offset = startEntity.offset;
-      _errorReporter.atOffset(
+      _diagnosticReporter.atOffset(
         offset: offset,
         length: endEntity.end - offset,
         diagnosticCode: diagnosticCode,
@@ -1102,7 +1108,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       var rightType = node.rightOperand.typeOrThrow;
       if (_typeSystem.isStrictlyNonNullable(rightType)) {
         var offset = node.leftOperand.offset;
-        _errorReporter.atOffset(
+        _diagnosticReporter.atOffset(
           offset: offset,
           length: node.operator.end - offset,
           diagnosticCode: errorCode,
@@ -1114,7 +1120,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       var leftType = node.leftOperand.typeOrThrow;
       if (_typeSystem.isStrictlyNonNullable(leftType)) {
         var offset = node.operator.offset;
-        _errorReporter.atOffset(
+        _diagnosticReporter.atOffset(
           offset: offset,
           length: node.rightOperand.end - offset,
           diagnosticCode: errorCode,
@@ -1144,7 +1150,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           node.keyword?.keyword == Keyword.NEW
               ? WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW
               : WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR;
-      _errorReporter.atNode(node, warning, arguments: [fullConstructorName]);
+      _diagnosticReporter.atNode(
+        node,
+        warning,
+        arguments: [fullConstructorName],
+      );
     }
   }
 
@@ -1175,7 +1185,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       TopLevelFunctionElement.LOAD_LIBRARY_NAME,
     );
     if (loadLibraryElement != null) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         node,
         HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION,
       );
@@ -1209,7 +1219,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
 
     if (_typeSystem.isNullable(parameterElement.type)) {
-      _errorReporter.atToken(
+      _diagnosticReporter.atToken(
         node.name,
         WarningCode.NON_NULLABLE_EQUALS_PARAMETER,
       );
@@ -1228,7 +1238,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
 
     if (_typeSystem.isPotentiallyNullable(typeObj)) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         typeNode,
         WarningCode.NULLABLE_TYPE_IN_CATCH_CLAUSE,
       );
@@ -1253,7 +1263,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         // All the elements returned by [_getSubExpressionsMarkedDoNotStore] are
         // named elements, so we can safely assume `entry.value.name` is
         // non-`null`.
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           entry.key,
           WarningCode.RETURN_OF_DO_NOT_STORE,
           arguments: [
@@ -1292,7 +1302,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     FunctionBody body = node.body;
     if (body is ExpressionFunctionBody) {
       if (isNonObjectNoSuchMethodInvocation(body.expression)) {
-        _errorReporter.atToken(
+        _diagnosticReporter.atToken(
           node.name,
           WarningCode.UNNECESSARY_NO_SUCH_METHOD,
         );
@@ -1304,7 +1314,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         Statement returnStatement = statements.first;
         if (returnStatement is ReturnStatement &&
             isNonObjectNoSuchMethodInvocation(returnStatement.expression)) {
-          _errorReporter.atToken(
+          _diagnosticReporter.atToken(
             node.name,
             WarningCode.UNNECESSARY_NO_SUCH_METHOD,
           );
@@ -1349,7 +1359,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       if (isReturnVoid) {
         var expression = body.expression;
         if (expression is SetOrMapLiteralImpl && expression.isSet) {
-          _errorReporter.atNode(
+          _diagnosticReporter.atNode(
             expression,
             WarningCode.UNNECESSARY_SET_LITERAL,
           );
@@ -1369,21 +1379,21 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         .where((p) => p.isNamed)
         .where((p) => p is DefaultFormalParameter && p.defaultValue != null);
     for (var param in nonNamedParamsWithRequired.where((p) => p.isOptional)) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         param,
         WarningCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM,
         arguments: [_formalParameterNameOrEmpty(param)],
       );
     }
     for (var param in nonNamedParamsWithRequired.where((p) => p.isRequired)) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         param,
         WarningCode.INVALID_REQUIRED_POSITIONAL_PARAM,
         arguments: [_formalParameterNameOrEmpty(param)],
       );
     }
     for (var param in namedParamsWithRequiredAndDefault) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         param,
         WarningCode.INVALID_REQUIRED_NAMED_PARAM,
         arguments: [_formalParameterNameOrEmpty(param)],
@@ -1431,7 +1441,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     void checkParameterTypeIsKnown(SimpleFormalParameter parameter) {
       if (parameter.type == null && isParameterReferenced(parameter)) {
         var element = parameter.declaredFragment!.element;
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           parameter,
           WarningCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER,
           arguments: [element.displayName],
@@ -1465,19 +1475,19 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
     switch (reportNode) {
       case MethodDeclaration():
-        _errorReporter.atToken(
+        _diagnosticReporter.atToken(
           reportNode.name,
           WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE,
           arguments: [displayName],
         );
       case FunctionDeclaration():
-        _errorReporter.atToken(
+        _diagnosticReporter.atToken(
           reportNode.name,
           WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE,
           arguments: [displayName],
         );
       case _:
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           reportNode,
           WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE,
           arguments: [displayName],
@@ -1615,7 +1625,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 class _InvalidAccessVerifier {
   static final _templateExtension = '.template';
 
-  final ErrorReporter _errorReporter;
+  final DiagnosticReporter _errorReporter;
   final LibraryElement _library;
   final WorkspacePackageImpl? _workspacePackage;
 

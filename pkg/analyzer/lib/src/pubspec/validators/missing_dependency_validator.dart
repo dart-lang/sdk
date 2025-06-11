@@ -30,7 +30,7 @@ class MissingDependencyValidator {
   final Source source;
 
   /// The reporter to which errors should be reported.
-  late ErrorReporter reporter;
+  late DiagnosticReporter reporter;
 
   /// The resource provider used to access the file system.
   final ResourceProvider provider;
@@ -46,7 +46,7 @@ class MissingDependencyValidator {
 
   MissingDependencyValidator(this.contents, this.source, this.provider)
     : recorder = RecordingDiagnosticListener() {
-    reporter = ErrorReporter(recorder, source);
+    reporter = DiagnosticReporter(recorder, source);
   }
 
   /// Given the set of dependencies and dev dependencies used in the sources,

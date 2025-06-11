@@ -33,7 +33,7 @@ class NamedTypeResolver with ScopeHelpers {
   final bool strictInference;
 
   @override
-  final ErrorReporter errorReporter;
+  final DiagnosticReporter diagnosticReporter;
 
   late Scope nameScope;
 
@@ -65,7 +65,7 @@ class NamedTypeResolver with ScopeHelpers {
   NamedTypeResolver(
     LibraryElementImpl libraryElement,
     this._libraryFragment,
-    this.errorReporter, {
+    this.diagnosticReporter, {
     required this.strictInference,
     required this.strictCasts,
     required this.typeSystemOperations,
@@ -118,7 +118,7 @@ class NamedTypeResolver with ScopeHelpers {
         return;
       }
 
-      errorReporter.atToken(
+      diagnosticReporter.atToken(
         prefixToken,
         CompileTimeErrorCode.PREFIX_SHADOWED_BY_LOCAL_DECLARATION,
         arguments: [prefixName],
@@ -145,7 +145,7 @@ class NamedTypeResolver with ScopeHelpers {
     var argumentCount = arguments.length;
 
     if (argumentCount != parameterCount) {
-      errorReporter.atNode(
+      diagnosticReporter.atNode(
         node,
         CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
         arguments: [node.name.lexeme, parameterCount, argumentCount],
@@ -238,7 +238,7 @@ class NamedTypeResolver with ScopeHelpers {
         );
         return _verifyTypeAliasForContext(node, element, type);
       } else if (_isInstanceCreation(node)) {
-        _ErrorHelper(errorReporter).reportNewWithNonType(node);
+        _ErrorHelper(diagnosticReporter).reportNewWithNonType(node);
         return InvalidTypeImpl.instance;
       } else if (element is DynamicElementImpl2) {
         _buildTypeArguments(node, argumentList, 0);
@@ -250,7 +250,9 @@ class NamedTypeResolver with ScopeHelpers {
         _buildTypeArguments(node, argumentList, 0);
         return element.instantiate(nullabilitySuffix: nullability);
       } else {
-        _ErrorHelper(errorReporter).reportNullOrNonTypeElement(node, element);
+        _ErrorHelper(
+          diagnosticReporter,
+        ).reportNullOrNonTypeElement(node, element);
         return InvalidTypeImpl.instance;
       }
     }
@@ -283,7 +285,7 @@ class NamedTypeResolver with ScopeHelpers {
       );
       return _verifyTypeAliasForContext(node, element, type);
     } else if (_isInstanceCreation(node)) {
-      _ErrorHelper(errorReporter).reportNewWithNonType(node);
+      _ErrorHelper(diagnosticReporter).reportNewWithNonType(node);
       return InvalidTypeImpl.instance;
     } else if (element is DynamicElementImpl2) {
       return DynamicTypeImpl.instance;
@@ -292,7 +294,9 @@ class NamedTypeResolver with ScopeHelpers {
     } else if (element is TypeParameterElementImpl2) {
       return element.instantiate(nullabilitySuffix: nullability);
     } else {
-      _ErrorHelper(errorReporter).reportNullOrNonTypeElement(node, element);
+      _ErrorHelper(
+        diagnosticReporter,
+      ).reportNullOrNonTypeElement(node, element);
       return InvalidTypeImpl.instance;
     }
   }
@@ -320,7 +324,7 @@ class NamedTypeResolver with ScopeHelpers {
     if (element == null) {
       node.type = InvalidTypeImpl.instance;
       if (!_libraryFragment.shouldIgnoreUndefinedNamedType(node)) {
-        _ErrorHelper(errorReporter).reportNullOrNonTypeElement(node, null);
+        _ErrorHelper(diagnosticReporter).reportNullOrNonTypeElement(node, null);
       }
       return;
     }
@@ -353,7 +357,7 @@ class NamedTypeResolver with ScopeHelpers {
         constructorName.name == null) {
       var typeArguments = node.typeArguments;
       if (typeArguments != null) {
-        errorReporter.atNode(
+        diagnosticReporter.atNode(
           typeArguments,
           CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
           arguments: [importPrefix.name.lexeme, nameToken.lexeme],
@@ -384,7 +388,7 @@ class NamedTypeResolver with ScopeHelpers {
 
     if (_isInstanceCreation(node)) {
       node.type = InvalidTypeImpl.instance;
-      _ErrorHelper(errorReporter).reportNewWithNonType(node);
+      _ErrorHelper(diagnosticReporter).reportNewWithNonType(node);
     } else {
       node.type = InvalidTypeImpl.instance;
       Element? element = importPrefixElement;
@@ -402,7 +406,7 @@ class NamedTypeResolver with ScopeHelpers {
       var fragment = element?.firstFragment;
       var source = fragment?.libraryFragment?.source;
       var nameOffset = fragment?.nameOffset2;
-      errorReporter.atOffset(
+      diagnosticReporter.atOffset(
         offset: importPrefix.offset,
         length: nameToken.end - importPrefix.offset,
         diagnosticCode: CompileTimeErrorCode.NOT_A_TYPE,
@@ -430,22 +434,22 @@ class NamedTypeResolver with ScopeHelpers {
       if (type.nullabilitySuffix == NullabilitySuffix.question) {
         var parent = node.parent;
         if (parent is ExtendsClause || parent is ClassTypeAlias) {
-          errorReporter.atNode(
+          diagnosticReporter.atNode(
             node,
             CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE,
           );
         } else if (parent is ImplementsClause) {
-          errorReporter.atNode(
+          diagnosticReporter.atNode(
             node,
             CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE,
           );
         } else if (parent is MixinOnClause) {
-          errorReporter.atNode(
+          diagnosticReporter.atNode(
             node,
             CompileTimeErrorCode.NULLABLE_TYPE_IN_ON_CLAUSE,
           );
         } else if (parent is WithClause) {
-          errorReporter.atNode(
+          diagnosticReporter.atNode(
             node,
             CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE,
           );
@@ -469,7 +473,7 @@ class NamedTypeResolver with ScopeHelpers {
         var errorRange = _ErrorHelper._getErrorRange(node);
         var constructorUsage = parent.parent;
         if (constructorUsage is InstanceCreationExpression) {
-          errorReporter.atOffset(
+          diagnosticReporter.atOffset(
             offset: errorRange.offset,
             length: errorRange.length,
             diagnosticCode:
@@ -478,7 +482,7 @@ class NamedTypeResolver with ScopeHelpers {
           );
         } else if (constructorUsage is ConstructorDeclaration &&
             constructorUsage.redirectedConstructor == parent) {
-          errorReporter.atOffset(
+          diagnosticReporter.atOffset(
             offset: errorRange.offset,
             length: errorRange.length,
             diagnosticCode:
@@ -509,7 +513,7 @@ class NamedTypeResolver with ScopeHelpers {
       }
       if (diagnosticCode != null) {
         var errorRange = _ErrorHelper._getErrorRange(node);
-        errorReporter.atOffset(
+        diagnosticReporter.atOffset(
           offset: errorRange.offset,
           length: errorRange.length,
           diagnosticCode: diagnosticCode,
@@ -519,7 +523,7 @@ class NamedTypeResolver with ScopeHelpers {
       }
     }
     if (type is! InterfaceType && _isInstanceCreation(node)) {
-      _ErrorHelper(errorReporter).reportNewWithNonType(node);
+      _ErrorHelper(diagnosticReporter).reportNewWithNonType(node);
       return InvalidTypeImpl.instance;
     }
     return type;
@@ -532,11 +536,11 @@ class NamedTypeResolver with ScopeHelpers {
   }
 }
 
-/// Helper for reporting errors during type name resolution.
+/// Helper for reporting diagnostics during type name resolution.
 class _ErrorHelper {
-  final ErrorReporter errorReporter;
+  final DiagnosticReporter diagnosticReporter;
 
-  _ErrorHelper(this.errorReporter);
+  _ErrorHelper(this.diagnosticReporter);
 
   bool reportNewWithNonType(NamedType node) {
     var constructorName = node.parent;
@@ -544,7 +548,7 @@ class _ErrorHelper {
       var instanceCreation = constructorName.parent;
       if (instanceCreation is InstanceCreationExpression) {
         var errorRange = _getErrorRange(node, skipImportPrefix: true);
-        errorReporter.atOffset(
+        diagnosticReporter.atOffset(
           offset: errorRange.offset,
           length: errorRange.length,
           diagnosticCode:
@@ -566,7 +570,7 @@ class _ErrorHelper {
 
     if (node.name.lexeme == 'boolean') {
       var errorRange = _getErrorRange(node, skipImportPrefix: true);
-      errorReporter.atOffset(
+      diagnosticReporter.atOffset(
         offset: errorRange.offset,
         length: errorRange.length,
         diagnosticCode: CompileTimeErrorCode.UNDEFINED_CLASS_BOOLEAN,
@@ -577,7 +581,7 @@ class _ErrorHelper {
 
     if (_isTypeInCatchClause(node)) {
       var errorRange = _getErrorRange(node);
-      errorReporter.atOffset(
+      diagnosticReporter.atOffset(
         offset: errorRange.offset,
         length: errorRange.length,
         diagnosticCode: CompileTimeErrorCode.NON_TYPE_IN_CATCH_CLAUSE,
@@ -588,7 +592,7 @@ class _ErrorHelper {
 
     if (_isTypeInAsExpression(node)) {
       var errorRange = _getErrorRange(node);
-      errorReporter.atOffset(
+      diagnosticReporter.atOffset(
         offset: errorRange.offset,
         length: errorRange.length,
         diagnosticCode: CompileTimeErrorCode.CAST_TO_NON_TYPE,
@@ -600,14 +604,14 @@ class _ErrorHelper {
     if (_isTypeInIsExpression(node)) {
       var errorRange = _getErrorRange(node);
       if (element != null) {
-        errorReporter.atOffset(
+        diagnosticReporter.atOffset(
           offset: errorRange.offset,
           length: errorRange.length,
           diagnosticCode: CompileTimeErrorCode.TYPE_TEST_WITH_NON_TYPE,
           arguments: [node.name.lexeme],
         );
       } else {
-        errorReporter.atOffset(
+        diagnosticReporter.atOffset(
           offset: errorRange.offset,
           length: errorRange.length,
           diagnosticCode: CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME,
@@ -619,7 +623,7 @@ class _ErrorHelper {
 
     if (_isRedirectingConstructor(node)) {
       var errorRange = _getErrorRange(node);
-      errorReporter.atOffset(
+      diagnosticReporter.atOffset(
         offset: errorRange.offset,
         length: errorRange.length,
         diagnosticCode: CompileTimeErrorCode.REDIRECT_TO_NON_CLASS,
@@ -630,7 +634,7 @@ class _ErrorHelper {
 
     if (_isTypeInTypeArgumentList(node)) {
       var errorRange = _getErrorRange(node);
-      errorReporter.atOffset(
+      diagnosticReporter.atOffset(
         offset: errorRange.offset,
         length: errorRange.length,
         diagnosticCode: CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT,
@@ -653,9 +657,9 @@ class _ErrorHelper {
     }
 
     if (element is LocalVariableElement || element is LocalFunctionElement) {
-      errorReporter.reportError(
+      diagnosticReporter.reportError(
         DiagnosticFactory().referencedBeforeDeclaration(
-          errorReporter.source,
+          diagnosticReporter.source,
           nameToken: node.name,
           element2: element!,
         ),
@@ -669,7 +673,7 @@ class _ErrorHelper {
       var fragment = element.firstFragment;
       var source = fragment.libraryFragment?.source;
       var nameOffset = fragment.nameOffset2;
-      errorReporter.atOffset(
+      diagnosticReporter.atOffset(
         offset: errorRange.offset,
         length: errorRange.length,
         diagnosticCode: CompileTimeErrorCode.NOT_A_TYPE,
@@ -689,7 +693,7 @@ class _ErrorHelper {
     }
 
     if (node.importPrefix == null && node.name.lexeme == 'await') {
-      errorReporter.atNode(
+      diagnosticReporter.atNode(
         node,
         CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT,
       );
@@ -697,7 +701,7 @@ class _ErrorHelper {
     }
 
     var errorRange = _getErrorRange(node);
-    errorReporter.atOffset(
+    diagnosticReporter.atOffset(
       offset: errorRange.offset,
       length: errorRange.length,
       diagnosticCode: CompileTimeErrorCode.UNDEFINED_CLASS,

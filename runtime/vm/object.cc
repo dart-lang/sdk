@@ -51,6 +51,7 @@
 #include "vm/kernel_binary.h"
 #include "vm/kernel_isolate.h"
 #include "vm/kernel_loader.h"
+#include "vm/line_starts_reader.h"
 #include "vm/log.h"
 #include "vm/native_symbol.h"
 #include "vm/object_graph.h"
@@ -13805,7 +13806,7 @@ GrowableObjectArrayPtr Script::GenerateLineNumberArray() const {
   intptr_t token_count = debug_positions_array.Length();
   int token_index = 0;
 
-  kernel::KernelLineStartsReader line_starts_reader(line_starts_data, zone);
+  LineStartsReader line_starts_reader(line_starts_data);
   for (int line_index = 0; line_index < line_count; ++line_index) {
     intptr_t start = line_starts_reader.At(line_index);
     // Output the rest of the tokens if we have no next line.
@@ -13844,10 +13845,10 @@ TokenPosition Script::MaxPosition() const {
         UntaggedScript::CachedMaxPositionBitField::decode(
             untag()->flags_and_max_position_));
   }
-  auto const zone = Thread::Current()->zone();
   if (!HasCachedMaxPosition() && line_starts() != TypedData::null()) {
+    auto const zone = Thread::Current()->zone();
     const auto& starts = TypedData::Handle(zone, line_starts());
-    kernel::KernelLineStartsReader reader(starts, zone);
+    LineStartsReader reader(starts);
     const intptr_t max_position = reader.MaxPosition();
     SetCachedMaxPosition(max_position);
     SetHasCachedMaxPosition(true);
@@ -13875,12 +13876,12 @@ TypedDataViewPtr Script::constant_coverage() const {
 }
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
-void Script::set_debug_positions(const Array& value) const {
-  untag()->set_debug_positions(value.ptr());
-}
-
 TypedDataPtr Script::line_starts() const {
   return untag()->line_starts();
+}
+
+void Script::set_line_starts(const TypedData& value) const {
+  untag()->set_line_starts(value.ptr());
 }
 
 ArrayPtr Script::debug_positions() const {
@@ -13892,6 +13893,10 @@ ArrayPtr Script::debug_positions() const {
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   return untag()->debug_positions();
+}
+
+void Script::set_debug_positions(const Array& value) const {
+  untag()->set_debug_positions(value.ptr());
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -13948,7 +13953,7 @@ bool Script::GetTokenLocation(const TokenPosition& token_pos,
                               intptr_t* line,
                               intptr_t* column) const {
   ASSERT(line != nullptr);
-#if defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
   // Scripts in the AOT snapshot do not have a line starts array.
   return false;
 #else
@@ -13957,7 +13962,7 @@ bool Script::GetTokenLocation(const TokenPosition& token_pos,
   auto const zone = Thread::Current()->zone();
   const TypedData& line_starts_data = TypedData::Handle(zone, line_starts());
   if (line_starts_data.IsNull()) return false;
-  kernel::KernelLineStartsReader line_starts_reader(line_starts_data, zone);
+  LineStartsReader line_starts_reader(line_starts_data);
   return line_starts_reader.LocationForPosition(token_pos.Pos(), line, column);
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
@@ -13995,7 +14000,7 @@ bool Script::TokenRangeAtLine(intptr_t line_number,
   if (line_number <= 0) return false;
   Zone* zone = Thread::Current()->zone();
   const TypedData& line_starts_data = TypedData::Handle(zone, line_starts());
-  kernel::KernelLineStartsReader line_starts_reader(line_starts_data, zone);
+  LineStartsReader line_starts_reader(line_starts_data);
   if (!line_starts_reader.TokenRangeAtLine(line_number, first_token_index,
                                            last_token_index)) {
     return false;

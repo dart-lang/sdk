@@ -32,7 +32,7 @@ class BinaryExpressionResolver {
     : _resolver = resolver,
       _typePropertyResolver = resolver.typePropertyResolver;
 
-  ErrorReporter get _errorReporter => _resolver.errorReporter;
+  DiagnosticReporter get _diagnosticReporter => _resolver.diagnosticReporter;
 
   TypeProviderImpl get _typeProvider => _resolver.typeProvider;
 
@@ -68,7 +68,7 @@ class BinaryExpressionResolver {
 
     // Report an error if not already reported by the parser.
     if (operator != TokenType.BANG_EQ_EQ && operator != TokenType.EQ_EQ_EQ) {
-      _errorReporter.atToken(
+      _diagnosticReporter.atToken(
         node.operator,
         CompileTimeErrorCode.NOT_BINARY_OPERATOR,
         arguments: [operator.lexeme],
@@ -151,7 +151,7 @@ class BinaryExpressionResolver {
               ? WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE
               : WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE;
       var offset = start.offset;
-      _errorReporter.atOffset(
+      _diagnosticReporter.atOffset(
         offset: offset,
         length: end.end - offset,
         diagnosticCode: errorCode,
@@ -402,7 +402,7 @@ class BinaryExpressionResolver {
       if (member == null) {
         // Extension overrides can only be used with named extensions so it is
         // safe to assume `extension.name` is non-`null`.
-        _errorReporter.atToken(
+        _diagnosticReporter.atToken(
           node.operator,
           CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR,
           arguments: [methodName, extension.name3!],
@@ -416,7 +416,7 @@ class BinaryExpressionResolver {
     var leftType = leftOperand.typeOrThrow;
 
     if (identical(leftType, NeverTypeImpl.instance)) {
-      _resolver.errorReporter.atNode(
+      _resolver.diagnosticReporter.atNode(
         leftOperand,
         WarningCode.RECEIVER_OF_TYPE_NEVER,
       );
@@ -441,13 +441,13 @@ class BinaryExpressionResolver {
     node.staticInvokeType = result.getter2?.type;
     if (result.needsGetterError) {
       if (leftOperand is SuperExpression) {
-        _errorReporter.atToken(
+        _diagnosticReporter.atToken(
           node.operator,
           CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR,
           arguments: [methodName, leftType],
         );
       } else {
-        _errorReporter.atToken(
+        _diagnosticReporter.atToken(
           node.operator,
           CompileTimeErrorCode.UNDEFINED_OPERATOR,
           arguments: [methodName, leftType],

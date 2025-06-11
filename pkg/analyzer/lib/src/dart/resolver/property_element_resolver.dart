@@ -31,7 +31,7 @@ class PropertyElementResolver with ScopeHelpers {
   PropertyElementResolver(this._resolver);
 
   @override
-  ErrorReporter get errorReporter => _resolver.errorReporter;
+  DiagnosticReporter get diagnosticReporter => _resolver.diagnosticReporter;
 
   LibraryElementImpl get _definingLibrary => _resolver.definingLibrary;
 
@@ -70,7 +70,7 @@ class PropertyElementResolver with ScopeHelpers {
           var enclosingElement = element.enclosingElement;
           if (enclosingElement is ClassElementImpl2 &&
               enclosingElement.isAbstract) {
-            _resolver.errorReporter.atNode(
+            _resolver.diagnosticReporter.atNode(
               node,
               CompileTimeErrorCode
                   .TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS,
@@ -125,7 +125,7 @@ class PropertyElementResolver with ScopeHelpers {
       );
     }
 
-    errorReporter.atNode(
+    diagnosticReporter.atNode(
       node,
       CompileTimeErrorCode.DOT_SHORTHAND_MISSING_CONTEXT,
     );
@@ -186,7 +186,7 @@ class PropertyElementResolver with ScopeHelpers {
 
     if (identical(targetType, NeverTypeImpl.instance)) {
       // TODO(scheglov): Report directly in TypePropertyResolver?
-      errorReporter.atNode(target, WarningCode.RECEIVER_OF_TYPE_NEVER);
+      diagnosticReporter.atNode(target, WarningCode.RECEIVER_OF_TYPE_NEVER);
       return PropertyElementResolverResult();
     }
 
@@ -379,7 +379,7 @@ class PropertyElementResolver with ScopeHelpers {
       writeElementRequested = writeLookup?.requested;
       writeElementRecovery = writeLookup?.recovery;
 
-      AssignmentVerifier(errorReporter).verify(
+      AssignmentVerifier(diagnosticReporter).verify(
         node: node,
         requested: writeElementRequested,
         recovery: writeElementRecovery,
@@ -405,7 +405,7 @@ class PropertyElementResolver with ScopeHelpers {
   ) {
     if (element.isStatic) return false;
 
-    errorReporter.atNode(
+    diagnosticReporter.atNode(
       identifier,
       CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER,
       arguments: [identifier.name],
@@ -420,7 +420,7 @@ class PropertyElementResolver with ScopeHelpers {
   ) {
     if (element != null && element.isStatic) {
       if (target is ExtensionOverride) {
-        errorReporter.atNode(
+        diagnosticReporter.atNode(
           propertyName,
           CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
         );
@@ -428,7 +428,7 @@ class PropertyElementResolver with ScopeHelpers {
         var enclosingElement = element.enclosingElement;
         if (enclosingElement is ExtensionElement &&
             enclosingElement.name3 == null) {
-          _resolver.errorReporter.atNode(
+          _resolver.diagnosticReporter.atNode(
             propertyName,
             CompileTimeErrorCode
                 .INSTANCE_ACCESS_TO_STATIC_MEMBER_OF_UNNAMED_EXTENSION,
@@ -438,7 +438,7 @@ class PropertyElementResolver with ScopeHelpers {
           // It is safe to assume that `enclosingElement.name` is non-`null`
           // because it can only be `null` for extensions, and we handle that
           // case above.
-          errorReporter.atNode(
+          diagnosticReporter.atNode(
             propertyName,
             CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
             arguments: [
@@ -469,7 +469,7 @@ class PropertyElementResolver with ScopeHelpers {
     var offset = leftBracket.offset;
     var length = rightBracket.end - offset;
 
-    errorReporter.atOffset(
+    diagnosticReporter.atOffset(
       offset: offset,
       length: length,
       diagnosticCode: diagnosticCode,
@@ -542,7 +542,7 @@ class PropertyElementResolver with ScopeHelpers {
     }
 
     if (targetType is VoidType) {
-      errorReporter.atNode(
+      diagnosticReporter.atNode(
         propertyName,
         CompileTimeErrorCode.USE_OF_VOID_RESULT,
       );
@@ -558,13 +558,13 @@ class PropertyElementResolver with ScopeHelpers {
       // type literal (which can only be a type instantiation of a type alias
       // of a function type).
       if (hasRead) {
-        errorReporter.atNode(
+        diagnosticReporter.atNode(
           propertyName,
           CompileTimeErrorCode.UNDEFINED_GETTER_ON_FUNCTION_TYPE,
           arguments: [propertyName.name, target.type.qualifiedName],
         );
       } else {
-        errorReporter.atNode(
+        diagnosticReporter.atNode(
           propertyName,
           CompileTimeErrorCode.UNDEFINED_SETTER_ON_FUNCTION_TYPE,
           arguments: [propertyName.name, target.type.qualifiedName],
@@ -607,7 +607,7 @@ class PropertyElementResolver with ScopeHelpers {
 
       _checkForStaticMember(target, propertyName, result.getter2);
       if (result.needsGetterError) {
-        errorReporter.atNode(
+        diagnosticReporter.atNode(
           propertyName,
           CompileTimeErrorCode.UNDEFINED_GETTER,
           arguments: [propertyName.name, targetType],
@@ -628,7 +628,7 @@ class PropertyElementResolver with ScopeHelpers {
           nameErrorEntity: propertyName,
         );
 
-        AssignmentVerifier(errorReporter).verify(
+        AssignmentVerifier(diagnosticReporter).verify(
           node: propertyName,
           requested: null,
           recovery: readResult.getter2,
@@ -667,7 +667,7 @@ class PropertyElementResolver with ScopeHelpers {
         // This method is only called for extension overrides, and extension
         // overrides can only refer to named extensions.  So it is safe to
         // assume that `extension.name` is non-`null`.
-        errorReporter.atNode(
+        diagnosticReporter.atNode(
           propertyName,
           CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER,
           arguments: [memberName, extension.name3!],
@@ -687,7 +687,7 @@ class PropertyElementResolver with ScopeHelpers {
       writeElement = extension.getSetter(memberName);
 
       if (writeElement == null) {
-        errorReporter.atNode(
+        diagnosticReporter.atNode(
           propertyName,
           CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER,
           arguments: [memberName, extension.name3!],
@@ -717,7 +717,7 @@ class PropertyElementResolver with ScopeHelpers {
   }) {
     if (target.parent is CascadeExpression) {
       // Report this error and recover by treating it like a non-cascade.
-      errorReporter.atToken(
+      diagnosticReporter.atToken(
         target.name,
         CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE,
       );
@@ -736,7 +736,7 @@ class PropertyElementResolver with ScopeHelpers {
         // This method is only called for extension overrides, and extension
         // overrides can only refer to named extensions.  So it is safe to
         // assume that `element.name` is non-`null`.
-        errorReporter.atNode(
+        diagnosticReporter.atNode(
           propertyName,
           CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER,
           arguments: [memberName, element.name3!],
@@ -754,7 +754,7 @@ class PropertyElementResolver with ScopeHelpers {
         // This method is only called for extension overrides, and extension
         // overrides can only refer to named extensions.  So it is safe to
         // assume that `element.name` is non-`null`.
-        errorReporter.atNode(
+        diagnosticReporter.atNode(
           propertyName,
           CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER,
           arguments: [memberName, element.name3!],
@@ -808,7 +808,7 @@ class PropertyElementResolver with ScopeHelpers {
         if (resolvingDotShorthand) {
           // We didn't resolve to any static getter or static field using the
           // context type.
-          errorReporter.atNode(
+          diagnosticReporter.atNode(
             propertyName,
             CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_GETTER,
             arguments: [propertyName.name, typeReference.name3!],
@@ -818,7 +818,7 @@ class PropertyElementResolver with ScopeHelpers {
               typeReference is EnumElement
                   ? CompileTimeErrorCode.UNDEFINED_ENUM_CONSTANT
                   : CompileTimeErrorCode.UNDEFINED_GETTER;
-          errorReporter.atNode(
+          diagnosticReporter.atNode(
             propertyName,
             code,
             arguments: [propertyName.name, typeReference.name3!],
@@ -833,7 +833,7 @@ class PropertyElementResolver with ScopeHelpers {
       writeElement = typeReference.getSetter(propertyName.name);
       if (writeElement != null) {
         if (!_isAccessible(writeElement)) {
-          errorReporter.atNode(
+          diagnosticReporter.atNode(
             propertyName,
             CompileTimeErrorCode.PRIVATE_SETTER,
             arguments: [propertyName.name],
@@ -846,7 +846,7 @@ class PropertyElementResolver with ScopeHelpers {
       } else {
         // Recovery, try to use getter.
         writeElementRecovery = typeReference.getGetter(propertyName.name);
-        AssignmentVerifier(errorReporter).verify(
+        AssignmentVerifier(diagnosticReporter).verify(
           node: propertyName,
           requested: null,
           recovery: writeElementRecovery,
@@ -892,7 +892,7 @@ class PropertyElementResolver with ScopeHelpers {
             prefix: target.name3,
             name: identifier.name,
           )) {
-        errorReporter.atNode(
+        diagnosticReporter.atNode(
           identifier,
           CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME,
           arguments: [identifier.name, target.name3!],
@@ -943,13 +943,13 @@ class PropertyElementResolver with ScopeHelpers {
             name,
           );
           if (readElement != null) {
-            errorReporter.atNode(
+            diagnosticReporter.atNode(
               propertyName,
               CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE,
               arguments: [readElement.kind.displayName, propertyName.name],
             );
           } else {
-            errorReporter.atNode(
+            diagnosticReporter.atNode(
               propertyName,
               CompileTimeErrorCode.UNDEFINED_SUPER_GETTER,
               arguments: [propertyName.name, targetType],
@@ -991,13 +991,13 @@ class PropertyElementResolver with ScopeHelpers {
             inherited: true,
           );
           if (writeElement != null) {
-            errorReporter.atNode(
+            diagnosticReporter.atNode(
               propertyName,
               CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE,
               arguments: [writeElement.kind.displayName, propertyName.name],
             );
           } else {
-            errorReporter.atNode(
+            diagnosticReporter.atNode(
               propertyName,
               CompileTimeErrorCode.UNDEFINED_SUPER_SETTER,
               arguments: [propertyName.name, targetType],

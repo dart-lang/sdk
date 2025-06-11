@@ -24,9 +24,9 @@ import 'package:analyzer/src/error/codes.dart';
 /// The public methods of this class form a complete accounting of possible
 /// node replacements.
 class AstRewriter {
-  final ErrorReporter _errorReporter;
+  final DiagnosticReporter _diagnosticReporter;
 
-  AstRewriter(this._errorReporter);
+  AstRewriter(this._diagnosticReporter);
 
   /// Possibly rewrites [node] as a [MethodInvocation] with a
   /// [FunctionReference] target.
@@ -433,7 +433,7 @@ class AstRewriter {
 
     var typeArguments = node.typeArguments;
     if (typeArguments != null) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         typeArguments,
         CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
         arguments: [typeNameIdentifier.toString(), constructorIdentifier.name],
@@ -600,7 +600,7 @@ class AstRewriter {
 
     var typeArguments = node.typeArguments;
     if (typeArguments != null) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         typeArguments,
         CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
         arguments: [typeIdentifier.name, constructorIdentifier.name],

@@ -29,14 +29,14 @@ abstract class AbstractLinterContextTest extends PubPackageResolutionTest {
 
   Future<void> resolve(String content) async {
     await resolveTestCode(content);
-    var errorReporter = ErrorReporter(
+    var diagnosticReporter = DiagnosticReporter(
       RecordingDiagnosticListener(),
       StringSource(result.content, null),
     );
     var contextUnit = RuleContextUnit(
       file: result.file,
       content: result.content,
-      errorReporter: errorReporter,
+      diagnosticReporter: diagnosticReporter,
       unit: result.unit,
     );
 

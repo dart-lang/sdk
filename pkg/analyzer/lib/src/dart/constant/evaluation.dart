@@ -94,11 +94,15 @@ class ConstantEvaluationEngine {
         var defaultValue = constant.constantInitializer;
         if (defaultValue != null) {
           var diagnosticListener = RecordingDiagnosticListener();
-          var errorReporter = ErrorReporter(
+          var diagnosticReporter = DiagnosticReporter(
             diagnosticListener,
             constant.source!,
           );
-          var constantVisitor = ConstantVisitor(this, library, errorReporter);
+          var constantVisitor = ConstantVisitor(
+            this,
+            library,
+            diagnosticReporter,
+          );
           var dartConstant = constantVisitor.evaluateConstant(defaultValue);
           constant.evaluationResult = dartConstant;
         } else {
@@ -108,9 +112,15 @@ class ConstantEvaluationEngine {
     } else if (constant is VariableFragmentImpl) {
       var constantInitializer = constant.constantInitializer;
       if (constantInitializer != null) {
-        var diagnosticListener = RecordingDiagnosticListener();
-        var errorReporter = ErrorReporter(diagnosticListener, constant.source!);
-        var constantVisitor = ConstantVisitor(this, library, errorReporter);
+        var diagnosticReporter = DiagnosticReporter(
+          RecordingDiagnosticListener(),
+          constant.source!,
+        );
+        var constantVisitor = ConstantVisitor(
+          this,
+          library,
+          diagnosticReporter,
+        );
         var dartConstant = constantVisitor.evaluateConstant(
           constantInitializer,
         );
@@ -187,8 +197,15 @@ class ConstantEvaluationEngine {
           element.isConst &&
           constNode.arguments != null) {
         var diagnosticListener = RecordingDiagnosticListener();
-        var errorReporter = ErrorReporter(diagnosticListener, constant.source);
-        var constantVisitor = ConstantVisitor(this, library, errorReporter);
+        var diagnosticReporter = DiagnosticReporter(
+          diagnosticListener,
+          constant.source,
+        );
+        var constantVisitor = ConstantVisitor(
+          this,
+          library,
+          diagnosticReporter,
+        );
         var result = evaluateAndFormatErrorsInConstructorCall(
           library,
           constNode,
@@ -422,14 +439,14 @@ class ConstantEvaluationEngine {
     ConstantEvaluationTarget constant,
   ) {
     if (constant is VariableFragmentImpl) {
-      ErrorReporter errorReporter = ErrorReporter(
+      DiagnosticReporter diagnosticReporter = DiagnosticReporter(
         RecordingDiagnosticListener(),
         constant.source!,
       );
       // TODO(paulberry): It would be really nice if we could extract enough
       // information from the 'cycle' argument to provide the user with a
       // description of the cycle.
-      errorReporter.atElement2(
+      diagnosticReporter.atElement2(
         constant.asElement2!,
         CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
       );
@@ -563,9 +580,9 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
 
   final Substitution? _substitution;
 
-  /// Error reporter that we use to report errors accumulated while computing
-  /// the constant.
-  final ErrorReporter _errorReporter;
+  /// Diagnostic reporter that we use to report errors accumulated while
+  /// computing the constant.
+  final DiagnosticReporter _diagnosticReporter;
 
   /// Helper class used to compute constant values.
   late final DartObjectComputer _dartObjectComputer;
@@ -573,14 +590,14 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   /// Initializes a newly created constant visitor. The [_evaluationEngine] is
   /// used to evaluate instance creation expressions. The [lexicalEnvironment]
   /// is a map containing values which should override identifiers, or `null` if
-  /// no overriding is necessary. The [_errorReporter] is used to report errors
-  /// found during evaluation.
+  /// no overriding is necessary. The [_diagnosticReporter] is used to report
+  /// errors found during evaluation.
   ///
   /// The [substitution] is specified for instance creations.
   ConstantVisitor(
     this._evaluationEngine,
     this._library,
-    this._errorReporter, {
+    this._diagnosticReporter, {
     Map<String, DartObjectImpl>? lexicalEnvironment,
     Map<TypeParameterElement, TypeImpl>? lexicalTypeEnvironment,
     Substitution? substitution,
@@ -604,7 +621,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   Constant evaluateAndReportInvalidConstant(AstNode node) {
     var result = evaluateConstant(node);
     if (result case InvalidConstant(avoidReporting: false)) {
-      _errorReporter.atOffset(
+      _diagnosticReporter.atOffset(
         offset: result.offset,
         length: result.length,
         diagnosticCode: result.diagnosticCode,
@@ -2229,7 +2246,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       // interaction with g3 more elegantly.
       case InvalidConstant(isUnresolved: true):
         if (!expressionValue.avoidReporting) {
-          _errorReporter.atOffset(
+          _diagnosticReporter.atOffset(
             offset: expressionValue.offset,
             length: expressionValue.length,
             diagnosticCode: expressionValue.diagnosticCode,
@@ -2807,18 +2824,16 @@ class _InstanceCreationEvaluator {
   /// An error reporter for errors determined while computing values for field
   /// initializers, or default values for the constructor parameters.
   ///
-  /// Such errors cannot be reported into [ConstantVisitor._errorReporter],
+  /// Such errors cannot be reported into [ConstantVisitor._diagnosticReporter],
   /// because they usually happen in a different source. But they still should
   /// cause a constant evaluation error for the current node.
-  late final ErrorReporter _externalErrorReporter = ErrorReporter(
-    _externalDiagnosticListener,
-    _constructor.source,
-  );
+  late final DiagnosticReporter _externalDiagnosticReporter =
+      DiagnosticReporter(_externalDiagnosticListener, _constructor.source);
 
   late final ConstantVisitor _initializerVisitor = ConstantVisitor(
     _evaluationEngine,
     _constructor.library2,
-    _externalErrorReporter,
+    _externalDiagnosticReporter,
     lexicalEnvironment: _parameterMap,
     lexicalTypeEnvironment: _typeParameterMap,
     substitution: Substitution.fromInterfaceType(definingType),

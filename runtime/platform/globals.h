@@ -731,24 +731,6 @@ DART_FORCE_INLINE D bit_copy(const S& source) {
 // Undefine math.h definition which clashes with our condition names.
 #undef OVERFLOW
 
-// Include IL printer and disassembler functionality into non-PRODUCT builds,
-// in all AOT compiler builds or when forced.
-#if !defined(PRODUCT) || defined(DART_PRECOMPILER) ||                          \
-    defined(FORCE_INCLUDE_DISASSEMBLER)
-#if defined(DART_PRECOMPILED_RUNTIME) && defined(PRODUCT)
-#error Requested to include IL printer into PRODUCT AOT runtime
-#endif
-#define INCLUDE_IL_PRINTER 1
-#if !defined(FORCE_INCLUDE_DISASSEMBLER)
-#define FORCE_INCLUDE_DISASSEMBLER 1
-#endif
-#endif
-
-// Include HeapSnapshotWriter functionality if not in PRODUCT.
-#if !defined(DART_ENABLE_HEAP_SNAPSHOT_WRITER) && !defined(PRODUCT)
-#define DART_ENABLE_HEAP_SNAPSHOT_WRITER 1
-#endif
-
 #if defined(DART_HOST_OS_ANDROID)
 #define kHostOperatingSystemName "android"
 #elif defined(DART_HOST_OS_FUCHSIA)

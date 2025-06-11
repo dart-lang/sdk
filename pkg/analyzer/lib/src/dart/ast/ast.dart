@@ -8336,7 +8336,7 @@ sealed class ExpressionImpl extends AstNodeImpl
     var visitor = ConstantVisitor(
       evaluationEngine,
       libraryElement,
-      ErrorReporter(diagnosticListener, unitFragment.source),
+      DiagnosticReporter(diagnosticListener, unitFragment.source),
     );
 
     var constant = visitor.evaluateAndReportInvalidConstant(this);

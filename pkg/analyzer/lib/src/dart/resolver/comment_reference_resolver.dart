@@ -27,7 +27,7 @@ class CommentReferenceResolver {
 
   /// Resolves [commentReference].
   void resolve(CommentReference commentReference) {
-    _resolver.errorReporter.lockLevel++;
+    _resolver.diagnosticReporter.lockLevel++;
     try {
       var expression = commentReference.expression;
       if (expression is SimpleIdentifierImpl) {
@@ -47,7 +47,7 @@ class CommentReferenceResolver {
         );
       }
     } finally {
-      _resolver.errorReporter.lockLevel--;
+      _resolver.diagnosticReporter.lockLevel--;
     }
   }
 

@@ -13,9 +13,9 @@ import 'package:analyzer/src/error/codes.dart';
 /// an [AssignmentExpression], or a [PrefixExpression] or [PostfixExpression]
 /// when the operator is an increment operator.
 class AssignmentVerifier {
-  final ErrorReporter _errorReporter;
+  final DiagnosticReporter _diagnosticReporter;
 
-  AssignmentVerifier(this._errorReporter);
+  AssignmentVerifier(this._diagnosticReporter);
 
   /// We resolved [node] and found that it references the [requested] element.
   /// Verify that this element is actually writable.
@@ -36,7 +36,10 @@ class AssignmentVerifier {
     if (requested != null) {
       if (requested is VariableElement) {
         if (requested.isConst) {
-          _errorReporter.atNode(node, CompileTimeErrorCode.ASSIGNMENT_TO_CONST);
+          _diagnosticReporter.atNode(
+            node,
+            CompileTimeErrorCode.ASSIGNMENT_TO_CONST,
+          );
         }
       }
       return;
@@ -46,15 +49,21 @@ class AssignmentVerifier {
         recovery is InterfaceElement ||
         recovery is TypeAliasElement ||
         recovery is TypeParameterElement) {
-      _errorReporter.atNode(node, CompileTimeErrorCode.ASSIGNMENT_TO_TYPE);
+      _diagnosticReporter.atNode(node, CompileTimeErrorCode.ASSIGNMENT_TO_TYPE);
     } else if (recovery is LocalFunctionElement ||
         recovery is TopLevelFunctionElement) {
-      _errorReporter.atNode(node, CompileTimeErrorCode.ASSIGNMENT_TO_FUNCTION);
+      _diagnosticReporter.atNode(
+        node,
+        CompileTimeErrorCode.ASSIGNMENT_TO_FUNCTION,
+      );
     } else if (recovery is MethodElement) {
-      _errorReporter.atNode(node, CompileTimeErrorCode.ASSIGNMENT_TO_METHOD);
+      _diagnosticReporter.atNode(
+        node,
+        CompileTimeErrorCode.ASSIGNMENT_TO_METHOD,
+      );
     } else if (recovery is PrefixElement) {
       if (recovery.name3 case var prefixName?) {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           node,
           CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
           arguments: [prefixName],
@@ -72,15 +81,18 @@ class AssignmentVerifier {
       }
 
       if (variable.isConst) {
-        _errorReporter.atNode(node, CompileTimeErrorCode.ASSIGNMENT_TO_CONST);
+        _diagnosticReporter.atNode(
+          node,
+          CompileTimeErrorCode.ASSIGNMENT_TO_CONST,
+        );
       } else if (variable is FieldElement && variable.isSynthetic) {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           node,
           CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER,
           arguments: [variableName, variable.enclosingElement.displayName],
         );
       } else {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           node,
           CompileTimeErrorCode.ASSIGNMENT_TO_FINAL,
           arguments: [variableName],
@@ -93,13 +105,13 @@ class AssignmentVerifier {
         return;
       }
       if (receiverType != null) {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           node,
           CompileTimeErrorCode.UNDEFINED_SETTER,
           arguments: [node.name, receiverType],
         );
       } else {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           node,
           CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
           arguments: [node.name],

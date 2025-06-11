@@ -65,7 +65,7 @@ class TestLinter implements DiagnosticListener {
         // processing gets pushed down, this hack can go away.)
         if (sourceUrl != null) {
           var source = _createSource(sourceUrl);
-          rule.reporter = ErrorReporter(this, source);
+          rule.reporter = DiagnosticReporter(this, source);
         }
         try {
           spec.accept(visitor);

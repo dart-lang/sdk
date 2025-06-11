@@ -12,9 +12,9 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.g.dart';
 
 class MustCallSuperVerifier {
-  final ErrorReporter _errorReporter;
+  final DiagnosticReporter _diagnosticReporter;
 
-  MustCallSuperVerifier(this._errorReporter);
+  MustCallSuperVerifier(this._diagnosticReporter);
 
   void checkMethodDeclaration(MethodDeclaration node) {
     if (node.isStatic || node.isAbstract) {
@@ -177,7 +177,7 @@ class MustCallSuperVerifier {
     if (!declaredElement.invokesSuperSelf) {
       // Overridable elements are always enclosed in named elements, so it is
       // safe to assume [overriddenEnclosingName] is non-`null`.
-      _errorReporter.atToken(
+      _diagnosticReporter.atToken(
         node.name,
         WarningCode.MUST_CALL_SUPER,
         arguments: [overriddenEnclosingName!],

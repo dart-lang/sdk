@@ -48,7 +48,7 @@ class TypedLiteralResolver {
   final ResolverVisitor _resolver;
   final TypeSystemImpl _typeSystem;
   final TypeProviderImpl _typeProvider;
-  final ErrorReporter _errorReporter;
+  final DiagnosticReporter _diagnosticReporter;
 
   final bool _strictInference;
 
@@ -62,7 +62,7 @@ class TypedLiteralResolver {
       resolver,
       typeSystem,
       typeProvider,
-      resolver.errorReporter,
+      resolver.diagnosticReporter,
       analysisOptions.strictInference,
     );
   }
@@ -71,7 +71,7 @@ class TypedLiteralResolver {
     this._resolver,
     this._typeSystem,
     this._typeProvider,
-    this._errorReporter,
+    this._diagnosticReporter,
     this._strictInference,
   );
 
@@ -486,7 +486,7 @@ class TypedLiteralResolver {
       declaredReturnType: element.thisType,
       contextReturnType: contextType,
       isConst: node.isConst,
-      errorReporter: _errorReporter,
+      diagnosticReporter: _diagnosticReporter,
       errorEntity: node,
       genericMetadataIsEnabled: _genericMetadataIsEnabled,
       inferenceUsingBoundsIsEnabled: _resolver.inferenceUsingBoundsIsEnabled,
@@ -527,7 +527,7 @@ class TypedLiteralResolver {
       // We cannot infer the type of a collection literal with no elements, and
       // no context type. If there are any elements, inference has not failed,
       // as the types of those elements are considered resolved.
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         node,
         WarningCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL,
         arguments: ['List'],
@@ -646,12 +646,12 @@ class TypedLiteralResolver {
       inferenceLogWriter?.exitGenericInference(failed: true);
     }
     if (mustBeAMap && mustBeASet) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         literal,
         CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH,
       );
     } else {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         literal,
         CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER,
       );
@@ -802,7 +802,7 @@ class TypedLiteralResolver {
       // We cannot infer the type of a collection literal with no elements, and
       // no context type. If there are any elements, inference has not failed,
       // as the types of those elements are considered resolved.
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         node,
         WarningCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL,
         arguments: [node.isMap ? 'Map' : 'Set'],

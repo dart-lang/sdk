@@ -23,7 +23,7 @@ class ConstructorReferenceResolver {
         node.constructorName.type.typeArguments == null) {
       // Only report this if [node] has no explicit type arguments; otherwise
       // the parser has already reported an error.
-      _resolver.errorReporter.atNode(
+      _resolver.diagnosticReporter.atNode(
         node,
         WarningCode.SDK_VERSION_CONSTRUCTOR_TEAROFFS,
       );
@@ -34,7 +34,7 @@ class ConstructorReferenceResolver {
       var enclosingElement = element.enclosingElement;
       if (enclosingElement is ClassElementImpl2 &&
           enclosingElement.isAbstract) {
-        _resolver.errorReporter.atNode(
+        _resolver.diagnosticReporter.atNode(
           node,
           CompileTimeErrorCode
               .TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS,
@@ -73,9 +73,13 @@ class ConstructorReferenceResolver {
                       .CLASS_INSTANTIATION_ACCESS_TO_STATIC_MEMBER
                   : CompileTimeErrorCode
                       .CLASS_INSTANTIATION_ACCESS_TO_INSTANCE_MEMBER;
-          _resolver.errorReporter.atNode(node, error, arguments: [name.name]);
+          _resolver.diagnosticReporter.atNode(
+            node,
+            error,
+            arguments: [name.name],
+          );
         } else if (!name.isSynthetic) {
-          _resolver.errorReporter.atNode(
+          _resolver.diagnosticReporter.atNode(
             node,
             CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER,
             arguments: [enclosingElement.name3!, name.name],

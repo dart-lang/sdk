@@ -5382,14 +5382,14 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
     var unit = this.result.unit;
     var source = unit.declaredFragment!.source;
     var errorListener = GatheringDiagnosticListener();
-    var errorReporter = ErrorReporter(errorListener, source);
+    var diagnosticReporter = DiagnosticReporter(errorListener, source);
     var constantVisitor = ConstantVisitor(
       ConstantEvaluationEngine(
         declaredVariables: DeclaredVariables.fromMap(declaredVariables),
         configuration: ConstantEvaluationConfiguration(),
       ),
       this.result.libraryElement2,
-      errorReporter,
+      diagnosticReporter,
       lexicalEnvironment: lexicalEnvironment,
     );
 

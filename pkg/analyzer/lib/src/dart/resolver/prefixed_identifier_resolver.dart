@@ -179,7 +179,7 @@ class PrefixedIdentifierResolver {
       return;
     }
 
-    _resolver.errorReporter.atNode(
+    _resolver.diagnosticReporter.atNode(
       node,
       CompileTimeErrorCode.EXTENSION_AS_EXPRESSION,
       arguments: [node.name],

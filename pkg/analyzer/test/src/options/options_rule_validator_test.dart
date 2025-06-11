@@ -272,7 +272,7 @@ mixin OptionsRuleValidatorTestMixin on AbstractAnalysisOptionsTest {
     VersionConstraint? sdk,
   }) {
     GatheringDiagnosticListener listener = GatheringDiagnosticListener();
-    ErrorReporter reporter = ErrorReporter(
+    DiagnosticReporter reporter = DiagnosticReporter(
       listener,
       StringSource(content, 'analysis_options.yaml'),
     );

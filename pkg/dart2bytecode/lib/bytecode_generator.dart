@@ -649,7 +649,13 @@ class BytecodeGenerator extends RecursiveVisitor {
     int endPosition = TreeNode.noOffset;
     if (options.emitSourcePositions && member.fileOffset != TreeNode.noOffset) {
       flags |= FunctionDeclaration.hasSourcePositionsFlag;
-      position = (member as dynamic).startFileOffset;
+      if (member is Constructor) {
+        position = member.startFileOffset;
+      } else if (member is Procedure) {
+        position = member.fileStartOffset;
+      } else {
+        throw 'Unexpected ${member.runtimeType} $member';
+      }
       endPosition = member.fileEndOffset;
     }
     final Annotations annotations = getFunctionAnnotations(member);

@@ -77,7 +77,7 @@ abstract class AbstractCodeFragmentParserTest {
     GatheringDiagnosticListener listener, {
     List<String>? variables,
   }) {
-    var errorReporter = ErrorReporter(listener, MockSource());
+    var diagnosticReporter = DiagnosticReporter(listener, MockSource());
     var map = <String, ValueGenerator>{};
     if (variables != null) {
       for (var variableName in variables) {
@@ -85,7 +85,7 @@ abstract class AbstractCodeFragmentParserTest {
       }
     }
     var scope = VariableScope(null, map);
-    return CodeFragmentParser(errorReporter, scope: scope);
+    return CodeFragmentParser(diagnosticReporter, scope: scope);
   }
 }
 

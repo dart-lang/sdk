@@ -1659,6 +1659,7 @@
     },
     {
       "builders": [
+        "vm-linux-debug-arm64",
         "vm-linux-release-arm64"
       ],
       "meta": {
@@ -1684,6 +1685,7 @@
     },
     {
       "builders": [
+        "vm-aot-linux-debug-arm64",
         "vm-aot-linux-release-arm64"
       ],
       "meta": {

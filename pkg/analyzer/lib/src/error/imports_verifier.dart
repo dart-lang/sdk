@@ -100,10 +100,10 @@ class ImportsVerifier {
   /// visitor, this method can be called to report an
   /// [WarningCode.DUPLICATE_EXPORT] hint for each of the export
   /// directives in the [_duplicateExports] list.
-  void generateDuplicateExportWarnings(ErrorReporter errorReporter) {
+  void generateDuplicateExportWarnings(DiagnosticReporter diagnosticReporter) {
     var length = _duplicateExports.length;
     for (var i = 0; i < length; i++) {
-      errorReporter.atNode(
+      diagnosticReporter.atNode(
         _duplicateExports[i].uri,
         WarningCode.DUPLICATE_EXPORT,
       );
@@ -114,10 +114,10 @@ class ImportsVerifier {
   /// visitor, this method can be called to report an
   /// [WarningCode.DUPLICATE_IMPORT] hint for each of the import
   /// directives in the [_duplicateImports] list.
-  void generateDuplicateImportWarnings(ErrorReporter errorReporter) {
+  void generateDuplicateImportWarnings(DiagnosticReporter diagnosticReporter) {
     var length = _duplicateImports.length;
     for (var i = 0; i < length; i++) {
-      errorReporter.atNode(
+      diagnosticReporter.atNode(
         _duplicateImports[i].uri,
         WarningCode.DUPLICATE_IMPORT,
       );
@@ -130,7 +130,7 @@ class ImportsVerifier {
   ///
   /// Only call this method after all of the compilation units have been visited
   /// by this visitor.
-  void generateDuplicateShownHiddenNameWarnings(ErrorReporter reporter) {
+  void generateDuplicateShownHiddenNameWarnings(DiagnosticReporter reporter) {
     _duplicateHiddenNamesMap.forEach((
       NamespaceDirective directive,
       List<SimpleIdentifier> identifiers,
@@ -161,7 +161,7 @@ class ImportsVerifier {
   /// there exists at least one other import directive with the same prefix
   /// as the first import directive, and a "used elements" set which is a
   /// proper superset of the first import directive's "used elements" set.
-  void generateUnnecessaryImportHints(ErrorReporter errorReporter) {
+  void generateUnnecessaryImportHints(DiagnosticReporter diagnosticReporter) {
     var importsTracking = fileAnalysis.importsTracking;
     var usedImports = {..._allImports}..removeAll(_unusedImports);
 
@@ -213,7 +213,7 @@ class ImportsVerifier {
         var secondElementUri = secondElement.uri;
         if (firstElementUri is DirectiveUriWithLibraryImpl &&
             secondElementUri is DirectiveUriWithLibraryImpl) {
-          errorReporter.atNode(
+          diagnosticReporter.atNode(
             firstDirective.uri,
             HintCode.UNNECESSARY_IMPORT,
             arguments: [
@@ -229,7 +229,7 @@ class ImportsVerifier {
   }
 
   /// Reports [WarningCode.UNUSED_IMPORT] for each unused import.
-  void generateUnusedImportWarnings(ErrorReporter errorReporter) {
+  void generateUnusedImportWarnings(DiagnosticReporter diagnosticReporter) {
     var importsTracking = fileAnalysis.importsTracking;
     for (var importDirective in fileAnalysis.unit.directives) {
       if (importDirective is ImportDirectiveImpl) {
@@ -260,7 +260,7 @@ class ImportsVerifier {
           var isUsed = tracking.importToUsedElements.containsKey(importElement);
           if (!isUsed) {
             _unusedImports.add(importDirective);
-            errorReporter.atNode(
+            diagnosticReporter.atNode(
               importDirective.uri,
               WarningCode.UNUSED_IMPORT,
               arguments: [uri.relativeUriString],
@@ -275,7 +275,7 @@ class ImportsVerifier {
   /// for each unused shown name.
   ///
   /// This method should be invoked after [generateUnusedImportWarnings].
-  void generateUnusedShownNameHints(ErrorReporter reporter) {
+  void generateUnusedShownNameHints(DiagnosticReporter reporter) {
     var importsTracking = fileAnalysis.importsTracking;
     for (var importDirective in fileAnalysis.unit.directives) {
       if (importDirective is! ImportDirectiveImpl) {

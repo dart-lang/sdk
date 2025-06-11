@@ -53,6 +53,7 @@ abstract class HVisitor<R> {
   R visitCreate(HCreate node);
   R visitCreateBox(HCreateBox node);
   R visitDivide(HDivide node);
+  R visitEmbeddedGlobalGet(HEmbeddedGlobalGet node);
   R visitExit(HExit node);
   R visitExitTry(HExitTry node);
   R visitFieldGet(HFieldGet node);
@@ -503,6 +504,8 @@ class HBaseVisitor<R> extends HGraphVisitor implements HVisitor<R> {
   R visitCreateBox(HCreateBox node) => visitInstruction(node);
   @override
   R visitDivide(HDivide node) => visitBinaryArithmetic(node);
+  @override
+  R visitEmbeddedGlobalGet(HEmbeddedGlobalGet node) => visitInstruction(node);
   @override
   R visitExit(HExit node) => visitControlFlow(node);
   @override
@@ -1137,6 +1140,7 @@ enum _GvnType {
   charCodeAt,
   arrayFlagsGet,
   arrayFlagsCheck,
+  embeddedGlobal,
 }
 
 abstract class HInstruction implements SpannableWithEntity {
@@ -5113,4 +5117,42 @@ class HIsLateSentinel extends HInstruction {
 
   @override
   String toString() => 'HIsLateSentinel()';
+}
+
+/// Reads an 'embedded global' to access some kind of metadata or value produced
+/// by the compiler.
+///
+/// This instruction corresponds to the `JS_EMBEDDED_GLOBAL` top level method in
+/// `foreign_helper.dart`.  The [name] should be a constant defined in the
+/// `_embedded_names` or `_js_shared_embedded_names` library.
+class HEmbeddedGlobalGet extends HInstruction {
+  final String name;
+
+  factory HEmbeddedGlobalGet(
+    String name,
+    NativeBehavior nativeBehavior,
+    AbstractValue type,
+  ) {
+    final node = HEmbeddedGlobalGet._(name, type);
+    node.sideEffects.add(nativeBehavior.sideEffects);
+    if (nativeBehavior.useGvn) node.setUseGvn();
+    return node;
+  }
+
+  HEmbeddedGlobalGet._(this.name, super.type) : super._noInput();
+
+  @override
+  R accept<R>(HVisitor<R> visitor) => visitor.visitEmbeddedGlobalGet(this);
+
+  @override
+  _GvnType get _gvnType => _GvnType.embeddedGlobal;
+
+  @override
+  bool typeEquals(HInstruction other) => other is HEmbeddedGlobalGet;
+
+  @override
+  bool dataEquals(HEmbeddedGlobalGet other) => name == other.name;
+
+  @override
+  String toString() => 'HEmbeddedGlobalGet($name)';
 }

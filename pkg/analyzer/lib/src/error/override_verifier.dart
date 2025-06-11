@@ -13,7 +13,7 @@ import 'package:analyzer/src/error/codes.dart';
 /// being used correctly.
 class OverrideVerifier extends RecursiveAstVisitor<void> {
   /// The error reporter used to report errors.
-  final ErrorReporter _errorReporter;
+  final DiagnosticReporter _errorReporter;
 
   /// The current class or mixin.
   InterfaceElement? _currentClass;

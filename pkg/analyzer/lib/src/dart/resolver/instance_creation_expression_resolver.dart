@@ -84,7 +84,7 @@ class InstanceCreationExpressionResolver {
             when element.isAccessibleIn2(_resolver.definingLibrary)) {
           node.element = element;
         } else {
-          _resolver.errorReporter.atNode(
+          _resolver.diagnosticReporter.atNode(
             node.constructorName,
             CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR,
             arguments: [contextType, node.constructorName.name],
@@ -96,13 +96,13 @@ class InstanceCreationExpressionResolver {
       if (contextElement is ClassElementImpl2 && contextElement.isAbstract) {
         var constructorElement = node.element;
         if (constructorElement != null && !constructorElement.isFactory) {
-          _resolver.errorReporter.atNode(
+          _resolver.diagnosticReporter.atNode(
             node,
             CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS,
           );
         }
       } else if (typeArguments != null) {
-        _resolver.errorReporter.atNode(
+        _resolver.diagnosticReporter.atNode(
           typeArguments,
           CompileTimeErrorCode
               .WRONG_NUMBER_OF_TYPE_ARGUMENTS_DOT_SHORTHAND_CONSTRUCTOR,
@@ -113,7 +113,7 @@ class InstanceCreationExpressionResolver {
         );
       }
     } else {
-      _resolver.errorReporter.atNode(
+      _resolver.diagnosticReporter.atNode(
         node,
         CompileTimeErrorCode.DOT_SHORTHAND_MISSING_CONTEXT,
       );

@@ -21,7 +21,7 @@ class RecordLiteralResolver {
   RecordLiteralResolver({required ResolverVisitor resolver})
     : _resolver = resolver;
 
-  ErrorReporter get errorReporter => _resolver.errorReporter;
+  DiagnosticReporter get _diagnosticReporter => _resolver.diagnosticReporter;
 
   void resolve(RecordLiteralImpl node, {required DartType contextType}) {
     _resolveFields(node, contextType);
@@ -83,9 +83,9 @@ class RecordLiteralResolver {
         var name = field.name.label.name;
         var previousField = usedNames[name];
         if (previousField != null) {
-          errorReporter.reportError(
+          _diagnosticReporter.reportError(
             DiagnosticFactory().duplicateFieldDefinitionInLiteral(
-              errorReporter.source,
+              _diagnosticReporter.source,
               field,
               previousField,
             ),
@@ -111,7 +111,7 @@ class RecordLiteralResolver {
         var nameNode = field.name.label;
         var name = nameNode.name;
         if (name.startsWith('_')) {
-          errorReporter.atNode(
+          _diagnosticReporter.atNode(
             nameNode,
             CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE,
           );
@@ -119,13 +119,13 @@ class RecordLiteralResolver {
           var index = RecordTypeExtension.positionalFieldIndex(name);
           if (index != null) {
             if (index < positionalCount) {
-              errorReporter.atNode(
+              _diagnosticReporter.atNode(
                 nameNode,
                 CompileTimeErrorCode.INVALID_FIELD_NAME_POSITIONAL,
               );
             }
           } else if (isForbiddenNameForRecordField(name)) {
-            errorReporter.atNode(
+            _diagnosticReporter.atNode(
               nameNode,
               CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT,
             );
@@ -155,7 +155,10 @@ class RecordLiteralResolver {
     }
 
     if (staticType is VoidType) {
-      errorReporter.atNode(field, CompileTimeErrorCode.USE_OF_VOID_RESULT);
+      _diagnosticReporter.atNode(
+        field,
+        CompileTimeErrorCode.USE_OF_VOID_RESULT,
+      );
     }
 
     return staticType;

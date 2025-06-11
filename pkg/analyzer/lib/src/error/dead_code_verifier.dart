@@ -31,8 +31,8 @@ class DeadCodeForPartsState {
 /// A visitor that finds dead code, other than unreachable code that is
 /// handled in [NullSafetyDeadCodeVerifier].
 class DeadCodeVerifier extends RecursiveAstVisitor<void> {
-  /// The error reporter by which errors will be reported.
-  final ErrorReporter _errorReporter;
+  /// The diagnostic reporter by which diagnostics will be reported.
+  final DiagnosticReporter _diagnosticReporter;
 
   /// The object used to track the usage of labels within a given label scope.
   _LabelTracker? _labelTracker;
@@ -40,7 +40,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   /// Whether the `wildcard_variables` feature is enabled.
   final bool _wildCardVariablesEnabled;
 
-  DeadCodeVerifier(this._errorReporter, LibraryElement library)
+  DeadCodeVerifier(this._diagnosticReporter, LibraryElement library)
     : _wildCardVariablesEnabled = library.featureSet.isEnabled(
         Feature.wildcard_variables,
       );
@@ -77,7 +77,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
     if (_wildCardVariablesEnabled &&
         element is LocalFunctionElement &&
         element.name3 == '_') {
-      _errorReporter.atNode(node, WarningCode.DEAD_CODE);
+      _diagnosticReporter.atNode(node, WarningCode.DEAD_CODE);
     }
     super.visitFunctionDeclaration(node);
   }
@@ -125,7 +125,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
       if (_wildCardVariablesEnabled &&
           element is LocalVariableElement &&
           element.name3 == '_') {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           initializer,
           WarningCode.DEAD_CODE_LATE_WILDCARD_VARIABLE_INITIALIZER,
         );
@@ -155,7 +155,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
       Element? element = namespace.get2(nameStr);
       element ??= namespace.get2("$nameStr=");
       if (element == null) {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           name,
           warningCode,
           arguments: [library.identifier, nameStr],
@@ -171,7 +171,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
       f();
     } finally {
       for (Label label in labelTracker.unusedLabels()) {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           label,
           WarningCode.UNUSED_LABEL,
           arguments: [label.label.name],
@@ -193,7 +193,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
 /// node, or contains it. So, we end the end of the covering control flow.
 class NullSafetyDeadCodeVerifier {
   final TypeSystemImpl _typeSystem;
-  final ErrorReporter _errorReporter;
+  final DiagnosticReporter _diagnosticReporter;
   final FlowAnalysisHelper? _flowAnalysis;
 
   /// The stack of verifiers of (potentially nested) try statements.
@@ -212,7 +212,7 @@ class NullSafetyDeadCodeVerifier {
 
   NullSafetyDeadCodeVerifier(
     this._typeSystem,
-    this._errorReporter,
+    this._diagnosticReporter,
     this._flowAnalysis,
   );
 
@@ -234,7 +234,7 @@ class NullSafetyDeadCodeVerifier {
     }
 
     if (node is SwitchMember && node == firstDeadNode) {
-      _errorReporter.atToken(node.keyword, WarningCode.DEAD_CODE);
+      _diagnosticReporter.atToken(node.keyword, WarningCode.DEAD_CODE);
       _firstDeadNode = null;
       return;
     }
@@ -281,7 +281,7 @@ class NullSafetyDeadCodeVerifier {
         offset = parent.operator.offset;
       }
       if (parent is ConstructorInitializer) {
-        _errorReporter.atOffset(
+        _diagnosticReporter.atOffset(
           offset: parent.offset,
           length: parent.end - parent.offset,
           diagnosticCode: WarningCode.DEAD_CODE,
@@ -294,7 +294,7 @@ class NullSafetyDeadCodeVerifier {
         if (body is Block) {
           whileOffset = body.rightBracket.offset;
         }
-        _errorReporter.atOffset(
+        _diagnosticReporter.atOffset(
           offset: whileOffset,
           length: whileEnd - whileOffset,
           diagnosticCode: WarningCode.DEAD_CODE,
@@ -315,7 +315,7 @@ class NullSafetyDeadCodeVerifier {
 
       var length = node.end - offset;
       if (length > 0) {
-        _errorReporter.atOffset(
+        _diagnosticReporter.atOffset(
           offset: offset,
           length: length,
           diagnosticCode: WarningCode.DEAD_CODE,
@@ -357,7 +357,7 @@ class NullSafetyDeadCodeVerifier {
       var beginToken = updaters.beginToken;
       var endToken = updaters.endToken;
       if (beginToken != null && endToken != null) {
-        _errorReporter.atOffset(
+        _diagnosticReporter.atOffset(
           offset: beginToken.offset,
           length: endToken.end - beginToken.offset,
           diagnosticCode: WarningCode.DEAD_CODE,
@@ -383,7 +383,7 @@ class NullSafetyDeadCodeVerifier {
     ) {
       var offset = first.offset;
       var length = last.end - offset;
-      _errorReporter.atOffset(
+      _diagnosticReporter.atOffset(
         offset: offset,
         length: length,
         diagnosticCode: errorCode,
@@ -494,7 +494,7 @@ class NullSafetyDeadCodeVerifier {
           node = parent!;
           parent = node.parent;
         }
-        _errorReporter.atNode(node, WarningCode.DEAD_CODE);
+        _diagnosticReporter.atNode(node, WarningCode.DEAD_CODE);
       }
     }
   }

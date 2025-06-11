@@ -20,7 +20,7 @@ sealed class AbstractAnalysisRule {
   ///
   /// NOTE: this is set by the framework before any node processors start
   /// visiting nodes.
-  late ErrorReporter _reporter;
+  late DiagnosticReporter _reporter;
 
   /// Short description suitable for display in console output and IDEs.
   ///
@@ -63,9 +63,9 @@ sealed class AbstractAnalysisRule {
   /// [reporter].
   PubspecVisitor? get pubspecVisitor => null;
 
-  /// Sets the [ErrorReporter] for the [CompilationUnit] currently being
+  /// Sets the [DiagnosticReporter] for the [CompilationUnit] currently being
   /// visited.
-  set reporter(ErrorReporter value) => _reporter = value;
+  set reporter(DiagnosticReporter value) => _reporter = value;
 
   /// Registers node processors in the given [registry].
   ///

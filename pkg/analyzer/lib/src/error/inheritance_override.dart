@@ -29,7 +29,7 @@ class InheritanceOverrideVerifier {
   final TypeSystemImpl _typeSystem;
   final TypeProvider _typeProvider;
   final InheritanceManager3 _inheritance;
-  final ErrorReporter _reporter;
+  final DiagnosticReporter _reporter;
 
   InheritanceOverrideVerifier(
     this._typeSystem,
@@ -151,7 +151,7 @@ class _ClassVerifier {
   final TypeSystemImpl typeSystem;
   final TypeProvider typeProvider;
   final InheritanceManager3 inheritance;
-  final ErrorReporter reporter;
+  final DiagnosticReporter reporter;
 
   final FeatureSet featureSet;
   final LibraryElementImpl library;
@@ -294,7 +294,7 @@ class _ClassVerifier {
 
     GetterSetterTypesVerifier(
       library: library,
-      errorReporter: reporter,
+      diagnosticReporter: reporter,
     ).checkInterface(element, interface);
 
     if (firstFragment is ClassFragmentImpl && !firstFragment.isAbstract ||
@@ -352,7 +352,7 @@ class _ClassVerifier {
           thisMember: concreteElement,
         ).verify(
           superMember: interfaceElement,
-          errorReporter: reporter,
+          diagnosticReporter: reporter,
           errorNode: classNameToken,
           diagnosticCode:
               concreteElement is SetterElement2OrMember
@@ -406,7 +406,7 @@ class _ClassVerifier {
 
       correctOverrideHelper.verify(
         superMember: superMember.asElement2,
-        errorReporter: reporter,
+        diagnosticReporter: reporter,
         errorNode: node,
         diagnosticCode:
             member is SetterElement

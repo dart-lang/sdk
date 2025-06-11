@@ -105,7 +105,7 @@ abstract class AnalysisRuleTest extends PubPackageResolutionTest {
     );
     var listener = RecordingDiagnosticListener();
     var file = resourceProvider.getFile(path);
-    var reporter = ErrorReporter(listener, FileSource(file, sourceUri));
+    var reporter = DiagnosticReporter(listener, FileSource(file, sourceUri));
     for (var entry in pubspecRules.entries) {
       entry.key.reporter = reporter;
       pubspecAst.accept(entry.value);

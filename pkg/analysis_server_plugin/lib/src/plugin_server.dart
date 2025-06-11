@@ -319,13 +319,13 @@ class PluginServer {
       return const [];
     }
     var listener = RecordingDiagnosticListener();
-    var errorReporter = ErrorReporter(
+    var diagnosticReporter = DiagnosticReporter(
         listener, unitResult.libraryElement2.firstFragment.source);
 
     var currentUnit = RuleContextUnit(
       file: unitResult.file,
       content: unitResult.content,
-      errorReporter: errorReporter,
+      diagnosticReporter: diagnosticReporter,
       unit: unitResult.unit,
     );
     var allUnits = [
@@ -333,7 +333,7 @@ class PluginServer {
         RuleContextUnit(
           file: unitResult.file,
           content: unitResult.content,
-          errorReporter: errorReporter,
+          diagnosticReporter: diagnosticReporter,
           unit: unitResult.unit,
         ),
     ];
@@ -360,7 +360,7 @@ class PluginServer {
       var rules =
           Registry.ruleRegistry.enabled(configuration.diagnosticConfigs);
       for (var rule in rules) {
-        rule.reporter = errorReporter;
+        rule.reporter = diagnosticReporter;
         // TODO(srawlins): Enable timing similar to what the linter package's
         // `benchhmark.dart` script does.
         rule.registerNodeProcessors(nodeRegistry, context);

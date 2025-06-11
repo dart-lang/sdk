@@ -26,7 +26,7 @@ class ErrorReporterTest extends PubPackageResolutionTest {
     await resolveTestCode('class A {}');
     var element = findElement2.class_('A');
     var firstFragment = element.firstFragment;
-    var reporter = ErrorReporter(
+    var reporter = DiagnosticReporter(
       listener,
       firstFragment.libraryFragment.source,
     );
@@ -47,7 +47,7 @@ extension on int {}
     var element = findElement2.unnamedExtension();
 
     var firstFragment = element.firstFragment;
-    var reporter = ErrorReporter(
+    var reporter = DiagnosticReporter(
       listener,
       firstFragment.libraryFragment.source,
     );
@@ -88,7 +88,7 @@ main() {
           nullabilitySuffix: NullabilitySuffix.none,
         );
 
-    var reporter = ErrorReporter(
+    var reporter = DiagnosticReporter(
       listener,
       firstType.element3.firstFragment.libraryFragment.source,
     );
@@ -130,7 +130,7 @@ main() {
           nullabilitySuffix: NullabilitySuffix.none,
         );
 
-    var reporter = ErrorReporter(
+    var reporter = DiagnosticReporter(
       listener,
       firstType.element3.firstFragment.libraryFragment.source,
     );
@@ -162,7 +162,7 @@ main() {
     var fb = findNode.topLevelVariableDeclaration('fb');
 
     var source = result.unit.declaredFragment!.source;
-    var reporter = ErrorReporter(listener, source);
+    var reporter = DiagnosticReporter(listener, source);
     reporter.atNode(
       findNode.simple('x'),
       CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
@@ -193,7 +193,7 @@ main() {
     var bb = findNode.topLevelVariableDeclaration('bb');
 
     var source = result.unit.declaredFragment!.source;
-    var reporter = ErrorReporter(listener, source);
+    var reporter = DiagnosticReporter(listener, source);
     reporter.atNode(
       findNode.simple('x'),
       CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
@@ -207,7 +207,7 @@ main() {
 
   test_atSourceSpan() async {
     var source = TestSource();
-    var reporter = ErrorReporter(listener, source);
+    var reporter = DiagnosticReporter(listener, source);
 
     var text = '''
 foo: bar
@@ -235,7 +235,7 @@ zap: baz
 
   test_creation() async {
     var source = TestSource();
-    var reporter = ErrorReporter(listener, source);
+    var reporter = DiagnosticReporter(listener, source);
     expect(reporter, isNotNull);
   }
 }

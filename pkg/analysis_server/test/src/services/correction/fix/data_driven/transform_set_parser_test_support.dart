@@ -47,11 +47,11 @@ abstract class AbstractTransformSetParserTest {
   );
 
   void parse(String content) {
-    var errorReporter = ErrorReporter(
+    var diagnosticReporter = DiagnosticReporter(
       diagnosticListener,
       MockSource(fullName: 'data.yaml'),
     );
-    var parser = TransformSetParser(errorReporter, 'myPackage');
+    var parser = TransformSetParser(diagnosticReporter, 'myPackage');
     result = parser.parse(content);
   }
 }

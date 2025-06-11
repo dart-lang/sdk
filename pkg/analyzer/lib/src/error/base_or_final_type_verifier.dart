@@ -16,13 +16,13 @@ import 'package:analyzer/src/error/codes.dart';
 /// base, final, or sealed.
 class BaseOrFinalTypeVerifier {
   final LibraryElement _definingLibrary;
-  final ErrorReporter _errorReporter;
+  final DiagnosticReporter _diagnosticReporter;
 
   BaseOrFinalTypeVerifier({
     required LibraryElement definingLibrary,
-    required ErrorReporter errorReporter,
+    required DiagnosticReporter diagnosticReporter,
   }) : _definingLibrary = definingLibrary,
-       _errorReporter = errorReporter;
+       _diagnosticReporter = diagnosticReporter;
 
   /// Check to ensure the subelement of a base or final element must be base,
   /// final, or sealed and that base elements are not implemented outside of its
@@ -242,7 +242,7 @@ class BaseOrFinalTypeVerifier {
                 ? CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY
                 : CompileTimeErrorCode
                     .BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY;
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           implementsNamedType,
           errorCode,
           arguments: [baseOrFinalSuperElement.displayName],
@@ -279,7 +279,7 @@ class BaseOrFinalTypeVerifier {
                 ? CompileTimeErrorCode.MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE
                 : CompileTimeErrorCode
                     .SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED;
-        _errorReporter.atElement2(
+        _diagnosticReporter.atElement2(
           element,
           errorCode,
           arguments: [element.displayName, baseOrFinalSuperElement.displayName],
@@ -292,7 +292,7 @@ class BaseOrFinalTypeVerifier {
                 ? CompileTimeErrorCode.MIXIN_SUBTYPE_OF_BASE_IS_NOT_BASE
                 : CompileTimeErrorCode
                     .SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED;
-        _errorReporter.atElement2(
+        _diagnosticReporter.atElement2(
           element,
           errorCode,
           arguments: [element.displayName, baseOrFinalSuperElement.displayName],

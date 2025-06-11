@@ -71,7 +71,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
             (u) => u.unit.declaredFragment == libraryFragment,
           );
           if (contextUnit == null) continue;
-          contextUnit.errorReporter.atNode(variable, rule.diagnosticCode);
+          contextUnit.diagnosticReporter.atNode(variable, rule.diagnosticCode);
         }
       }
     }

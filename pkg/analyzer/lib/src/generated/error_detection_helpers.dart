@@ -27,7 +27,7 @@ import 'package:analyzer/src/utilities/extensions/object.dart';
 /// more easily shared between the two visitors that do the majority of error
 /// reporting (ResolverVisitor and ErrorVerifier).
 mixin ErrorDetectionHelpers {
-  ErrorReporter get errorReporter;
+  DiagnosticReporter get diagnosticReporter;
 
   InheritanceManager3 get inheritance;
 
@@ -115,7 +115,7 @@ mixin ErrorDetectionHelpers {
           actualStaticType,
           strictCasts: strictCasts,
         )) {
-          errorReporter.atNode(
+          diagnosticReporter.atNode(
             expression,
             CompileTimeErrorCode
                 .RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
@@ -158,7 +158,7 @@ mixin ErrorDetectionHelpers {
             }
           }
         }
-        errorReporter.atNode(
+        diagnosticReporter.atNode(
           getErrorNode(expression),
           diagnosticCode,
           arguments: [
@@ -173,7 +173,7 @@ mixin ErrorDetectionHelpers {
         );
         return;
       }
-      errorReporter.atNode(
+      diagnosticReporter.atNode(
         getErrorNode(expression),
         diagnosticCode,
         arguments: [actualStaticType, expectedStaticType],
@@ -221,14 +221,14 @@ mixin ErrorDetectionHelpers {
     if (isConstConstructor) {
       // TODO(paulberry): this error should be based on the actual type of the
       // constant, not the static type.  See dartbug.com/21119.
-      errorReporter.atNode(
+      diagnosticReporter.atNode(
         expression,
         CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
         arguments: [staticType, fieldType],
         contextMessages: messages,
       );
     } else {
-      errorReporter.atNode(
+      diagnosticReporter.atNode(
         expression,
         CompileTimeErrorCode.FIELD_INITIALIZER_NOT_ASSIGNABLE,
         arguments: [staticType, fieldType],
@@ -272,9 +272,15 @@ mixin ErrorDetectionHelpers {
 
     if (expression is MethodInvocation) {
       SimpleIdentifier methodName = expression.methodName;
-      errorReporter.atNode(methodName, CompileTimeErrorCode.USE_OF_VOID_RESULT);
+      diagnosticReporter.atNode(
+        methodName,
+        CompileTimeErrorCode.USE_OF_VOID_RESULT,
+      );
     } else {
-      errorReporter.atNode(expression, CompileTimeErrorCode.USE_OF_VOID_RESULT);
+      diagnosticReporter.atNode(
+        expression,
+        CompileTimeErrorCode.USE_OF_VOID_RESULT,
+      );
     }
 
     return true;

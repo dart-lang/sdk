@@ -30,7 +30,7 @@ class ExtensionMemberResolver {
 
   ExtensionMemberResolver(this._resolver);
 
-  ErrorReporter get _errorReporter => _resolver.errorReporter;
+  DiagnosticReporter get _diagnosticReporter => _resolver.diagnosticReporter;
 
   bool get _genericMetadataIsEnabled =>
       _resolver.definingLibrary.featureSet.isEnabled(Feature.generic_metadata);
@@ -116,7 +116,7 @@ class ExtensionMemberResolver {
 
     // The most specific extension is ambiguous.
     if (mostSpecific.length == 2) {
-      _errorReporter.atEntity(
+      _diagnosticReporter.atEntity(
         nameEntity,
         CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO,
         arguments: [
@@ -127,7 +127,7 @@ class ExtensionMemberResolver {
       );
     } else {
       var extensions = mostSpecific.map((e) => e.extension).toList();
-      _errorReporter.atEntity(
+      _diagnosticReporter.atEntity(
         nameEntity,
         CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_THREE_OR_MORE,
         arguments: [
@@ -201,7 +201,7 @@ class ExtensionMemberResolver {
 
     if (!_isValidContext(node)) {
       if (!_isCascadeTarget(node)) {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           node,
           CompileTimeErrorCode.EXTENSION_OVERRIDE_WITHOUT_ACCESS,
         );
@@ -211,7 +211,7 @@ class ExtensionMemberResolver {
 
     var arguments = node.argumentList.arguments;
     if (arguments.length != 1) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         node.argumentList,
         CompileTimeErrorCode.INVALID_EXTENSION_ARGUMENT_COUNT,
       );
@@ -254,7 +254,7 @@ class ExtensionMemberResolver {
     );
 
     if (receiverType is VoidType) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         receiverExpression,
         CompileTimeErrorCode.USE_OF_VOID_RESULT,
       );
@@ -265,7 +265,7 @@ class ExtensionMemberResolver {
     )) {
       var whyNotPromoted =
           whyNotPromotedArguments.isEmpty ? null : whyNotPromotedArguments[0];
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         receiverExpression,
         CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE,
         arguments: [receiverType, extendedType],
@@ -292,7 +292,7 @@ class ExtensionMemberResolver {
         if (name != null && parameterBound != null) {
           parameterBound = substitution.substituteType(parameterBound);
           if (!_typeSystem.isSubtypeOf(argument, parameterBound)) {
-            _errorReporter.atNode(
+            _diagnosticReporter.atNode(
               typeArgumentList.arguments[i],
               CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
               arguments: [argument, name, parameterBound],
@@ -375,7 +375,7 @@ class ExtensionMemberResolver {
         // We can safely assume `element.name` is non-`null` because type
         // arguments can only be applied to explicit extension overrides, and
         // explicit extension overrides cannot refer to unnamed extensions.
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           typeArguments,
           CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION,
           arguments: [element.name3!, typeParameters.length, arguments.length],
@@ -390,7 +390,7 @@ class ExtensionMemberResolver {
       var inferrer = GenericInferrer(
         _typeSystem,
         typeParameters,
-        errorReporter: _errorReporter,
+        diagnosticReporter: _diagnosticReporter,
         errorEntity: node.name,
         genericMetadataIsEnabled: _genericMetadataIsEnabled,
         inferenceUsingBoundsIsEnabled: _resolver.inferenceUsingBoundsIsEnabled,

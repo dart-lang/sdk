@@ -36,7 +36,7 @@ class Parser {
     required LibraryLanguageVersion languageVersion,
     required LineInfo lineInfo,
   }) : astBuilder = AstBuilder(
-         ErrorReporter(diagnosticListener, source),
+         DiagnosticReporter(diagnosticListener, source),
          source.uri,
          true,
          featureSet,

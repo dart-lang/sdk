@@ -92,7 +92,7 @@ extension AstNodeExtension on AstNode {
     );
 
     var listener = _ConstantDiagnosticListener();
-    var errorReporter = ErrorReporter(listener, unitFragment.source);
+    var errorReporter = DiagnosticReporter(listener, unitFragment.source);
 
     accept(ConstantVerifier(errorReporter, libraryElement, declaredVariables));
     return listener.hasConstError;

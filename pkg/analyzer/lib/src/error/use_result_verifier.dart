@@ -10,9 +10,9 @@ import 'package:analyzer/src/error/codes.g.dart';
 import 'package:collection/collection.dart';
 
 class UseResultVerifier {
-  final ErrorReporter _errorReporter;
+  final DiagnosticReporter _diagnosticReporter;
 
-  UseResultVerifier(this._errorReporter);
+  UseResultVerifier(this._diagnosticReporter);
 
   void checkFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     var element = node.element;
@@ -108,13 +108,13 @@ class UseResultVerifier {
 
     var message = _getUseResultMessage(annotation);
     if (message == null || message.isEmpty) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         toAnnotate,
         WarningCode.UNUSED_RESULT,
         arguments: [displayName],
       );
     } else {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         toAnnotate,
         WarningCode.UNUSED_RESULT_WITH_MESSAGE,
         arguments: [displayName, message],

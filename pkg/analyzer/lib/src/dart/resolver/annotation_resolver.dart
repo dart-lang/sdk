@@ -23,7 +23,7 @@ class AnnotationResolver {
 
   LibraryElementImpl get _definingLibrary => _resolver.definingLibrary;
 
-  ErrorReporter get _errorReporter => _resolver.errorReporter;
+  DiagnosticReporter get _diagnosticReporter => _resolver.diagnosticReporter;
 
   void resolve(
     AnnotationImpl node,
@@ -93,7 +93,7 @@ class AnnotationResolver {
       );
       _resolveAnnotationElementGetter(node, getter);
     } else if (getter is! ConstructorElement) {
-      _errorReporter.atNode(node, CompileTimeErrorCode.INVALID_ANNOTATION);
+      _diagnosticReporter.atNode(node, CompileTimeErrorCode.INVALID_ANNOTATION);
     }
 
     _visitArguments(
@@ -117,7 +117,7 @@ class AnnotationResolver {
     node.element2 = constructorElement;
 
     if (constructorElement == null) {
-      _errorReporter.atNode(node, CompileTimeErrorCode.INVALID_ANNOTATION);
+      _diagnosticReporter.atNode(node, CompileTimeErrorCode.INVALID_ANNOTATION);
       AnnotationInferrer(
         resolver: _resolver,
         node: node,
@@ -172,7 +172,7 @@ class AnnotationResolver {
       );
       _resolveAnnotationElementGetter(node, getter);
     } else {
-      _errorReporter.atNode(node, CompileTimeErrorCode.INVALID_ANNOTATION);
+      _diagnosticReporter.atNode(node, CompileTimeErrorCode.INVALID_ANNOTATION);
     }
 
     _visitArguments(
@@ -188,7 +188,7 @@ class AnnotationResolver {
     List<WhyNotPromotedGetter> whyNotPromotedArguments,
   ) {
     if (!element.isConst || node.arguments != null) {
-      _errorReporter.atNode(node, CompileTimeErrorCode.INVALID_ANNOTATION);
+      _diagnosticReporter.atNode(node, CompileTimeErrorCode.INVALID_ANNOTATION);
     }
 
     _visitArguments(
@@ -237,7 +237,7 @@ class AnnotationResolver {
     name1.element = element1;
 
     if (element1 == null) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         node,
         CompileTimeErrorCode.UNDEFINED_ANNOTATION,
         arguments: [name1.name],
@@ -329,7 +329,7 @@ class AnnotationResolver {
         }
         // undefined
         if (element == null) {
-          _errorReporter.atNode(
+          _diagnosticReporter.atNode(
             node,
             CompileTimeErrorCode.UNDEFINED_ANNOTATION,
             arguments: [name2.name],
@@ -375,7 +375,7 @@ class AnnotationResolver {
       return;
     }
 
-    _errorReporter.atNode(node, CompileTimeErrorCode.INVALID_ANNOTATION);
+    _diagnosticReporter.atNode(node, CompileTimeErrorCode.INVALID_ANNOTATION);
 
     _visitArguments(
       node,
@@ -398,7 +398,7 @@ class AnnotationResolver {
     if (!accessorElement.isSynthetic ||
         !variableElement.isConst ||
         annotation.arguments != null) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         annotation,
         CompileTimeErrorCode.INVALID_ANNOTATION,
       );
@@ -464,7 +464,7 @@ class AnnotationResolver {
       );
       _resolveAnnotationElementGetter(node, getter);
     } else if (getter is! ConstructorElement) {
-      _errorReporter.atNode(node, CompileTimeErrorCode.INVALID_ANNOTATION);
+      _diagnosticReporter.atNode(node, CompileTimeErrorCode.INVALID_ANNOTATION);
     }
 
     _visitArguments(

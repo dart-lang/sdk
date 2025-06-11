@@ -25,7 +25,7 @@ class FunctionExpressionInvocationResolver {
     : _resolver = resolver,
       _typePropertyResolver = resolver.typePropertyResolver;
 
-  ErrorReporter get _errorReporter => _resolver.errorReporter;
+  DiagnosticReporter get _diagnosticReporter => _resolver.diagnosticReporter;
 
   ExtensionMemberResolver get _extensionResolver => _resolver.extensionResolver;
 
@@ -78,7 +78,7 @@ class FunctionExpressionInvocationResolver {
     }
 
     if (identical(receiverType, NeverTypeImpl.instance)) {
-      _errorReporter.atNode(function, WarningCode.RECEIVER_OF_TYPE_NEVER);
+      _diagnosticReporter.atNode(function, WarningCode.RECEIVER_OF_TYPE_NEVER);
       _unresolved(
         node,
         NeverTypeImpl.instance,
@@ -101,7 +101,7 @@ class FunctionExpressionInvocationResolver {
 
     if (callElement == null) {
       if (result.needsGetterError) {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           function,
           CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
         );
@@ -120,7 +120,7 @@ class FunctionExpressionInvocationResolver {
     }
 
     if (callElement.kind != ElementKind.METHOD) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         function,
         CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
       );
@@ -152,12 +152,12 @@ class FunctionExpressionInvocationResolver {
 
     if (expression is MethodInvocation) {
       SimpleIdentifier methodName = expression.methodName;
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         methodName,
         CompileTimeErrorCode.USE_OF_VOID_RESULT,
       );
     } else {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         expression,
         CompileTimeErrorCode.USE_OF_VOID_RESULT,
       );
@@ -201,7 +201,7 @@ class FunctionExpressionInvocationResolver {
     node.element = callElement;
 
     if (callElement == null) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         function,
         CompileTimeErrorCode.INVOCATION_OF_EXTENSION_WITHOUT_CALL,
         arguments: [function.name.lexeme],
@@ -215,7 +215,7 @@ class FunctionExpressionInvocationResolver {
     }
 
     if (callElement.isStatic) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         node.argumentList,
         CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
       );

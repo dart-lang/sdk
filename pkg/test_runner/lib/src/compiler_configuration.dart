@@ -1615,6 +1615,7 @@ class BytecodeCompilerConfiguration extends CompilerConfiguration {
           arguments.contains('--enable-asserts') ||
           arguments.contains('--enable_asserts'))
         '--enable-asserts',
+      if (!isProductMode) '--bytecode-options=source-positions',
     ];
 
     return CompilationCommand(

@@ -37,7 +37,7 @@ class AstResolver {
     dataForTesting: null,
   );
   late final _scopeResolverVisitor = ScopeResolverVisitor(
-    ErrorReporter(_diagnosticListener, _unitElement.source),
+    DiagnosticReporter(_diagnosticListener, _unitElement.source),
     nameScope: _nameScope,
   );
   late final _typeAnalyzerOptions = computeTypeAnalyzerOptions(_featureSet);

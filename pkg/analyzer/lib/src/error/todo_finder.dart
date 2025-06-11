@@ -10,8 +10,8 @@ import 'package:analyzer/src/error/codes.dart';
 
 /// Instances of the class `ToDoFinder` find to-do comments in Dart code.
 class TodoFinder {
-  /// The error reporter by which to-do comments will be reported.
-  final ErrorReporter _errorReporter;
+  /// The diagnostic reporter by which to-do comments will be reported.
+  final DiagnosticReporter _diagnosticReporter;
 
   /// A regex for whitespace and comment markers to be removed from the text
   /// of multiline TODOs in multiline comments.
@@ -27,7 +27,7 @@ class TodoFinder {
   ///
   /// @param errorReporter the error reporter by which to-do comments will be
   ///        reported
-  TodoFinder(this._errorReporter);
+  TodoFinder(this._diagnosticReporter);
 
   /// Search the comments in the given compilation unit for to-do comments and
   /// report an error for each.
@@ -130,7 +130,7 @@ class TodoFinder {
         }
       }
 
-      _errorReporter.atOffset(
+      _diagnosticReporter.atOffset(
         offset: offset,
         length: end - offset,
         diagnosticCode: Todo.forKind(todoKind),

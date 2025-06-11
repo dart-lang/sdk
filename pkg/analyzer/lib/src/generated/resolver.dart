@@ -163,7 +163,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   late final SharedTypeAnalyzerErrors errors = SharedTypeAnalyzerErrors(
-    errorReporter,
+    diagnosticReporter,
   );
 
   /// The source representing the compilation unit being visited.
@@ -173,7 +173,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   final TypeProviderImpl typeProvider;
 
   @override
-  final ErrorReporter errorReporter;
+  final DiagnosticReporter diagnosticReporter;
 
   /// The analysis options used by this resolver.
   final AnalysisOptions analysisOptions;
@@ -205,7 +205,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   late final BoolExpressionVerifier boolExpressionVerifier =
       BoolExpressionVerifier(
         resolver: this,
-        errorReporter: errorReporter,
+        diagnosticReporter: diagnosticReporter,
         nullableDereferenceVerifier: nullableDereferenceVerifier,
       );
 
@@ -213,7 +213,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   late final NullableDereferenceVerifier nullableDereferenceVerifier =
       NullableDereferenceVerifier(
         typeSystem: typeSystem,
-        errorReporter: errorReporter,
+        diagnosticReporter: diagnosticReporter,
         resolver: this,
       );
 
@@ -349,7 +349,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
          source,
          definingLibrary.typeSystem,
          typeProvider as TypeProviderImpl,
-         ErrorReporter(diagnosticListener, source),
+         DiagnosticReporter(diagnosticListener, source),
          featureSet,
          analysisOptions,
          flowAnalysisHelper,
@@ -364,7 +364,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     this.source,
     this.typeSystem,
     this.typeProvider,
-    this.errorReporter,
+    this.diagnosticReporter,
     FeatureSet featureSet,
     this.analysisOptions,
     this.flowAnalysis, {
@@ -379,11 +379,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
        ),
        baseOrFinalTypeVerifier = BaseOrFinalTypeVerifier(
          definingLibrary: definingLibrary,
-         errorReporter: errorReporter,
+         diagnosticReporter: diagnosticReporter,
        ) {
     inferenceHelper = InvocationInferenceHelper(
       resolver: this,
-      errorReporter: errorReporter,
+      diagnosticReporter: diagnosticReporter,
       typeSystem: typeSystem,
       dataForTesting:
           flowAnalysis.dataForTesting != null
@@ -405,7 +405,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     _yieldStatementResolver = YieldStatementResolver(resolver: this);
     nullSafetyDeadCodeVerifier = NullSafetyDeadCodeVerifier(
       typeSystem,
-      errorReporter,
+      diagnosticReporter,
       flowAnalysis,
     );
     elementResolver = ElementResolver(this);
@@ -495,14 +495,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             variablePattern.fieldNameWithImplicitName = fieldName;
             nameToken = variablePattern.name;
           } else {
-            errorReporter.atNode(
+            diagnosticReporter.atNode(
               field,
               CompileTimeErrorCode.MISSING_NAMED_PATTERN_FIELD_NAME,
             );
           }
         }
       } else if (mustBeNamed) {
-        errorReporter.atNode(
+        diagnosticReporter.atNode(
           field,
           CompileTimeErrorCode.POSITIONAL_FIELD_IN_OBJECT_PATTERN,
         );
@@ -597,19 +597,19 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         }
       }
       if (errorNode is ConstructorDeclaration) {
-        errorReporter.atConstructorDeclaration(
+        diagnosticReporter.atConstructorDeclaration(
           errorNode,
           diagnosticCode,
           arguments: [returnType],
         );
       } else if (errorNode is BlockFunctionBody) {
-        errorReporter.atToken(
+        diagnosticReporter.atToken(
           errorNode.block.leftBracket,
           diagnosticCode,
           arguments: [returnType],
         );
       } else if (errorNode is Token) {
-        errorReporter.atToken(
+        diagnosticReporter.atToken(
           errorNode,
           diagnosticCode,
           arguments: [returnType],
@@ -647,7 +647,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           errorNode = pattern.type;
         }
         errorNode ??= pattern;
-        errorReporter.atNode(
+        diagnosticReporter.atNode(
           errorNode,
           WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE,
           arguments: [matchedValueType, requiredType],
@@ -674,7 +674,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
       if (element.isLate) {
         if (unassigned) {
-          errorReporter.atNode(
+          diagnosticReporter.atNode(
             node,
             CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE,
             arguments: [node.name],
@@ -685,7 +685,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
       if (!assigned) {
         if (element.isFinal) {
-          errorReporter.atNode(
+          diagnosticReporter.atNode(
             node,
             CompileTimeErrorCode.READ_POTENTIALLY_UNASSIGNED_FINAL,
             arguments: [node.name],
@@ -694,7 +694,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         }
 
         if (typeSystem.isPotentiallyNonNullable(element.type)) {
-          errorReporter.atNode(
+          diagnosticReporter.atNode(
             node,
             CompileTimeErrorCode
                 .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
@@ -732,7 +732,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           continue;
         }
         messages = entry.value.accept(whyNotPromotedVisitor);
-        // `messages` will be passed to the ErrorReporter, which might add
+        // `messages` will be passed to the DiagnosticReporter, which might add
         // additional entries. So make sure that it's not a `const []`.
         assert(_isModifiableList(messages));
         if (messages.isNotEmpty) {
@@ -919,7 +919,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       for (var reference in variable.references) {
         if (variable.inconsistency ==
             shared.JoinedPatternVariableInconsistency.sharedCaseAbsent) {
-          errorReporter.atNode(
+          diagnosticReporter.atNode(
             reference,
             CompileTimeErrorCode
                 .PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES,
@@ -927,14 +927,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           );
         } else if (variable.inconsistency ==
             shared.JoinedPatternVariableInconsistency.sharedCaseHasLabel) {
-          errorReporter.atNode(
+          diagnosticReporter.atNode(
             reference,
             CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL,
             arguments: [variable.name3!],
           );
         } else if (variable.inconsistency ==
             shared.JoinedPatternVariableInconsistency.differentFinalityOrType) {
-          errorReporter.atNode(
+          diagnosticReporter.atNode(
             reference,
             CompileTimeErrorCode
                 .PATTERN_VARIABLE_SHARED_CASE_SCOPE_DIFFERENT_FINALITY_OR_TYPE,
@@ -1215,7 +1215,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var typeArgumentTypes = typeSystem.inferFunctionTypeInstantiation(
       context,
       staticType,
-      errorReporter: errorReporter,
+      diagnosticReporter: diagnosticReporter,
       errorNode: expression,
       // If the constructor-tearoffs feature is enabled, then so is
       // generic-metadata.
@@ -1423,14 +1423,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       var flow = this.flow;
       if (element.isLate) {
         if (flow.isAssigned(element)) {
-          errorReporter.atToken(
+          diagnosticReporter.atToken(
             node.name,
             CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED,
           );
         }
       } else {
         if (!flow.isUnassigned(element)) {
-          errorReporter.atToken(
+          diagnosticReporter.atToken(
             node.name,
             CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL,
             arguments: [node.name.lexeme],
@@ -1541,7 +1541,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       );
 
       if (hasRead && result.readElementRequested2 == null) {
-        errorReporter.atNode(
+        diagnosticReporter.atNode(
           node,
           CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
           arguments: [node.name],
@@ -1578,7 +1578,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           valueType: SharedTypeView(typeArgumentsList.arguments[1].typeOrThrow),
         );
       } else {
-        errorReporter.atNode(
+        diagnosticReporter.atNode(
           typeArgumentsList,
           CompileTimeErrorCode.EXPECTED_TWO_MAP_PATTERN_TYPE_ARGUMENTS,
           arguments: [length],
@@ -1629,7 +1629,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     );
 
     if (result.needsGetterError) {
-      errorReporter.atToken(
+      diagnosticReporter.atToken(
         nameToken,
         CompileTimeErrorCode.UNDEFINED_GETTER,
         arguments: [nameToken.lexeme, receiverType],
@@ -1685,7 +1685,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     );
 
     if (result.needsGetterError) {
-      errorReporter.atToken(
+      diagnosticReporter.atToken(
         node.operator,
         CompileTimeErrorCode.UNDEFINED_OPERATOR,
         arguments: [methodName, matchedType],
@@ -1909,7 +1909,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           typeSystem.isNullable(element.type) &&
           typeSystem.isNonNullable(staticType) &&
           flowAnalysis.isDefinitelyUnassigned(simpleIdentifier, element)) {
-        errorReporter.atNode(
+        diagnosticReporter.atNode(
           simpleIdentifier,
           WarningCode.CAST_FROM_NULLABLE_ALWAYS_FAILS,
           arguments: [simpleIdentifier.name],
@@ -2591,7 +2591,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         if (constructorElement.isFactory) {
           var constructorName = node.arguments?.constructorSelector?.name;
           var errorTarget = constructorName ?? node.name;
-          errorReporter.atEntity(
+          diagnosticReporter.atEntity(
             errorTarget,
             CompileTimeErrorCode.ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR,
           );
@@ -2600,13 +2600,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         if (constructorName.type.element2 is EnumElementImpl2) {
           var nameNode = node.arguments?.constructorSelector?.name;
           if (nameNode != null) {
-            errorReporter.atNode(
+            diagnosticReporter.atNode(
               nameNode,
               CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_NAMED,
               arguments: [nameNode.name],
             );
           } else {
-            errorReporter.atToken(
+            diagnosticReporter.atToken(
               node.name,
               CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED,
             );
@@ -2621,7 +2621,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
               ResolverVisitor.resolveArgumentsToParameters(
                 argumentList: argumentList,
                 formalParameters: constructorElement.formalParameters,
-                errorReporter: errorReporter,
+                diagnosticReporter: diagnosticReporter,
               );
         } else if (definingLibrary.featureSet.isEnabled(
           Feature.enhanced_enums,
@@ -2636,7 +2636,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
               requiredParameterCount: requiredParameterCount,
               actualArgumentCount: 0,
               nameNode: node,
-              errorReporter: errorReporter,
+              diagnosticReporter: diagnosticReporter,
             );
           }
         }
@@ -4271,7 +4271,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           return;
         }
 
-        errorReporter.atToken(
+        diagnosticReporter.atToken(
           errorNode.block.leftBracket,
           WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR,
           arguments: [returnTypeBase],
@@ -4296,7 +4296,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
     if (error.kind == TopLevelInferenceErrorKind.dependencyCycle) {
       var argumentsText = error.arguments.join(', ');
-      errorReporter.atToken(
+      diagnosticReporter.atToken(
         node.name,
         CompileTimeErrorCode.TOP_LEVEL_CYCLE,
         arguments: [node.name.lexeme, argumentsText],
@@ -4393,7 +4393,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       typeArgumentTypes = typeSystem.inferFunctionTypeInstantiation(
         context,
         callMethodType,
-        errorReporter: errorReporter,
+        diagnosticReporter: diagnosticReporter,
         errorNode: expression,
         // If the constructor-tearoffs feature is enabled, then so is
         // generic-metadata.
@@ -4610,7 +4610,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   static List<FormalParameterElementMixin?> resolveArgumentsToParameters({
     required ArgumentList argumentList,
     required List<FormalParameterElement> formalParameters,
-    ErrorReporter? errorReporter,
+    DiagnosticReporter? diagnosticReporter,
     ConstructorDeclaration? enclosingConstructor,
   }) {
     int requiredParameterCount = 0;
@@ -4664,7 +4664,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       var result = verifySuperFormalParameters(
         constructor: enclosingConstructor,
         hasExplicitPositionalArguments: positionalArgumentCount != 0,
-        errorReporter: errorReporter,
+        diagnosticReporter: diagnosticReporter,
       );
       positionalArgumentCount += result.positionalArgumentCount;
       if (result.namedArgumentNames.isNotEmpty) {
@@ -4679,7 +4679,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         String name = nameNode.name;
         var element = namedParameters != null ? namedParameters[name] : null;
         if (element == null) {
-          errorReporter?.atNode(
+          diagnosticReporter?.atNode(
             nameNode,
             CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER,
             arguments: [name],
@@ -4690,7 +4690,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         }
         usedNames ??= <String>{};
         if (!usedNames.add(name)) {
-          errorReporter?.atNode(
+          diagnosticReporter?.atNode(
             nameNode,
             CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT,
             arguments: [name],
@@ -4701,7 +4701,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     if (positionalArgumentCount < requiredParameterCount && noBlankArguments) {
       var parent = argumentList.parent;
-      if (errorReporter != null && parent != null) {
+      if (diagnosticReporter != null && parent != null) {
         var token =
             lastPositionalArgument?.endToken.next ??
             argumentList.leftParenthesis.next ??
@@ -4711,7 +4711,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           requiredParameterCount: requiredParameterCount,
           actualArgumentCount: positionalArgumentCount,
           nameNode: parent,
-          errorReporter: errorReporter,
+          diagnosticReporter: diagnosticReporter,
         );
       }
     } else if (positionalArgumentCount > unnamedParameterCount &&
@@ -4726,7 +4726,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         diagnosticCode = CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS;
       }
       if (firstUnresolvedArgument != null) {
-        errorReporter?.atNode(
+        diagnosticReporter?.atNode(
           firstUnresolvedArgument,
           diagnosticCode,
           arguments: [unnamedParameterCount, positionalArgumentCount],
@@ -4758,7 +4758,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     required int requiredParameterCount,
     required int actualArgumentCount,
     required AstNode nameNode,
-    required ErrorReporter errorReporter,
+    required DiagnosticReporter diagnosticReporter,
   }) {
     String? name;
     if (nameNode is InstanceCreationExpression) {
@@ -4832,7 +4832,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
                   .NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR;
       arguments.add(name);
     }
-    errorReporter.atToken(token, diagnosticCode, arguments: arguments);
+    diagnosticReporter.atToken(token, diagnosticCode, arguments: arguments);
   }
 }
 
@@ -4842,9 +4842,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 // TODO(paulberry): migrate the responsibility for all scope resolution into
 // this visitor.
 class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
-  /// The error reporter that will be informed of any errors that are found
-  /// during resolution.
-  final ErrorReporter errorReporter;
+  /// The diagnostic reporter that will be informed of any diagnostics that are
+  /// found during resolution.
+  final DiagnosticReporter diagnosticReporter;
 
   /// The scope used to resolve identifiers.
   Scope nameScope;
@@ -4869,12 +4869,12 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
   /// Initialize a newly created visitor to resolve the nodes in an AST node.
   ///
-  /// [errorReporter] is the error reporter that will be informed of any errors
+  /// [diagnosticReporter] is the error reporter that will be informed of any errors
   /// that are found during resolution.
   /// [nameScope] is the scope used to resolve identifiers in the node that will
   /// first be visited.
   ScopeResolverVisitor(
-    this.errorReporter, {
+    this.diagnosticReporter, {
     required this.nameScope,
     List<LibraryElement> docImportLibraries = const [],
   }) : _docImportScope = DocumentationCommentScope(
@@ -5530,7 +5530,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       if (node.inSetterContext()) {
         if (element is PatternVariableElementImpl2 &&
             element.isVisitingWhenClause) {
-          errorReporter.atNode(
+          diagnosticReporter.atNode(
             node,
             CompileTimeErrorCode.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD,
           );
@@ -5671,7 +5671,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       if (labelScope == null) {
         // There are no labels in scope, so by definition the label is
         // undefined.
-        errorReporter.atNode(
+        diagnosticReporter.atNode(
           labelNode,
           CompileTimeErrorCode.LABEL_UNDEFINED,
           arguments: [labelNode.name],
@@ -5682,7 +5682,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       if (definingScope == null) {
         // No definition of the given label name could be found in any
         // enclosing scope.
-        errorReporter.atNode(
+        diagnosticReporter.atNode(
           labelNode,
           CompileTimeErrorCode.LABEL_UNDEFINED,
           arguments: [labelNode.name],
@@ -5695,7 +5695,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
         var labelFragment = definingScope.element.firstFragment;
         var labelContainer = labelFragment.enclosingFragment;
         if (!identical(labelContainer, enclosingClosure.firstFragment)) {
-          errorReporter.atNode(
+          diagnosticReporter.atNode(
             labelNode,
             CompileTimeErrorCode.LABEL_IN_OUTER_SCOPE,
             arguments: [labelNode.name],
@@ -5708,7 +5708,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
           node is! ForStatement &&
           node is! SwitchMember &&
           node is! WhileStatement) {
-        errorReporter.atNode(
+        diagnosticReporter.atNode(
           parentNode,
           CompileTimeErrorCode.CONTINUE_LABEL_INVALID,
         );

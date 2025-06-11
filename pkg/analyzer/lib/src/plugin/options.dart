@@ -41,5 +41,5 @@ import 'package:yaml/yaml.dart';
 ///
 abstract class OptionsValidator {
   /// Validate [options], reporting any errors to the given [reporter].
-  void validate(ErrorReporter reporter, YamlMap options);
+  void validate(DiagnosticReporter reporter, YamlMap options);
 }

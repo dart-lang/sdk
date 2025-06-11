@@ -29,7 +29,7 @@ class VariableDeclarationResolver {
 
     if (initializer == null) {
       if (_strictInference && parent.type == null) {
-        _resolver.errorReporter.atNode(
+        _resolver.diagnosticReporter.atNode(
           node,
           WarningCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE,
           arguments: [node.name.lexeme],

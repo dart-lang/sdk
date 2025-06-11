@@ -73,7 +73,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   final LibraryElementImpl _libraryElement;
   final TypeProviderImpl _typeProvider;
   final LibraryFragmentImpl _unitElement;
-  final ErrorReporter _errorReporter;
+  final DiagnosticReporter _diagnosticReporter;
   final AstRewriter _astRewriter;
   final NamedTypeResolver _namedTypeResolver;
   final RecordTypeAnnotationResolver _recordTypeResolver;
@@ -122,7 +122,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var libraryElement = unitElement.library;
     var typeProvider = libraryElement.typeProvider;
     var unitSource = unitElement.source;
-    var errorReporter = ErrorReporter(diagnosticListener, unitSource);
+    var diagnosticReporter = DiagnosticReporter(diagnosticListener, unitSource);
 
     var typeSystemOperations = TypeSystemOperations(
       unitElement.library.typeSystem,
@@ -132,7 +132,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var namedTypeResolver = NamedTypeResolver(
       libraryElement,
       unitElement,
-      errorReporter,
+      diagnosticReporter,
       strictInference: strictInference,
       strictCasts: strictCasts,
       typeSystemOperations: typeSystemOperations,
@@ -140,7 +140,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     var recordTypeResolver = RecordTypeAnnotationResolver(
       typeProvider: typeProvider,
-      errorReporter: errorReporter,
+      diagnosticReporter: diagnosticReporter,
       libraryElement: libraryElement,
     );
 
@@ -148,8 +148,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       libraryElement,
       typeProvider,
       unitElement,
-      errorReporter,
-      AstRewriter(errorReporter),
+      diagnosticReporter,
+      AstRewriter(diagnosticReporter),
       namedTypeResolver,
       recordTypeResolver,
       nameScope,
@@ -164,7 +164,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     this._libraryElement,
     this._typeProvider,
     this._unitElement,
-    this._errorReporter,
+    this._diagnosticReporter,
     this._astRewriter,
     this._namedTypeResolver,
     this._recordTypeResolver,
@@ -196,14 +196,14 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     node.element2 = element;
 
     if (element == null) {
-      _errorReporter.atToken(
+      _diagnosticReporter.atToken(
         node.name,
         CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
         arguments: [name],
       );
     } else if (!(element is LocalVariableElement ||
         element is FormalParameterElement)) {
-      _errorReporter.atToken(
+      _diagnosticReporter.atToken(
         node.name,
         CompileTimeErrorCode.PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE,
       );
@@ -981,7 +981,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         //
         // This is a case where the parser does not report an error, because the
         // parser thinks this could be an InstanceCreationExpression.
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           node,
           WarningCode.SDK_VERSION_CONSTRUCTOR_TEAROFFS,
         );
@@ -1761,7 +1761,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var firstToken = namedType.importPrefix?.name ?? namedType.name;
     var offset = firstToken.offset;
     var length = namedType.name.end - offset;
-    _errorReporter.atOffset(
+    _diagnosticReporter.atOffset(
       offset: offset,
       length: length,
       diagnosticCode: diagnosticCode,
@@ -1839,7 +1839,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var typeSystem = _libraryElement.typeSystem;
 
     if (!typeSystem.isValidExtensionTypeSuperinterface(type)) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         node,
         CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE,
         arguments: [type],
@@ -1860,7 +1860,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           declaredRepresentation,
           implementedRepresentation,
         )) {
-          _errorReporter.atNode(
+          _diagnosticReporter.atNode(
             node,
             CompileTimeErrorCode
                 .EXTENSION_TYPE_IMPLEMENTS_REPRESENTATION_NOT_SUPERTYPE,
@@ -1876,7 +1876,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       }
     }
 
-    _errorReporter.atNode(
+    _diagnosticReporter.atNode(
       node,
       CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE,
       arguments: [type, declaredRepresentation],
@@ -2026,9 +2026,9 @@ class _VariableBinderErrors
     required covariant BindPatternVariableElementImpl2 original,
     required covariant BindPatternVariableElementImpl2 duplicate,
   }) {
-    visitor._errorReporter.reportError(
+    visitor._diagnosticReporter.reportError(
       DiagnosticFactory().duplicateDefinitionForNodes(
-        visitor._errorReporter.source,
+        visitor._diagnosticReporter.source,
         CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN,
         duplicate.node.name,
         original.node.name,
@@ -2045,7 +2045,7 @@ class _VariableBinderErrors
     required String name,
     required PromotableElement variable,
   }) {
-    visitor._errorReporter.atNode(
+    visitor._diagnosticReporter.atNode(
       hasInLeft ? node.rightOperand : node.leftOperand,
       CompileTimeErrorCode.MISSING_VARIABLE_PATTERN,
       arguments: [name],

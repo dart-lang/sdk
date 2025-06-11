@@ -18,10 +18,10 @@ import 'package:analyzer/src/error/codes.g.dart';
 ///
 /// This verifier detects and reports those scenarios.
 class NullSafeApiVerifier {
-  final ErrorReporter _errorReporter;
+  final DiagnosticReporter _diagnosticReporter;
   final TypeSystemImpl _typeSystem;
 
-  NullSafeApiVerifier(this._errorReporter, this._typeSystem);
+  NullSafeApiVerifier(this._diagnosticReporter, this._typeSystem);
 
   /// Reports an error if the expression creates a `Future<T>.value` with a non-
   /// nullable value `T` and an argument that is effectively `null`.
@@ -81,7 +81,7 @@ class NullSafeApiVerifier {
     var argumentIsNull = argument == null || _typeSystem.isNull(argumentType!);
 
     if (argumentIsNull) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         argument ?? node,
         WarningCode.NULL_ARGUMENT_TO_NON_NULL_TYPE,
         arguments: [memberName, type.getDisplayString()],

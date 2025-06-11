@@ -5,7 +5,7 @@
 #ifndef RUNTIME_VM_COMPILER_API_PRINT_FILTER_H_
 #define RUNTIME_VM_COMPILER_API_PRINT_FILTER_H_
 
-#include "platform/globals.h"  // For INCLUDE_IL_PRINTER
+#include "vm/globals.h"  // For INCLUDE_IL_PRINTER
 
 #if defined(INCLUDE_IL_PRINTER)
 

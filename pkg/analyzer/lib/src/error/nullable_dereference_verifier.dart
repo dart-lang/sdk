@@ -17,17 +17,17 @@ import 'package:analyzer/src/generated/resolver.dart';
 /// Helper for checking potentially nullable dereferences.
 class NullableDereferenceVerifier {
   final TypeSystemImpl _typeSystem;
-  final ErrorReporter _errorReporter;
+  final DiagnosticReporter _diagnosticReporter;
 
   /// The resolver driving this participant.
   final ResolverVisitor _resolver;
 
   NullableDereferenceVerifier({
     required TypeSystemImpl typeSystem,
-    required ErrorReporter errorReporter,
+    required DiagnosticReporter diagnosticReporter,
     required ResolverVisitor resolver,
   }) : _typeSystem = typeSystem,
-       _errorReporter = errorReporter,
+       _diagnosticReporter = diagnosticReporter,
        _resolver = resolver;
 
   bool expression(
@@ -51,14 +51,14 @@ class NullableDereferenceVerifier {
       arguments = [];
     }
     if (errorEntity is AstNode) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         errorEntity,
         diagnosticCode,
         arguments: arguments,
         contextMessages: messages,
       );
     } else if (errorEntity is Token) {
-      _errorReporter.atToken(
+      _diagnosticReporter.atToken(
         errorEntity,
         diagnosticCode,
         arguments: arguments,

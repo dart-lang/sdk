@@ -25,11 +25,11 @@ class IgnoreValidator {
   static late DiagnosticCode unnecessaryIgnoreNameLocationLintCode;
   static late DiagnosticCode unnecessaryIgnoreNameFileLintCode;
 
-  /// The error reporter to which errors are to be reported.
-  final ErrorReporter _errorReporter;
+  /// The diagnostic reporter to which diagnostics are to be reported.
+  final DiagnosticReporter _diagnosticReporter;
 
   /// The diagnostics that are reported in the file being analyzed.
-  final List<Diagnostic> _reportedErrors;
+  final List<Diagnostic> _reportedDiagnostics;
 
   /// The information about the ignore comments in the file being analyzed.
   final IgnoreInfo _ignoreInfo;
@@ -50,8 +50,8 @@ class IgnoreValidator {
   /// comments in the file being analyzed. The diagnostics will be reported to
   /// the [_errorReporter].
   IgnoreValidator(
-    this._errorReporter,
-    this._reportedErrors,
+    this._diagnosticReporter,
+    this._reportedDiagnostics,
     this._ignoreInfo,
     this._lineInfo,
     this._unignorableNames,
@@ -123,7 +123,7 @@ class IgnoreValidator {
     //
     // Remove all of the errors that are actually being ignored.
     //
-    for (var error in _reportedErrors) {
+    for (var error in _reportedDiagnostics) {
       var lineNumber = _lineInfo.getLocation(error.offset).lineNumber;
       var ignoredOnLine = ignoredOnLineMap[lineNumber];
 
@@ -168,7 +168,7 @@ class IgnoreValidator {
     for (var ignoredElement in duplicated) {
       if (ignoredElement is IgnoredDiagnosticName) {
         var name = ignoredElement.name;
-        _errorReporter.atOffset(
+        _diagnosticReporter.atOffset(
           offset: ignoredElement.offset,
           length: name.length,
           diagnosticCode: WarningCode.DUPLICATE_IGNORE,
@@ -176,7 +176,7 @@ class IgnoreValidator {
         );
         list.remove(ignoredElement);
       } else if (ignoredElement is IgnoredDiagnosticType) {
-        _errorReporter.atOffset(
+        _diagnosticReporter.atOffset(
           offset: ignoredElement.offset,
           length: ignoredElement.length,
           diagnosticCode: WarningCode.DUPLICATE_IGNORE,
@@ -211,7 +211,7 @@ class IgnoreValidator {
           } else if (state.isRemoved) {
             var replacedBy = state.replacedBy;
             if (replacedBy != null) {
-              _errorReporter.atOffset(
+              _diagnosticReporter.atOffset(
                 diagnosticCode: WarningCode.REPLACED_LINT_USE,
                 offset: ignoredName.offset,
                 length: name.length,
@@ -219,7 +219,7 @@ class IgnoreValidator {
               );
               continue;
             } else {
-              _errorReporter.atOffset(
+              _diagnosticReporter.atOffset(
                 diagnosticCode: WarningCode.REMOVED_LINT_USE,
                 offset: ignoredName.offset,
                 length: name.length,
@@ -273,7 +273,7 @@ class IgnoreValidator {
                   : unnecessaryIgnoreLocationLintCode;
         }
 
-        _errorReporter.atOffset(
+        _diagnosticReporter.atOffset(
           diagnosticCode: lintCode,
           offset: ignoredName.offset,
           length: name.length,
