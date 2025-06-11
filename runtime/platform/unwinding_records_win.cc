@@ -35,8 +35,16 @@ void UnwindingRecordsPlatform::RegisterExecutableMemory(
     void** pp_dynamic_table) {
   intptr_t unwinding_record_offset = size - kReservedUnwindingRecordsSizeBytes;
   uint8_t* record_ptr = static_cast<uint8_t*>(start) + unwinding_record_offset;
+  RegisterExecutableMemory(start, size, record_ptr, pp_dynamic_table);
+}
+
+void UnwindingRecordsPlatform::RegisterExecutableMemory(
+    void* start,
+    intptr_t size,
+    void* records_start,
+    void** pp_dynamic_table) {
   CodeRangeUnwindingRecord* record =
-      reinterpret_cast<CodeRangeUnwindingRecord*>(record_ptr);
+      reinterpret_cast<CodeRangeUnwindingRecord*>(records_start);
   RELEASE_ASSERT(record->magic == kUnwindingRecordMagic);
   uword start_num = reinterpret_cast<intptr_t>(start);
   uword end_num = start_num + size;

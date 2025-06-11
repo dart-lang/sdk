@@ -744,6 +744,10 @@ class MachOSegment : public MachOCommand {
   bool HasContents() const override { return next_contents_index_ > 0; }
   bool IsAllocated() const override { return true; }
 
+  bool HasZerofillSections() const {
+    return next_contents_index_ != contents_.length();
+  }
+
   uint32_t cmdsize() const override {
     uword size = sizeof(SegmentCommandType);
     // The header information for sections is nested within the
@@ -2075,7 +2079,6 @@ void MachOHeader::CreateBSS() {
 }
 
 void MachOHeader::GenerateUnwindingInformation() {
-  ASSERT(text_segment_ != nullptr);
 #if !defined(TARGET_ARCH_IA32)
   // Unwinding information is added to the text segment in Mach-O files.
   // Thus, we need the size of the unwinding information even for debugging
@@ -2089,26 +2092,18 @@ void MachOHeader::GenerateUnwindingInformation() {
   const bool use_zerofill = type_ == SnapshotType::DebugInfo;
   auto const section_type =
       use_zerofill ? mach_o::S_ZEROFILL : mach_o::S_REGULAR;
-#if defined(DEBUG)
-  for (auto* const c : text_segment_->contents()) {
-    // The header always has contents, but the restriction on zerofill
-    // sections coming after content-containing sections only matters with
-    // respect to sections, not other contents.
-    if (c->IsMachOHeader()) continue;
-    // RegisterExecutablePages looks at the end of the loaded segment for
-    // the unwinding information, which means the unwinding info needs to be
-    // the last section, but any sections without file contents are ordered
-    // after any sections with file contents in a segment.
-    ASSERT_EQUAL(use_zerofill, !c->HasContents());
-  }
-#endif
 
 #if defined(DART_TARGET_OS_MACOS)
   // TODO(dartbug.com/60307): Add compact unwind information.
   USE(section_type);
 #else
+  ASSERT(text_segment_ != nullptr);
   if (auto* const text_section =
           text_segment_->FindSection(mach_o::SECT_TEXT)) {
+    ASSERT(use_zerofill || !text_segment_->HasZerofillSections());
+    // Not idempotent.
+    ASSERT(text_segment_->FindSection(mach_o::SECT_EH_FRAME) == nullptr);
+
     // For the __eh_frame section, the easiest way to determine the size is to
     // generate the contents and just discard them if using zerofill.
     GrowableArray<Dwarf::FrameDescriptionEntry> fdes(zone_, 0);
@@ -2121,7 +2116,6 @@ void MachOHeader::GenerateUnwindingInformation() {
     DwarfSharedObjectStream dwarf_stream(zone_, &stream);
     Dwarf::WriteCallFrameInformationRecords(&dwarf_stream, fdes);
 
-    ASSERT(!text_segment_->FindSection(mach_o::SECT_EH_FRAME));
     auto* const eh_frame = new (zone())
         MachOSection(zone(), mach_o::SECT_EH_FRAME, section_type,
                      mach_o::S_NO_ATTRIBUTES, /*has_contents=*/!use_zerofill,
@@ -2133,36 +2127,41 @@ void MachOHeader::GenerateUnwindingInformation() {
   }
 #endif  // defined(DART_TARGET_OS_MACOS)
 
-#if defined(DART_TARGET_OS_WINDOWS) && defined(TARGET_ARCH_IS_64_BIT)
-  // Append Windows unwinding instructions as another section at the end of
-  // the text segment.
-  auto* const unwinding_records = new (zone()) MachOSection(
-      zone(), mach_o::SECT_UNWIND_INFO, section_type, mach_o::S_NO_ATTRIBUTES,
-      /*has_contents=*/!use_zerofill, compiler::target::kWordSize);
-  const intptr_t records_size = UnwindingRecordsPlatform::SizeInBytes();
-  // The memory space of the text segment is padded to the alignment size, so
-  // we need to make sure the resulting data has initial padding so that the
-  // records are at the end of the segment without extra padding.
-  const intptr_t section_start = Utils::RoundUp(
-      text_segment_->UnpaddedMemorySize(), unwinding_records->Alignment());
-  const intptr_t section_size =
-      Utils::RoundUp(section_start + records_size, text_segment_->Alignment()) -
-      section_start;
-  const uint8_t* bytes = nullptr;
-  if (!use_zerofill) {
-    ZoneWriteStream stream(zone(), /*initial_size=*/section_size);
-    uint8_t* unwinding_instructions = zone()->Alloc<uint8_t>(records_size);
-    intptr_t records_start = section_size - records_size;
-    stream.SetPosition(records_start);
-    stream.WriteBytes(UnwindingRecords::GenerateRecordsInto(
-                          records_start, unwinding_instructions),
-                      records_size);
-    ASSERT_EQUAL(section_size, stream.Position());
-    bytes = stream.buffer();
+#if defined(UNWINDING_RECORDS_WINDOWS_PRECOMPILER)
+  // Append Windows unwinding instructions as a __unwind_info section at
+  // the end of any executable segments.
+  for (auto* const command : commands_) {
+    if (auto* const segment = command->AsMachOSegment()) {
+      if (segment->IsExecutable()) {
+        ASSERT(use_zerofill || !segment->HasZerofillSections());
+        // Not idempotent.
+        ASSERT(segment->FindSection(mach_o::SECT_UNWIND_INFO) == nullptr);
+
+        auto* const unwinding_records = new (zone()) MachOSection(
+            zone(), mach_o::SECT_UNWIND_INFO, section_type,
+            mach_o::S_NO_ATTRIBUTES,
+            /*has_contents=*/!use_zerofill, compiler::target::kWordSize);
+        const intptr_t records_size = UnwindingRecordsPlatform::SizeInBytes();
+        const intptr_t section_start = Utils::RoundUp(
+            segment->UnpaddedMemorySize(), unwinding_records->Alignment());
+        const uint8_t* bytes = nullptr;
+        if (!use_zerofill) {
+          ZoneWriteStream stream(zone(), /*initial_size=*/records_size);
+          uint8_t* unwinding_instructions =
+              zone()->Alloc<uint8_t>(records_size);
+          stream.WriteBytes(UnwindingRecords::GenerateRecordsInto(
+                                section_start, unwinding_instructions),
+                            records_size);
+          ASSERT_EQUAL(records_size, stream.Position());
+          bytes = stream.buffer();
+        }
+        unwinding_records->AddPortion(bytes, records_size);
+        segment->AddContents(unwinding_records);
+        ASSERT_EQUAL(section_start + records_size,
+                     segment->UnpaddedMemorySize());
+      }
+    }
   }
-  unwinding_records->AddPortion(bytes, section_size);
-  text_segment_->AddContents(unwinding_records);
-  ASSERT_EQUAL(section_start + section_size, text_segment_->MemorySize());
 #endif  // defined(DART_TARGET_OS_WINDOWS) && defined(TARGET_ARCH_IS_64_BIT)
 #endif  // !defined(TARGET_ARCH_IA32)
 }

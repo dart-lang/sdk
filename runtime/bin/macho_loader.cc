@@ -25,7 +25,7 @@ namespace bin {
 
 namespace mach_o {
 
-class LoadCommandIterator {
+class LoadCommandIterator : public ValueObject {
  public:
   LoadCommandIterator(const void* start, size_t size)
       : end_(reinterpret_cast<const void*>(reinterpret_cast<uword>(start) +
@@ -48,6 +48,29 @@ class LoadCommandIterator {
  private:
   const void* end_;
   const void* current_;
+
+  DISALLOW_COPY_AND_ASSIGN(LoadCommandIterator);
+};
+
+// For MachO structs of constant size that are contiguous in memory.
+template <typename T>
+class MachOStructIterator : public ValueObject {
+ public:
+  MachOStructIterator(const T* start, size_t size_in_bytes)
+      : start_(start),
+        end_(reinterpret_cast<const T*>(reinterpret_cast<uword>(start) +
+                                        size_in_bytes)) {
+    ASSERT_EQUAL(0, size_in_bytes % sizeof(T));
+  }
+
+  const T* begin() const { return start_; }
+  const T* end() const { return end_; }
+
+ private:
+  const T* start_;
+  const T* end_;
+
+  DISALLOW_COPY_AND_ASSIGN(MachOStructIterator);
 };
 
 /// A loader for a subset of Mach-O which may be used to load objects produced
@@ -118,7 +141,7 @@ class LoadedMachODylib {
   uword external_symbol_count_ = 0;
   std::unique_ptr<MappedMemory> external_symbols_mapping_;
 
-#if defined(DART_HOST_OS_WINDOWS) && defined(ARCH_IS_64_BIT)
+#if defined(UNWINDING_RECORDS_WINDOWS_HOST)
   // Dynamic table for looking up unwinding exceptions info.
   // Initialized by LoadSegments as we load executable segment.
   MallocGrowableArray<void*> dynamic_runtime_function_tables_;
@@ -169,7 +192,7 @@ bool LoadedMachODylib::Load() {
 }
 
 LoadedMachODylib::~LoadedMachODylib() {
-#if defined(DART_HOST_OS_WINDOWS) && defined(ARCH_IS_64_BIT)
+#if defined(UNWINDING_RECORDS_WINDOWS_HOST)
   for (intptr_t i = 0; i < dynamic_runtime_function_tables_.length(); i++) {
     UnwindingRecordsPlatform::UnregisterDynamicTable(
         dynamic_runtime_function_tables_[i]);
@@ -272,6 +295,9 @@ bool LoadedMachODylib::LoadSegments() {
       auto* const current = it.current();
       uint64_t memory_offset, memory_size, file_offset, file_size;
       dart::mach_o::vm_prot_t initprot;
+#if defined(UNWINDING_RECORDS_WINDOWS_HOST)
+      uint64_t records_address = 0, records_size = 0;
+#endif
       if (current->cmd == dart::mach_o::LC_SEGMENT) {
         auto* const segment =
             reinterpret_cast<const dart::mach_o::segment_command*>(current);
@@ -280,6 +306,21 @@ bool LoadedMachODylib::LoadSegments() {
         file_offset = segment->fileoff;
         file_size = segment->filesize;
         initprot = segment->initprot;
+#if defined(UNWINDING_RECORDS_WINDOWS_HOST)
+        if ((initprot & dart::mach_o::VM_PROT_EXECUTE) != 0) {
+          auto* const start =
+              reinterpret_cast<const dart::mach_o::section*>(segment + 1);
+          const size_t size_in_bytes = segment->cmdsize - sizeof(*segment);
+          MachOStructIterator sections(start, size_in_bytes);
+          for (const auto& section : sections) {
+            if (strcmp(section.sectname, dart::mach_o::SECT_UNWIND_INFO) == 0) {
+              records_address = section.addr;
+              records_size = section.size;
+              break;
+            }
+          }
+        }
+#endif
       } else if (current->cmd == dart::mach_o::LC_SEGMENT_64) {
         auto* const segment_64 =
             reinterpret_cast<const dart::mach_o::segment_command_64*>(current);
@@ -288,6 +329,22 @@ bool LoadedMachODylib::LoadSegments() {
         file_offset = segment_64->fileoff;
         file_size = segment_64->filesize;
         initprot = segment_64->initprot;
+#if defined(UNWINDING_RECORDS_WINDOWS_HOST)
+        if ((initprot & dart::mach_o::VM_PROT_EXECUTE) != 0) {
+          auto* const start =
+              reinterpret_cast<const dart::mach_o::section_64*>(segment_64 + 1);
+          const size_t size_in_bytes =
+              segment_64->cmdsize - sizeof(*segment_64);
+          MachOStructIterator sections(start, size_in_bytes);
+          for (const auto& section : sections) {
+            if (strcmp(section.sectname, dart::mach_o::SECT_UNWIND_INFO) == 0) {
+              records_address = section.addr;
+              records_size = section.size;
+              break;
+            }
+          }
+        }
+#endif
       } else {
         it.Advance();
         continue;
@@ -344,18 +401,22 @@ bool LoadedMachODylib::LoadSegments() {
       CHECK_ERROR(memory != nullptr, "Could not map segment.");
       CHECK_ERROR(memory->address() == memory_start,
                   "Mapping not at requested address.");
-#if defined(DART_HOST_OS_WINDOWS) && defined(ARCH_IS_64_BIT)
+#if defined(UNWINDING_RECORDS_WINDOWS_HOST)
       // For executable pages register unwinding information that should be
       // present on the page.
       if (map_type == File::kReadExecute) {
-        // RegisterExecutableMemory checks the end of the memory space, so
-        // if there are zerofill sections or the like in this segment, then
-        // the offset of the unwinding records is incorrectly calculated.
-        CHECK_ERROR(memory_size == file_size,
-                    "Executable segment contains zerofill sections.");
+        CHECK_ERROR(records_address != 0,
+                    "No __unwind_info section found in segment");
+        CHECK_ERROR(records_size == UnwindingRecordsPlatform::SizeInBytes(),
+                    "__unwind_info section does not contain expected "
+                    "unwinding records");
         void* ptable = nullptr;
-        UnwindingRecordsPlatform::RegisterExecutableMemory(memory->address(),
-                                                           length, &ptable);
+        void* start = memory->address();
+        void* records_start = reinterpret_cast<void*>(
+            reinterpret_cast<uword>(memory->address()) + adjustment +
+            (records_address - memory_offset));
+        UnwindingRecordsPlatform::RegisterExecutableMemory(
+            start, length, records_start, &ptable);
         dynamic_runtime_function_tables_.Add(ptable);
       }
 #else
