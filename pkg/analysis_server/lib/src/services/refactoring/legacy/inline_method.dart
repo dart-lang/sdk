@@ -416,7 +416,8 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     } else if (selectedNode is MethodDeclaration) {
       element = selectedNode.declaredFragment?.element;
       isDeclaration = true;
-    } else if (selectedNode is SimpleIdentifier) {
+    } else if (selectedNode is SimpleIdentifier &&
+        selectedNode.parent is! Combinator) {
       element = selectedNode.writeOrReadElement2;
     } else {
       return fatalStatus;

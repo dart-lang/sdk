@@ -243,6 +243,24 @@ void f() {
     );
   }
 
+  Future<void> test_bad_inShowCombinator() async {
+    newFile('$testPackageLibPath/a.dart', '''
+void f() {
+  print(42);
+}
+''');
+    await indexTestUnit(r'''
+import 'a.dart' show f;
+
+void g() {
+  f();
+}
+''');
+    _createRefactoring('f;');
+    // error
+    return _assertInvalidSelection();
+  }
+
   Future<void> test_bad_notExecutableElement() async {
     await indexTestUnit(r'''
 void f() {
