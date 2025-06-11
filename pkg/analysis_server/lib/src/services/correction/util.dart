@@ -104,7 +104,7 @@ String getElementQualifiedName(Element element) {
 /// Returns a class or an unit member enclosing the given [input].
 AstNode? getEnclosingClassOrUnitMember(AstNode input) {
   var member = input;
-  for (var node in input.withParents) {
+  for (var node in input.withAncestors) {
     switch (node) {
       case ClassDeclaration _:
       case CompilationUnit _:
@@ -121,7 +121,7 @@ AstNode? getEnclosingClassOrUnitMember(AstNode input) {
 
 /// Return the enclosing executable [AstNode].
 AstNode? getEnclosingExecutableNode(AstNode input) {
-  for (var node in input.withParents) {
+  for (var node in input.withAncestors) {
     if (node is FunctionDeclaration) {
       return node;
     }
@@ -253,7 +253,7 @@ Expression? getNodeQualifier(SimpleIdentifier node) {
 /// Return parent [AstNode]s from compilation unit (at index "0") to the given
 /// [node].
 List<AstNode> getParents(AstNode node) {
-  return node.withParents.toList().reversed.toList();
+  return node.withAncestors.toList().reversed.toList();
 }
 
 /// If given [node] is name of qualified property extraction, returns target

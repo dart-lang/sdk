@@ -344,6 +344,30 @@ var b = 'b';
 ''');
   }
 
+  test_parameter() async {
+    await assertDiagnostics(
+      r'''
+void f(int parameter) {
+  int i = parameter;
+}
+''',
+      [lint(26, 3)],
+    );
+  }
+
+  test_parameter_of_literal() async {
+    await assertDiagnostics(
+      r'''
+Function f() {
+  return (int parameter) {
+    int i = parameter;
+  };
+}
+''',
+      [lint(46, 3)],
+    );
+  }
+
   /// Types are considered an important part of the pattern so we
   /// intentionally do not lint on declared variable patterns.
   test_pattern_list_destructured() async {

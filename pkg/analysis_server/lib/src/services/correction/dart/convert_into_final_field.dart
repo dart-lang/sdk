@@ -27,7 +27,7 @@ class ConvertIntoFinalField extends ResolvedCorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     // Find the enclosing getter.
     MethodDeclaration? getter;
-    for (var n in node.withParents) {
+    for (var n in node.withAncestors) {
       if (n is MethodDeclaration) {
         getter = n;
         break;

@@ -76,7 +76,7 @@ extension AnnotatedNodeExtension on AnnotatedNode {
 extension AstNodeExtension on AstNode {
   /// Return the [IfStatement] associated with `this`.
   IfStatement? get enclosingIfStatement {
-    for (var node in withParents) {
+    for (var node in withAncestors) {
       if (node is IfStatement) {
         return node;
       } else if (node is! Expression) {

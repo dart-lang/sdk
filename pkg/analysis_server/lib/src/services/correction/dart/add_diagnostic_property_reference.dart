@@ -216,7 +216,7 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
 
     // Create fixes only when its the first diagnostic.
     if (propertyDiagnostics.isNotEmpty &&
-        errorOffset != propertyDiagnostics.first.offset) {
+        diagnosticOffset != propertyDiagnostics.first.offset) {
       return;
     }
 

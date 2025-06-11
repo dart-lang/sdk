@@ -45,7 +45,7 @@ class ConvertIntoGetter extends ResolvedCorrectionProducer {
     if (_type == _Type.implicitThis) {
       fieldDeclaration = node.thisOrAncestorOfType();
     } else {
-      for (var n in node.withParents) {
+      for (var n in node.withAncestors) {
         if (n is FieldDeclaration) {
           fieldDeclaration = n;
           break;

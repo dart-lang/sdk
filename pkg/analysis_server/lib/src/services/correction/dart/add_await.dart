@@ -118,7 +118,7 @@ class AddAwait extends ResolvedCorrectionProducer {
         );
       }
       builder.addSimpleInsertion(
-        offset ?? errorOffset ?? node.offset,
+        offset ?? diagnosticOffset ?? node.offset,
         'await ',
       );
     });

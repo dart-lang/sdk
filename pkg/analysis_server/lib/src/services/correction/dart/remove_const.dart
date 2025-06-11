@@ -126,7 +126,7 @@ class _PushConstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   bool _containsExcluded(AstNode node) {
-    return {for (var e in excluded) ...e.withParents}.contains(node);
+    return {for (var e in excluded) ...e.withAncestors}.contains(node);
   }
 }
 

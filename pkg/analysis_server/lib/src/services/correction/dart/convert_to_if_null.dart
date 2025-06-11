@@ -44,8 +44,8 @@ class ConvertToIfNull extends ResolvedCorrectionProducer {
   Future<void> _preferIfNull(ChangeBuilder builder) async {
     var node = this.node;
     if (node is ConditionalExpression &&
-        node.offset == errorOffset &&
-        node.length == errorLength) {
+        node.offset == diagnosticOffset &&
+        node.length == diagnosticLength) {
       var condition = node.condition as BinaryExpression;
       Expression nullableExpression;
       Expression defaultExpression;
@@ -87,8 +87,8 @@ class ConvertToIfNull extends ResolvedCorrectionProducer {
   Future<void> _useToConvertNullsToBools(ChangeBuilder builder) async {
     var node = this.node;
     if (node is BinaryExpression &&
-        node.offset == errorOffset &&
-        node.length == errorLength &&
+        node.offset == diagnosticOffset &&
+        node.length == diagnosticLength &&
         (node.operator.type == TokenType.EQ_EQ ||
             node.operator.type == TokenType.BANG_EQ)) {
       var left = node.leftOperand;

@@ -1376,7 +1376,7 @@ class _ExtractMethodAnalyzer extends StatementAnalyzer {
 
   void _checkParent(AstNode node) {
     var firstParent = firstSelectedNode!.parent;
-    for (var parent in node.withParents) {
+    for (var parent in node.withAncestors) {
       if (identical(parent, firstParent)) {
         return;
       }
