@@ -54,31 +54,26 @@ abstract class DartSnippetProducerTest extends AbstractSingleUnitTest {
     expect(codeResult, expectedCode.code);
 
     // Check selection/position.
-    expect(snippet.change.selection!.file, testFile.path);
-    if (expectedCode.positions.length == 1) {
-      expect(snippet.change.selection!.offset, expectedCode.position.offset);
-    }
+    var selection = snippet.change.selection!;
+    expect(selection.file, testFile.path);
+    expect(selection.offset, expectedCode.position.offset);
 
-    // And linked edits if the test is verifying them.
-    if (expectedCode.ranges.isNotEmpty) {
-      var expectedLinkedGroups =
-          expectedCode.ranges
-              .map(
-                (range) => {
-                  'positions': [
-                    {'file': testFile.path, 'offset': range.sourceRange.offset},
-                  ],
-                  'length': range.sourceRange.length,
-                  'suggestions': [],
-                },
-              )
-              .toSet();
-      var actualLinkedGroups =
-          snippet.change.linkedEditGroups
-              .map((group) => group.toJson())
-              .toSet();
-      expect(actualLinkedGroups, equals(expectedLinkedGroups));
-    }
+    // Verify all linked edits/placeholders.
+    var expectedLinkedGroups =
+        expectedCode.ranges
+            .map(
+              (range) => {
+                'positions': [
+                  {'file': testFile.path, 'offset': range.sourceRange.offset},
+                ],
+                'length': range.sourceRange.length,
+                'suggestions': [],
+              },
+            )
+            .toSet();
+    var actualLinkedGroups =
+        snippet.change.linkedEditGroups.map((group) => group.toJson()).toSet();
+    expect(actualLinkedGroups, equals(expectedLinkedGroups));
 
     return snippet;
   }
@@ -110,7 +105,7 @@ abstract class DartSnippetProducerTest extends AbstractSingleUnitTest {
 
 abstract class FlutterSnippetProducerTest extends DartSnippetProducerTest {
   /// A version of [assertSnippetResult] that expects all positions in
-  /// [expectedCode] to match a single linked edit group for the text
+  /// [expected] to match a single linked edit group for the text
   /// [linkedGroupText] and the selection to be at the marked range.
   Future<void> assertFlutterSnippetResult(
     String content,

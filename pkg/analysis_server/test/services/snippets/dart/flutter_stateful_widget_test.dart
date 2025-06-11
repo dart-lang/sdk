@@ -31,20 +31,20 @@ class FlutterStatefulWidgetTest extends FlutterSnippetProducerTest {
     var expectedCode = r'''
 import 'package:flutter/widgets.dart';
 
-class MyWidget extends StatefulWidget {
-  const MyWidget({Key? key}) : super(key: key);
+class /*0*/MyWidget extends StatefulWidget {
+  const /*1*/MyWidget({Key? key}) : super(key: key);
 
   @override
-  State<MyWidget> createState() => _MyWidgetState();
+  State</*2*/MyWidget> createState() => _/*3*/MyWidgetState();
 }
 
-class _MyWidgetState extends State<MyWidget> {
+class _/*4*/MyWidgetState extends State</*5*/MyWidget> {
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    return [!const Placeholder()!];
   }
 }''';
-    await assertSnippetResult(code, expectedCode);
+    await assertFlutterSnippetResult(code, expectedCode, 'MyWidget');
   }
 
   Future<void> test_notValid_notFlutterProject() async {

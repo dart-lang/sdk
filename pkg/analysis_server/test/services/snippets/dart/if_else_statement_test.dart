@@ -32,7 +32,7 @@ void f() {
 ''';
     var expectedCode = r'''
 void f() {
-  if (condition) {
+  if ([!condition!]) {
     ^
   } else {
     /**/
@@ -53,7 +53,7 @@ void f() {
     var expectedCode = r'''
 void f() {
   if (true) {
-    if (condition) {
+    if ([!condition!]) {
       ^
     } else {
       /**/
