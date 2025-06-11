@@ -27200,7 +27200,7 @@ static void DwarfStackTracesHandler(bool value) {
 #if defined(PRODUCT)
   // We can safely remove function objects in precompiled snapshots if the
   // runtime will generate DWARF stack traces and we don't have runtime
-  // debugging options like the observatory available.
+  // debugging options like the VM service available.
   if (value) {
     FLAG_retain_function_objects = false;
     FLAG_retain_code_objects = false;

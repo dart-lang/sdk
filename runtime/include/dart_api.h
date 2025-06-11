@@ -930,6 +930,8 @@ typedef struct {
   /**
    * A function to be called by the service isolate when it requires the
    * vmservice assets archive. See Dart_GetVMServiceAssetsArchive.
+   * 
+   * This field is deprecated and has no effect.
    */
   Dart_GetVMServiceAssetsArchive get_service_assets;
 

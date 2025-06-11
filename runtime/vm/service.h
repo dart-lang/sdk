@@ -156,9 +156,6 @@ class Service : public AllStatic {
       Dart_ServiceStreamListenCallback listen_callback,
       Dart_ServiceStreamCancelCallback cancel_callback);
 
-  static void SetGetServiceAssetsCallback(
-      Dart_GetVMServiceAssetsArchive get_service_assets);
-
   static void SendEchoEvent(Isolate* isolate, const char* text);
   static void SendInspectEvent(Isolate* isolate, const Object& inspectee);
 
@@ -223,8 +220,6 @@ class Service : public AllStatic {
 
   static bool ListenStream(const char* stream_id, bool include_privates);
   static void CancelStream(const char* stream_id);
-
-  static ObjectPtr RequestAssets();
 
   static Dart_ServiceStreamListenCallback stream_listen_callback() {
     return stream_listen_callback_;
@@ -295,7 +290,6 @@ class Service : public AllStatic {
   static EmbedderServiceHandler* root_service_handler_head_;
   static Dart_ServiceStreamListenCallback stream_listen_callback_;
   static Dart_ServiceStreamCancelCallback stream_cancel_callback_;
-  static Dart_GetVMServiceAssetsArchive get_service_assets_callback_;
   static Dart_EmbedderInformationCallback embedder_information_callback_;
 
   static void* service_response_size_log_file_;

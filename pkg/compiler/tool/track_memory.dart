@@ -18,7 +18,7 @@ import 'dart:async';
 
 import 'dart:convert';
 
-/// Socket to connect to the vm observatory service.
+/// Socket to connect to the VM service.
 late WebSocket socket;
 
 Future<void> main(List<String> args) async {

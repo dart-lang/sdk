@@ -3782,7 +3782,6 @@ void Debugger::PauseDeveloper(const String& msg) {
   DebuggerStackTrace* stack_trace = DebuggerStackTrace::Collect();
   ASSERT(stack_trace->Length() > 0);
   CacheStackTraces(stack_trace, DebuggerStackTrace::CollectAsyncAwaiters());
-  // TODO(johnmccutchan): Send |msg| to Observatory.
 
   // We are in the native call to Developer_debugger.  the developer
   // gets a better experience by not seeing this call. To accomplish

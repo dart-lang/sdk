@@ -11,7 +11,6 @@ import 'dart:io' show Directory, File, InternetAddress, Platform, Socket;
 import 'dart:math';
 import 'dart:typed_data';
 
-part 'asset.dart';
 part 'client.dart';
 part 'devfs.dart';
 part 'constants.dart';
@@ -171,9 +170,6 @@ typedef Future<Uri?> WebServerControlCallback(bool enable, bool? silenceOutput);
 /// server.
 typedef void WebServerAcceptNewWebSocketConnectionsCallback(bool enable);
 
-/// Called when a client wants the service to serve Observatory.
-typedef void ServeObservatoryCallback();
-
 /// Called when we want to get the appropriate resident compiler info file for
 /// the current program execution.
 typedef File? getResidentCompilerInfoFileCallback();
@@ -193,7 +189,6 @@ class VMServiceEmbedderHooks {
   static WebServerControlCallback? webServerControl;
   static WebServerAcceptNewWebSocketConnectionsCallback?
   acceptNewWebSocketConnections;
-  static ServeObservatoryCallback? serveObservatory;
   static getResidentCompilerInfoFileCallback? getResidentCompilerInfoFile;
 }
 
@@ -815,10 +810,6 @@ class VMService extends MessageRouter {
       if (message.completed) {
         return await message.response;
       }
-      if (message.method == '_serveObservatory') {
-        VMServiceEmbedderHooks.serveObservatory?.call();
-        return encodeSuccess(message);
-      }
       if (message.method == '_yieldControlToDDS') {
         return await _yieldControlToDDS(message);
       }
@@ -910,10 +901,6 @@ external bool _vmListenStream(String streamId, bool include_privates);
 /// Cancel a subscription to a service stream.
 @pragma("vm:external-name", "VMService_CancelStream")
 external void _vmCancelStream(String streamId);
-
-/// Get the bytes to the tar archive.
-@pragma("vm:external-name", "VMService_RequestAssets")
-external Uint8List? _requestAssets();
 
 @pragma("vm:external-name", "VMService_AddUserTagsToStreamableSampleList")
 external void _addUserTagsToStreamableSampleList(List<String> userTags);

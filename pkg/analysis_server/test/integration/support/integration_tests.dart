@@ -716,7 +716,7 @@ class Server {
   }
 
   /// Start the server. If [profileServer] is `true`, the server will be started
-  /// with "--observe" and "--pause-isolates-on-exit", allowing the observatory
+  /// with "--observe" and "--pause-isolates-on-exit", allowing Dart DevTools
   /// to be used.
   Future<void> start({
     required String dartSdkPath,

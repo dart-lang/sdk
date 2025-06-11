@@ -1274,7 +1274,7 @@ class TypedDataMessageDeserializationCluster
   const intptr_t cid_;
 };
 
-// This function's name can appear in Observatory.
+// This function's name can appear in VM service responses.
 static void IsolateMessageTypedDataFinalizer(void* isolate_callback_data,
                                              void* buffer) {
   free(buffer);
