@@ -2,10 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/snippets/dart/flutter_stateful_widget_with_animation.dart';
-import 'package:analyzer/src/test_utilities/test_code_format.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'test_support.dart';
@@ -31,16 +28,8 @@ class FlutterStatefulWidgetWithAnimationControllerTest
   Future<void> test_noSuperParams() async {
     writeTestPackageConfig(flutter: true, languageVersion: '2.16');
 
-    var code = TestCode.empty;
-    var snippet = await expectValidSnippet(code);
-    expect(snippet.prefix, prefix);
-    expect(snippet.label, label);
-    var result = code.code;
-    expect(snippet.change.edits, hasLength(1));
-    for (var edit in snippet.change.edits) {
-      result = SourceEdit.applySequence(result, edit.edits);
-    }
-    expect(result, '''
+    var code = '^';
+    var expectedCode = r'''
 import 'package:flutter/widgets.dart';
 
 class MyWidget extends StatefulWidget {
@@ -70,7 +59,8 @@ class _MyWidgetState extends State<MyWidget>
   Widget build(BuildContext context) {
     return const Placeholder();
   }
-}''');
+}''';
+    await assertSnippetResult(code, expectedCode);
   }
 
   Future<void> test_notValid_notFlutterProject() async {
@@ -82,10 +72,8 @@ class _MyWidgetState extends State<MyWidget>
   Future<void> test_valid() async {
     writeTestPackageConfig(flutter: true);
 
-    var snippet = await expectValidSnippet(TestCode.empty);
-    expect(snippet.prefix, prefix);
-    expect(snippet.label, label);
-    var expected = TestCode.parse('''
+    var code = '^';
+    var expectedCode = r'''
 import 'package:flutter/widgets.dart';
 
 class /*0*/MyWidget extends StatefulWidget {
@@ -115,7 +103,7 @@ class _/*4*/MyWidgetState extends State</*5*/MyWidget>
   Widget build(BuildContext context) {
     return /*[0*/const Placeholder()/*0]*/;
   }
-}''');
-    assertFlutterSnippetChange(snippet.change, 'MyWidget', expected);
+}''';
+    await assertFlutterSnippetResult(code, expectedCode, 'MyWidget');
   }
 }
