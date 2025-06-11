@@ -702,6 +702,11 @@ class _ReferenceProcessor {
     if (!_shouldProcess()) {
       return;
     }
+    // References in a combinator list can't be inlined, but not doing so isn't
+    // an error.
+    if (nodeParent is Combinator) {
+      return;
+    }
     // If the element being inlined is async, ensure that the function
     // body that encloses the method is also async.
     if (ref._methodElement!.firstFragment.isAsynchronous) {
