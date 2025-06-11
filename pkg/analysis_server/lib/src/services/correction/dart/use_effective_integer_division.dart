@@ -25,7 +25,7 @@ class UseEffectiveIntegerDivision extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    for (var n in node.withParents) {
+    for (var n in node.withAncestors) {
       if (n is! MethodInvocation) continue;
       if (n.offset != errorOffset && n.length != errorLength) continue;
 

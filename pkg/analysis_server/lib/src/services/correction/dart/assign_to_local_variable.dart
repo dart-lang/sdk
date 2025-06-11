@@ -37,7 +37,7 @@ class AssignToLocalVariable extends ResolvedCorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     // prepare enclosing ExpressionStatement
     ExpressionStatement? expressionStatement;
-    for (var node in this.node.withParents) {
+    for (var node in this.node.withAncestors) {
       if (node is ExpressionStatement) {
         expressionStatement = node;
         break;

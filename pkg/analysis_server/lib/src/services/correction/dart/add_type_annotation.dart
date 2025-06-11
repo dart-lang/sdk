@@ -62,7 +62,7 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
       return;
     }
 
-    for (var node in this.node.withParents) {
+    for (var node in this.node.withAncestors) {
       if (node is VariableDeclarationList) {
         await _forVariableDeclaration(builder, node);
         return;

@@ -41,7 +41,7 @@ class RemoveTypeAnnotation extends ParsedCorrectionProducer {
       return _varAndType(builder);
     }
 
-    for (var node in this.node.withParents) {
+    for (var node in this.node.withAncestors) {
       if (node is DeclaredIdentifier) {
         return _removeFromDeclaredIdentifier(builder, node);
       }
