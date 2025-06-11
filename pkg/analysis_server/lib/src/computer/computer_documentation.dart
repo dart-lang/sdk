@@ -17,11 +17,7 @@ class DartDocumentationComputer {
     Element elementBeingDocumented, {
     bool includeSummary = false,
   }) {
-    var element = switch (elementBeingDocumented) {
-      FieldFormalParameterElement() => elementBeingDocumented.field2,
-      FormalParameterElement() => elementBeingDocumented.enclosingElement,
-      _ => elementBeingDocumented,
-    };
+    var element = elementBeingDocumented.elementWithDocumentation;
     if (element == null) {
       // This can happen when the code is invalid, such as having an
       // initializing formal parameter for a field that does not exist.
@@ -100,3 +96,29 @@ class DartDocumentationComputer {
 /// The type of documentation the user prefers to see in hovers and other
 /// related displays in their editor.
 enum DocumentationPreference { none, summary, full }
+
+extension on Element {
+  /// The element whose documentation should be used when showing documentation
+  /// for this element.
+  Element? get elementWithDocumentation {
+    var self = this;
+    if (self is FieldFormalParameterElement) {
+      return self.field2;
+    } else if (self is SuperFormalParameterElement) {
+      // Treat a super formal parameter like a field formal parameter if it's
+      // eventually assigned to a field, but as any other formal parameter if it
+      // isn't.
+      var superParameter = self.superConstructorParameter2;
+      while (superParameter is SuperFormalParameterElement) {
+        superParameter = superParameter.superConstructorParameter2;
+      }
+      if (superParameter is FieldFormalParameterElement) {
+        return superParameter.field2;
+      }
+      return self.enclosingElement;
+    } else if (self is FormalParameterElement) {
+      return self.enclosingElement;
+    }
+    return this;
+  }
+}
