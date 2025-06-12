@@ -160,7 +160,9 @@ class DartScopeBuilder extends VisitorDefault<void> with VisitorVoidMixin {
     //
     // A null name signals that the variable was synthetically introduced by the
     // compiler so they are skipped.
-    if ((decl.fileOffset < 0 || decl.fileOffset < _offset) && name != null) {
+    if ((decl.fileOffset < 0 || decl.fileOffset < _offset) &&
+        !decl.isWildcard &&
+        name != null) {
       _definitions[name] = decl.type;
     }
     super.visitVariableDeclaration(decl);
@@ -289,7 +291,8 @@ class DartScopeBuilder2 extends VisitorDefault<void> with VisitorVoidMixin {
         String? name = decl.name;
         if (name != null &&
             !decl.isSynthesized &&
-            !hoistedUnwritten.contains(decl)) {
+            !hoistedUnwritten.contains(decl) &&
+            !decl.isWildcard) {
           definitions[name] = decl;
         }
       }
