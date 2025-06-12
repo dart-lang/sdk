@@ -29,6 +29,7 @@ import '../../kernel/type_algorithms.dart';
 import '../../source/name_scheme.dart';
 import '../../source/source_class_builder.dart';
 import '../../source/source_constructor_builder.dart';
+import '../../source/source_extension_builder.dart';
 import '../../source/source_extension_type_declaration_builder.dart';
 import '../../source/source_function_builder.dart';
 import '../../source/source_library_builder.dart';
@@ -129,7 +130,7 @@ abstract class ConstructorDeclaration {
   void markAsErroneous();
 }
 
-mixin ConstructorDeclarationMixin
+mixin _ConstructorDeclarationMixin
     implements ConstructorDeclaration, ConstructorFragmentDeclaration {
   bool get _hasSuperInitializingFormals;
 
@@ -604,9 +605,9 @@ mixin ConstructorDeclarationMixin
   }
 }
 
-mixin RegularConstructorDeclarationMixin
-    implements ConstructorDeclarationMixin, InferredTypeListener {
-  RegularConstructorEncoding get _encoding;
+mixin _ConstructorEncodingMixin
+    implements ConstructorDeclaration, ConstructorFragmentDeclaration {
+  ConstructorEncoding get _encoding;
 
   @override
   FunctionNode get function => _encoding.function;
@@ -622,22 +623,6 @@ mixin RegularConstructorDeclarationMixin
 
   @override
   Reference get invokeTargetReference => _encoding.invokeTargetReference;
-
-  @override
-  void registerFunctionBody(Statement value) {
-    _encoding.registerFunctionBody(value);
-  }
-
-  @override
-  void registerNoBodyConstructor() {
-    _encoding.registerNoBodyConstructor();
-  }
-
-  @override
-  VariableDeclaration? get thisVariable => null;
-
-  @override
-  List<TypeParameter>? get thisTypeParameters => null;
 
   @override
   List<Initializer> get initializers => _encoding.initializers;
@@ -661,6 +646,36 @@ mixin RegularConstructorDeclarationMixin
   VariableDeclaration? getTearOffParameter(int index) {
     return _encoding.getTearOffParameter(index);
   }
+
+  @override
+  void markAsErroneous() {
+    _encoding.markAsErroneous();
+  }
+}
+
+mixin _RegularConstructorDeclarationMixin
+    implements
+        _ConstructorDeclarationMixin,
+        _ConstructorEncodingMixin,
+        InferredTypeListener {
+  @override
+  RegularConstructorEncoding get _encoding;
+
+  @override
+  void registerFunctionBody(Statement value) {
+    _encoding.registerFunctionBody(value);
+  }
+
+  @override
+  void registerNoBodyConstructor() {
+    _encoding.registerNoBodyConstructor();
+  }
+
+  @override
+  VariableDeclaration? get thisVariable => null;
+
+  @override
+  List<TypeParameter>? get thisTypeParameters => null;
 
   @override
   Substitution computeFieldTypeSubstitution(
@@ -750,15 +765,13 @@ mixin RegularConstructorDeclarationMixin
       }
     }
   }
-
-  @override
-  void markAsErroneous() {
-    _encoding.markAsErroneous();
-  }
 }
 
 class RegularConstructorDeclaration
-    with ConstructorDeclarationMixin, RegularConstructorDeclarationMixin
+    with
+        _ConstructorDeclarationMixin,
+        _ConstructorEncodingMixin,
+        _RegularConstructorDeclarationMixin
     implements ConstructorDeclaration, ConstructorFragmentDeclaration {
   final ConstructorFragment _fragment;
   final List<FormalParameterBuilder>? _syntheticFormals;
@@ -897,7 +910,10 @@ class RegularConstructorDeclaration
 
 // Coverage-ignore(suite): Not run.
 class PrimaryConstructorDeclaration
-    with ConstructorDeclarationMixin, RegularConstructorDeclarationMixin
+    with
+        _ConstructorDeclarationMixin,
+        _ConstructorEncodingMixin,
+        _RegularConstructorDeclarationMixin
     implements ConstructorDeclaration, ConstructorFragmentDeclaration {
   final PrimaryConstructorFragment _fragment;
 
@@ -1017,7 +1033,10 @@ class PrimaryConstructorDeclaration
 }
 
 class DefaultEnumConstructorDeclaration
-    with ConstructorDeclarationMixin, RegularConstructorDeclarationMixin
+    with
+        _ConstructorDeclarationMixin,
+        _ConstructorEncodingMixin,
+        _RegularConstructorDeclarationMixin
     implements ConstructorDeclaration {
   @override
   final Uri fileUri;
@@ -1144,24 +1163,13 @@ class DefaultEnumConstructorDeclaration
   }
 }
 
-mixin ExtensionTypeConstructorDeclarationMixin
-    implements ConstructorDeclarationMixin, InferredTypeListener {
+mixin _ExtensionTypeConstructorDeclarationMixin
+    implements
+        _ConstructorDeclarationMixin,
+        _ConstructorEncodingMixin,
+        InferredTypeListener {
+  @override
   ExtensionTypeConstructorEncoding get _encoding;
-
-  @override
-  FunctionNode get function => _encoding.function;
-
-  @override
-  Member get readTarget => _encoding.readTarget;
-
-  @override
-  Reference get readTargetReference => _encoding.readTargetReference;
-
-  @override
-  Member get invokeTarget => _encoding.invokeTarget;
-
-  @override
-  Reference get invokeTargetReference => _encoding.invokeTargetReference;
 
   @override
   void registerFunctionBody(Statement value) {
@@ -1180,31 +1188,8 @@ mixin ExtensionTypeConstructorDeclarationMixin
   List<TypeParameter>? get thisTypeParameters => _encoding.thisTypeParameters;
 
   @override
-  List<Initializer> get initializers => _encoding.initializers;
-
-  @override
-  void prepareInitializers() {
-    _encoding.prepareInitializers();
-  }
-
-  @override
-  void prependInitializer(Initializer initializer) {
-    _encoding.prependInitializer(initializer);
-  }
-
-  @override
   void becomeNative(SourceLoader loader) {
     throw new UnsupportedError("$runtimeType.becomeNative()");
-  }
-
-  @override
-  VariableDeclaration getFormalParameter(int index) {
-    return _encoding.getFormalParameter(index);
-  }
-
-  @override
-  VariableDeclaration? getTearOffParameter(int index) {
-    return _encoding.getTearOffParameter(index);
   }
 
   @override
@@ -1304,15 +1289,13 @@ mixin ExtensionTypeConstructorDeclarationMixin
       }
     }
   }
-
-  @override
-  void markAsErroneous() {
-    _encoding.markAsErroneous();
-  }
 }
 
 class ExtensionTypeConstructorDeclaration
-    with ConstructorDeclarationMixin, ExtensionTypeConstructorDeclarationMixin
+    with
+        _ConstructorDeclarationMixin,
+        _ConstructorEncodingMixin,
+        _ExtensionTypeConstructorDeclarationMixin
     implements ConstructorDeclaration, ConstructorFragmentDeclaration {
   final ConstructorFragment _fragment;
 
@@ -1435,7 +1418,10 @@ class ExtensionTypeConstructorDeclaration
 }
 
 class ExtensionTypePrimaryConstructorDeclaration
-    with ConstructorDeclarationMixin, ExtensionTypeConstructorDeclarationMixin
+    with
+        _ConstructorDeclarationMixin,
+        _ConstructorEncodingMixin,
+        _ExtensionTypeConstructorDeclarationMixin
     implements ConstructorDeclaration, ConstructorFragmentDeclaration {
   final PrimaryConstructorFragment _fragment;
 
@@ -1547,6 +1533,275 @@ class ExtensionTypePrimaryConstructorDeclaration
   int get fileOffset => _fragment.fileOffset;
 
   @override
+  Uri get fileUri => _fragment.fileUri;
+}
+
+mixin _ExtensionConstructorDeclarationMixin
+    implements
+        _ConstructorDeclarationMixin,
+        _ConstructorEncodingMixin,
+        InferredTypeListener {
+  @override
+  ExtensionConstructorEncoding get _encoding;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void registerFunctionBody(Statement value) {
+    _encoding.registerFunctionBody(value);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void registerNoBodyConstructor() {
+    _encoding.registerNoBodyConstructor();
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  VariableDeclaration? get thisVariable => _encoding.thisVariable;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  List<TypeParameter>? get thisTypeParameters => _encoding.thisTypeParameters;
+
+  @override
+  void becomeNative(SourceLoader loader) {
+    throw new UnsupportedError("$runtimeType.becomeNative()");
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Substitution computeFieldTypeSubstitution(
+      DeclarationBuilder declarationBuilder) {
+    if (_typeParameters != null) {
+      assert(
+          declarationBuilder.typeParameters!.length == _typeParameters?.length);
+      return Substitution.fromPairs(
+          (declarationBuilder as SourceExtensionTypeDeclarationBuilder)
+              .extensionTypeDeclaration
+              .typeParameters,
+          new List<DartType>.generate(
+              declarationBuilder.typeParameters!.length,
+              (int index) => new TypeParameterType.withDefaultNullability(
+                  function.typeParameters[index])));
+    } else {
+      return Substitution.empty;
+    }
+  }
+
+  @override
+  void buildBody() {
+    _encoding.buildBody();
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isRedirecting {
+    for (Initializer initializer in initializers) {
+      if (initializer is ExtensionTypeRedirectingInitializer) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  late final bool _hasSuperInitializingFormals =
+      formals?.any((formal) => formal.isSuperInitializingFormal) ?? false;
+
+  @override
+  void _addSuperParameterDefaultValueCloners(
+      {required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+      required Member superTarget,
+      required List<int?>? positionalSuperParameters,
+      required List<String>? namedSuperParameters,
+      required SourceLibraryBuilder libraryBuilder}) {
+    throw new UnsupportedError(
+        '$runtimeType.addSuperParameterDefaultValueCloners');
+  }
+
+  // Coverage-ignore(suite): Not run.
+  void _buildTypeParametersAndFormals({
+    required SourceLibraryBuilder libraryBuilder,
+    required DeclarationBuilder declarationBuilder,
+    required BodyBuilderContext bodyBuilderContext,
+    required ClassHierarchy classHierarchy,
+    required LookupScope typeParameterScope,
+  }) {
+    if (_typeParameters != null) {
+      for (int i = 0; i < _typeParameters!.length; i++) {
+        _typeParameters![i].buildOutlineExpressions(
+            libraryBuilder, bodyBuilderContext, classHierarchy);
+      }
+    }
+
+    if (formals != null) {
+      // For const constructors we need to include default parameter values
+      // into the outline. For all other formals we need to call
+      // buildOutlineExpressions to clear initializerToken to prevent
+      // consuming too much memory.
+      for (FormalParameterBuilder formal in formals!) {
+        formal.buildOutlineExpressions(libraryBuilder, declarationBuilder,
+            scope: typeParameterScope, buildDefaultValue: true);
+      }
+    }
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  BodyBuilderContext createBodyBuilderContext(
+      SourceConstructorBuilder constructorBuilder) {
+    return _encoding.createBodyBuilderContext(constructorBuilder, this);
+  }
+
+  @override
+  void onInferredType(DartType type) {
+    function.returnType = type;
+  }
+
+  @override
+  void registerInferable(Inferable inferable) {
+    returnType.registerInferredTypeListener(this);
+    if (formals != null) {
+      for (FormalParameterBuilder formal in formals!) {
+        if (formal.isInitializingFormal || formal.isSuperInitializingFormal) {
+          // Coverage-ignore-block(suite): Not run.
+          formal.type.registerInferable(inferable);
+        }
+      }
+    }
+  }
+}
+
+class ExtensionConstructorDeclaration
+    with
+        _ConstructorDeclarationMixin,
+        _ConstructorEncodingMixin,
+        _ExtensionConstructorDeclarationMixin
+    implements ConstructorDeclaration, ConstructorFragmentDeclaration {
+  final ConstructorFragment _fragment;
+
+  @override
+  final List<SourceNominalParameterBuilder>? _typeParameters;
+
+  @override
+  final ExtensionConstructorEncoding _encoding;
+
+  @override
+  Token? _beginInitializers;
+
+  ExtensionConstructorDeclaration(this._fragment,
+      {required List<SourceNominalParameterBuilder>? typeParameters})
+      : _typeParameters = typeParameters,
+        _beginInitializers = _fragment.beginInitializers,
+        _encoding = new ExtensionConstructorEncoding(
+            isExternal: _fragment.modifiers.isExternal) {
+    _fragment.declaration = this;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  LookupScope get _typeParameterScope => _fragment.typeParameterScope;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  List<MetadataBuilder>? get metadata => _fragment.metadata;
+
+  @override
+  OmittedTypeBuilder get returnType => _fragment.returnType;
+
+  @override
+  List<FormalParameterBuilder>? get formals => _fragment.formals;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isConst => _fragment.modifiers.isConst;
+
+  @override
+  bool get isExternal => _fragment.modifiers.isExternal;
+
+  @override
+  void createNode(
+      {required String name,
+      required SourceLibraryBuilder libraryBuilder,
+      required NameScheme nameScheme,
+      required Reference? constructorReference,
+      required Reference? tearOffReference}) {
+    _encoding.createNode(
+        name: name,
+        libraryBuilder: libraryBuilder,
+        nameScheme: nameScheme,
+        constructorReference: constructorReference,
+        tearOffReference: tearOffReference,
+        fileUri: _fragment.fileUri,
+        fileOffset: _fragment.fullNameOffset,
+        endOffset: _fragment.endOffset,
+        forAbstractClassOrEnumOrMixin: _fragment.forAbstractClassOrMixin);
+  }
+
+  @override
+  void buildOutlineNodes(BuildNodesCallback f,
+      {required SourceConstructorBuilder constructorBuilder,
+      required SourceLibraryBuilder libraryBuilder,
+      required Member declarationConstructor,
+      required List<DelayedDefaultValueCloner> delayedDefaultValueCloners}) {
+    _encoding.buildOutlineNodes(f,
+        constructorBuilder: constructorBuilder,
+        libraryBuilder: libraryBuilder,
+        declarationBuilder:
+            constructorBuilder.declarationBuilder as SourceExtensionBuilder,
+        declarationConstructor: declarationConstructor,
+        fileOffset: _fragment.fullNameOffset,
+        formalsOffset: _fragment.formalsOffset,
+        isConst: _fragment.modifiers.isConst,
+        returnType: returnType,
+        typeParameters: _typeParameters,
+        formals: formals,
+        delayedDefaultValueCloners: delayedDefaultValueCloners);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void _buildMetadataForOutlineExpressions(
+      {required Iterable<Annotatable> annotatables,
+      required Uri annotatablesFileUri,
+      required SourceLibraryBuilder libraryBuilder,
+      required DeclarationBuilder declarationBuilder,
+      required SourceConstructorBuilder constructorBuilder,
+      required BodyBuilderContext bodyBuilderContext,
+      required ClassHierarchy classHierarchy}) {
+    for (Annotatable annotatable in annotatables) {
+      MetadataBuilder.buildAnnotations(
+          annotatable: annotatable,
+          annotatableFileUri: annotatablesFileUri,
+          metadata: _fragment.metadata,
+          bodyBuilderContext: bodyBuilderContext,
+          libraryBuilder: libraryBuilder,
+          scope: _fragment.enclosingScope);
+    }
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void _buildTypeParametersAndFormalsForOutlineExpressions(
+      {required SourceLibraryBuilder libraryBuilder,
+      required DeclarationBuilder declarationBuilder,
+      required BodyBuilderContext bodyBuilderContext,
+      required ClassHierarchy classHierarchy}) {
+    _buildTypeParametersAndFormals(
+        libraryBuilder: libraryBuilder,
+        declarationBuilder: declarationBuilder,
+        bodyBuilderContext: bodyBuilderContext,
+        classHierarchy: classHierarchy,
+        typeParameterScope: _fragment.typeParameterScope);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  int get fileOffset => _fragment.fullNameOffset;
+
+  @override
+  // Coverage-ignore(suite): Not run.
   Uri get fileUri => _fragment.fileUri;
 }
 
