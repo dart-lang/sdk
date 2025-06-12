@@ -6,6 +6,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:path/path.dart' as path;
+
 import 'dds.dart' hide DartDevelopmentService;
 import 'src/arg_parser.dart';
 import 'src/dds_impl.dart';
@@ -55,29 +57,58 @@ class DartDevelopmentServiceLauncher {
     String? dartExecutable,
     String? google3WorkspaceRoot,
   }) async {
-    final process = await Process.start(
-      dartExecutable ?? Platform.executable,
-      <String>[
-        'development-service',
-        '--${DartDevelopmentServiceOptions.vmServiceUriOption}=$remoteVmServiceUri',
-        if (serviceUri != null) ...<String>[
-          '--${DartDevelopmentServiceOptions.bindAddressOption}=${serviceUri.host}',
-          '--${DartDevelopmentServiceOptions.bindPortOption}=${serviceUri.port}',
-        ],
-        if (!enableAuthCodes)
-          '--${DartDevelopmentServiceOptions.disableServiceAuthCodesFlag}',
-        if (serveDevTools)
-          '--${DartDevelopmentServiceOptions.serveDevToolsFlag}',
-        if (devToolsServerAddress != null)
-          '--${DartDevelopmentServiceOptions.devToolsServerAddressOption}=$devToolsServerAddress',
-        if (enableServicePortFallback)
-          '--${DartDevelopmentServiceOptions.enableServicePortFallbackFlag}',
-        for (final String tag in cachedUserTags)
-          '--${DartDevelopmentServiceOptions.cachedUserTagsOption}=$tag',
-        if (google3WorkspaceRoot != null)
-          '--${DartDevelopmentServiceOptions.google3WorkspaceRootOption}=$google3WorkspaceRoot',
+    var args = <String>[
+      '--${DartDevelopmentServiceOptions.vmServiceUriOption}=$remoteVmServiceUri',
+      if (serviceUri != null) ...<String>[
+        '--${DartDevelopmentServiceOptions.bindAddressOption}=${serviceUri.host}',       '--${DartDevelopmentServiceOptions.bindPortOption}=${serviceUri.port}',
       ],
-    );
+      if (!enableAuthCodes)
+        '--${DartDevelopmentServiceOptions.disableServiceAuthCodesFlag}',
+      if (serveDevTools)
+        '--${DartDevelopmentServiceOptions.serveDevToolsFlag}',
+      if (devToolsServerAddress != null)
+        '--${DartDevelopmentServiceOptions.devToolsServerAddressOption}=$devToolsServerAddress',
+      if (enableServicePortFallback)
+        '--${DartDevelopmentServiceOptions.enableServicePortFallbackFlag}',
+      for (final String tag in cachedUserTags)
+        '--${DartDevelopmentServiceOptions.cachedUserTagsOption}=$tag',
+      if (google3WorkspaceRoot != null)
+        '--${DartDevelopmentServiceOptions.google3WorkspaceRootOption}=$google3WorkspaceRoot',
+    ];
+    late String executable;
+    if (dartExecutable == null) {
+      // If a dart executable is not specified and we are able to locate
+      // the 'dartaotruntime' executable and the AOT snapshot for dds
+      // then invoke it directly as it would avoid the additional hop
+      // of going through the dart CLI process to invoke dds.
+      executable = Platform.executable;
+      var sdkPath = path.absolute(path.dirname(path.dirname(executable)), 'bin');
+      var snapshotsDir = path.join(sdkPath, 'snapshots');
+      final type = FileSystemEntity.typeSync(snapshotsDir);
+      if (type != FileSystemEntityType.directory &&
+          type != FileSystemEntityType.link) {
+        // This is the less common case where the user is in
+        // the checked out Dart SDK, and is executing `dart` via:
+        // ./out/ReleaseX64/dart ... or in google3.
+        sdkPath = path.absolute(path.dirname(executable));
+        snapshotsDir = sdkPath;
+      }
+      final dartAotRuntime = path.absolute(
+          sdkPath, Platform.isWindows ? 'dartaotruntime.exe' : 'dartaotruntime');
+      final ddsAotSnapshot =
+          path.absolute(snapshotsDir, 'dds_aot.dart.snapshot');
+      if (File(dartAotRuntime).existsSync()
+          && File(ddsAotSnapshot).existsSync()) {
+        executable = dartAotRuntime;
+        args = [ddsAotSnapshot, ...args];
+      } else {
+        args = ['development-service', ...args];
+      }
+    } else {
+      executable = dartExecutable;
+      args = ['development-service', ...args];
+    }
+    final process = await Process.start(executable, args);
     final completer = Completer<DartDevelopmentServiceLauncher>();
     late StreamSubscription<Object?> stderrSub;
     stderrSub = process.stderr
