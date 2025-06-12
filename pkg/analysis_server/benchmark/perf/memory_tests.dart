@@ -225,7 +225,7 @@ class LspAnalysisServerMemoryUsageTest
     _vmServicePort = await ServiceProtocol._findAvailableSocketPort();
     vmArgs.addAll([
       '--enable-vm-service=$_vmServicePort',
-      '-DSILENT_OBSERVATORY=true',
+      '-DSILENT_VM_SERVICE=true',
       '--disable-service-auth-codes',
       '--disable-dart-dev',
       '--no-dds',

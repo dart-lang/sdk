@@ -262,7 +262,7 @@ class EnumListParameter : public MethodParameter {
   }
 
  private:
-  // For now observatory enums are ascii letters plus underscore.
+  // For now VM service enums are ascii letters plus underscore.
   static bool IsEnumChar(char c) {
     return (((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z')) ||
             (c == '_'));
@@ -474,7 +474,6 @@ const ServiceMethodDescriptor* FindMethod(const char* method_name);
 // Support for streams defined in embedders.
 Dart_ServiceStreamListenCallback Service::stream_listen_callback_ = nullptr;
 Dart_ServiceStreamCancelCallback Service::stream_cancel_callback_ = nullptr;
-Dart_GetVMServiceAssetsArchive Service::get_service_assets_callback_ = nullptr;
 Dart_EmbedderInformationCallback Service::embedder_information_callback_ =
     nullptr;
 
@@ -542,47 +541,6 @@ void Service::CancelStream(const char* stream_id) {
     TransitionVMToNative transition(T);
     return (*stream_cancel_callback_)(stream_id);
   }
-}
-
-ObjectPtr Service::RequestAssets() {
-  Thread* T = Thread::Current();
-  Object& object = Object::Handle();
-  {
-    Api::Scope api_scope(T);
-    Dart_Handle handle;
-    {
-      TransitionVMToNative transition(T);
-      if (get_service_assets_callback_ == nullptr) {
-        return Object::null();
-      }
-      handle = get_service_assets_callback_();
-      if (Dart_IsError(handle)) {
-        Dart_PropagateError(handle);
-      }
-    }
-    object = Api::UnwrapHandle(handle);
-  }
-  if (object.IsNull()) {
-    return Object::null();
-  }
-  if (!object.IsTypedData()) {
-    const String& error_message = String::Handle(
-        String::New("An implementation of Dart_GetVMServiceAssetsArchive "
-                    "should return a Uint8Array or null."));
-    const Error& error = Error::Handle(ApiError::New(error_message));
-    Exceptions::PropagateError(error);
-    return Object::null();
-  }
-  const TypedData& typed_data = TypedData::Cast(object);
-  if (typed_data.ElementSizeInBytes() != 1) {
-    const String& error_message = String::Handle(
-        String::New("An implementation of Dart_GetVMServiceAssetsArchive "
-                    "should return a Uint8Array or null."));
-    const Error& error = Error::Handle(ApiError::New(error_message));
-    Exceptions::PropagateError(error);
-    return Object::null();
-  }
-  return object.ptr();
 }
 
 static void PrintSuccess(JSONStream* js) {
@@ -1494,11 +1452,6 @@ void Service::SetEmbedderStreamCallbacks(
     Dart_ServiceStreamCancelCallback cancel_callback) {
   stream_listen_callback_ = listen_callback;
   stream_cancel_callback_ = cancel_callback;
-}
-
-void Service::SetGetServiceAssetsCallback(
-    Dart_GetVMServiceAssetsArchive get_service_assets) {
-  get_service_assets_callback_ = get_service_assets;
 }
 
 void Service::SetEmbedderInformationCallback(

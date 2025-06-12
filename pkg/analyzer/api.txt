@@ -4655,8 +4655,8 @@ package:analyzer/dart/sdk/build_sdk_summary.dart:
   buildSdkSummary (function: Future<Uint8List> Function({String? embedderYamlPath, required ResourceProvider resourceProvider, required String sdkPath}))
 package:analyzer/diagnostic/diagnostic.dart:
   Diagnostic (class extends Object):
-    forValues (constructor: Diagnostic Function({List<DiagnosticMessage> contextMessages, String? correctionMessage, Object? data, required DiagnosticCode errorCode, required int length, required String message, required int offset, required Source source}))
-    tmp (constructor: Diagnostic Function({List<Object?> arguments, List<DiagnosticMessage> contextMessages, Object? data, required DiagnosticCode errorCode, required int length, required int offset, required Source source}))
+    forValues (constructor: Diagnostic Function({List<DiagnosticMessage> contextMessages, String? correctionMessage, Object? data, DiagnosticCode? diagnosticCode, DiagnosticCode? errorCode, required int length, required String message, required int offset, required Source source}))
+    tmp (constructor: Diagnostic Function({List<Object?> arguments, List<DiagnosticMessage> contextMessages, Object? data, DiagnosticCode? diagnosticCode, DiagnosticCode? errorCode, required int length, required int offset, required Source source}))
     contextMessages (getter: List<DiagnosticMessage>)
     correction (getter: String?, deprecated)
     correctionMessage (getter: String?)

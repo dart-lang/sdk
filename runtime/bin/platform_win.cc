@@ -386,16 +386,20 @@ intptr_t Platform::ResolveExecutablePathInto(char* result, size_t result_size) {
   // Ensure no last error before calling GetModuleFileNameW.
   SetLastError(ERROR_SUCCESS);
   const int kTmpBufferSize = 32768;
-  wchar_t tmp_buffer[kTmpBufferSize];
+  wchar_t tmp_buffer_1[kTmpBufferSize];
+  char tmp_buffer_2[kTmpBufferSize];
   // Get the required length of the buffer.
-  GetModuleFileNameW(nullptr, tmp_buffer, kTmpBufferSize);
+  GetModuleFileNameW(nullptr, tmp_buffer_1, kTmpBufferSize);
   if (GetLastError() != ERROR_SUCCESS) {
     return -1;
   }
-  WideToUtf8Scope wide_to_utf8_scope(tmp_buffer);
-  if (wide_to_utf8_scope.length() <= result_size) {
-    strncpy(result, wide_to_utf8_scope.utf8(), result_size);
-    return wide_to_utf8_scope.length();
+  WideToUtf8Scope wide_to_utf8_scope(tmp_buffer_1);
+  if (wide_to_utf8_scope.length() <= kTmpBufferSize) {
+    strncpy(tmp_buffer_2, wide_to_utf8_scope.utf8(), kTmpBufferSize);
+    if (!File::GetCanonicalPath(nullptr, tmp_buffer_2, result, result_size)) {
+      return -1;
+    }
+    return strlen(result);
   }
   return -1;
 }

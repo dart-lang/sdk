@@ -1771,7 +1771,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
           source: source,
           offset: evaluationResult.offset,
           length: evaluationResult.length,
-          errorCode: evaluationResult.diagnosticCode,
+          diagnosticCode: evaluationResult.diagnosticCode,
           arguments: evaluationResult.arguments,
           contextMessages: evaluationResult.contextMessages,
         ),

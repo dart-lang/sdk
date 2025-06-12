@@ -64,9 +64,6 @@ bool _enableServicePortFallback = false;
 bool _waitForDdsToAdvertiseService = false;
 
 @pragma('vm:entry-point', !bool.fromEnvironment('dart.vm.product'))
-bool _serveObservatory = false;
-
-@pragma('vm:entry-point', !bool.fromEnvironment('dart.vm.product'))
 bool _printDtd = false;
 
 File? _residentCompilerInfoFile = null;
@@ -128,8 +125,6 @@ Future<Uri> createTempDirCallback(String base) async {
 
 Future<void> deleteDirCallback(Uri path) async =>
     await Directory.fromUri(path).delete(recursive: true);
-
-void serveObservatoryCallback() => _serveObservatory = true;
 
 class PendingWrite {
   PendingWrite(this.uri, this.bytes);
@@ -237,7 +232,7 @@ Future<void> _toggleWebServer() async {
 
 Future<Uri?> webServerControlCallback(bool enable, bool? silenceOutput) async {
   if (silenceOutput != null) {
-    silentObservatory = silenceOutput;
+    silentVMService = silenceOutput;
   }
   if (server.running != enable) {
     await _toggleWebServer();
@@ -286,7 +281,6 @@ void main() {
   VMServiceEmbedderHooks.webServerControl = webServerControlCallback;
   VMServiceEmbedderHooks.acceptNewWebSocketConnections =
       webServerAcceptNewWebSocketConnections;
-  VMServiceEmbedderHooks.serveObservatory = serveObservatoryCallback;
   VMServiceEmbedderHooks.getResidentCompilerInfoFile =
       _getResidentCompilerInfoFile;
 

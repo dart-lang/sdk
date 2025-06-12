@@ -133,7 +133,7 @@ class Scanner {
         source: source,
         offset: offset,
         length: 1,
-        errorCode: errorCode,
+        diagnosticCode: errorCode,
         arguments: arguments ?? const [],
       ),
     );
@@ -206,7 +206,7 @@ class Scanner {
           source: source,
           offset: versionToken.offset,
           length: versionToken.length,
-          errorCode: WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER,
+          diagnosticCode: WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER,
           arguments: [latestVersion.major, latestVersion.minor],
         ),
       );

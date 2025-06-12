@@ -816,6 +816,38 @@ void f() {
     assertHasRegion(HighlightRegionType.CONSTRUCTOR, 'name(42)');
   }
 
+  Future<void> test_CONSTRUCTOR_implicitNew_dotShorthand() async {
+    addTestFile('''
+class A {
+  A();
+  A.named(int x);
+}
+void f() {
+  A a = .new();
+  A aa = .named(42);
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.CONSTRUCTOR, 'new()');
+    assertHasRegion(HighlightRegionType.CONSTRUCTOR, 'named(42)');
+  }
+
+  Future<void> test_CONSTRUCTOR_TEAR_OFF_dotShorthand() async {
+    addTestFile('''
+class A {
+  A();
+  A.named();
+}
+void f() {
+  A a = .new;  // compile-time error
+  A aa = .named; // compile-time error
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.CONSTRUCTOR_TEAR_OFF, 'new;');
+    assertHasRegion(HighlightRegionType.CONSTRUCTOR_TEAR_OFF, 'named;');
+  }
+
   Future<void> test_CONSTRUCTOR_TEAR_OFF_named() async {
     addTestFile('''
 class A<T> {
@@ -1002,6 +1034,17 @@ void f() {
 51 + 6 |MyEnum| ENUM
 58 + 3 |BBB| ENUM_CONSTANT
 ''');
+  }
+
+  Future<void> test_enum_constant_dotShorthand() async {
+    addTestFile('''
+enum E { a }
+void f() {
+  E e = .a;
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.ENUM_CONSTANT, 'a;');
   }
 
   Future<void> test_enum_constructor() async {
@@ -1362,6 +1405,31 @@ void f(A a) {
     assertHasRegion(HighlightRegionType.TOP_LEVEL_GETTER_REFERENCE, 'aaa;');
     assertHasRegion(HighlightRegionType.INSTANCE_GETTER_REFERENCE, 'bbb;');
     assertHasRegion(HighlightRegionType.STATIC_GETTER_REFERENCE, 'ccc;');
+  }
+
+  Future<void> test_GETTER_dotShorthand() async {
+    addTestFile('''
+class A {
+  static A get aGetter => A();
+}
+extension type B(int x) {
+  static B get bGetter => B(1);
+}
+class C {}
+class D extends C with Mixin {}
+mixin Mixin on C {
+  static Mixin get dGetter => D();
+}
+void f() {
+  A a = .aGetter;
+  B b = .bGetter;
+  Mixin m = .dGetter;
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.STATIC_GETTER_REFERENCE, 'aGetter;');
+    assertHasRegion(HighlightRegionType.STATIC_GETTER_REFERENCE, 'bGetter;');
+    assertHasRegion(HighlightRegionType.STATIC_GETTER_REFERENCE, 'dGetter;');
   }
 
   Future<void> test_IDENTIFIER_DEFAULT() async {
@@ -1941,6 +2009,37 @@ void f(p) {
 ''');
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.INSTANCE_METHOD_REFERENCE, 'add(null)');
+  }
+
+  Future<void> test_METHOD_dotShorthand() async {
+    addTestFile('''
+class A {
+  static A aMethod() => A();
+}
+extension type B(int x) {
+  static B bMethod() => B(1);
+}
+class C {}
+class D extends C with Mixin {}
+mixin Mixin on C {
+  static Mixin dMethod() => D();
+}
+void f() {
+  A a = .aMethod();
+  A aa = .aMethod; // compile-time error
+  B b = .bMethod();
+  B bb = .bMethod; // compile-time error
+  Mixin m = .dMethod();
+  Mixin mm = .dMethod; // compile-time error
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.STATIC_METHOD_REFERENCE, 'aMethod();');
+    assertHasRegion(HighlightRegionType.STATIC_METHOD_TEAR_OFF, 'aMethod;');
+    assertHasRegion(HighlightRegionType.STATIC_METHOD_REFERENCE, 'bMethod();');
+    assertHasRegion(HighlightRegionType.STATIC_METHOD_TEAR_OFF, 'bMethod;');
+    assertHasRegion(HighlightRegionType.STATIC_METHOD_REFERENCE, 'dMethod();');
+    assertHasRegion(HighlightRegionType.STATIC_METHOD_TEAR_OFF, 'dMethod;');
   }
 
   Future<void> test_mixin() async {

@@ -441,7 +441,9 @@ class DartUnitHighlightsComputer {
     }
     var isStatic = element.isStatic;
     var isInvocation =
-        parent is MethodInvocation && parent.methodName.token == nameToken;
+        (parent is MethodInvocation && parent.methodName.token == nameToken) ||
+        (parent is DotShorthandInvocation &&
+            parent.memberName.token == nameToken);
     // OK
     HighlightRegionType type;
     if (isStatic) {
@@ -977,6 +979,23 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
       semanticTokenModifiers: {CustomSemanticTokenModifiers.control},
     );
     super.visitDoStatement(node);
+  }
+
+  @override
+  void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
+    var element = node.propertyName.element;
+    if (element is ConstructorElement) {
+      computer._addRegion_node(
+        node.propertyName,
+        HighlightRegionType.CONSTRUCTOR_TEAR_OFF,
+      );
+    } else {
+      computer._addIdentifierRegion(
+        parent: node,
+        nameToken: node.propertyName.token,
+        element: element,
+      );
+    }
   }
 
   @override

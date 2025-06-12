@@ -114,7 +114,7 @@ analyzer:
       source: TestSource(),
       offset: 0,
       length: 1,
-      errorCode: WarningCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR,
+      diagnosticCode: WarningCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR,
       arguments: [
         ['x'],
         ['y'],
@@ -139,7 +139,7 @@ analyzer:
       source: TestSource(),
       offset: 0,
       length: 1,
-      errorCode: WarningCode.UNUSED_LOCAL_VARIABLE,
+      diagnosticCode: WarningCode.UNUSED_LOCAL_VARIABLE,
       arguments: [
         ['x'],
       ],
@@ -164,7 +164,7 @@ analyzer:
       source: TestSource(),
       offset: 0,
       length: 1,
-      errorCode: CompileTimeErrorCode.INVALID_ASSIGNMENT,
+      diagnosticCode: CompileTimeErrorCode.INVALID_ASSIGNMENT,
       arguments: [
         ['x'],
         ['y'],
@@ -190,7 +190,7 @@ analyzer:
       source: TestSource(),
       offset: 0,
       length: 1,
-      errorCode: WarningCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR,
+      diagnosticCode: WarningCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR,
       arguments: [
         ['x'],
         ['y'],

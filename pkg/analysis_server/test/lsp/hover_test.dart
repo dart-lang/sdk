@@ -1120,6 +1120,53 @@ This is a string.''';
     await assertStringContents(content, equals(expected));
   }
 
+  Future<void> test_superFormalParameter_fromField() async {
+    var content = '''
+class A {
+  /// The field a.
+  int a;
+
+  A(this.a);
+}
+
+class B extends A {
+  B(super.a);
+}
+
+class C extends B {
+  C(super.[!^a!]);
+}
+''';
+    var expected = '''
+```dart
+int a
+```
+Type: `int`
+
+---
+The field a.''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_superFormalParameter_notFromChainedConstructor() async {
+    var content = '''
+class A {
+  /// The constructor a.
+  A(int a);
+}
+
+class B extends A {
+  B(super.[!^a!]);
+}
+''';
+    var expected = '''
+```dart
+int a
+```
+Type: `int`''';
+    await assertStringContents(content, equals(expected));
+  }
+
   Future<void> test_topLevelFunction_underscore() async {
     var content = '''
 int _() => 1;

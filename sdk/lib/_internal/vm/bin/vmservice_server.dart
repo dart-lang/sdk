@@ -643,24 +643,10 @@ class Server {
       _handleWebSocketRequest(request);
       return;
     }
-    // Don't redirect HTTP VM service requests, just requests for Observatory
+    // Don't redirect HTTP VM service requests, just requests for DevTools
     // assets.
-    if (!_serveObservatory && path == ROOT_REDIRECT_PATH) {
+    if (path == ROOT_REDIRECT_PATH) {
       await _redirectToDevTools(request);
-      return;
-    }
-    if (assets == null) {
-      request.response.headers.contentType = ContentType.text;
-      request.response.write('This VM was built without the Observatory UI.');
-      request.response.close();
-      return;
-    }
-    final asset = assets![path];
-    if (asset != null) {
-      // Serving up a static asset (e.g. .css, .html, .png).
-      request.response.headers.contentType = ContentType.parse(asset.mimeType);
-      request.response.add(asset.data);
-      request.response.close();
       return;
     }
     // HTTP based service request.

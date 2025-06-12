@@ -243,7 +243,32 @@ void f() {
     );
   }
 
-  Future<void> test_bad_inShowCombinator() async {
+  Future<void> test_bad_inShowCombinator_atDeclaration() async {
+    var referencingFilePath = '$testPackageLibPath/a.dart';
+    newFile(referencingFilePath, '''
+import 'test.dart' show f;
+
+void g() {
+  f();
+}
+''');
+    await indexTestUnit(r'''
+void f() {
+  print(42);
+}
+''');
+    _createRefactoring('f(');
+    await _assertSuccessfulRefactoring('');
+    assertFileChangeResult(referencingFilePath, '''
+import 'test.dart' show f;
+
+void g() {
+  print(42);
+}
+''');
+  }
+
+  Future<void> test_bad_inShowCombinator_atShowCombinator() async {
     newFile('$testPackageLibPath/a.dart', '''
 void f() {
   print(42);

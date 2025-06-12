@@ -49,15 +49,12 @@ that will be written to the instrumentation log file. Currently, the best choice
 for this is the `plugin.error` notification. Just be sure that `isFatal` has a
 value of `false`.
 
-## Using Observatory
+## Using Dart DevTools
 
 If the client you're using allows you to pass command-line flags to the VM, then
-you can also run the analysis server under the Observatory. Pass in both
+you can also run the analysis server under Dart DevTools. Pass in both
 `--observe` and `--pause-isolates-on-start`, then point your browser to
-`http://localhost:8181`. To learn more, see the
-[observatory][observatory] documentation.
+`http://localhost:8181`.
 
 If you're using IntelliJ as your client, open the "Registry..." dialog and edit
 the entry named "dart.server.vm.options".
-
-[observatory]: https://dart-lang.github.io/observatory/

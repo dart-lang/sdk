@@ -21,7 +21,7 @@ main() {
     source: TestSource(),
     offset: 0,
     length: 1,
-    errorCode: CompileTimeErrorCode.INVALID_ASSIGNMENT,
+    diagnosticCode: CompileTimeErrorCode.INVALID_ASSIGNMENT,
     arguments: [
       ['x'],
       ['y'],
@@ -32,7 +32,7 @@ main() {
     source: TestSource(),
     offset: 0,
     length: 1,
-    errorCode: WarningCode.ASSIGNMENT_OF_DO_NOT_STORE,
+    diagnosticCode: WarningCode.ASSIGNMENT_OF_DO_NOT_STORE,
     arguments: [
       ['x'],
     ],
@@ -42,7 +42,7 @@ main() {
     source: TestSource(),
     offset: 0,
     length: 1,
-    errorCode: WarningCode.UNUSED_LOCAL_VARIABLE,
+    diagnosticCode: WarningCode.UNUSED_LOCAL_VARIABLE,
     arguments: [
       ['x'],
     ],
@@ -52,7 +52,7 @@ main() {
     source: TestSource(),
     offset: 0,
     length: 1,
-    errorCode: CompileTimeErrorCode.USE_OF_VOID_RESULT,
+    diagnosticCode: CompileTimeErrorCode.USE_OF_VOID_RESULT,
   );
 
   // We in-line a lint code here in order to avoid adding a dependency on the
@@ -61,7 +61,7 @@ main() {
     source: TestSource(),
     offset: 0,
     length: 1,
-    errorCode: LintCode('annotate_overrides', ''),
+    diagnosticCode: LintCode('annotate_overrides', ''),
   );
 
   group('ErrorProcessor', () {

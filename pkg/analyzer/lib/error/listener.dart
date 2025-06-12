@@ -216,7 +216,7 @@ class DiagnosticReporter {
         source: _source,
         offset: offset,
         length: length,
-        errorCode: diagnosticCode,
+        diagnosticCode: diagnosticCode,
         arguments: arguments ?? const [],
         contextMessages: contextMessages,
         data: data,

@@ -910,9 +910,6 @@ dart_executable("dart") {
     "..:libdart_jit",
     "../platform:libdart_platform_jit",
   ]
-  if (dart_runtime_mode != "release") {
-    extra_deps += [ "../observatory:standalone_observatory_archive" ]
-  }
   extra_sources = [
     "builtin.cc",
     "dartdev_isolate.cc",
@@ -926,9 +923,6 @@ dart_executable("dart") {
     "main.cc",
     "main_impl.cc",
   ]
-  if (dart_runtime_mode == "release") {
-    extra_sources += [ "observatory_assets_empty.cc" ]
-  }
   if (!exclude_kernel_service) {
     extra_deps += [ ":dart_kernel_platform_cc" ]
   }
@@ -949,9 +943,6 @@ dart_executable("dartaotruntime") {
     "..:libdart_aotruntime",
     "../platform:libdart_platform_aotruntime",
   ]
-  if (dart_runtime_mode != "release") {
-    extra_deps += [ "../observatory:standalone_observatory_archive" ]
-  }
   extra_sources = [
     "builtin.cc",
     "gzip.cc",
@@ -974,10 +965,6 @@ dart_executable("dartaotruntime") {
       ":shared_object_loaders",
     ]
   }
-
-  if (dart_runtime_mode == "release") {
-    extra_sources += [ "observatory_assets_empty.cc" ]
-  }
 }
 
 dart_executable("dartaotruntime_product") {
@@ -998,7 +985,6 @@ dart_executable("dartaotruntime_product") {
     "loader.h",
     "main.cc",
     "main_impl.cc",
-    "observatory_assets_empty.cc",
     "snapshot_empty.cc",
   ]
 

@@ -927,6 +927,190 @@ import '../file.dart'
     await _initializeAndVerifyTokens(content, expected);
   }
 
+  Future<void> test_dotShorthand_constructor() async {
+    failTestOnErrorDiagnostic = false;
+
+    var content = r'''
+class A {
+  A();
+  A.named(int x);
+}
+void f() {
+  [!
+  A a = .new();
+  A aa = .named(42);
+  A aTearOff = .new;
+  A aTearOff = .named;
+  !]
+}
+''';
+
+    var expected = [
+      _Token('A', SemanticTokenTypes.class_),
+      _Token('a', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('new', SemanticTokenTypes.method, [
+        CustomSemanticTokenModifiers.constructor,
+      ]),
+      _Token('A', SemanticTokenTypes.class_),
+      _Token('aa', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('named', SemanticTokenTypes.method, [
+        CustomSemanticTokenModifiers.constructor,
+      ]),
+      _Token('42', SemanticTokenTypes.number),
+      _Token('A', SemanticTokenTypes.class_),
+      _Token('aTearOff', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('new', SemanticTokenTypes.method, [
+        CustomSemanticTokenModifiers.constructor,
+      ]),
+      _Token('A', SemanticTokenTypes.class_),
+      _Token('aTearOff', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('named', SemanticTokenTypes.method, [
+        CustomSemanticTokenModifiers.constructor,
+      ]),
+    ];
+
+    await _initializeAndVerifyTokensInRange(content, expected);
+  }
+
+  Future<void> test_dotShorthand_getter() async {
+    var content = r'''
+enum E { a }
+class A {
+  static A get aGetter => A();
+}
+extension type B(int x) {
+  static B get bGetter => B(1);
+}
+class C {}
+class D extends C with Mixin {}
+mixin Mixin on C {
+  static Mixin get dGetter => D();
+}
+void f() {
+  [!
+  E e = .a;
+  A a = .aGetter;
+  B b = .bGetter;
+  Mixin m = .dGetter;
+  !]
+}
+''';
+
+    var expected = [
+      _Token('E', SemanticTokenTypes.enum_),
+      _Token('e', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('a', SemanticTokenTypes.enumMember),
+      _Token('A', SemanticTokenTypes.class_),
+      _Token('a', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('aGetter', SemanticTokenTypes.property, [
+        SemanticTokenModifiers.static,
+      ]),
+      _Token('B', SemanticTokenTypes.class_),
+      _Token('b', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('bGetter', SemanticTokenTypes.property, [
+        SemanticTokenModifiers.static,
+      ]),
+      _Token('Mixin', SemanticTokenTypes.class_),
+      _Token('m', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('dGetter', SemanticTokenTypes.property, [
+        SemanticTokenModifiers.static,
+      ]),
+    ];
+
+    await _initializeAndVerifyTokensInRange(content, expected);
+  }
+
+  Future<void> test_dotShorthand_method() async {
+    failTestOnErrorDiagnostic = false;
+
+    var content = r'''
+class A {
+  static A aMethod() => A();
+}
+extension type B(int x) {
+  static B bMethod() => B(1);
+}
+class C {}
+class D extends C with Mixin {}
+mixin Mixin on C {
+  static Mixin dMethod() => D();
+}
+void f() {
+  [!
+  A a = .aMethod();
+  A aa = .aMethod;
+  B b = .bMethod();
+  B bb = .bMethod;
+  Mixin m = .dMethod();
+  Mixin mm = .dMethod;
+  !]
+}
+''';
+
+    var expected = [
+      _Token('A', SemanticTokenTypes.class_),
+      _Token('a', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('aMethod', SemanticTokenTypes.method, [
+        SemanticTokenModifiers.static,
+      ]),
+      _Token('A', SemanticTokenTypes.class_),
+      _Token('aa', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('aMethod', SemanticTokenTypes.method, [
+        SemanticTokenModifiers.static,
+      ]),
+      _Token('B', SemanticTokenTypes.class_),
+      _Token('b', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('bMethod', SemanticTokenTypes.method, [
+        SemanticTokenModifiers.static,
+      ]),
+      _Token('B', SemanticTokenTypes.class_),
+      _Token('bb', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('bMethod', SemanticTokenTypes.method, [
+        SemanticTokenModifiers.static,
+      ]),
+      _Token('Mixin', SemanticTokenTypes.class_),
+      _Token('m', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('dMethod', SemanticTokenTypes.method, [
+        SemanticTokenModifiers.static,
+      ]),
+      _Token('Mixin', SemanticTokenTypes.class_),
+      _Token('mm', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('dMethod', SemanticTokenTypes.method, [
+        SemanticTokenModifiers.static,
+      ]),
+    ];
+
+    await _initializeAndVerifyTokensInRange(content, expected);
+  }
+
   Future<void> test_emptyAnalysisRoots_handlesFileRequestsImmediately() async {
     var content = '''
 // test

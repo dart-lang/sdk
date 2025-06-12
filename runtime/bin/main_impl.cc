@@ -1117,27 +1117,6 @@ static bool CheckForInvalidPath(const char* path) {
   return true;
 }
 
-// Observatory assets are not included in a product build.
-#if !defined(PRODUCT)
-extern unsigned int observatory_assets_archive_len;
-extern const uint8_t* observatory_assets_archive;
-
-Dart_Handle GetVMServiceAssetsArchiveCallback() {
-  uint8_t* decompressed = nullptr;
-  intptr_t decompressed_len = 0;
-  Decompress(observatory_assets_archive, observatory_assets_archive_len,
-             &decompressed, &decompressed_len);
-  Dart_Handle tar_file =
-      DartUtils::MakeUint8Array(decompressed, decompressed_len);
-  // Free decompressed memory as it has been copied into a Dart array.
-  free(decompressed);
-  return tar_file;
-}
-#else   // !defined(PRODUCT)
-static Dart_GetVMServiceAssetsArchive GetVMServiceAssetsArchiveCallback =
-    nullptr;
-#endif  // !defined(PRODUCT)
-
 void main(int argc, char** argv) {
 #if !defined(DART_HOST_OS_WINDOWS)
   // Very early so any crashes during startup can also be symbolized.
@@ -1384,7 +1363,6 @@ void main(int argc, char** argv) {
   init_params.file_write = DartUtils::WriteFile;
   init_params.file_close = DartUtils::CloseFile;
   init_params.entropy_source = DartUtils::EntropySource;
-  init_params.get_service_assets = GetVMServiceAssetsArchiveCallback;
 #if !defined(DART_PRECOMPILED_RUNTIME)
   init_params.start_kernel_isolate =
       dfe.UseDartFrontend() && dfe.CanUseDartFrontend();

@@ -29,7 +29,8 @@ class DiagnosticFactory {
       source: source,
       offset: duplicate.offset,
       length: duplicate.length,
-      errorCode: CompileTimeErrorCode.DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE,
+      diagnosticCode:
+          CompileTimeErrorCode.DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE,
       arguments: [variable.name3!],
       contextMessages: [
         DiagnosticMessageImpl(
@@ -59,7 +60,7 @@ class DiagnosticFactory {
       source: duplicateFragment.libraryFragment!.source,
       offset: duplicateFragment.nameOffset2 ?? -1,
       length: duplicate.name3!.length,
-      errorCode: code,
+      diagnosticCode: code,
       arguments: arguments,
       contextMessages: [
         DiagnosticMessageImpl(
@@ -86,7 +87,7 @@ class DiagnosticFactory {
       source: source,
       offset: duplicateNode.offset,
       length: duplicateNode.length,
-      errorCode: code,
+      diagnosticCode: code,
       arguments: arguments,
       contextMessages: [
         DiagnosticMessageImpl(
@@ -113,7 +114,7 @@ class DiagnosticFactory {
       source: source,
       offset: duplicateNode.offset,
       length: duplicateNode.length,
-      errorCode: CompileTimeErrorCode.DUPLICATE_FIELD_NAME,
+      diagnosticCode: CompileTimeErrorCode.DUPLICATE_FIELD_NAME,
       arguments: [duplicateName],
       contextMessages: [
         DiagnosticMessageImpl(
@@ -143,7 +144,7 @@ class DiagnosticFactory {
       source: source,
       offset: duplicateNode.offset,
       length: duplicateNode.length,
-      errorCode: CompileTimeErrorCode.DUPLICATE_FIELD_NAME,
+      diagnosticCode: CompileTimeErrorCode.DUPLICATE_FIELD_NAME,
       arguments: [duplicateName],
       contextMessages: [
         DiagnosticMessageImpl(
@@ -173,7 +174,7 @@ class DiagnosticFactory {
       source: source,
       offset: duplicateTarget.offset,
       length: duplicateTarget.length,
-      errorCode: CompileTimeErrorCode.DUPLICATE_PATTERN_FIELD,
+      diagnosticCode: CompileTimeErrorCode.DUPLICATE_PATTERN_FIELD,
       arguments: [name],
       contextMessages: [
         DiagnosticMessageImpl(
@@ -198,7 +199,7 @@ class DiagnosticFactory {
       source: source,
       offset: duplicateElement.offset,
       length: duplicateElement.length,
-      errorCode: CompileTimeErrorCode.DUPLICATE_REST_ELEMENT_IN_PATTERN,
+      diagnosticCode: CompileTimeErrorCode.DUPLICATE_REST_ELEMENT_IN_PATTERN,
       contextMessages: [
         DiagnosticMessageImpl(
           filePath: source.fullName,
@@ -222,7 +223,7 @@ class DiagnosticFactory {
       source: source,
       offset: duplicateElement.offset,
       length: duplicateElement.length,
-      errorCode: CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET,
+      diagnosticCode: CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET,
       contextMessages: [
         DiagnosticMessageImpl(
           filePath: source.fullName,
@@ -246,7 +247,7 @@ class DiagnosticFactory {
       source: source,
       offset: duplicateKey.offset,
       length: duplicateKey.length,
-      errorCode: CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP,
+      diagnosticCode: CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP,
       contextMessages: [
         DiagnosticMessageImpl(
           filePath: source.fullName,
@@ -270,7 +271,7 @@ class DiagnosticFactory {
       source: source,
       offset: duplicateKey.offset,
       length: duplicateKey.length,
-      errorCode: CompileTimeErrorCode.EQUAL_KEYS_IN_MAP_PATTERN,
+      diagnosticCode: CompileTimeErrorCode.EQUAL_KEYS_IN_MAP_PATTERN,
       contextMessages: [
         DiagnosticMessageImpl(
           filePath: source.fullName,
@@ -295,7 +296,7 @@ class DiagnosticFactory {
       source: source,
       offset: offset,
       length: length,
-      errorCode:
+      diagnosticCode:
           StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
       arguments: arguments,
       contextMessages: [
@@ -328,7 +329,7 @@ class DiagnosticFactory {
       source: source,
       offset: errorNode.offset,
       length: errorNode.length,
-      errorCode: code,
+      diagnosticCode: code,
       arguments: [
         memberName,
         member.enclosingElement!.name3,
@@ -387,7 +388,7 @@ class DiagnosticFactory {
       source: source,
       offset: nameToken.offset,
       length: nameToken.length,
-      errorCode: CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+      diagnosticCode: CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
       arguments: [name],
       contextMessages: contextMessages ?? const [],
     );

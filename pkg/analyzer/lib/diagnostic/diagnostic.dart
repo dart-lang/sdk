@@ -40,12 +40,14 @@ class Diagnostic {
     required this.source,
     required int offset,
     required int length,
-    required DiagnosticCode errorCode,
+    DiagnosticCode? diagnosticCode,
+    @Deprecated("Pass a value for 'diagnosticCode' instead")
+    DiagnosticCode? errorCode,
     required String message,
     this.correctionMessage,
     this.contextMessages = const [],
     this.data,
-  }) : diagnosticCode = errorCode,
+  }) : diagnosticCode = _useNonNullCodeBetween(diagnosticCode, errorCode),
        problemMessage = DiagnosticMessageImpl(
          filePath: source.fullName,
          length: length,
@@ -65,22 +67,24 @@ class Diagnostic {
     required Source source,
     required int offset,
     required int length,
-    // TODO(srawlins): Rename to `diagnosticCode`.
-    required DiagnosticCode errorCode,
+    DiagnosticCode? diagnosticCode,
+    @Deprecated("Pass a value for 'diagnosticCode' instead")
+    DiagnosticCode? errorCode,
     List<Object?> arguments = const [],
     List<DiagnosticMessage> contextMessages = const [],
     Object? data,
   }) {
+    var code = _useNonNullCodeBetween(diagnosticCode, errorCode);
     assert(
-      arguments.length == errorCode.numParameters,
-      'Message $errorCode requires ${errorCode.numParameters} '
-      'argument${errorCode.numParameters == 1 ? '' : 's'}, but '
+      arguments.length == code.numParameters,
+      'Message $code requires ${code.numParameters} '
+      'argument${code.numParameters == 1 ? '' : 's'}, but '
       '${arguments.length} '
       'argument${arguments.length == 1 ? ' was' : 's were'} '
       'provided',
     );
-    String message = formatList(errorCode.problemMessage, arguments);
-    String? correctionTemplate = errorCode.correctionMessage;
+    String message = formatList(code.problemMessage, arguments);
+    String? correctionTemplate = code.correctionMessage;
     String? correctionMessage;
     if (correctionTemplate != null) {
       correctionMessage = formatList(correctionTemplate, arguments);
@@ -90,7 +94,7 @@ class Diagnostic {
       source: source,
       offset: offset,
       length: length,
-      errorCode: errorCode,
+      diagnosticCode: code,
       message: message,
       correctionMessage: correctionMessage,
       contextMessages: contextMessages,
@@ -179,6 +183,19 @@ class Diagnostic {
     //buffer.write("(" + lineNumber + ":" + columnNumber + "): ");
     buffer.write(message);
     return buffer.toString();
+  }
+
+  /// The non-`null` [DiagnosticCode] value between the two parameters.
+  static DiagnosticCode _useNonNullCodeBetween(
+    DiagnosticCode? diagnosticCode,
+    DiagnosticCode? errorCode,
+  ) {
+    if ((diagnosticCode == null) == (errorCode == null)) {
+      throw ArgumentError(
+        "Exactly one of 'diagnosticCode' and 'errorCode' may be passed",
+      );
+    }
+    return diagnosticCode ?? errorCode!;
   }
 }
 

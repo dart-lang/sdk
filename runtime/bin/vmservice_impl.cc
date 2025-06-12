@@ -221,10 +221,6 @@ bool VmService::Setup(const char* server_ip,
                          serve_devtools ? Dart_True() : Dart_False());
   SHUTDOWN_ON_ERROR(result);
 
-  result = Dart_SetField(library, DartUtils::NewString("_serveObservatory"),
-                         serve_observatory ? Dart_True() : Dart_False());
-  SHUTDOWN_ON_ERROR(result);
-
   result = Dart_SetField(library, DartUtils::NewString("_printDtd"),
                          print_dtd ? Dart_True() : Dart_False());
   SHUTDOWN_ON_ERROR(result);

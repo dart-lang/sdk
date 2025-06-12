@@ -119,7 +119,7 @@ sealed class AbstractAnalysisRule {
       source: node.source,
       offset: node.span.start.offset,
       length: node.span.length,
-      errorCode: diagnosticCode,
+      diagnosticCode: diagnosticCode,
       arguments: arguments,
       contextMessages: contextMessages,
     );
@@ -261,7 +261,7 @@ abstract class MultiAnalysisRule extends AbstractAnalysisRule {
       source: (node as PubspecNodeImpl).source,
       offset: node.span.start.offset,
       length: node.span.length,
-      errorCode: diagnosticCode,
+      diagnosticCode: diagnosticCode,
       arguments: arguments,
       contextMessages: contextMessages,
     );

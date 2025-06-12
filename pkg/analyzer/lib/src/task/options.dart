@@ -62,7 +62,7 @@ List<Diagnostic> analyzeAnalysisOptions(
             source: initialSource,
             offset: initialIncludeSpan!.start.offset,
             length: initialIncludeSpan!.length,
-            errorCode: AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING,
+            diagnosticCode: AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING,
             arguments: args,
           ),
         );
@@ -121,7 +121,7 @@ List<Diagnostic> analyzeAnalysisOptions(
             source: initialSource,
             offset: initialIncludeSpan!.start.offset,
             length: initialIncludeSpan!.length,
-            errorCode: AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE,
+            diagnosticCode: AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE,
             arguments: [includeUri, source.fullName],
           ),
         );
@@ -133,7 +133,7 @@ List<Diagnostic> analyzeAnalysisOptions(
             source: initialSource,
             offset: initialIncludeSpan!.start.offset,
             length: initialIncludeSpan!.length,
-            errorCode: AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND,
+            diagnosticCode: AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND,
             arguments: [includeUri, source.fullName, contextRoot],
           ),
         );
@@ -146,7 +146,7 @@ List<Diagnostic> analyzeAnalysisOptions(
             source: initialSource,
             offset: initialIncludeSpan!.start.offset,
             length: initialIncludeSpan!.length,
-            errorCode: AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING,
+            diagnosticCode: AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING,
             arguments: [
               includedSource,
               spanInChain.start.offset,
@@ -190,7 +190,7 @@ List<Diagnostic> analyzeAnalysisOptions(
             source: initialSource,
             offset: initialIncludeSpan!.start.offset,
             length: initialIncludeSpan!.length,
-            errorCode: AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR,
+            diagnosticCode: AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR,
             arguments: args,
           ),
         );
@@ -218,7 +218,7 @@ List<Diagnostic> analyzeAnalysisOptions(
         source: source,
         offset: span.start.offset,
         length: span.length,
-        errorCode: AnalysisOptionsErrorCode.PARSE_ERROR,
+        diagnosticCode: AnalysisOptionsErrorCode.PARSE_ERROR,
         arguments: [e.message],
       ),
     );
