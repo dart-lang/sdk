@@ -2581,14 +2581,6 @@ severity: $severity
       if (redirectingFactoryBuilders != null) {
         for (SourceFactoryBuilder redirectingFactoryBuilder
             in redirectingFactoryBuilders) {
-          if (redirectingFactoryBuilder.declarationBuilder
-              is ExtensionBuilder) {
-            // Extensions don't build their redirecting factories so we can't
-            // process them. Once they are added in
-            // [DeclarationNameSpaceBuilder.buildNameSpace] this skipping can
-            // likely be removed.
-            continue;
-          }
           registerConstructorToBeInferred(new InferableRedirectingFactory(
               redirectingFactoryBuilder,
               hierarchy,

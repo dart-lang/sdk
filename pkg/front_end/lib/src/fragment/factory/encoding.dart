@@ -183,16 +183,20 @@ class FactoryEncoding implements InferredTypeListener {
             libraryBuilder: libraryBuilder);
       }
     }
-    f(
-        member: _procedure,
-        tearOff: _tearOff,
-        kind: factoryBuilder.isExtensionTypeMember
-            ? (_redirectionTarget != null
-                ? BuiltMemberKind.ExtensionTypeRedirectingFactory
-                : BuiltMemberKind.ExtensionTypeFactory)
-            : (_redirectionTarget != null
-                ? BuiltMemberKind.RedirectingFactory
-                : BuiltMemberKind.Factory));
+    if (!factoryBuilder.isExtensionMember) {
+      // Extension factory constructors are erroneous and are therefore not
+      // added to the AST.
+      f(
+          member: _procedure,
+          tearOff: _tearOff,
+          kind: factoryBuilder.isExtensionTypeMember
+              ? (_redirectionTarget != null
+                  ? BuiltMemberKind.ExtensionTypeRedirectingFactory
+                  : BuiltMemberKind.ExtensionTypeFactory)
+              : (_redirectionTarget != null
+                  ? BuiltMemberKind.RedirectingFactory
+                  : BuiltMemberKind.Factory));
+    }
   }
 
   void buildOutlineExpressions(

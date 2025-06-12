@@ -3,8 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/type_algebra.dart';
 
 import '../../api_prototype/lowering_predicates.dart';
+import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/omitted_type_builder.dart';
 import '../../builder/type_builder.dart';
@@ -15,6 +17,7 @@ import '../../kernel/kernel_helper.dart';
 import '../../source/name_scheme.dart';
 import '../../source/source_class_builder.dart';
 import '../../source/source_constructor_builder.dart';
+import '../../source/source_extension_builder.dart';
 import '../../source/source_extension_type_declaration_builder.dart';
 import '../../source/source_function_builder.dart';
 import '../../source/source_library_builder.dart';
@@ -25,7 +28,36 @@ import '../../type_inference/type_schema.dart';
 import 'body_builder_context.dart';
 import 'declaration.dart';
 
-class RegularConstructorEncoding {
+abstract class ConstructorEncoding {
+  FunctionNode get function;
+
+  Member get readTarget;
+
+  Reference get readTargetReference;
+
+  Member get invokeTarget;
+
+  Reference get invokeTargetReference;
+
+  List<Initializer> get initializers;
+
+  void prepareInitializers();
+
+  void prependInitializer(Initializer initializer);
+
+  VariableDeclaration getFormalParameter(int index);
+
+  VariableDeclaration? getTearOffParameter(int index);
+
+  /// Mark the constructor as erroneous.
+  ///
+  /// This is used during the compilation phase to set the appropriate flag on
+  /// the input AST node. The flag helps the verifier to skip apriori erroneous
+  /// members and to avoid reporting cascading errors.
+  void markAsErroneous();
+}
+
+class RegularConstructorEncoding implements ConstructorEncoding {
   late final Constructor _constructor;
 
   late final Procedure? _constructorTearOff;
@@ -41,17 +73,21 @@ class RegularConstructorEncoding {
       : _isExternal = isExternal,
         _isEnumConstructor = isEnumConstructor;
 
+  @override
   Member get readTarget =>
       _constructorTearOff ??
       // The case is need to ensure that the upper bound is [Member] and not
       // [GenericFunction].
       _constructor as Member;
 
+  @override
   Reference get readTargetReference =>
       (_constructorTearOff ?? _constructor).reference;
 
+  @override
   Member get invokeTarget => _constructor;
 
+  @override
   Reference get invokeTargetReference => _constructor.reference;
 
   void registerFunctionBody(Statement value) {
@@ -64,6 +100,7 @@ class RegularConstructorEncoding {
     }
   }
 
+  @override
   FunctionNode get function => _constructor.function;
 
   void createNode(
@@ -105,6 +142,7 @@ class RegularConstructorEncoding {
   // Coverage-ignore(suite): Not run.
   Procedure? get constructorTearOff => _constructorTearOff;
 
+  @override
   List<Initializer> get initializers => _constructor.initializers;
 
   void buildOutlineNodes(
@@ -207,6 +245,7 @@ class RegularConstructorEncoding {
     }
   }
 
+  @override
   void prepareInitializers() {
     // For const constructors we parse initializers already at the outlining
     // stage, there is no easy way to make body building stage skip initializer
@@ -218,10 +257,13 @@ class RegularConstructorEncoding {
     // Note: this method clears both initializers from the target Kernel node
     // and internal state associated with parsing initializers.
     _constructor.initializers = [];
+    // TODO(johnniwinther): Can these be moved here from the
+    //  [SourceConstructorBuilder]?
     //redirectingInitializer = null;
     //superInitializer = null;
   }
 
+  @override
   void prependInitializer(Initializer initializer) {
     initializer.parent = _constructor;
     _constructor.initializers.insert(0, initializer);
@@ -233,6 +275,7 @@ class RegularConstructorEncoding {
     loader.addNativeAnnotation(_constructor, nativeMethodName);
   }
 
+  @override
   VariableDeclaration getFormalParameter(int index) {
     if (_isEnumConstructor) {
       // Skip synthetic parameters for index and name.
@@ -247,6 +290,7 @@ class RegularConstructorEncoding {
     }
   }
 
+  @override
   VariableDeclaration? getTearOffParameter(int index) {
     Procedure? constructorTearOff = _constructorTearOff;
     if (constructorTearOff != null) {
@@ -299,22 +343,23 @@ class RegularConstructorEncoding {
         constructorBuilder, constructorDeclaration, _constructor);
   }
 
-  /// Mark the constructor as erroneous.
-  ///
-  /// This is used during the compilation phase to set the appropriate flag on
-  /// the input AST node. The flag helps the verifier to skip apriori erroneous
-  /// members and to avoid reporting cascading errors.
+  @override
   void markAsErroneous() {
     _constructor.isErroneous = true;
   }
 }
 
-class ExtensionTypeConstructorEncoding {
+mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
+    implements ConstructorEncoding {
   late final Procedure _constructor;
 
   late final Procedure? _constructorTearOff;
 
-  final bool _isExternal;
+  bool get _isExternal;
+
+  bool get _isExtensionMember;
+
+  bool get _isExtensionTypeMember;
 
   Statement? bodyInternal;
 
@@ -328,23 +373,27 @@ class ExtensionTypeConstructorEncoding {
   /// from the extension/extension type declaration.
   List<TypeParameter>? _thisTypeParameters;
 
-  List<Initializer> initializers = [];
+  List<Initializer> _initializers = [];
 
-  ExtensionTypeConstructorEncoding({required bool isExternal})
-      : _isExternal = isExternal;
-
+  @override
   Member get readTarget =>
       _constructorTearOff ?? // Coverage-ignore(suite): Not run.
       _constructor;
 
+  @override
   Reference get readTargetReference =>
       (_constructorTearOff ?? // Coverage-ignore(suite): Not run.
               _constructor)
           .reference;
 
+  @override
   Member get invokeTarget => _constructor;
 
+  @override
   Reference get invokeTargetReference => _constructor.reference;
+
+  @override
+  List<Initializer> get initializers => _initializers;
 
   void registerFunctionBody(Statement value) {
     function.body = value..parent = function;
@@ -356,6 +405,7 @@ class ExtensionTypeConstructorEncoding {
     }
   }
 
+  @override
   FunctionNode get function => _constructor.function;
 
   void createNode(
@@ -384,53 +434,18 @@ class ExtensionTypeConstructorEncoding {
         tearOffReference,
         forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin,
         forceCreateLowering: true)
-      ?..isExtensionTypeMember = true;
-  }
-
-  // Coverage-ignore(suite): Not run.
-  Member get constructor => _constructor;
-
-  // Coverage-ignore(suite): Not run.
-  Procedure? get constructorTearOff => _constructorTearOff;
-
-  void buildOutlineNodes(
-    BuildNodesCallback f, {
-    required SourceConstructorBuilder constructorBuilder,
-    required SourceLibraryBuilder libraryBuilder,
-    required SourceExtensionTypeDeclarationBuilder declarationBuilder,
-    required Member declarationConstructor,
-    required int fileOffset,
-    required int formalsOffset,
-    required bool isConst,
-    required TypeBuilder returnType,
-    required List<SourceNominalParameterBuilder>? typeParameters,
-    required List<FormalParameterBuilder>? formals,
-    required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
-  }) {
-    _build(
-        constructorBuilder: constructorBuilder,
-        libraryBuilder: libraryBuilder,
-        declarationBuilder: declarationBuilder,
-        declarationConstructor: declarationConstructor,
-        fileOffset: fileOffset,
-        formalsOffset: formalsOffset,
-        isConst: isConst,
-        returnType: returnType,
-        typeParameters: typeParameters,
-        formals: formals,
-        delayedDefaultValueCloners: delayedDefaultValueCloners);
-    f(
-        member: _constructor,
-        tearOff: _constructorTearOff,
-        kind: BuiltMemberKind.ExtensionTypeConstructor);
+      ?..isExtensionMember = _isExtensionMember
+      ..isExtensionTypeMember = _isExtensionTypeMember;
   }
 
   bool _hasBeenBuilt = false;
 
+  DartType _computeThisType(T declarationBuilder, List<DartType> typeArguments);
+
   void _build({
     required SourceConstructorBuilder constructorBuilder,
     required SourceLibraryBuilder libraryBuilder,
-    required SourceExtensionTypeDeclarationBuilder declarationBuilder,
+    required T declarationBuilder,
     required Member declarationConstructor,
     required int fileOffset,
     required int formalsOffset,
@@ -464,12 +479,9 @@ class ExtensionTypeConstructorEncoding {
         typeArguments = [];
       }
 
-      ExtensionTypeDeclaration extensionTypeDeclaration =
-          declarationBuilder.extensionTypeDeclaration;
       _thisVariable = new VariableDeclarationImpl(syntheticThisName,
           isFinal: true,
-          type: new ExtensionType(
-              extensionTypeDeclaration, Nullability.nonNullable, typeArguments))
+          type: _computeThisType(declarationBuilder, typeArguments))
         ..fileOffset = fileOffset
         ..isLowered = true;
 
@@ -479,15 +491,15 @@ class ExtensionTypeConstructorEncoding {
         typeParameterTypes
             .add(new TypeParameterType.withDefaultNullability(typeParameter));
       }
-      ExtensionType type = new ExtensionType(extensionTypeDeclaration,
-          Nullability.nonNullable, typeParameterTypes);
-      returnType.registerInferredType(type);
+      returnType.registerInferredType(
+          _computeThisType(declarationBuilder, typeParameterTypes));
       _constructor.function.fileOffset = formalsOffset;
       _constructor.function.fileEndOffset = _constructor.fileEndOffset;
       _constructor.isConst = isConst;
       _constructor.isExternal = _isExternal;
       _constructor.isStatic = true;
-      _constructor.isExtensionTypeMember = true;
+      _constructor.isExtensionMember = _isExtensionMember;
+      _constructor.isExtensionTypeMember = _isExtensionTypeMember;
 
       if (_constructorTearOff != null) {
         delayedDefaultValueCloners.add(buildConstructorTearOffProcedure(
@@ -532,6 +544,7 @@ class ExtensionTypeConstructorEncoding {
     return _thisTypeParameters;
   }
 
+  @override
   void prepareInitializers() {
     // For const constructors we parse initializers already at the outlining
     // stage, there is no easy way to make body building stage skip initializer
@@ -542,15 +555,19 @@ class ExtensionTypeConstructorEncoding {
     // compile), and so we also clear them.
     // Note: this method clears both initializers from the target Kernel node
     // and internal state associated with parsing initializers.
-    initializers = [];
+    _initializers = [];
+    // TODO(johnniwinther): Can these be moved here from the
+    //  [SourceConstructorBuilder]?
     //redirectingInitializer = null;
     //superInitializer = null;
   }
 
+  @override
   void prependInitializer(Initializer initializer) {
-    initializers.insert(0, initializer);
+    _initializers.insert(0, initializer);
   }
 
+  @override
   VariableDeclaration getFormalParameter(int index) {
     if (index < function.positionalParameters.length) {
       return function.positionalParameters[index];
@@ -561,6 +578,7 @@ class ExtensionTypeConstructorEncoding {
     }
   }
 
+  @override
   VariableDeclaration? getTearOffParameter(int index) {
     Procedure? constructorTearOff = _constructorTearOff;
     if (constructorTearOff != null) {
@@ -588,7 +606,7 @@ class ExtensionTypeConstructorEncoding {
       ExtensionTypeInitializerToStatementConverter visitor =
           new ExtensionTypeInitializerToStatementConverter(
               statements, thisVariable);
-      for (Initializer initializer in initializers) {
+      for (Initializer initializer in _initializers) {
         initializer.accept(visitor);
       }
       if (function.body != null && function.body is! EmptyStatement) {
@@ -607,12 +625,123 @@ class ExtensionTypeConstructorEncoding {
         constructorBuilder, constructorDeclaration, _constructor);
   }
 
-  /// Mark the constructor as erroneous.
-  ///
-  /// This is used during the compilation phase to set the appropriate flag on
-  /// the input AST node. The flag helps the verifier to skip apriori erroneous
-  /// members and to avoid reporting cascading errors.
+  @override
   void markAsErroneous() {
     _constructor.isErroneous = true;
+  }
+}
+
+class ExtensionTypeConstructorEncoding
+    with
+        _ExtensionTypeConstructorEncodingMixin<
+            SourceExtensionTypeDeclarationBuilder>
+    implements
+        ConstructorEncoding {
+  @override
+  final bool _isExternal;
+
+  ExtensionTypeConstructorEncoding({required bool isExternal})
+      : _isExternal = isExternal;
+
+  @override
+  DartType _computeThisType(
+      SourceExtensionTypeDeclarationBuilder declarationBuilder,
+      List<DartType> typeArguments) {
+    ExtensionTypeDeclaration extensionTypeDeclaration =
+        declarationBuilder.extensionTypeDeclaration;
+    return new ExtensionType(
+        extensionTypeDeclaration, Nullability.nonNullable, typeArguments);
+  }
+
+  void buildOutlineNodes(
+    BuildNodesCallback f, {
+    required SourceConstructorBuilder constructorBuilder,
+    required SourceLibraryBuilder libraryBuilder,
+    required SourceExtensionTypeDeclarationBuilder declarationBuilder,
+    required Member declarationConstructor,
+    required int fileOffset,
+    required int formalsOffset,
+    required bool isConst,
+    required TypeBuilder returnType,
+    required List<SourceNominalParameterBuilder>? typeParameters,
+    required List<FormalParameterBuilder>? formals,
+    required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+  }) {
+    _build(
+        constructorBuilder: constructorBuilder,
+        libraryBuilder: libraryBuilder,
+        declarationBuilder: declarationBuilder,
+        declarationConstructor: declarationConstructor,
+        fileOffset: fileOffset,
+        formalsOffset: formalsOffset,
+        isConst: isConst,
+        returnType: returnType,
+        typeParameters: typeParameters,
+        formals: formals,
+        delayedDefaultValueCloners: delayedDefaultValueCloners);
+    f(
+        member: _constructor,
+        tearOff: _constructorTearOff,
+        kind: BuiltMemberKind.ExtensionTypeConstructor);
+  }
+
+  @override
+  bool get _isExtensionMember => false;
+
+  @override
+  bool get _isExtensionTypeMember => true;
+}
+
+class ExtensionConstructorEncoding
+    with _ExtensionTypeConstructorEncodingMixin<SourceExtensionBuilder>
+    implements ConstructorEncoding {
+  @override
+  final bool _isExternal;
+
+  ExtensionConstructorEncoding({required bool isExternal})
+      : _isExternal = isExternal;
+
+  void buildOutlineNodes(
+    BuildNodesCallback f, {
+    required SourceConstructorBuilder constructorBuilder,
+    required SourceLibraryBuilder libraryBuilder,
+    required SourceExtensionBuilder declarationBuilder,
+    required Member declarationConstructor,
+    required int fileOffset,
+    required int formalsOffset,
+    required bool isConst,
+    required TypeBuilder returnType,
+    required List<SourceNominalParameterBuilder>? typeParameters,
+    required List<FormalParameterBuilder>? formals,
+    required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+  }) {
+    _build(
+        constructorBuilder: constructorBuilder,
+        libraryBuilder: libraryBuilder,
+        declarationBuilder: declarationBuilder,
+        declarationConstructor: declarationConstructor,
+        fileOffset: fileOffset,
+        formalsOffset: formalsOffset,
+        isConst: isConst,
+        returnType: returnType,
+        typeParameters: typeParameters,
+        formals: formals,
+        delayedDefaultValueCloners: delayedDefaultValueCloners);
+    // Extension constructors are erroneous and are therefore not added to the
+    // AST.
+  }
+
+  @override
+  bool get _isExtensionMember => true;
+
+  @override
+  bool get _isExtensionTypeMember => false;
+
+  @override
+  DartType _computeThisType(
+      SourceExtensionBuilder declarationBuilder, List<DartType> typeArguments) {
+    Extension extension = declarationBuilder.extension;
+    return Substitution.fromPairs(extension.typeParameters, typeArguments)
+        .substituteType(extension.onType);
   }
 }

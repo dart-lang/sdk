@@ -149,7 +149,6 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
         indexedContainer: null,
         containerType: ContainerType.Extension,
         containerName: extensionName,
-        includeConstructors: false,
         constructorBuilders: _constructorBuilders,
         memberBuilders: _memberBuilders);
   }

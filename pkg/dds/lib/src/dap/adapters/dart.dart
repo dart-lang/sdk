@@ -1577,26 +1577,70 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         : name!;
 
     // Use a completer to track when the response is sent, so any events related
-    // to these breakpoints are not sent before the client has the IDs.
+    // to new breakpoints will not be sent to the client before the response
+    // here which provides the IDs to the client.
     final completer = Completer<void>();
 
-    final clientBreakpoints = breakpoints
-        .map((bp) => ClientBreakpoint(bp, completer.future))
-        .toList();
-    await isolateManager.setBreakpoints(uri, clientBreakpoints);
+    // Map the provided breakpoints onto either new or existing instances of
+    // [ClientBreakpoint] that we use to track the clients breakpoints
+    // internally.
+    final clientBreakpoints = breakpoints.map((bp) {
+      return
+          // First try to match an existing breakpoint so we can avoid deleting
+          // and re-creating all breakpoints if a new one is added to a file.
+          isolateManager.findExistingClientBreakpoint(uri, bp) ??
+              ClientBreakpoint(bp, completer.future);
+    }).toList();
 
-    sendResponse(SetBreakpointsResponseBody(
+    // Any breakpoints that are not in our new set will need to be removed from
+    // the VM.
+    //
+    // Because multiple client breakpoints may resolve to the same VM breakpoint
+    // we must exclude any that still remain in one of the kept breakpoints.
+    final referencedVmBreakpoints =
+        clientBreakpoints.map((bp) => bp.forThread.values).toSet();
+    final breakpointsToRemove = isolateManager.clientBreakpointsByUri[uri]
+        ?.toSet()
+        // Remove any we're reusing.
+        .difference(clientBreakpoints.toSet())
+        // Remove any that map to VM breakpoints that are still referenced
+        // because we'll want to keep them.
+        .where((clientBreakpoint) => clientBreakpoint.forThread.values
+            .none(referencedVmBreakpoints.contains));
+
+    // Store this new set of breakpoints as the current set for this URI.
+    isolateManager.recordLatestClientBreakpoints(uri, clientBreakpoints);
+
+    // Prepare the response with the existing values before we start updating.
+    final breakpointResponse = SetBreakpointsResponseBody(
       breakpoints: clientBreakpoints
-          // Send breakpoints back as unverified and with our generated IDs so we
-          // can update them with a 'breakpoint' event when we get the
-          // 'BreakpointAdded'/'BreakpointResolved' events from the VM.
           .map((bp) => Breakpoint(
               id: bp.id,
-              verified: false,
-              message: 'Breakpoint has not yet been resolved',
-              reason: 'pending'))
+              verified: bp.verified,
+              line: bp.verified ? bp.resolvedLine : null,
+              column: bp.verified ? bp.resolvedColumn : null,
+              message: bp.verified ? null : bp.verifiedMessage,
+              reason: bp.verified ? null : bp.verifiedReason))
           .toList(),
-    ));
+    );
+
+    // Update the breakpoints for all existing threads.
+    await Future.wait(isolateManager.threads.map((thread) async {
+      // Remove the deleted breakpoints.
+      if (breakpointsToRemove != null) {
+        await Future.wait(breakpointsToRemove.map((clientBreakpoint) =>
+            isolateManager.removeBreakpoint(clientBreakpoint, thread)));
+      }
+
+      // Add the new breakpoints.
+      await Future.wait(clientBreakpoints.map((clientBreakpoint) async {
+        if (!clientBreakpoint.isKnownToVm) {
+          await isolateManager.addBreakpoint(clientBreakpoint, thread, uri);
+        }
+      }));
+    }));
+
+    sendResponse(breakpointResponse);
     completer.complete();
   }
 

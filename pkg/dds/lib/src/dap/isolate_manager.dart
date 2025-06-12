@@ -63,9 +63,9 @@ class IsolateManager {
   /// [debugExternalPackageLibraries] in one step.
   bool debugExternalPackageLibraries = true;
 
-  /// Tracks breakpoints last provided by the client so they can be sent to new
-  /// isolates that appear after initial breakpoints were sent.
-  final Map<String, List<ClientBreakpoint>> _clientBreakpointsByUri = {};
+  /// Tracks breakpoints last provided by the client (by the client URI) so they
+  /// can be sent to new isolates that appear after initial breakpoints were sent.
+  final Map<String, List<ClientBreakpoint>> clientBreakpointsByUri = {};
 
   /// Tracks client breakpoints by the ID assigned by the VM so we can look up
   /// conditions/logpoints when hitting breakpoints.
@@ -89,21 +89,10 @@ class IsolateManager {
   /// breakpoint).
   ///
   /// When new breakpoints are added by the client, we must check this map to
-  /// see it's al already-resolved breakpoint so that we can send resolution
+  /// see it's an already-resolved breakpoint so that we can send resolution
   /// info to the client.
   final Map<_UniqueVmBreakpointId, vm.Event> _breakpointResolvedEventsByVmId =
       {};
-
-  /// Tracks breakpoints created in the VM so they can be removed when the
-  /// editor sends new breakpoints (currently the editor just sends a new list
-  /// and not requests to add/remove).
-  ///
-  /// Breakpoints are indexed by their ID so that duplicates are not stored even
-  /// if multiple client breakpoints resolve to a single VM breakpoint.
-  ///
-  /// IsolateId -> Uri -> breakpointId -> VM Breakpoint.
-  final Map<String, Map<String, Map<String, vm.Breakpoint>>>
-      _vmBreakpointsByIsolateIdAndUri = {};
 
   /// The exception pause mode last provided by the client.
   ///
@@ -507,32 +496,27 @@ class IsolateManager {
     ));
   }
 
-  /// Records breakpoints for [uri].
-  ///
-  /// [breakpoints] represents the new set and entirely replaces anything given
-  /// before.
-  Future<void> setBreakpoints(
+  // Tracks the latest set of breakpoints sent by the client that should
+  // be sent to any new isolates that start.
+  void recordLatestClientBreakpoints(
     String uri,
     List<ClientBreakpoint> breakpoints,
-  ) async {
-    // Track the breakpoints to get sent to any new isolates that start.
-    _clientBreakpointsByUri[uri] = breakpoints;
-
-    // Send the breakpoints to all existing threads.
-    await Future.wait(_threadsByThreadId.values
-        .map((thread) => _sendBreakpoints(thread, uri: uri)));
+  ) {
+    clientBreakpointsByUri[uri] = breakpoints;
   }
 
   /// Clears all breakpoints.
   Future<void> clearAllBreakpoints() async {
-    // Clear all breakpoints for each URI. Do not remove the items from the map
-    // as that will stop them being tracked/sent by the call below.
-    _clientBreakpointsByUri.updateAll((key, value) => []);
+    // Group all breakpoints for all URIs before clearing the list.
+    final clientBreakpointsToDelete =
+        clientBreakpointsByUri.values.expand((bps) => bps).toList();
+    clientBreakpointsByUri.clear();
 
-    // Send the breakpoints to all existing threads.
-    await Future.wait(
-      _threadsByThreadId.values.map((thread) => _sendBreakpoints(thread)),
-    );
+    // Remove all breakpoints for all threads.
+    await Future.wait(clientBreakpointsToDelete.map((clientBreakpoint) {
+      return Future.wait(_threadsByThreadId.values
+          .map((thread) => removeBreakpoint(clientBreakpoint, thread)));
+    }));
   }
 
   /// Records exception pause mode as one of 'None', 'Unhandled' or 'All'. All
@@ -592,7 +576,12 @@ class IsolateManager {
         _sendExceptionPauseMode(thread),
       ], eagerError: true);
 
-      await _sendBreakpoints(thread);
+      await Future.wait(clientBreakpointsByUri.entries.map((mapEntry) async {
+        var clientUri = mapEntry.key;
+        var clientBreakpoints = mapEntry.value;
+        await Future.wait(clientBreakpoints.map((clientBreakpoint) =>
+            addBreakpoint(clientBreakpoint, thread, clientUri)));
+      }));
     } on vm.SentinelException {
       // It's possible during these async requests that the isolate went away
       // (for example a shutdown/restart) and we no longer care about
@@ -890,12 +879,19 @@ class IsolateManager {
     // This is always resolved because of the check above.
     final location = breakpoint.location;
     final resolvedLocation = location as vm.SourceLocation;
+
+    // Track that this breakpoint has been resolved, so that if we are asked to
+    // set the same breakpoint in future, we can immediately return
+    // resolved=true in the response.
+    clientBreakpoint.resolved(resolvedLocation.line, resolvedLocation.column);
+
     final updatedBreakpoint = Breakpoint(
       id: clientBreakpoint.id,
-      line: resolvedLocation.line,
-      column: resolvedLocation.column,
-      verified: true,
+      line: clientBreakpoint.resolvedLine,
+      column: clientBreakpoint.resolvedColumn,
+      verified: clientBreakpoint.verified,
     );
+
     // Ensure we don't send the breakpoint event until the client has been
     // given the breakpoint ID by queueing it.
     clientBreakpoint.queueAction(
@@ -932,11 +928,18 @@ class IsolateManager {
       userMessage = terseMessageMatch.group(1) ?? userMessage;
     }
 
+    // Record the failure state only if we don't already have a success state
+    // because if we set a breakpoint in some isolates but not others, we do not
+    // want to show that as unresolved.
+    if (!clientBreakpoint.verified) {
+      clientBreakpoint.unresolved(reason: 'failed', message: userMessage);
+    }
+
     final updatedBreakpoint = Breakpoint(
       id: clientBreakpoint.id,
-      verified: false,
-      message: userMessage,
-      reason: 'failed',
+      verified: clientBreakpoint.verified,
+      message: clientBreakpoint.verifiedMessage,
+      reason: clientBreakpoint.verifiedReason,
     );
     // Ensure we don't send the breakpoint event until the client has been
     // given the breakpoint ID by queueing it.
@@ -1039,13 +1042,35 @@ class IsolateManager {
     await service.reloadSources(isolateId);
   }
 
-  /// Sets breakpoints for an individual isolate.
-  ///
-  /// If [uri] is provided, only breakpoints for that URI will be sent (used
-  /// when breakpoints are modified for a single file in the editor). Otherwise
-  /// breakpoints for all previously set URIs will be sent (used for
-  /// newly-created isolates).
-  Future<void> _sendBreakpoints(ThreadInfo thread, {String? uri}) async {
+  /// Tries to find an existing [ClientBreakpoint] matching the location of the
+  /// provided [breakpoint] so that it can be reused/kept when updating
+  /// breakpoints.
+  ClientBreakpoint? findExistingClientBreakpoint(
+      String clientUri, SourceBreakpoint breakpoint) {
+    var clientBreakpoints = clientBreakpointsByUri[clientUri];
+    if (clientBreakpoints == null) {
+      return null;
+    }
+
+    return clientBreakpoints.firstWhereOrNull((clientBreakpoint) =>
+        // These conditions must cover all fields that would be sent to the VM.
+        // They do not need to include things like `condition` which we check
+        // DAP-side.
+
+        // We always compare breakpoints based on the original location and not
+        // the resolved location, because clients will not update the underlying
+        // breakpoints with resolution, they will only assign a temporary
+        // overriden location.
+        //
+        // See https://github.com/microsoft/vscode/issues/250453.
+        clientBreakpoint.breakpoint.line == breakpoint.line &&
+        clientBreakpoint.breakpoint.column == breakpoint.column);
+  }
+
+  /// Creates a breakpoint in [clientUri] for [thread] in the VM that
+  /// corresponds to [clientBreakpoint] received from the client.
+  Future<void> addBreakpoint(ClientBreakpoint clientBreakpoint,
+      ThreadInfo thread, String clientUri) async {
     final service = _adapter.vmService;
     if (!debug || service == null) {
       return;
@@ -1053,78 +1078,68 @@ class IsolateManager {
 
     final isolateId = thread.isolate.id!;
 
-    // If we were passed a single URI, we should send breakpoints only for that
-    // (this means the request came from the client), otherwise we should send
-    // all of them (because this is a new/restarting isolate).
-    final uris = uri != null ? [uri] : _clientBreakpointsByUri.keys.toList();
+    try {
+      // Some file URIs (like SDK sources) need to be converted to
+      // appropriate internal URIs to be able to set breakpoints.
+      final vmUri = await thread.resolvePathToUri(Uri.parse(clientUri));
 
-    for (final uri in uris) {
-      // Clear existing breakpoints.
-      final existingBreakpointsForIsolate =
-          _vmBreakpointsByIsolateIdAndUri.putIfAbsent(isolateId, () => {});
-      final existingBreakpointsForIsolateAndUri =
-          existingBreakpointsForIsolate.putIfAbsent(uri, () => {});
-      // Before doing async work, take a copy of the breakpoints to remove
-      // and remove them from the list, so any subsequent calls here don't
-      // try to remove the same ones multiple times.
-      final breakpointsToRemove =
-          existingBreakpointsForIsolateAndUri.values.toList();
-      existingBreakpointsForIsolateAndUri.clear();
-      await Future.forEach<vm.Breakpoint>(breakpointsToRemove, (bp) async {
-        try {
-          await service.removeBreakpoint(isolateId, bp.id!);
-        } catch (e) {
-          // Swallow errors removing breakpoints rather than failing the whole
-          // request as it's very possible that an isolate exited while we were
-          // sending this and the request will fail.
-          _adapter.logger?.call('Failed to remove old breakpoint $e');
-        }
-      });
+      if (vmUri == null) {
+        return;
+      }
 
-      // Set new breakpoints.
-      final newBreakpoints = _clientBreakpointsByUri[uri] ?? const [];
-      await Future.forEach<ClientBreakpoint>(newBreakpoints, (bp) async {
-        try {
-          // Some file URIs (like SDK sources) need to be converted to
-          // appropriate internal URIs to be able to set breakpoints.
-          final vmUri = await thread.resolvePathToUri(Uri.parse(uri));
+      final vmBp = await service.addBreakpointWithScriptUri(
+          isolateId, vmUri.toString(), clientBreakpoint.breakpoint.line,
+          column: clientBreakpoint.breakpoint.column);
+      clientBreakpoint.forThread[thread] = vmBp;
+      final uniqueBreakpointId = (isolateId: isolateId, breakpointId: vmBp.id!);
 
-          if (vmUri == null) {
-            return;
-          }
+      // Store this client breakpoint by the VM ID, so when we get events
+      // from the VM we can map them back to client breakpoints (for example
+      // to send resolved events).
+      _clientBreakpointsByVmId
+          .putIfAbsent(uniqueBreakpointId, () => [])
+          .add(clientBreakpoint);
 
-          final vmBp = await service.addBreakpointWithScriptUri(
-              isolateId, vmUri.toString(), bp.breakpoint.line,
-              column: bp.breakpoint.column);
-          final vmBpId = vmBp.id!;
-          final uniqueBreakpointId =
-              (isolateId: isolateId, breakpointId: vmBp.id!);
-          existingBreakpointsForIsolateAndUri[vmBpId] = vmBp;
+      // Queue any resolved events that may have already arrived
+      // (either because the VM sent them before responding to us, or
+      // because it gave us an existing VM breakpoint because it resolved to
+      // the same location as another).
+      final resolvedEvent = _breakpointResolvedEventsByVmId[uniqueBreakpointId];
+      if (resolvedEvent != null) {
+        queueBreakpointResolutionEvent(resolvedEvent, clientBreakpoint);
+      }
+    } catch (e) {
+      // Swallow errors setting breakpoints rather than failing the whole
+      // request as it's very easy for editors to send us breakpoints that
+      // aren't valid any more.
+      _adapter.logger?.call('Failed to add breakpoint $e');
+      queueFailedBreakpointEvent(e, clientBreakpoint);
+    }
+  }
 
-          // Store this client breakpoint by the VM ID, so when we get events
-          // from the VM we can map them back to client breakpoints (for example
-          // to send resolved events).
-          _clientBreakpointsByVmId
-              .putIfAbsent(uniqueBreakpointId, () => [])
-              .add(bp);
+  /// Removes [clientBreakpoint] from [thread] in the VM.
+  Future<void> removeBreakpoint(
+      ClientBreakpoint clientBreakpoint, ThreadInfo thread) async {
+    final service = _adapter.vmService;
+    if (!debug || service == null) {
+      return;
+    }
 
-          // Queue any resolved events that may have already arrived
-          // (either because the VM sent them before responding to us, or
-          // because it gave us an existing VM breakpoint because it resolved to
-          // the same location as another).
-          final resolvedEvent =
-              _breakpointResolvedEventsByVmId[uniqueBreakpointId];
-          if (resolvedEvent != null) {
-            queueBreakpointResolutionEvent(resolvedEvent, bp);
-          }
-        } catch (e) {
-          // Swallow errors setting breakpoints rather than failing the whole
-          // request as it's very easy for editors to send us breakpoints that
-          // aren't valid any more.
-          _adapter.logger?.call('Failed to add breakpoint $e');
-          queueFailedBreakpointEvent(e, bp);
-        }
-      });
+    final isolateId = thread.isolate.id!;
+    final vmBreakpoint = clientBreakpoint.forThread[thread];
+    if (vmBreakpoint == null) {
+      // This isolate didn't have this breakpoint.
+      return;
+    }
+
+    try {
+      await service.removeBreakpoint(isolateId, vmBreakpoint.id!);
+      clientBreakpoint.forThread.remove(thread);
+    } catch (e) {
+      // Swallow errors removing breakpoints rather than failing the whole
+      // request as it's very possible that an isolate exited while we were
+      // sending this and the request will fail.
+      _adapter.logger?.call('Failed to remove old breakpoint $e');
     }
   }
 
@@ -1749,6 +1764,45 @@ class ClientBreakpoint {
   final SourceBreakpoint breakpoint;
   final int id;
 
+  /// Whether this breakpoint has been sent to the VM (and not removed).
+  bool get isKnownToVm => forThread.isNotEmpty;
+
+  /// A map of [ThreadInfo] -> [vm.Breakpoint] recording the VM breakpoint for
+  /// each isolate for this client breakpoint.
+  ///
+  /// Note: It's possible for multiple [ClientBreakpoint]s to resolve to the
+  /// same VM breakpoint!
+  Map<ThreadInfo, vm.Breakpoint> forThread = {};
+
+  /// Whether this breakpoint was previously been verified.
+  bool get verified => _verified;
+
+  bool _verified = false;
+
+  /// A user-friendly explanation of why this breakpoint could not be resolved
+  /// (if [verified] is `false`, otherwise `null`).
+  String? get verifiedMessage => _verifiedMessage;
+
+  String? _verifiedMessage = 'Breakpoint has not yet been resolved';
+
+  /// A machine-readable reason (specified by DAP) of why this breakpoint is not
+  /// resolved (if [verified] is `false`, otherwise `null`).
+  String? get verifiedReason => _verifiedReason;
+
+  String? _verifiedReason = 'pending';
+
+  /// The line that this breakpoint resolved to, or the request line if not
+  /// resolved.
+  int get resolvedLine => _resolvedLine ?? breakpoint.line;
+
+  int? _resolvedLine;
+
+  /// The column that this breakpoint resolved to, or the request column if not
+  /// resolved.
+  int? get resolvedColumn => _resolvedColumn ?? breakpoint.column;
+
+  int? _resolvedColumn;
+
   /// A [Future] that completes with the last action that sends breakpoint
   /// information to the client, to ensure breakpoint events are always sent
   /// in-order and after the initial response sending the IDs to the client.
@@ -1764,6 +1818,22 @@ class ClientBreakpoint {
     final actionFuture = _lastActionFuture.then((_) => action());
     _lastActionFuture = actionFuture;
     return actionFuture;
+  }
+
+  /// Marks that this breakpoint was resolved.
+  void resolved(int? line, int? column) {
+    _verified = true;
+    _verifiedReason = null;
+    _verifiedMessage = null;
+    _resolvedLine = line;
+    _resolvedColumn = column;
+  }
+
+  /// Marks that this breakpoint was not resolved and why.
+  void unresolved({required String reason, required String message}) {
+    _verified = false;
+    _verifiedReason = reason;
+    _verifiedMessage = message;
   }
 }
 

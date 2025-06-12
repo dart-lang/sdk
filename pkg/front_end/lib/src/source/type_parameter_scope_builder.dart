@@ -1964,7 +1964,6 @@ class DeclarationNameSpaceBuilder {
       required IndexedContainer? indexedContainer,
       required ContainerType containerType,
       required ContainerName containerName,
-      bool includeConstructors = true,
       required List<SourceMemberBuilder> constructorBuilders,
       required List<SourceMemberBuilder> memberBuilders}) {
     List<NominalParameterBuilder> unboundNominalParameters = [];
@@ -1991,9 +1990,7 @@ class DeclarationNameSpaceBuilder {
             messageMemberWithSameNameAsClass, uriOffset);
       }
       if (isConstructor) {
-        if (includeConstructors) {
-          constructorBuilders.add(declaration as SourceMemberBuilder);
-        }
+        constructorBuilders.add(declaration as SourceMemberBuilder);
       } else {
         memberBuilders.add(declaration as SourceMemberBuilder);
       }
@@ -2084,15 +2081,7 @@ class DeclarationNameSpaceBuilder {
         .registerUnboundNominalParameters(unboundNominalParameters);
 
     return new SourceDeclarationNameSpace(
-        content: content,
-        // TODO(johnniwinther): Handle constructors in extensions consistently.
-        // Currently they are not part of the name space but still processed
-        // for instance when inferring redirecting factories.
-        // They are part of the name space for extension types though.
-        // Note that we have to remove [SourceFactoryBuilder]s in
-        // [SourceLoader.inferRedirectingFactories] as we don't build them
-        // because we don't add them here.
-        constructors: includeConstructors ? constructors : null);
+        content: content, constructors: constructors);
   }
 }
 
@@ -2880,10 +2869,8 @@ _AddBuilder _createConstructorBuilder(
         fragment.typeParameterNameSpace.addTypeParameters(
             problemReporting, typeParameters,
             ownerName: fragment.name, allowNameConflict: true);
-        return new RegularConstructorDeclaration(fragment,
-            typeParameters: typeParameters,
-            syntheticFormals: null,
-            isEnumConstructor: false);
+        return new ExtensionConstructorDeclaration(fragment,
+            typeParameters: typeParameters);
     }
   }
 
