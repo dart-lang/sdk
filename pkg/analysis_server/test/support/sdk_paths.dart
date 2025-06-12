@@ -45,7 +45,9 @@ String get sdkRootPath {
 /// When running from source, the server will be compiled to disk for the first
 /// request to speed up subsequent tests in the same process.
 Future<String> getAnalysisServerPath(String dartSdkPath) async {
-  var dartBinary = path.join(dartSdkPath, 'bin', 'dart');
+  // Always use the "real" SDK binary for compilation, not the path provided,
+  // which might be an incomplete SDK that is the target of the test.
+  var dartBinary = Platform.resolvedExecutable;
   var snapshotPath = path.join(
     dartSdkPath,
     'bin',
