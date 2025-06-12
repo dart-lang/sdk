@@ -615,6 +615,11 @@ class MemberDuplicateDefinitionVerifier {
             [name],
           ),
         );
+      } else {
+        // Getter setter pair. Make sure the *getter* is in the getter map.
+        if (element is PropertyAccessorFragmentImpl && element.isGetter) {
+          getterScope[name] = element;
+        }
       }
     } else {
       getterScope[name] = element;
