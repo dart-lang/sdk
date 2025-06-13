@@ -5812,6 +5812,7 @@ class Instructions : public Object {
     return reinterpret_cast<uword>(instr->untag()) + HeaderSize();
   }
 
+  word WritablePayloadStart() const { return WritablePayloadStart(ptr()); }
   static word WritablePayloadStart(const InstructionsPtr instr) {
     return reinterpret_cast<uword>(instr->untag()) + HeaderSize();
   }
