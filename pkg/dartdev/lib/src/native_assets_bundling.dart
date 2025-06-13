@@ -10,6 +10,8 @@ import 'package:data_assets/data_assets.dart';
 import 'package:hooks/hooks.dart';
 import 'package:hooks_runner/hooks_runner.dart';
 
+final libOutputDirectoryUriFromBin =
+    Uri.file('../').resolveUri(libOutputDirectoryUri);
 final libOutputDirectoryUri = Uri.file('lib/');
 final dataOutputDirectoryUri = Uri.file('assets/');
 
@@ -130,7 +132,7 @@ extension on CodeAsset {
       LookupInProcess() => KernelAssetInProcess(),
       DynamicLoadingBundled() => () {
           final relativeUri =
-              libOutputDirectoryUri.resolve(file!.pathSegments.last);
+              libOutputDirectoryUriFromBin.resolve(file!.pathSegments.last);
           return relocatable
               ? KernelAssetRelativePath(relativeUri)
               : KernelAssetAbsolutePath(outputUri.resolveUri(relativeUri));
