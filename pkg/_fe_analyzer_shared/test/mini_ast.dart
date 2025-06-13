@@ -1008,25 +1008,51 @@ class CastPattern extends Pattern {
 /// [TryBuilder.catch_] to create instances of this class.
 class CatchClause {
   final Statement body;
+  final Type? exceptionType;
   final Var? exception;
   final Var? stackTrace;
 
-  CatchClause._(this.body, this.exception, this.stackTrace);
+  CatchClause._(
+    this.body,
+    this.exceptionType,
+    this.exception,
+    this.stackTrace,
+  ) {
+    if (exception == null && stackTrace != null) {
+      fail(
+        'If a stack trace variable is provided, an exception variable must be '
+        'provided too',
+      );
+    }
+    if (exception == null && exceptionType == null) {
+      fail(
+        'If no exception variable is provided, an exception type must be '
+        'provided',
+      );
+    }
+  }
 
   @override
   String toString() {
-    String initialPart;
-    if (stackTrace != null) {
-      initialPart = 'catch (${exception!.name}, ${stackTrace!.name})';
-    } else if (exception != null) {
-      initialPart = 'catch (${exception!.name})';
-    } else {
-      initialPart = 'on ...';
-    }
-    return '$initialPart $body';
+    return [
+      if (exceptionType case var exceptionType?) 'on $exceptionType',
+      if (exception case Var(name: var exceptionName))
+        switch (stackTrace) {
+          Var(name: var stackTraceName) =>
+            'catch ($exceptionName, $stackTraceName)',
+          _ => 'catch ($exceptionName)',
+        },
+      body,
+    ].join(' ');
   }
 
   void _preVisit(PreVisitor visitor) {
+    if (exception case var exception?) {
+      visitor._assignedVariables.declare(exception);
+    }
+    if (stackTrace case var stackTrace?) {
+      visitor._assignedVariables.declare(stackTrace);
+    }
     body.preVisit(visitor);
   }
 }
@@ -5374,6 +5400,7 @@ class Throw extends Expression {
 
 abstract class TryBuilder {
   TryStatement catch_({
+    String? type,
     Var? exception,
     Var? stackTrace,
     required List<ProtoStatement> body,
@@ -5400,6 +5427,7 @@ class TryStatementImpl extends TryStatement {
 
   @override
   TryStatement catch_({
+    String? type,
     Var? exception,
     Var? stackTrace,
     required List<ProtoStatement> body,
@@ -5411,6 +5439,7 @@ class TryStatementImpl extends TryStatement {
         ...catches,
         CatchClause._(
           Block._(body, location: computeLocation()),
+          type == null ? null : Type(type),
           exception,
           stackTrace,
         ),
@@ -6749,6 +6778,8 @@ class _MiniAstTypeAnalyzer
     if (catchClauses.isNotEmpty) {
       flow.tryCatchStatement_bodyEnd(body);
       for (var catch_ in catchClauses) {
+        catch_.exception?._type = catch_.exceptionType ?? Type('dynamic');
+        catch_.stackTrace?._type = Type('StackTrace');
         flow.tryCatchStatement_catchBegin(catch_.exception, catch_.stackTrace);
         dispatchStatement(catch_.body);
         flow.tryCatchStatement_catchEnd();
