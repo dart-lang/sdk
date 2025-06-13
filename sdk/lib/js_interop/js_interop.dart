@@ -1388,11 +1388,14 @@ extension JSAnyOperatorExtension on JSAny? {
 /// For example:
 ///
 /// ```
+/// library;
+///
 /// @JS()
 /// external String get name;
 /// ```
 ///
-/// Reading `name` will execute JavaScript code like `globalContext.name`.
+/// Reading the top-level member `name` will execute JavaScript code like
+/// `<globalContext>.name`.
 ///
 /// There are subtle differences depending on the compiler, but in general,
 /// [globalContext] can be treated like JavaScript's `globalThis`.
