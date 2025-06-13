@@ -96,57 +96,7 @@ Future<CompilerResult> _compile(
   bool useIncrementalCompiler = false,
   Map<Uri, List<int>>? inputDigests,
 }) async {
-  // TODO(jmesserly): refactor options to share code with dartdevc CLI.
-  var argParser = ArgParser(allowTrailingOptions: true)
-    ..addFlag(
-      'help',
-      abbr: 'h',
-      help: 'Display this message.',
-      negatable: false,
-    )
-    ..addOption('packages', help: 'The package spec file to use.')
-    // TODO(jmesserly): is this still useful for us, or can we remove it now?
-    ..addFlag(
-      'summarize-text',
-      help: 'Emit API summary and AST in .js.txt and .ast.xml files.',
-      defaultsTo: false,
-      hide: true,
-    )
-    ..addFlag(
-      'track-widget-creation',
-      help: 'Enable inspecting of Flutter widgets.',
-      defaultsTo: false,
-      hide: true,
-    )
-    // TODO(jmesserly): add verbose help to show hidden options
-    ..addOption(
-      'dart-sdk-summary',
-      help: 'The path to the Dart SDK summary file.',
-      hide: true,
-    )
-    ..addMultiOption(
-      'multi-root',
-      help:
-          'The directories to search when encountering uris with the '
-          'specified multi-root scheme.',
-      defaultsTo: [Uri.base.path],
-    )
-    ..addFlag(
-      'compile-sdk',
-      help: 'Build an SDK module.',
-      defaultsTo: false,
-      hide: true,
-    )
-    ..addOption(
-      'libraries-file',
-      help: 'The path to the libraries.json file for the sdk.',
-    )
-    ..addOption(
-      'used-inputs-file',
-      help: 'If set, the file to record inputs used.',
-      hide: true,
-    );
-  Options.addArguments(argParser);
+  var argParser = Options.nonSdkArgParser();
   var declaredVariables = parseAndRemoveDeclaredVariables(args);
   ArgResults argResults;
   try {

@@ -153,6 +153,9 @@ class Options {
         summaryModules: _parseCustomSummaryModules(
           args['summary'] as List<String>,
         ),
+        nonHotReloadablePackages: Set.from(
+          args['non-hot-reloadable-package'] as List<String>,
+        ),
         moduleFormats: parseModuleFormatOption(args),
         moduleName: _getModuleName(args),
         multiRootScheme: args['multi-root-scheme'] as String,
@@ -194,6 +197,14 @@ class Options {
             'API summary file(s) of imported libraries, optionally\n'
             'with module import path: -s path.dill=js/import/path',
       )
+      ..addMultiOption(
+        'non-hot-reloadable-package',
+        help:
+            'Specifies that a package should not be hot reloaded.\n'
+            'Hot reload will be rejected when any such package is modified. '
+            'This allows the compiler to emit these packages with better '
+            'performance.',
+      )
       ..addFlag(
         'summarize',
         help: 'Emit an API summary file.',
@@ -227,8 +238,8 @@ class Options {
         defaultsTo: false,
         hide: hide,
       )
-      // TODO(41852) Define a process for breaking changes before graduating
-      // from experimental.
+      // TODO(41852) Define a process for breaking changes before graduating from
+      // experimental.
       ..addFlag(
         'experimental-emit-debug-metadata',
         help:
@@ -367,6 +378,63 @@ class Options {
     // explicitly. It is here for backwards compatibility until we can confirm
     // that build systems do not depend on passing windows-style paths here.
     return p.toUri(moduleName).toString();
+  }
+
+  /// Returns an `ArgParser` for arguments compatible with non-SDK DDC
+  /// compilations.
+  static ArgParser nonSdkArgParser() {
+    // TODO(jmesserly): refactor options to share code with dartdevc CLI.
+    var argParser = ArgParser(allowTrailingOptions: true)
+      ..addFlag(
+        'help',
+        abbr: 'h',
+        help: 'Display this message.',
+        negatable: false,
+      )
+      ..addOption('packages', help: 'The package spec file to use.')
+      // TODO(jmesserly): is this still useful for us, or can we remove it now?
+      ..addFlag(
+        'summarize-text',
+        help: 'Emit API summary and AST in .js.txt and .ast.xml files.',
+        defaultsTo: false,
+        hide: true,
+      )
+      ..addFlag(
+        'track-widget-creation',
+        help: 'Enable inspecting of Flutter widgets.',
+        defaultsTo: false,
+        hide: true,
+      )
+      // TODO(jmesserly): add verbose help to show hidden options
+      ..addOption(
+        'dart-sdk-summary',
+        help: 'The path to the Dart SDK summary file.',
+        hide: true,
+      )
+      ..addMultiOption(
+        'multi-root',
+        help:
+            'The directories to search when encountering uris with the '
+            'specified multi-root scheme.',
+        defaultsTo: [Uri.base.path],
+      )
+      ..addFlag(
+        'compile-sdk',
+        help: 'Build an SDK module.',
+        defaultsTo: false,
+        hide: true,
+      )
+      ..addOption(
+        'libraries-file',
+        help: 'The path to the libraries.json file for the sdk.',
+      )
+      ..addOption(
+        'used-inputs-file',
+        help: 'If set, the file to record inputs used.',
+        hide: true,
+      );
+    Options.addArguments(argParser);
+    return argParser;
   }
 }
 

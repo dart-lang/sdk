@@ -68,6 +68,11 @@ class _Visitor extends SimpleAstVisitor<void> {
           if (variable is VariableElement) {
             enumConstants.remove(variable.computeConstantValue());
           }
+        } else if (expression is DotShorthandPropertyAccess) {
+          var variable = expression.propertyName.element.variableElement;
+          if (variable is VariableElement) {
+            enumConstants.remove(variable.computeConstantValue());
+          }
         }
         if (member is SwitchDefault) {
           return;

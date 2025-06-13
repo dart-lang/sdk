@@ -542,10 +542,6 @@ class JClosedWorld implements World {
     return false;
   }
 
-  late final ClassEntity _functionLub = getLubOfInstantiatedSubtypes(
-    commonElements.functionClass,
-  )!;
-
   /// Returns `true` if [selector] on [receiver] can hit a `call` method on a
   /// subclass of `Closure` using the [abstractValueDomain].
   ///
@@ -559,23 +555,9 @@ class JClosedWorld implements World {
   ) {
     return selector.name == Identifiers.call &&
         (receiver == null ||
-            // This is logically equivalent to the former implementation using
-            // `abstractValueDomain.contains` (which wrapped `containsMask`).
-            // The switch to `abstractValueDomain.containsType` is because
-            // `contains` was generally unsound but happened to work correctly
-            // here. See https://dart-review.googlesource.com/c/sdk/+/130565
-            // for further discussion.
-            //
-            // This checks if the receiver mask contains the entire type cone
-            // originating from [_functionLub] and may therefore be unsound if
-            // the receiver mask contains only part of the type cone. (Is this
-            // possible?)
-            //
-            // TODO(fishythefish): Use `isDisjoint` or equivalent instead of
-            // `containsType` once we can ensure it's fast enough.
             abstractValueDomain
-                .containsType(receiver, _functionLub)
-                .isPotentiallyTrue);
+                .areDisjoint(abstractValueDomain.functionType, receiver)
+                .isPotentiallyFalse);
   }
 
   /// Returns `true` if [selector] on [receiver] can hit a `call` method on a
@@ -591,9 +573,9 @@ class JClosedWorld implements World {
   Selector getSelector(ir.Expression node) => elementMap.getSelector(node);
 
   /// Returns all the instance members that may be invoked with the [selector]
-  /// on the given [receiver] using the [abstractValueDomain]. The returned elements may include noSuchMethod
-  /// handlers that are potential targets indirectly through the noSuchMethod
-  /// mechanism.
+  /// on the given [receiver] using the [abstractValueDomain]. The returned
+  /// elements may include noSuchMethod handlers that are potential targets
+  /// indirectly through the noSuchMethod mechanism.
   Iterable<MemberEntity> locateMembersInDomain(
     Selector selector,
     AbstractValue? receiver,

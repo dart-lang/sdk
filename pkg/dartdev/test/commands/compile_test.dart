@@ -1481,6 +1481,39 @@ void main() {
     expect(result.exitCode, 254);
   });
 
+  test('Compile JIT snapshot with asserts', () async {
+    final p = project(mainSrc: '''
+void main() {
+  assert(int.parse('1') == 2);
+}
+''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'myjit'));
+
+    var result = await p.run(
+      [
+        'compile',
+        'jit-snapshot',
+        '--enable-asserts',
+        '-o',
+        outFile,
+        inFile,
+      ],
+    );
+
+    // Only printed when -v/--verbose is used, not --verbosity.
+    expect(result.stdout, isNot(contains(usingTargetOSMessage)));
+    expect(result.stdout, isNot(contains(soundNullSafetyMessage)));
+    expect(result.stderr, contains(failedAssertionError));
+    expect(result.exitCode, 255);
+
+    result = await p.run(
+      ['--enable-asserts', outFile],
+    );
+    expect(result.stdout, isEmpty);
+    expect(result.stderr, contains(failedAssertionError));
+  });
+
   if (Platform.isMacOS) {
     test('Compile and run executable from signed dartaotruntime', () async {
       // Either the locally built dartaotruntime is already linker signed

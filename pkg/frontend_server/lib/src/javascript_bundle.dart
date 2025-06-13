@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:args/args.dart';
 import 'package:dev_compiler/dev_compiler.dart';
 import 'package:dev_compiler/src/command/command.dart';
 import 'package:dev_compiler/src/kernel/hot_reload_delta_inspector.dart';
@@ -42,12 +43,14 @@ class IncrementalJavaScriptBundler {
     this.emitDebugSymbols = false,
     this.canaryFeatures = false,
     String? moduleFormat,
+    this.extraDdcOptions = const [],
   }) : _moduleFormat = parseModuleFormat(moduleFormat ?? 'amd');
 
   final bool useDebuggerModuleNames;
   final bool emitDebugMetadata;
   final bool emitDebugSymbols;
   final ModuleFormat _moduleFormat;
+  final List<String> extraDdcOptions;
   final bool canaryFeatures;
   final FileSystem? _fileSystem;
   final Set<Library> _loadedLibraries;
@@ -185,6 +188,20 @@ class IncrementalJavaScriptBundler {
     }
   }
 
+  /// Reports if [option] in [extraDdcOptions] was overridden or extended
+  /// to [newValue] before being passed to DDC.
+  void _checkOverriddenExtraDdcOption(
+      ArgResults extraDdcOptionsResults, String option, dynamic newValue) {
+    if (extraDdcOptionsResults.wasParsed(option)) {
+      if (newValue is List) {
+        if (listEquals(extraDdcOptionsResults[option], newValue)) return;
+      } else if (newValue == extraDdcOptionsResults[option]) {
+        return;
+      }
+      print("Warning: DDC option '$option' was overridden to '$newValue'.");
+    }
+  }
+
   /// Compile each component into a single JavaScript library bundle.
   Future<Map<String, Compiler>> compile(
     ClassHierarchy classHierarchy,
@@ -221,18 +238,42 @@ class IncrementalJavaScriptBundler {
 
       final String componentUrl =
           urlForComponentUri(libraryBundleImport, packageConfig);
-      // library bundle name to use in trackLibraries
-      // use full path for tracking if library bundle uri is not a package uri.
+      // Library bundle name to use in trackLibraries. Use the full path for
+      // tracking if library bundle uri is not a package uri.
       final String libraryBundleName = makeLibraryBundleName(componentUrl);
-      final Options ddcOptions = new Options(
-        sourceMap: true,
-        summarizeApi: false,
-        emitDebugMetadata: emitDebugMetadata,
-        emitDebugSymbols: emitDebugSymbols,
-        moduleName: libraryBundleName,
-        canaryFeatures: canaryFeatures,
-        moduleFormats: [_moduleFormat],
-      );
+      // Issue a warning when provided [extraDdcOptions] were overridden.
+      final ArgResults extraDdcOptionsResults =
+          Options.nonSdkArgParser().parse(extraDdcOptions);
+      _checkOverriddenExtraDdcOption(
+          extraDdcOptionsResults, 'source-map', true);
+      _checkOverriddenExtraDdcOption(
+          extraDdcOptionsResults, 'summarize', false);
+      _checkOverriddenExtraDdcOption(extraDdcOptionsResults,
+          'experimental-emit-debug-metadata', emitDebugMetadata);
+      _checkOverriddenExtraDdcOption(
+          extraDdcOptionsResults, 'emit-debug-symbols', emitDebugSymbols);
+      _checkOverriddenExtraDdcOption(
+          extraDdcOptionsResults, 'canary', canaryFeatures);
+      _checkOverriddenExtraDdcOption(
+          extraDdcOptionsResults, 'module-name', libraryBundleName);
+      _checkOverriddenExtraDdcOption(
+          extraDdcOptionsResults, 'modules', [libraryBundleName]);
+      // Apply existing Frontend Server flags over options selected in
+      // [extraDdcOptions].
+      final List<String> ddcArgs = [
+        ...extraDdcOptions,
+        '--source-map',
+        '--no-summarize',
+        emitDebugMetadata
+            ? '--experimental-emit-debug-metadata'
+            : '--no-experimental-emit-debug-metadata',
+        emitDebugSymbols ? '--emit-debug-symbols' : '--no-emit-debug-symbols',
+        canaryFeatures ? '--canary' : '--no-canary',
+        '--module-name=$libraryBundleName',
+        '--modules=${_moduleFormat.flagName}',
+      ];
+      final Options ddcOptions =
+          new Options.fromArguments(Options.nonSdkArgParser().parse(ddcArgs));
       Compiler compiler;
       if (ddcOptions.emitLibraryBundle) {
         compiler = new LibraryBundleCompiler(

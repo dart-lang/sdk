@@ -13,20 +13,25 @@ import 'js_names.dart';
 /// The module format to emit.
 enum ModuleFormat {
   /// ECMAScript 6 module using import and export.
-  es6,
+  es6('es6'),
 
   /// CommonJS module (used in Node.js)
-  common,
+  common('common'),
 
   /// Asynchronous Module Definition (AMD, used in browsers).
-  amd,
+  amd('amd'),
 
   /// Dart Dev Compiler's own format.
-  ddc,
+  ddc('ddc'),
 
   // New version of ddc module system that will support hot reload.
   // TODO(nshahan) Eventually replace the existing `ddc` with this format.
-  ddcLibraryBundle,
+  ddcLibraryBundle('ddc');
+
+  const ModuleFormat(this.flagName);
+
+  /// The name of the module format passed to DDC's `--modules` flag.
+  final String flagName;
 }
 
 /// Parses a string into a [ModuleFormat].
