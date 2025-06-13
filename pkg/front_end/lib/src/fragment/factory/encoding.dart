@@ -547,9 +547,7 @@ class FactoryEncoding implements InferredTypeListener {
       FunctionType factoryTypeWithoutTypeParameters =
           factoryType.withoutTypeParameters;
       if (!typeEnvironment.isSubtypeOf(
-          redirecteeType,
-          factoryTypeWithoutTypeParameters,
-          SubtypeCheckMode.withNullabilities)) {
+          redirecteeType, factoryTypeWithoutTypeParameters)) {
         _addProblemForRedirectingFactory(
             libraryBuilder: libraryBuilder,
             message: templateIncompatibleRedirecteeFunctionType.withArguments(
@@ -624,8 +622,7 @@ class FactoryEncoding implements InferredTypeListener {
         DartType typeArgument = typeArguments[i];
         // Check whether the [typeArgument] respects the bounds of
         // [typeParameter].
-        if (!typeEnvironment.isSubtypeOf(typeArgument, typeParameterBound,
-            SubtypeCheckMode.ignoringNullabilities)) {
+        if (!typeEnvironment.isSubtypeOf(typeArgument, typeParameterBound)) {
           _addProblemForRedirectingFactory(
               libraryBuilder: libraryBuilder,
               message: templateRedirectingFactoryIncompatibleTypeArgument
@@ -635,8 +632,7 @@ class FactoryEncoding implements InferredTypeListener {
               fileUri: redirectionTarget.fileUri);
           hasProblem = true;
         } else {
-          if (!typeEnvironment.isSubtypeOf(typeArgument, typeParameterBound,
-              SubtypeCheckMode.withNullabilities)) {
+          if (!typeEnvironment.isSubtypeOf(typeArgument, typeParameterBound)) {
             // Coverage-ignore-block(suite): Not run.
             _addProblemForRedirectingFactory(
                 libraryBuilder: libraryBuilder,

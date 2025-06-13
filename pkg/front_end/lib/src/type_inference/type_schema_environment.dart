@@ -80,26 +80,19 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       DartType contextType, DartType type1, DartType type2) {
     if (contextType is! NeverType &&
         type1 is! NeverType &&
-        isSubtypeOf(type1, coreTypes.numNonNullableRawType,
-            SubtypeCheckMode.withNullabilities)) {
+        isSubtypeOf(type1, coreTypes.numNonNullableRawType)) {
       // If e is an expression of the form e1 + e2, e1 - e2, e1 * e2, e1 % e2
       // or e1.remainder(e2), where C is the context type of e and T is the
       // static type of e1, and where T is a non-Never subtype of num, then:
-      if (isSubtypeOf(coreTypes.intNonNullableRawType, contextType,
-              SubtypeCheckMode.withNullabilities) &&
-          !isSubtypeOf(coreTypes.numNonNullableRawType, contextType,
-              SubtypeCheckMode.withNullabilities) &&
-          isSubtypeOf(type1, coreTypes.intNonNullableRawType,
-              SubtypeCheckMode.withNullabilities)) {
+      if (isSubtypeOf(coreTypes.intNonNullableRawType, contextType) &&
+          !isSubtypeOf(coreTypes.numNonNullableRawType, contextType) &&
+          isSubtypeOf(type1, coreTypes.intNonNullableRawType)) {
         // If int <: C, not num <: C, and T <: int, then the context type of
         // e2 is int.
         return coreTypes.intNonNullableRawType;
-      } else if (isSubtypeOf(coreTypes.doubleNonNullableRawType, contextType,
-              SubtypeCheckMode.withNullabilities) &&
-          !isSubtypeOf(coreTypes.numNonNullableRawType, contextType,
-              SubtypeCheckMode.withNullabilities) &&
-          !isSubtypeOf(type1, coreTypes.doubleNonNullableRawType,
-              SubtypeCheckMode.withNullabilities)) {
+      } else if (isSubtypeOf(coreTypes.doubleNonNullableRawType, contextType) &&
+          !isSubtypeOf(coreTypes.numNonNullableRawType, contextType) &&
+          !isSubtypeOf(type1, coreTypes.doubleNonNullableRawType)) {
         // If double <: C, not num <: C, and not T <: double, then the context
         // type of e2 is double.
         return coreTypes.doubleNonNullableRawType;
@@ -114,26 +107,19 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   DartType getContextTypeOfSpecialCasedTernaryOperator(
       DartType contextType, DartType receiverType, DartType operandType) {
     if (receiverType is! NeverType &&
-        isSubtypeOf(receiverType, coreTypes.numNonNullableRawType,
-            SubtypeCheckMode.withNullabilities)) {
+        isSubtypeOf(receiverType, coreTypes.numNonNullableRawType)) {
       // If e is an expression of the form e1.clamp(e2, e3) where C is the
       // context type of e and T is the static type of e1 where T is a
       // non-Never subtype of num, then:
-      if (isSubtypeOf(coreTypes.intNonNullableRawType, contextType,
-              SubtypeCheckMode.withNullabilities) &&
-          !isSubtypeOf(coreTypes.numNonNullableRawType, contextType,
-              SubtypeCheckMode.withNullabilities) &&
-          isSubtypeOf(receiverType, coreTypes.intNonNullableRawType,
-              SubtypeCheckMode.withNullabilities)) {
+      if (isSubtypeOf(coreTypes.intNonNullableRawType, contextType) &&
+          !isSubtypeOf(coreTypes.numNonNullableRawType, contextType) &&
+          isSubtypeOf(receiverType, coreTypes.intNonNullableRawType)) {
         // If int <: C, not num <: C, and T <: int, then the context type of
         // e2 and e3 is int.
         return coreTypes.intNonNullableRawType;
-      } else if (isSubtypeOf(coreTypes.doubleNonNullableRawType, contextType,
-              SubtypeCheckMode.withNullabilities) &&
-          !isSubtypeOf(coreTypes.numNonNullableRawType, contextType,
-              SubtypeCheckMode.withNullabilities) &&
-          isSubtypeOf(receiverType, coreTypes.doubleNonNullableRawType,
-              SubtypeCheckMode.withNullabilities)) {
+      } else if (isSubtypeOf(coreTypes.doubleNonNullableRawType, contextType) &&
+          !isSubtypeOf(coreTypes.numNonNullableRawType, contextType) &&
+          isSubtypeOf(receiverType, coreTypes.doubleNonNullableRawType)) {
         // If double <: C, not num <: C, and T <: double, then the context
         // type of e2 and e3 is double.
         return coreTypes.doubleNonNullableRawType;
@@ -408,10 +394,8 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   // Coverage-ignore(suite): Not run.
   /// Determine if the given [type] satisfies the given type [constraint].
   bool typeSatisfiesConstraint(DartType type, MergedTypeConstraint constraint) {
-    return isSubtypeOf(constraint.lower.unwrapTypeSchemaView(), type,
-            SubtypeCheckMode.withNullabilities) &&
-        isSubtypeOf(type, constraint.upper.unwrapTypeSchemaView(),
-            SubtypeCheckMode.withNullabilities);
+    return isSubtypeOf(constraint.lower.unwrapTypeSchemaView(), type) &&
+        isSubtypeOf(type, constraint.upper.unwrapTypeSchemaView());
   }
 
   /// Performs upwards inference, producing a final set of inferred types that

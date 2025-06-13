@@ -760,8 +760,7 @@ Future<AstModel> deriveAstModel(Uri repoDir, {bool printDump = false}) async {
         bool isDeclarativeType = false;
         for (DartType declarativeType in declarativeTypes) {
           if (type is InterfaceType &&
-              typeEnvironment.isSubtypeOf(
-                  type, declarativeType, SubtypeCheckMode.withNullabilities)) {
+              typeEnvironment.isSubtypeOf(type, declarativeType)) {
             isDeclarativeType = true;
             break;
           }
@@ -780,33 +779,28 @@ Future<AstModel> deriveAstModel(Uri repoDir, {bool printDump = false}) async {
           }
         }
         if (type is TypeDeclarationType &&
-            typeEnvironment.isSubtypeOf(type, coreTypes.listNullableRawType,
-                SubtypeCheckMode.withNullabilities)) {
+            typeEnvironment.isSubtypeOf(type, coreTypes.listNullableRawType)) {
           DartType elementType = typeEnvironment
               .getTypeArgumentsAsInstanceOf(type, coreTypes.listClass)!
               .single;
           return new ListFieldType(type, computeFieldType(elementType));
         } else if (type is TypeDeclarationType &&
-            typeEnvironment.isSubtypeOf(type, coreTypes.setNullableRawType,
-                SubtypeCheckMode.withNullabilities)) {
+            typeEnvironment.isSubtypeOf(type, coreTypes.setNullableRawType)) {
           DartType elementType = typeEnvironment
               .getTypeArgumentsAsInstanceOf(type, coreTypes.setClass)!
               .single;
           return new SetFieldType(type, computeFieldType(elementType));
         } else if (type is TypeDeclarationType &&
-            typeEnvironment.isSubtypeOf(type, coreTypes.mapNullableRawType,
-                SubtypeCheckMode.withNullabilities)) {
+            typeEnvironment.isSubtypeOf(type, coreTypes.mapNullableRawType)) {
           List<DartType> typeArguments = typeEnvironment
               .getTypeArgumentsAsInstanceOf(type, coreTypes.mapClass)!;
           return new MapFieldType(type, computeFieldType(typeArguments[0]),
               computeFieldType(typeArguments[1]));
         } else if (type is InterfaceType &&
-            typeEnvironment.isSubtypeOf(
-                type, nullableNodeType, SubtypeCheckMode.withNullabilities)) {
+            typeEnvironment.isSubtypeOf(type, nullableNodeType)) {
           return new FieldType(type, AstFieldKind.node);
         } else if (type is InterfaceType &&
-            typeEnvironment.isSubtypeOf(type, nullableReferenceType,
-                SubtypeCheckMode.withNullabilities)) {
+            typeEnvironment.isSubtypeOf(type, nullableReferenceType)) {
           return new FieldType(type, AstFieldKind.reference);
         } else {
           if (type is InterfaceType) {

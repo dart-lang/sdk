@@ -1020,8 +1020,8 @@ class SourceClassBuilder extends ClassBuilderImpl
           hierarchy.getInterfaceTypeAsInstanceOfClass(
               supertype, requiredInterface.classNode);
       if (implementedInterface == null ||
-          !typeEnvironment.areMutualSubtypes(implementedInterface,
-              requiredInterface, SubtypeCheckMode.withNullabilities)) {
+          !typeEnvironment.areMutualSubtypes(
+              implementedInterface, requiredInterface)) {
         libraryBuilder.addProblem(
             templateMixinApplicationIncompatibleSupertype.withArguments(
                 supertype, requiredInterface, cls.mixedInType!.asInterfaceType),
@@ -1580,7 +1580,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           if (!types
               .performNullabilityAwareMutualSubtypesCheck(
                   declaredBound, computedBound)
-              .isSubtypeWhenUsingNullabilities()) {
+              .isSuccess()) {
             reportInvalidOverride(
                 isInterfaceCheck,
                 declaredMember,
@@ -1652,12 +1652,10 @@ class SourceClassBuilder extends ClassBuilderImpl
     DartType subtype = inParameter ? interfaceType : declaredType;
     DartType supertype = inParameter ? declaredType : interfaceType;
 
-    if (types.isSubtypeOf(
-        subtype, supertype, SubtypeCheckMode.withNullabilities)) {
+    if (types.isSubtypeOf(subtype, supertype)) {
       // No problem--the proper subtyping relation is satisfied.
     } else if (isCovariantByDeclaration &&
-        types.isSubtypeOf(
-            supertype, subtype, SubtypeCheckMode.withNullabilities)) {
+        types.isSubtypeOf(supertype, subtype)) {
       // No problem--the overriding parameter is marked "covariant" and has
       // a type which is a subtype of the parameter it overrides.
     } else if (subtype is InvalidType || supertype is InvalidType) {

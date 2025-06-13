@@ -27,8 +27,7 @@ import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 import 'package:kernel/type_algebra.dart' show Substitution;
-import 'package:kernel/type_environment.dart'
-    show TypeEnvironment, SubtypeCheckMode;
+import 'package:kernel/type_environment.dart' show TypeEnvironment;
 import 'package:kernel/util/graph.dart' as kernelGraph;
 
 import 'abi.dart';
@@ -1398,11 +1397,7 @@ class FfiTransformer extends Transformer {
     if (type is NullType) {
       return false;
     }
-    if (!env.isSubtypeOf(
-      type,
-      nativeTypeType,
-      SubtypeCheckMode.ignoringNullabilities,
-    )) {
+    if (!env.isSubtypeOf(type, nativeTypeType)) {
       return false;
     }
     if (isPointerType(type)) {
@@ -1422,11 +1417,7 @@ class FfiTransformer extends Transformer {
     if (type is NullType) {
       return false;
     }
-    return env.isSubtypeOf(
-      type,
-      pointerNativeTypeType,
-      SubtypeCheckMode.ignoringNullabilities,
-    );
+    return env.isSubtypeOf(type, pointerNativeTypeType);
   }
 
   bool isArrayType(DartType type) {
@@ -1439,7 +1430,6 @@ class FfiTransformer extends Transformer {
     return env.isSubtypeOf(
       type,
       InterfaceType(arrayClass, Nullability.nonNullable, [nativeTypeType]),
-      SubtypeCheckMode.ignoringNullabilities,
     );
   }
 
@@ -1618,7 +1608,6 @@ class FfiTransformer extends Transformer {
     return env.isSubtypeOf(
       type,
       InterfaceType(abiSpecificIntegerClass, Nullability.nonNullable),
-      SubtypeCheckMode.ignoringNullabilities,
     );
   }
 
@@ -1639,7 +1628,6 @@ class FfiTransformer extends Transformer {
     return env.isSubtypeOf(
       type,
       InterfaceType(compoundClass, Nullability.nonNullable),
-      SubtypeCheckMode.ignoringNullabilities,
     );
   }
 
@@ -1929,11 +1917,7 @@ class FfiTransformer extends Transformer {
                       .varianceBasedBehaviorForSubtype,
               variance: Variance.covariant,
             )!;
-        if (env.isSubtypeOf(
-          correspondingDartType,
-          dartType,
-          SubtypeCheckMode.ignoringNullabilities,
-        )) {
+        if (env.isSubtypeOf(correspondingDartType, dartType)) {
           // If subtype, manually check the return type is not void.
           if (correspondingDartType is FunctionType) {
             if (dartType is FunctionType) {
@@ -1962,11 +1946,7 @@ class FfiTransformer extends Transformer {
                       .varianceBasedBehaviorForSupertype,
               variance: Variance.covariant,
             )!;
-        if (env.isSubtypeOf(
-          dartType,
-          correspondingDartType,
-          SubtypeCheckMode.ignoringNullabilities,
-        )) {
+        if (env.isSubtypeOf(dartType, correspondingDartType)) {
           return correspondingDartType;
         }
     }

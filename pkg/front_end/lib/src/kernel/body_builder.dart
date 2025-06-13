@@ -1361,8 +1361,7 @@ class BodyBuilder extends StackListenerImpl
     switch (asyncModifier) {
       case AsyncMarker.Async:
         DartType futureBottomType = libraryBuilder.loader.futureOfBottom;
-        if (!typeEnvironment.isSubtypeOf(
-            futureBottomType, returnType, SubtypeCheckMode.withNullabilities)) {
+        if (!typeEnvironment.isSubtypeOf(futureBottomType, returnType)) {
           problem = cfe.messageIllegalAsyncReturnType;
         }
         break;
@@ -1371,8 +1370,7 @@ class BodyBuilder extends StackListenerImpl
         DartType streamBottomType = libraryBuilder.loader.streamOfBottom;
         if (returnType is VoidType) {
           problem = cfe.messageIllegalAsyncGeneratorVoidReturnType;
-        } else if (!typeEnvironment.isSubtypeOf(
-            streamBottomType, returnType, SubtypeCheckMode.withNullabilities)) {
+        } else if (!typeEnvironment.isSubtypeOf(streamBottomType, returnType)) {
           problem = cfe.messageIllegalAsyncGeneratorReturnType;
         }
         break;
@@ -1381,8 +1379,8 @@ class BodyBuilder extends StackListenerImpl
         DartType iterableBottomType = libraryBuilder.loader.iterableOfBottom;
         if (returnType is VoidType) {
           problem = cfe.messageIllegalSyncGeneratorVoidReturnType;
-        } else if (!typeEnvironment.isSubtypeOf(iterableBottomType, returnType,
-            SubtypeCheckMode.withNullabilities)) {
+        } else if (!typeEnvironment.isSubtypeOf(
+            iterableBottomType, returnType)) {
           problem = cfe.messageIllegalSyncGeneratorReturnType;
         }
         break;
@@ -9237,8 +9235,7 @@ class BodyBuilder extends StackListenerImpl
         if (formal != null && formal.type is! OmittedTypeBuilder) {
           DartType formalType = formal.variable!.type;
           DartType fieldType = _context.substituteFieldType(builder.fieldType);
-          if (!typeEnvironment.isSubtypeOf(
-              formalType, fieldType, SubtypeCheckMode.withNullabilities)) {
+          if (!typeEnvironment.isSubtypeOf(formalType, fieldType)) {
             libraryBuilder.addProblem(
                 cfe.templateInitializingFormalTypeMismatch
                     .withArguments(name, formalType, builder.fieldType),

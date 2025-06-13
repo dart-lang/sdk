@@ -375,8 +375,7 @@ void _patchMainTearOffs(CoreTypes coreTypes, Component component) {
 
   final typeEnv =
       TypeEnvironment(coreTypes, ClassHierarchy(component, coreTypes));
-  bool mainHasType(DartType type) => typeEnv.isSubtypeOf(
-      mainMethodType, type, SubtypeCheckMode.withNullabilities);
+  bool mainHasType(DartType type) => typeEnv.isSubtypeOf(mainMethodType, type);
 
   final internalLib = coreTypes.index.getLibrary('dart:_internal');
   (Procedure, DartType) lookupAndInitialize(String name) {

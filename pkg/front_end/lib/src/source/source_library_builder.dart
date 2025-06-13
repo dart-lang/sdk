@@ -19,8 +19,7 @@ import 'package:kernel/src/bounds_checks.dart'
         getGenericTypeName,
         hasGenericFunctionTypeAsTypeArgument;
 import 'package:kernel/type_algebra.dart';
-import 'package:kernel/type_environment.dart'
-    show SubtypeCheckMode, TypeEnvironment;
+import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
 import '../api_prototype/experimental_flags.dart';
 import '../base/combinator.dart' show CombinatorBuilder;
@@ -888,8 +887,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       // current Dart version or because something else is wrong that has
       // already been reported.
     } else {
-      bool isValid = typeEnvironment.isSubtypeOf(
-          getterType, setterType, SubtypeCheckMode.withNullabilities);
+      bool isValid = typeEnvironment.isSubtypeOf(getterType, setterType);
       if (!isValid) {
         addProblem2(
             templateInvalidGetterSetterType.withArguments(
@@ -1434,7 +1432,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       DartType type, TypeEnvironment typeEnvironment, Uri fileUri, int offset,
       {bool? inferred, bool allowSuperBounded = true}) {
     List<TypeArgumentIssue> issues = findTypeArgumentIssues(
-        type, typeEnvironment, SubtypeCheckMode.withNullabilities,
+        type, typeEnvironment,
         allowSuperBounded: allowSuperBounded,
         areGenericArgumentsAllowed: libraryFeatures.genericMetadata.isEnabled);
     _reportTypeArgumentIssues(issues, fileUri, offset, inferred: inferred);
@@ -1489,11 +1487,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
     final DartType bottomType = const NeverType.nonNullable();
     List<TypeArgumentIssue> issues = findTypeArgumentIssuesForInvocation(
-        parameters,
-        arguments,
-        typeEnvironment,
-        SubtypeCheckMode.withNullabilities,
-        bottomType,
+        parameters, arguments, typeEnvironment, bottomType,
         areGenericArgumentsAllowed: libraryFeatures.genericMetadata.isEnabled);
     if (issues.isNotEmpty) {
       DartType? targetReceiver;
@@ -1572,7 +1566,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         methodTypeParametersOfInstantiated,
         arguments.types,
         typeEnvironment,
-        SubtypeCheckMode.withNullabilities,
         bottomType,
         areGenericArgumentsAllowed: libraryFeatures.genericMetadata.isEnabled);
     _reportTypeArgumentIssues(issues, fileUri, offset,
@@ -1604,7 +1597,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             .freshTypeParameters,
         arguments.types,
         typeEnvironment,
-        SubtypeCheckMode.withNullabilities,
         bottomType,
         areGenericArgumentsAllowed: libraryFeatures.genericMetadata.isEnabled);
     _reportTypeArgumentIssues(issues, fileUri, offset,
@@ -1639,7 +1631,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             .freshTypeParameters,
         typeArguments,
         typeEnvironment,
-        SubtypeCheckMode.withNullabilities,
         bottomType,
         areGenericArgumentsAllowed: libraryFeatures.genericMetadata.isEnabled);
     _reportTypeArgumentIssues(issues, fileUri, offset,

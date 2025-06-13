@@ -580,8 +580,8 @@ class SourceExtensionTypeDeclarationBuilder
         DartType interface = typeBuilder.build(
             libraryBuilder, TypeUse.extensionTypeImplementsType);
         if (interface is InterfaceType) {
-          if (!hierarchyBuilder.types.isSubtypeOf(declaredRepresentationType,
-              interface, SubtypeCheckMode.withNullabilities)) {
+          if (!hierarchyBuilder.types
+              .isSubtypeOf(declaredRepresentationType, interface)) {
             libraryBuilder.addProblem(
                 templateInvalidExtensionTypeSuperInterface.withArguments(
                     interface, declaredRepresentationType, name),
@@ -590,16 +590,14 @@ class SourceExtensionTypeDeclarationBuilder
                 typeBuilder.fileUri);
           }
         } else if (interface is ExtensionType) {
-          if (!hierarchyBuilder.types.isSubtypeOf(declaredRepresentationType,
-              interface, SubtypeCheckMode.withNullabilities)) {
+          if (!hierarchyBuilder.types
+              .isSubtypeOf(declaredRepresentationType, interface)) {
             DartType instantiatedImplementedRepresentationType =
                 Substitution.fromExtensionType(interface).substituteType(
                     interface
                         .extensionTypeDeclaration.declaredRepresentationType);
-            if (!hierarchyBuilder.types.isSubtypeOf(
-                declaredRepresentationType,
-                instantiatedImplementedRepresentationType,
-                SubtypeCheckMode.withNullabilities)) {
+            if (!hierarchyBuilder.types.isSubtypeOf(declaredRepresentationType,
+                instantiatedImplementedRepresentationType)) {
               libraryBuilder.addProblem(
                   templateInvalidExtensionTypeSuperExtensionType.withArguments(
                       declaredRepresentationType,

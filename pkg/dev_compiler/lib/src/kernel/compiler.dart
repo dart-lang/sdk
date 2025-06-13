@@ -7765,12 +7765,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       //        c.add('hi);
       //      }
       //
-      if (!isTypeError &&
-          _types.isSubtypeOf(
-            fromStaticType,
-            toType,
-            SubtypeCheckMode.withNullabilities,
-          )) {
+      if (!isTypeError && _types.isSubtypeOf(fromStaticType, toType)) {
         return value;
       }
       if (!isTypeError &&

@@ -7,7 +7,6 @@ import 'core_types.dart';
 import 'kernel.dart';
 import 'type_checker.dart' as type_checker;
 import 'type_algebra.dart';
-import 'type_environment.dart';
 
 abstract class FailureListener {
   void reportFailure(TreeNode node, String message);
@@ -128,8 +127,7 @@ ${ownType} is not a subtype of ${superType}
     }
     // TODO(cstefantsova): Find a way to tell the weak mode from strong mode to
     // use [SubtypeCheckMode.withNullabilities] where necessary.
-    return environment.isSubtypeOf(
-        subtype, supertype, SubtypeCheckMode.ignoringNullabilities);
+    return environment.isSubtypeOf(subtype, supertype);
   }
 
   Substitution _makeSubstitutionForMember(Class host, Member member) {

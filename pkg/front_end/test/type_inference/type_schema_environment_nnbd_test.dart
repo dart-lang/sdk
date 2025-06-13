@@ -1508,7 +1508,7 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     parseTestLibrary("class A;");
 
     // TODO(cstefantsova): Test for various nullabilities.
-    checkIsLegacySubtype("UNKNOWN", "A*");
+    checkIsSubtype("UNKNOWN", "A*");
   }
 
   void test_unknown_at_top() {
@@ -1517,7 +1517,7 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
       class Pair<X, Y>;
     """);
 
-    checkIsLegacySubtype("A*", "UNKNOWN");
+    checkIsSubtype("A*", "UNKNOWN");
     checkIsSubtype("Pair<A*, Null>*", "Pair<UNKNOWN, UNKNOWN>*");
   }
 
@@ -2029,8 +2029,7 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
       expect(
           typeSchemaEnvironment.computeTypeShapeCheckSufficiency(
                   expressionStaticType: parseType(expressionStaticType),
-                  checkTargetType: parseType(checkTargetType),
-                  subtypeCheckMode: SubtypeCheckMode.withNullabilities) ==
+                  checkTargetType: parseType(checkTargetType)) ==
               sufficiency,
           isTrue);
     });

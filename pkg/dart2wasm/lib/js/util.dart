@@ -491,9 +491,7 @@ class CoreTypesUtil {
 
     for (final entry in _jsifyMap.entries) {
       if (typeEnv.isSubtypeOf(
-          valueType,
-          InterfaceType(entry.key, Nullability.nonNullable),
-          SubtypeCheckMode.withNullabilities)) {
+          valueType, InterfaceType(entry.key, Nullability.nonNullable))) {
         return entry.value;
       }
     }

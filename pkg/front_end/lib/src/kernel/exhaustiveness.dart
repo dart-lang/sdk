@@ -107,8 +107,7 @@ class CfeTypeOperations implements TypeOperations<DartType> {
 
   @override
   bool isSubtypeOf(DartType s, DartType t) {
-    return _typeEnvironment.isSubtypeOf(
-        s, t, SubtypeCheckMode.withNullabilities);
+    return _typeEnvironment.isSubtypeOf(s, t);
   }
 
   @override
@@ -498,8 +497,8 @@ class CfeSealedClassOperations
         for (int i = 0; i < subClass.typeParameters.length; i++) {
           DartType bound =
               substitution.substituteType(subClass.typeParameters[i].bound);
-          if (!_typeEnvironment.isSubtypeOf(sealedClassType.typeArguments[i],
-              bound, SubtypeCheckMode.withNullabilities)) {
+          if (!_typeEnvironment.isSubtypeOf(
+              sealedClassType.typeArguments[i], bound)) {
             trivialSubstitution = false;
             break;
           }

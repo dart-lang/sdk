@@ -227,10 +227,8 @@ bool isProperRenameForTypeDeclaration(
   }
   Substitution substitution = Substitution.fromMap(substitutionMap);
   for (int i = 0; i < fromParameters.length; ++i) {
-    if (!typeEnvironment.areMutualSubtypes(
-        toParameters[i].bound,
-        substitution.substituteType(fromParameters[i].bound),
-        SubtypeCheckMode.withNullabilities)) {
+    if (!typeEnvironment.areMutualSubtypes(toParameters[i].bound,
+        substitution.substituteType(fromParameters[i].bound))) {
       return false;
     }
   }

@@ -305,7 +305,6 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
     final isCalculatedTypeSubtype = typeEnvironment.isSubtypeOf(
       operandType,
       node.type,
-      ir.SubtypeCheckMode.withNullabilities,
     );
     if (!isCalculatedTypeSubtype) {
       // Only register needed cast.

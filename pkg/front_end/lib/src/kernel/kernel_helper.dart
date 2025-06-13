@@ -256,8 +256,8 @@ class DelayedDefaultValueCloner {
         ?.getStaticType(new StaticTypeContext(synthesized, typeEnvironment));
     DartType synthesizedParameterType = synthesizedParameter.type;
     if (originalParameterInitializerType != null &&
-        typeEnvironment.isSubtypeOf(originalParameterInitializerType,
-            synthesizedParameterType, SubtypeCheckMode.withNullabilities)) {
+        typeEnvironment.isSubtypeOf(
+            originalParameterInitializerType, synthesizedParameterType)) {
       _cloneInitializer(originalParameter, synthesizedParameter);
     } else if (originalParameterInitializer == null && isOptional) {
       synthesizedParameter.initializer = new NullLiteral()
