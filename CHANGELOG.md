@@ -23,6 +23,11 @@ constraint][language version] lower bound to 3.9 or greater (`sdk: '^3.9.0'`).
 [`switch_on_type`]: http://dart.dev/lints/switch_on_type
 [`unnecessary_unawaited`]: http://dart.dev/lints/unnecessary_unawaited
 
+#### Dart build
+
+- Breaking change of feature in preview: `dart build -f exe <target>` is now
+  `dart build cli --target=<target>`. See `dart build cli --help` for more info.
+
 #### Dart Development Compiler (dartdevc)
 
 - Outstanding async code now checks and cancels itself after a hot restart if

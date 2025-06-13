@@ -245,13 +245,10 @@ class FlowAnalysisHelper {
         // a `FormalParameterListImpl`
         var declaredElement =
             parameter.declaredFragment!.element as PromotableElementImpl2;
-        // TODO(paulberry): `skipDuplicateCheck` is currently needed to work
-        // around a failure in duplicate_definition_test.dart; fix this.
         flow!.declare(
           declaredElement,
           SharedTypeView(declaredElement.type),
           initialized: true,
-          skipDuplicateCheck: true,
         );
       }
     }

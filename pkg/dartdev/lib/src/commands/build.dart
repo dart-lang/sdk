@@ -10,11 +10,11 @@ import 'package:dart2native/generate.dart';
 import 'package:dartdev/src/commands/compile.dart';
 import 'package:dartdev/src/experiments.dart';
 import 'package:dartdev/src/native_assets_bundling.dart';
+import 'package:dartdev/src/native_assets_macos.dart';
 import 'package:dartdev/src/sdk.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show Verbosity;
 import 'package:path/path.dart' as path;
-import 'package:vm/target_os.dart'; // For possible --target-os values.
 
 import '../core.dart';
 import '../native_assets.dart';
@@ -29,36 +29,86 @@ class BuildCommand extends DartdevCommand {
   BuildCommand({bool verbose = false, required this.recordUseEnabled})
       : super(cmdName, 'Build a Dart application including native assets.',
             verbose) {
+    addSubcommand(BuildCliSubcommand(
+      verbose: verbose,
+      recordUseEnabled: recordUseEnabled,
+    ));
+  }
+}
+
+/// Subcommand for `dart build cli`.
+///
+/// Expects [Directory.current] to contain a Dart project with a bin/ directory.
+class BuildCliSubcommand extends CompileSubcommandCommand {
+  final bool recordUseEnabled;
+
+  static const String cmdName = 'cli';
+
+  static final OS targetOS = OS.current;
+  late final List<File> entryPoints;
+
+  BuildCliSubcommand({bool verbose = false, required this.recordUseEnabled})
+      : super(
+            cmdName,
+            '''Build a Dart application with a command line interface (CLI).
+
+The resulting CLI app bundle is structured in the following manner:
+
+bundle/
+  bin/
+    <executable>
+  lib/
+    <dynamic libraries>
+''',
+            verbose) {
+    final binDirectory =
+        Directory.fromUri(Directory.current.uri.resolve('bin/'));
+
+    final outputDirectoryDefault = Directory.fromUri(Directory.current.uri
+        .resolve('build/cli/${OS.current}-${Architecture.current}/'));
+    entryPoints = binDirectory.existsSync()
+        ? binDirectory
+            .listSync()
+            .whereType<File>()
+            .where((e) => e.path.endsWith('dart'))
+            .toList()
+        : [];
     argParser
       ..addOption(
-        outputOptionName,
+        'output',
         abbr: 'o',
         help: '''
-          Write the output to <folder name>.
+          Write the output to <output>/bundle/.
           This can be an absolute or relative path.
           ''',
+        valueHelp: 'path',
+        defaultsTo: path
+            .relative(outputDirectoryDefault.path, from: Directory.current.path)
+            .makeFolder(),
       )
       ..addOption(
-        formatOptionName,
-        abbr: 'f',
-        allowed: ['exe', 'aot'],
-        defaultsTo: 'exe',
+        'target',
+        abbr: 't',
+        help: '''The main entry-point file of the command-line application.
+Must be a Dart file in the bin/ directory.
+If the "--target" option is omitted, and there is a single Dart file in bin/,
+then that is used instead.''',
+        valueHelp: 'path',
+        defaultsTo: entryPoints.length == 1
+            ? path.relative(entryPoints.single.path,
+                from: Directory.current.path)
+            : null,
       )
-      ..addOption('target-os',
-          help: 'Compile to a specific target operating system.',
-          allowed: TargetOS.names)
       ..addOption(
         'verbosity',
         help: 'Sets the verbosity level of the compilation.',
+        valueHelp: 'level',
         defaultsTo: Verbosity.defaultValue,
         allowed: Verbosity.allowedValues,
         allowedHelp: Verbosity.allowedValuesHelp,
       )
       ..addExperimentalFlags(verbose: verbose);
   }
-
-  @override
-  String get invocation => '${super.invocation} <dart entry point>';
 
   @override
   Future<int> run() async {
@@ -75,21 +125,16 @@ class BuildCommand extends DartdevCommand {
     }
     final args = argResults!;
 
-    // We expect a single rest argument; the dart entry point.
-    if (args.rest.length != 1) {
-      // This throws.
-      usageException('Missing Dart entry point.');
-    }
-
-    // TODO(https://dartbug.com/52458): Support `dart build <pkg>:<bin-script>`.
-    // Similar to Dart run. Possibly also in `dart compile`.
-    final sourceUri = Uri(path: args.rest[0].normalizeCanonicalizePath());
+    final sourceUri =
+        File.fromUri(Uri.file(args.option('target')!).normalizePath())
+            .absolute
+            .uri;
     if (!checkFile(sourceUri.toFilePath())) {
       return genericErrorExitCode;
     }
 
     final outputUri = Uri.directory(
-      args.option(outputOptionName)?.normalizeCanonicalizePath().makeFolder() ??
+      args.option('output')?.normalizeCanonicalizePath().makeFolder() ??
           sourceUri.toFilePath().removeDotDart().makeFolder(),
     );
     if (await File.fromUri(outputUri.resolve('pubspec.yaml')).exists()) {
@@ -97,39 +142,24 @@ class BuildCommand extends DartdevCommand {
       stderr.writeln('Requested output directory: ${outputUri.toFilePath()}');
       return 128;
     }
-
-    final format = Kind.values.byName(args.option(formatOptionName)!);
-    final outputExeUri = outputUri.resolve(
-      format.appendFileExtension(
-        sourceUri.pathSegments.last.split('.').first,
-      ),
-    );
-    String? targetOS = args['target-os'];
-    if (format != Kind.exe) {
-      assert(format == Kind.aot);
-      // If we're generating an AOT snapshot and not an executable, then
-      // targetOS is allowed to be null for a platform-independent snapshot
-      // or a different platform than the host.
-    } else if (targetOS == null) {
-      targetOS = Platform.operatingSystem;
-    } else if (targetOS != Platform.operatingSystem) {
-      stderr.writeln(
-          "'dart build -f ${format.name}' does not support cross-OS compilation.");
-      stderr.writeln('Host OS: ${Platform.operatingSystem}');
-      stderr.writeln('Target OS: $targetOS');
-      return 128;
-    }
-
-    stdout.writeln('''The `dart build` command is in preview at the moment.
-See documentation on https://dart.dev/interop/c-interop#native-assets.
-''');
-
     final outputDir = Directory.fromUri(outputUri);
     if (await outputDir.exists()) {
       stdout.writeln('Deleting output directory: ${outputUri.toFilePath()}.');
       await outputDir.delete(recursive: true);
     }
-    await outputDir.create(recursive: true);
+    final bundleDirectory = Directory.fromUri(outputUri.resolve('bundle/'));
+    final binDirectory = Directory.fromUri(bundleDirectory.uri.resolve('bin/'));
+    await binDirectory.create(recursive: true);
+
+    final outputExeUri = binDirectory.uri.resolve(
+      targetOS.executableFileName(
+        path.basenameWithoutExtension(sourceUri.path),
+      ),
+    );
+
+    stdout.writeln('''The `dart build cli` command is in preview at the moment.
+See documentation on https://dart.dev/interop/c-interop#native-assets.
+''');
 
     stdout.writeln('Building native assets.');
     final packageConfigUri = await DartNativeAssetsBuilder.ensurePackageConfig(
@@ -168,14 +198,14 @@ See documentation on https://dart.dev/interop/c-interop#native-assets.
       final generator = KernelGenerator(
         genSnapshot: genSnapshotHost,
         targetDartAotRuntime: hostDartAotRuntime,
-        kind: format,
+        kind: Kind.exe,
         sourceFile: sourceUri.toFilePath(),
         outputFile: outputExeUri.toFilePath(),
         verbose: verbose,
         verbosity: args.option('verbosity')!,
         defines: [],
         packages: packageConfigUri.toFilePath(),
-        targetOS: targetOS == null ? null : OS.fromString(targetOS),
+        targetOS: targetOS,
         enableExperiment: args.enabledExperiments.join(','),
         tempDir: tempDir,
       );
@@ -214,7 +244,7 @@ Use linkMode as dynamic library instead.""");
         final kernelAssets = await bundleNativeAssets(
           allAssets,
           builder.target,
-          outputUri,
+          binDirectory.uri,
           relocatable: true,
           verbose: true,
         );
@@ -226,7 +256,11 @@ Use linkMode as dynamic library instead.""");
         nativeAssets: nativeAssetsYamlUri?.toFilePath(),
       );
 
-      // End linking here.
+      if (targetOS == OS.macOS) {
+        // The dylibs are opened with a relative path to the executable.
+        // MacOS prevents opening dylibs that are not on the include path.
+        await rewriteInstallPath(outputExeUri);
+      }
     } finally {
       await tempDir.delete(recursive: true);
     }

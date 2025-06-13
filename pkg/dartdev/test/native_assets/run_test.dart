@@ -37,7 +37,7 @@ void main([List<String> args = const []]) async {
   // stdout.
 
   for (final verbose in [true, false]) {
-    final testModifier = ['', if (verbose) 'verbose'].join(' ');
+    final testModifier = verbose ? ' verbose' : '';
     test('dart run$testModifier', timeout: longTimeout, () async {
       await nativeAssetsTest('dart_app', (dartAppUri) async {
         final result = await runDart(
