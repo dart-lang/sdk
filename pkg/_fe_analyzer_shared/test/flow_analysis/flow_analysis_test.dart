@@ -2377,7 +2377,10 @@ main() {
           x.as_('int'),
           checkPromoted(x, 'int'),
           checkPromoted(y, 'int'),
-        ]).catch_(body: [checkNotPromoted(x), checkPromoted(y, 'int')]),
+        ]).catch_(
+          type: 'dynamic',
+          body: [checkNotPromoted(x), checkPromoted(y, 'int')],
+        ),
       ]);
     });
 
@@ -2396,6 +2399,7 @@ main() {
             checkPromoted(x, 'int'),
             getSsaNodes((nodes) => ssaAfterTry = nodes[x]!),
           ]).catch_(
+            type: 'dynamic',
             body: [
               checkNotPromoted(x),
               getSsaNodes((nodes) => expect(nodes[x], isNot(ssaAfterTry))),
@@ -2418,7 +2422,7 @@ main() {
         try_([
           localFunction([x.write(expr('int?'))]),
           return_(),
-        ]).catch_(body: [x.as_('int'), checkNotPromoted(x)]),
+        ]).catch_(type: 'dynamic', body: [x.as_('int'), checkNotPromoted(x)]),
       ]);
     });
 
@@ -2429,8 +2433,11 @@ main() {
         h.run([
           declare(x, type: 'int?', initializer: expr('int?')),
           try_([])
-              .catch_(body: [x.as_('int'), checkPromoted(x, 'int')])
-              .catch_(body: [checkNotPromoted(x)]),
+              .catch_(
+                type: 'dynamic',
+                body: [x.as_('int'), checkPromoted(x, 'int')],
+              )
+              .catch_(type: 'dynamic', body: [checkNotPromoted(x)]),
         ]);
       },
     );
@@ -2443,6 +2450,54 @@ main() {
           exception: e,
           stackTrace: st,
           body: [checkAssigned(e, true), checkAssigned(st, true)],
+        ),
+      ]);
+    });
+
+    test('Exception variable is promotable', () {
+      var e = Var('e');
+      h.run([
+        try_([]).catch_(
+          exception: e,
+          body: [checkNotPromoted(e), e.as_('int'), checkPromoted(e, 'int')],
+        ),
+      ]);
+    });
+
+    test('Exception variable is promotable', () {
+      var e = Var('e');
+      h.run([
+        try_([]).catch_(
+          type: 'Object',
+          exception: e,
+          body: [
+            e.checkType('Object'),
+            checkNotPromoted(e),
+            e.as_('String'),
+            checkPromoted(e, 'String'),
+          ],
+        ),
+      ]);
+    });
+
+    test('StackTrace variable is promotable', () {
+      TypeRegistry.addInterfaceTypeName('StackTraceSubtype');
+      h.addSuperInterfaces(
+        'StackTraceSubtype',
+        (_) => [Type('StackTrace'), Type('Object')],
+      );
+      var e = Var('e');
+      var st = Var('st');
+      h.run([
+        try_([]).catch_(
+          exception: e,
+          stackTrace: st,
+          body: [
+            st.checkType('StackTrace'),
+            checkNotPromoted(st),
+            st.as_('StackTraceSubtype'),
+            checkPromoted(st, 'StackTraceSubtype'),
+          ],
         ),
       ]);
     });
@@ -2460,7 +2515,7 @@ main() {
           try_([
             x.as_('int'),
             y.as_('int'),
-          ]).catch_(body: [x.as_('int'), z.as_('int')]),
+          ]).catch_(type: 'dynamic', body: [x.as_('int'), z.as_('int')]),
           // Only x should be promoted, because it's the only variable
           // promoted in both the try body and the catch handler.
           checkPromoted(x, 'int'), checkNotPromoted(y), checkNotPromoted(z),
@@ -2477,8 +2532,8 @@ main() {
         declare(y, type: 'int?', initializer: expr('int?')),
         declare(z, type: 'int?', initializer: expr('int?')),
         try_([return_()])
-            .catch_(body: [x.as_('int'), y.as_('int')])
-            .catch_(body: [x.as_('int'), z.as_('int')]),
+            .catch_(type: 'dynamic', body: [x.as_('int'), y.as_('int')])
+            .catch_(type: 'dynamic', body: [x.as_('int'), z.as_('int')]),
         // Only x should be promoted, because it's the only variable promoted
         // in both catch handlers.
         checkPromoted(x, 'int'), checkNotPromoted(y), checkNotPromoted(z),

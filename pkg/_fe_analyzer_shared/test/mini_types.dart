@@ -1175,6 +1175,7 @@ abstract final class TypeRegistry {
     addInterfaceTypeName('Object');
     _add(stream);
     addInterfaceTypeName('String');
+    addInterfaceTypeName('StackTrace');
     _add(void_);
   }
 
@@ -1224,6 +1225,7 @@ class TypeSystem {
     'Map': (_) => [Type('Object')],
     'Object': (_) => [],
     'num': (_) => [Type('Object')],
+    'StackTrace': (_) => [Type('Object')],
     'String': (_) => [Type('Object')],
   };
 

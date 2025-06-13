@@ -1534,6 +1534,12 @@ uword PageSpace::AllocateSnapshotLockedSlow(FreeList* freelist, intptr_t size) {
 }
 
 void PageSpace::SetupImagePage(void* pointer, uword size, bool is_executable) {
+  if (VirtualMemory::ShouldDualMapExecutablePages()) {
+    // See |Instructions::PayloadStart| for more details about this restriction.
+    FATAL(
+        "Dual mapping of executable pages assumes no image pages in the heap");
+  }
+
   // Setup a Page so precompiled Instructions can be traversed.
   // Instructions are contiguous at [pointer, pointer + size). Page
   // expects to find objects at [memory->start() + ObjectStartOffset,

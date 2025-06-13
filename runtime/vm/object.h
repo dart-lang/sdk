@@ -5790,10 +5790,29 @@ class Instructions : public Object {
     return SizeBits::decode(instr->untag()->size_and_flags_);
   }
 
+  // When dual mapping all GC references (e.g. instruction fields inside
+  // Code) point into R/RW mapping. Entry points however all point into RX
+  // memory. This makes marking simpler: because marker does not need to
+  // translate RX mapping into RW mapping.
   uword PayloadStart() const { return PayloadStart(ptr()); }
   uword MonomorphicEntryPoint() const { return MonomorphicEntryPoint(ptr()); }
   uword EntryPoint() const { return EntryPoint(ptr()); }
   static uword PayloadStart(const InstructionsPtr instr) {
+    if (VirtualMemory::ShouldDualMapExecutablePages()) {
+      // Caveat: we assume that dual mapping is currently only enabled in iOS
+      // in Flutter development mode. This mode does not use snapshots which
+      // include image pages which means we can assume that all Instruction
+      // objects are allocated on VM owned pages.
+      // There is a check in |PageSpace::SetupImagePage| which enforces this.
+      auto page = Page::Of(instr);
+      RELEASE_ASSERT(page->Contains(reinterpret_cast<uword>(instr->untag())));
+      return reinterpret_cast<uword>(instr->untag()) +
+             page->OffsetToExecutableAlias() + HeaderSize();
+    }
+    return reinterpret_cast<uword>(instr->untag()) + HeaderSize();
+  }
+
+  static word WritablePayloadStart(const InstructionsPtr instr) {
     return reinterpret_cast<uword>(instr->untag()) + HeaderSize();
   }
 

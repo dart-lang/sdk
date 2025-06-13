@@ -293,10 +293,11 @@ void Page::ResetProgressBar() {
 
 void Page::WriteProtect(bool read_only) {
   ASSERT(!is_image());
-
   VirtualMemory::Protection prot;
   if (read_only) {
-    if (is_executable()) {
+    // When dual mapping code pages we don't change protection on RX page, but
+    // flip RW to R and back.
+    if (is_executable() && !VirtualMemory::ShouldDualMapExecutablePages()) {
       prot = VirtualMemory::kReadExecute;
     } else {
       prot = VirtualMemory::kReadOnly;

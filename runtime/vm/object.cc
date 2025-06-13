@@ -18714,7 +18714,8 @@ CodePtr Code::FinalizeCode(FlowGraphCompiler* compiler,
 
     // Copy the instructions into the instruction area and apply all fixups.
     // Embedded pointers are still in handles at this point.
-    MemoryRegion region(reinterpret_cast<void*>(instrs.PayloadStart()),
+    MemoryRegion region(reinterpret_cast<void*>(
+                            Instructions::WritablePayloadStart(instrs.ptr())),
                         instrs.Size());
     assembler->FinalizeInstructions(region);
 
@@ -18741,10 +18742,15 @@ CodePtr Code::FinalizeCode(FlowGraphCompiler* compiler,
     // Write protect instructions and, if supported by OS, use dual mapping
     // for execution.
     if (FLAG_write_protect_code) {
+      // Note: when dual mapping is used we have separate RX and RW mappings.
+      // RX mapping never changes protection while RW mapping flips between
+      // R and RW.
       uword address = UntaggedObject::ToAddr(instrs.ptr());
       VirtualMemory::Protect(reinterpret_cast<void*>(address),
                              instrs.ptr()->untag()->HeapSize(),
-                             VirtualMemory::kReadExecute);
+                             VirtualMemory::ShouldDualMapExecutablePages()
+                                 ? VirtualMemory::kReadOnly
+                                 : VirtualMemory::kReadExecute);
     }
 
     // Hook up Code and Instructions objects.
@@ -18766,7 +18772,7 @@ CodePtr Code::FinalizeCode(FlowGraphCompiler* compiler,
     }
 #endif
 
-    CPU::FlushICache(instrs.PayloadStart(), instrs.Size());
+    CPU::FlushICache(region.start(), region.size());
   }
 
 #if defined(INCLUDE_IL_PRINTER)

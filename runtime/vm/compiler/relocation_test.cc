@@ -260,6 +260,7 @@ struct RelocatorTestHelper {
       }
 
       if (FLAG_write_protect_code) {
+        ASSERT(!VirtualMemory::ShouldDualMapExecutablePages());
         const uword address = UntaggedObject::ToAddr(instructions.ptr());
         const auto size = instructions.ptr()->untag()->HeapSize();
         VirtualMemory::Protect(reinterpret_cast<void*>(address), size,

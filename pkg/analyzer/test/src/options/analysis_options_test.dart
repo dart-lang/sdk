@@ -53,8 +53,11 @@ analyzer:
     - another
 ''');
 
-    var unignorableNames = analysisOptions.unignorableNames;
-    expect(unignorableNames, unorderedEquals(['ONE_ERROR_CODE', 'ANOTHER']));
+    var unignorableCodeNames = analysisOptions.unignorableDiagnosticCodeNames;
+    expect(
+      unignorableCodeNames,
+      unorderedEquals(['ONE_ERROR_CODE', 'ANOTHER']),
+    );
   }
 
   test_analyzer_cannotIgnore_severity() {
@@ -64,9 +67,9 @@ analyzer:
     - error
 ''');
 
-    var unignorableNames = analysisOptions.unignorableNames;
-    expect(unignorableNames, contains('INVALID_ANNOTATION'));
-    expect(unignorableNames.length, greaterThan(500));
+    var unignorableCodeNames = analysisOptions.unignorableDiagnosticCodeNames;
+    expect(unignorableCodeNames, contains('INVALID_ANNOTATION'));
+    expect(unignorableCodeNames.length, greaterThan(500));
   }
 
   test_analyzer_cannotIgnore_severity_withProcessor() {
@@ -78,8 +81,8 @@ analyzer:
     - error
 ''');
 
-    var unignorableNames = analysisOptions.unignorableNames;
-    expect(unignorableNames, contains('UNUSED_IMPORT'));
+    var unignorableCodeNames = analysisOptions.unignorableDiagnosticCodeNames;
+    expect(unignorableCodeNames, contains('UNUSED_IMPORT'));
   }
 
   test_analyzer_chromeos_checks() {

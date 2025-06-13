@@ -19,6 +19,11 @@
 #include <sys/prctl.h>
 #endif
 
+#if defined(DART_HOST_OS_MACOS)
+#include <mach/mach_init.h>
+#include <mach/vm_map.h>
+#endif
+
 #include "platform/assert.h"
 #include "platform/utils.h"
 #include "vm/heap/pages.h"
@@ -45,6 +50,14 @@ namespace dart {
 
 DECLARE_FLAG(bool, write_protect_code);
 
+#if defined(DART_HOST_OS_MACOS)
+// For testing on Mac OS.
+DEFINE_FLAG(bool,
+            force_dual_mapping_of_code_pages,
+            false,
+            "Force dual mapping of RX pages");
+#endif
+
 #if defined(DART_TARGET_OS_LINUX)
 DECLARE_FLAG(bool, generate_perf_events_symbols);
 DECLARE_FLAG(bool, generate_perf_jitdump);
@@ -55,6 +68,10 @@ VirtualMemory* VirtualMemory::compressed_heap_ = nullptr;
 #if defined(DART_HOST_OS_IOS) && !defined(DART_PRECOMPILED_RUNTIME)
 bool VirtualMemory::notify_debugger_about_rx_pages_ = false;
 #endif
+
+#if defined(DART_SUPPORT_DUAL_MAPPING_OF_CODE)
+bool VirtualMemory::should_dual_map_executable_pages_ = false;
+#endif  // defined(DART_SUPPORT_DUAL_MAPPING_OF_CODE)
 
 static void* Map(void* addr,
                  size_t length,
@@ -276,8 +293,27 @@ void VirtualMemory::Init() {
     FLAG_new_gen_semi_max_size = kDefaultNewGenSemiMaxSize;
   }
   page_size_ = CalculatePageSize();
+
+#if defined(DART_SUPPORT_DUAL_MAPPING_OF_CODE)
+  if (FLAG_force_dual_mapping_of_code_pages) {
+    should_dual_map_executable_pages_ = true;
+  }
+#endif  // defined(DART_SUPPORT_DUAL_MAPPING_OF_CODE)
+
 #if defined(DART_HOST_OS_IOS) && !defined(DART_PRECOMPILED_RUNTIME)
-  notify_debugger_about_rx_pages_ = CheckIfNeedDebuggerHelpWithRX();
+  if (IsAtLeastIOS26_0()) {
+    // Ideally we would want to test if dual mapping works or not and give a
+    // meaningful error message (i.e. assembling and then calling a simple
+    // function and then catching a SIGBUG signal if that fails). However
+    // setting signal handler does not prevent debugger from breaking on
+    // exception. It is possible to use Mach exception ports to suppress
+    // exception EXC_BAD_ACCESS from reaching the debugger but required
+    // code is rather complicated - so we simply turn dual mapping on
+    // and expect it to work.
+    should_dual_map_executable_pages_ = true;
+  } else {
+    notify_debugger_about_rx_pages_ = CheckIfNeedDebuggerHelpWithRX();
+  }
 #endif
 
 #if defined(DART_COMPRESSED_POINTERS)
@@ -391,8 +427,17 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
 
   const intptr_t allocated_size = size + alignment - PageSize();
 
-#if defined(DART_HOST_OS_IOS) && !defined(DART_PRECOMPILED_RUNTIME)
-  const int prot = (is_executable && notify_debugger_about_rx_pages_)
+#if defined(DART_SUPPORT_DUAL_MAPPING_OF_CODE)
+#if defined(DART_HOST_OS_IOS)
+  const bool notify_debugger_about_rx_pages = notify_debugger_about_rx_pages_;
+#else
+  const bool notify_debugger_about_rx_pages = false;
+#endif
+
+  // We need to map the original page using RX for dual mapping to have
+  // effect on iOS.
+  const int prot = (is_executable && (notify_debugger_about_rx_pages ||
+                                      should_dual_map_executable_pages_))
                        ? PROT_READ | PROT_EXEC
                        : PROT_READ | PROT_WRITE;
 #else
@@ -403,7 +448,8 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
 
   int map_flags = MAP_PRIVATE | MAP_ANONYMOUS;
 #if (defined(DART_HOST_OS_MACOS) && !defined(DART_HOST_OS_IOS))
-  if (is_executable && IsAtLeastMacOSX10_14()) {
+  if (is_executable && IsAtLeastMacOSX10_14() &&
+      !ShouldDualMapExecutablePages()) {
     map_flags |= MAP_JIT;
   }
 #endif  // defined(DART_HOST_OS_MACOS)
@@ -443,6 +489,30 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
     Protect(address, size, kReadWrite);
   }
 #endif
+
+#if defined(DART_SUPPORT_DUAL_MAPPING_OF_CODE)
+  if (is_executable && should_dual_map_executable_pages_) {
+    // |address| is mapped RX, create a corresponding RW alias through which
+    // we will write into the executable mapping.
+    vm_address_t writable_address = 0;
+    vm_prot_t cur_protection, max_protection;
+    const kern_return_t result =
+        vm_remap(mach_task_self(), &writable_address, size,
+                 /*mask=*/alignment - 1, VM_FLAGS_ANYWHERE, mach_task_self(),
+                 reinterpret_cast<vm_address_t>(address), /*copy=*/FALSE,
+                 &cur_protection, &max_protection, VM_INHERIT_NONE);
+    if (result != KERN_SUCCESS) {
+      munmap(address, size);
+      return nullptr;
+    }
+    Protect(reinterpret_cast<void*>(writable_address), size, kReadWrite);
+
+    MemoryRegion region(address, size);
+    MemoryRegion writable_alias(reinterpret_cast<void*>(writable_address),
+                                size);
+    return new VirtualMemory(writable_alias, region, writable_alias);
+  }
+#endif  // defined(DART_SUPPORT_DUAL_MAPPING_OF_CODE)
 
 #if defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_LINUX)
   // PR_SET_VMA was only added to mainline Linux in 5.17, and some versions of
@@ -515,6 +585,11 @@ VirtualMemory::~VirtualMemory() {
 #endif  // defined(DART_COMPRESSED_POINTERS)
   if (vm_owns_region()) {
     Unmap(reserved_.start(), reserved_.end());
+#if defined(DART_SUPPORT_DUAL_MAPPING_OF_CODE)
+    if (reserved_.start() != executable_alias_.start()) {
+      Unmap(executable_alias_.start(), executable_alias_.end());
+    }
+#endif  // defined(DART_SUPPORT_DUAL_MAPPING_OF_CODE)
   }
 }
 

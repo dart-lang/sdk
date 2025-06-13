@@ -54,6 +54,7 @@ Future<Result> runDart(
   String prefix,
   List<String> arguments, {
   bool printOut = true,
+  String? dartExecutable,
 }) {
   final augmentedArguments = <String>[]
     ..addAll(Platform.executableArguments)
@@ -61,7 +62,7 @@ Future<Result> runDart(
     ..addAll(arguments);
   return runBinary(
     prefix,
-    Platform.executable,
+    dartExecutable ?? Platform.executable,
     augmentedArguments,
     printOut: printOut,
   );
@@ -100,6 +101,7 @@ Future<Result> runBinary(
   Map<String, String>? environment,
   bool runInShell = false,
   bool printOut = true,
+  bool allowNonZeroExitCode = false,
 }) async {
   print("+ $binary " + arguments.join(" "));
   final processResult = await Process.run(
@@ -127,7 +129,7 @@ Command stderr:
 ${processResult.stderr}''');
   }
 
-  if (result.processResult.exitCode != 0) {
+  if (!allowNonZeroExitCode && result.processResult.exitCode != 0) {
     reportError(
       result,
       '[$prefix] Process finished with non-zero exit code ${result.processResult.exitCode}',
