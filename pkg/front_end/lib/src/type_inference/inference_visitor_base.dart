@@ -2424,41 +2424,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       hasImplicitReturnType = true;
       returnContext = const UnknownType();
     }
-    List<VariableDeclaration> positionalParameters =
-        function.positionalParameters;
-    for (int i = 0; i < positionalParameters.length; i++) {
-      VariableDeclaration parameter = positionalParameters[i];
-      flowAnalysis.declare(
-        parameter,
-        new SharedTypeView(parameter.type),
-        initialized: true,
-      );
-      inferMetadata(visitor, parameter, parameter.annotations);
-      if (parameter.initializer != null) {
-        ExpressionInferenceResult initializerResult = visitor.inferExpression(
-          parameter.initializer!,
-          parameter.type,
-        );
-        parameter.initializer = initializerResult.expression
-          ..parent = parameter;
-      }
-    }
-    for (VariableDeclaration parameter in function.namedParameters) {
-      flowAnalysis.declare(
-        parameter,
-        new SharedTypeView(parameter.type),
-        initialized: true,
-      );
-      inferMetadata(visitor, parameter, parameter.annotations);
-      if (parameter.initializer != null) {
-        ExpressionInferenceResult initializerResult = visitor.inferExpression(
-          parameter.initializer!,
-          parameter.type,
-        );
-        parameter.initializer = initializerResult.expression
-          ..parent = parameter;
-      }
-    }
 
     // Let `<T0, ..., Tn>` be the set of type parameters of the closure (with
     // `n`=0 if there are no type parameters).
@@ -2575,6 +2540,32 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           libraryBuilder.importUri,
         );
         formal.isErroneouslyInitialized = true;
+      }
+    }
+
+    List<VariableDeclaration> positionalParameters =
+        function.positionalParameters;
+    for (int i = 0; i < positionalParameters.length; i++) {
+      VariableDeclaration parameter = positionalParameters[i];
+      flowAnalysis.declare(parameter, new SharedTypeView(parameter.type),
+          initialized: true);
+      inferMetadata(visitor, parameter, parameter.annotations);
+      if (parameter.initializer != null) {
+        ExpressionInferenceResult initializerResult =
+            visitor.inferExpression(parameter.initializer!, parameter.type);
+        parameter.initializer = initializerResult.expression
+          ..parent = parameter;
+      }
+    }
+    for (VariableDeclaration parameter in function.namedParameters) {
+      flowAnalysis.declare(parameter, new SharedTypeView(parameter.type),
+          initialized: true);
+      inferMetadata(visitor, parameter, parameter.annotations);
+      if (parameter.initializer != null) {
+        ExpressionInferenceResult initializerResult =
+            visitor.inferExpression(parameter.initializer!, parameter.type);
+        parameter.initializer = initializerResult.expression
+          ..parent = parameter;
       }
     }
 
