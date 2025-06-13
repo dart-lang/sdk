@@ -58,6 +58,18 @@ class A {
     );
   }
 
+  test_cascade_dotShorthand() async {
+    await assertNoDiagnostics(r'''
+f() {
+  A a = .new()..x..x..x;
+}
+
+class A {
+  final x = 0;
+}
+''');
+  }
+
   test_dot_shorthand() async {
     await assertNoDiagnostics(r'''
 f() {
@@ -75,6 +87,16 @@ f() {
 ''',
       [lint(13, 6)],
     );
+  }
+
+  test_forEach_inferredList_dotShorthands() async {
+    await assertNoDiagnostics(r'''
+enum E { a, b, c }
+
+f() {
+  for (E e in [.a, .b, .c]) { }
+}
+''');
   }
 
   test_forEach_listWithNonObviousElement() async {
@@ -183,6 +205,16 @@ class A {}
     );
   }
 
+  test_instanceCreation_nonGeneric_dotShorthand() async {
+    await assertNoDiagnostics(r'''
+f() {
+  A a = .new();
+}
+
+class A {}
+''');
+  }
+
   test_list() async {
     await assertDiagnostics(
       r'''
@@ -192,6 +224,16 @@ f() {
 ''',
       [lint(8, 12)],
     );
+  }
+
+  test_list_dotShorthand() async {
+    await assertNoDiagnostics(r'''
+enum E { a, b, c }
+
+f() {
+  List<E> a = [.a, .b, .c];
+}
+''');
   }
 
   test_list_ok1() async {

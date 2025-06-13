@@ -203,6 +203,16 @@ class C {}
     );
   }
 
+  test_instanceCreation_nonGeneric_static_dotShorthand() async {
+    await assertNoDiagnostics(r'''
+class A {
+  static C c = .new();
+}
+
+class C {}
+''');
+  }
+
   test_instanceCreation_nonGeneric_topLevel() async {
     await assertDiagnostics(
       r'''
@@ -212,6 +222,14 @@ class C {}
 ''',
       [lint(0, 1)],
     );
+  }
+
+  test_instanceCreation_nonGeneric_topLevel_dotShorthand() async {
+    await assertNoDiagnostics(r'''
+C c = .new();
+
+class C {}
+''');
   }
 
   test_list_ok1_static() async {
