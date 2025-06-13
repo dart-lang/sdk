@@ -2130,6 +2130,17 @@
           ]
         },
         {
+          "name": "ddc hot reload tests without fe server in d8",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "testRunner": true,
+          "arguments": [
+            "pkg/dev_compiler/test/hot_reload_suite.dart",
+            "-nddc-canary-linux-chrome",
+            "--verbose",
+            "--no-use-fe-server"
+          ]
+        },
+        {
           "name": "ddc sdk tests",
           "arguments": [
             "-nddc-canary-linux-chrome",

@@ -394,8 +394,8 @@ Future<CompilerResult> _compile(
   } else {
     if (reloadLastAcceptedKernel != null) {
       throw ArgumentError(
-        "Must provide 'new-reload-delta-kernel' if "
-        "'old-reload-delta-kernel' provided.",
+        "Must provide 'reload-delta-kernel' if "
+        "'reload-last-accepted-kernel' provided.",
       );
     }
   }

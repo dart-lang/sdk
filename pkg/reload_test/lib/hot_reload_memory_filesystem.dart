@@ -11,6 +11,18 @@ import 'package:dev_compiler/dev_compiler.dart' as ddc_names
 
 import 'package:reload_test/ddc_helpers.dart' show FileDataPerGeneration;
 
+abstract class FileResolver {
+  /// Returns all scripts in the filesystem in a form that can be ingested by
+  /// the DDC module system's bootstrapper.
+  /// Files must only be in the first generation.
+  List<Map<String, String?>> get scriptDescriptorForBootstrap;
+
+  /// Returns a map of generation number to modified files' paths.
+  ///
+  /// Used to determine which JS files should be loaded per generation.
+  FileDataPerGeneration get generationsToModifiedFilePaths;
+}
+
 /// A pseudo in-memory filesystem with helpers to aid the hot reload runner.
 ///
 /// The Frontend Server outputs web sources and sourcemaps as concatenated
@@ -18,7 +30,7 @@ import 'package:reload_test/ddc_helpers.dart' show FileDataPerGeneration;
 /// for resolving the individual files.
 /// Adapted from:
 /// https://github.com/flutter/flutter/blob/ac7879e2aa6de40afec1fe2af9730a8d55de3e06/packages/flutter_tools/lib/src/web/memory_fs.dart
-class HotReloadMemoryFilesystem {
+class HotReloadMemoryFilesystem implements FileResolver {
   /// The root directory's URI from which JS file are being served.
   final Uri jsRootUri;
 
@@ -54,9 +66,7 @@ class HotReloadMemoryFilesystem {
     }
   }
 
-  /// Returns a map of generation number to modified files' paths.
-  ///
-  /// Used to determine which JS files should be loaded per generation.
+  @override
   FileDataPerGeneration get generationsToModifiedFilePaths => {
         for (var e in generationChanges.entries)
           e.key: e.value
@@ -64,9 +74,7 @@ class HotReloadMemoryFilesystem {
               .toList()
       };
 
-  /// Returns all scripts in the filesystem in a form that can be ingested by
-  /// the DDC module system's bootstrapper.
-  /// Files must only be in the first generation.
+  @override
   List<Map<String, String?>> get scriptDescriptorForBootstrap {
     // TODO(markzipan): This currently isn't ordered, which may cause problems
     // with cycles.
