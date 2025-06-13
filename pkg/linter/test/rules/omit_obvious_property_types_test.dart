@@ -91,6 +91,12 @@ class C {
     );
   }
 
+  test_dot_shorthand() async {
+    await assertNoDiagnostics(r'''
+int i = .parse('1');
+''');
+  }
+
   test_genericInvocation_paramIsType_static() async {
     await assertNoDiagnostics(r'''
 T bar<T>(T d) => d;

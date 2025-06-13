@@ -58,6 +58,14 @@ class A {
     );
   }
 
+  test_dot_shorthand() async {
+    await assertNoDiagnostics(r'''
+f() {
+  int i = .parse('1');
+}
+''');
+  }
+
   test_forEach_inferredList() async {
     await assertDiagnostics(
       r'''
