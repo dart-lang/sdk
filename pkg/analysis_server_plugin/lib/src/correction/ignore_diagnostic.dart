@@ -247,7 +247,7 @@ abstract class _BaseIgnoreDiagnostic extends ResolvedCorrectionProducer {
   /// - `error.code` is already ignored in the `errors` list.
   bool get _isCodeUnignorable {
     var cannotIgnore = (analysisOptions as AnalysisOptionsImpl)
-        .unignorableNames
+        .unignorableDiagnosticCodeNames
         .contains(diagnostic.diagnosticCode.name);
 
     if (cannotIgnore) {

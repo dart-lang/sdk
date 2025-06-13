@@ -374,7 +374,7 @@ class LibraryAnalyzer {
         fileAnalysis.diagnosticListener.diagnostics,
         fileAnalysis.ignoreInfo,
         fileAnalysis.unit.lineInfo,
-        _analysisOptions.unignorableNames,
+        _analysisOptions.unignorableDiagnosticCodeNames,
         validateUnnecessaryIgnores,
       ).reportErrors();
     }
@@ -573,7 +573,7 @@ class LibraryAnalyzer {
       return diagnostics;
     }
 
-    var unignorableCodes = _analysisOptions.unignorableNames;
+    var unignorableCodes = _analysisOptions.unignorableDiagnosticCodeNames;
 
     bool isIgnored(Diagnostic diagnostic) {
       var code = diagnostic.diagnosticCode;

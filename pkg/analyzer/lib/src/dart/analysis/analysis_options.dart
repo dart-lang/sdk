@@ -59,7 +59,7 @@ final class AnalysisOptionsBuilder {
 
   FormatterOptions formatterOptions = FormatterOptions();
 
-  Set<String> unignorableNames = {};
+  Set<String> unignorableDiagnosticCodeNames = {};
 
   List<PluginConfiguration> pluginConfigurations = [];
 
@@ -81,7 +81,7 @@ final class AnalysisOptionsBuilder {
       chromeOsManifestChecks: chromeOsManifestChecks,
       codeStyleOptions: codeStyleOptions,
       formatterOptions: formatterOptions,
-      unignorableNames: unignorableNames,
+      unignorableDiagnosticCodeNames: unignorableDiagnosticCodeNames,
     );
   }
 
@@ -315,17 +315,19 @@ final class AnalysisOptionsBuilder {
           );
           if (processors.isNotEmpty &&
               processors.first.severity?.displayName == severity) {
-            unignorableNames.add(e.name);
+            unignorableDiagnosticCodeNames.add(e.name);
             continue;
           }
           // Otherwise, add [error] if its default severity is [severity].
           if (e.severity.displayName == severity) {
-            unignorableNames.add(e.name);
+            unignorableDiagnosticCodeNames.add(e.name);
           }
         }
       }
     }
-    unignorableNames.addAll(stringValues.map((name) => name.toUpperCase()));
+    unignorableDiagnosticCodeNames.addAll(
+      stringValues.map((name) => name.toUpperCase()),
+    );
   }
 }
 
@@ -402,10 +404,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   final FormatterOptions formatterOptions;
 
-  /// The set of "un-ignorable" error names, as parsed from an analysis options
-  /// file.
-  // TODO(srawlins): Rename to `unignorableCodes`. 'Names' is ambiguous.
-  final Set<String> unignorableNames;
+  /// The set of "un-ignorable" diagnostic names, as parsed from an analysis
+  /// options file.
+  final Set<String> unignorableDiagnosticCodeNames;
 
   /// Returns a newly instantiated [AnalysisOptionsImpl].
   ///
@@ -514,7 +515,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     required this.chromeOsManifestChecks,
     required this.codeStyleOptions,
     required this.formatterOptions,
-    required this.unignorableNames,
+    required this.unignorableDiagnosticCodeNames,
   }) : _contextFeatures = contextFeatures {
     (codeStyleOptions as CodeStyleOptionsImpl).options = this;
   }
