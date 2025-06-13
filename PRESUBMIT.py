@@ -537,19 +537,6 @@ def _CheckDartApiWinCSync(input_api, output_api):
     return []
 
 
-def _CheckNoRuntimeObservatoryChanges(input_api, output_api):
-    """Ensures that no further changes are made to runtime/observatory."""
-    for f in input_api.AffectedFiles(include_deletes=False):
-        path = f.LocalPath()
-        if path.startswith("runtime/observatory/"):
-            return [
-                output_api.PresubmitError(
-                    'Observatory is being moved to pkg/observatory. Files under '
-                    'runtime/observatory should no longer be modified.')
-            ]
-    return []
-
-
 def _CommonChecks(input_api, output_api):
     results = []
     results.extend(_CheckValidHostsInDEPS(input_api, output_api))
@@ -565,7 +552,6 @@ def _CommonChecks(input_api, output_api):
     results.extend(_CheckAnalyzerFiles(input_api, output_api))
     results.extend(_CheckDevCompilerSync(input_api, output_api))
     results.extend(_CheckDartApiWinCSync(input_api, output_api))
-    results.extend(_CheckNoRuntimeObservatoryChanges(input_api, output_api))
     return results
 
 
