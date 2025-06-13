@@ -8,15 +8,14 @@ import '../ast.dart';
 import '../class_hierarchy.dart';
 import '../core_types.dart';
 import '../type_algebra.dart';
-import '../type_environment.dart';
 import 'non_null.dart';
 
 mixin StandardBounds {
   ClassHierarchyBase get hierarchy;
 
-  bool isSubtypeOf(DartType subtype, DartType supertype, SubtypeCheckMode mode);
+  bool isSubtypeOf(DartType subtype, DartType supertype);
 
-  bool areMutualSubtypes(DartType s, DartType t, SubtypeCheckMode mode);
+  bool areMutualSubtypes(DartType s, DartType t);
 
   CoreTypes get coreTypes => hierarchy.coreTypes;
 
@@ -570,15 +569,13 @@ mixin StandardBounds {
       case (_, _)
           when isSubtypeOf(
               greatestClosureForLowerBound(type1WithoutNullabilityMarker),
-              greatestClosureForLowerBound(type2WithoutNullabilityMarker),
-              SubtypeCheckMode.withNullabilities):
+              greatestClosureForLowerBound(type2WithoutNullabilityMarker)):
         return type1.withDeclaredNullability(intersectNullabilities(
             type1.declaredNullability, type2.declaredNullability));
       case (_, _)
           when isSubtypeOf(
               greatestClosureForLowerBound(type2WithoutNullabilityMarker),
-              greatestClosureForLowerBound(type1WithoutNullabilityMarker),
-              SubtypeCheckMode.withNullabilities):
+              greatestClosureForLowerBound(type1WithoutNullabilityMarker)):
         return type2.withDeclaredNullability(intersectNullabilities(
             type2.declaredNullability, type1.declaredNullability));
 
@@ -934,8 +931,7 @@ mixin StandardBounds {
       case (_, _)
           when isSubtypeOf(
               leastClosureForUpperBound(typeWithoutNullabilityMarker1),
-              leastClosureForUpperBound(typeWithoutNullabilityMarker2),
-              SubtypeCheckMode.withNullabilities):
+              leastClosureForUpperBound(typeWithoutNullabilityMarker2)):
         // UP(T1, T2) = T2 if T1 <: T2
         //   Note that both types must be interface or extension types at this
         //   point.
@@ -944,8 +940,7 @@ mixin StandardBounds {
       case (_, _)
           when isSubtypeOf(
               leastClosureForUpperBound(typeWithoutNullabilityMarker2),
-              leastClosureForUpperBound(typeWithoutNullabilityMarker1),
-              SubtypeCheckMode.withNullabilities):
+              leastClosureForUpperBound(typeWithoutNullabilityMarker1)):
         // UP(T1, T2) = T1 if T2 <: T1
         //   Note that both types must be interface or extension types at this
         //   point.
@@ -974,8 +969,7 @@ mixin StandardBounds {
               typeArguments[i] = _getNullabilityAwareStandardLowerBound(
                   leftArguments[i], rightArguments[i]);
             } else if (variance == Variance.invariant) {
-              if (!areMutualSubtypes(leftArguments[i], rightArguments[i],
-                  SubtypeCheckMode.withNullabilities)) {
+              if (!areMutualSubtypes(leftArguments[i], rightArguments[i])) {
                 return _getLegacyLeastUpperBound(
                     typeDeclarationType1, typeDeclarationType2);
               }
@@ -1193,10 +1187,8 @@ mixin StandardBounds {
         for (int i = 0; i < m && boundsMatch; ++i) {
           // TODO(cstefantsova): Figure out if a procedure for syntactic
           // equality should be used instead.
-          if (!areMutualSubtypes(
-              f.typeParameters[i].bound,
-              instantiator.substitute(g.typeParameters[i].bound),
-              SubtypeCheckMode.withNullabilities)) {
+          if (!areMutualSubtypes(f.typeParameters[i].bound,
+              instantiator.substitute(g.typeParameters[i].bound))) {
             boundsMatch = false;
           }
         }
@@ -1438,10 +1430,8 @@ mixin StandardBounds {
         for (int i = 0; i < m && boundsMatch; ++i) {
           // TODO(cstefantsova): Figure out if a procedure for syntactic
           // equality should be used instead.
-          if (!areMutualSubtypes(
-              f.typeParameters[i].bound,
-              instantiator.substitute(g.typeParameters[i].bound),
-              SubtypeCheckMode.withNullabilities)) {
+          if (!areMutualSubtypes(f.typeParameters[i].bound,
+              instantiator.substitute(g.typeParameters[i].bound))) {
             boundsMatch = false;
           }
         }
@@ -1580,15 +1570,15 @@ mixin StandardBounds {
     //     where B1a is the greatest closure of B1 with respect to X1,
     //     as defined in [inference.md].
 
-    if (isSubtypeOf(leastClosureForUpperBound(type1),
-        leastClosureForUpperBound(type2), SubtypeCheckMode.withNullabilities)) {
+    if (isSubtypeOf(
+        leastClosureForUpperBound(type1), leastClosureForUpperBound(type2))) {
       return type2.withDeclaredNullability(combineNullabilitiesForSubstitution(
           inner: type2.nullability,
           outer: uniteNullabilities(
               type1.declaredNullability, type2.nullability)));
     }
-    if (isSubtypeOf(leastClosureForUpperBound(type2),
-        leastClosureForUpperBound(type1), SubtypeCheckMode.withNullabilities)) {
+    if (isSubtypeOf(
+        leastClosureForUpperBound(type2), leastClosureForUpperBound(type1))) {
       return type1.withDeclaredNullability(combineNullabilitiesForSubstitution(
           inner: type1.declaredNullability,
           outer: uniteNullabilities(
@@ -1621,15 +1611,13 @@ mixin StandardBounds {
     //     where B1a is the greatest closure of B1 with respect to X1,
     //     as defined in [inference.md].
     DartType demoted = type1.left;
-    if (isSubtypeOf(leastClosureForUpperBound(demoted),
-        leastClosureForUpperBound(type2), SubtypeCheckMode.withNullabilities)) {
+    if (isSubtypeOf(
+        leastClosureForUpperBound(demoted), leastClosureForUpperBound(type2))) {
       return type2.withDeclaredNullability(uniteNullabilities(
           type1.declaredNullability, type2.declaredNullability));
     }
     if (isSubtypeOf(
-        leastClosureForUpperBound(type2),
-        leastClosureForUpperBound(demoted),
-        SubtypeCheckMode.withNullabilities)) {
+        leastClosureForUpperBound(type2), leastClosureForUpperBound(demoted))) {
       return demoted.withDeclaredNullability(uniteNullabilities(
           demoted.declaredNullability, type2.declaredNullability));
     }

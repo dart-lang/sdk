@@ -197,8 +197,7 @@ class AnalysisInterface {
   }
 
   bool isSubtypeOf(DartType subtype, DartType supertype) {
-    return _visitor.typeEnvironment
-        .isSubtypeOf(subtype, supertype, SubtypeCheckMode.withNullabilities);
+    return _visitor.typeEnvironment.isSubtypeOf(subtype, supertype);
   }
 }
 

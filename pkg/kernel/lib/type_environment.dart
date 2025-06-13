@@ -210,32 +210,25 @@ abstract class TypeEnvironment extends Types {
     // type T and T <: num, and where the static type of e2 is S and S is
     // assignable to num. Then:
     if (type1 is! NeverType &&
-            isSubtypeOf(type1, coreTypes.numNonNullableRawType,
-                SubtypeCheckMode.withNullabilities) &&
+            isSubtypeOf(type1, coreTypes.numNonNullableRawType) &&
             type2 is DynamicType ||
-        isSubtypeOf(type2, coreTypes.numNonNullableRawType,
-            SubtypeCheckMode.withNullabilities)) {
-      if (isSubtypeOf(type1, coreTypes.doubleNonNullableRawType,
-          SubtypeCheckMode.withNullabilities)) {
+        isSubtypeOf(type2, coreTypes.numNonNullableRawType)) {
+      if (isSubtypeOf(type1, coreTypes.doubleNonNullableRawType)) {
         // If T <: double then the static type of e is double. This includes S
         // being dynamic or Never.
         return coreTypes.doubleNonNullableRawType;
       } else if (type2 is! NeverType &&
-          isSubtypeOf(type2, coreTypes.doubleNonNullableRawType,
-              SubtypeCheckMode.withNullabilities)) {
+          isSubtypeOf(type2, coreTypes.doubleNonNullableRawType)) {
         // If S <: double and not S <:Never, then the static type of e is
         // double.
         return coreTypes.doubleNonNullableRawType;
-      } else if (isSubtypeOf(type1, coreTypes.intNonNullableRawType,
-              SubtypeCheckMode.withNullabilities) &&
+      } else if (isSubtypeOf(type1, coreTypes.intNonNullableRawType) &&
           type2 is! NeverType &&
-          isSubtypeOf(type2, coreTypes.intNonNullableRawType,
-              SubtypeCheckMode.withNullabilities)) {
+          isSubtypeOf(type2, coreTypes.intNonNullableRawType)) {
         // If T <: int , S <: int and not S <: Never, then the static type of
         // e is int.
         return coreTypes.intNonNullableRawType;
-      } else if (type2 is! NeverType &&
-          isSubtypeOf(type2, type1, SubtypeCheckMode.withNullabilities)) {
+      } else if (type2 is! NeverType && isSubtypeOf(type2, type1)) {
         // Otherwise the static type of e is num.
         return coreTypes.numNonNullableRawType;
       }
@@ -253,21 +246,15 @@ abstract class TypeEnvironment extends Types {
         /* We skip the check that all types are subtypes of num because, if
           not, we'll compute the static type to be num, anyway.*/
         ) {
-      if (isSubtypeOf(type1, coreTypes.intNonNullableRawType,
-              SubtypeCheckMode.withNullabilities) &&
-          isSubtypeOf(type2, coreTypes.intNonNullableRawType,
-              SubtypeCheckMode.withNullabilities) &&
-          isSubtypeOf(type3, coreTypes.intNonNullableRawType,
-              SubtypeCheckMode.withNullabilities)) {
+      if (isSubtypeOf(type1, coreTypes.intNonNullableRawType) &&
+          isSubtypeOf(type2, coreTypes.intNonNullableRawType) &&
+          isSubtypeOf(type3, coreTypes.intNonNullableRawType)) {
         // If T1, T2 and T3 are all subtypes of int, the static type of e is
         // int.
         return coreTypes.intNonNullableRawType;
-      } else if (isSubtypeOf(type1, coreTypes.doubleNonNullableRawType,
-              SubtypeCheckMode.withNullabilities) &&
-          isSubtypeOf(type2, coreTypes.doubleNonNullableRawType,
-              SubtypeCheckMode.withNullabilities) &&
-          isSubtypeOf(type3, coreTypes.doubleNonNullableRawType,
-              SubtypeCheckMode.withNullabilities)) {
+      } else if (isSubtypeOf(type1, coreTypes.doubleNonNullableRawType) &&
+          isSubtypeOf(type2, coreTypes.doubleNonNullableRawType) &&
+          isSubtypeOf(type3, coreTypes.doubleNonNullableRawType)) {
         // If T1, T2 and T3 are all subtypes of double, the static type of e
         // is double.
         return coreTypes.doubleNonNullableRawType;
@@ -278,14 +265,13 @@ abstract class TypeEnvironment extends Types {
   }
 
   bool _isRawTypeArgumentEquivalent(
-      TypeDeclarationType type, int typeArgumentIndex,
-      {required SubtypeCheckMode subtypeCheckMode}) {
+      TypeDeclarationType type, int typeArgumentIndex) {
     assert(0 <= typeArgumentIndex &&
         typeArgumentIndex < type.typeArguments.length);
     DartType typeArgument = type.typeArguments[typeArgumentIndex];
     DartType defaultType =
         type.typeDeclaration.typeParameters[typeArgumentIndex].defaultType;
-    return areMutualSubtypes(typeArgument, defaultType, subtypeCheckMode);
+    return areMutualSubtypes(typeArgument, defaultType);
   }
 
   /// Computes sufficiency of a shape check for the given types.
@@ -295,8 +281,7 @@ abstract class TypeEnvironment extends Types {
   /// [checkTargetType].
   TypeShapeCheckSufficiency computeTypeShapeCheckSufficiency(
       {required DartType expressionStaticType,
-      required DartType checkTargetType,
-      required SubtypeCheckMode subtypeCheckMode}) {
+      required DartType checkTargetType}) {
     if (checkTargetType is InterfaceType &&
         expressionStaticType is InterfaceType) {
       // Analyze if an interface shape check is sufficient.
@@ -325,8 +310,8 @@ abstract class TypeEnvironment extends Types {
         // TODO(cstefantsova): Investigate if super-bounded types can appear as
         // [checkTargetType]s. In that case a subtype check should be done
         // instead of the mutual subtype check.
-        if (!_isRawTypeArgumentEquivalent(checkTargetType, typeParameterIndex,
-            subtypeCheckMode: subtypeCheckMode)) {
+        if (!_isRawTypeArgumentEquivalent(
+            checkTargetType, typeParameterIndex)) {
           targetTypeArgumentsAreDefaultTypes = false;
           break;
         }
@@ -462,8 +447,8 @@ abstract class TypeEnvironment extends Types {
             typeParameterIndex++) {
           if (!occurrenceCollectorVisitor.occurred.contains(
                   checkTargetTypeOwnTypeParameters[typeParameterIndex]) &&
-              !_isRawTypeArgumentEquivalent(checkTargetType, typeParameterIndex,
-                  subtypeCheckMode: subtypeCheckMode)) {
+              !_isRawTypeArgumentEquivalent(
+                  checkTargetType, typeParameterIndex)) {
             allNonOccurringAreDefaultTypes = false;
             break;
           }
@@ -474,8 +459,7 @@ abstract class TypeEnvironment extends Types {
           return isSubtypeOf(
                   expressionStaticType,
                   testedAgainstTypeAsOperandClass
-                      .withDeclaredNullability(Nullability.nullable),
-                  SubtypeCheckMode.withNullabilities)
+                      .withDeclaredNullability(Nullability.nullable))
               ? TypeShapeCheckSufficiency.interfaceShape
               : TypeShapeCheckSufficiency.insufficient;
         } else {
@@ -504,8 +488,7 @@ abstract class TypeEnvironment extends Types {
         return TypeShapeCheckSufficiency.recordShape;
       }
 
-      if (isSubtypeOf(
-          expressionStaticType, checkTargetType, subtypeCheckMode)) {
+      if (isSubtypeOf(expressionStaticType, checkTargetType)) {
         return TypeShapeCheckSufficiency.recordShape;
       } else {
         return TypeShapeCheckSufficiency.insufficient;
@@ -536,8 +519,7 @@ abstract class TypeEnvironment extends Types {
         }
       }
 
-      if (isSubtypeOf(
-          expressionStaticType, checkTargetType, subtypeCheckMode)) {
+      if (isSubtypeOf(expressionStaticType, checkTargetType)) {
         return TypeShapeCheckSufficiency.functionShape;
       } else {
         return TypeShapeCheckSufficiency.insufficient;
@@ -548,8 +530,8 @@ abstract class TypeEnvironment extends Types {
         // TODO(cstefantsova): Investigate if [expressionStaticType] can be of
         // any kind for the following sufficiency check to work.
         return TypeShapeCheckSufficiency.futureOrShape;
-      } else if (isSubtypeOf(expressionStaticType.typeArgument,
-          checkTargetType.typeArgument, subtypeCheckMode)) {
+      } else if (isSubtypeOf(
+          expressionStaticType.typeArgument, checkTargetType.typeArgument)) {
         return TypeShapeCheckSufficiency.futureOrShape;
       } else {
         return TypeShapeCheckSufficiency.insufficient;
@@ -710,12 +692,7 @@ class IsSubtypeOf {
     }
   }
 
-  // TODO(cstefantsova): Remove this.
-  bool isSubtypeWhenIgnoringNullabilities() {
-    return _isSuccess;
-  }
-
-  bool isSubtypeWhenUsingNullabilities() {
+  bool isSuccess() {
     return _isSuccess;
   }
 
@@ -727,22 +704,6 @@ class IsSubtypeOf {
       return "IsSubtypeOf.failure";
     }
   }
-
-  // TODO(cstefantsova): Remove this.
-  bool inMode(SubtypeCheckMode subtypeCheckMode) {
-    switch (subtypeCheckMode) {
-      case SubtypeCheckMode.withNullabilities:
-        return isSubtypeWhenUsingNullabilities();
-      case SubtypeCheckMode.ignoringNullabilities:
-        return isSubtypeWhenIgnoringNullabilities();
-    }
-  }
-}
-
-// TODO(cstefantsova): Remove this.
-enum SubtypeCheckMode {
-  withNullabilities,
-  ignoringNullabilities,
 }
 
 abstract class StaticTypeCache {

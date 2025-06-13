@@ -1506,9 +1506,7 @@ class Translator with KernelNodes {
 
       // Check that type of the receiver is a subtype of
       if (!typeEnvironment.isSubtypeOf(
-          lambdaDartType,
-          node.receiver.getStaticType(typeContext),
-          SubtypeCheckMode.withNullabilities)) {
+          lambdaDartType, node.receiver.getStaticType(typeContext))) {
         return null;
       }
 
@@ -1530,9 +1528,7 @@ class Translator with KernelNodes {
           functions.getLambdaFunction(lambda, member, enclosingMemberClosures);
 
       if (!typeEnvironment.isSubtypeOf(
-          lambdaDartType,
-          node.receiver.getStaticType(typeContext),
-          SubtypeCheckMode.withNullabilities)) {
+          lambdaDartType, node.receiver.getStaticType(typeContext))) {
         return null;
       }
 
@@ -1726,16 +1722,14 @@ class Translator with KernelNodes {
       if (name == 'iterator' && nodeCount <= 20) {
         if (typeEnvironment.isSubtypeOf(
             klass.getThisType(coreTypes, Nullability.nonNullable),
-            coreTypes.iterableRawType(Nullability.nonNullable),
-            SubtypeCheckMode.ignoringNullabilities)) {
+            coreTypes.iterableRawType(Nullability.nonNullable))) {
           return true;
         }
       }
       if (name == 'current' && nodeCount <= 5) {
         if (typeEnvironment.isSubtypeOf(
             klass.getThisType(coreTypes, Nullability.nonNullable),
-            coreTypes.iteratorRawType(Nullability.nonNullable),
-            SubtypeCheckMode.ignoringNullabilities)) {
+            coreTypes.iteratorRawType(Nullability.nonNullable))) {
           return true;
         }
       }

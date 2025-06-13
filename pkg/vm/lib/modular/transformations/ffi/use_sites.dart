@@ -1239,11 +1239,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         staticTypeContext!,
       );
 
-      if (!env.isSubtypeOf(
-        returnType,
-        funcType.returnType,
-        SubtypeCheckMode.ignoringNullabilities,
-      )) {
+      if (!env.isSubtypeOf(returnType, funcType.returnType)) {
         diagnosticReporter.report(
           templateFfiDartTypeMismatch.withArguments(
             returnType,
@@ -2189,7 +2185,6 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         ).isSubtypeOf(
           receiverType,
           InterfaceType(typedDataClass, Nullability.nonNullable),
-          SubtypeCheckMode.withNullabilities,
         );
         if (!implementsTypedData) break;
         if (receiverType is! InterfaceType) break;

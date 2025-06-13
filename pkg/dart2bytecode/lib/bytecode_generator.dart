@@ -15,7 +15,7 @@ import 'package:kernel/target/targets.dart' show Target;
 import 'package:kernel/type_algebra.dart'
     show Substitution, containsTypeParameter;
 import 'package:kernel/type_environment.dart'
-    show StatefulStaticTypeContext, SubtypeCheckMode, TypeEnvironment;
+    show StatefulStaticTypeContext, TypeEnvironment;
 
 import 'package:vm/transformations/pragma.dart';
 
@@ -2322,9 +2322,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     asm.emitPushConstant(
         name != null ? cp.addName(name) : cp.addString(message!));
     bool isIntOk = typeEnvironment.isSubtypeOf(
-        typeEnvironment.coreTypes.intNonNullableRawType,
-        type,
-        SubtypeCheckMode.ignoringNullabilities);
+        typeEnvironment.coreTypes.intNonNullableRawType, type);
     int subtypeTestCacheCpIndex = cp.addSubtypeTestCache();
     asm.emitAssertAssignable(isIntOk ? 1 : 0, subtypeTestCacheCpIndex);
   }

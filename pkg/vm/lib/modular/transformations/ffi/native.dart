@@ -25,7 +25,6 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/reference_from_index.dart' show ReferenceFromIndex;
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
-import 'package:kernel/type_environment.dart';
 
 import 'common.dart'
     show FfiStaticTypeError, FfiTransformer, NativeType, FfiTypeCheckDirection;
@@ -223,11 +222,7 @@ class FfiNativeTransformer extends FfiTransformer {
   ) {
     if (dartParameterType is InterfaceType) {
       if (_extendsNativeFieldWrapperClass1(dartParameterType) &&
-          env.isSubtypeOf(
-            ffiParameterType,
-            pointerVoidType,
-            SubtypeCheckMode.ignoringNullabilities,
-          )) {
+          env.isSubtypeOf(ffiParameterType, pointerVoidType)) {
         return pointerVoidType;
       }
     }
@@ -239,7 +234,6 @@ class FfiNativeTransformer extends FfiTransformer {
     if (env.isSubtypeOf(
           ffiReturnType,
           handleClass.getThisType(coreTypes, Nullability.nonNullable),
-          SubtypeCheckMode.ignoringNullabilities,
         ) &&
         dartReturnType is! VoidType) {
       return objectClass.getThisType(coreTypes, dartReturnType.nullability);
@@ -272,16 +266,8 @@ class FfiNativeTransformer extends FfiTransformer {
     DartType dartParameterType,
     DartType ffiParameterType,
   ) {
-    return (env.isSubtypeOf(
-          ffiParameterType,
-          pointerVoidType,
-          SubtypeCheckMode.ignoringNullabilities,
-        ) &&
-        !env.isSubtypeOf(
-          dartParameterType,
-          pointerVoidType,
-          SubtypeCheckMode.ignoringNullabilities,
-        ));
+    return (env.isSubtypeOf(ffiParameterType, pointerVoidType) &&
+        !env.isSubtypeOf(dartParameterType, pointerVoidType));
   }
 
   VariableDeclaration _declareTemporary(
@@ -420,7 +406,6 @@ class FfiNativeTransformer extends FfiTransformer {
     if (env.isSubtypeOf(
       ffiFunctionType.returnType,
       handleClass.getThisType(coreTypes, Nullability.nonNullable),
-      SubtypeCheckMode.ignoringNullabilities,
     )) {
       resultInitializer = StaticInvocation(
         unsafeCastMethod,

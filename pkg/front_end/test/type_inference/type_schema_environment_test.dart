@@ -532,13 +532,13 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
 
   void test_unknown_at_bottom() {
     parseTestLibrary("class A;");
-    checkIsLegacySubtype("UNKNOWN", "A*");
+    checkIsSubtype("UNKNOWN", "A*");
   }
 
   void test_unknown_at_top() {
     parseTestLibrary("class A; class Map<X, Y>;");
-    checkIsLegacySubtype("A*", "UNKNOWN");
-    checkIsLegacySubtype("Map<A*, A*>*", "Map<UNKNOWN, UNKNOWN>*");
+    checkIsSubtype("A*", "UNKNOWN");
+    checkIsSubtype("Map<A*, A*>*", "Map<UNKNOWN, UNKNOWN>*");
   }
 
   void checkUpperBound(
@@ -566,8 +566,7 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
       expect(
           typeSchemaEnvironment.computeTypeShapeCheckSufficiency(
                   expressionStaticType: parseType(expressionStaticType),
-                  checkTargetType: parseType(checkTargetType),
-                  subtypeCheckMode: SubtypeCheckMode.ignoringNullabilities) ==
+                  checkTargetType: parseType(checkTargetType)) ==
               sufficiency,
           isTrue);
     });

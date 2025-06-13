@@ -4,7 +4,6 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
-import 'package:kernel/type_environment.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
 import 'abi.dart' show kWasmAbiEnumIndex;
@@ -1072,10 +1071,8 @@ class Intrinsifier {
         }
 
         bool canBeValueType(DartType type) =>
-            translator.typeEnvironment.isSubtypeOf(
-                doubleType, type, SubtypeCheckMode.withNullabilities) ||
-            translator.typeEnvironment
-                .isSubtypeOf(intType, type, SubtypeCheckMode.withNullabilities);
+            translator.typeEnvironment.isSubtypeOf(doubleType, type) ||
+            translator.typeEnvironment.isSubtypeOf(intType, type);
 
         if (!canBeValueType(firstType) || !canBeValueType(secondType)) {
           final nullableEqRefType = w.RefType.eq(nullable: true);

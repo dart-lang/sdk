@@ -646,8 +646,7 @@ class OperationsCfe
 
   @override
   bool isSubtypeOfInternal(DartType leftType, DartType rightType) {
-    return typeEnvironment.isSubtypeOf(
-        leftType, rightType, SubtypeCheckMode.withNullabilities);
+    return typeEnvironment.isSubtypeOf(leftType, rightType);
   }
 
   @override
@@ -722,7 +721,7 @@ class OperationsCfe
     return typeEnvironment
         .performNullabilityAwareSubtypeCheck(
             fromType.unwrapTypeView(), toType.unwrapTypeView())
-        .isSubtypeWhenUsingNullabilities();
+        .isSuccess();
   }
 
   @override

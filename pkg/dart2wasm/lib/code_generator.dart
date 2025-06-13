@@ -4348,14 +4348,10 @@ class SwitchInfo {
     // required. See #60375 for more details.
     bool canInvokeTypeEquality() =>
         translator.typeEnvironment.isSubtypeOf(
-            switchExprType,
-            translator.coreTypes.typeNullableRawType,
-            SubtypeCheckMode.withNullabilities) ||
+            switchExprType, translator.coreTypes.typeNullableRawType) ||
         node.cases.expand((c) => c.expressions).any((e) =>
-            translator.typeEnvironment.isSubtypeOf(
-                codeGen.dartTypeOf(e),
-                translator.coreTypes.typeNonNullableRawType,
-                SubtypeCheckMode.withNullabilities));
+            translator.typeEnvironment.isSubtypeOf(codeGen.dartTypeOf(e),
+                translator.coreTypes.typeNonNullableRawType));
 
     if (node.cases.every((c) =>
         c.expressions.isEmpty && c.isDefault ||

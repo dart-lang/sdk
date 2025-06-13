@@ -7607,7 +7607,6 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
           .computeTypeShapeCheckSufficiency(
             expressionStaticType: operandType,
             checkTargetType: checkedType,
-            subtypeCheckMode: ir.SubtypeCheckMode.withNullabilities,
           );
 
       // If `true` the caller only needs to check nullabillity and the actual

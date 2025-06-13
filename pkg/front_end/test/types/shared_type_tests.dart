@@ -14,7 +14,7 @@ abstract class SubtypeTest<T, E> {
     T subtype = toType(subtypeString, environment);
     T supertype = toType(supertypeString, environment);
     Expect.isTrue(
-        isSubtypeImpl(subtype, supertype).isSubtypeWhenUsingNullabilities(),
+        isSubtypeImpl(subtype, supertype).isSuccess(),
         "$subtypeString should be a subtype of ${supertypeString}, "
         "regardless of whether the nullability modifiers are ignored or not.");
   }
@@ -28,7 +28,7 @@ abstract class SubtypeTest<T, E> {
     T supertype = toType(supertypeString, environment);
     IsSubtypeOf result = isSubtypeImpl(subtype, supertype);
     Expect.isFalse(
-        result.isSubtypeWhenIgnoringNullabilities(),
+        result.isSuccess(),
         "$subtypeString shouldn't be a subtype of $supertypeString, "
         "regardless of whether the nullability modifiers are ignored or not.");
   }

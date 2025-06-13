@@ -264,7 +264,6 @@ class StaticInteropMockValidator {
       return _typeEnvironment.isSubtypeOf(
         typeParameterResolver.resolve(dartType),
         typeParameterResolver.resolve(interopType),
-        SubtypeCheckMode.withNullabilities,
       );
     }
 

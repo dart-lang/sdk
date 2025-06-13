@@ -2677,8 +2677,7 @@ severity: $severity
           DartType parameterType =
               procedure.function.positionalParameters.first.type;
 
-          if (!typeEnvironment.isSubtypeOf(listOfString, parameterType,
-              SubtypeCheckMode.withNullabilities)) {
+          if (!typeEnvironment.isSubtypeOf(listOfString, parameterType)) {
             if (mainBuilder.libraryBuilder != libraryBuilder) {
               libraryBuilder.addProblem(
                   templateMainWrongParameterTypeExported.withArguments(

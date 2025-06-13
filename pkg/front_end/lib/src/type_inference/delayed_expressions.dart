@@ -663,8 +663,7 @@ class DelayedAsExpression extends AbstractDelayedExpression {
           fileOffset: fileOffset);
     } else if (isImplicit) {
       DartType operandType = _operand.getType(typeEnvironment);
-      if (typeEnvironment.isSubtypeOf(
-          operandType, _type, SubtypeCheckMode.withNullabilities)) {
+      if (typeEnvironment.isSubtypeOf(operandType, _type)) {
         return operand;
       }
     }
