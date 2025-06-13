@@ -139,15 +139,15 @@ vars = {
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "native_rev": "5eadfaf3b732bc512d327ac284b6f294bf05e4c2", # rolled manually while native assets are experimental
-  "protobuf_rev": "32d53dad4565fc6ccd69196b8fd213454f3e8ed5",
+  "protobuf_rev": "0bfff0ca150959c92dac525474d73bde946f3391",
   "pub_rev": "818f10b4bf9249bd0b2c212dd8709675eeb14cd2", # rolled manually
   "shelf_rev": "082d3ac2d13a98700d8148e8fad8f3e12a6fd0e1",
   "sync_http_rev": "dc54465f07d9652875deeade643256dafa2fbc6c",
   "tar_rev": "5a1ea943e70cdf3fa5e1102cdbb9418bd9b4b81a",
   "test_rev": "0793a2b3262ac900558c49c76e9bbe4f29f91ea4",
-  "tools_rev": "e84cbd9e1b111d80763ae8b3e04685bd66866f08",
+  "tools_rev": "72e6cc871a0dcb7e6b92c01a96503d1b6aebb5e3",
   "vector_math_rev": "13f185f7e97d559e003f5ac79201da12f9a01049",
-  "web_rev": "de6b3e40826bde1653573d5c8e36aec3df2f4927",
+  "web_rev": "c8c1c2852ace3bb78026dddc64b111051a7e855a",
   "webdev_rev": "661dafd4a050e4325253155af092d2243721ab28",
   "webdriver_rev": "b8f511d7719e2ae2c21eb4d94f68564eee32cbe2",
   "webkit_inspection_protocol_rev": "effa75205516757795683d527c3dea9546eb0c32",
