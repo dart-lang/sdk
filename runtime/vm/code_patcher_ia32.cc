@@ -190,7 +190,8 @@ void CodePatcher::PatchStaticCallAt(uword return_address,
   auto zone = thread->zone();
   const Instructions& instrs = Instructions::Handle(zone, code.instructions());
   thread->isolate_group()->RunWithStoppedMutators([&]() {
-    WritableInstructionsScope writable(instrs.PayloadStart(), instrs.Size());
+    WritableInstructionsScope writable(instrs.WritablePayloadStart(),
+                                       instrs.Size());
     ASSERT(code.ContainsInstructionAt(return_address));
     StaticCall call(return_address, code);
     call.set_target(new_target);
@@ -233,7 +234,8 @@ void CodePatcher::PatchInstanceCallAtWithMutatorsStopped(
   ASSERT(caller_code.ContainsInstructionAt(return_address));
   const Instructions& instrs =
       Instructions::Handle(zone, caller_code.instructions());
-  WritableInstructionsScope writable(instrs.PayloadStart(), instrs.Size());
+  WritableInstructionsScope writable(instrs.WritablePayloadStart(),
+                                     instrs.Size());
   InstanceCall call(return_address, caller_code);
   call.set_data(data);
   call.set_target(target);

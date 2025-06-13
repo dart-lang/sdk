@@ -118,7 +118,7 @@ VirtualMemory* FfiCallbackMetadata::AllocateTrampolinePage() {
   // is_executable=true so that pages get allocated with MAP_JIT flag if
   // necessary. Otherwise OS will kill us with a codesigning violation if
   // hardened runtime is enabled.
-  const bool is_executable = true;
+  const bool is_executable = !VirtualMemory::ShouldDualMapExecutablePages();
 #else
   const bool is_executable = false;
 #endif

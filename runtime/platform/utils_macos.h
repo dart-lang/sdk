@@ -31,6 +31,7 @@ int32_t DarwinVersion();
   }
 
 DEFINE_IS_OS_FUNCS(18_4, 180400)
+DEFINE_IS_OS_FUNCS(26_0, 260000)
 
 #else
 

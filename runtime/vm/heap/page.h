@@ -105,6 +105,9 @@ class Page {
   uword start() const { return memory_->start(); }
   uword end() const { return memory_->end(); }
   bool Contains(uword addr) const { return memory_->Contains(addr); }
+  intptr_t OffsetToExecutableAlias() const {
+    return memory_->OffsetToExecutableAlias();
+  }
 
   uword object_start() const {
     return is_new() ? new_object_start() : old_object_start();
