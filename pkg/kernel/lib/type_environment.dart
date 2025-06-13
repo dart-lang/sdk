@@ -557,12 +557,6 @@ class IsSubtypeOf {
   /// Subtype check succeeds.
   const IsSubtypeOf.success() : this._internal(true, null, null);
 
-  /// Legacy constructor for pre-Null Safe mode.
-  // TODO(cstefantsova): Remove this.
-  const IsSubtypeOf.onlyIfIgnoringNullabilities(
-      {DartType? subtype, DartType? supertype})
-      : this._internal(false, subtype, supertype);
-
   /// Subtype check fails.
   const IsSubtypeOf.failure() : this._internal(false, null, null);
 
@@ -582,12 +576,10 @@ class IsSubtypeOf {
       if (supertype is InvalidType) {
         return const IsSubtypeOf.success();
       }
-      return new IsSubtypeOf.onlyIfIgnoringNullabilities(
-          subtype: subtype, supertype: supertype);
+      return const IsSubtypeOf.failure();
     }
     if (supertype is InvalidType) {
-      return new IsSubtypeOf.onlyIfIgnoringNullabilities(
-          subtype: subtype, supertype: supertype);
+      return const IsSubtypeOf.failure();
     }
 
     return _basedSolelyOnNullabilitiesNotInvalidType(subtype, supertype);
@@ -624,8 +616,7 @@ class IsSubtypeOf {
           return const IsSubtypeOf.success();
         }
       }
-      return new IsSubtypeOf.onlyIfIgnoringNullabilities(
-          subtype: subtype, supertype: supertype);
+      return const IsSubtypeOf.failure();
     }
     return const IsSubtypeOf.success();
   }

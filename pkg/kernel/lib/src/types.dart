@@ -92,10 +92,7 @@ class Types with StandardBounds {
           when tClassReference == hierarchy.coreTypes.objectClass.reference &&
               s.extensionTypeErasure.isPotentiallyNullable &&
               !t.isPotentiallyNullable:
-        return new IsSubtypeOf.onlyIfIgnoringNullabilities(
-          subtype: s,
-          supertype: t,
-        );
+        return const IsSubtypeOf.failure();
       case (_, InterfaceType(classReference: Reference tClassReference))
           when tClassReference == hierarchy.coreTypes.objectClass.reference &&
               s is! FutureOrType:
@@ -364,12 +361,7 @@ class Types with StandardBounds {
                 /// From the NNBD spec: For each j such that r0j is required,
                 /// then there exists an i in n+1...q such that xj = yi, and r1i
                 /// is required
-                result = result.and(
-                  new IsSubtypeOf.onlyIfIgnoringNullabilities(
-                    subtype: sFunctionType,
-                    supertype: tFunctionType,
-                  ),
-                );
+                result = const IsSubtypeOf.failure();
               }
             }
             if (sCount == sNamedParameters.length) {
@@ -393,12 +385,7 @@ class Types with StandardBounds {
             /// there exists an i in n+1...q such that xj = yi, and r1i is
             /// required
             if (sNamedParameter.isRequired && !tNamedParameter.isRequired) {
-              result = result.and(
-                new IsSubtypeOf.onlyIfIgnoringNullabilities(
-                  subtype: sFunctionType,
-                  supertype: tFunctionType,
-                ),
-              );
+              result = const IsSubtypeOf.failure();
             }
           }
           for (; sCount < sNamedParameters.length; sCount++) {
@@ -407,12 +394,7 @@ class Types with StandardBounds {
               /// From the NNBD spec: For each j such that r0j is required, then
               /// there exists an i in n+1...q such that xj = yi, and r1i is
               /// required
-              result = result.and(
-                new IsSubtypeOf.onlyIfIgnoringNullabilities(
-                  subtype: sFunctionType,
-                  supertype: tFunctionType,
-                ),
-              );
+              result = const IsSubtypeOf.failure();
             }
           }
         }
