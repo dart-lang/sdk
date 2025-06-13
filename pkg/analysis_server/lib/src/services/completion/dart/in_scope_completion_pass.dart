@@ -2640,7 +2640,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
             suggestRequired: noRequired,
             suggestVariableName: name.coversOffset(offset),
             suggestCovariant: suggestCovariant,
-            suggestThis : suggestThis,
+            suggestThis: suggestThis,
           );
         }
         _forTypeAnnotation(node);
@@ -3065,6 +3065,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     }
 
     if (offset <= node.name.end) {
+      var constAdded = false;
       var container = grandparent?.parent;
       var keyword = parent.keyword;
       var type = parent.type;
@@ -3074,6 +3075,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           keywordHelper.addKeyword(Keyword.CONST);
           keywordHelper.addKeyword(Keyword.FINAL);
           keywordHelper.addKeyword(Keyword.VAR);
+          constAdded = true;
         }
         if (keyword == null || keyword.keyword != Keyword.VAR) {
           _forTypeAnnotation(node);
@@ -3110,7 +3112,9 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           // The parser often recovers from incomplete code by assuming that
           // the user is typing a field declaration, but it's quite possible
           // that the user is trying to type a different kind of declaration.
-          keywordHelper.addKeyword(Keyword.CONST);
+          if (!constAdded) {
+            keywordHelper.addKeyword(Keyword.CONST);
+          }
           if (container is ClassDeclaration) {
             keywordHelper.addKeyword(Keyword.FACTORY);
           }
