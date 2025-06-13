@@ -1201,20 +1201,9 @@ class BodyBuilder extends StackListenerImpl
     typeInferrer.assignedVariables.finish();
 
     FunctionNode function = _context.function;
-    if (thisVariable != null) {
-      typeInferrer.flowAnalysis.declare(
-          thisVariable!, new SharedTypeView(thisVariable!.type),
-          initialized: true);
-    }
+    _declareFormals();
     if (formals?.parameters != null) {
       for (int i = 0; i < formals!.parameters!.length; i++) {
-        FormalParameterBuilder parameter = formals.parameters![i];
-        VariableDeclaration variable = parameter.variable!;
-        typeInferrer.flowAnalysis.declare(
-            variable, new SharedTypeView(variable.type),
-            initialized: true);
-      }
-      for (int i = 0; i < formals.parameters!.length; i++) {
         FormalParameterBuilder parameter = formals.parameters![i];
         Expression? initializer = parameter.variable!.initializer;
         bool inferInitializer;
@@ -1705,10 +1694,11 @@ class BodyBuilder extends StackListenerImpl
     }
     if (doFinishConstructor) {
       List<FormalParameterBuilder>? formals = _context.formals;
+      List<Object>? superParametersAsArguments =
+          formals != null ? createSuperParametersAsArguments(formals) : null;
+      _declareFormals();
       finishConstructor(AsyncMarker.Sync, null,
-          superParametersAsArguments: formals != null
-              ? createSuperParametersAsArguments(formals)
-              : null);
+          superParametersAsArguments: superParametersAsArguments);
     }
     return _initializers;
   }
@@ -1753,6 +1743,26 @@ class BodyBuilder extends StackListenerImpl
     ArgumentsImpl arguments = pop() as ArgumentsImpl;
     checkEmpty(token.charOffset);
     return arguments;
+  }
+
+  void _declareFormals() {
+    if (thisVariable != null && _context.isConstructor) {
+      // `thisVariable` usually appears in `_context.formals`, but for a
+      // constructor, it doesn't. So declare it separately.
+      typeInferrer.flowAnalysis.declare(
+          thisVariable!, new SharedTypeView(thisVariable!.type),
+          initialized: true);
+    }
+    List<FormalParameterBuilder>? formals = _context.formals;
+    if (formals != null) {
+      for (int i = 0; i < formals.length; i++) {
+        FormalParameterBuilder parameter = formals[i];
+        VariableDeclaration variable = parameter.variable!;
+        typeInferrer.flowAnalysis.declare(
+            variable, new SharedTypeView(variable.type),
+            initialized: true);
+      }
+    }
   }
 
   void finishConstructor(AsyncMarker asyncModifier, Statement? body,
@@ -1800,24 +1810,11 @@ class BodyBuilder extends StackListenerImpl
         "to be sorted by occurrence in file.");
 
     FunctionNode function = _context.function;
-    List<FormalParameterBuilder>? formals = _context.formals;
-    if (formals != null) {
-      for (int i = 0; i < formals.length; i++) {
-        FormalParameterBuilder parameter = formals[i];
-        VariableDeclaration variable = parameter.variable!;
-        // TODO(paulberry): `skipDuplicateCheck` is currently needed to work
-        // around a failure in
-        // co19/Language/Expressions/Postfix_Expressions/conditional_increment_t02;
-        // fix this.
-        typeInferrer.flowAnalysis.declare(
-            variable, new SharedTypeView(variable.type),
-            initialized: true, skipDuplicateCheck: true);
-      }
-    }
 
     Set<String>? namedSuperParameterNames;
     List<Expression>? positionalSuperParametersAsArguments;
     List<NamedExpression>? namedSuperParametersAsArguments;
+    List<FormalParameterBuilder>? formals = _context.formals;
     if (superParametersAsArguments != null) {
       for (Object superParameterAsArgument in superParametersAsArguments) {
         if (superParameterAsArgument is Expression) {
