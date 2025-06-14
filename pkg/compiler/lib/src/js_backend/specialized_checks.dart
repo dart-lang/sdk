@@ -192,6 +192,15 @@ class SpecializedChecks {
       return commonElements.specializedAsInt;
     }
 
+    if (element == commonElements.objectClass) {
+      if (!nullable) return commonElements.specializedAsObject;
+    }
+
+    if (element == commonElements.jsObjectClass) {
+      if (nullable) return commonElements.specializedAsJSObjectNullable;
+      return commonElements.specializedAsJSObject;
+    }
+
     return null;
   }
 }
