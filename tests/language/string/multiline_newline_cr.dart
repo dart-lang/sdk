@@ -2,24 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library multiline_newline_cr;
+// Test depends on specific line endings,
+// and requires an entry in the .gitattributes file.
 
-const constantMultilineString = """
-a
-b
-""";
+// dart format off
 
-var nonConstantMultilineString = """
-a
-b
-""";
+// All line endings inside string literals are Carriage Return, U+000D
+const constantMultilineString = """ab""";
 
-const constantRawMultilineString = r"""
-\a
-\b
-""";
+var nonConstantMultilineString = """ab""";
 
-var nonConstantRawMultilineString = r"""
-\a
-\b
-""";
+const constantRawMultilineString = r"""\a\b""";
+
+var nonConstantRawMultilineString = r"""\a\b""";
