@@ -384,6 +384,18 @@ extension on Element {
     ) when variable3.isInAnalyzerPublicApi) {
       return true;
     }
+    if (this case PropertyInducingElement(
+      isSynthetic: true,
+      :var getter2?,
+    ) when getter2.isInAnalyzerPublicApi) {
+      return true;
+    }
+    if (this case PropertyInducingElement(
+      isSynthetic: true,
+      :var setter2?,
+    ) when setter2.isInAnalyzerPublicApi) {
+      return true;
+    }
     if (this case Annotatable(
       metadata: Metadata(:var annotations),
     ) when annotations.any(_isPublicApiAnnotation)) {
