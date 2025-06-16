@@ -67,7 +67,7 @@ import 'package:meta/meta.dart';
 
 /// This function is used to test recording requirements during analysis.
 ///
-/// Some [ElementImpl2] APIs are not trivial, or maybe even impossible, to
+/// Some [ElementImpl] APIs are not trivial, or maybe even impossible, to
 /// trigger. For example because this API is not used during normal resolution
 /// of Dart code, but can be used by a linter rule.
 @visibleForTesting

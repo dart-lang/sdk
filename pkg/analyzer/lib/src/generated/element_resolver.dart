@@ -99,7 +99,7 @@ class ElementResolver {
   /// declaration.
   bool get isInConstConstructor {
     var function = _resolver.enclosingFunction;
-    if (function is ConstructorElementImpl2) {
+    if (function is ConstructorElementImpl) {
       return function.isConst;
     }
     return false;
@@ -340,11 +340,11 @@ class ElementResolver {
     covariant RedirectingConstructorInvocationImpl node,
   ) {
     var enclosingClass = _resolver.enclosingClass;
-    if (enclosingClass is! InterfaceElementImpl2) {
+    if (enclosingClass is! InterfaceElementImpl) {
       // TODO(brianwilkerson): Report this error.
       return;
     }
-    ConstructorElementImpl2? element;
+    ConstructorElementImpl? element;
     var name = node.constructorName;
     if (name == null) {
       element = enclosingClass.unnamedConstructor2;
@@ -379,7 +379,7 @@ class ElementResolver {
     covariant SuperConstructorInvocationImpl node,
   ) {
     var enclosingClass = _resolver.enclosingClass;
-    if (enclosingClass is! InterfaceElementImpl2) {
+    if (enclosingClass is! InterfaceElementImpl) {
       // TODO(brianwilkerson): Report this error.
       return;
     }

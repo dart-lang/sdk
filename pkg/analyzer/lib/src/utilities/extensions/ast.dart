@@ -165,11 +165,11 @@ extension ExtensionElementExtension on ExtensionElement {
 }
 
 extension VariableDeclarationExtension on VariableDeclaration {
-  FieldElementImpl2 get declaredFieldElement {
-    return declaredFragment!.element as FieldElementImpl2;
+  FieldElementImpl get declaredFieldElement {
+    return declaredFragment!.element as FieldElementImpl;
   }
 
-  TopLevelVariableElementImpl2 get declaredTopLevelVariableElement {
-    return declaredFragment!.element as TopLevelVariableElementImpl2;
+  TopLevelVariableElementImpl get declaredTopLevelVariableElement {
+    return declaredFragment!.element as TopLevelVariableElementImpl;
   }
 }

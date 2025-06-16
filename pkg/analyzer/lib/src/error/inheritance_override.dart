@@ -223,7 +223,7 @@ class _ClassVerifier {
     if (firstFragment.supertype != null) {
       directSuperInterfaces.add(firstFragment.supertype!);
     }
-    if (element is MixinElementImpl2) {
+    if (element is MixinElementImpl) {
       directSuperInterfaces.addAll(element.superclassConstraints);
     }
 
@@ -563,7 +563,7 @@ class _ClassVerifier {
   /// [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_ON],
   /// [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_WITH].
   bool _checkForRecursiveInterfaceInheritance(
-    InterfaceElementImpl2 element, [
+    InterfaceElementImpl element, [
     List<InterfaceElement>? path,
   ]) {
     path ??= <InterfaceElement>[];
@@ -622,7 +622,7 @@ class _ClassVerifier {
       }
     }
 
-    if (element is MixinElementImpl2) {
+    if (element is MixinElementImpl) {
       for (var type in element.superclassConstraints) {
         if (_checkForRecursiveInterfaceInheritance(type.element3, path)) {
           return true;
@@ -775,7 +775,7 @@ class _ClassVerifier {
   /// issue should be fixed there, and then [classElement] will not have it too.
   bool _isNotImplementedInConcreteSuperClass(Name name) {
     var superElement = classElement.supertype?.element3;
-    if (superElement is ClassElementImpl2 && !superElement.isAbstract) {
+    if (superElement is ClassElementImpl && !superElement.isAbstract) {
       var superInterface = inheritance.getInterface2(superElement);
       return superInterface.map.containsKey(name);
     }
@@ -955,7 +955,7 @@ class _ClassVerifier {
   /// members in all of its supertypes.
   void _verifyMustBeOverridden() {
     var classElement = this.classElement.element;
-    if (classElement is! ClassElementImpl2 ||
+    if (classElement is! ClassElementImpl ||
         classElement.isAbstract ||
         classElement.isSealed) {
       // We only care about concrete classes.

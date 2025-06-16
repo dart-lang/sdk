@@ -676,7 +676,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var variablesMap = _patternVariables.casePatternFinish();
     node.variables =
         variablesMap.values
-            .whereType<BindPatternVariableElementImpl2>()
+            .whereType<BindPatternVariableElementImpl>()
             .map((e) => e.asElement)
             .toList();
   }
@@ -1162,7 +1162,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var variablesMap = _patternVariables.casePatternFinish();
     node.elements =
         variablesMap.values
-            .whereType<BindPatternVariableElementImpl2>()
+            .whereType<BindPatternVariableElementImpl>()
             .toList();
   }
 
@@ -1705,7 +1705,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var type = namedType.typeOrThrow;
 
     var enclosingElement = _namedTypeResolver.enclosingClass;
-    if (enclosingElement is ExtensionTypeElementImpl2) {
+    if (enclosingElement is ExtensionTypeElementImpl) {
       _verifyExtensionElementImplements(
         enclosingElement.asElement,
         namedType,
@@ -1960,23 +1960,23 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 }
 
 class _VariableBinder
-    extends VariableBinder<DartPatternImpl, PatternVariableElementImpl2> {
+    extends VariableBinder<DartPatternImpl, PatternVariableElementImpl> {
   final TypeProvider typeProvider;
 
   _VariableBinder({required super.errors, required this.typeProvider});
 
   @override
-  JoinPatternVariableElementImpl2 joinPatternVariables({
+  JoinPatternVariableElementImpl joinPatternVariables({
     required Object key,
-    required List<PatternVariableElementImpl2> components,
+    required List<PatternVariableElementImpl> components,
     required shared.JoinedPatternVariableInconsistency inconsistency,
   }) {
     var first = components.first;
-    List<PatternVariableElementImpl2> expandedVariables;
+    List<PatternVariableElementImpl> expandedVariables;
     if (key is LogicalOrPatternImpl) {
       expandedVariables = components
           .expand((variable) {
-            if (variable is JoinPatternVariableElementImpl2) {
+            if (variable is JoinPatternVariableElementImpl) {
               return variable.variables;
             } else {
               return [variable];
@@ -1994,7 +1994,7 @@ class _VariableBinder
       nameOffset: -1,
       variables: expandedVariables.map((e) => e.asElement).toList(),
       inconsistency: inconsistency.maxWithAll(
-        components.whereType<JoinPatternVariableElementImpl2>().map(
+        components.whereType<JoinPatternVariableElementImpl>().map(
           (e) => e.inconsistency,
         ),
       ),
@@ -2009,7 +2009,7 @@ class _VariableBinder
 
 class _VariableBinderErrors
     implements
-        VariableBinderErrors<DartPatternImpl, PatternVariableElementImpl2> {
+        VariableBinderErrors<DartPatternImpl, PatternVariableElementImpl> {
   final ResolutionVisitor visitor;
 
   _VariableBinderErrors(this.visitor);
@@ -2023,8 +2023,8 @@ class _VariableBinderErrors
   @override
   void duplicateVariablePattern({
     required String name,
-    required covariant BindPatternVariableElementImpl2 original,
-    required covariant BindPatternVariableElementImpl2 duplicate,
+    required covariant BindPatternVariableElementImpl original,
+    required covariant BindPatternVariableElementImpl duplicate,
   }) {
     visitor._diagnosticReporter.reportError(
       DiagnosticFactory().duplicateDefinitionForNodes(

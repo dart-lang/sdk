@@ -485,7 +485,7 @@ class NullSafetyDeadCodeVerifier {
     target = target?.unParenthesized;
     if (target is SimpleIdentifier) {
       var element = target.element;
-      if (element is PromotableElementImpl2 &&
+      if (element is PromotableElementImpl &&
           flowAnalysis.isDefinitelyUnassigned(target, element)) {
         var parent = node.parent;
         while (parent is MethodInvocation ||

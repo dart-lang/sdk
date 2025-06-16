@@ -32,7 +32,7 @@ class BaseOrFinalTypeVerifier {
   /// [CompileTimeErrorCode.SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED],
   /// [CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY].
   void checkElement(
-    InterfaceElementImpl2 element,
+    InterfaceElementImpl element,
     ImplementsClause? implementsClause,
   ) {
     var supertype = element.supertype;
@@ -50,7 +50,7 @@ class BaseOrFinalTypeVerifier {
     if (_checkSupertypes(element.mixins, element)) {
       return;
     }
-    if (element is MixinElementImpl2 &&
+    if (element is MixinElementImpl &&
         _checkSupertypes(element.superclassConstraints, element)) {
       return;
     }
@@ -60,14 +60,14 @@ class BaseOrFinalTypeVerifier {
   /// an interface in [interfaces].
   bool _checkInterfaceSupertypes(
     List<NamedType> interfaces,
-    InterfaceElementImpl2 subElement, {
+    InterfaceElementImpl subElement, {
     bool areImplementedInterfaces = false,
   }) {
     for (NamedType interface in interfaces) {
       var interfaceType = interface.type;
       if (interfaceType is InterfaceType) {
         var interfaceElement = interfaceType.element3;
-        if (interfaceElement is InterfaceElementImpl2) {
+        if (interfaceElement is InterfaceElementImpl) {
           // Return early if an error has been reported to prevent reporting
           // multiple errors on one element.
           if (_reportRestrictionError(
@@ -87,11 +87,11 @@ class BaseOrFinalTypeVerifier {
   /// a supertype in [supertypes].
   bool _checkSupertypes(
     List<InterfaceType> supertypes,
-    InterfaceElementImpl2 subElement,
+    InterfaceElementImpl subElement,
   ) {
     for (var supertype in supertypes) {
       var supertypeElement = supertype.element3;
-      if (supertypeElement is InterfaceElementImpl2) {
+      if (supertypeElement is InterfaceElementImpl) {
         // Return early if an error has been reported to prevent reporting
         // multiple errors on one element.
         if (_reportRestrictionError(subElement, supertypeElement)) {
@@ -104,15 +104,15 @@ class BaseOrFinalTypeVerifier {
 
   /// Returns the nearest explicitly declared 'base' or 'final' element in the
   /// element hierarchy for [element].
-  InterfaceElementImpl2? _getExplicitlyBaseOrFinalElement(
-    InterfaceElementImpl2 element,
+  InterfaceElementImpl? _getExplicitlyBaseOrFinalElement(
+    InterfaceElementImpl element,
   ) {
     // The current element has an explicit 'base' or 'final' modifier.
     if ((element.isBase || element.isFinal) && !element.isSealed) {
       return element;
     }
 
-    InterfaceElementImpl2? baseOrFinalSuperElement;
+    InterfaceElementImpl? baseOrFinalSuperElement;
     var supertype = element.supertype;
     if (supertype != null) {
       baseOrFinalSuperElement ??=
@@ -124,7 +124,7 @@ class BaseOrFinalTypeVerifier {
     baseOrFinalSuperElement ??= _getExplicitlyBaseOrFinalElementFromSuperTypes(
       element.mixins,
     );
-    if (element is MixinElementImpl2) {
+    if (element is MixinElementImpl) {
       baseOrFinalSuperElement ??=
           _getExplicitlyBaseOrFinalElementFromSuperTypes(
             element.superclassConstraints,
@@ -136,13 +136,13 @@ class BaseOrFinalTypeVerifier {
   /// Returns the first explicitly declared 'base' or 'final' element found in
   /// the class hierarchies of a supertype in [supertypes], or `null` if there
   /// is none.
-  InterfaceElementImpl2? _getExplicitlyBaseOrFinalElementFromSuperTypes(
+  InterfaceElementImpl? _getExplicitlyBaseOrFinalElementFromSuperTypes(
     List<InterfaceType> supertypes,
   ) {
-    InterfaceElementImpl2? baseOrFinalElement;
+    InterfaceElementImpl? baseOrFinalElement;
     for (var supertype in supertypes) {
       var supertypeElement = supertype.element3;
-      if (supertypeElement is InterfaceElementImpl2) {
+      if (supertypeElement is InterfaceElementImpl) {
         baseOrFinalElement = _getExplicitlyBaseOrFinalElement(supertypeElement);
         if (baseOrFinalElement != null) {
           return baseOrFinalElement;
@@ -176,8 +176,8 @@ class BaseOrFinalTypeVerifier {
   ///
   /// Reports an error based on the modifier of the [superElement].
   bool _reportRestrictionError(
-    InterfaceElementImpl2 element,
-    InterfaceElementImpl2 superElement, {
+    InterfaceElementImpl element,
+    InterfaceElementImpl superElement, {
     NamedType? implementsNamedType,
   }) {
     // Only report errors on elements within the current library.
@@ -185,7 +185,7 @@ class BaseOrFinalTypeVerifier {
       return false;
     }
 
-    InterfaceElementImpl2? baseOrFinalSuperElement;
+    InterfaceElementImpl? baseOrFinalSuperElement;
     if (superElement.isBase ||
         superElement.isFinal ||
         (!superElement.library2.featureSet.isEnabled(Feature.class_modifiers) &&
@@ -306,12 +306,12 @@ class BaseOrFinalTypeVerifier {
   }
 }
 
-extension on InterfaceElementImpl2 {
+extension on InterfaceElementImpl {
   bool get isBase {
     switch (this) {
-      case ClassElementImpl2 element:
+      case ClassElementImpl element:
         return element.isBase;
-      case MixinElementImpl2 element:
+      case MixinElementImpl element:
         return element.isBase;
     }
     return false;
@@ -319,7 +319,7 @@ extension on InterfaceElementImpl2 {
 
   bool get isFinal {
     switch (this) {
-      case ClassElementImpl2 element:
+      case ClassElementImpl element:
         return element.isFinal;
     }
     return false;
@@ -327,7 +327,7 @@ extension on InterfaceElementImpl2 {
 
   bool get isSealed {
     switch (this) {
-      case ClassElementImpl2 element:
+      case ClassElementImpl element:
         return element.isSealed;
     }
     return false;

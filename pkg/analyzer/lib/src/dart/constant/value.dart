@@ -1403,7 +1403,7 @@ class EvaluationException {
 /// The state of an object representing a function.
 class FunctionState extends InstanceState {
   /// The element representing the function being modeled.
-  final ExecutableElementImpl2 element;
+  final ExecutableElementImpl element;
 
   final List<TypeImpl>? typeArguments;
 

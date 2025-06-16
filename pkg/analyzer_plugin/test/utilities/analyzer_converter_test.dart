@@ -272,7 +272,7 @@ class A {
   }
 
   void test_convertElement_dynamic() {
-    var engineElement = analyzer.DynamicElementImpl2.instance;
+    var engineElement = analyzer.DynamicElementImpl.instance;
     // create notification Element
     var element = converter.convertElement(engineElement);
     expect(element.kind, plugin.ElementKind.UNKNOWN);

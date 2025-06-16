@@ -374,15 +374,15 @@ class _IndexAssembler {
 
   /// Adds a prefix (or empty string for unprefixed) for an element.
   void addPrefixForElement(Element element, {PrefixElement? prefix}) {
-    if (element is MultiplyDefinedElementImpl2 ||
+    if (element is MultiplyDefinedElementImpl ||
         // TODO(brianwilkerson): The last two conditions are here because the
         //  elements for `dynamic` and `Never` are singletons and hence don't have
         //  a parent element for which we can find an `_ElementInfo`. This means
         //  that any reference to either type via a prefix can't be stored in the
         //  index. The solution is to make those elements be normal (not unique)
         //  elements.
-        element is DynamicElementImpl2 ||
-        element is NeverElementImpl2) {
+        element is DynamicElementImpl ||
+        element is NeverElementImpl) {
       return;
     }
 
@@ -734,7 +734,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     // implicitly invokes the default super constructor. Associate the
     // invocation with the name of the class.
     var defaultConstructor = declaredElement.constructors.singleOrNull;
-    if (defaultConstructor is ConstructorElementImpl2 &&
+    if (defaultConstructor is ConstructorElementImpl &&
         defaultConstructor.isSynthetic) {
       defaultConstructor.isDefaultConstructor;
       var superConstructor = defaultConstructor.superConstructor2;
@@ -1260,7 +1260,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   visitSuperFormalParameter(SuperFormalParameter node) {
     var element = node.declaredFragment!.element;
-    if (element is SuperFormalParameterElementImpl2) {
+    if (element is SuperFormalParameterElementImpl) {
       var superParameter = element.superConstructorParameter2;
       if (superParameter != null) {
         recordRelation(
@@ -1377,9 +1377,9 @@ class _IndexContributor extends GeneralizingAstVisitor {
     ConstructorElement? constructor,
   ) {
     var seenConstructors = <ConstructorElement?>{};
-    while (constructor is ConstructorElementImpl2 && constructor.isSynthetic) {
+    while (constructor is ConstructorElementImpl && constructor.isSynthetic) {
       var enclosing = constructor.enclosingElement;
-      if (enclosing is ClassElementImpl2 && enclosing.isMixinApplication) {
+      if (enclosing is ClassElementImpl && enclosing.isMixinApplication) {
         var superInvocation =
             constructor.firstFragment.constantInitializers
                 .whereType<SuperConstructorInvocation>()

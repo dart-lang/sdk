@@ -115,7 +115,7 @@ class FormalParameterScope extends EnclosedScope {
 /// Tracking information for all import in [LibraryFragmentImpl].
 class ImportsTracking {
   /// Tracking information for each import prefix.
-  final Map<PrefixElementImpl2?, ImportsTrackingOfPrefix> map;
+  final Map<PrefixElementImpl?, ImportsTrackingOfPrefix> map;
 
   ImportsTracking({required this.map});
 
@@ -287,8 +287,8 @@ class LibraryDeclarations with _GettersAndSetters {
 
     // Add implicit 'dart:core' declarations.
     if ('${library.source.uri}' == 'dart:core') {
-      _addGetter(DynamicElementImpl2.instance);
-      _addGetter(NeverElementImpl2.instance);
+      _addGetter(DynamicElementImpl.instance);
+      _addGetter(NeverElementImpl.instance);
     }
 
     extensions = extensions.toFixedList();
@@ -312,7 +312,7 @@ class LibraryFragmentScope implements Scope {
   final LibraryFragmentImpl fragment;
   final PrefixScope noPrefixScope;
 
-  final Map<String, PrefixElementImpl2> _prefixElements = {};
+  final Map<String, PrefixElementImpl> _prefixElements = {};
 
   /// The cached result for [accessibleExtensions].
   List<ExtensionElement>? _extensions;
@@ -420,7 +420,7 @@ class LibraryFragmentScope implements Scope {
     _importsTracking?.notifyExtensionUsed(element);
   }
 
-  PrefixScope? _getParentPrefixScope(PrefixElementImpl2 prefix) {
+  PrefixScope? _getParentPrefixScope(PrefixElementImpl prefix) {
     var isDeferred = prefix.imports.any((import) {
       return import.prefix2?.isDeferred ?? false;
     });
@@ -667,7 +667,7 @@ class PrefixScope implements Scope {
     _addElement(conflictingElements, existing);
     _addElement(conflictingElements, other);
 
-    return MultiplyDefinedElementImpl2(
+    return MultiplyDefinedElementImpl(
       libraryFragment,
       conflictingElements.first.name3!,
       conflictingElements.toList(),
@@ -682,7 +682,7 @@ class PrefixScope implements Scope {
     // records are released.
     if (!libraryElement.featureSet.isEnabled(Feature.records)) {
       if (importedLibrary.isInSdk &&
-          element is ClassElementImpl2 &&
+          element is ClassElementImpl &&
           element.isDartCoreRecord) {
         return false;
       }
@@ -691,7 +691,7 @@ class PrefixScope implements Scope {
   }
 
   static void _addElement(Set<Element> conflictingElements, Element element) {
-    if (element is MultiplyDefinedElementImpl2) {
+    if (element is MultiplyDefinedElementImpl) {
       conflictingElements.addAll(element.conflictingElements2);
     } else {
       conflictingElements.add(element);
@@ -699,7 +699,7 @@ class PrefixScope implements Scope {
   }
 
   static bool _isSdkElement(Element element) {
-    if (element is DynamicElementImpl2 || element is NeverElementImpl2) {
+    if (element is DynamicElementImpl || element is NeverElementImpl) {
       return true;
     }
     if (element is MultiplyDefinedElement) {

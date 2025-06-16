@@ -299,7 +299,7 @@ class SubtypeHelper {
   }
 
   bool _interfaceArguments(
-    InterfaceElementImpl2 element,
+    InterfaceElementImpl element,
     InterfaceTypeImpl subType,
     InterfaceTypeImpl superType,
   ) {

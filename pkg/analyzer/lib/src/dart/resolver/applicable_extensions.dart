@@ -61,7 +61,7 @@ class InstantiatedExtensionWithoutMember {
 }
 
 abstract class _NotInstantiatedExtension<R> {
-  final ExtensionElementImpl2 extension;
+  final ExtensionElementImpl extension;
 
   _NotInstantiatedExtension(this.extension);
 
@@ -121,7 +121,7 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
       (e) => _NotInstantiatedExtensionWithoutMember(
         // TODO(paulberry): eliminate this cast by changing the extension to
         // apply only to `Iterable<ExtensionElementImpl>`.
-        e as ExtensionElementImpl2,
+        e as ExtensionElementImpl,
       ),
     ).applicableTo(targetLibrary: targetLibrary, targetType: targetType);
   }
@@ -148,7 +148,7 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
             _NotInstantiatedExtensionWithMember(
               // TODO(paulberry): eliminate this cast by changing the extension
               // to apply only to `Iterable<ExtensionElementImpl>`.
-              extension as ExtensionElementImpl2,
+              extension as ExtensionElementImpl,
               getter: getter,
               setter: setter,
             ),
@@ -165,7 +165,7 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
               _NotInstantiatedExtensionWithMember(
                 // TODO(paulberry): eliminate this cast by changing the
                 // extension to apply only to `Iterable<ExtensionElementImpl>`.
-                extension as ExtensionElementImpl2,
+                extension as ExtensionElementImpl,
                 getter: field.getter2,
                 setter: field.setter2,
               ),
@@ -183,7 +183,7 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
               _NotInstantiatedExtensionWithMember(
                 // TODO(paulberry): eliminate this cast by changing the
                 // extension to apply only to `Iterable<ExtensionElementImpl>`.
-                extension as ExtensionElementImpl2,
+                extension as ExtensionElementImpl,
                 getter: method,
               ),
             );

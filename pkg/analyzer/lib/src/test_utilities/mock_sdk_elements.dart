@@ -965,11 +965,11 @@ class _MockSdkElementsBuilder {
   ClassFragmentImpl _class({
     required String name,
     bool isAbstract = false,
-    List<TypeParameterElementImpl2> typeParameters = const [],
+    List<TypeParameterElementImpl> typeParameters = const [],
     required LibraryFragmentImpl unit,
   }) {
     var fragment = ClassFragmentImpl(name2: name, nameOffset: 0);
-    ClassElementImpl2(Reference.root(), fragment);
+    ClassElementImpl(Reference.root(), fragment);
     fragment.typeParameters =
         typeParameters.map((tp) => tp.firstFragment).toList();
     fragment.constructors = <ConstructorFragmentImpl>[_constructor()];
@@ -991,7 +991,7 @@ class _MockSdkElementsBuilder {
             .map((p) => p.firstFragment as FormalParameterFragmentImpl)
             .toList();
 
-    ConstructorElementImpl2(
+    ConstructorElementImpl(
       name3: fragment.name2,
       reference: Reference.root(),
       firstFragment: fragment,
@@ -1042,7 +1042,7 @@ class _MockSdkElementsBuilder {
 
   FunctionTypeImpl _functionType({
     required TypeImpl returnType,
-    List<TypeParameterElementImpl2> typeFormals = const [],
+    List<TypeParameterElementImpl> typeFormals = const [],
     List<FormalParameterElement> parameters = const [],
   }) {
     return FunctionTypeImpl.v2(
@@ -1098,7 +1098,7 @@ class _MockSdkElementsBuilder {
                   .toList()
           ..returnType = returnType
           ..typeParameters = typeFormals;
-    MethodElementImpl2(
+    MethodElementImpl(
       name3: name,
       reference: Reference.root(),
       firstFragment: fragment,
@@ -1240,19 +1240,19 @@ class _MockSdkElementsBuilder {
         ConstTopLevelVariableFragmentImpl(name2: name, nameOffset: -1)
           ..isConst = true
           ..type = type;
-    TopLevelVariableElementImpl2(Reference.root(), fragment);
+    TopLevelVariableElementImpl(Reference.root(), fragment);
     PropertyAccessorFragmentImplImplicitGetter(fragment);
     return fragment;
   }
 
-  TypeParameterElementImpl2 _typeParameter(String name) {
-    return TypeParameterElementImpl2(
+  TypeParameterElementImpl _typeParameter(String name) {
+    return TypeParameterElementImpl(
       firstFragment: TypeParameterFragmentImpl(name2: name, nameOffset: 0),
       name3: name.nullIfEmpty,
     );
   }
 
-  TypeParameterTypeImpl _typeParameterType(TypeParameterElementImpl2 element) {
+  TypeParameterTypeImpl _typeParameterType(TypeParameterElementImpl element) {
     return TypeParameterTypeImpl(
       element3: element,
       nullabilitySuffix: NullabilitySuffix.none,

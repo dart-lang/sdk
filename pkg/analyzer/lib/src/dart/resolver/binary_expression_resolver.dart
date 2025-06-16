@@ -160,13 +160,13 @@ class BinaryExpressionResolver {
 
     if (left is SimpleIdentifierImpl && right is NullLiteralImpl) {
       var element = left.element;
-      if (element is PromotableElementImpl2 &&
+      if (element is PromotableElementImpl &&
           flowAnalysis.isDefinitelyUnassigned(left, element)) {
         reportNullComparison(left, node.operator);
       }
     } else if (right is SimpleIdentifierImpl && left is NullLiteralImpl) {
       var element = right.element;
-      if (element is PromotableElementImpl2 &&
+      if (element is PromotableElementImpl &&
           flowAnalysis.isDefinitelyUnassigned(right, element)) {
         reportNullComparison(node.operator, right);
       }

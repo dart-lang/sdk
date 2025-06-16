@@ -9,7 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/element/element.dart' // ignore: implementation_imports
-    show TypeParameterElementImpl2;
+    show TypeParameterElementImpl;
 import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
@@ -51,7 +51,7 @@ class _UnsafeVarianceChecker extends VarianceChecker {
       if (!owningDeclarationSupportsVariance(typeParameterElement)) {
         return;
       }
-      if (typeParameterElement is TypeParameterElementImpl2) {
+      if (typeParameterElement is TypeParameterElementImpl) {
         if (typeParameterElement.firstFragment.isLegacyCovariant &&
             variance != Variance.out) {
           rule.reportAtNode(typeAnnotation);

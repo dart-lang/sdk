@@ -53,7 +53,7 @@ class ClassHierarchyTest extends AbstractTypeSystemTest
 }
 
 mixin _AbstractClassHierarchyMixin on ElementsTypesMixin {
-  late ClassElementImpl2 A;
+  late ClassElementImpl A;
 
   void _assertErrors(List<ClassHierarchyError> errors, List<String> expected) {
     expect(

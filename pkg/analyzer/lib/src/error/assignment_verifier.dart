@@ -45,7 +45,7 @@ class AssignmentVerifier {
       return;
     }
 
-    if (recovery is DynamicElementImpl2 ||
+    if (recovery is DynamicElementImpl ||
         recovery is InterfaceElement ||
         recovery is TypeAliasElement ||
         recovery is TypeParameterElement) {
@@ -98,7 +98,7 @@ class AssignmentVerifier {
           arguments: [variableName],
         );
       }
-    } else if (recovery is MultiplyDefinedElementImpl2) {
+    } else if (recovery is MultiplyDefinedElementImpl) {
       // Will be reported in ErrorVerifier.
     } else {
       if (node.isSynthetic) {

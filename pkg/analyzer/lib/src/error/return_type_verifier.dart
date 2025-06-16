@@ -82,7 +82,7 @@ class ReturnTypeVerifier {
       return;
     }
 
-    void checkElement(ClassElementImpl2 expectedElement, DiagnosticCode code) {
+    void checkElement(ClassElementImpl expectedElement, DiagnosticCode code) {
       void reportError() {
         enclosingExecutable.hasLegalReturnType = false;
         _diagnosticReporter.atNode(returnType, code);
@@ -291,7 +291,7 @@ class ReturnTypeVerifier {
     );
   }
 
-  bool _isLegalReturnType(ClassElementImpl2 expectedElement) {
+  bool _isLegalReturnType(ClassElementImpl expectedElement) {
     var returnType = enclosingExecutable.returnType;
     //
     // When checking an async/sync*/async* method, we know the exact type

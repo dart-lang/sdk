@@ -6,7 +6,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 
 class ClassElementBuilder
-    extends InstanceElementBuilder<ClassElementImpl2, ClassFragmentImpl> {
+    extends InstanceElementBuilder<ClassElementImpl, ClassFragmentImpl> {
   ClassElementBuilder({required super.element, required super.firstFragment});
 
   void addFragment(ClassFragmentImpl fragment) {
@@ -27,7 +27,7 @@ class ClassElementBuilder
 }
 
 class EnumElementBuilder
-    extends InstanceElementBuilder<EnumElementImpl2, EnumFragmentImpl> {
+    extends InstanceElementBuilder<EnumElementImpl, EnumFragmentImpl> {
   EnumElementBuilder({required super.element, required super.firstFragment});
 
   void addFragment(EnumFragmentImpl fragment) {
@@ -49,7 +49,7 @@ class EnumElementBuilder
 
 class ExtensionElementBuilder
     extends
-        InstanceElementBuilder<ExtensionElementImpl2, ExtensionFragmentImpl> {
+        InstanceElementBuilder<ExtensionElementImpl, ExtensionFragmentImpl> {
   ExtensionElementBuilder({
     required super.element,
     required super.firstFragment,
@@ -74,7 +74,7 @@ class ExtensionElementBuilder
 class ExtensionTypeElementBuilder
     extends
         InstanceElementBuilder<
-          ExtensionTypeElementImpl2,
+          ExtensionTypeElementImpl,
           ExtensionTypeFragmentImpl
         > {
   ExtensionTypeElementBuilder({
@@ -132,7 +132,7 @@ class GetterElementBuilder
 }
 
 abstract class InstanceElementBuilder<
-  E extends InstanceElementImpl2,
+  E extends InstanceElementImpl,
   F extends InstanceFragmentImpl
 >
     extends FragmentedElementBuilder<E, F> {
@@ -144,7 +144,7 @@ abstract class InstanceElementBuilder<
 
   final Map<String, FragmentImpl> fragmentGetters = {};
   final Map<String, FragmentImpl> fragmentSetters = {};
-  final List<MethodElementImpl2> methods2 = [];
+  final List<MethodElementImpl> methods2 = [];
 
   InstanceElementBuilder({
     required super.element,
@@ -250,7 +250,7 @@ abstract class InstanceElementBuilder<
 }
 
 class MixinElementBuilder
-    extends InstanceElementBuilder<MixinElementImpl2, MixinFragmentImpl> {
+    extends InstanceElementBuilder<MixinElementImpl, MixinFragmentImpl> {
   MixinElementBuilder({required super.element, required super.firstFragment});
 
   void addFragment(MixinFragmentImpl fragment) {
@@ -305,7 +305,7 @@ class TopLevelFunctionElementBuilder
 class TopLevelVariableElementBuilder
     extends
         FragmentedElementBuilder<
-          TopLevelVariableElementImpl2,
+          TopLevelVariableElementImpl,
           TopLevelVariableFragmentImpl
         > {
   TopLevelVariableElementBuilder({
@@ -324,7 +324,7 @@ class TopLevelVariableElementBuilder
 
 class TypeAliasElementBuilder
     extends
-        FragmentedElementBuilder<TypeAliasElementImpl2, TypeAliasFragmentImpl> {
+        FragmentedElementBuilder<TypeAliasElementImpl, TypeAliasFragmentImpl> {
   TypeAliasElementBuilder({
     required super.element,
     required super.firstFragment,

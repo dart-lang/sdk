@@ -64,17 +64,17 @@ class ElementPrinter {
         _sink.writeln('<null>');
       case Member member:
         _writeMember(member);
-      case TypeAliasElementImpl2 element:
+      case TypeAliasElementImpl element:
         writelnReference(element.reference);
-      case TopLevelVariableElementImpl2 element:
+      case TopLevelVariableElementImpl element:
         writelnReference(element.reference);
-      case TypeParameterElementImpl2():
+      case TypeParameterElementImpl():
         _sink.writeln('${element.name3}@${element.firstFragment.nameOffset2}');
-      case ConstructorElementImpl2 element:
+      case ConstructorElementImpl element:
         writelnReference(element.reference);
-      case DynamicElementImpl2():
+      case DynamicElementImpl():
         _sink.writeln('dynamic');
-      case FieldElementImpl2 element:
+      case FieldElementImpl element:
         writelnReference(element.reference);
       case FormalParameterElementImpl():
         var firstFragment = element.firstFragment;
@@ -83,7 +83,7 @@ class ElementPrinter {
         _sink.writeln('#element');
       case TopLevelFunctionElementImpl element:
         writelnReference(element.reference);
-      case MethodElementImpl2 element:
+      case MethodElementImpl element:
         writelnReference(element.reference);
       case FragmentedElementMixin element:
         var firstFragment = element.firstFragment as FragmentImpl;
@@ -97,7 +97,7 @@ class ElementPrinter {
         _sink.writeln('#element');
       case LabelFragmentImpl():
         _sink.writeln('${element.name3}@${element.firstFragment.nameOffset2}');
-      case LabelElementImpl2():
+      case LabelElementImpl():
         // TODO(scheglov): nameOffset2 can be `null`
         _sink.writeln('${element.name3}@${element.firstFragment.nameOffset2}');
       case LibraryElementImpl e:
@@ -107,23 +107,23 @@ class ElementPrinter {
         _sink.writeln('${element.name3}@${element.firstFragment.nameOffset2}');
       case LocalVariableFragmentImpl():
         _sink.writeln('${element.name3}@${element.firstFragment.nameOffset2}');
-      case LocalVariableElementImpl2():
+      case LocalVariableElementImpl():
         // TODO(scheglov): nameOffset2 can be `null`
         _sink.writeln('${element.name3}@${element.firstFragment.nameOffset2}');
-      case NeverElementImpl2():
+      case NeverElementImpl():
         _sink.writeln('Never');
-      case ClassElementImpl2 element:
+      case ClassElementImpl element:
         writeReference(element.reference);
         _sink.writeln();
-      case EnumElementImpl2 element:
+      case EnumElementImpl element:
         writelnReference(element.reference);
-      case ExtensionElementImpl2 element:
+      case ExtensionElementImpl element:
         writelnReference(element.reference);
-      case ExtensionTypeElementImpl2 element:
+      case ExtensionTypeElementImpl element:
         writelnReference(element.reference);
-      case MixinElementImpl2 element:
+      case MixinElementImpl element:
         writelnReference(element.reference);
-      case MultiplyDefinedElementImpl2 multiElement:
+      case MultiplyDefinedElementImpl multiElement:
         _sink.writeln('multiplyDefinedElement');
         _sink.withIndent(() {
           for (var element in multiElement.conflictingElements2) {
@@ -133,7 +133,7 @@ class ElementPrinter {
         });
       case NeverFragmentImpl():
         _sink.writeln('Never@-1');
-      case PrefixElementImpl2 element:
+      case PrefixElementImpl element:
         writelnReference(element.reference);
       case SetterElement element:
         var firstFragment = element.firstFragment as FragmentImpl;

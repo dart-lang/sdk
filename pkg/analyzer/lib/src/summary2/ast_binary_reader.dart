@@ -516,7 +516,7 @@ class AstBinaryReader {
   ExtensionOverride _readExtensionOverride() {
     var importPrefix = _readOptionalNode() as ImportPrefixReferenceImpl?;
     var extensionName = _readStringReference();
-    var element = _reader.readElement() as ExtensionElementImpl2;
+    var element = _reader.readElement() as ExtensionElementImpl;
     var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
     var argumentList = readNode() as ArgumentListImpl;
     var node = ExtensionOverrideImpl(
@@ -733,7 +733,7 @@ class AstBinaryReader {
     var expression = readNode() as ExpressionImpl;
     var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
     var typeArgumentTypes = _reader.readOptionalTypeList()!;
-    var staticElement = _reader.readElement() as MethodElementImpl2;
+    var staticElement = _reader.readElement() as MethodElementImpl;
 
     var node = ImplicitCallReferenceImpl(
       expression: expression,
@@ -1166,7 +1166,7 @@ class AstBinaryReader {
       constructorName: constructorName,
       argumentList: argumentList,
     );
-    node.element = _reader.readElement() as ConstructorElementImpl2?;
+    node.element = _reader.readElement() as ConstructorElementImpl?;
     _resolveNamedExpressions(node.element, node.argumentList);
     return node;
   }

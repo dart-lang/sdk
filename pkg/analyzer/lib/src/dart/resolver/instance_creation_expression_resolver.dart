@@ -73,14 +73,14 @@ class InstanceCreationExpressionResolver {
 
     // TODO(kallentu): Support other context types
     if (dotShorthandContextType is InterfaceTypeImpl) {
-      InterfaceElementImpl2? contextElement = dotShorthandContextType.element3;
+      InterfaceElementImpl? contextElement = dotShorthandContextType.element3;
       // This branch will be true if we're resolving an explicitly marked
       // const constructor invocation. It's completely unresolved, unlike a
       // rewritten [DotShorthandConstructorInvocation] that resulted from
       // resolving a [DotShorthandInvocation].
       if (node.element == null) {
         if (contextElement.getNamedConstructor2(node.constructorName.name)
-            case ConstructorElementImpl2 element?
+            case ConstructorElementImpl element?
             when element.isAccessibleIn2(_resolver.definingLibrary)) {
           node.element = element;
         } else {
@@ -93,7 +93,7 @@ class InstanceCreationExpressionResolver {
       }
 
       var typeArguments = node.typeArguments;
-      if (contextElement is ClassElementImpl2 && contextElement.isAbstract) {
+      if (contextElement is ClassElementImpl && contextElement.isAbstract) {
         var constructorElement = node.element;
         if (constructorElement != null && !constructorElement.isFactory) {
           _resolver.diagnosticReporter.atNode(

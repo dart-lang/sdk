@@ -328,7 +328,7 @@ class FunctionReferenceResolver {
   void _resolveDirectTypeLiteral(
     FunctionReferenceImpl node,
     IdentifierImpl name,
-    InterfaceElementImpl2 element,
+    InterfaceElementImpl element,
   ) {
     var typeArguments = _checkTypeArguments(
       // `node.typeArguments`, coming from the parser, is never null.
@@ -647,7 +647,7 @@ class FunctionReferenceResolver {
       if (node.parent is PropertyAccess) {
         _resolveConstructorReference(node);
         return;
-      } else if (element is InterfaceElementImpl2) {
+      } else if (element is InterfaceElementImpl) {
         _resolver.analyzeExpression(
           node.function,
           _resolver.operations.unknownType,
@@ -655,7 +655,7 @@ class FunctionReferenceResolver {
         _resolver.popRewrite();
         _resolveDirectTypeLiteral(node, prefix, element);
         return;
-      } else if (element is TypeAliasElementImpl2) {
+      } else if (element is TypeAliasElementImpl) {
         _resolver.analyzeExpression(prefix, _resolver.operations.unknownType);
         _resolver.popRewrite();
         _resolveTypeAlias(node: node, element: element, typeAlias: prefix);
@@ -779,7 +779,7 @@ class FunctionReferenceResolver {
       // `prefix.C<int>.name` is initially represented as a [PropertyAccess]
       // with a [FunctionReference] target.
       if (node.parent is PropertyAccess) {
-        if (element is TypeAliasElementImpl2 &&
+        if (element is TypeAliasElementImpl &&
             element.aliasedType is FunctionType) {
           function.element = element;
           _resolveTypeAlias(node: node, element: element, typeAlias: function);
@@ -787,11 +787,11 @@ class FunctionReferenceResolver {
           _resolveConstructorReference(node);
         }
         return;
-      } else if (element is InterfaceElementImpl2) {
+      } else if (element is InterfaceElementImpl) {
         function.element = element;
         _resolveDirectTypeLiteral(node, function, element);
         return;
-      } else if (element is TypeAliasElementImpl2) {
+      } else if (element is TypeAliasElementImpl) {
         function.element = element;
         _resolveTypeAlias(node: node, element: element, typeAlias: function);
         return;
@@ -873,7 +873,7 @@ class FunctionReferenceResolver {
 
   void _resolveTypeAlias({
     required FunctionReferenceImpl node,
-    required TypeAliasElementImpl2 element,
+    required TypeAliasElementImpl element,
     required IdentifierImpl typeAlias,
   }) {
     var typeArguments = _checkTypeArguments(

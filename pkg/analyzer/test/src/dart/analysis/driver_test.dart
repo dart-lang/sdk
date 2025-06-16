@@ -47056,17 +47056,17 @@ class _ManualRequirementsUnit {
     return unit.declaredFragment!;
   }
 
-  ClassElementImpl2 scopeClassElement(String name) {
-    return scopeInterfaceElement(name) as ClassElementImpl2;
+  ClassElementImpl scopeClassElement(String name) {
+    return scopeInterfaceElement(name) as ClassElementImpl;
   }
 
-  InstanceElementImpl2 scopeInstanceElement(String name) {
+  InstanceElementImpl scopeInstanceElement(String name) {
     var lookupResult = libraryFragment.scope.lookup(name);
-    return lookupResult.getter2 as InstanceElementImpl2;
+    return lookupResult.getter2 as InstanceElementImpl;
   }
 
-  InterfaceElementImpl2 scopeInterfaceElement(String name) {
-    return scopeInstanceElement(name) as InterfaceElementImpl2;
+  InterfaceElementImpl scopeInterfaceElement(String name) {
+    return scopeInstanceElement(name) as InterfaceElementImpl;
   }
 }
 

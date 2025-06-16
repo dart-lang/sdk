@@ -148,7 +148,7 @@ class _DartNavigationCollector {
       fragment = fragment.element.nonSynthetic2.firstFragment;
     }
 
-    if (fragment.element == DynamicElementImpl2.instance) {
+    if (fragment.element == DynamicElementImpl.instance) {
       return;
     }
     if (fragment.element is MultiplyDefinedElement) {
@@ -622,7 +622,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitSuperFormalParameter(SuperFormalParameter node) {
     var element = node.declaredFragment?.element;
-    if (element case SuperFormalParameterElementImpl2 element) {
+    if (element case SuperFormalParameterElementImpl element) {
       var superParameter = element.superConstructorParameter2;
       computer._addRegionForElement(node.superKeyword, superParameter);
       computer._addRegionForElement(node.name, superParameter);

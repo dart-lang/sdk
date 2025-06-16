@@ -1539,7 +1539,7 @@ package:test/a.dart
                 elementPrinter.writeNamedElement2(prefixName, importPrefix);
               });
             } else {
-              importPrefix as PrefixElementImpl2;
+              importPrefix as PrefixElementImpl;
               sink.withIndent(() {
                 elementPrinter.writeNamedElement2(prefixName, importPrefix);
               });

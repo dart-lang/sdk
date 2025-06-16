@@ -185,7 +185,7 @@ class ForResolver {
     var elementType = _computeForEachElementType(iterable, isAsync);
     if (loopVariable != null && loopVariable.type == null) {
       var loopVariableElement =
-          loopVariable.declaredFragment?.element as LocalVariableElementImpl2;
+          loopVariable.declaredFragment?.element as LocalVariableElementImpl;
       loopVariableElement.type = elementType;
     }
 
@@ -199,7 +199,7 @@ class ForResolver {
     }
 
     _resolver.flowAnalysis.flow?.forEach_bodyBegin(node);
-    if (identifierElement is PromotableElementImpl2 &&
+    if (identifierElement is PromotableElementImpl &&
         forEachParts is ForEachPartsWithIdentifier) {
       _resolver.flowAnalysis.flow?.write(
         forEachParts,

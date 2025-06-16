@@ -37,10 +37,10 @@ class TypeArgumentsVerifier {
 
   void checkConstructorReference(ConstructorReferenceImpl node) {
     var classElement = node.constructorName.type.element2;
-    List<TypeParameterElementImpl2> typeParameters;
-    if (classElement is TypeAliasElementImpl2) {
+    List<TypeParameterElementImpl> typeParameters;
+    if (classElement is TypeAliasElementImpl) {
       typeParameters = classElement.typeParameters2;
-    } else if (classElement is InterfaceElementImpl2) {
+    } else if (classElement is InterfaceElementImpl) {
       typeParameters = classElement.typeParameters2;
     } else {
       return;
@@ -303,7 +303,7 @@ class TypeArgumentsVerifier {
       return;
     }
 
-    List<TypeParameterElementImpl2> typeParameters;
+    List<TypeParameterElementImpl> typeParameters;
     String? elementName;
     List<TypeImpl> typeArguments;
     var alias = type.alias;

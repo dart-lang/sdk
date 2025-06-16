@@ -77,7 +77,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   ClassElement get mapElement => typeProvider.mapElement2;
 
-  NeverElementImpl2 get neverElement => NeverElementImpl2.instance;
+  NeverElementImpl get neverElement => NeverElementImpl.instance;
 
   ClassElement get numElement => typeProvider.numElement2;
 

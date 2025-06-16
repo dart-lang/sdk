@@ -173,7 +173,7 @@ class MustCallSuperVerifier {
     String? overriddenEnclosingName,
   ) {
     var declaredFragment = node.declaredFragment!;
-    var declaredElement = declaredFragment.element as ExecutableElementImpl2;
+    var declaredElement = declaredFragment.element as ExecutableElementImpl;
     if (!declaredElement.invokesSuperSelf) {
       // Overridable elements are always enclosed in named elements, so it is
       // safe to assume [overriddenEnclosingName] is non-`null`.

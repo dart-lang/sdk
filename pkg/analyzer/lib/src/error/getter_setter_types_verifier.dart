@@ -29,7 +29,7 @@ class GetterSetterTypesVerifier {
     return library.featureSet.isEnabled(Feature.getter_setter_error);
   }
 
-  void checkExtension(ExtensionElementImpl2 element) {
+  void checkExtension(ExtensionElementImpl element) {
     if (_skipGetterSetterTypesCheck) {
       return;
     }
@@ -40,7 +40,7 @@ class GetterSetterTypesVerifier {
   }
 
   void checkExtensionType(
-    ExtensionTypeElementImpl2 element,
+    ExtensionTypeElementImpl element,
     Interface interface,
   ) {
     if (_skipGetterSetterTypesCheck) {
@@ -51,7 +51,7 @@ class GetterSetterTypesVerifier {
     checkStaticGetters(element.getters);
   }
 
-  void checkInterface(InterfaceElementImpl2 element, Interface interface) {
+  void checkInterface(InterfaceElementImpl element, Interface interface) {
     if (_skipGetterSetterTypesCheck) {
       return;
     }
@@ -72,7 +72,7 @@ class GetterSetterTypesVerifier {
           if (!_typeSystem.isSubtypeOf(getterType, setterType)) {
             Element errorElement;
             if (getter.enclosingElement == element) {
-              if (element is ExtensionTypeElementImpl2 &&
+              if (element is ExtensionTypeElementImpl &&
                   element.representation2.getter2 == getter) {
                 errorElement = setter;
               } else {

@@ -218,7 +218,7 @@ class LinkedElementFactory {
     var parentElement = elementOfReference3(parentRef);
 
     // Only classes delay creating children.
-    if (parentElement is ClassElementImpl2) {
+    if (parentElement is ClassElementImpl) {
       var firstFragment = parentElement.firstFragment;
       firstFragment.linkedData?.readMembers(firstFragment);
     }

@@ -30,7 +30,7 @@ class ConstructorMember extends ExecutableMember
   }) : super(typeParameters: const <TypeParameterFragmentImpl>[]);
 
   @override
-  ConstructorElementImpl2 get baseElement => _element2;
+  ConstructorElementImpl get baseElement => _element2;
 
   @override
   ConstructorFragmentImpl get declaration =>
@@ -40,11 +40,11 @@ class ConstructorMember extends ExecutableMember
   String get displayName => declaration.displayName;
 
   @override
-  InterfaceElementImpl2 get enclosingElement => _element2.enclosingElement;
+  InterfaceElementImpl get enclosingElement => _element2.enclosingElement;
 
   @Deprecated('Use enclosingElement instead')
   @override
-  InterfaceElementImpl2 get enclosingElement2 => enclosingElement;
+  InterfaceElementImpl get enclosingElement2 => enclosingElement;
 
   @override
   ConstructorFragment get firstFragment => _element2.firstFragment;
@@ -112,7 +112,7 @@ class ConstructorMember extends ExecutableMember
   }
 
   @override
-  ConstructorElementImpl2 get _element2 => declaration.asElement2;
+  ConstructorElementImpl get _element2 => declaration.asElement2;
 
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
@@ -170,7 +170,7 @@ class ConstructorMember extends ExecutableMember
   /// representing the given constructor. Return the member that was created, or
   /// the original constructor if no member was created.
   static ConstructorElementMixin2 from2(
-    ConstructorElementImpl2 element,
+    ConstructorElementImpl element,
     InterfaceType definingType,
   ) {
     if (definingType.typeArguments.isEmpty) {
@@ -329,7 +329,7 @@ abstract class ExecutableMember extends Member
   }
 
   @override
-  List<TypeParameterElementImpl2> get typeParameters2 =>
+  List<TypeParameterElementImpl> get typeParameters2 =>
       typeParameters.map((fragment) => fragment.asElement2).toList();
 
   @override
@@ -482,7 +482,7 @@ class FieldMember extends VariableMember
   });
 
   @override
-  FieldElementImpl2 get baseElement => _element2;
+  FieldElementImpl get baseElement => _element2;
 
   @override
   List<Element> get children2 => const [];
@@ -587,7 +587,7 @@ class FieldMember extends VariableMember
   Source? get source => _declaration.source;
 
   @override
-  FieldElementImpl2 get _element2 => declaration.asElement2;
+  FieldElementImpl get _element2 => declaration.asElement2;
 
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
@@ -624,7 +624,7 @@ class FieldMember extends VariableMember
   void visitChildren2<T>(ElementVisitor2<T> visitor) {}
 
   static FieldElement2OrMember from(
-    FieldElementImpl2 element,
+    FieldElementImpl element,
     MapSubstitution substitution,
   ) {
     if (substitution.map.isEmpty) {
@@ -883,7 +883,7 @@ class MethodMember extends ExecutableMember
   });
 
   @override
-  MethodElementImpl2 get baseElement => _element2;
+  MethodElementImpl get baseElement => _element2;
 
   @override
   MethodFragmentImpl get declaration => _declaration as MethodFragmentImpl;
@@ -916,7 +916,7 @@ class MethodMember extends ExecutableMember
   Source get source => _declaration.source!;
 
   @override
-  MethodElementImpl2 get _element2 => declaration.asElement2;
+  MethodElementImpl get _element2 => declaration.asElement2;
 
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
@@ -926,7 +926,7 @@ class MethodMember extends ExecutableMember
   /// If [definingType] has type parameters, returns [MethodMember] with
   /// type substitutions. Otherwise returns [element] as is.
   static MethodElement2OrMember from2(
-    MethodElementImpl2 element,
+    MethodElementImpl element,
     InterfaceType definingType,
   ) {
     if (definingType.typeArguments.isEmpty) {

@@ -24,7 +24,7 @@ class SharedTypeAnalyzerErrors
           AstNodeImpl,
           StatementImpl,
           ExpressionImpl,
-          PromotableElementImpl2,
+          PromotableElementImpl,
           SharedTypeView,
           DartPatternImpl,
           void

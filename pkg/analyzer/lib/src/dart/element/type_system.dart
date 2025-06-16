@@ -66,7 +66,7 @@ class ExtensionTypeErasure extends ReplacementVisitor {
 class RelatedTypeParameters2 {
   static final _empty = RelatedTypeParameters2._(const [], const []);
 
-  final List<TypeParameterElementImpl2> typeParameters;
+  final List<TypeParameterElementImpl> typeParameters;
   final List<TypeParameterTypeImpl> typeParameterTypes;
 
   RelatedTypeParameters2._(this.typeParameters, this.typeParameterTypes);
@@ -225,7 +225,7 @@ class TypeSystemImpl implements TypeSystem {
       }
 
       // If the left is enum, we know types of all its instances.
-      if (leftElement is EnumElementImpl2) {
+      if (leftElement is EnumElementImpl) {
         for (var constant in leftElement.constants2) {
           var constantType = constant.type;
           if (isSubtypeOf(constantType, right)) {
@@ -239,7 +239,7 @@ class TypeSystemImpl implements TypeSystem {
         return canBeSubtypeOfInterfaces(left, right);
       }
 
-      if (leftElement is ClassElementImpl2) {
+      if (leftElement is ClassElementImpl) {
         // If we know all subtypes, only they can implement the right.
         var allSubtypes = leftElement.allSubtypes;
         if (allSubtypes != null) {
@@ -255,7 +255,7 @@ class TypeSystemImpl implements TypeSystem {
         }
       }
 
-      if (rightElement is ClassElementImpl2) {
+      if (rightElement is ClassElementImpl) {
         // If we know all subtypes, only they can implement the left.
         var allSubtypes = rightElement.allSubtypes;
         if (allSubtypes != null) {
@@ -508,10 +508,10 @@ class TypeSystemImpl implements TypeSystem {
   }
 
   List<InterfaceTypeImpl> gatherMixinSupertypeConstraintsForInference(
-    InterfaceElementImpl2 mixinElement,
+    InterfaceElementImpl mixinElement,
   ) {
     List<InterfaceTypeImpl> candidates;
-    if (mixinElement is MixinElementImpl2) {
+    if (mixinElement is MixinElementImpl) {
       candidates = mixinElement.superclassConstraints;
     } else {
       var supertype = mixinElement.supertype;
@@ -520,7 +520,7 @@ class TypeSystemImpl implements TypeSystem {
       }
       candidates = [supertype];
       candidates.addAll(mixinElement.mixins);
-      if (mixinElement is ClassElementImpl2 &&
+      if (mixinElement is ClassElementImpl &&
           mixinElement.isMixinApplication) {
         candidates.removeLast();
       }
@@ -602,9 +602,9 @@ class TypeSystemImpl implements TypeSystem {
   /// See `resources/type-system/inference.md`
   TypeImpl greatestClosure(
     TypeImpl type,
-    List<TypeParameterElementImpl2> typeParameters,
+    List<TypeParameterElementImpl> typeParameters,
   ) {
-    var typeParameterSet = Set<TypeParameterElementImpl2>.identity();
+    var typeParameterSet = Set<TypeParameterElementImpl>.identity();
     typeParameterSet.addAll(typeParameters);
 
     return LeastGreatestClosureHelper(
@@ -696,7 +696,7 @@ class TypeSystemImpl implements TypeSystem {
 
   @override
   InterfaceTypeImpl instantiateInterfaceToBounds2({
-    required covariant InterfaceElementImpl2 element,
+    required covariant InterfaceElementImpl element,
     required NullabilitySuffix nullabilitySuffix,
   }) {
     var typeParameters = element.typeParameters2;
@@ -727,7 +727,7 @@ class TypeSystemImpl implements TypeSystem {
 
   @override
   TypeImpl instantiateTypeAliasToBounds2({
-    required covariant TypeAliasElementImpl2 element,
+    required covariant TypeAliasElementImpl element,
     required NullabilitySuffix nullabilitySuffix,
   }) {
     var typeParameters = element.typeParameters2;
@@ -743,7 +743,7 @@ class TypeSystemImpl implements TypeSystem {
   ///
   /// https://github.com/dart-lang/sdk/issues/27526#issuecomment-260021397
   List<TypeImpl> instantiateTypeFormalsToBounds2(
-    List<TypeParameterElementImpl2> typeParameters, {
+    List<TypeParameterElementImpl> typeParameters, {
     List<bool>? hasError,
     Map<TypeParameterElement, TypeImpl>? knownTypes,
   }) {
@@ -1368,9 +1368,9 @@ class TypeSystemImpl implements TypeSystem {
   /// See `resources/type-system/inference.md`
   TypeImpl leastClosure(
     TypeImpl type,
-    List<TypeParameterElementImpl2> typeParameters,
+    List<TypeParameterElementImpl> typeParameters,
   ) {
-    var typeParameterSet = Set<TypeParameterElementImpl2>.identity();
+    var typeParameterSet = Set<TypeParameterElementImpl>.identity();
     typeParameterSet.addAll(typeParameters);
 
     return LeastGreatestClosureHelper(
@@ -1419,7 +1419,7 @@ class TypeSystemImpl implements TypeSystem {
   /// that can be applied to [srcTypes] to make it equal to [destTypes].
   /// If no such substitution can be found, `null` is returned.
   List<TypeImpl>? matchSupertypeConstraints(
-    List<TypeParameterElementImpl2> typeParameters,
+    List<TypeParameterElementImpl> typeParameters,
     List<TypeImpl> srcTypes,
     List<TypeImpl> destTypes, {
     required TypeSystemOperations typeSystemOperations,
@@ -1593,8 +1593,8 @@ class TypeSystemImpl implements TypeSystem {
   /// The return value will be a new list of fresh type parameters, that can
   /// be used to instantiate both function types, allowing further comparison.
   RelatedTypeParameters2? relateTypeParameters2(
-    List<TypeParameterElementImpl2> typeParameters1,
-    List<TypeParameterElementImpl2> typeParameters2,
+    List<TypeParameterElementImpl> typeParameters1,
+    List<TypeParameterElementImpl> typeParameters2,
   ) {
     if (typeParameters1.length != typeParameters2.length) {
       return null;
@@ -1772,7 +1772,7 @@ class TypeSystemImpl implements TypeSystem {
       if (isSubtypeOf(to, from.bound)) {
         var declaration = from.element3.baseElement;
         return TypeParameterTypeImpl(
-          element3: declaration as TypeParameterElementImpl2,
+          element3: declaration as TypeParameterElementImpl,
           nullabilitySuffix: _promotedTypeParameterTypeNullability(
             from.nullabilitySuffix,
             to.nullabilitySuffix,
@@ -1817,7 +1817,7 @@ class TypeSystemImpl implements TypeSystem {
     List<TypeParameterElement> typeParameters,
   ) {
     return typeParameters.map((typeParameter) {
-      var typeParameterImpl = typeParameter as TypeParameterElementImpl2;
+      var typeParameterImpl = typeParameter as TypeParameterElementImpl;
       return typeParameterImpl.defaultType!;
     }).toFixedList();
   }

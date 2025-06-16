@@ -40,7 +40,7 @@ class ElementDisplayStringBuilder {
     _write(element.name2 ?? '<unnamed ${element.runtimeType}>');
   }
 
-  void writeAbstractElement2(ElementImpl2 element) {
+  void writeAbstractElement2(ElementImpl element) {
     _write(element.name3 ?? '<unnamed ${element.runtimeType}>');
   }
 
@@ -261,7 +261,7 @@ class ElementDisplayStringBuilder {
     _writeDirectiveUri(element.uri);
   }
 
-  void writePrefixElement2(PrefixElementImpl2 element) {
+  void writePrefixElement2(PrefixElementImpl element) {
     var libraryImports = element.imports;
     var displayName = element.displayName;
     if (libraryImports.isEmpty) {
@@ -353,7 +353,7 @@ class ElementDisplayStringBuilder {
     }
   }
 
-  void writeTypeParameter2(TypeParameterElementImpl2 element) {
+  void writeTypeParameter2(TypeParameterElementImpl element) {
     var variance = element.variance;
     if (!element.isLegacyCovariant && variance != Variance.unrelated) {
       _write(variance.keyword);
@@ -546,7 +546,7 @@ class ElementDisplayStringBuilder {
       if (i != 0) {
         _write(', ');
       }
-      (elements[i] as TypeParameterElementImpl2).appendTo(this);
+      (elements[i] as TypeParameterElementImpl).appendTo(this);
     }
     _write('>');
   }
@@ -624,7 +624,7 @@ class ElementDisplayStringBuilder {
       namesToAvoid.add(typeParameter.displayName);
     }
 
-    var newTypeParameters = <TypeParameterElementImpl2>[];
+    var newTypeParameters = <TypeParameterElementImpl>[];
     for (var typeParameter in type.typeParameters) {
       // The type parameter name can be null in erroneous cases.
       var name = typeParameter.name3 ?? '';

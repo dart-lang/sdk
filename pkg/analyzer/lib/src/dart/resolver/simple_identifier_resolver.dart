@@ -287,9 +287,9 @@ class SimpleIdentifierResolver with ScopeHelpers {
         return;
       }
       staticType = InvalidTypeImpl.instance;
-    } else if (element is DynamicElementImpl2) {
+    } else if (element is DynamicElementImpl) {
       staticType = _typeProvider.typeType;
-    } else if (element is NeverElementImpl2) {
+    } else if (element is NeverElementImpl) {
       staticType = _typeProvider.typeType;
     } else {
       staticType = InvalidTypeImpl.instance;

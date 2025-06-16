@@ -87,8 +87,8 @@ class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
   }
 
   test_functionType_parameter_typeParameter() {
-    TypeParameterElementImpl2 T;
-    TypeParameterElementImpl2 T2;
+    TypeParameterElementImpl T;
+    TypeParameterElementImpl T2;
 
     T = typeParameter('T', bound: neverNone);
     T2 = typeParameter('T2', bound: neverNone);
@@ -297,7 +297,7 @@ class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
   /// NORM(X & T)
   /// * let S be NORM(T)
   test_typeParameter_bound() {
-    TypeParameterElementImpl2 T;
+    TypeParameterElementImpl T;
 
     // * if S is Never then Never
     T = typeParameter('T', bound: neverNone);

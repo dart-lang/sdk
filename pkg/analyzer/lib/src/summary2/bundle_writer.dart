@@ -695,11 +695,11 @@ class ResolutionSink extends _SummaryDataWriter {
     switch (element) {
       case null:
         writeEnum(ElementTag.null_);
-      case DynamicElementImpl2():
+      case DynamicElementImpl():
         writeEnum(ElementTag.dynamic_);
-      case NeverElementImpl2():
+      case NeverElementImpl():
         writeEnum(ElementTag.never_);
-      case MultiplyDefinedElementImpl2():
+      case MultiplyDefinedElementImpl():
         writeEnum(ElementTag.multiplyDefined);
       case Member element:
         writeEnum(ElementTag.memberWithTypeArguments);
@@ -716,12 +716,12 @@ class ResolutionSink extends _SummaryDataWriter {
       case FormalParameterElementImpl():
       case GetterElementImpl():
       case SetterElementImpl():
-      case TypeParameterElementImpl2():
+      case TypeParameterElementImpl():
         // TODO(scheglov): eventually stop using fragments here.
         writeEnum(ElementTag.viaFragment);
         writeByte(Tag.RawElement);
         _writeElement(element);
-      case ElementImpl2():
+      case ElementImpl():
         writeEnum(ElementTag.elementImpl);
         var reference = element.reference!;
         var referenceIndex = _references._indexOfReference(reference);
@@ -855,25 +855,25 @@ class ResolutionSink extends _SummaryDataWriter {
   void _writeElement(Element? element) {
     switch (element) {
       case null:
-      case MultiplyDefinedElementImpl2():
+      case MultiplyDefinedElementImpl():
         writeUInt30(0);
-      case DynamicElementImpl2():
+      case DynamicElementImpl():
         _writeFragmentImpl(DynamicFragmentImpl.instance);
-      case ExecutableElementImpl2 element:
+      case ExecutableElementImpl element:
         _writeFragmentImpl(element.asElement as FragmentImpl);
-      case FieldElementImpl2 element:
+      case FieldElementImpl element:
         _writeFragmentImpl(element.asElement);
       case FormalParameterElementImpl element:
         _writeFragmentImpl(element.asElement);
-      case InstanceElementImpl2 element:
+      case InstanceElementImpl element:
         _writeFragmentImpl(element.asElement);
-      case NeverElementImpl2():
+      case NeverElementImpl():
         _writeFragmentImpl(NeverFragmentImpl.instance);
-      case TopLevelVariableElementImpl2 element:
+      case TopLevelVariableElementImpl element:
         _writeFragmentImpl(element.asElement);
-      case TypeAliasElementImpl2 element:
+      case TypeAliasElementImpl element:
         _writeFragmentImpl(element.asElement);
-      case TypeParameterElementImpl2 element:
+      case TypeParameterElementImpl element:
         _writeFragmentImpl(element.asElement);
       default:
         throw UnimplementedError('${element.runtimeType}');

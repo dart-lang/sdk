@@ -261,7 +261,7 @@ class ReferenceFinder extends RecursiveAstVisitor<void> {
       element = element.variable3;
     }
 
-    if (element is VariableElementImpl2 && element.isConst) {
+    if (element is VariableElementImpl && element.isConst) {
       _callback(element.firstFragment as VariableFragmentImpl);
     }
   }

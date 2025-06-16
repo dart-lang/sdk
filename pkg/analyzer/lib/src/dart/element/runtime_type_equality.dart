@@ -200,7 +200,7 @@ class RuntimeTypeEqualityVisitor
       return null;
     }
 
-    var newParameters = <TypeParameterElementImpl2>[];
+    var newParameters = <TypeParameterElementImpl>[];
     var newTypes = <TypeParameterType>[];
     for (var i = 0; i < T1_parameters.length; i++) {
       var newParameter = T1_parameters[i].freshCopy();

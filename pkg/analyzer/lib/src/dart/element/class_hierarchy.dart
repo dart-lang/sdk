@@ -10,17 +10,17 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 
 class ClassHierarchy {
-  final Map<InterfaceElementImpl2, _Hierarchy> _map = {};
+  final Map<InterfaceElementImpl, _Hierarchy> _map = {};
 
-  List<ClassHierarchyError> errors(InterfaceElementImpl2 element) {
+  List<ClassHierarchyError> errors(InterfaceElementImpl element) {
     return _getHierarchy(element).errors;
   }
 
-  List<InterfaceTypeImpl> implementedInterfaces(InterfaceElementImpl2 element) {
+  List<InterfaceTypeImpl> implementedInterfaces(InterfaceElementImpl element) {
     return _getHierarchy(element).interfaces;
   }
 
-  void remove(InterfaceElementImpl2 element) {
+  void remove(InterfaceElementImpl element) {
     element.resetCachedAllSupertypes();
     _map.remove(element);
   }
@@ -36,7 +36,7 @@ class ClassHierarchy {
     });
   }
 
-  _Hierarchy _getHierarchy(InterfaceElementImpl2 element) {
+  _Hierarchy _getHierarchy(InterfaceElementImpl element) {
     var hierarchy = _map[element];
     if (hierarchy != null) {
       return hierarchy;
@@ -68,7 +68,7 @@ class ClassHierarchy {
     }
 
     append(element.supertype);
-    if (element is MixinElementImpl2) {
+    if (element is MixinElementImpl) {
       for (var type in element.superclassConstraints) {
         append(type);
       }
@@ -118,7 +118,7 @@ class IncompatibleInterfacesClassHierarchyError extends ClassHierarchyError {
 
 class InterfacesMerger {
   final TypeSystemImpl _typeSystem;
-  final Map<InterfaceElementImpl2, _ClassInterfaceType> _map = {};
+  final Map<InterfaceElementImpl, _ClassInterfaceType> _map = {};
 
   InterfacesMerger(this._typeSystem);
 
@@ -132,7 +132,7 @@ class InterfacesMerger {
     if (classResult == null) {
       classResult = _ClassInterfaceType(
         _typeSystem,
-        element is ClassElementImpl2 && element.isDartCoreObject,
+        element is ClassElementImpl && element.isDartCoreObject,
       );
       _map[element] = classResult;
     }

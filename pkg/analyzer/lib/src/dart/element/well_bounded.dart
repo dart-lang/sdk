@@ -75,7 +75,7 @@ class TypeBoundedHelper {
     List<TypeArgumentIssue>? issues;
 
     String? elementName;
-    List<TypeParameterElementImpl2> typeParameters;
+    List<TypeParameterElementImpl> typeParameters;
     List<TypeImpl> typeArguments;
     var alias = type.alias;
     if (alias != null) {

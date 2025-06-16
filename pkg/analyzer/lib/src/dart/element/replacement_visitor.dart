@@ -32,7 +32,7 @@ class ReplacementVisitor
   FunctionTypeImpl? createFunctionType({
     required FunctionTypeImpl type,
     required InstantiatedTypeAliasElementImpl? newAlias,
-    required List<TypeParameterElementImpl2>? newTypeParameters,
+    required List<TypeParameterElementImpl>? newTypeParameters,
     required List<FormalParameterElementMixin>? newParameters,
     required TypeImpl? newReturnType,
     required NullabilitySuffix? newNullability,
@@ -55,7 +55,7 @@ class ReplacementVisitor
 
   FunctionTypeBuilder? createFunctionTypeBuilder({
     required FunctionTypeBuilder type,
-    required List<TypeParameterElementImpl2>? newTypeParameters,
+    required List<TypeParameterElementImpl>? newTypeParameters,
     required List<FormalParameterElementImpl>? newFormalParameters,
     required TypeImpl? newReturnType,
     required NullabilitySuffix? newNullability,
@@ -167,7 +167,7 @@ class ReplacementVisitor
     node as FunctionTypeImpl;
     var newNullability = visitNullability(node);
 
-    List<TypeParameterElementImpl2>? newTypeParameters;
+    List<TypeParameterElementImpl>? newTypeParameters;
     for (var i = 0; i < node.typeParameters.length; i++) {
       var typeParameter = node.typeParameters[i];
       var bound = typeParameter.bound;
@@ -273,7 +273,7 @@ class ReplacementVisitor
   TypeImpl? visitFunctionTypeBuilder(FunctionTypeBuilder node) {
     var newNullability = visitNullability(node);
 
-    List<TypeParameterElementImpl2>? newTypeParameters;
+    List<TypeParameterElementImpl>? newTypeParameters;
     for (var i = 0; i < node.typeParameters.length; i++) {
       var typeParameter = node.typeParameters[i];
       var bound = typeParameter.bound;
@@ -398,11 +398,11 @@ class ReplacementVisitor
   TypeImpl? visitNamedTypeBuilder(NamedTypeBuilder type) {
     var newNullability = visitNullability(type);
 
-    var parameters = const <TypeParameterElementImpl2>[];
+    var parameters = const <TypeParameterElementImpl>[];
     var element = type.element3;
-    if (element is InterfaceElementImpl2) {
+    if (element is InterfaceElementImpl) {
       parameters = element.typeParameters2;
-    } else if (element is TypeAliasElementImpl2) {
+    } else if (element is TypeAliasElementImpl) {
       parameters = element.typeParameters2;
     }
 
@@ -516,7 +516,7 @@ class ReplacementVisitor
   }
 
   TypeImpl? visitTypeArgument(
-    TypeParameterElementImpl2 parameter,
+    TypeParameterElementImpl parameter,
     TypeImpl argument,
   ) {
     return argument.accept(this);
@@ -556,7 +556,7 @@ class ReplacementVisitor
   }
 
   List<TypeImpl>? _typeArguments(
-    List<TypeParameterElementImpl2> parameters,
+    List<TypeParameterElementImpl> parameters,
     List<TypeImpl> arguments,
   ) {
     if (arguments.length != parameters.length) {
