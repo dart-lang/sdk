@@ -2187,6 +2187,42 @@ export 'src/file2.dart';
     await assertNoDiagnosticsInFile(libFile);
   }
 
+  test_exportsNonPublicName_ignoredIfAnnotatedPublic_getter() async {
+    newFile(libSrcFile, '''
+class AnalyzerPublicApi {
+  const AnalyzerPublicApi();
+}
+''');
+    newFile(libSrcFile2, '''
+import 'file.dart';
+
+@AnalyzerPublicApi()
+int get x => 7;
+''');
+    newFile(libFile, '''
+export 'src/file2.dart';
+''');
+    await assertNoDiagnosticsInFile(libFile);
+  }
+
+  test_exportsNonPublicName_ignoredIfAnnotatedPublic_setter() async {
+    newFile(libSrcFile, '''
+class AnalyzerPublicApi {
+  const AnalyzerPublicApi();
+}
+''');
+    newFile(libSrcFile2, '''
+import 'file.dart';
+
+@AnalyzerPublicApi()
+set x(int value) {}
+''');
+    newFile(libFile, '''
+export 'src/file2.dart';
+''');
+    await assertNoDiagnosticsInFile(libFile);
+  }
+
   test_exportsNonPublicName_ignoredIfHidden() async {
     newFile(libSrcFile, '''
 class B {}
