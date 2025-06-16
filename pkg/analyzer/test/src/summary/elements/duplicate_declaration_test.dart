@@ -920,7 +920,7 @@ library
           constructors
             new
               reference: <testLibraryFragment>::@extensionType::E::@def::0::@constructor::new
-              element: <testLibrary>::@extensionType::E::@def::0::@constructor::E
+              element: <testLibrary>::@extensionType::E::@def::0::@constructor::new
               typeName: E
               typeNameOffset: 15
               formalParameters
@@ -941,7 +941,7 @@ library
           constructors
             new
               reference: <testLibraryFragment>::@extensionType::E::@def::1::@constructor::new
-              element: <testLibrary>::@extensionType::E::@def::1::@constructor::E
+              element: <testLibrary>::@extensionType::E::@def::1::@constructor::new
               typeName: E
               typeNameOffset: 43
               formalParameters
@@ -956,7 +956,7 @@ library
       reference: <testLibrary>::@extensionType::E::@def::0
       firstFragment: <testLibraryFragment>::@extensionType::E::@def::0
       representation: <testLibrary>::@extensionType::E::@def::0::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::E::@def::0::@constructor::E
+      primaryConstructor: <testLibrary>::@extensionType::E::@def::0::@constructor::new
       typeErasure: int
       fields
         final it
@@ -977,7 +977,7 @@ library
       reference: <testLibrary>::@extensionType::E::@def::1
       firstFragment: <testLibraryFragment>::@extensionType::E::@def::1
       representation: <testLibrary>::@extensionType::E::@def::1::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::E::@def::1::@constructor::E
+      primaryConstructor: <testLibrary>::@extensionType::E::@def::1::@constructor::new
       typeErasure: double
       fields
         final it

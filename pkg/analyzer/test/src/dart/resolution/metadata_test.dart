@@ -642,9 +642,9 @@ Annotation
     period: .
     identifier: SimpleIdentifier
       token: named
-      element: <testLibrary>::@extensionType::A::@constructor::A
+      element: <testLibrary>::@extensionType::A::@constructor::named
       staticType: null
-    element: <testLibrary>::@extensionType::A::@constructor::A
+    element: <testLibrary>::@extensionType::A::@constructor::named
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
@@ -654,7 +654,7 @@ Annotation
         correspondingParameter: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::it#element
         staticType: int
     rightParenthesis: )
-  element2: <testLibrary>::@extensionType::A::@constructor::A
+  element2: <testLibrary>::@extensionType::A::@constructor::named
 ''');
 
     _assertAnnotationValueText(node, r'''
@@ -686,7 +686,7 @@ Annotation
         correspondingParameter: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
         staticType: int
     rightParenthesis: )
-  element2: <testLibrary>::@extensionType::A::@constructor::A
+  element2: <testLibrary>::@extensionType::A::@constructor::new
 ''');
 
     _assertAnnotationValueText(node, r'''

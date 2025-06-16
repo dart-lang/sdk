@@ -1913,7 +1913,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       var containerElement = containerBuilder.element;
       var containerRef = containerElement.reference!.getChild('@constructor');
       var elementReference = containerRef.addChild(
-        extensionFragment.name2 ?? 'new',
+        constructorFragment.name2,
       );
 
       ConstructorElementImpl2(

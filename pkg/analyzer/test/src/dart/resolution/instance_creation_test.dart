@@ -1042,7 +1042,7 @@ InstanceCreationExpression
       element2: <testLibrary>::@extensionType::A
       type: A<int>
     element: ConstructorMember
-      baseElement: <testLibrary>::@extensionType::A::@constructor::A
+      baseElement: <testLibrary>::@extensionType::A::@constructor::new
       substitution: {T: int}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1114,9 +1114,9 @@ InstanceCreationExpression
     period: .
     name: SimpleIdentifier
       token: named
-      element: <testLibrary>::@extensionType::A::@constructor::A
+      element: <testLibrary>::@extensionType::A::@constructor::named
       staticType: null
-    element: <testLibrary>::@extensionType::A::@constructor::A
+    element: <testLibrary>::@extensionType::A::@constructor::named
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -1146,7 +1146,7 @@ InstanceCreationExpression
       name: A
       element2: <testLibrary>::@extensionType::A
       type: A
-    element: <testLibrary>::@extensionType::A::@constructor::A
+    element: <testLibrary>::@extensionType::A::@constructor::new
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
