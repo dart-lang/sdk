@@ -1,5 +1,5 @@
 URL: https://github.com/google/double-conversion
-Version: 032fa6a7d2c319b20d3928f5d762648fa4029acf
+Version: 7630f84a10f9428b041d0471e71a562141e9684b
 License: BSD
 License File: LICENSE
 
