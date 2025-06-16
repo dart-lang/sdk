@@ -4282,7 +4282,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   void _checkTopLevelCycle(VariableDeclaration node) {
     var fragment = node.declaredFragment;
-    if (fragment is! PropertyInducingElementImpl) {
+    if (fragment is! PropertyInducingFragmentImpl) {
       return;
     }
     // Errors on const are reported separately with

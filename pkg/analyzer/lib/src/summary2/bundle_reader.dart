@@ -305,8 +305,8 @@ abstract class ElementLinkedData<E> {
       _readTypeParameters(reader, parameter.typeParameters);
       _readFormalParameters(reader, parameter.parameters);
       parameter.type = reader.readRequiredType();
-      if (parameter is ConstVariableElement) {
-        var defaultParameter = parameter as ConstVariableElement;
+      if (parameter is ConstVariableFragment) {
+        var defaultParameter = parameter as ConstVariableFragment;
         var initializer = reader._readOptionalExpression();
         if (initializer != null) {
           defaultParameter.constantInitializer = initializer;
@@ -1494,7 +1494,7 @@ class LibraryReader {
     Reference enclosingReference,
     List<GetterFragmentImpl> gettersFragments,
     List<SetterFragmentImpl> settersFragments,
-    List<PropertyInducingElementImpl> propertyFragments,
+    List<PropertyInducingFragmentImpl> propertyFragments,
     String containerRefName, {
     List<TopLevelVariableElementImpl2>? variables2,
   }) {
@@ -1520,12 +1520,12 @@ class LibraryReader {
       var propertyFragmentReference = _readReference();
       var propertyElementReference = _readReference();
 
-      bool canUseExisting(PropertyInducingElementImpl property) {
+      bool canUseExisting(PropertyInducingFragmentImpl property) {
         return property.isSynthetic ||
             accessor.isSetter && property.setter == null;
       }
 
-      PropertyInducingElementImpl propertyFragment;
+      PropertyInducingFragmentImpl propertyFragment;
       var existing = propertyFragmentReference.element;
       if (enclosingElement is LibraryFragmentImpl) {
         if (existing is TopLevelVariableFragmentImpl &&

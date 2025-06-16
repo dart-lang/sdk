@@ -1015,9 +1015,9 @@ class _MockSdkElementsBuilder {
     fragment.isFinal = isFinal;
     fragment.isStatic = isStatic;
     fragment.type = type;
-    PropertyAccessorElementImpl_ImplicitGetter(fragment);
+    PropertyAccessorFragmentImplImplicitGetter(fragment);
     if (!isConst && !isFinal) {
-      PropertyAccessorElementImpl_ImplicitSetter(fragment);
+      PropertyAccessorFragmentImplImplicitSetter(fragment);
     }
     return fragment;
   }
@@ -1241,7 +1241,7 @@ class _MockSdkElementsBuilder {
           ..isConst = true
           ..type = type;
     TopLevelVariableElementImpl2(Reference.root(), fragment);
-    PropertyAccessorElementImpl_ImplicitGetter(fragment);
+    PropertyAccessorFragmentImplImplicitGetter(fragment);
     return fragment;
   }
 

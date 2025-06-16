@@ -1993,7 +1993,7 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
   void applyToConstantInitializer(FragmentImpl element) {
     if (element is ConstFieldFragmentImpl && element.isEnumConstant) {
       _applyToEnumConstantInitializer(element);
-    } else if (element is ConstVariableElement) {
+    } else if (element is ConstVariableFragment) {
       element.constantInitializer?.accept(this);
     }
   }

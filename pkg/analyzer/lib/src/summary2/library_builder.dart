@@ -84,7 +84,7 @@ class LibraryBuilder {
   int _nextUnnamedId = 0;
 
   /// The fields that were speculatively created as [ConstFieldFragmentImpl],
-  /// but we want to clear [ConstVariableElement.constantInitializer] for it
+  /// but we want to clear [ConstVariableFragment.constantInitializer] for it
   /// if the class will not end up with a `const` constructor. We don't know
   /// at the time when we create them, because of future augmentations.
   final Set<ConstFieldFragmentImpl> finalInstanceFields = Set.identity();

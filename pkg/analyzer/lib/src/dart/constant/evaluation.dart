@@ -90,7 +90,7 @@ class ConstantEvaluationEngine {
 
     var library = constant.library2 as LibraryElementImpl;
     if (constant is FormalParameterFragmentImpl) {
-      if (constant is ConstVariableElement) {
+      if (constant is ConstVariableFragment) {
         var defaultValue = constant.constantInitializer;
         if (defaultValue != null) {
           var diagnosticListener = RecordingDiagnosticListener();

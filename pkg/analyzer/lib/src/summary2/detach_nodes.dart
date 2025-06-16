@@ -96,7 +96,7 @@ class _Visitor extends GeneralizingElementVisitor2<void> {
   @override
   void visitPropertyInducingElement(PropertyInducingElement element) {
     for (var fragment in element.fragments) {
-      if (fragment is PropertyInducingElementImpl) {
+      if (fragment is PropertyInducingFragmentImpl) {
         fragment.typeInference = null;
       }
     }
@@ -108,7 +108,7 @@ class _Visitor extends GeneralizingElementVisitor2<void> {
   void _detachConstVariable(Object element) {
     if (element is VariableElementImpl2) {
       for (var fragment in element.fragments) {
-        if (fragment case ConstVariableElement fragment) {
+        if (fragment case ConstVariableFragment fragment) {
           var initializer = fragment.constantInitializer;
           if (initializer is ExpressionImpl) {
             _detachNode(initializer);

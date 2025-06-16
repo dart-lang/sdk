@@ -515,7 +515,7 @@ extension PropertyInducingElementOrMemberExtension
     on PropertyInducingElementOrMember {
   PropertyInducingElement2OrMember get asElement2 {
     return switch (this) {
-      PropertyInducingElementImpl(:var element) => element,
+      PropertyInducingFragmentImpl(:var element) => element,
       FieldMember member => member,
       _ => throw UnsupportedError('Unsupported type: $runtimeType'),
     };

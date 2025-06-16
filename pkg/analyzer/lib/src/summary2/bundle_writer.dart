@@ -490,7 +490,7 @@ class BundleWriter {
   // TODO(scheglov): Deduplicate parameter writing implementation.
   void _writeParameterElement(FormalParameterFragmentImpl element) {
     _writeFragmentName(element);
-    _sink.writeBool(element is ConstVariableElement);
+    _sink.writeBool(element is ConstVariableFragment);
     _sink.writeBool(element.isInitializingFormal);
     _sink.writeBool(element.isSuperFormal);
     _writeOptionalReference(element.reference);
@@ -503,8 +503,8 @@ class BundleWriter {
       _writeList(element.parameters, _writeParameterElement);
       _resolutionSink.writeType(element.type);
 
-      if (element is ConstVariableElement) {
-        var constElement = element as ConstVariableElement;
+      if (element is ConstVariableFragment) {
+        var constElement = element as ConstVariableFragment;
         _resolutionSink._writeOptionalNode(constElement.constantInitializer);
       }
       if (element is FieldFormalParameterFragmentImpl) {
@@ -894,7 +894,7 @@ class ResolutionSink extends _SummaryDataWriter {
     writeUInt30(parameters.length);
     for (var parameter in parameters) {
       _writeFormalParameterKind(parameter);
-      writeBool(parameter is ConstVariableElement);
+      writeBool(parameter is ConstVariableFragment);
       writeBool(parameter.hasImplicitType);
       writeBool(parameter.isInitializingFormal);
       _writeTypeParameters(parameter.typeParameters, () {

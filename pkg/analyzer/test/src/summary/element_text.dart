@@ -680,7 +680,7 @@ class _Element2Writer extends _AbstractElementWriter {
         _sink.write('optionalNamed ');
       }
 
-      if (e is ConstVariableElement) {
+      if (e is ConstVariableFragment) {
         _sink.write('default ');
       }
 
@@ -742,7 +742,7 @@ class _Element2Writer extends _AbstractElementWriter {
       //   _sink.write('optionalNamed ');
       // }
 
-      if (f is ConstVariableElement) {
+      if (f is ConstVariableFragment) {
         _sink.write('default ');
       }
 

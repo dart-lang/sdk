@@ -1721,7 +1721,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   /// The [accessorElement] should not be an augmentation.
-  PropertyInducingElementImpl _buildSyntheticVariable({
+  PropertyInducingFragmentImpl _buildSyntheticVariable({
     required String name,
     required PropertyAccessorFragmentImpl accessorElement,
   }) {
@@ -1729,12 +1729,12 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var enclosingRef = _enclosingContext.fragmentReference;
     var enclosingElement = _enclosingContext.fragment;
 
-    bool canUseExisting(PropertyInducingElementImpl property) {
+    bool canUseExisting(PropertyInducingFragmentImpl property) {
       return property.isSynthetic ||
           accessorElement.isSetter && property.setter == null;
     }
 
-    PropertyInducingElementImpl? property;
+    PropertyInducingFragmentImpl? property;
     if (enclosingElement is LibraryFragmentImpl) {
       // Try to find the variable to attach the accessor.
       var containerRef = enclosingRef.getChild('@topLevelVariable');

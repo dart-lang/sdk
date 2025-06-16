@@ -60,6 +60,11 @@ import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
 
+// TODO(fshcheglov): Remove after third_party/pkg/dartdoc stops using it.
+// https://github.com/dart-lang/dartdoc/issues/4066
+@Deprecated('Use ConstVariableFragment instead')
+typedef ConstVariableElement = ConstVariableFragment;
+
 abstract class AnnotatableElementImpl implements ElementImpl2, Annotatable {
   @override
   MetadataImpl get metadata;
@@ -654,8 +659,8 @@ class ClassFragmentImpl extends ClassOrMixinFragmentImpl
             for (int i = 0; i < count; i++) {
               var superParameter = superParameters[i];
               FormalParameterFragmentImpl implicitParameter;
-              if (superParameter is ConstVariableElement) {
-                var constVariable = superParameter as ConstVariableElement;
+              if (superParameter is ConstVariableFragment) {
+                var constVariable = superParameter as ConstVariableFragment;
                 implicitParameter = DefaultParameterFragmentImpl(
                   nameOffset: -1,
                   name2: superParameter.name2,
@@ -789,7 +794,7 @@ class ConstantInitializerImpl implements ConstantInitializer {
 // ConstFieldElementImpl, so it would be a breaking change to rename this
 // class.
 class ConstFieldFragmentImpl extends FieldFragmentImpl
-    with ConstVariableElement {
+    with ConstVariableFragment {
   /// Initialize a newly created synthetic field element to have the given
   /// [name] and [offset].
   ConstFieldFragmentImpl({required super.name2, required super.nameOffset});
@@ -804,7 +809,7 @@ class ConstFieldFragmentImpl extends FieldFragmentImpl
 /// A `LocalVariableElement` for a local 'const' variable that has an
 /// initializer.
 class ConstLocalVariableFragmentImpl extends LocalVariableFragmentImpl
-    with ConstVariableElement {
+    with ConstVariableFragment {
   /// Initialize a newly created local variable element to have the given [name]
   /// and [offset].
   ConstLocalVariableFragmentImpl({
@@ -1211,7 +1216,7 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
 }
 
 class ConstTopLevelVariableFragmentImpl extends TopLevelVariableFragmentImpl
-    with ConstVariableElement {
+    with ConstVariableFragment {
   /// Initialize a newly created synthetic top-level variable element to have
   /// the given [name] and [offset].
   ConstTopLevelVariableFragmentImpl({
@@ -1235,7 +1240,7 @@ class ConstTopLevelVariableFragmentImpl extends TopLevelVariableFragmentImpl
 /// This interface is only used for constant variables that have initializers.
 ///
 /// This class is not intended to be part of the public API for analyzer.
-mixin ConstVariableElement implements FragmentImpl, ConstantEvaluationTarget {
+mixin ConstVariableFragment implements FragmentImpl, ConstantEvaluationTarget {
   /// If this element represents a constant variable, and it has an initializer,
   /// a copy of the initializer for the constant.  Otherwise `null`.
   ///
@@ -1289,7 +1294,7 @@ mixin ConstVariableElement implements FragmentImpl, ConstantEvaluationTarget {
 /// A [FieldFormalParameterFragmentImpl] for parameters that have an initializer.
 class DefaultFieldFormalParameterElementImpl
     extends FieldFormalParameterFragmentImpl
-    with ConstVariableElement {
+    with ConstVariableFragment {
   /// Initialize a newly created parameter element to have the given [name] and
   /// [nameOffset].
   DefaultFieldFormalParameterElementImpl({
@@ -1307,7 +1312,7 @@ class DefaultFieldFormalParameterElementImpl
 
 /// A [FormalParameterFragmentImpl] for parameters that have an initializer.
 class DefaultParameterFragmentImpl extends FormalParameterFragmentImpl
-    with ConstVariableElement {
+    with ConstVariableFragment {
   /// Initialize a newly created parameter element to have the given [name] and
   /// [nameOffset].
   DefaultParameterFragmentImpl({
@@ -1325,7 +1330,7 @@ class DefaultParameterFragmentImpl extends FormalParameterFragmentImpl
 
 class DefaultSuperFormalParameterElementImpl
     extends SuperFormalParameterFragmentImpl
-    with ConstVariableElement {
+    with ConstVariableFragment {
   /// Initialize a newly created parameter element to have the given [name] and
   /// [nameOffset].
   DefaultSuperFormalParameterElementImpl({
@@ -2401,8 +2406,8 @@ abstract class ExecutableElementOrMember implements FragmentOrMember {
   List<TypeParameterFragmentImpl> get typeParameters;
 }
 
-abstract class ExecutableFragmentImpl extends _ExistingElementImpl
-    with AugmentableFragment, TypeParameterizedElementMixin
+abstract class ExecutableFragmentImpl extends _ExistingFragmentImpl
+    with AugmentableFragment, TypeParameterizedFragmentMixin
     implements ExecutableElementOrMember, ExecutableFragment {
   /// A list containing all of the parameters defined by this executable
   /// element.
@@ -3043,7 +3048,7 @@ class FieldFormalParameterFragmentImpl extends FormalParameterFragmentImpl
   );
 }
 
-class FieldFragmentImpl extends PropertyInducingElementImpl
+class FieldFragmentImpl extends PropertyInducingFragmentImpl
     implements FieldElementOrMember, FieldFragment {
   /// True if this field inherits from a covariant parameter. This happens
   /// when it overrides a field in a supertype that is covariant.
@@ -3535,6 +3540,76 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
   ) => FormalParameterElementImpl(firstFragment as FormalParameterFragmentImpl);
 }
 
+/// The parameter of an implicit setter.
+class FormalParameterFragmentImplOfImplicitSetter
+    extends FormalParameterFragmentImpl {
+  final PropertyAccessorFragmentImplImplicitSetter setter;
+
+  FormalParameterFragmentImplOfImplicitSetter(this.setter)
+    : super(
+        nameOffset: -1,
+        name2:
+            setter.variable2.name2 == null
+                ? null
+                : considerCanonicalizeString('_${setter.variable2.name2!}'),
+        nameOffset2: null,
+        parameterKind: ParameterKind.REQUIRED,
+      ) {
+    enclosingElement3 = setter;
+    isSynthetic = true;
+  }
+
+  @override
+  bool get inheritsCovariant {
+    var variable = setter.variable2;
+    if (variable is FieldFragmentImpl) {
+      return variable.inheritsCovariant;
+    }
+    return false;
+  }
+
+  @override
+  set inheritsCovariant(bool value) {
+    var variable = setter.variable2;
+    if (variable is FieldFragmentImpl) {
+      variable.inheritsCovariant = value;
+    }
+  }
+
+  @override
+  bool get isCovariant {
+    if (isExplicitlyCovariant || inheritsCovariant) {
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool get isExplicitlyCovariant {
+    var variable = setter.variable2;
+    if (variable is FieldFragmentImpl) {
+      return variable.isCovariant;
+    }
+    return false;
+  }
+
+  @override
+  FragmentImpl get nonSynthetic {
+    return setter.variable2;
+  }
+
+  @override
+  int get offset => setter.offset;
+
+  @override
+  TypeImpl get type => setter.variable2.type;
+
+  @override
+  set type(DartType type) {
+    assert(false); // Should never be called.
+  }
+}
+
 mixin FragmentedAnnotatableElementMixin<E extends Fragment>
     implements FragmentedElementMixin<E> {
   String? get documentationComment {
@@ -3698,7 +3773,7 @@ mixin FragmentedTypeParameterizedElementMixin<
     implements FragmentedElementMixin<E> {
   bool get isSimplyBounded {
     var fragment = firstFragment;
-    if (fragment is TypeParameterizedElementMixin) {
+    if (fragment is TypeParameterizedFragmentMixin) {
       return fragment.isSimplyBounded;
     }
     return true;
@@ -3706,7 +3781,7 @@ mixin FragmentedTypeParameterizedElementMixin<
 
   List<TypeParameterElement> get typeParameters2 {
     var fragment = firstFragment;
-    if (fragment is TypeParameterizedElementMixin) {
+    if (fragment is TypeParameterizedFragmentMixin) {
       return fragment.typeParameters
           .map((fragment) => (fragment as TypeParameterFragment).element)
           .toList();
@@ -4104,7 +4179,7 @@ abstract class FunctionTypedElementImpl2 extends TypeParameterizedElementImpl2
 /// Common internal interface shared by elements whose type is a function type.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class FunctionTypedFragmentImpl implements _ExistingElementImpl {
+abstract class FunctionTypedFragmentImpl implements _ExistingFragmentImpl {
   /// The parameters defined by this executable element.
   List<FormalParameterFragmentImpl> get parameters;
 
@@ -4203,8 +4278,8 @@ class GenericFunctionTypeElementImpl2 extends FunctionTypedElementImpl2
 /// The element used for a generic function type.
 ///
 /// Clients may not extend, implement or mix-in this class.
-class GenericFunctionTypeFragmentImpl extends _ExistingElementImpl
-    with TypeParameterizedElementMixin
+class GenericFunctionTypeFragmentImpl extends _ExistingFragmentImpl
+    with TypeParameterizedFragmentMixin
     implements FunctionTypedFragmentImpl, GenericFunctionTypeFragment {
   /// The declared return type of the function.
   TypeImpl? _returnType;
@@ -4854,8 +4929,8 @@ recorded above.
   }
 }
 
-abstract class InstanceFragmentImpl extends _ExistingElementImpl
-    with AugmentableFragment, TypeParameterizedElementMixin
+abstract class InstanceFragmentImpl extends _ExistingFragmentImpl
+    with AugmentableFragment, TypeParameterizedFragmentMixin
     implements InstanceFragment {
   @override
   ElementLinkedData? linkedData;
@@ -6231,7 +6306,7 @@ class LibraryExportImpl extends ElementDirectiveImpl implements LibraryExport {
 }
 
 /// A concrete implementation of [LibraryFragment].
-class LibraryFragmentImpl extends _ExistingElementImpl
+class LibraryFragmentImpl extends _ExistingFragmentImpl
     implements LibraryFragment {
   /// The source that corresponds to this compilation unit.
   @override
@@ -7843,10 +7918,9 @@ enum Modifier {
 
   /// Indicates that a class is a mixin class.
   MIXIN_CLASS,
-
   PROMOTABLE,
 
-  /// Indicates whether the type of a [PropertyInducingElementImpl] should be
+  /// Indicates whether the type of a [PropertyInducingFragmentImpl] should be
   /// used to infer the initializer. We set it to `false` if the type was
   /// inferred from the initializer itself.
   SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE,
@@ -8186,78 +8260,6 @@ abstract class NonParameterVariableFragmentImpl extends VariableFragmentImpl
   /// Set whether this variable has an initializer.
   set hasInitializer(bool hasInitializer) {
     setModifier(Modifier.HAS_INITIALIZER, hasInitializer);
-  }
-}
-
-/// The parameter of an implicit setter.
-// Pre-existing name.
-// ignore: camel_case_types
-class ParameterElementImpl_ofImplicitSetter
-    extends FormalParameterFragmentImpl {
-  final PropertyAccessorElementImpl_ImplicitSetter setter;
-
-  ParameterElementImpl_ofImplicitSetter(this.setter)
-    : super(
-        nameOffset: -1,
-        name2:
-            setter.variable2.name2 == null
-                ? null
-                : considerCanonicalizeString('_${setter.variable2.name2!}'),
-        nameOffset2: null,
-        parameterKind: ParameterKind.REQUIRED,
-      ) {
-    enclosingElement3 = setter;
-    isSynthetic = true;
-  }
-
-  @override
-  bool get inheritsCovariant {
-    var variable = setter.variable2;
-    if (variable is FieldFragmentImpl) {
-      return variable.inheritsCovariant;
-    }
-    return false;
-  }
-
-  @override
-  set inheritsCovariant(bool value) {
-    var variable = setter.variable2;
-    if (variable is FieldFragmentImpl) {
-      variable.inheritsCovariant = value;
-    }
-  }
-
-  @override
-  bool get isCovariant {
-    if (isExplicitlyCovariant || inheritsCovariant) {
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool get isExplicitlyCovariant {
-    var variable = setter.variable2;
-    if (variable is FieldFragmentImpl) {
-      return variable.isCovariant;
-    }
-    return false;
-  }
-
-  @override
-  FragmentImpl get nonSynthetic {
-    return setter.variable2;
-  }
-
-  @override
-  int get offset => setter.offset;
-
-  @override
-  TypeImpl get type => setter.variable2.type;
-
-  @override
-  set type(DartType type) {
-    assert(false); // Should never be called.
   }
 }
 
@@ -8661,147 +8663,6 @@ abstract class PropertyAccessorElementImpl2 extends ExecutableElementImpl2
   }
 }
 
-/// Implicit getter for a [PropertyInducingElementImpl].
-// Pre-existing name.
-// ignore: camel_case_types
-class PropertyAccessorElementImpl_ImplicitGetter extends GetterFragmentImpl {
-  /// Create the implicit getter and bind it to the [property].
-  PropertyAccessorElementImpl_ImplicitGetter(
-    PropertyInducingElementImpl property, {
-    Reference? reference,
-  }) : super.forVariable(property, reference: reference) {
-    property.getter = this;
-    reference?.element = this;
-  }
-
-  @override
-  FragmentImpl get enclosingElement3 {
-    return variable2.enclosingElement3;
-  }
-
-  @override
-  bool get hasImplicitReturnType => variable2.hasImplicitType;
-
-  @override
-  bool get isGetter => true;
-
-  @override
-  String? get name2 => variable2.name2;
-
-  @override
-  FragmentImpl get nonSynthetic {
-    if (!variable2.isSynthetic) {
-      return variable2;
-    }
-    assert(enclosingElement3 is EnumFragmentImpl);
-    return enclosingElement3;
-  }
-
-  @override
-  int get offset => variable2.offset;
-
-  @override
-  TypeImpl get returnType => variable2.type;
-
-  @override
-  set returnType(DartType returnType) {
-    assert(false); // Should never be called.
-  }
-
-  @override
-  Version? get sinceSdkVersion => variable2.sinceSdkVersion;
-
-  @override
-  FunctionTypeImpl get type {
-    return _type ??= FunctionTypeImpl(
-      typeFormals: const <TypeParameterFragmentImpl>[],
-      parameters: const <FormalParameterElementImpl>[],
-      returnType: returnType,
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-  }
-
-  @override
-  set type(FunctionType type) {
-    assert(false); // Should never be called.
-  }
-
-  @override
-  PropertyInducingElementImpl get variable2 => super.variable2!;
-}
-
-/// Implicit setter for a [PropertyInducingElementImpl].
-// Pre-existing name.
-// ignore: camel_case_types
-class PropertyAccessorElementImpl_ImplicitSetter extends SetterFragmentImpl {
-  /// Create the implicit setter and bind it to the [property].
-  PropertyAccessorElementImpl_ImplicitSetter(
-    PropertyInducingElementImpl property, {
-    Reference? reference,
-  }) : super.forVariable(property, reference: reference) {
-    property.setter = this;
-  }
-
-  @override
-  FragmentImpl get enclosingElement3 {
-    return variable2.enclosingElement3;
-  }
-
-  @override
-  bool get isSetter => true;
-
-  @override
-  String? get name2 => variable2.name2;
-
-  @override
-  FragmentImpl get nonSynthetic => variable2;
-
-  @override
-  int get offset => variable2.offset;
-
-  @override
-  List<FormalParameterFragmentImpl> get parameters {
-    if (_parameters.isNotEmpty) {
-      return _parameters;
-    }
-
-    return _parameters = List.generate(
-      1,
-      (_) => ParameterElementImpl_ofImplicitSetter(this),
-      growable: false,
-    );
-  }
-
-  @override
-  TypeImpl get returnType => VoidTypeImpl.instance;
-
-  @override
-  set returnType(DartType returnType) {
-    assert(false); // Should never be called.
-  }
-
-  @override
-  Version? get sinceSdkVersion => variable2.sinceSdkVersion;
-
-  @override
-  FunctionTypeImpl get type {
-    return _type ??= FunctionTypeImpl(
-      typeFormals: const <TypeParameterFragmentImpl>[],
-      parameters: parameters.map((f) => f.asElement2).toList(),
-      returnType: returnType,
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-  }
-
-  @override
-  set type(FunctionType type) {
-    assert(false); // Should never be called.
-  }
-
-  @override
-  PropertyInducingElementImpl get variable2 => super.variable2!;
-}
-
 /// Common base class for all analyzer-internal classes that implement
 /// `PropertyAccessorElement`.
 abstract class PropertyAccessorElementOrMember
@@ -8843,7 +8704,7 @@ sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
   @override
   int? nameOffset2;
 
-  PropertyInducingElementImpl? _variable;
+  PropertyInducingFragmentImpl? _variable;
 
   /// Initialize a newly created property accessor element to have the given
   /// [name] and [offset].
@@ -8855,7 +8716,7 @@ sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
   /// Initialize a newly created synthetic property accessor element to be
   /// associated with the given [variable].
   PropertyAccessorFragmentImpl.forVariable(
-    PropertyInducingElementImpl variable, {
+    PropertyInducingFragmentImpl variable, {
     super.reference,
   }) : _variable = variable,
        name2 = variable.name2,
@@ -8915,12 +8776,12 @@ sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
   }
 
   @override
-  PropertyInducingElementImpl? get variable2 {
+  PropertyInducingFragmentImpl? get variable2 {
     linkedData?.read(this);
     return _variable;
   }
 
-  set variable2(PropertyInducingElementImpl? value) {
+  set variable2(PropertyInducingFragmentImpl? value) {
     _variable = value;
   }
 
@@ -8934,6 +8795,143 @@ sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
       (isGetter ? 'get ' : 'set ') + displayName,
     );
   }
+}
+
+/// Implicit getter for a [PropertyInducingFragmentImpl].
+class PropertyAccessorFragmentImplImplicitGetter extends GetterFragmentImpl {
+  /// Create the implicit getter and bind it to the [property].
+  PropertyAccessorFragmentImplImplicitGetter(
+    PropertyInducingFragmentImpl property, {
+    Reference? reference,
+  }) : super.forVariable(property, reference: reference) {
+    property.getter = this;
+    reference?.element = this;
+  }
+
+  @override
+  FragmentImpl get enclosingElement3 {
+    return variable2.enclosingElement3;
+  }
+
+  @override
+  bool get hasImplicitReturnType => variable2.hasImplicitType;
+
+  @override
+  bool get isGetter => true;
+
+  @override
+  String? get name2 => variable2.name2;
+
+  @override
+  FragmentImpl get nonSynthetic {
+    if (!variable2.isSynthetic) {
+      return variable2;
+    }
+    assert(enclosingElement3 is EnumFragmentImpl);
+    return enclosingElement3;
+  }
+
+  @override
+  int get offset => variable2.offset;
+
+  @override
+  TypeImpl get returnType => variable2.type;
+
+  @override
+  set returnType(DartType returnType) {
+    assert(false); // Should never be called.
+  }
+
+  @override
+  Version? get sinceSdkVersion => variable2.sinceSdkVersion;
+
+  @override
+  FunctionTypeImpl get type {
+    return _type ??= FunctionTypeImpl(
+      typeFormals: const <TypeParameterFragmentImpl>[],
+      parameters: const <FormalParameterElementImpl>[],
+      returnType: returnType,
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+  }
+
+  @override
+  set type(FunctionType type) {
+    assert(false); // Should never be called.
+  }
+
+  @override
+  PropertyInducingFragmentImpl get variable2 => super.variable2!;
+}
+
+/// Implicit setter for a [PropertyInducingFragmentImpl].
+class PropertyAccessorFragmentImplImplicitSetter extends SetterFragmentImpl {
+  /// Create the implicit setter and bind it to the [property].
+  PropertyAccessorFragmentImplImplicitSetter(
+    PropertyInducingFragmentImpl property, {
+    Reference? reference,
+  }) : super.forVariable(property, reference: reference) {
+    property.setter = this;
+  }
+
+  @override
+  FragmentImpl get enclosingElement3 {
+    return variable2.enclosingElement3;
+  }
+
+  @override
+  bool get isSetter => true;
+
+  @override
+  String? get name2 => variable2.name2;
+
+  @override
+  FragmentImpl get nonSynthetic => variable2;
+
+  @override
+  int get offset => variable2.offset;
+
+  @override
+  List<FormalParameterFragmentImpl> get parameters {
+    if (_parameters.isNotEmpty) {
+      return _parameters;
+    }
+
+    return _parameters = List.generate(
+      1,
+      (_) => FormalParameterFragmentImplOfImplicitSetter(this),
+      growable: false,
+    );
+  }
+
+  @override
+  TypeImpl get returnType => VoidTypeImpl.instance;
+
+  @override
+  set returnType(DartType returnType) {
+    assert(false); // Should never be called.
+  }
+
+  @override
+  Version? get sinceSdkVersion => variable2.sinceSdkVersion;
+
+  @override
+  FunctionTypeImpl get type {
+    return _type ??= FunctionTypeImpl(
+      typeFormals: const <TypeParameterFragmentImpl>[],
+      parameters: parameters.map((f) => f.asElement2).toList(),
+      returnType: returnType,
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+  }
+
+  @override
+  set type(FunctionType type) {
+    assert(false); // Should never be called.
+  }
+
+  @override
+  PropertyInducingFragmentImpl get variable2 => super.variable2!;
 }
 
 /// Common base class for all analyzer-internal classes that implement
@@ -8950,7 +8948,65 @@ abstract class PropertyInducingElement2OrMember
   SetterElement2OrMember? get setter2;
 }
 
-abstract class PropertyInducingElementImpl
+abstract class PropertyInducingElementImpl2 extends VariableElementImpl2
+    implements PropertyInducingElement2OrMember, AnnotatableElementImpl {
+  @override
+  PropertyInducingFragmentImpl get firstFragment;
+
+  @override
+  List<PropertyInducingFragmentImpl> get fragments {
+    return [
+      for (
+        PropertyInducingFragmentImpl? fragment = firstFragment;
+        fragment != null;
+        fragment = fragment.nextFragment
+      )
+        fragment,
+    ];
+  }
+
+  @override
+  bool get hasInitializer {
+    return _fragments.any((f) => f.hasInitializer);
+  }
+
+  @override
+  Element get nonSynthetic2 {
+    if (isSynthetic) {
+      if (enclosingElement case EnumElementImpl2 enclosingElement) {
+        // TODO(scheglov): remove 'index'?
+        if (name3 == 'index' || name3 == 'values') {
+          return enclosingElement;
+        }
+      }
+      return (getter2 ?? setter2)!;
+    } else {
+      return this;
+    }
+  }
+
+  bool get shouldUseTypeForInitializerInference {
+    return firstFragment.shouldUseTypeForInitializerInference;
+  }
+
+  List<PropertyInducingFragmentImpl> get _fragments;
+}
+
+/// Common base class for all analyzer-internal classes that implement
+/// `PropertyInducingElement`.
+abstract class PropertyInducingElementOrMember
+    implements VariableElementOrMember {
+  @override
+  TypeImpl get type;
+}
+
+/// Instances of this class are set for fields and top-level variables
+/// to perform top-level type inference during linking.
+abstract class PropertyInducingElementTypeInference {
+  TypeImpl perform();
+}
+
+abstract class PropertyInducingFragmentImpl
     extends NonParameterVariableFragmentImpl
     with AugmentableFragment
     implements PropertyInducingElementOrMember, PropertyInducingFragment {
@@ -8964,10 +9020,10 @@ abstract class PropertyInducingElementImpl
   MetadataImpl metadata = MetadataImpl(const []);
 
   @override
-  PropertyInducingElementImpl? previousFragment;
+  PropertyInducingFragmentImpl? previousFragment;
 
   @override
-  PropertyInducingElementImpl? nextFragment;
+  PropertyInducingFragmentImpl? nextFragment;
 
   /// The getter associated with this variable.
   ///
@@ -8998,7 +9054,7 @@ abstract class PropertyInducingElementImpl
 
   /// Initialize a newly created synthetic element to have the given [name] and
   /// [offset].
-  PropertyInducingElementImpl({
+  PropertyInducingFragmentImpl({
     required this.name2,
     required super.nameOffset,
   }) {
@@ -9105,11 +9161,11 @@ abstract class PropertyInducingElementImpl
     // TODO(scheglov): Consider not caching these types.
     if (!isSynthetic) {
       var getter = this.getter;
-      if (getter is PropertyAccessorElementImpl_ImplicitGetter) {
+      if (getter is PropertyAccessorFragmentImplImplicitGetter) {
         getter._type = null;
       }
       var setter = this.setter;
-      if (setter is PropertyAccessorElementImpl_ImplicitSetter) {
+      if (setter is PropertyAccessorFragmentImplImplicitSetter) {
         setter._type = null;
       }
     }
@@ -9122,7 +9178,7 @@ abstract class PropertyInducingElementImpl
 
   GetterFragmentImpl createImplicitGetter(Reference reference) {
     assert(getter == null);
-    return getter = PropertyAccessorElementImpl_ImplicitGetter(
+    return getter = PropertyAccessorFragmentImplImplicitGetter(
       this,
       reference: reference,
     );
@@ -9131,7 +9187,7 @@ abstract class PropertyInducingElementImpl
   SetterFragmentImpl createImplicitSetter(Reference reference) {
     assert(hasSetter);
     assert(setter == null);
-    return setter = PropertyAccessorElementImpl_ImplicitSetter(
+    return setter = PropertyAccessorFragmentImplImplicitSetter(
       this,
       reference: reference,
     );
@@ -9143,64 +9199,6 @@ abstract class PropertyInducingElementImpl
 
     this.linkedData = linkedData;
   }
-}
-
-abstract class PropertyInducingElementImpl2 extends VariableElementImpl2
-    implements PropertyInducingElement2OrMember, AnnotatableElementImpl {
-  @override
-  PropertyInducingElementImpl get firstFragment;
-
-  @override
-  List<PropertyInducingElementImpl> get fragments {
-    return [
-      for (
-        PropertyInducingElementImpl? fragment = firstFragment;
-        fragment != null;
-        fragment = fragment.nextFragment
-      )
-        fragment,
-    ];
-  }
-
-  @override
-  bool get hasInitializer {
-    return _fragments.any((f) => f.hasInitializer);
-  }
-
-  @override
-  Element get nonSynthetic2 {
-    if (isSynthetic) {
-      if (enclosingElement case EnumElementImpl2 enclosingElement) {
-        // TODO(scheglov): remove 'index'?
-        if (name3 == 'index' || name3 == 'values') {
-          return enclosingElement;
-        }
-      }
-      return (getter2 ?? setter2)!;
-    } else {
-      return this;
-    }
-  }
-
-  bool get shouldUseTypeForInitializerInference {
-    return firstFragment.shouldUseTypeForInitializerInference;
-  }
-
-  List<PropertyInducingElementImpl> get _fragments;
-}
-
-/// Common base class for all analyzer-internal classes that implement
-/// `PropertyInducingElement`.
-abstract class PropertyInducingElementOrMember
-    implements VariableElementOrMember {
-  @override
-  TypeImpl get type;
-}
-
-/// Instances of this class are set for fields and top-level variables
-/// to perform top-level type inference during linking.
-abstract class PropertyInducingElementTypeInference {
-  TypeImpl perform();
 }
 
 /// Common base class for all analyzer-internal classes that implement
@@ -9674,7 +9672,7 @@ class TopLevelVariableElementImpl2 extends PropertyInducingElementImpl2
   DartObject? computeConstantValue() => firstFragment.computeConstantValue();
 }
 
-class TopLevelVariableFragmentImpl extends PropertyInducingElementImpl
+class TopLevelVariableFragmentImpl extends PropertyInducingFragmentImpl
     implements TopLevelVariableFragment {
   @override
   late TopLevelVariableElementImpl2 element;
@@ -9930,8 +9928,8 @@ class TypeAliasElementImpl2 extends TypeDefiningElementImpl2
 /// An element that represents [GenericTypeAlias].
 ///
 /// Clients may not extend, implement or mix-in this class.
-class TypeAliasFragmentImpl extends _ExistingElementImpl
-    with AugmentableFragment, TypeParameterizedElementMixin
+class TypeAliasFragmentImpl extends _ExistingFragmentImpl
+    with AugmentableFragment, TypeParameterizedFragmentMixin
     implements TypeAliasFragment {
   @override
   final String? name2;
@@ -10345,9 +10343,9 @@ abstract class TypeParameterizedElementImpl2 extends ElementImpl2
     implements TypeParameterizedElement {}
 
 /// Mixin representing an element which can have type parameters.
-mixin TypeParameterizedElementMixin on FragmentImpl
+mixin TypeParameterizedFragmentMixin on FragmentImpl
     implements
-        _ExistingElementImpl,
+        _ExistingFragmentImpl,
         AnnotatableFragmentImpl,
         TypeParameterizedFragment {
   List<TypeParameterFragmentImpl> _typeParameters = const [];
@@ -10627,8 +10625,9 @@ mixin WrappedElementMixin implements ElementImpl2 {
   );
 }
 
-abstract class _ExistingElementImpl extends FragmentImpl with _HasLibraryMixin {
-  _ExistingElementImpl({required super.nameOffset, super.reference});
+abstract class _ExistingFragmentImpl extends FragmentImpl
+    with _HasLibraryMixin {
+  _ExistingFragmentImpl({required super.nameOffset, super.reference});
 }
 
 /// An element that can be declared in multiple fragments.

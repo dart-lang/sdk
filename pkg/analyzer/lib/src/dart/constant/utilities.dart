@@ -198,8 +198,8 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
                 !element.isStatic)) {
       constantsToCompute.add(element);
       // Fill error nodes.
-      if (element is ConstVariableElement) {
-        var constElement = element as ConstVariableElement;
+      if (element is ConstVariableFragment) {
+        var constElement = element as ConstVariableFragment;
         configuration.addErrorNode(
           fromElement: constElement.constantInitializer,
           fromAst: node.initializer,
