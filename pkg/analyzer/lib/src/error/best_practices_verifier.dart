@@ -326,6 +326,15 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitDotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocation node,
+  ) {
+    _deprecatedVerifier.dotShorthandConstructorInvocation(node);
+    _checkForLiteralConstructorUseInDotShorthand(node);
+    super.visitDotShorthandConstructorInvocation(node);
+  }
+
+  @override
   void visitEnumDeclaration(EnumDeclaration node) {
     _deprecatedVerifier.pushInDeprecatedValue(
       node.declaredFragment!.element.metadata.hasDeprecated,
@@ -1154,6 +1163,24 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         node,
         warning,
         arguments: [fullConstructorName],
+      );
+    }
+  }
+
+  /// Report a warning if the dot shorthand constructor is marked with [literal]
+  /// and is not const.
+  ///
+  /// See [WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR].
+  void _checkForLiteralConstructorUseInDotShorthand(
+    DotShorthandConstructorInvocation node,
+  ) {
+    var constructor = node.constructorName.element;
+    if (constructor is! ConstructorElement) return;
+    if (!node.isConst && constructor.metadata.hasLiteral && node.canBeConst) {
+      _diagnosticReporter.atNode(
+        node,
+        WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR,
+        arguments: [constructor.displayName],
       );
     }
   }

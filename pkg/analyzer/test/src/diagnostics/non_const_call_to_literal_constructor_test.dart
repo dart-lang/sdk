@@ -64,6 +64,34 @@ E e = const E.zero();
 ''');
   }
 
+  test_dotShorthand_namedConstructor() async {
+    await assertErrorsInCode(
+      r'''
+import 'package:meta/meta.dart';
+class A {
+  @literal
+  const A.named();
+}
+A a = .named();
+''',
+      [error(WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR, 81, 8)],
+    );
+  }
+
+  test_dotShorthand_unnamedConstructor() async {
+    await assertErrorsInCode(
+      r'''
+import 'package:meta/meta.dart';
+class A {
+  @literal
+  const A();
+}
+A a = .new();
+''',
+      [error(WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR, 75, 6)],
+    );
+  }
+
   test_namedConstructor() async {
     await assertErrorsInCode(
       r'''

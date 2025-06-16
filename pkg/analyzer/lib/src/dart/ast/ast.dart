@@ -6843,7 +6843,7 @@ final class DotShorthandConstructorInvocationImpl
         DotShorthandConstructorInvocation {
   @generated
   @override
-  final Token? constKeyword;
+  Token? constKeyword;
 
   @generated
   @override
@@ -6873,6 +6873,26 @@ final class DotShorthandConstructorInvocationImpl
       return constKeyword;
     }
     return period;
+  }
+
+  @override
+  bool get canBeConst {
+    var element = constructorName.element;
+    if (element is! ConstructorElementMixin2) return false;
+    if (!element.isConst) return false;
+
+    // Ensure that dependencies (e.g. default parameter values) are computed.
+    element.baseElement.computeConstantDependencies();
+
+    // Verify that the evaluation of the constructor would not produce an
+    // exception.
+    var oldKeyword = constKeyword;
+    try {
+      constKeyword = KeywordToken(Keyword.CONST, offset);
+      return !hasConstantVerifierError;
+    } finally {
+      constKeyword = oldKeyword;
+    }
   }
 
   @generated

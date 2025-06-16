@@ -36,6 +36,12 @@ abstract class BaseDeprecatedMemberUseVerifier {
     _checkForDeprecated(node.element, node);
   }
 
+  void dotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocation node,
+  ) {
+    _invocationArguments(node.constructorName.element, node.argumentList);
+  }
+
   void exportDirective(ExportDirective node) {
     _checkForDeprecated(node.libraryExport?.exportedLibrary2, node);
   }
