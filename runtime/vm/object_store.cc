@@ -37,20 +37,18 @@ void IsolateObjectStore::PrintToJSONObject(JSONObject* jsobj) {
     JSONObject fields(jsobj, "fields");
     Object& value = Object::Handle();
 
-    static const char* const names[] = {
-#define EMIT_FIELD_NAME(type, name) #name "_",
+    // A strtab is smaller than an array of strings.
+    static const char* const names = ""
+#define EMIT_FIELD_NAME(type, name) #name "_\0"
         ISOLATE_OBJECT_STORE_FIELD_LIST(EMIT_FIELD_NAME, EMIT_FIELD_NAME)
 #undef EMIT_FIELD_NAME
-    };
-    ObjectPtr* current = from();
-    intptr_t i = 0;
-    while (current <= to()) {
+        ;  // NOLINT
+    const char* name = names;
+    for (ObjectPtr* current = from(); current <= to(); current++) {
       value = *current;
-      fields.AddProperty(names[i], value);
-      current++;
-      i++;
+      fields.AddProperty(name, value);
+      name += strlen(name) + 1;
     }
-    ASSERT(i == ARRAY_SIZE(names));
   }
 }
 #endif  // !PRODUCT
@@ -109,23 +107,21 @@ void ObjectStore::PrintToJSONObject(JSONObject* jsobj) {
   {
     JSONObject fields(jsobj, "fields");
     Object& value = Object::Handle();
-    static const char* const names[] = {
-#define EMIT_FIELD_NAME(type, name) #name "_",
+    // A strtab is smaller than an array of strings.
+    static const char* const names = ""
+#define EMIT_FIELD_NAME(type, name) #name "_\0"
         OBJECT_STORE_FIELD_LIST(
             EMIT_FIELD_NAME, EMIT_FIELD_NAME, EMIT_FIELD_NAME, EMIT_FIELD_NAME,
             EMIT_FIELD_NAME, EMIT_FIELD_NAME, EMIT_FIELD_NAME, EMIT_FIELD_NAME,
             EMIT_FIELD_NAME)
 #undef EMIT_FIELD_NAME
-    };
-    ObjectPtr* current = from();
-    intptr_t i = 0;
-    while (current <= to()) {
+        ;  // NOLINT
+    const char* name = names;
+    for (ObjectPtr* current = from(); current <= to(); current++) {
       value = *current;
-      fields.AddProperty(names[i], value);
-      current++;
-      i++;
+      fields.AddProperty(name, value);
+      name += strlen(name) + 1;
     }
-    ASSERT(i == ARRAY_SIZE(names));
   }
 }
 #endif  // !PRODUCT

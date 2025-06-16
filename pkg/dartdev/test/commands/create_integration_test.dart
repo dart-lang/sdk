@@ -133,7 +133,7 @@ void defineCreateTests() {
             print('stdout: $e');
             if (e.contains('[SEVERE]') ||
                 (isServerTemplate && e.contains('Server listening on port')) ||
-                (isWebTemplate && e.contains('Succeeded after'))) {
+                (isWebTemplate && e.contains('Built with build_runner'))) {
               if (e.contains('[SEVERE]')) {
                 hasError = true;
               }

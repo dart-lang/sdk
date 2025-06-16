@@ -81,14 +81,14 @@ class FixProcessor {
   }
 
   Future<void> _addFromProducers() async {
-    var error = _fixContext.error;
+    var diagnostic = _fixContext.diagnostic;
     var context = CorrectionProducerContext.createResolved(
       libraryResult: _fixContext.libraryResult,
       unitResult: _fixContext.unitResult,
       dartFixContext: _fixContext,
-      diagnostic: error,
-      selectionOffset: _fixContext.error.offset,
-      selectionLength: _fixContext.error.length,
+      diagnostic: diagnostic,
+      selectionOffset: _fixContext.diagnostic.offset,
+      selectionLength: _fixContext.diagnostic.length,
     );
 
     Future<void> compute(CorrectionProducer producer) async {
@@ -122,7 +122,7 @@ class FixProcessor {
       }
     }
 
-    var diagnosticCode = error.diagnosticCode;
+    var diagnosticCode = diagnostic.diagnosticCode;
     List<ProducerGenerator>? generators;
     List<MultiProducerGenerator>? multiGenerators;
     if (diagnosticCode is LintCode) {
@@ -157,7 +157,7 @@ class FixProcessor {
         if (producer.fixKind == ignoreErrorAnalysisFileKind) {
           if (alreadyCalculated?.add('${generator.hashCode}|'
                   '${ignoreErrorAnalysisFileKind.id}|'
-                  '${error.diagnosticCode.name}') ==
+                  '${diagnostic.diagnosticCode.name}') ==
               false) {
             // We did this before and was asked to not do it again. Skip.
             continue;

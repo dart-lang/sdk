@@ -115,6 +115,7 @@ package:analysis_server_plugin/edit/fix/dart_fix_context.dart:
     new (constructor: DartFixContext Function({bool autoTriggered, CorrectionUtils? correctionUtils, required Diagnostic error, required InstrumentationService instrumentationService, required ResolvedLibraryResult libraryResult, required ResolvedUnitResult unitResult, required ChangeWorkspace workspace}))
     autoTriggered (getter: bool)
     correctionUtils (getter: CorrectionUtils)
+    diagnostic (getter: Diagnostic)
     error (getter: Diagnostic)
     instrumentationService (getter: InstrumentationService)
     libraryResult (getter: ResolvedLibraryResult)
@@ -131,7 +132,8 @@ package:analysis_server_plugin/edit/fix/fix.dart:
     toString (method: String Function())
 package:analysis_server_plugin/edit/fix/fix_context.dart:
   FixContext (class extends Object):
-    error (getter: Diagnostic)
+    diagnostic (getter: Diagnostic)
+    error (getter: Diagnostic, deprecated)
 package:analysis_server_plugin/plugin.dart:
   Plugin (class extends Object):
     new (constructor: Plugin Function())

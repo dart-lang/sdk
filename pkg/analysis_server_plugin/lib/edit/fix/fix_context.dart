@@ -10,6 +10,8 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 /// Clients may not extend, implement or mix-in this class.
 abstract interface class FixContext {
   /// The diagnostic to fix.
-  // TODO(srawlins): Rename to 'diagnostic'.
+  Diagnostic get diagnostic;
+
+  @Deprecated("Use 'diagnostic' instead")
   Diagnostic get error;
 }

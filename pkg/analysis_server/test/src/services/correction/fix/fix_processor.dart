@@ -38,8 +38,8 @@ abstract class BaseFixProcessorTest extends AbstractSingleUnitTest {
     return DartChangeWorkspace([await session]);
   }
 
-  /// Computes fixes for the given [error] in [testUnit].
-  Future<List<Fix>> _computeFixes(Diagnostic error) async {
+  /// Computes fixes for the given [diagnostic] in [testUnit].
+  Future<List<Fix>> _computeFixes(Diagnostic diagnostic) async {
     var libraryResult = testLibraryResult;
     if (libraryResult == null) {
       return const [];
@@ -49,7 +49,7 @@ abstract class BaseFixProcessorTest extends AbstractSingleUnitTest {
       workspace: await workspace,
       libraryResult: libraryResult,
       unitResult: testAnalysisResult,
-      error: error,
+      error: diagnostic,
     );
     return await computeFixes(context);
   }
@@ -648,9 +648,9 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
     }
   }
 
-  /// Computes fixes for the given [error] in [testUnit].
+  /// Computes fixes for the given [diagnostic] in [testUnit].
   @override
-  Future<List<Fix>> _computeFixes(Diagnostic error) async {
+  Future<List<Fix>> _computeFixes(Diagnostic diagnostic) async {
     var libraryResult = testLibraryResult;
     if (libraryResult == null) {
       return const [];
@@ -660,7 +660,7 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
       workspace: await workspace,
       libraryResult: libraryResult,
       unitResult: testAnalysisResult,
-      error: error,
+      error: diagnostic,
     );
     return await computeFixes(context);
   }

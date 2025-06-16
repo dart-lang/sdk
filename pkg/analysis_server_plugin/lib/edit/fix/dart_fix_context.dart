@@ -53,17 +53,22 @@ class DartFixContext implements FixContext {
       _cachedTopLevelDeclarations = {};
 
   @override
-  final Diagnostic error;
+  final Diagnostic diagnostic;
 
   DartFixContext({
     required this.instrumentationService,
     required this.workspace,
     required this.libraryResult,
     required this.unitResult,
-    required this.error,
+    // TODO(srawlins): Rename to `diagnostic`.
+    required Diagnostic error,
     this.autoTriggered = false,
     CorrectionUtils? correctionUtils,
-  }) : correctionUtils = correctionUtils ?? CorrectionUtils(unitResult);
+  })  : diagnostic = error,
+        correctionUtils = correctionUtils ?? CorrectionUtils(unitResult);
+
+  @override
+  Diagnostic get error => diagnostic;
 
   /// Returns the mapping from each library (that is available to this context)
   /// to a top-level declaration that is exported (not necessary declared) by
