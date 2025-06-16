@@ -405,6 +405,30 @@ void f() {
     await verify_values(code, ofType: InlineValueVariableLookup);
   }
 
+  Future<void> test_variable_forIn() async {
+    code = TestCode.parse(r'''
+void f(List<int> ints) {
+  for (var /*[0*/i/*0]*/ in /*[1*/ints/*1]*/) {
+    ^
+  }
+}
+''');
+
+    await verify_values(code, ofType: InlineValueVariableLookup);
+  }
+
+  Future<void> test_variable_forIn_destructure() async {
+    code = TestCode.parse(r'''
+void f(List<(int, int)> records) {
+  for (var (/*[0*/x/*0]*/, /*[1*/y/*1]*/) in /*[2*/records/*2]*/) {
+    ^
+  }
+}
+''');
+
+    await verify_values(code, ofType: InlineValueVariableLookup);
+  }
+
   /// Lists are included, iterables are not.
   Future<void> test_variable_iterables() async {
     experimentalInlineValuesProperties = true;

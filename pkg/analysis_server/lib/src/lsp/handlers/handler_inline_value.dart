@@ -291,6 +291,28 @@ class _InlineValueVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitDeclaredIdentifier(DeclaredIdentifier node) {
+    var name = node.name;
+    collector.recordVariableLookup(
+      node.declaredElement2,
+      name.offset,
+      name.length,
+    );
+    super.visitDeclaredIdentifier(node);
+  }
+
+  @override
+  void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
+    var name = node.name;
+    collector.recordVariableLookup(
+      node.declaredElement2,
+      name.offset,
+      name.length,
+    );
+    super.visitDeclaredVariablePattern(node);
+  }
+
+  @override
   void visitFormalParameter(FormalParameter node) {
     var name = node.name;
     if (name != null) {
