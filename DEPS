@@ -101,6 +101,8 @@ vars = {
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
   "cpu_features_rev": "936b9ab5515dead115606559502e3864958f7f6e",
   "devtools_rev": "53b9620798ff824f016add0fa6c25e9cc399ea0b",
+  # Use the SHA found in `flutter-candidate.txt` in the devtools repo.
+  "flutter_rev": "36ea2bdeab611e908967b6fa57659998f600a2cb",
   "icu_rev": "43953f57b037778a1b8005564afabe214834f7bd",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "libcxx_rev": "bd557f6f764d1e40b62528a13b124ce740624f8f",
@@ -169,10 +171,12 @@ vars = {
   "download_emscripten": False,
   "emsdk_rev": "e41b8c68a248da5f18ebd03bd0420953945d52ff",
   "emsdk_ver": "3.1.3",
+  "build_devtools_from_sources": False,
 }
 
 gclient_gn_args_file = Var("dart_root") + '/build/config/gclient_args.gni'
 gclient_gn_args = [
+  "build_devtools_from_sources"
 ]
 
 deps = {
@@ -251,6 +255,11 @@ deps = {
       }],
       "dep_type": "cipd",
   },
+  Var("dart_root") + "/third_party/devtools_src": {
+      "url": Var("dart_git") + "external/github.com/flutter/devtools.git" +
+      "@" + Var("devtools_rev"),
+      "condition": "build_devtools_from_sources",
+  },
   Var("dart_root") + "/tests/co19/src": {
       "packages": [{
           "package": "dart/third_party/co19",
@@ -296,6 +305,12 @@ deps = {
   Var("dart_root") + "/third_party/emsdk":
       Var("dart_git") + "external/github.com/emscripten-core/emsdk.git" +
       "@" + Var("emsdk_rev"),
+
+  Var("dart_root") + "/third_party/flutter": {
+      "url": Var("dart_git") + "external/github.com/flutter/flutter.git" +
+      "@" + Var("flutter_rev"),
+      "condition": "build_devtools_from_sources",
+  },
 
   Var("dart_root") + "/third_party/jinja2":
       Var("chromium_git") + "/chromium/src/third_party/jinja2.git" +
