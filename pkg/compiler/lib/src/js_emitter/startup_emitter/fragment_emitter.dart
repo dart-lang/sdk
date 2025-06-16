@@ -1973,7 +1973,6 @@ class FragmentEmitter {
       commonElements.listClass,
       commonElements.objectClass,
       commonElements.mapClass,
-      commonElements.jsObjectClass,
     ];
     // TODO(floitsch): this should probably be on a per-fragment basis.
 

@@ -700,9 +700,6 @@ abstract class CommonElements {
 
   late final ClassEntity jsUInt31Class = _findInterceptorsClass('JSUInt31');
 
-  // Static interop JavaScript object interface class.
-  late final ClassEntity jsObjectClass = _findInterceptorsClass('JSObject');
-
   /// Returns `true` member is the 'findIndexForNativeSubclassType' method
   /// declared in `dart:_interceptors`.
   bool isFindIndexForNativeSubclassType(MemberEntity member) {
@@ -1102,11 +1099,6 @@ abstract class CommonElements {
 
   FunctionEntity get specializedAsStringNullable =>
       _findRtiFunction('_asStringQ');
-
-  FunctionEntity get specializedAsJSObject => _findRtiFunction('_asJSObject');
-
-  FunctionEntity get specializedAsJSObjectNullable =>
-      _findRtiFunction('_asJSObjectQ');
 
   FunctionEntity get instantiatedGenericFunctionType =>
       _findRtiFunction('instantiatedGenericFunctionType');
