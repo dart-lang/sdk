@@ -25,6 +25,7 @@ class UnnecessaryConst extends LintRule {
   @override
   void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
+    registry.addDotShorthandConstructorInvocation(this, visitor);
     registry.addInstanceCreationExpression(this, visitor);
     registry.addListLiteral(this, visitor);
     registry.addRecordLiteral(this, visitor);
@@ -35,6 +36,17 @@ class UnnecessaryConst extends LintRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
   _Visitor(this.rule);
+
+  @override
+  void visitDotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocation node,
+  ) {
+    var constKeyword = node.constKeyword;
+    if (constKeyword == null) return;
+    if (node.inConstantContext) {
+      rule.reportAtToken(constKeyword);
+    }
+  }
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
