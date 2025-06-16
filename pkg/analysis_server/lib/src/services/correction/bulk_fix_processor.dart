@@ -157,7 +157,7 @@ class BulkFixProcessor {
   static final Map<DiagnosticCode, bool> _bulkFixableCodes = {};
 
   static final Set<String> _diagnosticCodes =
-      errorCodeValues.map((code) => code.name.toLowerCase()).toSet();
+      diagnosticCodeValues.map((code) => code.name.toLowerCase()).toSet();
 
   static final Set<String> _lintCodes =
       Registry.ruleRegistry.rules.map((rule) => rule.name).toSet();

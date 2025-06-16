@@ -302,25 +302,25 @@ final class AnalysisOptionsBuilder {
     var stringValues = cannotIgnore.whereType<String>().toSet();
     for (var severity in AnalysisOptionsFile.severities) {
       if (stringValues.contains(severity)) {
-        // [severity] is a marker denoting all error codes with severity
+        // [severity] is a marker denoting all diagnostic codes with severity
         // equal to [severity].
         stringValues.remove(severity);
-        // Replace name like 'error' with error codes with this named
+        // Replace name like 'error' with diagnostic codes with this named
         // severity.
-        for (var e in errorCodeValues) {
+        for (var d in diagnosticCodeValues) {
           // If the severity of [error] is also changed in this options file
           // to be [severity], we add [error] to the un-ignorable list.
           var processors = errorProcessors.where(
-            (processor) => processor.code == e.name,
+            (processor) => processor.code == d.name,
           );
           if (processors.isNotEmpty &&
               processors.first.severity?.displayName == severity) {
-            unignorableDiagnosticCodeNames.add(e.name);
+            unignorableDiagnosticCodeNames.add(d.name);
             continue;
           }
           // Otherwise, add [error] if its default severity is [severity].
-          if (e.severity.displayName == severity) {
-            unignorableDiagnosticCodeNames.add(e.name);
+          if (d.severity.displayName == severity) {
+            unignorableDiagnosticCodeNames.add(d.name);
           }
         }
       }

@@ -24,7 +24,7 @@ import 'package:analyzer/src/manifest/manifest_warning_code.dart';
 import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
 
 @AnalyzerPublicApi(message: 'exported by lib/error/error.dart')
-const List<DiagnosticCode> errorCodeValues = [
+const List<DiagnosticCode> diagnosticCodeValues = [
   AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR,
   AnalysisOptionsErrorCode.PARSE_ERROR,
   AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED,
@@ -1125,3 +1125,7 @@ const List<DiagnosticCode> errorCodeValues = [
   WarningCode.UNUSED_SHOWN_NAME,
   WarningCode.URI_DOES_NOT_EXIST_IN_DOC_IMPORT,
 ];
+
+@AnalyzerPublicApi(message: 'exported by lib/error/error.dart')
+@Deprecated("Use 'diagnosticCodeValues' instead")
+List<DiagnosticCode> get errorCodeValues => diagnosticCodeValues;

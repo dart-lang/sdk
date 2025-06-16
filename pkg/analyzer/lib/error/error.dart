@@ -9,7 +9,7 @@ import 'dart:collection';
 
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/src/error/error_code_values.g.dart';
+import 'package:analyzer/src/diagnostic/diagnostic_code_values.g.dart';
 
 export 'package:_fe_analyzer_shared/src/base/errors.dart'
     show
@@ -26,7 +26,7 @@ export 'package:_fe_analyzer_shared/src/base/errors.dart'
         // ignore: deprecated_member_use
         ErrorType;
 export 'package:analyzer/src/dart/error/lint_codes.dart' show LintCode;
-export 'package:analyzer/src/error/error_code_values.g.dart';
+export 'package:analyzer/src/diagnostic/diagnostic_code_values.g.dart';
 
 /// The lazy initialized map from [DiagnosticCode.uniqueName] to the
 /// [DiagnosticCode] instance.
@@ -39,11 +39,11 @@ DiagnosticCode? errorCodeByUniqueName(String uniqueName) {
   return _uniqueNameToCodeMap[uniqueName];
 }
 
-/// Return the map from [DiagnosticCode.uniqueName] to the [DiagnosticCode]
-/// instance for all [errorCodeValues].
+/// The map from [DiagnosticCode.uniqueName] to the [DiagnosticCode] instance
+/// for all [diagnosticCodeValues].
 HashMap<String, DiagnosticCode> _computeUniqueNameToCodeMap() {
   var result = HashMap<String, DiagnosticCode>();
-  for (DiagnosticCode diagnosticCode in errorCodeValues) {
+  for (DiagnosticCode diagnosticCode in diagnosticCodeValues) {
     var uniqueName = diagnosticCode.uniqueName;
     assert(() {
       if (result.containsKey(uniqueName)) {

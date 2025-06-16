@@ -12,12 +12,13 @@ import 'package:analyzer/src/lint/registry.dart';
 
 /// Used to validate the ignore comments in a single file.
 class IgnoreValidator {
-  /// A list of known error codes used to ensure we don't over-report
+  /// A list of known diagnostic codes used to ensure we don't over-report
   /// `unnecessary_ignore`s on error codes that may be contributed by a plugin.
-  static final Set<String> _validErrorCodeNames =
-      errorCodeValues.map((e) => e.name.toLowerCase()).toSet();
+  static final Set<String> _validDiagnosticCodeNames =
+      diagnosticCodeValues.map((d) => d.name.toLowerCase()).toSet();
 
-  /// Error codes used to report `unnecessary_ignore`s.
+  /// Diagnostic codes used to report `unnecessary_ignore`s.
+  ///
   /// These codes are set when the `UnnecessaryIgnore` lint rule is instantiated and
   /// registered by the linter.
   static late DiagnosticCode unnecessaryIgnoreLocationLintCode;
@@ -202,7 +203,7 @@ class IgnoreValidator {
           // If a code is not a lint or a recognized error,
           // don't report. (It could come from a plugin.)
           // TODO(pq): consider another diagnostic that reports undefined codes
-          if (!_validErrorCodeNames.contains(name.toLowerCase())) continue;
+          if (!_validDiagnosticCodeNames.contains(name.toLowerCase())) continue;
         } else {
           var state = rule.state;
           var since = state.since.toString();

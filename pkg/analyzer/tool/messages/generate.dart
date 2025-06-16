@@ -56,10 +56,10 @@ List<GeneratedContent> _analyzerGeneratedFiles() {
         codeGenerator.generate();
         return codeGenerator.out.toString();
       }),
-    GeneratedFile('lib/src/error/error_code_values.g.dart', (
+    GeneratedFile('lib/src/diagnostic/diagnostic_code_values.g.dart', (
       String pkgPath,
     ) async {
-      var codeGenerator = _ErrorCodeValuesGenerator(generatedCodes);
+      var codeGenerator = _DiagnosticCodeValuesGenerator(generatedCodes);
       codeGenerator.generate();
       return codeGenerator.out.toString();
     }),
@@ -188,7 +188,7 @@ library;
   }
 }
 
-class _ErrorCodeValuesGenerator {
+class _DiagnosticCodeValuesGenerator {
   final List<String> generatedCodes;
 
   final StringBuffer out = StringBuffer('''
@@ -210,7 +210,7 @@ class _ErrorCodeValuesGenerator {
 // ignore_for_file: deprecated_member_use_from_same_package
 ''');
 
-  _ErrorCodeValuesGenerator(this.generatedCodes);
+  _DiagnosticCodeValuesGenerator(this.generatedCodes);
 
   void generate() {
     // The scanner error codes are not yet being generated, so we need to add
@@ -248,11 +248,19 @@ import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
     out.writeln(
       "@AnalyzerPublicApi(message: 'exported by lib/error/error.dart')",
     );
-    out.writeln('const List<DiagnosticCode> errorCodeValues = [');
+    out.writeln('const List<DiagnosticCode> diagnosticCodeValues = [');
     for (var name in generatedCodes) {
       out.writeln('  $name,');
     }
     out.writeln('];');
+    out.writeln();
+    out.writeln(
+      "@AnalyzerPublicApi(message: 'exported by lib/error/error.dart')",
+    );
+    out.writeln('@Deprecated("Use \'diagnosticCodeValues\' instead")');
+    out.writeln(
+      'List<DiagnosticCode> get errorCodeValues => diagnosticCodeValues;',
+    );
   }
 }
 

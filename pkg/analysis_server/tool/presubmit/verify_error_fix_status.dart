@@ -57,7 +57,7 @@ String? verifyErrorFixStatus() {
   var lintRuleNames = {for (var lintCode in lintRuleCodes) lintCode.uniqueName};
 
   var errorData = ErrorData();
-  for (var code in errorCodeValues) {
+  for (var code in diagnosticCodeValues) {
     var name = code.uniqueName;
     if (name.startsWith('TodoCode.')) {
       // To-do codes are ignored.
@@ -99,10 +99,10 @@ String? verifyErrorFixStatus() {
     }
   }
 
-  var errorCodeNames = {for (var code in errorCodeValues) code.uniqueName};
+  var codeNames = {for (var code in diagnosticCodeValues) code.uniqueName};
   for (var key in statusInfo.keys) {
     if (key is String) {
-      if (!errorCodeNames.contains(key) && !lintRuleNames.contains(key)) {
+      if (!codeNames.contains(key) && !lintRuleNames.contains(key)) {
         errorData.entriesWithNoCode.add(key);
       }
     }

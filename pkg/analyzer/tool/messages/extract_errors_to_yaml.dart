@@ -143,19 +143,19 @@ _CommentInfo _extractCommentInfo(FieldDeclaration fieldDeclaration) {
 /// Computes a map from class name to a list of all the diagnostic codes defined
 /// by that class.
 ///
-/// Uses the analyzer's global variable `errorCodeValues` to find all the error
-/// codes.
+/// Uses the analyzer's global variable `diagnosticCodeValues` to find all the
+/// diagnostic codes.
 Map<String, List<DiagnosticCode>> _findDiagnosticCodesByClass() {
   var codesByClass = <String, List<DiagnosticCode>>{};
-  for (var errorCode in errorCodeValues) {
-    if (errorCode is ScannerErrorCode) {
-      continue; // Will deal with later
+  for (var diagnostic in diagnosticCodeValues) {
+    if (diagnostic is ScannerErrorCode) {
+      continue; // Will deal with later.
     }
-    if (errorCode is TodoCode) {
+    if (diagnostic is TodoCode) {
       continue; // It's not worth converting these to YAML.
     }
-    var className = errorCode.runtimeType.toString();
-    (codesByClass[className] ??= []).add(errorCode);
+    var className = diagnostic.runtimeType.toString();
+    (codesByClass[className] ??= []).add(diagnostic);
   }
   return codesByClass;
 }
