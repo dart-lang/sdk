@@ -7038,20 +7038,6 @@ class VMDeserializationRoots : public DeserializationRoots {
 };
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-static const char* const kObjectStoreFieldNames[] = {
-#define DECLARE_OBJECT_STORE_FIELD(Type, Name) #Name,
-    OBJECT_STORE_FIELD_LIST(DECLARE_OBJECT_STORE_FIELD,
-                            DECLARE_OBJECT_STORE_FIELD,
-                            DECLARE_OBJECT_STORE_FIELD,
-                            DECLARE_OBJECT_STORE_FIELD,
-                            DECLARE_OBJECT_STORE_FIELD,
-                            DECLARE_OBJECT_STORE_FIELD,
-                            DECLARE_OBJECT_STORE_FIELD,
-                            DECLARE_OBJECT_STORE_FIELD,
-                            DECLARE_OBJECT_STORE_FIELD)
-#undef DECLARE_OBJECT_STORE_FIELD
-};
-
 class ProgramSerializationRoots : public SerializationRoots {
  public:
 #define RESET_ROOT_LIST(V)                                                     \
@@ -7157,8 +7143,19 @@ class ProgramSerializationRoots : public SerializationRoots {
   void WriteRoots(Serializer* s) {
     ObjectPtr* from = object_store_->from();
     ObjectPtr* to = object_store_->to_snapshot(s->kind());
+    // A strtab is smaller than an array of strings.
+    static const char* const names = ""
+#define EMIT_FIELD_NAME(type, name) #name "_\0"
+        OBJECT_STORE_FIELD_LIST(
+            EMIT_FIELD_NAME, EMIT_FIELD_NAME, EMIT_FIELD_NAME, EMIT_FIELD_NAME,
+            EMIT_FIELD_NAME, EMIT_FIELD_NAME, EMIT_FIELD_NAME, EMIT_FIELD_NAME,
+            EMIT_FIELD_NAME)
+#undef EMIT_FIELD_NAME
+        ;  // NOLINT
+    const char* name = names;
     for (ObjectPtr* p = from; p <= to; p++) {
-      s->WriteRootRef(*p, kObjectStoreFieldNames[p - from]);
+      s->WriteRootRef(*p, name);
+      name += strlen(name) + 1;
     }
 
     FieldTable* initial_field_table =
