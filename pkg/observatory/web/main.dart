@@ -4,7 +4,7 @@
 
 import 'package:web/web.dart';
 import 'package:logging/logging.dart';
-import '../lib/elements.dart';
+import 'package:observatory/elements.dart';
 import 'package:stack_trace/stack_trace.dart';
 
 main() async {

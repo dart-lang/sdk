@@ -90,11 +90,9 @@ ${result.stderr}
     ]);
     final uriCompleter = Completer<String>();
     final uriRegExp = RegExp('Serving `web` on (http://.*)');
-    late StreamSubscription<String> sub;
-    sub = process.stdout.transform(utf8.decoder).listen((e) {
+    final sub = process.stdout.transform(utf8.decoder).listen((e) {
       if (uriRegExp.hasMatch(e)) {
         uriCompleter.complete(uriRegExp.firstMatch(e)!.group(1));
-        sub.cancel();
       }
     });
 
@@ -105,6 +103,11 @@ ${result.stderr}
       Chrome.start(<String>[observatoryUri]);
     }
     await process.exitCode;
+
+    // Don't cancel this stream until the process has exited as it will close
+    // the file descriptor for stdout and cause a crash when webdev tries to
+    // write logs.
+    await sub.cancel();
   }
 
   String _findObservatoryProjectRoot() {
