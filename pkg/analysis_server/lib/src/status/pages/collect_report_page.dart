@@ -166,9 +166,10 @@ class CollectReportPage extends DiagnosticPage {
       for (var cycle in cycles) {
         cycleData[cycle.size] = (cycleData[cycle.size] ?? 0) + 1;
       }
-      var sortedCycleData = <int, int>{};
+      // Json maps need string keys.
+      var sortedCycleData = <String, int>{};
       for (var size in cycleData.keys.toList()..sort()) {
-        sortedCycleData[size] = cycleData[size]!;
+        sortedCycleData['$size'] = cycleData[size]!;
       }
       contextData['libraryCycleData'] = sortedCycleData;
     }
