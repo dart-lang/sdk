@@ -366,7 +366,7 @@ class Enum extends core::_Enum /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::Enum
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "Enum.${this.{core::_Enum::_name}{core::String}}";
 }
 class Enum#1 extends core::_Enum /*isEnum*/  {
@@ -377,7 +377,7 @@ class Enum#1 extends core::_Enum /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::Enum#1
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "Enum#1.${this.{core::_Enum::_name}{core::String}}";
 }
 class Enum#2 extends core::_Enum /*isEnum*/  { // from org-dartlang-testcase:///duplicated_declarations_part.dart
@@ -388,7 +388,7 @@ class Enum#2 extends core::_Enum /*isEnum*/  { // from org-dartlang-testcase:///
   const synthetic constructor •(core::int #index, core::String #name) → self::Enum#2
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "Enum#2.${this.{core::_Enum::_name}{core::String}}";
 }
 class Enum#3 extends core::_Enum /*isEnum*/  { // from org-dartlang-testcase:///duplicated_declarations_part.dart
@@ -399,7 +399,7 @@ class Enum#3 extends core::_Enum /*isEnum*/  { // from org-dartlang-testcase:///
   const synthetic constructor •(core::int #index, core::String #name) → self::Enum#3
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "Enum#3.${this.{core::_Enum::_name}{core::String}}";
 }
 class Enum#4 extends core::_Enum /*isEnum*/  { // from org-dartlang-testcase:///duplicated_declarations_part.dart
@@ -408,7 +408,7 @@ class Enum#4 extends core::_Enum /*isEnum*/  { // from org-dartlang-testcase:///
   const synthetic constructor •(core::int #index, core::String #name) → self::Enum#4
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "Enum#4.${this.{core::_Enum::_name}{core::String}}";
 }
 class AnotherEnum extends core::_Enum /*isEnum*/  {
@@ -422,7 +422,7 @@ class AnotherEnum extends core::_Enum /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::AnotherEnum
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "AnotherEnum.${this.{core::_Enum::_name}{core::String}}";
 }
 static field core::String field;

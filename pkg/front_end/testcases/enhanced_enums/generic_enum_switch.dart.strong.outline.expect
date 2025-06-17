@@ -10,7 +10,7 @@ class Enum<T extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::Enum<self::Enum::T%>
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "Enum.${this.{core::_Enum::_name}{core::String}}";
 }
 static method method1(self::Enum<dynamic> e) → dynamic

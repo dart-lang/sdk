@@ -21,7 +21,7 @@ class E<X extends core::Object? = dynamic, Y extends core::Object? = dynamic> ex
   const constructor named(core::int #index, core::String #name, core::int value) → self::E<self::E::X%, self::E::Y%>
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E.${this.{core::_Enum::_name}{core::String}}";
 }
 static method main() → dynamic {}

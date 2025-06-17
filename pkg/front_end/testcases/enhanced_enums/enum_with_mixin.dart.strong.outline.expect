@@ -11,7 +11,7 @@ class SomeEnum extends self::_SomeEnum&_Enum&HasSomeField /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::SomeEnum
     : super self::_SomeEnum&_Enum&HasSomeField::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "SomeEnum.${this.{core::_Enum::_name}{core::String}}";
   @core::override
   get someField() → core::String
@@ -23,7 +23,7 @@ class NormalEnum extends core::_Enum /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::NormalEnum
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "NormalEnum.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class _SomeEnum&_Enum&HasSomeField = core::_Enum with self::HasSomeField /*isAnonymousMixin,hasConstConstructor*/  {

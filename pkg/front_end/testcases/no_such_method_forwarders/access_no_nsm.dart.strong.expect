@@ -59,7 +59,7 @@ class SubClass2 extends core::Object implements acc::SuperClass {
   synthetic constructor •() → self::SubClass2
     : super core::Object::•()
     ;
-  synthetic no-such-method-forwarder method _inaccessibleMethod1() → void
+  synthetic no-such-method-forwarder method acc::_inaccessibleMethod1() → void
     return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
 }
 class SubClass3 extends self::_SubClass3&Object&SuperClass {
@@ -106,7 +106,7 @@ class SubAbstractSubClass2 extends self::AbstractSubClass2 {
   synthetic constructor •() → self::SubAbstractSubClass2
     : super self::AbstractSubClass2::•()
     ;
-  synthetic no-such-method-forwarder method _inaccessibleMethod1() → void
+  synthetic no-such-method-forwarder method acc::_inaccessibleMethod1() → void
     return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
 }
 class SubAbstractSubClass3 extends self::AbstractSubClass3 {
@@ -118,7 +118,7 @@ abstract class _SubClass3&Object&SuperClass = core::Object with acc::SuperClass 
   const synthetic constructor •() → self::_SubClass3&Object&SuperClass
     : super core::Object::•()
     ;
-  synthetic mixin-super-stub method _inaccessibleMethod1() → void
+  synthetic mixin-super-stub method acc::_inaccessibleMethod1() → void
     return super.{acc::SuperClass::_inaccessibleMethod1}();
   synthetic mixin-super-stub method accessibleMethod() → void
     return super.{acc::SuperClass::accessibleMethod}();
@@ -127,7 +127,7 @@ abstract class _AbstractSubClass3&Object&SuperClass = core::Object with acc::Sup
   const synthetic constructor •() → self::_AbstractSubClass3&Object&SuperClass
     : super core::Object::•()
     ;
-  synthetic mixin-super-stub method _inaccessibleMethod1() → void
+  synthetic mixin-super-stub method acc::_inaccessibleMethod1() → void
     return super.{acc::SuperClass::_inaccessibleMethod1}();
   synthetic mixin-super-stub method accessibleMethod() → void
     return super.{acc::SuperClass::accessibleMethod}();

@@ -8,18 +8,18 @@ import "org-dartlang-testcase:///nsm_covariance_lib.dart";
 abstract class D1 extends core::Object implements nsm::A<core::int>, nsm::B {
   synthetic constructor •() → self::D1
     ;
-  abstract forwarding-stub synthetic method _method1(core::int a, covariant-by-declaration core::int b, covariant-by-class core::int c, covariant-by-declaration covariant-by-class core::int d) → void;
-  abstract forwarding-stub synthetic method _method2({core::int a, covariant-by-declaration core::int b, covariant-by-class core::int c, covariant-by-declaration covariant-by-class core::int d}) → void;
-  abstract forwarding-stub synthetic method _method3(covariant-by-declaration core::int a, covariant-by-class core::int b) → void;
-  abstract forwarding-stub synthetic method _method4({covariant-by-declaration core::int a, covariant-by-class core::int b}) → void;
+  abstract forwarding-stub synthetic method nsm::_method1(core::int a, covariant-by-declaration core::int b, covariant-by-class core::int c, covariant-by-declaration covariant-by-class core::int d) → void;
+  abstract forwarding-stub synthetic method nsm::_method2({core::int a, covariant-by-declaration core::int b, covariant-by-class core::int c, covariant-by-declaration covariant-by-class core::int d}) → void;
+  abstract forwarding-stub synthetic method nsm::_method3(covariant-by-declaration core::int a, covariant-by-class core::int b) → void;
+  abstract forwarding-stub synthetic method nsm::_method4({covariant-by-declaration core::int a, covariant-by-class core::int b}) → void;
 }
 abstract class D2 extends core::Object implements nsm::B, nsm::A<core::int> {
   synthetic constructor •() → self::D2
     ;
-  abstract forwarding-stub synthetic method _method1(core::int x, covariant-by-declaration core::int y, covariant-by-class core::int z, covariant-by-declaration covariant-by-class core::int w) → void;
-  abstract forwarding-stub synthetic method _method2({core::int a, covariant-by-declaration core::int b, covariant-by-class core::int c, covariant-by-declaration covariant-by-class core::int d}) → void;
-  abstract forwarding-stub synthetic method _method3(covariant-by-declaration core::int x, covariant-by-class core::int y) → void;
-  abstract forwarding-stub synthetic method _method4({covariant-by-declaration core::int a, covariant-by-class core::int b}) → void;
+  abstract forwarding-stub synthetic method nsm::_method1(core::int x, covariant-by-declaration core::int y, covariant-by-class core::int z, covariant-by-declaration covariant-by-class core::int w) → void;
+  abstract forwarding-stub synthetic method nsm::_method2({core::int a, covariant-by-declaration core::int b, covariant-by-class core::int c, covariant-by-declaration covariant-by-class core::int d}) → void;
+  abstract forwarding-stub synthetic method nsm::_method3(covariant-by-declaration core::int x, covariant-by-class core::int y) → void;
+  abstract forwarding-stub synthetic method nsm::_method4({covariant-by-declaration core::int a, covariant-by-class core::int b}) → void;
 }
 class D3 extends core::Object implements nsm::A<core::int>, nsm::B {
   synthetic constructor •() → self::D3
@@ -27,13 +27,13 @@ class D3 extends core::Object implements nsm::A<core::int>, nsm::B {
   @core::override
   method noSuchMethod(core::Invocation invocation) → dynamic
     ;
-  synthetic no-such-method-forwarder method _method1(core::int a, covariant-by-declaration core::int b, covariant-by-class core::int c, covariant-by-declaration covariant-by-class core::int d) → void
+  synthetic no-such-method-forwarder method nsm::_method1(core::int a, covariant-by-declaration core::int b, covariant-by-class core::int c, covariant-by-declaration covariant-by-class core::int d) → void
     return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#_method1, 0, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[a, b, c, d]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
-  synthetic no-such-method-forwarder method /* signature-type: ({a: core::int, b: core::int, c: core::int, d: core::int}) → void */ _method2({core::int? a, covariant-by-declaration core::int b, covariant-by-class core::int c, covariant-by-declaration covariant-by-class core::int d}) → void
+  synthetic no-such-method-forwarder method /* signature-type: ({a: core::int, b: core::int, c: core::int, d: core::int}) → void */ nsm::_method2({core::int? a, covariant-by-declaration core::int b, covariant-by-class core::int c, covariant-by-declaration covariant-by-class core::int d}) → void
     return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#_method2, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(<core::Symbol, dynamic>{#a: a, #b: b, #c: c, #d: d})));
-  synthetic no-such-method-forwarder method _method3(covariant-by-declaration core::int a, covariant-by-class core::int b) → void
+  synthetic no-such-method-forwarder method nsm::_method3(covariant-by-declaration core::int a, covariant-by-class core::int b) → void
     return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#_method3, 0, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[a, b]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
-  synthetic no-such-method-forwarder method _method4({covariant-by-declaration core::int a, covariant-by-class core::int b}) → void
+  synthetic no-such-method-forwarder method nsm::_method4({covariant-by-declaration core::int a, covariant-by-class core::int b}) → void
     return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#_method4, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(<core::Symbol, dynamic>{#a: a, #b: b})));
 }
 class D4 extends core::Object implements nsm::B, nsm::A<core::int> {
@@ -42,13 +42,13 @@ class D4 extends core::Object implements nsm::B, nsm::A<core::int> {
   @core::override
   method noSuchMethod(core::Invocation invocation) → dynamic
     ;
-  synthetic no-such-method-forwarder method _method1(core::int x, covariant-by-declaration core::int y, covariant-by-class core::int z, covariant-by-declaration covariant-by-class core::int w) → void
+  synthetic no-such-method-forwarder method nsm::_method1(core::int x, covariant-by-declaration core::int y, covariant-by-class core::int z, covariant-by-declaration covariant-by-class core::int w) → void
     return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#_method1, 0, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[x, y, z, w]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
-  synthetic no-such-method-forwarder method /* signature-type: ({a: core::int, b: core::int, c: core::int, d: core::int}) → void */ _method2({core::int? a, covariant-by-declaration core::int b, covariant-by-class core::int c, covariant-by-declaration covariant-by-class core::int d}) → void
+  synthetic no-such-method-forwarder method /* signature-type: ({a: core::int, b: core::int, c: core::int, d: core::int}) → void */ nsm::_method2({core::int? a, covariant-by-declaration core::int b, covariant-by-class core::int c, covariant-by-declaration covariant-by-class core::int d}) → void
     return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#_method2, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(<core::Symbol, dynamic>{#a: a, #b: b, #c: c, #d: d})));
-  synthetic no-such-method-forwarder method _method3(covariant-by-declaration core::int x, covariant-by-class core::int y) → void
+  synthetic no-such-method-forwarder method nsm::_method3(covariant-by-declaration core::int x, covariant-by-class core::int y) → void
     return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#_method3, 0, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[x, y]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
-  synthetic no-such-method-forwarder method _method4({covariant-by-declaration core::int a, covariant-by-class core::int b}) → void
+  synthetic no-such-method-forwarder method nsm::_method4({covariant-by-declaration core::int a, covariant-by-class core::int b}) → void
     return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#_method4, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(<core::Symbol, dynamic>{#a: a, #b: b})));
 }
 static method main() → dynamic

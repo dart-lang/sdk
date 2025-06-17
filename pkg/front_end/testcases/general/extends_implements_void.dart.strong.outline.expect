@@ -106,7 +106,7 @@ class G extends self::_G&_Enum&void /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::G
     : super self::_G&_Enum&void::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "G.${this.{core::_Enum::_name}{core::String}}";
 }
 class H extends core::_Enum /*isEnum*/  {
@@ -115,7 +115,7 @@ class H extends core::_Enum /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::H
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "H.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class _C&Object&void extends core::Object /*isAnonymousMixin,hasConstConstructor*/  {

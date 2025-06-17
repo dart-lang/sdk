@@ -144,11 +144,24 @@ class DwarfWriteStream : public ValueObject {
   virtual void WritePrefixedLength(const char* symbol_prefix,
                                    std::function<void()> body) = 0;
 
-  virtual void OffsetFromSymbol(intptr_t label, intptr_t offset) = 0;
+  // Generates a relocated address from the given symbol label and offset.
+  //
+  // If no size is provided, the size of the relocated address in the stream
+  // is the native word size.
+  virtual void OffsetFromSymbol(intptr_t label,
+                                intptr_t offset,
+                                size_t size = kAddressSize) = 0;
 
   virtual void InitializeAbstractOrigins(intptr_t size) = 0;
   virtual void RegisterAbstractOrigin(intptr_t index) = 0;
   virtual void AbstractOrigin(intptr_t index) = 0;
+
+ protected:
+#if defined(TARGET_ARCH_IS_32_BIT)
+  static constexpr size_t kAddressSize = kInt32Size;
+#else
+  static constexpr size_t kAddressSize = kInt64Size;
+#endif
 
   DISALLOW_COPY_AND_ASSIGN(DwarfWriteStream);
 };

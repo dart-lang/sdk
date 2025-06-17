@@ -19,6 +19,6 @@ class E extends core::_Enum /*isEnum*/  {
 Try removing the field initializers, or removing the keyword 'external'.
   external const E(this.x);
                         ^";
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E.${this.{core::_Enum::_name}{core::String}}";
 }

@@ -537,6 +537,112 @@ struct cs_code_directory {
   // 8-byte aligned (like blobs) and the hash data is 16-byte aligned.
 };
 
+// Compact unwinding information constants for encodings.
+
+// Architecture-independent constants for encodings.
+
+// A shorthand for the zero-value encoding that denotes that the associated
+// memory space does not contain function instructions.
+static constexpr uint32_t UNWIND_INFO_ENCODING_NONE = 0;
+
+static constexpr uint32_t UNWIND_INFO_ENCODING_IS_NOT_FUNCTION_START =
+    0x80000000;
+static constexpr uint32_t UNWIND_INFO_ENCODING_HAS_LSDA = 0x40000000;
+static constexpr uint32_t UNWIND_INFO_ENCODING_PERSONALITY_MASK = 0x30000000;
+
+// Currently compact unwinding information is only generated for ARM64, so only
+// the constants used by the MachO writer are included below.
+
+// ARM64-specific constants for encodings.
+static constexpr uint32_t UNWIND_INFO_ENCODING_ARM64_MODE_MASK = 0x0F000000;
+
+// A standard ARM64 prologue where FP/LR are immediately pushed on the
+// stack and then SP is copied to FP. If there are any non-volatile
+// registers saved, they are saved in pairs right below the FP/LR pair
+// in register number order.
+//
+// In the MachO writer, this is the only non-zero encoding used and
+// no non-volatile register pairs are recorded as being saved, so
+// the appropriate constants for each pair and for other encodings are elided.
+static constexpr uint32_t UNWIND_INFO_ENCODING_ARM64_MODE_FRAME = 0x04000000;
+
+// Note that fields ending in section_offset are offsets into the unwind info
+// section as a whole, whereas fields ending in page_offset are offsets into
+// the specific second level page (e.g., the page header starts at offset 0).
+
+struct unwind_info_lsda_index {
+  uint32_t function_offset;
+  uint32_t lsda_offset;
+};
+
+struct unwind_info_first_level_page_index {
+  uint32_t function_offset;
+  uint32_t second_level_page_section_offset;
+  uint32_t lsda_index_section_offset;
+};
+
+// Second level pages have two formats: a compressed and a "regular" format.
+// As the Mach-O writer only creates a single second level page with four
+// entries currently, it uses the regular format as it is simpler.
+
+static constexpr uint32_t UNWIND_INFO_REGULAR_SECOND_LEVEL_PAGE = 2;
+
+struct unwind_info_regular_second_level_page_entry {
+  uint32_t function_offset;
+  uint32_t encoding;
+};
+
+struct unwind_info_regular_second_level_page_header {
+  uint32_t kind;  // UNWIND_INFO_REGULAR_SECOND_LEVEL_PAGE
+  uint16_t entry_page_offset;
+  uint16_t entry_count;
+};
+
+static const size_t UNWIND_INFO_SECOND_LEVEL_PAGE_MAX_SIZE = 4 * KB;
+
+static constexpr uint32_t UNWIND_INFO_REGULAR_SECOND_LEVEL_PAGE_MAX_ENTRIES =
+    (UNWIND_INFO_SECOND_LEVEL_PAGE_MAX_SIZE -
+     sizeof(unwind_info_regular_second_level_page_header)) /
+    sizeof(unwind_info_regular_second_level_page_entry);
+
+constexpr size_t UnwindInfoRegularSecondLevelPageSize(intptr_t entries) {
+  return sizeof(unwind_info_regular_second_level_page_header) +
+         sizeof(unwind_info_regular_second_level_page_entry) * entries;
+}
+
+static constexpr uint32_t UNWIND_INFO_VERSION = 1;
+
+struct unwind_info_header {
+  uint32_t version;
+  uint32_t common_encodings_section_offset;
+  uint32_t common_encodings_count;
+  uint32_t personalities_section_offset;
+  uint32_t personalities_count;
+  uint32_t first_level_page_indices_section_offset;
+  uint32_t first_level_page_indices_count;
+
+  // Note that the last first level page indices is a sentinel that contains
+  // the end of the covered space as its function offset and the end
+  // of the lsda array as its lsda_index_section_offset.
+  //
+  // sentinel_index = first_level_page_indices_count - 1
+  //
+  // lsda_size =
+  //    first_level_pages[sentinel_index].lsda_index_section_offset -
+  //    first_level_pages[0].lsda_index_section_offset
+  //
+  // lsda_count = lsda_size / sizeof(unwind_info_lsda_index)
+  // second_level_page_count = sentinel_index;
+
+  // Variadic payload of unwind info section after unwind_info_header:
+  // uint32_t common_encodings[common_encodings_count]
+  // uint32_t personalities[personalities_count]
+  // unwind_info_first_level_page_index
+  //     first_level_pages[first_level_page_indices_count]
+  // unwind_info_lsda_index lsda[lsda_count]
+  // ... regular and compressed second level pages ...
+};
+
 #pragma pack(pop)
 
 }  // namespace mach_o

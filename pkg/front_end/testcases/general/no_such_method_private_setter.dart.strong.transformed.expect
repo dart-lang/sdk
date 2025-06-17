@@ -9,9 +9,9 @@ class Foo extends core::Object implements no_::Bar {
   synthetic constructor •() → self::Foo
     : super core::Object::•()
     ;
-  synthetic no-such-method-forwarder get _x() → core::int
+  synthetic no-such-method-forwarder get no_::_x() → core::int
     return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#C1, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
-  synthetic no-such-method-forwarder set _x(core::int value) → void
+  synthetic no-such-method-forwarder set no_::_x(core::int value) → void
     return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#C5, 2, #C2, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal1<dynamic>(value)), core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
 }
 static method main() → dynamic {

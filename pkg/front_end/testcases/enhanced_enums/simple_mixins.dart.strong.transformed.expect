@@ -22,7 +22,7 @@ class E1 extends self::_E1&_Enum&M1 /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::E1
     : super self::_E1&_Enum&M1::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E1.${this.{core::_Enum::_name}{core::String}}";
 }
 class E2 extends self::_E2&_Enum&M1&M2 /*isEnum*/  {
@@ -32,7 +32,7 @@ class E2 extends self::_E2&_Enum&M1&M2 /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::E2
     : super self::_E2&_Enum&M1&M2::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E2.${this.{core::_Enum::_name}{core::String}}";
 }
 class E3 extends self::_E3&_Enum&M3 /*isEnum*/  {
@@ -42,7 +42,7 @@ class E3 extends self::_E3&_Enum&M3 /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::E3
     : super self::_E3&_Enum&M3::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E3.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class _E1&_Enum&M1 extends core::_Enum implements self::M1 /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {

@@ -21,7 +21,7 @@ class E1 extends core::_Enum /*isEnum*/  {
   const constructor named(core::int #index, core::String #name, core::int value) → self::E1
     : this self::E1::•(#index, #name, value)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E1.${this.{core::_Enum::_name}{core::String}}";
 }
 class E2 extends core::_Enum /*isEnum*/  {
@@ -38,7 +38,7 @@ Try removing the extra positional arguments.
   const E2.named(int value) : this(value, value); // Error.
                                   ^"
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E2.${this.{core::_Enum::_name}{core::String}}";
 }
 static method main() → dynamic

@@ -31,7 +31,7 @@ class A2 extends core::_Enum /*isEnum*/  {
   const constructor •(core::int #index, core::String #name) → self::A2
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "A2.${this.{core::_Enum::_name}{core::String}}";
   static factory named(self::A2 it) → self::A2
     return invalid-expression "pkg/front_end/testcases/extension_types/redirecting_factory_from_enum.dart:17:35: Error: The constructor function type 'E2 Function(A2)' isn't a subtype of 'A2 Function(A2)'.

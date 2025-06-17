@@ -251,7 +251,7 @@ abstract class _A&Object&ListMixin extends core::Object implements col::ListBase
     }
     return false;
   }
-  method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ _closeGap(core::int start, core::int end) → void {
+  method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ col::_closeGap(core::int start, core::int end) → void {
     core::int length = this.{core::List::length}{core::int};
     assert(0.{core::num::<=}(start){(core::num) → core::bool});
     assert(start.{core::num::<}(end){(core::num) → core::bool});
@@ -268,7 +268,7 @@ abstract class _A&Object&ListMixin extends core::Object implements col::ListBase
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ retainWhere((core::int) → core::bool test) → void {
     this.{col::ListBase::_filter}(test, true){((core::int) → core::bool, core::bool) → void};
   }
-  method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ _filter((core::int) → core::bool test, core::bool retainMatching) → void {
+  method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ col::_filter((core::int) → core::bool test, core::bool retainMatching) → void {
     core::List<core::int> retained = core::_GrowableList::•<core::int>(0);
     core::int length = this.{core::List::length}{core::int};
     for (core::int i = 0; i.{core::num::<}(length){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {

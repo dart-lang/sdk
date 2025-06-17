@@ -36,7 +36,7 @@ Try using a constructor or factory that is 'const'.
     ;
   constructor named(core::int #index, core::String #name) → self::E1
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E1.${this.{core::_Enum::_name}{core::String}}";
 }
 class E2 extends core::_Enum /*isEnum*/  {
@@ -53,7 +53,7 @@ class E2 extends core::_Enum /*isEnum*/  {
   const E2.named2() : super(42, \"42\"); // Error.
                       ^"
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E2.${this.{core::_Enum::_name}{core::String}}";
 }
 static method main() → dynamic

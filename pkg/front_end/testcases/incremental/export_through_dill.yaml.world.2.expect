@@ -18,7 +18,7 @@ library from "org-dartlang-test:///lib2.dart" as lib2 {
     const synthetic constructor •(dart.core::int #index, dart.core::String #name) → lib2::Enum
       : super dart.core::_Enum::•(#index, #name)
       ;
-    method _enumToString() → dart.core::String
+    method dart.core::_enumToString() → dart.core::String
       return "Enum.${this.{dart.core::_Enum::_name}{dart.core::String}}";
   }
   abstract class Mixin extends dart.core::Object /*isMixinDeclaration*/  {

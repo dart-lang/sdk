@@ -77,7 +77,7 @@ class E extends core::_Enum /*isEnum*/  {
   const constructor named(core::int #index, core::String #name) → self::E
     : this self::E::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E.${this.{core::_Enum::_name}{core::String}}";
   static factory f() → self::E
     return invalid-expression "pkg/front_end/testcases/enhanced_enums/constructor_calls.dart:8:9: Error: Couldn't find constructor 'E.f'.

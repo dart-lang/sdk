@@ -161,6 +161,7 @@ class Image : ValueObject {
   friend class BlobImageWriter;
   friend class ImageWriter;
   friend class SharedObjectWriter;
+  friend class MachOHeader;  // For kHeaderSize.
 
   DISALLOW_COPY_AND_ASSIGN(Image);
 };

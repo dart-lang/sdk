@@ -21,19 +21,18 @@ main() async {
   final unlinkedDillTxtFile =
       outDir.uri.resolve("dart2js.dart.unlinked dill.txt").toFilePath();
 
-  final executable = Platform.executable;
+  final executable = File(Platform.executable).uri;
+  final executableName = Platform.isWindows ? 'dart.exe' : 'dart';
   late final String platformDill;
-  if (executable.endsWith('ReleaseX64/dart')) {
+  if (executable.path.endsWith('ReleaseX64/$executableName')) {
+    platformDill = executable.resolve('vm_platform.dill').toFilePath();
+  } else if (executable.path.endsWith('dart-sdk/bin/$executableName')) {
     platformDill =
-        Uri.parse(executable).resolve('vm_platform.dill').toFilePath();
-  } else if (executable.endsWith('dart-sdk/bin/dart')) {
-    platformDill =
-        Uri.parse(
-          executable,
-        ).resolve('../lib/_internal/vm_platform.dill').toFilePath();
+        executable.resolve('../lib/_internal/vm_platform.dill').toFilePath();
   } else {
     print(
-      'Skipping test due to not being run .../ReleaseX64/dart or .../dart-sdk/bin/dart.',
+      'Skipping test due to not being run .../ReleaseX64/$executableName '
+      'or .../dart-sdk/bin/$executableName.',
     );
     return;
   }

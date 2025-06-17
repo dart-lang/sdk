@@ -27,7 +27,7 @@ class FooEnum extends core::_Enum /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::FooEnum
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "FooEnum.${this.{core::_Enum::_name}{core::String}}";
 }
 class Keep extends core::Object {

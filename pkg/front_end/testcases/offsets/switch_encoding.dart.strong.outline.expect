@@ -10,7 +10,7 @@ import "dart:core" as core;
 [222]  const synthetic constructor •([222] core::int #index, [222] core::String #name) → self::E
     : [222] super core::_Enum::• [222]([-1] #index, [-1] #name)
 [-1]    ;
-[222]  method _enumToString() → core::String
+[222]  method core::_enumToString() → core::String
 [-1]    return [-1] [-1] "E.${[-1] [-1] [-1] [-1] this.{core::_Enum::_name}{core::String}}";
 }
 [243]class PrimitiveEquals extends core::Object /*hasConstConstructor*/  {

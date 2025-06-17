@@ -45,7 +45,7 @@ class E1 extends core::_Enum /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::E1
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E1.${this.{core::_Enum::_name}{core::String}}";
 }
 class E2<values extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
@@ -54,7 +54,7 @@ class E2<values extends core::Object? = dynamic> extends core::_Enum /*isEnum*/ 
   const synthetic constructor •(core::int #index, core::String #name) → self::E2<self::E2::values%>
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E2.${this.{core::_Enum::_name}{core::String}}";
 }
 class E3<element extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
@@ -63,7 +63,7 @@ class E3<element extends core::Object? = dynamic> extends core::_Enum /*isEnum*/
   const synthetic constructor •(core::int #index, core::String #name) → self::E3<self::E3::element%>
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E3.${this.{core::_Enum::_name}{core::String}}";
 }
 class values extends core::_Enum /*isEnum*/  {
@@ -72,7 +72,7 @@ class values extends core::_Enum /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::values
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "values.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class SuperclassWithEquals extends core::Object {

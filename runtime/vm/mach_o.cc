@@ -11,9 +11,11 @@
 #include "openssl/sha.h"
 #include "platform/mach_o.h"
 #include "platform/unwinding_records.h"
+#include "vm/compiler/runtime_api.h"
 #include "vm/dwarf.h"
 #include "vm/dwarf_so_writer.h"
 #include "vm/hash_map.h"
+#include "vm/image_snapshot.h"
 #include "vm/os.h"
 #include "vm/unwinding_records.h"
 #include "vm/zone_text_buffer.h"
@@ -1758,6 +1760,12 @@ class MachOHeader : public MachOContents {
   void FinalizeCommands();
   void ComputeOffsets();
 
+#if defined(DART_TARGET_OS_MACOS) && defined(TARGET_ARCH_ARM64)
+  void GenerateCompactUnwindingInformation(
+      DwarfSharedObjectStream& stream,
+      const GrowableArray<Dwarf::FrameDescriptionEntry>& fdes);
+#endif
+
   // Returns the symbol table that is included in the output, which
   // may or may not be the full symbol table.
   //
@@ -1931,17 +1939,20 @@ void MachOHeader::Finalize() {
   // debugging information.
   CreateBSS();
 
+  FinalizeDwarfSections();
+
+  // Generate miscellenous load commands needed for the final output.
+  GenerateMiscellaneousCommands();
+
   // Generate appropriate unwinding information for the target platform,
   // for example, unwinding records on Windows.
   GenerateUnwindingInformation();
 
-  FinalizeDwarfSections();
-
-  // Create and initialize the dynamic and static symbol tables.
+  // Initialize both the static and dynamic symbol tables. Calls to methods
+  // that change section numbering (by either adding or reordering sections
+  // and/or segments) after this point must update the section numbers on
+  // section symbols to match.
   InitializeSymbolTables();
-
-  // Generate miscellenous load commands needed for the final output.
-  GenerateMiscellaneousCommands();
 
   // Reorders the added commands as well as adding segments and commands
   // that must appear at the end of the file.
@@ -2086,6 +2097,134 @@ void MachOHeader::CreateBSS() {
   }
 }
 
+#if defined(DART_TARGET_OS_MACOS) && defined(TARGET_ARCH_ARM64)
+void MachOHeader::GenerateCompactUnwindingInformation(
+    DwarfSharedObjectStream& stream,
+    const GrowableArray<Dwarf::FrameDescriptionEntry>& fdes) {
+  // Since we currently generate only regular second level pages, there's
+  // no need for common encodings as those are only used by compressed
+  // second level pages.
+  const intptr_t common_encodings_offset = sizeof(mach_o::unwind_info_header);
+  GrowableArray<uint32_t> common_encodings(zone(), 0);
+
+  const intptr_t personalities_offset =
+      common_encodings_offset + common_encodings.length() * kInt32Size;
+  GrowableArray<uint32_t> personalities(zone(), 0);
+
+  // For N FDEs, we generate 2N entries:
+  // * One at the start of the text section with the none encoding.
+  // * One at the start of each FDE's InstructionsSection payload with
+  //   the frame encoding.
+  // * For all but the last FDE, one at the end of the InstructionsSection
+  //   payload with the none encoding.
+  // No entry is needed for the end of the last FDE, since it is
+  // already recorded as the end of the instructions in the first
+  // page index sentinel entry.
+  const intptr_t second_level_page_entry_count = 2 * fdes.length();
+  const bool second_level_pages_count =
+      (second_level_page_entry_count +
+       (mach_o::UNWIND_INFO_REGULAR_SECOND_LEVEL_PAGE_MAX_ENTRIES - 1)) /
+      mach_o::UNWIND_INFO_REGULAR_SECOND_LEVEL_PAGE_MAX_ENTRIES;
+
+  const intptr_t first_level_page_indices_offset =
+      personalities_offset + personalities.length() * kInt32Size;
+  // There is one first level page index per second level page, plus an
+  // additional first level page index that serves as as a sentinel and
+  // contains the ending offset of the LSDA entries.
+  const intptr_t first_level_page_indices_count = second_level_pages_count + 1;
+
+  // Align the LSDA indices to the target word size, as the first level page
+  // indices are 12 bytes long and so may not end on a word boundary
+  // on 64-bit systems.
+  const intptr_t lsda_indices_offset =
+      Utils::RoundUp(first_level_page_indices_offset +
+                         first_level_page_indices_count *
+                             sizeof(mach_o::unwind_info_first_level_page_index),
+                     compiler::target::kWordSize);
+  GrowableArray<mach_o::unwind_info_lsda_index> lsda_indices(zone(), 0);
+
+  const intptr_t second_level_pages_offset =
+      lsda_indices_offset +
+      lsda_indices.length() * sizeof(mach_o::unwind_info_lsda_index);
+  // We should only generate at most 2 FDEs and thus 4 entries, so there
+  // should only be one second level page that, if placed right after
+  // the other content, is wholly contained in a 4 * KB page.
+  ASSERT_EQUAL(1, second_level_pages_count);
+  const intptr_t second_level_pages_size =
+      mach_o::UnwindInfoRegularSecondLevelPageSize(
+          second_level_page_entry_count);
+  const intptr_t unwind_info_size =
+      second_level_pages_offset + second_level_pages_size;
+  ASSERT(static_cast<size_t>(unwind_info_size) <=
+         mach_o::UNWIND_INFO_SECOND_LEVEL_PAGE_MAX_SIZE);
+
+  stream.u4(mach_o::UNWIND_INFO_VERSION);
+  stream.u4(common_encodings_offset);
+  stream.u4(common_encodings.length());
+  stream.u4(personalities_offset);
+  stream.u4(personalities.length());
+  stream.u4(first_level_page_indices_offset);
+  stream.u4(first_level_page_indices_count);
+
+  ASSERT_EQUAL(common_encodings_offset, stream.Position());
+  for (const auto& encoding : common_encodings) {
+    stream.u4(encoding);
+  }
+
+  ASSERT_EQUAL(personalities_offset, stream.Position());
+  for (const auto& personality : personalities) {
+    stream.u4(personality);
+  }
+
+  ASSERT_EQUAL(first_level_page_indices_offset, stream.Position());
+  ASSERT_EQUAL(2, first_level_page_indices_count);
+  const auto& first_fde = fdes[0];
+  const auto& last_fde = fdes.Last();
+  stream.OffsetFromSymbol(first_fde.label, 0, kInt32Size);
+  stream.u4(second_level_pages_offset);
+  stream.u4(lsda_indices_offset);
+  // Sentinel that includes the end of the function space as the offset
+  // and has an LSDA index offset at the end of the LSDA index array.
+  stream.OffsetFromSymbol(last_fde.label, last_fde.size, kInt32Size);
+  stream.u4(0);  // No second level page.
+  stream.u4(lsda_indices_offset +
+            lsda_indices.length() * sizeof(mach_o::unwind_info_lsda_index));
+
+  stream.Align(compiler::target::kWordSize);
+  ASSERT_EQUAL(lsda_indices_offset, stream.Position());
+  for (const auto& lsda_index : lsda_indices) {
+    stream.u4(lsda_index.function_offset);
+    stream.u4(lsda_index.lsda_offset);
+  }
+
+  ASSERT_EQUAL(second_level_pages_offset, stream.Position());
+  ASSERT_EQUAL(1, second_level_pages_count);
+  stream.u4(mach_o::UNWIND_INFO_REGULAR_SECOND_LEVEL_PAGE);
+  stream.u2(sizeof(mach_o::unwind_info_regular_second_level_page_header));
+  stream.u2(second_level_page_entry_count);
+  // Each instructions image starts with the Image header and the
+  // InstructionsSection header.
+  const intptr_t header_size =
+      Image::kHeaderSize + compiler::target::InstructionsSection::HeaderSize();
+  // There are no instructions until the first InstructionsSection payload.
+  stream.OffsetFromSymbol(fdes[0].label, 0, kInt32Size);
+  stream.u4(mach_o::UNWIND_INFO_ENCODING_NONE);
+  for (intptr_t i = 0, n = fdes.length(); i < n - 1; i++) {
+    const auto& fde = fdes[i];
+    // The payload of the InstructionsSection.
+    stream.OffsetFromSymbol(fde.label, header_size, kInt32Size);
+    stream.u4(mach_o::UNWIND_INFO_ENCODING_ARM64_MODE_FRAME);
+    // The padding (if any) between this Image and the next.
+    stream.OffsetFromSymbol(fde.label, fde.size, kInt32Size);
+    stream.u4(mach_o::UNWIND_INFO_ENCODING_NONE);
+  }
+  // The payload of the last InstructionsSection.
+  stream.OffsetFromSymbol(fdes.Last().label, header_size, kInt32Size);
+  stream.u4(mach_o::UNWIND_INFO_ENCODING_ARM64_MODE_FRAME);
+  ASSERT_EQUAL(unwind_info_size, stream.Position());
+}
+#endif
+
 void MachOHeader::GenerateUnwindingInformation() {
 #if !defined(TARGET_ARCH_IA32)
   // Unwinding information is added to the text segment in Mach-O files.
@@ -2098,42 +2237,50 @@ void MachOHeader::GenerateUnwindingInformation() {
   // the Mach-O loader, we don't actually need to generate the instructions,
   // just use an appropriate zerofill section for it.
   const bool use_zerofill = type_ == SnapshotType::DebugInfo;
-  auto const section_type =
-      use_zerofill ? mach_o::S_ZEROFILL : mach_o::S_REGULAR;
+  const intptr_t alignment = compiler::target::kWordSize;
+  auto add_unwind_section =
+      [&](MachOSegment* segment, const char* sectname,
+          const ZoneWriteStream& stream,
+          const SharedObjectWriter::RelocationArray* relocations = nullptr) {
+        // Not idempotent.
+        ASSERT(segment->FindSection(sectname) == nullptr);
+        auto* const section = new (zone())
+            MachOSection(zone(), sectname,
+                         use_zerofill ? mach_o::S_ZEROFILL : mach_o::S_REGULAR,
+                         mach_o::S_NO_ATTRIBUTES, !use_zerofill, alignment);
+        section->AddPortion(use_zerofill ? nullptr : stream.buffer(),
+                            stream.bytes_written(),
+                            use_zerofill ? nullptr : relocations);
+        segment->AddContents(section);
+      };
 
-#if defined(DART_TARGET_OS_MACOS)
-  // TODO(dartbug.com/60307): Add compact unwind information.
-  USE(section_type);
-#else
   ASSERT(text_segment_ != nullptr);
   if (auto* const text_section =
           text_segment_->FindSection(mach_o::SECT_TEXT)) {
-    ASSERT(use_zerofill || !text_segment_->HasZerofillSections());
-    // Not idempotent.
-    ASSERT(text_segment_->FindSection(mach_o::SECT_EH_FRAME) == nullptr);
-
-    // For the __eh_frame section, the easiest way to determine the size is to
-    // generate the contents and just discard them if using zerofill.
+    // Generate the DWARF FDEs even for MacOS, because the same information
+    // is used to create the compact unwinding info.
     GrowableArray<Dwarf::FrameDescriptionEntry> fdes(zone_, 0);
     for (const auto& portion : text_section->portions()) {
       ASSERT(portion.label != 0);
       fdes.Add({portion.label, portion.size});
     }
 
+    // Even if the unwinding information is not written to the output, it is
+    // generated so a zerofill section of the appropriate size can be created.
     ZoneWriteStream stream(zone(), DwarfSharedObjectStream::kInitialBufferSize);
-    DwarfSharedObjectStream dwarf_stream(zone_, &stream);
-    Dwarf::WriteCallFrameInformationRecords(&dwarf_stream, fdes);
+    DwarfSharedObjectStream dwarf_stream(zone(), &stream);
 
-    auto* const eh_frame = new (zone())
-        MachOSection(zone(), mach_o::SECT_EH_FRAME, section_type,
-                     mach_o::S_NO_ATTRIBUTES, /*has_contents=*/!use_zerofill,
-                     /*alignment=*/compiler::target::kWordSize);
-    eh_frame->AddPortion(use_zerofill ? nullptr : dwarf_stream.buffer(),
-                         dwarf_stream.bytes_written(),
-                         use_zerofill ? nullptr : dwarf_stream.relocations());
-    text_segment_->AddContents(eh_frame);
+#if defined(DART_TARGET_OS_MACOS) && defined(TARGET_ARCH_ARM64)
+    GenerateCompactUnwindingInformation(dwarf_stream, fdes);
+    auto* const sectname = mach_o::SECT_UNWIND_INFO;
+#else
+    Dwarf::WriteCallFrameInformationRecords(&dwarf_stream, fdes);
+    auto* const sectname = mach_o::SECT_EH_FRAME;
+#endif
+
+    add_unwind_section(text_segment_, sectname, stream,
+                       dwarf_stream.relocations());
   }
-#endif  // defined(DART_TARGET_OS_MACOS)
 
 #if defined(UNWINDING_RECORDS_WINDOWS_PRECOMPILER)
   // Append Windows unwinding instructions as a __unwind_info section at
@@ -2141,32 +2288,20 @@ void MachOHeader::GenerateUnwindingInformation() {
   for (auto* const command : commands_) {
     if (auto* const segment = command->AsMachOSegment()) {
       if (segment->IsExecutable()) {
+        // Only more zerofill sections can come after zerofill sections, and
+        // the unwinding instructions cover the entire executable segment up
+        // to the unwinding instructions including zerofill sections.
         ASSERT(use_zerofill || !segment->HasZerofillSections());
-        // Not idempotent.
-        ASSERT(segment->FindSection(mach_o::SECT_UNWIND_INFO) == nullptr);
-
-        auto* const unwinding_records = new (zone()) MachOSection(
-            zone(), mach_o::SECT_UNWIND_INFO, section_type,
-            mach_o::S_NO_ATTRIBUTES,
-            /*has_contents=*/!use_zerofill, compiler::target::kWordSize);
         const intptr_t records_size = UnwindingRecordsPlatform::SizeInBytes();
-        const intptr_t section_start = Utils::RoundUp(
-            segment->UnpaddedMemorySize(), unwinding_records->Alignment());
-        const uint8_t* bytes = nullptr;
-        if (!use_zerofill) {
-          ZoneWriteStream stream(zone(), /*initial_size=*/records_size);
-          uint8_t* unwinding_instructions =
-              zone()->Alloc<uint8_t>(records_size);
-          stream.WriteBytes(UnwindingRecords::GenerateRecordsInto(
-                                section_start, unwinding_instructions),
-                            records_size);
-          ASSERT_EQUAL(records_size, stream.Position());
-          bytes = stream.buffer();
-        }
-        unwinding_records->AddPortion(bytes, records_size);
-        segment->AddContents(unwinding_records);
-        ASSERT_EQUAL(section_start + records_size,
-                     segment->UnpaddedMemorySize());
+        ZoneWriteStream stream(zone(), /*initial_size=*/records_size);
+        uint8_t* unwinding_instructions = zone()->Alloc<uint8_t>(records_size);
+        const intptr_t section_start =
+            Utils::RoundUp(segment->UnpaddedMemorySize(), alignment);
+        stream.WriteBytes(UnwindingRecords::GenerateRecordsInto(
+                              section_start, unwinding_instructions),
+                          records_size);
+        ASSERT_EQUAL(records_size, stream.Position());
+        add_unwind_section(segment, mach_o::SECT_UNWIND_INFO, stream);
       }
     }
   }
