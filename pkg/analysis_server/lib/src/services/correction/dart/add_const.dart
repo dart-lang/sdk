@@ -182,7 +182,7 @@ class AddConst extends ResolvedCorrectionProducer {
             error.diagnosticCode == LinterLintCode.prefer_const_constructors,
       ),
     ];
-    var ranges = diagnostics.map(range.error);
+    var ranges = diagnostics.map(range.diagnostic);
     var variablesRanges = variables.map((v) {
       var initializer = v.initializer;
       if (initializer == null) return range.node(v);

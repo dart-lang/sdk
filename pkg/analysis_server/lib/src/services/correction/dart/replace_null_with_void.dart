@@ -27,7 +27,7 @@ class ReplaceNullWithVoid extends ResolvedCorrectionProducer {
     var diagnostic = this.diagnostic;
     if (diagnostic is Diagnostic) {
       await builder.addDartFileEdit(file, (builder) {
-        builder.addSimpleReplacement(range.error(diagnostic), 'void');
+        builder.addSimpleReplacement(range.diagnostic(diagnostic), 'void');
       });
     }
   }
