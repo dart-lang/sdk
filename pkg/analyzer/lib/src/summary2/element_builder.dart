@@ -150,7 +150,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       var libraryRef = _libraryBuilder.reference;
       var containerRef = libraryRef.getChild('@class');
       var elementReference = containerRef.addChild(refName);
-      var element = ClassElementImpl2(elementReference, fragment);
+      var element = ClassElementImpl(elementReference, fragment);
       _libraryBuilder.element.classes.add(element);
 
       elementBuilder = ClassElementBuilder(
@@ -224,7 +224,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       var libraryRef = _libraryBuilder.reference;
       var containerRef = libraryRef.getChild('@class');
       var elementReference = containerRef.addChild(refName);
-      var element = ClassElementImpl2(elementReference, fragment);
+      var element = ClassElementImpl(elementReference, fragment);
       _libraryBuilder.element.classes.add(element);
 
       elementBuilder = ClassElementBuilder(
@@ -301,7 +301,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var containerRef = containerElement.reference!.getChild('@constructor');
     var elementReference = containerRef.addChild(fragment.name2);
 
-    ConstructorElementImpl2(
+    ConstructorElementImpl(
       name3: fragment.name2,
       reference: elementReference,
       firstFragment: fragment,
@@ -352,7 +352,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       var libraryRef = _libraryBuilder.reference;
       var containerRef = libraryRef.getChild('@enum');
       var elementReference = containerRef.addChild(refName);
-      var element = EnumElementImpl2(elementReference, fragment);
+      var element = EnumElementImpl(elementReference, fragment);
       _libraryBuilder.element.enums.add(element);
 
       elementBuilder = EnumElementBuilder(
@@ -454,7 +454,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       );
       valuesNames.add(name);
 
-      FieldElementImpl2(
+      FieldElementImpl(
         reference: elementBuilder.element.reference
             .getChild('@field')
             .addChild(refName),
@@ -515,7 +515,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     holder.addNonSyntheticField('values', valuesField);
 
-    FieldElementImpl2(
+    FieldElementImpl(
       reference: elementBuilder.element.reference
           .getChild('@field')
           .addChild('values'),
@@ -600,7 +600,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         var elementReference = _libraryBuilder.reference
             .getChild('@extension')
             .addChild(refName);
-        var element = ExtensionElementImpl2(elementReference, fragment);
+        var element = ExtensionElementImpl(elementReference, fragment);
         _libraryBuilder.element.extensions.add(element);
 
         elementBuilder = ExtensionElementBuilder(
@@ -613,7 +613,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       var elementReference = _libraryBuilder.reference
           .getChild('@extension')
           .addChild(refName);
-      var element = ExtensionElementImpl2(elementReference, fragment);
+      var element = ExtensionElementImpl(elementReference, fragment);
       _libraryBuilder.element.extensions.add(element);
       elementBuilder = ExtensionElementBuilder(
         firstFragment: fragment,
@@ -680,7 +680,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       var libraryRef = _libraryBuilder.reference;
       var containerRef = libraryRef.getChild('@extensionType');
       var elementReference = containerRef.addChild(refName);
-      var element = ExtensionTypeElementImpl2(elementReference, fragment);
+      var element = ExtensionTypeElementImpl(elementReference, fragment);
       _libraryBuilder.element.extensionTypes.add(element);
 
       elementBuilder = ExtensionTypeElementBuilder(
@@ -781,7 +781,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       var containerRef = containerElement.reference!.getChild('@field');
       var elementReference = containerRef.addChild(refName);
 
-      FieldElementImpl2(reference: elementReference, firstFragment: fragment);
+      FieldElementImpl(reference: elementReference, firstFragment: fragment);
     }
     _buildType(node.fields.type);
   }
@@ -1031,7 +1031,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       var libraryRef = _libraryBuilder.reference;
       var containerRef = libraryRef.getChild('@typeAlias');
       var elementReference = containerRef.addChild(refName);
-      var element = TypeAliasElementImpl2(elementReference, fragment);
+      var element = TypeAliasElementImpl(elementReference, fragment);
       _libraryBuilder.element.typeAliases.add(element);
 
       elementBuilder = TypeAliasElementBuilder(
@@ -1179,7 +1179,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       var libraryRef = _libraryBuilder.reference;
       var containerRef = libraryRef.getChild('@typeAlias');
       var elementReference = containerRef.addChild(refName);
-      var element = TypeAliasElementImpl2(elementReference, fragment);
+      var element = TypeAliasElementImpl(elementReference, fragment);
       _libraryBuilder.element.typeAliases.add(element);
 
       elementBuilder = TypeAliasElementBuilder(
@@ -1309,7 +1309,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       var containerRef = containerElement.reference!.getChild('@method');
       var elementReference = containerRef.addChild(refName);
 
-      MethodElementImpl2(
+      MethodElementImpl(
         name3: fragment.name2,
         reference: elementReference,
         firstFragment: fragment,
@@ -1375,7 +1375,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       var libraryRef = _libraryBuilder.reference;
       var containerRef = libraryRef.getChild('@mixin');
       var elementReference = containerRef.addChild(refName);
-      var element = MixinElementImpl2(elementReference, fragment);
+      var element = MixinElementImpl(elementReference, fragment);
       _libraryBuilder.element.mixins.add(element);
 
       elementBuilder = MixinElementBuilder(
@@ -1643,7 +1643,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         var elementReference = _libraryBuilder.reference
             .getChild('@topLevelVariable')
             .addChild(refName);
-        var element = TopLevelVariableElementImpl2(elementReference, fragment);
+        var element = TopLevelVariableElementImpl(elementReference, fragment);
         _libraryBuilder.element.topLevelVariables.add(element);
 
         elementBuilder = TopLevelVariableElementBuilder(
@@ -1721,7 +1721,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   /// The [accessorElement] should not be an augmentation.
-  PropertyInducingElementImpl _buildSyntheticVariable({
+  PropertyInducingFragmentImpl _buildSyntheticVariable({
     required String name,
     required PropertyAccessorFragmentImpl accessorElement,
   }) {
@@ -1729,12 +1729,12 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var enclosingRef = _enclosingContext.fragmentReference;
     var enclosingElement = _enclosingContext.fragment;
 
-    bool canUseExisting(PropertyInducingElementImpl property) {
+    bool canUseExisting(PropertyInducingFragmentImpl property) {
       return property.isSynthetic ||
           accessorElement.isSetter && property.setter == null;
     }
 
-    PropertyInducingElementImpl? property;
+    PropertyInducingFragmentImpl? property;
     if (enclosingElement is LibraryFragmentImpl) {
       // Try to find the variable to attach the accessor.
       var containerRef = enclosingRef.getChild('@topLevelVariable');
@@ -1761,7 +1761,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         var variableElementReference = _libraryBuilder.reference
             .getChild('@topLevelVariable')
             .addChild(refName);
-        var variableElement = TopLevelVariableElementImpl2(
+        var variableElement = TopLevelVariableElementImpl(
           variableElementReference,
           variable,
         );
@@ -1789,7 +1789,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
                   ..isSynthetic = true;
         _enclosingContext.addFieldSynthetic(reference, field);
 
-        FieldElementImpl2(
+        FieldElementImpl(
           reference: _enclosingContext
               .instanceElementBuilder!
               .element
@@ -1842,7 +1842,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _linker.elementNodes[fieldFragment] = representation;
     _enclosingContext.addNonSyntheticField(fieldName, fieldFragment);
 
-    FieldElementImpl2(
+    FieldElementImpl(
       reference: extensionFragment.element.reference
           .getChild('@field')
           .addChild(fieldName),
@@ -1913,10 +1913,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       var containerElement = containerBuilder.element;
       var containerRef = containerElement.reference!.getChild('@constructor');
       var elementReference = containerRef.addChild(
-        extensionFragment.name2 ?? 'new',
+        constructorFragment.name2,
       );
 
-      ConstructorElementImpl2(
+      ConstructorElementImpl(
         name3: constructorFragment.name2,
         reference: elementReference,
         firstFragment: constructorFragment,

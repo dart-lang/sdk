@@ -490,10 +490,10 @@ abstract class _FindElementBase {
     return topVar(name).setter2!;
   }
 
-  TopLevelVariableElementImpl2 topVar(String name) {
+  TopLevelVariableElementImpl topVar(String name) {
     for (var variable in libraryElement.topLevelVariables) {
       if (variable.name3 == name) {
-        return variable as TopLevelVariableElementImpl2;
+        return variable as TopLevelVariableElementImpl;
       }
     }
     throw StateError('Not found: $name');

@@ -580,7 +580,7 @@ class MemberDuplicateDefinitionVerifier {
     }
 
     // Fields define getters and setters, so check them separately.
-    if (element is PropertyInducingElementImpl) {
+    if (element is PropertyInducingFragmentImpl) {
       _checkDuplicateIdentifier(
         getterScope,
         identifier,

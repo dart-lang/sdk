@@ -18,7 +18,7 @@ class ConstructorInitializerResolver {
 
   void resolve() {
     var libraryElement = _libraryBuilder.element;
-    var interfaceElements = <InterfaceElementImpl2>[
+    var interfaceElements = <InterfaceElementImpl>[
       ...libraryElement.classes,
       ...libraryElement.enums,
       ...libraryElement.extensionTypes,
@@ -33,8 +33,8 @@ class ConstructorInitializerResolver {
   }
 
   void _constructorElement(
-    InterfaceElementImpl2 interfaceElement,
-    ConstructorElementImpl2 element,
+    InterfaceElementImpl interfaceElement,
+    ConstructorElementImpl element,
   ) {
     if (element.isSynthetic) return;
 

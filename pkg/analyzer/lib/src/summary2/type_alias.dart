@@ -88,7 +88,7 @@ class _Finder {
 
     if (node is NamedType) {
       var element = node.element2;
-      if (element is! ElementImpl2) {
+      if (element is! ElementImpl) {
         return;
       }
 

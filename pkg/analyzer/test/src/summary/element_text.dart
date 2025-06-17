@@ -213,7 +213,7 @@ abstract class _AbstractElementWriter {
     node.accept(_createAstPrinter());
   }
 
-  void _writeReference(ElementImpl2 e) {
+  void _writeReference(ElementImpl e) {
     if (!configuration.withReferences) {
       return;
     }
@@ -344,7 +344,7 @@ class _Element2Writer extends _AbstractElementWriter {
   }
 
   void _writeConstructorElement(ConstructorElement e) {
-    e as ConstructorElementImpl2;
+    e as ConstructorElementImpl;
 
     // Check that the reference exists, and filled with the element.
     // var reference = e.reference;
@@ -380,7 +380,7 @@ class _Element2Writer extends _AbstractElementWriter {
       var superConstructor = e.superConstructor2;
       if (superConstructor != null) {
         var enclosingElement = superConstructor.enclosingElement;
-        if (enclosingElement is ClassElementImpl2 &&
+        if (enclosingElement is ClassElementImpl &&
             !enclosingElement.isDartCoreObject) {
           _writeElementReference('superConstructor', superConstructor);
         }
@@ -533,7 +533,7 @@ class _Element2Writer extends _AbstractElementWriter {
     }
   }
 
-  void _writeFieldElement(FieldElementImpl2 e) {
+  void _writeFieldElement(FieldElementImpl e) {
     e as FieldElement2OrMember;
     DartType type = e.type;
     expect(type, isNotNull);
@@ -680,7 +680,7 @@ class _Element2Writer extends _AbstractElementWriter {
         _sink.write('optionalNamed ');
       }
 
-      if (e is ConstVariableElement) {
+      if (e is ConstVariableFragment) {
         _sink.write('default ');
       }
 
@@ -742,7 +742,7 @@ class _Element2Writer extends _AbstractElementWriter {
       //   _sink.write('optionalNamed ');
       // }
 
-      if (f is ConstVariableElement) {
+      if (f is ConstVariableFragment) {
         _sink.write('default ');
       }
 
@@ -1071,7 +1071,7 @@ class _Element2Writer extends _AbstractElementWriter {
     }
   }
 
-  void _writeInstanceElement(InstanceElementImpl2 e) {
+  void _writeInstanceElement(InstanceElementImpl e) {
     expect(e.thisOrAncestorOfType2<InstanceElement>(), same(e));
     expect(e.thisOrAncestorOfType2<GetterElement>(), isNull);
     expect(e.thisOrAncestorMatching2((_) => true), same(e));
@@ -1079,7 +1079,7 @@ class _Element2Writer extends _AbstractElementWriter {
 
     _sink.writeIndentedLine(() {
       switch (e) {
-        case ClassElementImpl2():
+        case ClassElementImpl():
           _sink.writeIf(e.isAbstract, 'abstract ');
           _sink.writeIf(e.isSealed, 'sealed ');
           _sink.writeIf(e.isBase, 'base ');
@@ -1089,12 +1089,12 @@ class _Element2Writer extends _AbstractElementWriter {
           _sink.writeIf(e.isMixinClass, 'mixin ');
           _sink.write('class ');
           _sink.writeIf(e.isMixinApplication, 'alias ');
-        case EnumElementImpl2():
+        case EnumElementImpl():
           _writeNotSimplyBounded(e);
           _sink.write('enum ');
-        case ExtensionElementImpl2():
+        case ExtensionElementImpl():
           _sink.write('extension ');
-        case ExtensionTypeElementImpl2():
+        case ExtensionTypeElementImpl():
           _sink.writeIf(
             e.hasRepresentationSelfReference,
             'hasRepresentationSelfReference ',
@@ -1105,7 +1105,7 @@ class _Element2Writer extends _AbstractElementWriter {
           );
           _writeNotSimplyBounded(e);
           _sink.write('extension type ');
-        case MixinElementImpl2():
+        case MixinElementImpl():
           _sink.writeIf(e.isBase, 'base ');
           _writeNotSimplyBounded(e);
           _sink.write('mixin ');
@@ -1136,17 +1136,17 @@ class _Element2Writer extends _AbstractElementWriter {
       }
 
       switch (e) {
-        case ClassElementImpl2():
+        case ClassElementImpl():
           writeSupertype(e);
           _elementPrinter.writeTypeList('mixins', e.mixins);
           _elementPrinter.writeTypeList('interfaces', e.interfaces);
-        case EnumElementImpl2():
+        case EnumElementImpl():
           writeSupertype(e);
           _elementPrinter.writeTypeList('mixins', e.mixins);
           _elementPrinter.writeTypeList('interfaces', e.interfaces);
-        case ExtensionElementImpl2():
+        case ExtensionElementImpl():
           break;
-        case ExtensionTypeElementImpl2():
+        case ExtensionTypeElementImpl():
           expect(e.supertype, isNull);
           _elementPrinter.writeNamedElement2(
             'representation',
@@ -1158,7 +1158,7 @@ class _Element2Writer extends _AbstractElementWriter {
           );
           _elementPrinter.writeNamedType('typeErasure', e.typeErasure);
           _elementPrinter.writeTypeList('interfaces', e.interfaces);
-        case MixinElementImpl2():
+        case MixinElementImpl():
           expect(e.supertype, isNull);
           _elementPrinter.writeTypeList(
             'superclassConstraints',
@@ -1170,15 +1170,15 @@ class _Element2Writer extends _AbstractElementWriter {
           throw UnimplementedError('${e.runtimeType}');
       }
 
-      if (configuration.withAllSupertypes && e is InterfaceElementImpl2) {
+      if (configuration.withAllSupertypes && e is InterfaceElementImpl) {
         var sorted = e.allSupertypes.sortedBy((t) => t.element3.name3!);
         _elementPrinter.writeTypeList('allSupertypes', sorted);
       }
 
       _writeElementList('fields', e, e.fields, _writeFieldElement);
-      if (e is InterfaceElementImpl2) {
+      if (e is InterfaceElementImpl) {
         var constructors = e.constructors;
-        if (e is MixinElementImpl2) {
+        if (e is MixinElementImpl) {
           expect(constructors, isEmpty);
         } else if (configuration.withConstructors) {
           _writeElementList(
@@ -1385,7 +1385,7 @@ class _Element2Writer extends _AbstractElementWriter {
     }
   }
 
-  void _writeMethodElement(MethodElementImpl2 e) {
+  void _writeMethodElement(MethodElementImpl e) {
     _sink.writeIndentedLine(() {
       _sink.writeIf(e.isSynthetic, 'synthetic ');
       _sink.writeIf(e.isStatic, 'static ');
@@ -1489,7 +1489,7 @@ class _Element2Writer extends _AbstractElementWriter {
     _writeList('combinators', elements, _writeNamespaceCombinator);
   }
 
-  void _writeNotSimplyBounded(InterfaceElementImpl2 e) {
+  void _writeNotSimplyBounded(InterfaceElementImpl e) {
     _sink.writeIf(!e.isSimplyBounded, 'notSimplyBounded ');
   }
 
@@ -1511,7 +1511,7 @@ class _Element2Writer extends _AbstractElementWriter {
     });
   }
 
-  void _writePrefixElement(PrefixElementImpl2 e) {
+  void _writePrefixElement(PrefixElementImpl e) {
     _sink.writeIndent();
     _elementPrinter.writeElement2(e);
 
@@ -1748,7 +1748,7 @@ class _Element2Writer extends _AbstractElementWriter {
     // _assertNonSyntheticElementSelf(f);
   }
 
-  void _writeTopLevelVariableElement(TopLevelVariableElementImpl2 e) {
+  void _writeTopLevelVariableElement(TopLevelVariableElementImpl e) {
     DartType type = e.type;
     expect(type, isNotNull);
 

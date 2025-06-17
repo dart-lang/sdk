@@ -107,7 +107,7 @@ class MethodInvocationResolver with ScopeHelpers {
 
     if (receiver is SimpleIdentifierImpl) {
       var receiverElement = receiver.element;
-      if (receiverElement is PrefixElementImpl2) {
+      if (receiverElement is PrefixElementImpl) {
         return _resolveReceiverPrefix(
           node,
           receiverElement,
@@ -121,7 +121,7 @@ class MethodInvocationResolver with ScopeHelpers {
 
     if (receiver is IdentifierImpl) {
       var receiverElement = receiver.element;
-      if (receiverElement is ExtensionElementImpl2) {
+      if (receiverElement is ExtensionElementImpl) {
         return _resolveExtensionMember(
           node,
           receiver,
@@ -503,7 +503,7 @@ class MethodInvocationResolver with ScopeHelpers {
   FunctionExpressionInvocationImpl? _resolveExtensionMember(
     MethodInvocationImpl node,
     Identifier receiver,
-    ExtensionElementImpl2 extension,
+    ExtensionElementImpl extension,
     SimpleIdentifierImpl nameNode,
     String name,
     List<WhyNotPromotedGetter> whyNotPromotedArguments, {
@@ -883,7 +883,7 @@ class MethodInvocationResolver with ScopeHelpers {
   /// process, then returns that new node. Otherwise, returns `null`.
   FunctionExpressionInvocationImpl? _resolveReceiverPrefix(
     MethodInvocationImpl node,
-    PrefixElementImpl2 prefix,
+    PrefixElementImpl prefix,
     SimpleIdentifierImpl nameNode,
     String name,
     List<WhyNotPromotedGetter> whyNotPromotedArguments, {
@@ -1291,7 +1291,7 @@ class MethodInvocationResolver with ScopeHelpers {
     // The dot shorthand is a constructor invocation so we rewrite to a
     // [DotShorthandConstructorInvocation].
     if (receiver.getNamedConstructor2(name)
-        case ConstructorElementImpl2 element?
+        case ConstructorElementImpl element?
         when element.isAccessibleIn2(_resolver.definingLibrary)) {
       var replacement = DotShorthandConstructorInvocationImpl(
         constKeyword: null,

@@ -305,8 +305,8 @@ abstract class ElementLinkedData<E> {
       _readTypeParameters(reader, parameter.typeParameters);
       _readFormalParameters(reader, parameter.parameters);
       parameter.type = reader.readRequiredType();
-      if (parameter is ConstVariableElement) {
-        var defaultParameter = parameter as ConstVariableElement;
+      if (parameter is ConstVariableFragment) {
+        var defaultParameter = parameter as ConstVariableFragment;
         var initializer = reader._readOptionalExpression();
         if (initializer != null) {
           defaultParameter.constantInitializer = initializer;
@@ -687,10 +687,10 @@ class LibraryReader {
 
     var fragment = ClassFragmentImpl(name2: fragmentName, nameOffset: -1);
 
-    if (reference2.element2 case ClassElementImpl2 element?) {
+    if (reference2.element2 case ClassElementImpl element?) {
       fragment.augmentedInternal = element;
     } else {
-      var element = ClassElementImpl2(reference2, fragment);
+      var element = ClassElementImpl(reference2, fragment);
       _libraryElement.classes.add(element);
     }
 
@@ -776,7 +776,7 @@ class LibraryReader {
       ConstructorElementFlags.read(_reader, element);
       element.parameters = _readParameters();
 
-      ConstructorElementImpl2(
+      ConstructorElementImpl(
         name3: element.name2,
         reference: reference2,
         firstFragment: element,
@@ -870,10 +870,10 @@ class LibraryReader {
 
     var fragment = EnumFragmentImpl(name2: fragmentName, nameOffset: -1);
 
-    if (reference2.element2 case EnumElementImpl2 element?) {
+    if (reference2.element2 case EnumElementImpl element?) {
       fragment.augmentedInternal = element;
     } else {
-      var element = EnumElementImpl2(reference2, fragment);
+      var element = EnumElementImpl(reference2, fragment);
       _libraryElement.enums.add(element);
     }
 
@@ -957,10 +957,10 @@ class LibraryReader {
 
     var fragment = ExtensionFragmentImpl(name2: fragmentName, nameOffset: -1);
 
-    if (reference2.element2 case ExtensionElementImpl2 element?) {
+    if (reference2.element2 case ExtensionElementImpl element?) {
       fragment.augmentedInternal = element;
     } else {
-      var element = ExtensionElementImpl2(reference2, fragment);
+      var element = ExtensionElementImpl(reference2, fragment);
       _libraryElement.extensions.add(element);
     }
 
@@ -1024,10 +1024,10 @@ class LibraryReader {
       nameOffset: -1,
     );
 
-    if (reference2.element2 case ExtensionTypeElementImpl2 element?) {
+    if (reference2.element2 case ExtensionTypeElementImpl element?) {
       fragment.augmentedInternal = element;
     } else {
-      var element = ExtensionTypeElementImpl2(reference2, fragment);
+      var element = ExtensionTypeElementImpl(reference2, fragment);
       _libraryElement.extensionTypes.add(element);
     }
 
@@ -1126,7 +1126,7 @@ class LibraryReader {
       }
     }
 
-    FieldElementImpl2(reference: reference2, firstFragment: element);
+    FieldElementImpl(reference: reference2, firstFragment: element);
 
     return element;
   }
@@ -1250,9 +1250,9 @@ class LibraryReader {
         isDeferred: isDeferred,
       );
 
-      var element = reference.element2 as PrefixElementImpl2?;
+      var element = reference.element2 as PrefixElementImpl?;
       if (element == null) {
-        element = PrefixElementImpl2(
+        element = PrefixElementImpl(
           reference: reference,
           firstFragment: fragment,
         );
@@ -1289,7 +1289,7 @@ class LibraryReader {
       fragment.parameters = _readParameters();
       fragment.typeInferenceError = _readTopLevelInferenceError();
 
-      MethodElementImpl2(
+      MethodElementImpl(
         name3: fragmentName,
         reference: reference2,
         firstFragment: fragment,
@@ -1312,10 +1312,10 @@ class LibraryReader {
 
     var fragment = MixinFragmentImpl(name2: fragmentName, nameOffset: -1);
 
-    if (reference2.element2 case MixinElementImpl2 element?) {
+    if (reference2.element2 case MixinElementImpl element?) {
       fragment.augmentedInternal = element;
     } else {
-      var element = MixinElementImpl2(reference2, fragment);
+      var element = MixinElementImpl(reference2, fragment);
       _libraryElement.mixins.add(element);
     }
 
@@ -1494,9 +1494,9 @@ class LibraryReader {
     Reference enclosingReference,
     List<GetterFragmentImpl> gettersFragments,
     List<SetterFragmentImpl> settersFragments,
-    List<PropertyInducingElementImpl> propertyFragments,
+    List<PropertyInducingFragmentImpl> propertyFragments,
     String containerRefName, {
-    List<TopLevelVariableElementImpl2>? variables2,
+    List<TopLevelVariableElementImpl>? variables2,
   }) {
     var accessorCount = _reader.readUInt30();
     for (var i = 0; i < accessorCount; i++) {
@@ -1520,12 +1520,12 @@ class LibraryReader {
       var propertyFragmentReference = _readReference();
       var propertyElementReference = _readReference();
 
-      bool canUseExisting(PropertyInducingElementImpl property) {
+      bool canUseExisting(PropertyInducingFragmentImpl property) {
         return property.isSynthetic ||
             accessor.isSetter && property.setter == null;
       }
 
-      PropertyInducingElementImpl propertyFragment;
+      PropertyInducingFragmentImpl propertyFragment;
       var existing = propertyFragmentReference.element;
       if (enclosingElement is LibraryFragmentImpl) {
         if (existing is TopLevelVariableFragmentImpl &&
@@ -1544,7 +1544,7 @@ class LibraryReader {
           propertyFragmentReference.element ??= propertyFragment;
           propertyFragments.add(variableFragment);
 
-          var variableElement = TopLevelVariableElementImpl2(
+          var variableElement = TopLevelVariableElementImpl(
             propertyElementReference,
             variableFragment,
           );
@@ -1568,7 +1568,7 @@ class LibraryReader {
           propertyFragmentReference.element ??= propertyFragment;
           propertyFragments.add(propertyFragment);
 
-          FieldElementImpl2(
+          FieldElementImpl(
             reference: propertyElementReference,
             firstFragment: fieldFragment,
           );
@@ -1632,10 +1632,10 @@ class LibraryReader {
       );
     }
 
-    if (reference2.element2 case TopLevelVariableElementImpl2 element) {
+    if (reference2.element2 case TopLevelVariableElementImpl element) {
       fragment.element = element;
     } else {
-      var element = TopLevelVariableElementImpl2(reference2, fragment);
+      var element = TopLevelVariableElementImpl(reference2, fragment);
       _libraryElement.topLevelVariables.add(element);
     }
 
@@ -1706,10 +1706,10 @@ class LibraryReader {
       fragment = TypeAliasFragmentImpl(name2: fragmentName, nameOffset: -1);
     }
 
-    if (reference2.element2 case TypeAliasElementImpl2 element) {
+    if (reference2.element2 case TypeAliasElementImpl element) {
       fragment.element = element;
     } else {
-      var element = TypeAliasElementImpl2(reference2, fragment);
+      var element = TypeAliasElementImpl(reference2, fragment);
       _libraryElement.typeAliases.add(element);
     }
 
@@ -1963,14 +1963,14 @@ class ResolutionReader {
       case ElementTag.null_:
         return null;
       case ElementTag.dynamic_:
-        return DynamicElementImpl2.instance;
+        return DynamicElementImpl.instance;
       case ElementTag.never_:
-        return NeverElementImpl2.instance;
+        return NeverElementImpl.instance;
       case ElementTag.multiplyDefined:
         return null;
       case ElementTag.memberWithTypeArguments:
-        var elementImpl = readElement() as ElementImpl2;
-        var enclosing = elementImpl.enclosingElement as InstanceElementImpl2;
+        var elementImpl = readElement() as ElementImpl;
+        var enclosing = elementImpl.enclosingElement as InstanceElementImpl;
 
         var typeArguments = _readTypeList();
         var substitution = Substitution.fromPairs2(
@@ -1978,10 +1978,10 @@ class ResolutionReader {
           typeArguments,
         );
 
-        if (elementImpl is ExecutableElementImpl2) {
+        if (elementImpl is ExecutableElementImpl) {
           return ExecutableMember.from(elementImpl, substitution);
         } else {
-          elementImpl as FieldElementImpl2;
+          elementImpl as FieldElementImpl;
           return FieldMember.from(elementImpl, substitution);
         }
       case ElementTag.elementImpl:
@@ -2104,7 +2104,7 @@ class ResolutionReader {
       var type = _readFunctionType();
       return _readAliasElementArguments(type);
     } else if (tag == Tag.InterfaceType) {
-      var element = readElement() as InterfaceElementImpl2;
+      var element = readElement() as InterfaceElementImpl;
       var typeArguments = _readTypeList();
       var nullability = _readNullability();
       var type = element.instantiateImpl(
@@ -2113,14 +2113,14 @@ class ResolutionReader {
       );
       return _readAliasElementArguments(type);
     } else if (tag == Tag.InterfaceType_noTypeArguments_none) {
-      var element = readElement() as InterfaceElementImpl2;
+      var element = readElement() as InterfaceElementImpl;
       var type = element.instantiateImpl(
         typeArguments: const [],
         nullabilitySuffix: NullabilitySuffix.none,
       );
       return _readAliasElementArguments(type);
     } else if (tag == Tag.InterfaceType_noTypeArguments_question) {
-      var element = readElement() as InterfaceElementImpl2;
+      var element = readElement() as InterfaceElementImpl;
       var type = element.instantiateImpl(
         typeArguments: const [],
         nullabilitySuffix: NullabilitySuffix.question,
@@ -2137,7 +2137,7 @@ class ResolutionReader {
       var type = _readRecordType();
       return _readAliasElementArguments(type);
     } else if (tag == Tag.TypeParameterType) {
-      var element = readElement() as TypeParameterElementImpl2;
+      var element = readElement() as TypeParameterElementImpl;
       var nullability = _readNullability();
       var type = element.instantiate(nullabilitySuffix: nullability);
       return _readAliasElementArguments(type);

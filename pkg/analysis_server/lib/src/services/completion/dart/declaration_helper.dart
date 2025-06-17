@@ -568,7 +568,7 @@ class DeclarationHelper {
   /// containing the [node] that can be referenced as a super parameter.
   void addParametersFromSuperConstructor(SuperFormalParameter node) {
     var element = node.declaredFragment?.element;
-    if (element is! SuperFormalParameterElementImpl2) {
+    if (element is! SuperFormalParameterElementImpl) {
       return;
     }
 
@@ -578,7 +578,7 @@ class DeclarationHelper {
     }
 
     var constructorElement = constructor.declaredFragment?.element;
-    if (constructorElement is! ConstructorElementImpl2) {
+    if (constructorElement is! ConstructorElementImpl) {
       return;
     }
 

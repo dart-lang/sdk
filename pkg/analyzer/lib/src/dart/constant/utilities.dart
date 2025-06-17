@@ -198,8 +198,8 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
                 !element.isStatic)) {
       constantsToCompute.add(element);
       // Fill error nodes.
-      if (element is ConstVariableElement) {
-        var constElement = element as ConstVariableElement;
+      if (element is ConstVariableFragment) {
+        var constElement = element as ConstVariableFragment;
         configuration.addErrorNode(
           fromElement: constElement.constantInitializer,
           fromAst: node.initializer,
@@ -261,7 +261,7 @@ class ReferenceFinder extends RecursiveAstVisitor<void> {
       element = element.variable3;
     }
 
-    if (element is VariableElementImpl2 && element.isConst) {
+    if (element is VariableElementImpl && element.isConst) {
       _callback(element.firstFragment as VariableFragmentImpl);
     }
   }

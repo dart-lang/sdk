@@ -24,8 +24,8 @@ class SuperConstructorResolver {
   }
 
   void _constructor(
-    ClassElementImpl2 classElement,
-    ConstructorElementImpl2 element,
+    ClassElementImpl classElement,
+    ConstructorElementImpl element,
   ) {
     // Constructors of mixin applications are already configured.
     if (classElement.isMixinApplication) {

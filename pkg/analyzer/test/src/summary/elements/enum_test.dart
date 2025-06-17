@@ -2584,7 +2584,7 @@ library
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
       representation: <testLibrary>::@extensionType::B::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::B::@constructor::B
+      primaryConstructor: <testLibrary>::@extensionType::B::@constructor::new
       typeErasure: int
       fields
         final it
@@ -3390,7 +3390,7 @@ library
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
       representation: <testLibrary>::@extensionType::B::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::B::@constructor::B
+      primaryConstructor: <testLibrary>::@extensionType::B::@constructor::new
       typeErasure: int
       fields
         final it

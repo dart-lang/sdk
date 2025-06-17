@@ -68,7 +68,7 @@ class PropertyElementResolver with ScopeHelpers {
       if (element != null) {
         if (!element.isFactory) {
           var enclosingElement = element.enclosingElement;
-          if (enclosingElement is ClassElementImpl2 &&
+          if (enclosingElement is ClassElementImpl &&
               enclosingElement.isAbstract) {
             _resolver.diagnosticReporter.atNode(
               node,

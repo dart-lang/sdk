@@ -15,7 +15,7 @@ import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
-class ClassItem extends InterfaceItem<ClassElementImpl2> {
+class ClassItem extends InterfaceItem<ClassElementImpl> {
   ClassItem({
     required super.id,
     required super.metadata,
@@ -36,7 +36,7 @@ class ClassItem extends InterfaceItem<ClassElementImpl2> {
   factory ClassItem.fromElement({
     required ManifestItemId id,
     required EncodeContext context,
-    required ClassElementImpl2 element,
+    required ClassElementImpl element,
   }) {
     return context.withTypeParameters(element.typeParameters2, (
       typeParameters,
@@ -80,7 +80,7 @@ class ClassItem extends InterfaceItem<ClassElementImpl2> {
   }
 }
 
-class EnumItem extends InterfaceItem<EnumElementImpl2> {
+class EnumItem extends InterfaceItem<EnumElementImpl> {
   EnumItem({
     required super.id,
     required super.metadata,
@@ -101,7 +101,7 @@ class EnumItem extends InterfaceItem<EnumElementImpl2> {
   factory EnumItem.fromElement({
     required ManifestItemId id,
     required EncodeContext context,
-    required EnumElementImpl2 element,
+    required EnumElementImpl element,
   }) {
     return context.withTypeParameters(element.typeParameters2, (
       typeParameters,
@@ -145,8 +145,8 @@ class EnumItem extends InterfaceItem<EnumElementImpl2> {
   }
 }
 
-/// The item for [ExtensionElementImpl2].
-class ExtensionItem<E extends ExtensionElementImpl2> extends InstanceItem<E> {
+/// The item for [ExtensionElementImpl].
+class ExtensionItem<E extends ExtensionElementImpl> extends InstanceItem<E> {
   final ManifestType extendedType;
 
   ExtensionItem({
@@ -166,7 +166,7 @@ class ExtensionItem<E extends ExtensionElementImpl2> extends InstanceItem<E> {
   factory ExtensionItem.fromElement({
     required ManifestItemId id,
     required EncodeContext context,
-    required ExtensionElementImpl2 element,
+    required ExtensionElementImpl element,
   }) {
     return context.withTypeParameters(element.typeParameters2, (
       typeParameters,
@@ -216,7 +216,7 @@ class ExtensionItem<E extends ExtensionElementImpl2> extends InstanceItem<E> {
   }
 }
 
-class ExtensionTypeItem extends InterfaceItem<ExtensionTypeElementImpl2> {
+class ExtensionTypeItem extends InterfaceItem<ExtensionTypeElementImpl> {
   ExtensionTypeItem({
     required super.id,
     required super.metadata,
@@ -237,7 +237,7 @@ class ExtensionTypeItem extends InterfaceItem<ExtensionTypeElementImpl2> {
   factory ExtensionTypeItem.fromElement({
     required ManifestItemId id,
     required EncodeContext context,
-    required ExtensionTypeElementImpl2 element,
+    required ExtensionTypeElementImpl element,
   }) {
     return context.withTypeParameters(element.typeParameters2, (
       typeParameters,
@@ -281,8 +281,8 @@ class ExtensionTypeItem extends InterfaceItem<ExtensionTypeElementImpl2> {
   }
 }
 
-/// The item for [InstanceElementImpl2].
-sealed class InstanceItem<E extends InstanceElementImpl2>
+/// The item for [InstanceElementImpl].
+sealed class InstanceItem<E extends InstanceElementImpl>
     extends TopLevelItem<E> {
   final List<ManifestTypeParameter> typeParameters;
 
@@ -503,7 +503,7 @@ sealed class InstanceItem<E extends InstanceElementImpl2>
   }
 }
 
-class InstanceItemFieldItem extends InstanceItemMemberItem<FieldElementImpl2> {
+class InstanceItemFieldItem extends InstanceItemMemberItem<FieldElementImpl> {
   final ManifestType type;
   final ManifestNode? constInitializer;
 
@@ -518,7 +518,7 @@ class InstanceItemFieldItem extends InstanceItemMemberItem<FieldElementImpl2> {
   factory InstanceItemFieldItem.fromElement({
     required ManifestItemId id,
     required EncodeContext context,
-    required FieldElementImpl2 element,
+    required FieldElementImpl element,
   }) {
     return InstanceItemFieldItem(
       id: id,
@@ -542,7 +542,7 @@ class InstanceItemFieldItem extends InstanceItemMemberItem<FieldElementImpl2> {
   }
 
   @override
-  bool match(MatchContext context, FieldElementImpl2 element) {
+  bool match(MatchContext context, FieldElementImpl element) {
     return super.match(context, element) &&
         type.match(context, element.type) &&
         constInitializer.match(
@@ -652,11 +652,11 @@ sealed class InstanceItemMemberItem<E extends AnnotatableElementImpl>
     }
 
     switch (element) {
-      case FieldElementImpl2 element:
+      case FieldElementImpl element:
         if (element.isStatic != isStatic) {
           return false;
         }
-      case ExecutableElementImpl2 element:
+      case ExecutableElementImpl element:
         if (element.isStatic != isStatic) {
           return false;
         }
@@ -698,7 +698,7 @@ sealed class InstanceItemMemberItem<E extends AnnotatableElementImpl>
 }
 
 class InstanceItemMethodItem
-    extends InstanceItemMemberItem<MethodElementImpl2> {
+    extends InstanceItemMemberItem<MethodElementImpl> {
   final ManifestFunctionType functionType;
 
   InstanceItemMethodItem({
@@ -711,7 +711,7 @@ class InstanceItemMethodItem
   factory InstanceItemMethodItem.fromElement({
     required ManifestItemId id,
     required EncodeContext context,
-    required MethodElementImpl2 element,
+    required MethodElementImpl element,
   }) {
     return InstanceItemMethodItem(
       id: id,
@@ -731,7 +731,7 @@ class InstanceItemMethodItem
   }
 
   @override
-  bool match(MatchContext context, MethodElementImpl2 element) {
+  bool match(MatchContext context, MethodElementImpl element) {
     return super.match(context, element) &&
         functionType.match(context, element.type);
   }
@@ -819,8 +819,8 @@ class InstanceItemSetterItem extends InstanceItemMemberItem<SetterElementImpl> {
   }
 }
 
-/// The item for [InterfaceElementImpl2].
-sealed class InterfaceItem<E extends InterfaceElementImpl2>
+/// The item for [InterfaceElementImpl].
+sealed class InterfaceItem<E extends InterfaceElementImpl>
     extends InstanceItem<E> {
   final ManifestType? supertype;
   final List<ManifestType> interfaces;
@@ -867,7 +867,7 @@ sealed class InterfaceItem<E extends InterfaceElementImpl2>
 }
 
 class InterfaceItemConstructorItem
-    extends InstanceItemMemberItem<ConstructorElementImpl2> {
+    extends InstanceItemMemberItem<ConstructorElementImpl> {
   final bool isConst;
   final bool isFactory;
   final ManifestFunctionType functionType;
@@ -886,7 +886,7 @@ class InterfaceItemConstructorItem
   factory InterfaceItemConstructorItem.fromElement({
     required ManifestItemId id,
     required EncodeContext context,
-    required ConstructorElementImpl2 element,
+    required ConstructorElementImpl element,
   }) {
     return context.withFormalParameters(element.formalParameters, () {
       return InterfaceItemConstructorItem(
@@ -917,7 +917,7 @@ class InterfaceItemConstructorItem
   }
 
   @override
-  bool match(MatchContext context, ConstructorElementImpl2 element) {
+  bool match(MatchContext context, ConstructorElementImpl element) {
     return context.withFormalParameters(element.formalParameters, () {
       return super.match(context, element) &&
           isConst == element.isConst &&
@@ -1126,7 +1126,7 @@ class ManifestMetadata {
   }
 }
 
-class MixinItem extends InterfaceItem<MixinElementImpl2> {
+class MixinItem extends InterfaceItem<MixinElementImpl> {
   final List<ManifestType> superclassConstraints;
 
   MixinItem({
@@ -1152,7 +1152,7 @@ class MixinItem extends InterfaceItem<MixinElementImpl2> {
   factory MixinItem.fromElement({
     required ManifestItemId id,
     required EncodeContext context,
-    required MixinElementImpl2 element,
+    required MixinElementImpl element,
   }) {
     return context.withTypeParameters(element.typeParameters2, (
       typeParameters,
@@ -1198,7 +1198,7 @@ class MixinItem extends InterfaceItem<MixinElementImpl2> {
   }
 
   @override
-  bool match(MatchContext context, MixinElementImpl2 element) {
+  bool match(MatchContext context, MixinElementImpl element) {
     return super.match(context, element) &&
         superclassConstraints.match(context, element.superclassConstraints);
   }
@@ -1347,7 +1347,7 @@ class TopLevelSetterItem extends TopLevelItem<SetterElementImpl> {
   }
 }
 
-class TopLevelVariableItem extends TopLevelItem<TopLevelVariableElementImpl2> {
+class TopLevelVariableItem extends TopLevelItem<TopLevelVariableElementImpl> {
   final ManifestType type;
   final ManifestNode? constInitializer;
 
@@ -1361,7 +1361,7 @@ class TopLevelVariableItem extends TopLevelItem<TopLevelVariableElementImpl2> {
   factory TopLevelVariableItem.fromElement({
     required ManifestItemId id,
     required EncodeContext context,
-    required TopLevelVariableElementImpl2 element,
+    required TopLevelVariableElementImpl element,
   }) {
     return TopLevelVariableItem(
       id: id,
@@ -1383,7 +1383,7 @@ class TopLevelVariableItem extends TopLevelItem<TopLevelVariableElementImpl2> {
   }
 
   @override
-  bool match(MatchContext context, TopLevelVariableElementImpl2 element) {
+  bool match(MatchContext context, TopLevelVariableElementImpl element) {
     return super.match(context, element) &&
         type.match(context, element.type) &&
         constInitializer.match(
@@ -1400,7 +1400,7 @@ class TopLevelVariableItem extends TopLevelItem<TopLevelVariableElementImpl2> {
   }
 }
 
-class TypeAliasItem extends TopLevelItem<TypeAliasElementImpl2> {
+class TypeAliasItem extends TopLevelItem<TypeAliasElementImpl> {
   final List<ManifestTypeParameter> typeParameters;
   final ManifestType aliasedType;
 
@@ -1414,7 +1414,7 @@ class TypeAliasItem extends TopLevelItem<TypeAliasElementImpl2> {
   factory TypeAliasItem.fromElement({
     required ManifestItemId id,
     required EncodeContext context,
-    required TypeAliasElementImpl2 element,
+    required TypeAliasElementImpl element,
   }) {
     return context.withTypeParameters(element.typeParameters2, (
       typeParameters,
@@ -1438,7 +1438,7 @@ class TypeAliasItem extends TopLevelItem<TypeAliasElementImpl2> {
   }
 
   @override
-  bool match(MatchContext context, TypeAliasElementImpl2 element) {
+  bool match(MatchContext context, TypeAliasElementImpl element) {
     context.addTypeParameters(element.typeParameters2);
     return super.match(context, element) &&
         aliasedType.match(context, element.aliasedType);
@@ -1489,7 +1489,7 @@ extension SummaryDataReaderExtension on SummaryDataReader {
 
 extension _AnnotatableElementExtension on AnnotatableElementImpl {
   MetadataImpl get effectiveMetadata {
-    if (this case PropertyAccessorElementImpl2 accessor) {
+    if (this case PropertyAccessorElementImpl accessor) {
       return accessor.thisOrVariableMetadata;
     }
     return metadata;
@@ -1557,7 +1557,7 @@ extension _LookupNameToInterfaceItemConstructorItemMapExtension
   }
 }
 
-extension _PropertyAccessExtension on PropertyAccessorElementImpl2 {
+extension _PropertyAccessExtension on PropertyAccessorElementImpl {
   MetadataImpl get thisOrVariableMetadata {
     if (isSynthetic) {
       return variable3!.metadata;

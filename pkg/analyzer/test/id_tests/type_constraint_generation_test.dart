@@ -94,7 +94,7 @@ class _TypeConstraintGenerationDataInterpreter
         var name =
             actualData[i].typeParameter
                 .unwrapTypeParameterViewAsTypeParameterStructure<
-                  TypeParameterElementImpl2
+                  TypeParameterElementImpl
                 >()
                 .name3;
         if (actualData[i].isUpper) {

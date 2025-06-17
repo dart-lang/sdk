@@ -157,8 +157,8 @@ class ExtensionMemberResolver {
   ) {
     var element = node.element2;
 
-    ExecutableElementImpl2? getter;
-    ExecutableElementImpl2? setter;
+    ExecutableElementImpl? getter;
+    ExecutableElementImpl? setter;
     if (name == '[]') {
       getter = element.getMethod('[]');
       setter = element.getMethod('[]=');
@@ -197,7 +197,7 @@ class ExtensionMemberResolver {
     // TODO(paulberry): make this cast unnecessary by changing the type of
     // `ExtensionOverrideImpl.element2`.
     var typeParameters =
-        element.typeParameters2.cast<TypeParameterElementImpl2>();
+        element.typeParameters2.cast<TypeParameterElementImpl>();
 
     if (!_isValidContext(node)) {
       if (!_isCascadeTarget(node)) {
@@ -278,7 +278,7 @@ class ExtensionMemberResolver {
   }
 
   void _checkTypeArgumentsMatchingBounds(
-    List<TypeParameterElementImpl2> typeParameters,
+    List<TypeParameterElementImpl> typeParameters,
     TypeArgumentList? typeArgumentList,
     List<TypeImpl> typeArgumentTypes,
     Substitution substitution,
@@ -411,7 +411,7 @@ class ExtensionMemberResolver {
   /// Instantiate the extended type of the [extension] to the bounds of the
   /// type formals of the extension.
   TypeImpl _instantiateToBounds(ExtensionElement extension) {
-    extension as ExtensionElementImpl2;
+    extension as ExtensionElementImpl;
     var typeParameters = extension.typeParameters2;
     return Substitution.fromPairs2(
       typeParameters,

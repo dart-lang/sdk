@@ -35,7 +35,7 @@ class AnnotationResolver {
 
   void _classConstructorInvocation(
     AnnotationImpl node,
-    InterfaceElementImpl2 classElement,
+    InterfaceElementImpl classElement,
     SimpleIdentifierImpl? constructorName,
     ArgumentListImpl argumentList,
     List<WhyNotPromotedGetter> whyNotPromotedArguments,
@@ -107,7 +107,7 @@ class AnnotationResolver {
     AnnotationImpl node,
     String typeDisplayName,
     SimpleIdentifierImpl? constructorName,
-    List<TypeParameterElementImpl2> typeParameters,
+    List<TypeParameterElementImpl> typeParameters,
     ConstructorElementMixin2? constructorElement,
     ArgumentListImpl argumentList,
     InterfaceType Function(List<TypeImpl> typeArguments) instantiateElement,
@@ -251,7 +251,7 @@ class AnnotationResolver {
     }
 
     // Class(args) or Class.CONST
-    if (element1 is InterfaceElementImpl2) {
+    if (element1 is InterfaceElementImpl) {
       if (argumentList != null) {
         _classConstructorInvocation(
           node,
@@ -278,7 +278,7 @@ class AnnotationResolver {
         var element = element1.scope.lookup(name2.name).getter2;
         name2.element = element;
         // prefix.Class(args) or prefix.Class.CONST
-        if (element is InterfaceElementImpl2) {
+        if (element is InterfaceElementImpl) {
           if (element is ClassElement && argumentList != null) {
             _classConstructorInvocation(
               node,
@@ -309,7 +309,7 @@ class AnnotationResolver {
         }
 
         // prefix.TypeAlias(args) or prefix.TypeAlias.CONST
-        if (element is TypeAliasElementImpl2) {
+        if (element is TypeAliasElementImpl) {
           var aliasedType = element.aliasedType;
           var argumentList = node.arguments;
           if (aliasedType is InterfaceTypeImpl && argumentList != null) {
@@ -351,7 +351,7 @@ class AnnotationResolver {
     }
 
     // TypeAlias(args) or TypeAlias.CONST
-    if (element1 is TypeAliasElementImpl2) {
+    if (element1 is TypeAliasElementImpl) {
       var aliasedType = element1.aliasedType;
       var argumentList = node.arguments;
       if (aliasedType is InterfaceTypeImpl && argumentList != null) {
@@ -407,7 +407,7 @@ class AnnotationResolver {
 
   void _typeAliasConstructorInvocation(
     AnnotationImpl node,
-    TypeAliasElementImpl2 typeAliasElement,
+    TypeAliasElementImpl typeAliasElement,
     SimpleIdentifierImpl? constructorName,
     InterfaceTypeImpl aliasedType,
     ArgumentListImpl argumentList,

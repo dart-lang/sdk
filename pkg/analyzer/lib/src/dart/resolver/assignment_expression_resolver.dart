@@ -105,7 +105,7 @@ class AssignmentExpressionResolver {
     );
 
     if (flow != null) {
-      if (writeElement2 is PromotableElementImpl2) {
+      if (writeElement2 is PromotableElementImpl) {
         flow.write(
           node,
           writeElement2,
@@ -390,7 +390,7 @@ class AssignmentExpressionShared {
 
     if (left is SimpleIdentifier) {
       var element = left.element;
-      if (element is PromotableElementImpl2) {
+      if (element is PromotableElementImpl) {
         var assigned = flowAnalysis.isDefinitelyAssigned(left, element);
         var unassigned = flowAnalysis.isDefinitelyUnassigned(left, element);
 

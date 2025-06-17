@@ -31,7 +31,7 @@ import 'package:analyzer/src/utilities/extensions/element.dart';
 /// are the type parameters of the alias.
 class ConstructorElementToInfer {
   /// The type parameters used in [element].
-  final List<TypeParameterElementImpl2> typeParameters2;
+  final List<TypeParameterElementImpl> typeParameters2;
 
   /// The element, might be [ConstructorMember].
   final ConstructorElementMixin2 element2;
@@ -88,10 +88,10 @@ class InvocationInferenceHelper {
     required SimpleIdentifierImpl? constructorName,
     required LibraryElementImpl definingLibrary,
   }) {
-    List<TypeParameterElementImpl2> typeParameters;
+    List<TypeParameterElementImpl> typeParameters;
     ConstructorElementMixin2? rawElement;
 
-    if (typeElement is InterfaceElementImpl2) {
+    if (typeElement is InterfaceElementImpl) {
       typeParameters = typeElement.typeParameters2;
       var constructorIdentifier = constructorName;
       if (constructorIdentifier == null) {
@@ -104,7 +104,7 @@ class InvocationInferenceHelper {
           rawElement = null;
         }
       }
-    } else if (typeElement is TypeAliasElementImpl2) {
+    } else if (typeElement is TypeAliasElementImpl) {
       typeParameters = typeElement.typeParameters2;
       var aliasedType = typeElement.aliasedType;
       if (aliasedType is InterfaceTypeImpl) {

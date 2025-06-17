@@ -90,7 +90,7 @@ class ConstantEvaluationEngine {
 
     var library = constant.library2 as LibraryElementImpl;
     if (constant is FormalParameterFragmentImpl) {
-      if (constant is ConstVariableElement) {
+      if (constant is ConstVariableFragment) {
         var defaultValue = constant.constantInitializer;
         if (defaultValue != null) {
           var diagnosticListener = RecordingDiagnosticListener();
@@ -327,7 +327,7 @@ class ConstantEvaluationEngine {
         // The annotation is a reference to a compile-time constant variable,
         // so it depends on the variable.
         if (element.variable3 case var variable?) {
-          var baseElement = variable.baseElement as VariableElementImpl2;
+          var baseElement = variable.baseElement as VariableElementImpl;
           callback(baseElement.firstFragment as VariableFragmentImpl);
         }
       } else if (element is ConstructorElement) {
@@ -863,7 +863,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     var typeElement = node.constructorName.type.element2;
 
     TypeAliasElement? viaTypeAlias;
-    if (typeElement is TypeAliasElementImpl2) {
+    if (typeElement is TypeAliasElementImpl) {
       if (constructorFunctionType.typeFormals.isNotEmpty &&
           !typeElement.isProperRename) {
         // The type alias is not a proper rename of the aliased class, so
@@ -875,7 +875,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
 
     var constructorElement =
         node.constructorName.element?.baseElement
-            .ifTypeOrNull<ConstructorElementImpl2>();
+            .ifTypeOrNull<ConstructorElementImpl>();
     if (constructorElement == null) {
       return InvalidConstant.forEntity(
         entity: node,
@@ -1952,7 +1952,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       );
     }
 
-    if (variableElement is VariableElementImpl2) {
+    if (variableElement is VariableElementImpl) {
       // We access values of constant variables here in two cases: when we
       // compute values of other constant variables, or when we compute values
       // and errors for other constant expressions. In either case we have
@@ -1992,14 +1992,14 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
             );
         }
       }
-    } else if (variableElement is ConstructorElementImpl2 &&
+    } else if (variableElement is ConstructorElementImpl &&
         expression != null) {
       return DartObjectImpl(
         typeSystem,
         expression.typeOrThrow,
         FunctionState(variableElement),
       );
-    } else if (variableElement is ExecutableElementImpl2) {
+    } else if (variableElement is ExecutableElementImpl) {
       if (variableElement.isStatic) {
         var rawType = DartObjectImpl(
           typeSystem,
@@ -2014,7 +2014,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
         }
         return _instantiateFunctionTypeForSimpleIdentifier(identifier, rawType);
       }
-    } else if (variableElement is InterfaceElementImpl2) {
+    } else if (variableElement is InterfaceElementImpl) {
       var type =
           givenType ??
           variableElement.instantiateImpl(
@@ -2029,13 +2029,13 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
         _typeProvider.typeType,
         TypeState(type),
       );
-    } else if (variableElement is DynamicElementImpl2) {
+    } else if (variableElement is DynamicElementImpl) {
       return DartObjectImpl(
         typeSystem,
         _typeProvider.typeType,
         TypeState(_typeProvider.dynamicType),
       );
-    } else if (variableElement is TypeAliasElementImpl2) {
+    } else if (variableElement is TypeAliasElementImpl) {
       var type =
           givenType ??
           variableElement.instantiate(
@@ -2050,7 +2050,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
         _typeProvider.typeType,
         TypeState(type),
       );
-    } else if (variableElement is NeverElementImpl2) {
+    } else if (variableElement is NeverElementImpl) {
       return DartObjectImpl(
         typeSystem,
         _typeProvider.typeType,

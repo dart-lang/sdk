@@ -36,7 +36,7 @@ class MockLibraryImportElement implements Element, PrefixFragment {
 }
 
 extension BindPatternVariableElementImpl2Extension
-    on BindPatternVariableElementImpl2 {
+    on BindPatternVariableElementImpl {
   BindPatternVariableFragmentImpl get asElement {
     return firstFragment;
   }
@@ -44,19 +44,19 @@ extension BindPatternVariableElementImpl2Extension
 
 extension BindPatternVariableElementImplExtension
     on BindPatternVariableFragmentImpl {
-  BindPatternVariableElementImpl2 get asElement2 {
+  BindPatternVariableElementImpl get asElement2 {
     return element;
   }
 }
 
-extension ClassElementImpl2Extension on ClassElementImpl2 {
+extension ClassElementImpl2Extension on ClassElementImpl {
   ClassFragmentImpl get asElement {
     return firstFragment;
   }
 }
 
 extension ClassElementImplExtension on ClassFragmentImpl {
-  ClassElementImpl2 get asElement2 {
+  ClassElementImpl get asElement2 {
     return element;
   }
 }
@@ -78,14 +78,14 @@ extension CompilationUnitElementImplExtension on LibraryFragmentImpl {
   }
 }
 
-extension ConstructorElementImpl2Extension on ConstructorElementImpl2 {
+extension ConstructorElementImpl2Extension on ConstructorElementImpl {
   ConstructorFragmentImpl get asElement {
     return lastFragment;
   }
 }
 
 extension ConstructorElementImplExtension on ConstructorFragmentImpl {
-  ConstructorElementImpl2 get asElement2 {
+  ConstructorElementImpl get asElement2 {
     return element;
   }
 }
@@ -95,7 +95,7 @@ extension ConstructorElementMixin2Extension on ConstructorElementMixin2 {
     if (this case ConstructorMember member) {
       return member;
     }
-    return (this as ConstructorElementImpl2).lastFragment;
+    return (this as ConstructorElementImpl).lastFragment;
   }
 }
 
@@ -181,7 +181,7 @@ extension ElementOrNullExtension on FragmentImpl? {
     if (self == null) {
       return null;
     } else if (self is DynamicFragmentImpl) {
-      return DynamicElementImpl2.instance;
+      return DynamicElementImpl.instance;
     } else if (self is ExtensionFragmentImpl) {
       return (self as ExtensionFragment).element;
     } else if (self is ExecutableMember) {
@@ -199,7 +199,7 @@ extension ElementOrNullExtension on FragmentImpl? {
     } else if (self is LocalVariableFragmentImpl) {
       return self.element;
     } else if (self is NeverFragmentImpl) {
-      return NeverElementImpl2.instance;
+      return NeverElementImpl.instance;
     } else if (self is ParameterMember) {
       return (self as FormalParameterFragment).element;
     } else if (self is LibraryImportImpl ||
@@ -214,7 +214,7 @@ extension ElementOrNullExtension on FragmentImpl? {
 }
 
 extension EnumElementImplExtension on EnumFragmentImpl {
-  EnumElementImpl2 get asElement2 {
+  EnumElementImpl get asElement2 {
     return element;
   }
 }
@@ -228,14 +228,14 @@ extension ExecutableElement2Extension on ExecutableElement {
   }
 }
 
-extension ExecutableElementImpl2Extension on ExecutableElementImpl2 {
+extension ExecutableElementImpl2Extension on ExecutableElementImpl {
   ExecutableFragmentImpl get asElement {
     return lastFragment;
   }
 }
 
 extension ExecutableElementImplExtension on ExecutableFragmentImpl {
-  ExecutableElementImpl2 get asElement2 {
+  ExecutableElementImpl get asElement2 {
     return element;
   }
 }
@@ -256,32 +256,32 @@ extension ExecutableElementOrMemberExtension on ExecutableElementOrMember {
       asElement2.enclosingElement!.firstFragment as FragmentImpl;
 }
 
-extension ExtensionElementImpl2Extension on ExtensionElementImpl2 {
+extension ExtensionElementImpl2Extension on ExtensionElementImpl {
   ExtensionFragmentImpl get asElement {
     return firstFragment;
   }
 }
 
 extension ExtensionElementImplExtension on ExtensionFragmentImpl {
-  ExtensionElementImpl2 get asElement2 {
+  ExtensionElementImpl get asElement2 {
     return element;
   }
 }
 
-extension ExtensionTypeElementImpl2Extension on ExtensionTypeElementImpl2 {
+extension ExtensionTypeElementImpl2Extension on ExtensionTypeElementImpl {
   ExtensionTypeFragmentImpl get asElement {
     return firstFragment;
   }
 }
 
-extension FieldElementImpl2Extension on FieldElementImpl2 {
+extension FieldElementImpl2Extension on FieldElementImpl {
   FieldFragmentImpl get asElement {
     return firstFragment;
   }
 }
 
 extension FieldElementImplExtension on FieldFragmentImpl {
-  FieldElementImpl2 get asElement2 {
+  FieldElementImpl get asElement2 {
     return element;
   }
 }
@@ -339,26 +339,26 @@ extension GetterElementImplExtension on GetterElementImpl {
   }
 }
 
-extension InstanceElementImpl2Extension on InstanceElementImpl2 {
+extension InstanceElementImpl2Extension on InstanceElementImpl {
   InstanceFragmentImpl get asElement {
     return firstFragment;
   }
 }
 
 extension InstanceElementImplExtension on InstanceFragmentImpl {
-  InstanceElementImpl2 get asElement2 {
+  InstanceElementImpl get asElement2 {
     return element;
   }
 }
 
-extension InterfaceElementImpl2Extension on InterfaceElementImpl2 {
+extension InterfaceElementImpl2Extension on InterfaceElementImpl {
   InterfaceFragmentImpl get asElement {
     return firstFragment;
   }
 }
 
 extension InterfaceElementImplExtension on InterfaceFragmentImpl {
-  InterfaceElementImpl2 get asElement2 {
+  InterfaceElementImpl get asElement2 {
     return element;
   }
 }
@@ -369,7 +369,7 @@ extension InterfaceTypeImplExtension on InterfaceTypeImpl {
 
 extension JoinPatternVariableElementImplExtension
     on JoinPatternVariableFragmentImpl {
-  JoinPatternVariableElementImpl2 get asElement2 {
+  JoinPatternVariableElementImpl get asElement2 {
     return element;
   }
 }
@@ -401,7 +401,7 @@ extension ListOfTypeParameterElement2Extension on List<TypeParameterElement> {
 }
 
 extension LocalVariableElementImplExtension on LocalVariableFragmentImpl {
-  LocalVariableElementImpl2 get asElement2 {
+  LocalVariableElementImpl get asElement2 {
     return element;
   }
 }
@@ -411,18 +411,18 @@ extension MethodElement2OrMemberExtension on MethodElement2OrMember {
     if (this case MethodMember member) {
       return member;
     }
-    return (this as MethodElementImpl2).lastFragment;
+    return (this as MethodElementImpl).lastFragment;
   }
 }
 
-extension MethodElementImpl2Extension on MethodElementImpl2 {
+extension MethodElementImpl2Extension on MethodElementImpl {
   MethodFragmentImpl get asElement {
     return lastFragment;
   }
 }
 
 extension MethodElementImplExtension on MethodFragmentImpl {
-  MethodElementImpl2 get asElement2 {
+  MethodElementImpl get asElement2 {
     return element;
   }
 }
@@ -438,7 +438,7 @@ extension MethodElementOrMemberExtension on MethodElementOrMember {
 }
 
 extension MixinElementImplExtension on MixinFragmentImpl {
-  MixinElementImpl2 get asElement2 {
+  MixinElementImpl get asElement2 {
     return element;
   }
 }
@@ -459,14 +459,14 @@ extension ParameterElementMixinExtension on ParameterElementMixin {
   }
 }
 
-extension PatternVariableElementImpl2Extension on PatternVariableElementImpl2 {
+extension PatternVariableElementImpl2Extension on PatternVariableElementImpl {
   PatternVariableFragmentImpl get asElement {
     return firstFragment;
   }
 }
 
 extension PatternVariableElementImplExtension on PatternVariableFragmentImpl {
-  PatternVariableElementImpl2 get asElement2 {
+  PatternVariableElementImpl get asElement2 {
     return element;
   }
 }
@@ -477,12 +477,12 @@ extension PropertyAccessorElement2OrMemberExtension
     if (this case PropertyAccessorMember member) {
       return member;
     }
-    return (this as PropertyAccessorElementImpl2).lastFragment;
+    return (this as PropertyAccessorElementImpl).lastFragment;
   }
 }
 
 extension PropertyAccessorElementImplExtension on PropertyAccessorFragmentImpl {
-  PropertyAccessorElementImpl2 get asElement2 {
+  PropertyAccessorElementImpl get asElement2 {
     return element;
   }
 }
@@ -515,7 +515,7 @@ extension PropertyInducingElementOrMemberExtension
     on PropertyInducingElementOrMember {
   PropertyInducingElement2OrMember get asElement2 {
     return switch (this) {
-      PropertyInducingElementImpl(:var element) => element,
+      PropertyInducingFragmentImpl(:var element) => element,
       FieldMember member => member,
       _ => throw UnsupportedError('Unsupported type: $runtimeType'),
     };
@@ -534,41 +534,40 @@ extension TopLevelFunctionElementImplExtension on TopLevelFunctionElementImpl {
   }
 }
 
-extension TopLevelVariableElementImpl2Extension
-    on TopLevelVariableElementImpl2 {
+extension TopLevelVariableElementImpl2Extension on TopLevelVariableElementImpl {
   TopLevelVariableFragmentImpl get asElement {
     return firstFragment;
   }
 }
 
-extension TypeAliasElementImpl2Extension on TypeAliasElementImpl2 {
+extension TypeAliasElementImpl2Extension on TypeAliasElementImpl {
   TypeAliasFragmentImpl get asElement {
     return firstFragment;
   }
 }
 
 extension TypeAliasElementImplExtension on TypeAliasFragmentImpl {
-  TypeAliasElementImpl2 get asElement2 {
+  TypeAliasElementImpl get asElement2 {
     return element;
   }
 }
 
 extension TypeParameterElement2Extension on TypeParameterElement {
-  TypeParameterElementImpl2 freshCopy() {
+  TypeParameterElementImpl freshCopy() {
     var fragment = TypeParameterFragmentImpl(name2: name3, nameOffset: -1);
     fragment.bound = bound;
-    return TypeParameterElementImpl2(firstFragment: fragment, name3: name3);
+    return TypeParameterElementImpl(firstFragment: fragment, name3: name3);
   }
 }
 
-extension TypeParameterElementImpl2Extension on TypeParameterElementImpl2 {
+extension TypeParameterElementImpl2Extension on TypeParameterElementImpl {
   TypeParameterFragmentImpl get asElement {
     return firstFragment;
   }
 }
 
 extension TypeParameterElementImplExtension on TypeParameterFragmentImpl {
-  TypeParameterElementImpl2 get asElement2 {
+  TypeParameterElementImpl get asElement2 {
     return element;
   }
 }

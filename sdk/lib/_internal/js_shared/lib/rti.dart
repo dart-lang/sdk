@@ -1337,8 +1337,6 @@ Object? _specializedAsCheck(Rti testRti) {
       asFn = RAW_DART_FUNCTION_REF(_asNumQ);
     } else if (_Utils.isIdentical(testRti, TYPE_REF<double?>())) {
       asFn = RAW_DART_FUNCTION_REF(_asDoubleQ);
-    } else if (_Utils.isIdentical(testRti, TYPE_REF<JSObject?>())) {
-      asFn = RAW_DART_FUNCTION_REF(_asJSObjectQ);
     }
   } else {
     if (_Utils.isIdentical(testRti, TYPE_REF<int>())) {
@@ -1351,8 +1349,6 @@ Object? _specializedAsCheck(Rti testRti) {
       asFn = RAW_DART_FUNCTION_REF(_asNum);
     } else if (_Utils.isIdentical(testRti, TYPE_REF<double>())) {
       asFn = RAW_DART_FUNCTION_REF(_asDouble);
-    } else if (_Utils.isIdentical(testRti, TYPE_REF<JSObject>())) {
-      asFn = RAW_DART_FUNCTION_REF(_asJSObject);
     }
   }
   return asFn;
@@ -1703,23 +1699,6 @@ String? _asStringQ(dynamic object) {
   if (_isString(object)) return _Utils.asString(object);
   if (object == null) return _Utils.asNull(object);
   throw _TypeError.forType(object, 'String?');
-}
-
-/// Specialization for 'as JSObject'.
-/// Called from generated code.
-@pragma('dart2js:stack-starts-at-throw')
-JSObject _asJSObject(Object? object) {
-  if (_isJSObject(object)) return _Utils.asJSObject(object);
-  throw _TypeError.forType(object, 'JSObject');
-}
-
-/// Specialization for 'as JSObject?'.
-/// Called from generated code.
-@pragma('dart2js:stack-starts-at-throw')
-JSObject? _asJSObjectQ(Object? object) {
-  if (_isJSObject(object)) return _Utils.asJSObject(object);
-  if (object == null) return _Utils.asNull(object);
-  (throw _TypeError.forType(object, 'JSObject?'));
 }
 
 String _rtiArrayToString(Object? array, List<String>? genericContext) {
@@ -3941,7 +3920,6 @@ class _Utils {
   static Rti asRti(Object? s) => JS('Rti', '#', s);
   static Rti? asRtiOrNull(Object? s) => JS('Rti|Null', '#', s);
   static _Type as_Type(Object? o) => JS('_Type', '#', o);
-  static JSObject asJSObject(Object? o) => JS('', '#', o);
 
   static bool isString(Object? o) => JS('bool', 'typeof # == "string"', o);
   static bool isNum(Object? o) => JS('bool', 'typeof # == "number"', o);

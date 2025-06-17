@@ -246,7 +246,7 @@ class NormalizeHelper {
   /// NORM(X & T)
   /// * let S be NORM(T)
   TypeImpl _typeParameterType_promoted(
-    TypeParameterElementImpl2 X,
+    TypeParameterElementImpl X,
     TypeImpl S,
   ) {
     // * if S is Never then Never

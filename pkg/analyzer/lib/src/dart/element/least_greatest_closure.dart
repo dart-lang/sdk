@@ -14,7 +14,7 @@ class LeastGreatestClosureHelper extends ReplacementVisitor {
   final TypeImpl topType;
   final TypeImpl topFunctionType;
   final TypeImpl bottomType;
-  final Set<TypeParameterElementImpl2> eliminationTargets;
+  final Set<TypeParameterElementImpl> eliminationTargets;
 
   late final bool _isLeastClosure;
   bool _isCovariant = true;

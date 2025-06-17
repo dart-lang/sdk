@@ -61,7 +61,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         nullCheckTarget = declaredElement2;
       }
 
-      if (nullCheckTarget is PromotableElementImpl2) {
+      if (nullCheckTarget is PromotableElementImpl) {
         if (thenElement is SimpleIdentifier &&
             nullCheckTarget == thenElement.canonicalElement) {
           // List and set elements, such as the following:

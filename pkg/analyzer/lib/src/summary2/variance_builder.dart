@@ -64,7 +64,7 @@ class VarianceBuilder {
     } else if (type is NamedTypeBuilder) {
       var element = type.element3;
       var arguments = type.arguments;
-      if (element is InterfaceElementImpl2) {
+      if (element is InterfaceElementImpl) {
         var result = Variance.unrelated;
         if (arguments.isNotEmpty) {
           var typeParameters = element.typeParameters2;
@@ -80,7 +80,7 @@ class VarianceBuilder {
           }
         }
         return result;
-      } else if (element is TypeAliasElementImpl2) {
+      } else if (element is TypeAliasElementImpl) {
         _typeAliasElement(element);
 
         var result = Variance.unrelated;
@@ -222,7 +222,7 @@ class VarianceBuilder {
     }
   }
 
-  void _typeAliasElement(TypeAliasElementImpl2 element) {
+  void _typeAliasElement(TypeAliasElementImpl element) {
     var node = _linker.getLinkingNode2(element.firstFragment);
     if (node == null) {
       // Not linking.
@@ -250,7 +250,7 @@ class VarianceBuilder {
   }
 
   static void _setVariance(TypeParameter node, Variance variance) {
-    var element = node.declaredFragment!.element as TypeParameterElementImpl2;
+    var element = node.declaredFragment!.element as TypeParameterElementImpl;
     element.variance = variance;
   }
 }

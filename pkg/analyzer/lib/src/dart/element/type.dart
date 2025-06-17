@@ -39,7 +39,7 @@ class DynamicTypeImpl extends TypeImpl
   DynamicTypeImpl._();
 
   @override
-  DynamicElementImpl2 get element3 => DynamicElementImpl2.instance;
+  DynamicElementImpl get element3 => DynamicElementImpl.instance;
 
   @override
   int get hashCode => 1;
@@ -184,7 +184,7 @@ class FunctionTypeImpl extends TypeImpl
   }
 
   factory FunctionTypeImpl.v2({
-    required List<TypeParameterElementImpl2> typeParameters,
+    required List<TypeParameterElementImpl> typeParameters,
     required List<FormalParameterElementMixin> formalParameters,
     required TypeImpl returnType,
     required NullabilitySuffix nullabilitySuffix,
@@ -247,11 +247,11 @@ class FunctionTypeImpl extends TypeImpl
       sortedNamedParameters;
 
   @override
-  List<TypeParameterElementImpl2> get typeParameters =>
+  List<TypeParameterElementImpl> get typeParameters =>
       typeFormals.map((fragment) => fragment.element).toList();
 
   @override
-  List<TypeParameterElementImpl2> get typeParametersShared => typeParameters;
+  List<TypeParameterElementImpl> get typeParametersShared => typeParameters;
 
   @override
   bool operator ==(Object other) {
@@ -359,7 +359,7 @@ class FunctionTypeImpl extends TypeImpl
   }
 
   @override
-  bool referencesAny2(Set<TypeParameterElementImpl2> parameters) {
+  bool referencesAny2(Set<TypeParameterElementImpl> parameters) {
     if (typeFormals.any((element) {
       assert(!parameters.contains(element.asElement2));
 
@@ -560,7 +560,7 @@ class FutureOrTypeImpl extends InterfaceTypeImpl {
 
 class InstantiatedTypeAliasElementImpl implements InstantiatedTypeAliasElement {
   @override
-  final TypeAliasElementImpl2 element2;
+  final TypeAliasElementImpl element2;
 
   @override
   final List<TypeImpl> typeArguments;
@@ -574,7 +574,7 @@ class InstantiatedTypeAliasElementImpl implements InstantiatedTypeAliasElement {
 /// A concrete implementation of an [InterfaceType].
 class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
-  final InterfaceElementImpl2 element3;
+  final InterfaceElementImpl element3;
 
   @override
   final List<TypeImpl> typeArguments;
@@ -595,7 +595,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   List<MethodElement2OrMember>? _methods;
 
   factory InterfaceTypeImpl({
-    required InterfaceElementImpl2 element,
+    required InterfaceElementImpl element,
     required List<TypeImpl> typeArguments,
     required NullabilitySuffix nullabilitySuffix,
     InstantiatedTypeAliasElementImpl? alias,
@@ -705,7 +705,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   bool get isDartCoreEnum {
     var element = element3;
-    return element is ClassElementImpl2 && element.isDartCoreEnum;
+    return element is ClassElementImpl && element.isDartCoreEnum;
   }
 
   @override
@@ -818,7 +818,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   List<InterfaceTypeImpl> get superclassConstraints {
     var element = element3;
-    if (element is MixinElementImpl2) {
+    if (element is MixinElementImpl) {
       var constraints = element.superclassConstraints;
       return _instantiateSuperTypes(constraints);
     } else {
@@ -904,7 +904,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     LibraryElement library,
   ) {
     // prepare base ConstructorElement
-    ConstructorElementImpl2? constructorElement;
+    ConstructorElementImpl? constructorElement;
     if (constructorName == null) {
       constructorElement = element3.unnamedConstructor2;
     } else {
@@ -1040,7 +1040,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  bool referencesAny2(Set<TypeParameterElementImpl2> parameters) {
+  bool referencesAny2(Set<TypeParameterElementImpl> parameters) {
     return typeArguments.any((argument) => argument.referencesAny2(parameters));
   }
 
@@ -1139,7 +1139,7 @@ class NeverTypeImpl extends TypeImpl implements NeverType {
   static final NeverTypeImpl instance = NeverTypeImpl._(NullabilitySuffix.none);
 
   @override
-  final NeverElementImpl2 element3 = NeverElementImpl2.instance;
+  final NeverElementImpl element3 = NeverElementImpl.instance;
 
   @override
   final NullabilitySuffix nullabilitySuffix;
@@ -1509,7 +1509,7 @@ abstract class TypeImpl implements DartType, SharedType {
     return false;
   }
 
-  bool referencesAny2(Set<TypeParameterElementImpl2> parameters) {
+  bool referencesAny2(Set<TypeParameterElementImpl> parameters) {
     return false;
   }
 
@@ -1548,7 +1548,7 @@ abstract class TypeImpl implements DartType, SharedType {
 /// A concrete implementation of a [TypeParameterType].
 class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   @override
-  final TypeParameterElementImpl2 element3;
+  final TypeParameterElementImpl element3;
 
   @override
   final NullabilitySuffix nullabilitySuffix;
@@ -1650,7 +1650,7 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   }
 
   @override
-  bool referencesAny2(Set<TypeParameterElementImpl2> parameters) {
+  bool referencesAny2(Set<TypeParameterElementImpl> parameters) {
     return parameters.contains(element3);
   }
 

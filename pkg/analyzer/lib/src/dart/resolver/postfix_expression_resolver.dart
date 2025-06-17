@@ -183,7 +183,7 @@ class PostfixExpressionResolver {
       }
       if (operand is SimpleIdentifier) {
         var element = operand.element;
-        if (element is PromotableElementImpl2) {
+        if (element is PromotableElementImpl) {
           if (_resolver.definingLibrary.featureSet.isEnabled(
             Feature.inference_update_4,
           )) {

@@ -417,7 +417,7 @@ class Search {
       return _searchReferences_Local(element, (n) => n is Block, searchedFiles);
     } else if (element is ExecutableElement) {
       return _searchReferences_Function(element, searchedFiles);
-    } else if (element is PatternVariableElementImpl2) {
+    } else if (element is PatternVariableElementImpl) {
       return _searchReferences_PatternVariable(element, searchedFiles);
     } else if (kind == ElementKind.LABEL ||
         kind == ElementKind.LOCAL_VARIABLE) {
@@ -436,7 +436,7 @@ class Search {
       return _searchReferences_Library(element, searchedFiles);
     } else if (element is FormalParameterElement) {
       return _searchReferences_Parameter(element, searchedFiles);
-    } else if (element is PrefixElementImpl2) {
+    } else if (element is PrefixElementImpl) {
       return _searchReferences_Prefix(element, searchedFiles);
     } else if (element is TypeParameterElement) {
       return _searchReferences_Local(
@@ -953,7 +953,7 @@ class Search {
   }
 
   Future<List<SearchResult>> _searchReferences_PatternVariable(
-    PatternVariableElementImpl2 element,
+    PatternVariableElementImpl element,
     SearchedFiles searchedFiles,
   ) async {
     String path = element.firstFragment.libraryFragment.source.fullName;
@@ -963,14 +963,14 @@ class Search {
 
     var rootVariable = element.rootVariable;
     var transitiveVariables =
-        rootVariable is JoinPatternVariableElementImpl2
+        rootVariable is JoinPatternVariableElementImpl
             ? rootVariable.transitiveVariables
             : [rootVariable];
 
     // Prepare a binding element for the variable.
     var bindElement =
         transitiveVariables
-            .whereType<BindPatternVariableElementImpl2>()
+            .whereType<BindPatternVariableElementImpl>()
             .firstOrNull;
     if (bindElement == null) {
       return const <SearchResult>[];
@@ -994,7 +994,7 @@ class Search {
   }
 
   Future<List<SearchResult>> _searchReferences_Prefix(
-    PrefixElementImpl2 element,
+    PrefixElementImpl element,
     SearchedFiles searchedFiles,
   ) async {
     String path = element.firstFragment.libraryFragment.source.fullName;

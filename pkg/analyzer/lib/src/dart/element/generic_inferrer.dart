@@ -50,12 +50,12 @@ import 'package:collection/collection.dart';
 /// infer a single call and discarded immediately afterwards.
 class GenericInferrer {
   final TypeSystemImpl _typeSystem;
-  final Set<TypeParameterElementImpl2> _typeParameters = Set.identity();
-  final Map<TypeParameterElementImpl2, List<MergedTypeConstraint>>
+  final Set<TypeParameterElementImpl> _typeParameters = Set.identity();
+  final Map<TypeParameterElementImpl, List<MergedTypeConstraint>>
   _constraints = {};
 
   /// The list of type parameters being inferred.
-  final List<TypeParameterElementImpl2> _typeFormals;
+  final List<TypeParameterElementImpl> _typeFormals;
 
   /// The [DiagnosticReporter] to which inference diagnostics should be reported, or
   /// `null` if diagnostics shouldn't be reported.
@@ -99,7 +99,7 @@ class GenericInferrer {
   /// is explicitly specified using the as-yet-unreleased "variance" feature,
   /// since type parameters whose variance is explicitly specified don't undergo
   /// implicit runtime checks).
-  final Map<TypeParameterElementImpl2, TypeImpl> _typesInferredSoFar = {};
+  final Map<TypeParameterElementImpl, TypeImpl> _typesInferredSoFar = {};
 
   final TypeSystemOperations _typeSystemOperations;
 
@@ -287,7 +287,7 @@ class GenericInferrer {
     var knownTypes = <TypeParameterElement, TypeImpl>{};
     var hasErrorReported = false;
     for (int i = 0; i < _typeFormals.length; i++) {
-      TypeParameterElementImpl2 parameter = _typeFormals[i];
+      TypeParameterElementImpl parameter = _typeFormals[i];
       var constraints = _constraints[parameter]!;
 
       var inferred = inferredTypes[i];
@@ -402,7 +402,7 @@ class GenericInferrer {
           return null;
         }
         hasErrorReported = true;
-        TypeParameterElementImpl2 typeParam = _typeFormals[i];
+        TypeParameterElementImpl typeParam = _typeFormals[i];
 
         var name = typeParam.name3;
         if (name == null) {
@@ -626,7 +626,7 @@ class GenericInferrer {
   }
 
   String _formatError(
-    TypeParameterElementImpl2 typeParam,
+    TypeParameterElementImpl typeParam,
     TypeImpl inferred,
     Iterable<MergedTypeConstraint> constraints,
   ) {
@@ -678,8 +678,8 @@ class GenericInferrer {
     MergedTypeConstraint constraint,
     MergedTypeConstraint? extendsClause, {
     required bool isContravariant,
-    required TypeParameterElementImpl2 typeParameterToInfer,
-    required Map<TypeParameterElementImpl2, MergedTypeConstraint>
+    required TypeParameterElementImpl typeParameterToInfer,
+    required Map<TypeParameterElementImpl, MergedTypeConstraint>
     inferencePhaseConstraints,
   }) {
     if (extendsClause != null) {
@@ -721,8 +721,8 @@ class GenericInferrer {
     MergedTypeConstraint constraint,
     MergedTypeConstraint? extendsClause, {
     required bool isContravariant,
-    required TypeParameterElementImpl2 typeParameterToInfer,
-    required Map<TypeParameterElementImpl2, MergedTypeConstraint>
+    required TypeParameterElementImpl typeParameterToInfer,
+    required Map<TypeParameterElementImpl, MergedTypeConstraint>
     inferencePhaseConstraints,
   }) {
     // Both bits of the bound information should be available at the same time.

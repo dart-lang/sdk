@@ -53,7 +53,7 @@ class AstRewriter {
           node: node,
           function: SimpleIdentifierImpl(token: typeNode.name),
         );
-      } else if (element is TypeAliasElementImpl2 &&
+      } else if (element is TypeAliasElementImpl &&
           element.aliasedElement2 is GenericFunctionTypeElement) {
         return _toMethodInvocationOfAliasedTypeLiteral(
           node: node,
@@ -76,7 +76,7 @@ class AstRewriter {
               identifier: SimpleIdentifierImpl(token: typeNode.name),
             ),
           );
-        } else if (element is TypeAliasElementImpl2 &&
+        } else if (element is TypeAliasElementImpl &&
             element.aliasedElement2 is GenericFunctionTypeElement) {
           return _toMethodInvocationOfAliasedTypeLiteral(
             node: node,
@@ -139,7 +139,7 @@ class AstRewriter {
       var element = nameScope.lookup(methodName.name).getter2;
       if (element is InterfaceElement) {
         return _toInstanceCreation_type(node: node, typeIdentifier: methodName);
-      } else if (element is ExtensionElementImpl2) {
+      } else if (element is ExtensionElementImpl) {
         var extensionOverride = ExtensionOverrideImpl(
           importPrefix: null,
           name: methodName.token,
@@ -178,7 +178,7 @@ class AstRewriter {
             prefixIdentifier: target,
             typeIdentifier: methodName,
           );
-        } else if (prefixedElement is ExtensionElementImpl2) {
+        } else if (prefixedElement is ExtensionElementImpl) {
           var extensionOverride = ExtensionOverrideImpl(
             importPrefix: ImportPrefixReferenceImpl(
               name: target.token,
@@ -631,7 +631,7 @@ class AstRewriter {
   MethodInvocation _toMethodInvocationOfAliasedTypeLiteral({
     required InstanceCreationExpressionImpl node,
     required Identifier function,
-    required TypeAliasElementImpl2 element,
+    required TypeAliasElementImpl element,
   }) {
     var typeName = NamedTypeImpl(
       importPrefix: node.constructorName.type.importPrefix,

@@ -173,7 +173,7 @@ class InheritanceManager3 {
     InterfaceElement element,
     Name name,
   ) {
-    element as InterfaceElementImpl2; // TODO(scheglov): remove cast
+    element as InterfaceElementImpl; // TODO(scheglov): remove cast
     var oldElement = getInherited2(element.asElement, name);
     return oldElement?.asElement2;
   }
@@ -184,7 +184,7 @@ class InheritanceManager3 {
   Map<Name, ExecutableElement> getInheritedConcreteMap(
     InterfaceElement element,
   ) {
-    element as InterfaceElementImpl2; // TODO(scheglov): remove cast
+    element as InterfaceElementImpl; // TODO(scheglov): remove cast
     var fragment = element.asElement;
 
     if (fragment is ExtensionTypeFragmentImpl) {
@@ -209,7 +209,7 @@ class InheritanceManager3 {
   /// will not be included.
   @experimental
   Map<Name, ExecutableElement> getInheritedMap(InterfaceElement element) {
-    element as InterfaceElementImpl2; // TODO(scheglov): remove cast
+    element as InterfaceElementImpl; // TODO(scheglov): remove cast
     var map = getInheritedMap2(element.asElement);
     return map.mapValue((element) => element.asElement2);
   }
@@ -271,7 +271,7 @@ class InheritanceManager3 {
   /// all libraries.
   @experimental
   Interface getInterface2(InterfaceElement element) {
-    element as InterfaceElementImpl2; // TODO(scheglov): remove cast
+    element as InterfaceElementImpl; // TODO(scheglov): remove cast
     globalResultRequirements?.record_interface_all(element: element);
     return getInterface(element.asElement);
   }
@@ -387,7 +387,7 @@ class InheritanceManager3 {
     int forMixinIndex = -1,
     bool forSuper = false,
   }) {
-    element as InterfaceElementImpl2; // TODO(scheglov): remove cast
+    element as InterfaceElementImpl; // TODO(scheglov): remove cast
     var oldElement = getMember2(
       element.asElement,
       name,
@@ -450,7 +450,7 @@ class InheritanceManager3 {
   void _addImplemented(
     Map<Name, ExecutableElementOrMember> implemented,
     InterfaceFragmentImpl fragment,
-    InterfaceElementImpl2 element,
+    InterfaceElementImpl element,
   ) {
     var libraryUri = fragment.librarySource.uri;
 
@@ -1157,7 +1157,7 @@ class InheritanceManager3 {
           .getChild('@method')
           .getChild(elementName);
       assert(elementReference.element2 == null);
-      MethodElementImpl2(
+      MethodElementImpl(
         name3: elementName,
         reference: elementReference,
         firstFragment: result,
@@ -1186,7 +1186,7 @@ class InheritanceManager3 {
           .getChild('@field')
           .getChild(elementName);
       assert(elementReference.element2 == null);
-      FieldElementImpl2(
+      FieldElementImpl(
         reference: elementReference,
         firstFragment: resultField,
       );
@@ -1255,7 +1255,7 @@ class InheritanceManager3 {
           .getChild('@method')
           .getChild(elementName);
       assert(elementReference.element2 == null);
-      MethodElementImpl2(
+      MethodElementImpl(
         name3: elementName,
         reference: elementReference,
         firstFragment: result,
@@ -1316,7 +1316,7 @@ class InheritanceManager3 {
           .getChild('@field')
           .getChild(elementName);
       assert(elementReference.element2 == null);
-      FieldElementImpl2(reference: elementReference, firstFragment: field);
+      FieldElementImpl(reference: elementReference, firstFragment: field);
 
       return result;
     }
@@ -1324,7 +1324,7 @@ class InheritanceManager3 {
 
   static Map<Name, ExecutableElementOrMember> _getTypeMembers(
     InterfaceFragmentImpl fragment,
-    InterfaceElementImpl2 element,
+    InterfaceElementImpl element,
   ) {
     var declared = <Name, ExecutableElementOrMember>{};
     var libraryUri = fragment.librarySource.uri;

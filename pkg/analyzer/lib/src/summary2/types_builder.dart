@@ -475,11 +475,11 @@ class _MixinInference {
       return mixinType;
     }
 
-    List<TypeParameterElementImpl2>? typeParameters;
+    List<TypeParameterElementImpl>? typeParameters;
     List<InterfaceTypeImpl>? supertypeConstraints;
     InterfaceTypeImpl Function(List<TypeImpl> typeArguments)? instantiate;
     var mixinElement = mixinNode.element2;
-    if (mixinElement is InterfaceElementImpl2) {
+    if (mixinElement is InterfaceElementImpl) {
       typeParameters = mixinElement.typeParameters2;
       if (typeParameters.isNotEmpty) {
         supertypeConstraints = typeSystem
@@ -491,7 +491,7 @@ class _MixinInference {
           );
         };
       }
-    } else if (mixinElement is TypeAliasElementImpl2) {
+    } else if (mixinElement is TypeAliasElementImpl) {
       typeParameters = mixinElement.typeParameters2;
       if (typeParameters.isNotEmpty) {
         var rawType = mixinElement.aliasedType;

@@ -56,7 +56,7 @@ class FlowAnalysisDataForTesting {
   /// information that was computed for it.
   final Map<
     AstNode,
-    AssignedVariablesForTesting<AstNode, PromotableElementImpl2>
+    AssignedVariablesForTesting<AstNode, PromotableElementImpl>
   >
   assignedVariables = {};
 
@@ -79,7 +79,7 @@ class FlowAnalysisHelper {
   final TypeSystemOperations typeOperations;
 
   /// Precomputed sets of potentially assigned variables.
-  AssignedVariables<AstNodeImpl, PromotableElementImpl2>? assignedVariables;
+  AssignedVariables<AstNodeImpl, PromotableElementImpl>? assignedVariables;
 
   /// The result for post-resolution stages of analysis, for testing only.
   final FlowAnalysisDataForTesting? dataForTesting;
@@ -91,7 +91,7 @@ class FlowAnalysisHelper {
     AstNodeImpl,
     StatementImpl,
     ExpressionImpl,
-    PromotableElementImpl2,
+    PromotableElementImpl,
     SharedTypeView
   >?
   flow;
@@ -179,14 +179,14 @@ class FlowAnalysisHelper {
           assignedVariables
               as AssignedVariablesForTesting<
                 AstNodeImpl,
-                PromotableElementImpl2
+                PromotableElementImpl
               >;
     }
     flow = FlowAnalysis<
       AstNodeImpl,
       StatementImpl,
       ExpressionImpl,
-      PromotableElementImpl2,
+      PromotableElementImpl,
       SharedTypeView
     >(
       typeOperations,
@@ -244,7 +244,7 @@ class FlowAnalysisHelper {
         // TODO(paulberry): try to remove this cast by changing `parameters` to
         // a `FormalParameterListImpl`
         var declaredElement =
-            parameter.declaredFragment!.element as PromotableElementImpl2;
+            parameter.declaredFragment!.element as PromotableElementImpl;
         flow!.declare(
           declaredElement,
           SharedTypeView(declaredElement.type),
@@ -273,7 +273,7 @@ class FlowAnalysisHelper {
 
   bool isDefinitelyAssigned(
     SimpleIdentifier node,
-    PromotableElementImpl2 element,
+    PromotableElementImpl element,
   ) {
     var isAssigned = flow!.isAssigned(element);
 
@@ -290,7 +290,7 @@ class FlowAnalysisHelper {
 
   bool isDefinitelyUnassigned(
     SimpleIdentifier node,
-    PromotableElementImpl2 element,
+    PromotableElementImpl element,
   ) {
     var isUnassigned = flow!.isUnassigned(element);
 
@@ -347,7 +347,7 @@ class FlowAnalysisHelper {
       for (var i = 0; i < variables.length; ++i) {
         var variable = variables[i];
         var declaredElement =
-            variable.declaredElement2 as PromotableElementImpl2;
+            variable.declaredElement2 as PromotableElementImpl;
         flow!.declare(
           declaredElement,
           SharedTypeView(declaredElement.type),
@@ -358,14 +358,14 @@ class FlowAnalysisHelper {
   }
 
   /// Computes the [AssignedVariables] map for the given [node].
-  static AssignedVariables<AstNodeImpl, PromotableElementImpl2>
+  static AssignedVariables<AstNodeImpl, PromotableElementImpl>
   computeAssignedVariables(
     AstNodeImpl node,
     FormalParameterList? parameters, {
     bool retainDataForTesting = false,
     void Function(AstVisitor<Object?> visitor)? visit,
   }) {
-    AssignedVariables<AstNodeImpl, PromotableElementImpl2> assignedVariables =
+    AssignedVariables<AstNodeImpl, PromotableElementImpl> assignedVariables =
         retainDataForTesting
             ? AssignedVariablesForTesting()
             : AssignedVariables();
@@ -444,15 +444,15 @@ class FlowAnalysisHelper {
 class TypeSystemOperations
     with
         TypeAnalyzerOperationsMixin<
-          PromotableElementImpl2,
+          PromotableElementImpl,
           InterfaceTypeImpl,
-          InterfaceElementImpl2
+          InterfaceElementImpl
         >
     implements
         TypeAnalyzerOperations<
-          PromotableElementImpl2,
+          PromotableElementImpl,
           InterfaceTypeImpl,
-          InterfaceElementImpl2
+          InterfaceElementImpl
         > {
   final bool strictCasts;
   final TypeSystemImpl typeSystem;
@@ -531,9 +531,9 @@ class TypeSystemOperations
 
   @override
   TypeConstraintGenerator<
-    PromotableElementImpl2,
+    PromotableElementImpl,
     InterfaceTypeImpl,
-    InterfaceElementImpl2,
+    InterfaceElementImpl,
     AstNodeImpl
   >
   createTypeConstraintGenerator({
@@ -544,7 +544,7 @@ class TypeSystemOperations
     required bool inferenceUsingBoundsIsEnabled,
   }) {
     return TypeConstraintGatherer(
-      typeParameters: typeParametersToInfer.cast<TypeParameterElementImpl2>(),
+      typeParameters: typeParametersToInfer.cast<TypeParameterElementImpl>(),
       inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
       typeSystemOperations: typeAnalyzerOperations,
       dataForTesting: typeConstraintGenerationDataForTesting,
@@ -584,7 +584,7 @@ class TypeSystemOperations
 
   @override
   Variance getTypeParameterVariance(
-    InterfaceElementImpl2 typeDeclaration,
+    InterfaceElementImpl typeDeclaration,
     int parameterIndex,
   ) {
     return typeDeclaration.typeParameters2[parameterIndex].variance;
@@ -611,7 +611,7 @@ class TypeSystemOperations
   ) {
     return typeSystem.greatestClosure(
       type,
-      typeParametersToEliminate.cast<TypeParameterElementImpl2>(),
+      typeParametersToEliminate.cast<TypeParameterElementImpl>(),
     );
   }
 
@@ -739,7 +739,7 @@ class TypeSystemOperations
   ) {
     return typeSystem.leastClosure(
       type,
-      typeParametersToEliminate.cast<TypeParameterElementImpl2>(),
+      typeParametersToEliminate.cast<TypeParameterElementImpl>(),
     );
   }
 
@@ -776,7 +776,7 @@ class TypeSystemOperations
   }
 
   @override
-  TypeParameterElementImpl2? matchInferableParameterInternal(TypeImpl type) {
+  TypeParameterElementImpl? matchInferableParameterInternal(TypeImpl type) {
     if (type is TypeParameterTypeImpl) {
       return type.element3;
     } else {
@@ -821,7 +821,7 @@ class TypeSystemOperations
   }
 
   @override
-  TypeDeclarationMatchResult<InterfaceTypeImpl, InterfaceElementImpl2>?
+  TypeDeclarationMatchResult<InterfaceTypeImpl, InterfaceElementImpl>?
   matchTypeDeclarationTypeInternal(TypeImpl type) {
     if (isInterfaceTypeInternal(type)) {
       InterfaceTypeImpl interfaceType = type as InterfaceTypeImpl;
@@ -913,7 +913,7 @@ class TypeSystemOperations
   }
 
   @override
-  SharedTypeView variableType(PromotableElementImpl2 variable) {
+  SharedTypeView variableType(PromotableElementImpl variable) {
     return SharedTypeView(variable.type);
   }
 
@@ -1284,7 +1284,7 @@ class _LocalVariableTypeProvider implements LocalVariableTypeProvider {
   @override
   TypeImpl getType(SimpleIdentifierImpl node, {required bool isRead}) {
     var variable = node.element as VariableElement2OrMember;
-    if (variable is PromotableElementImpl2) {
+    if (variable is PromotableElementImpl) {
       var promotedType =
           isRead
               ? _manager.flow?.variableRead(node, variable)

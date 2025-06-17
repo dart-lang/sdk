@@ -84,7 +84,7 @@ class LibraryBuilder {
   int _nextUnnamedId = 0;
 
   /// The fields that were speculatively created as [ConstFieldFragmentImpl],
-  /// but we want to clear [ConstVariableElement.constantInitializer] for it
+  /// but we want to clear [ConstVariableFragment.constantInitializer] for it
   /// if the class will not end up with a `const` constructor. We don't know
   /// at the time when we create them, because of future augmentations.
   final Set<ConstFieldFragmentImpl> finalInstanceFields = Set.identity();
@@ -151,7 +151,7 @@ class LibraryBuilder {
       fragment.reference = reference;
       fragment.typeName = classFragment.name2;
 
-      ConstructorElementImpl2(
+      ConstructorElementImpl(
         name3: fragment.name2,
         reference: classFragment.element.reference
             .getChild('@constructor')
@@ -226,7 +226,7 @@ class LibraryBuilder {
       fragment.reference = reference;
       fragment.typeName = enumFragment.name2;
 
-      ConstructorElementImpl2(
+      ConstructorElementImpl(
         name3: fragment.name2,
         reference: enumFragment.element.reference
             .getChild('@constructor')
@@ -611,10 +611,10 @@ class LibraryBuilder {
     var containerRef = libraryFragment.reference!;
     var refName = unlinkedName?.name ?? '${_nextUnnamedId++}';
     var reference = containerRef.getChild('@prefix2').getChild(refName);
-    var element = reference.element2 as PrefixElementImpl2?;
+    var element = reference.element2 as PrefixElementImpl?;
 
     if (element == null) {
-      element = PrefixElementImpl2(
+      element = PrefixElementImpl(
         reference: reference,
         firstFragment: fragment,
       );
@@ -838,13 +838,13 @@ class LinkingUnit {
   });
 }
 
-/// This class examines all the [InterfaceElementImpl2]s in a library and
+/// This class examines all the [InterfaceElementImpl]s in a library and
 /// determines which fields are promotable within that library.
 class _FieldPromotability
     extends
         FieldPromotability<
-          InterfaceElementImpl2,
-          FieldElementImpl2,
+          InterfaceElementImpl,
+          FieldElementImpl,
           GetterElementImpl
         > {
   /// The [_libraryBuilder] for the library being analyzed.
@@ -853,16 +853,16 @@ class _FieldPromotability
   final bool enabled;
 
   /// Fields that might be promotable, if not marked unpromotable later.
-  final List<FieldElementImpl2> _potentiallyPromotableFields = [];
+  final List<FieldElementImpl> _potentiallyPromotableFields = [];
 
   _FieldPromotability(this._libraryBuilder, {required this.enabled});
 
   @override
-  Iterable<InterfaceElementImpl2> getSuperclasses(
-    InterfaceElementImpl2 class_, {
+  Iterable<InterfaceElementImpl> getSuperclasses(
+    InterfaceElementImpl class_, {
     required bool ignoreImplements,
   }) {
-    var result = <InterfaceElementImpl2>[];
+    var result = <InterfaceElementImpl>[];
 
     var supertype = class_.supertype;
     if (supertype != null) {
@@ -877,7 +877,7 @@ class _FieldPromotability
       for (var interface in class_.interfaces) {
         result.add(interface.element3);
       }
-      if (class_ is MixinElementImpl2) {
+      if (class_ is MixinElementImpl) {
         for (var constraint in class_.superclassConstraints) {
           result.add(constraint.element3);
         }
@@ -938,8 +938,8 @@ class _FieldPromotability
   /// Records all the non-synthetic instance fields and getters of [class_]
   /// into [classInfo].
   void _handleMembers(
-    ClassInfo<InterfaceElementImpl2> classInfo,
-    InterfaceElementImpl2 class_,
+    ClassInfo<InterfaceElementImpl> classInfo,
+    InterfaceElementImpl class_,
   ) {
     for (var field in class_.fields) {
       if (field.isStatic || field.isSynthetic) {
@@ -976,7 +976,7 @@ class _FieldPromotability
           isAbstract: getter.isAbstract,
         );
         if (enabled && nonPromotabilityReason == null) {
-          var field = getter.variable3 as FieldElementImpl2;
+          var field = getter.variable3 as FieldElementImpl;
           _potentiallyPromotableFields.add(field);
         }
       }

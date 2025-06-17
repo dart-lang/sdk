@@ -340,7 +340,8 @@ def _CheckClangFormat(input_api, output_api):
                     f.ChangedContents())):
             is_deps = True
             break
-        if is_cpp_file(path) and os.path.isfile(path):
+        if is_cpp_file(path) and os.path.isfile(
+                path) and not path.startswith('third_party/'):
             files.append(path)
 
     if is_deps:

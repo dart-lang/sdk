@@ -260,7 +260,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   /// The class containing the AST nodes being visited, or `null` if we are not
   /// in the scope of a class.
-  InterfaceElementImpl2? _enclosingClass;
+  InterfaceElementImpl? _enclosingClass;
 
   /// The element of the extension being visited, or `null` if we are not
   /// in the scope of an extension.
@@ -466,7 +466,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var labelNode = node.label;
     if (labelNode != null) {
       var labelElement = labelNode.element;
-      if (labelElement is LabelElementImpl2 && labelElement.isOnSwitchMember) {
+      if (labelElement is LabelElementImpl && labelElement.isOnSwitchMember) {
         diagnosticReporter.atNode(
           labelNode,
           CompileTimeErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER,
@@ -1538,7 +1538,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     var element =
-        node.declaredFragment?.element as SuperFormalParameterElementImpl2;
+        node.declaredFragment?.element as SuperFormalParameterElementImpl;
     var superParameter = element.superConstructorParameter2;
 
     if (superParameter == null) {
@@ -1870,7 +1870,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             }
           } else {
             bool isMixinClass =
-                mixinElement is ClassElementImpl2 && mixinElement.isMixinClass;
+                mixinElement is ClassElementImpl && mixinElement.isMixinClass;
             if (!isMixinClass &&
                 _checkForMixinClassDeclaresConstructor(
                   mixinName,
@@ -1988,7 +1988,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     required Token name,
     required Element? element,
   }) {
-    if (element is MultiplyDefinedElementImpl2) {
+    if (element is MultiplyDefinedElementImpl) {
       var conflictingMembers = element.conflictingElements2;
       var libraryNames =
           conflictingMembers.map((e) => _getLibraryName(e)).toList();
@@ -2065,7 +2065,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         CompileTimeErrorCode.ASSIGNMENT_TO_METHOD,
       );
     } else if (element is InterfaceElement ||
-        element is DynamicElementImpl2 ||
+        element is DynamicElementImpl ||
         element is TypeParameterElement) {
       diagnosticReporter.atNode(
         expression,
@@ -2159,15 +2159,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
               ...interfaceType.element3.allSupertypes,
             ].map((e) => e.element3).toList();
         for (var interfaceElement in implementedInterfaces) {
-          if ((interfaceElement is ClassElementImpl2 &&
+          if ((interfaceElement is ClassElementImpl &&
                       interfaceElement.isBase ||
-                  interfaceElement is MixinElementImpl2 &&
+                  interfaceElement is MixinElementImpl &&
                       interfaceElement.isBase) &&
               interfaceElement.library2 != _currentLibrary &&
               !_mayIgnoreClassModifiers(interfaceElement.library2)) {
             // Should this be combined with _checkForImplementsClauseErrorCodes
             // to avoid double errors if implementing `int`.
-            if (interfaceElement is ClassElementImpl2 &&
+            if (interfaceElement is ClassElementImpl &&
                 !interfaceElement.isSealed) {
               diagnosticReporter.atNode(
                 interface,
@@ -2211,7 +2211,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         var withType = withMixin.type;
         if (withType is InterfaceType) {
           var withElement = withType.element3;
-          if (withElement is ClassElementImpl2 &&
+          if (withElement is ClassElementImpl &&
               !withElement.isMixinClass &&
               withElement.library2.featureSet.isEnabled(
                 Feature.class_modifiers,
@@ -2286,7 +2286,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
 
       // Extension type methods preclude accessors.
-      if (enclosingClass is ExtensionTypeElementImpl2) {
+      if (enclosingClass is ExtensionTypeElementImpl) {
         continue;
       }
 
@@ -2340,7 +2340,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         conflictingDeclaredNames.add(name);
       } else if (inherited is MethodElementOrMember) {
         // Extension type accessors preclude inherited accessors/methods.
-        if (enclosingClass is ExtensionTypeElementImpl2) {
+        if (enclosingClass is ExtensionTypeElementImpl) {
           continue;
         }
         diagnosticReporter.atElement2(
@@ -3025,7 +3025,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     // The type of the loop variable.
     TypeImpl variableType;
-    if (variableElement is VariableElementImpl2) {
+    if (variableElement is VariableElementImpl) {
       variableType = variableElement.type;
     } else {
       return false;
@@ -3585,7 +3585,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var type = superclass.type;
       if (type is InterfaceType) {
         var element = type.element3;
-        if (element is ClassElementImpl2 &&
+        if (element is ClassElementImpl &&
             element.isFinal &&
             !element.isSealed &&
             element.library2 != _currentLibrary &&
@@ -3814,7 +3814,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var superclassType = superclass.type;
       if (superclassType is InterfaceType) {
         var superclassElement = superclassType.element3;
-        if (superclassElement is ClassElementImpl2 &&
+        if (superclassElement is ClassElementImpl &&
             superclassElement.isInterface &&
             !superclassElement.isSealed &&
             superclassElement.library2 != _currentLibrary &&
@@ -4275,7 +4275,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     WithClause? withClause,
   ) {
     var element = node.declaredFragment?.element;
-    if (element is ClassElementImpl2 && element.isMixinClass) {
+    if (element is ClassElementImpl && element.isMixinClass) {
       // Check that the class does not have a constructor.
       for (ClassMember member in members) {
         if (member is ConstructorDeclarationImpl) {
@@ -4386,7 +4386,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     InterfaceElement mixinElement,
     InterfaceType mixinType,
   ) {
-    var mixinElementImpl = mixinElement as MixinElementImpl2;
+    var mixinElementImpl = mixinElement as MixinElementImpl;
     if (mixinElementImpl.superInvokedNames.isEmpty) {
       return false;
     }
@@ -5687,7 +5687,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
     var element = parameter.declaredFragment?.element;
-    if (element is FieldFormalParameterElementImpl2) {
+    if (element is FieldFormalParameterElementImpl) {
       var fieldElement = element.field2;
       if (fieldElement == null || fieldElement.isSynthetic) {
         diagnosticReporter.atNode(
@@ -5697,7 +5697,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         );
       } else {
         var parameterElement = parameter.declaredFragment?.element;
-        if (parameterElement is FieldFormalParameterElementImpl2) {
+        if (parameterElement is FieldFormalParameterElementImpl) {
           var declaredType = parameterElement.type;
           var fieldType = fieldElement.type;
           if (fieldElement.isSynthetic) {
@@ -5969,7 +5969,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     _enclosingClass!.mixins.forEach(checkOne);
 
     var enclosingClass = _enclosingClass;
-    if (enclosingClass is MixinElementImpl2) {
+    if (enclosingClass is MixinElementImpl) {
       enclosingClass.superclassConstraints.forEach(checkOne);
     }
   }

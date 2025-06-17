@@ -15,7 +15,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart'
-    show JoinPatternVariableElementImpl2, MetadataImpl;
+    show JoinPatternVariableElementImpl, MetadataImpl;
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/member.dart' show ExecutableMember;
 import 'package:analyzer/src/dart/element/type.dart';
@@ -1179,7 +1179,7 @@ class UsedLocalElements {
   }
 
   void addElement(Element? element) {
-    if (element is JoinPatternVariableElementImpl2) {
+    if (element is JoinPatternVariableElementImpl) {
       elements.addAll(element.transitiveVariables);
     } else if (element is ExecutableMember) {
       elements.add(element.baseElement);

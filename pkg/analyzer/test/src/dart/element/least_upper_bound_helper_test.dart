@@ -304,7 +304,7 @@ class PathToObjectTest extends AbstractTypeSystemTest {
     expect(_toElement(M), 4);
   }
 
-  int _toElement(InterfaceElementImpl2 element) {
+  int _toElement(InterfaceElementImpl element) {
     var type = interfaceTypeNone(element);
     return _toType(type);
   }

@@ -565,7 +565,7 @@ dart:core::@class::num::@method::+
     var node = findNode.singleRepresentationConstructorName;
     var element = ElementLocator.locate2(node);
     _assertElement(element, r'''
-<testLibrary>::@extensionType::A::@constructor::A
+<testLibrary>::@extensionType::A::@constructor::named
 ''');
   }
 

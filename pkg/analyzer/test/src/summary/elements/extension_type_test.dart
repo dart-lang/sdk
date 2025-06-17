@@ -64,7 +64,7 @@ library
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       representation: <testLibrary>::@extensionType::A::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int?
       fields
         final it
@@ -79,7 +79,7 @@ library
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
       representation: <testLibrary>::@extensionType::B::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::B::@constructor::B
+      primaryConstructor: <testLibrary>::@extensionType::B::@constructor::new
       typeErasure: int
       interfaces
         A
@@ -124,7 +124,7 @@ library
           constructors
             const new
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <testLibrary>::@extensionType::A::@constructor::A
+              element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 21
               formalParameters
@@ -139,7 +139,7 @@ library
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       representation: <testLibrary>::@extensionType::A::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
         final it
@@ -183,7 +183,7 @@ library
           constructors
             named @17
               reference: <testLibraryFragment>::@extensionType::A::@constructor::named
-              element: <testLibrary>::@extensionType::A::@constructor::A
+              element: <testLibrary>::@extensionType::A::@constructor::named
               codeOffset: 16
               codeLength: 14
               typeName: A
@@ -201,7 +201,7 @@ library
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       representation: <testLibrary>::@extensionType::A::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::named
       typeErasure: int
       fields
         final it
@@ -246,7 +246,7 @@ library
           constructors
             new
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <testLibrary>::@extensionType::A::@constructor::A
+              element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
@@ -270,7 +270,7 @@ library
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       representation: <testLibrary>::@extensionType::A::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: num
       fields
         final it
@@ -320,7 +320,7 @@ library
           constructors
             new
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <testLibrary>::@extensionType::A::@constructor::A
+              element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
@@ -344,7 +344,7 @@ library
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       representation: <testLibrary>::@extensionType::A::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: num
       fields
         final it
@@ -394,7 +394,7 @@ library
           constructors
             new
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <testLibrary>::@extensionType::A::@constructor::A
+              element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
@@ -418,7 +418,7 @@ library
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       representation: <testLibrary>::@extensionType::A::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: num
       fields
         final it
@@ -478,7 +478,7 @@ library
           constructors
             new
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <testLibrary>::@extensionType::A::@constructor::A
+              element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 16
               codeLength: 8
               typeName: A
@@ -495,7 +495,7 @@ library
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       representation: <testLibrary>::@extensionType::A::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
         final it
@@ -540,7 +540,7 @@ library
           constructors
             new
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <testLibrary>::@extensionType::A::@constructor::A
+              element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 24
               formalParameters
@@ -556,7 +556,7 @@ library
       firstFragment: <testLibraryFragment>::@extensionType::A
       documentationComment: /// Docs
       representation: <testLibrary>::@extensionType::A::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
         final it
@@ -619,7 +619,7 @@ library
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       representation: <testLibrary>::@extensionType::A::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
         final it
@@ -686,7 +686,7 @@ library
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       representation: <testLibrary>::@extensionType::A::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
         final it
@@ -749,7 +749,7 @@ library
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       representation: <testLibrary>::@extensionType::A::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
         final it
@@ -800,7 +800,7 @@ library
           constructors
             new
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <testLibrary>::@extensionType::A::@constructor::A
+              element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 32
               formalParameters
@@ -815,7 +815,7 @@ library
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       representation: <testLibrary>::@extensionType::A::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
         final it
@@ -874,7 +874,7 @@ library
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       representation: <testLibrary>::@extensionType::A::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
         final it
@@ -951,7 +951,7 @@ library
       reference: <testLibrary>::@extensionType::X
       firstFragment: <testLibraryFragment>::@extensionType::X
       representation: <testLibrary>::@extensionType::X::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::X::@constructor::X
+      primaryConstructor: <testLibrary>::@extensionType::X::@constructor::new
       typeErasure: C
       interfaces
         A
@@ -1011,7 +1011,7 @@ library
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       representation: <testLibrary>::@extensionType::A::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       interfaces
         Object
@@ -1028,7 +1028,7 @@ library
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
       representation: <testLibrary>::@extensionType::B::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::B::@constructor::B
+      primaryConstructor: <testLibrary>::@extensionType::B::@constructor::new
       typeErasure: int
       interfaces
         Object
@@ -1074,7 +1074,7 @@ library
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       representation: <testLibrary>::@extensionType::A::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       interfaces
         Object
@@ -1133,7 +1133,7 @@ library
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       representation: <testLibrary>::@extensionType::A::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: num
       fields
         final it
@@ -1148,7 +1148,7 @@ library
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
       representation: <testLibrary>::@extensionType::B::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::B::@constructor::B
+      primaryConstructor: <testLibrary>::@extensionType::B::@constructor::new
       typeErasure: int
       interfaces
         A
@@ -1194,7 +1194,7 @@ library
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       representation: <testLibrary>::@extensionType::A::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       interfaces
         num
@@ -1240,7 +1240,7 @@ library
       reference: <testLibrary>::@extensionType::X
       firstFragment: <testLibraryFragment>::@extensionType::X
       representation: <testLibrary>::@extensionType::X::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::X::@constructor::X
+      primaryConstructor: <testLibrary>::@extensionType::X::@constructor::new
       typeErasure: int?
       fields
         final it
@@ -1289,7 +1289,7 @@ library
       typeParameters
         T
       representation: <testLibrary>::@extensionType::A::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: T
       fields
         final it
@@ -1340,7 +1340,7 @@ library
       reference: <testLibrary>::@extensionType::X
       firstFragment: <testLibraryFragment>::@extensionType::X
       representation: <testLibrary>::@extensionType::X::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::X::@constructor::X
+      primaryConstructor: <testLibrary>::@extensionType::X::@constructor::new
       typeErasure: int
       interfaces
         num
@@ -1384,7 +1384,7 @@ library
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       representation: <testLibrary>::@extensionType::A::@field::_it
-      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int?
       fields
         final promotable _it
@@ -1431,7 +1431,7 @@ library
           constructors
             new
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <testLibrary>::@extensionType::A::@constructor::A
+              element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 37
               formalParameters
@@ -1446,7 +1446,7 @@ library
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       representation: <testLibrary>::@extensionType::A::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
         final it
@@ -1505,7 +1505,7 @@ library
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       representation: <testLibrary>::@extensionType::A::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
         final it
@@ -1571,7 +1571,7 @@ library
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       representation: <testLibrary>::@extensionType::A::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
         final it
@@ -1665,7 +1665,7 @@ library
           constructors
             new
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <testLibrary>::@extensionType::A::@constructor::A
+              element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 16
               codeLength: 2
               typeName: A
@@ -1682,7 +1682,7 @@ library
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       representation: <testLibrary>::@extensionType::A::@field::<empty>
-      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: InvalidType
       fields
         final <null-name>
@@ -1738,7 +1738,7 @@ library
         T
           bound: A<dynamic>
       representation: <testLibrary>::@extensionType::A::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
         final it
@@ -1795,7 +1795,7 @@ library
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       representation: <testLibrary>::@extensionType::A::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
         final it
@@ -1864,7 +1864,7 @@ library
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       representation: <testLibrary>::@extensionType::A::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: InvalidType
       fields
         final it
@@ -1879,7 +1879,7 @@ library
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
       representation: <testLibrary>::@extensionType::B::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::B::@constructor::B
+      primaryConstructor: <testLibrary>::@extensionType::B::@constructor::new
       typeErasure: InvalidType
       fields
         final it
@@ -1937,7 +1937,7 @@ library
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       representation: <testLibrary>::@extensionType::A::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: InvalidType
       fields
         final it
@@ -1952,7 +1952,7 @@ library
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
       representation: <testLibrary>::@extensionType::B::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::B::@constructor::B
+      primaryConstructor: <testLibrary>::@extensionType::B::@constructor::new
       typeErasure: InvalidType
       fields
         final it
@@ -1996,7 +1996,7 @@ library
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       representation: <testLibrary>::@extensionType::A::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: InvalidType
       fields
         final it
@@ -2054,7 +2054,7 @@ library
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       representation: <testLibrary>::@extensionType::A::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
         final it
@@ -2069,7 +2069,7 @@ library
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
       representation: <testLibrary>::@extensionType::B::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::B::@constructor::B
+      primaryConstructor: <testLibrary>::@extensionType::B::@constructor::new
       typeErasure: int Function(int)
       fields
         final it
@@ -2132,7 +2132,7 @@ library
       typeParameters
         T
       representation: <testLibrary>::@extensionType::A::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: T
       fields
         final it
@@ -2149,7 +2149,7 @@ library
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
       representation: <testLibrary>::@extensionType::B::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::B::@constructor::B
+      primaryConstructor: <testLibrary>::@extensionType::B::@constructor::new
       typeErasure: double
       fields
         final it
@@ -2207,7 +2207,7 @@ library
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       representation: <testLibrary>::@extensionType::A::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
         final it
@@ -2222,7 +2222,7 @@ library
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
       representation: <testLibrary>::@extensionType::B::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::B::@constructor::B
+      primaryConstructor: <testLibrary>::@extensionType::B::@constructor::new
       typeErasure: List<int>
       fields
         final it
@@ -2266,7 +2266,7 @@ library
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       representation: <testLibrary>::@extensionType::A::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
         final it
@@ -2308,7 +2308,7 @@ library
           constructors
             new
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <testLibrary>::@extensionType::A::@constructor::A
+              element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
@@ -2327,7 +2327,7 @@ library
           bound: num
         U
       representation: <testLibrary>::@extensionType::A::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::A
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: Map<T, U>
       fields
         final it

@@ -19,7 +19,7 @@ void detachElementsFromNodes(LibraryElementImpl element) {
 
 class _Visitor extends GeneralizingElementVisitor2<void> {
   @override
-  void visitClassElement(covariant ClassElementImpl2 element) {
+  void visitClassElement(covariant ClassElementImpl element) {
     for (var fragment in element.fragments) {
       fragment.mixinInferenceCallback = null;
     }
@@ -27,7 +27,7 @@ class _Visitor extends GeneralizingElementVisitor2<void> {
   }
 
   @override
-  void visitConstructorElement(covariant ConstructorElementImpl2 element) {
+  void visitConstructorElement(covariant ConstructorElementImpl element) {
     for (var fragment in element.fragments) {
       // Make a copy, so that it is not a NodeList.
       var initializers = fragment.constantInitializers.toFixedList();
@@ -72,7 +72,7 @@ class _Visitor extends GeneralizingElementVisitor2<void> {
   }
 
   @override
-  void visitEnumElement(covariant EnumElementImpl2 element) {
+  void visitEnumElement(covariant EnumElementImpl element) {
     for (var fragment in element.fragments) {
       fragment.mixinInferenceCallback = null;
     }
@@ -86,7 +86,7 @@ class _Visitor extends GeneralizingElementVisitor2<void> {
   }
 
   @override
-  void visitMixinElement(covariant MixinElementImpl2 element) {
+  void visitMixinElement(covariant MixinElementImpl element) {
     for (var fragment in element.fragments) {
       fragment.mixinInferenceCallback = null;
     }
@@ -96,7 +96,7 @@ class _Visitor extends GeneralizingElementVisitor2<void> {
   @override
   void visitPropertyInducingElement(PropertyInducingElement element) {
     for (var fragment in element.fragments) {
-      if (fragment is PropertyInducingElementImpl) {
+      if (fragment is PropertyInducingFragmentImpl) {
         fragment.typeInference = null;
       }
     }
@@ -106,9 +106,9 @@ class _Visitor extends GeneralizingElementVisitor2<void> {
   }
 
   void _detachConstVariable(Object element) {
-    if (element is VariableElementImpl2) {
+    if (element is VariableElementImpl) {
       for (var fragment in element.fragments) {
-        if (fragment case ConstVariableElement fragment) {
+        if (fragment case ConstVariableFragment fragment) {
           var initializer = fragment.constantInitializer;
           if (initializer is ExpressionImpl) {
             _detachNode(initializer);

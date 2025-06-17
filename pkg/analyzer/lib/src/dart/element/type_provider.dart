@@ -101,27 +101,27 @@ class TypeProviderImpl extends TypeProviderBase {
   bool _hasEnumElement = false;
   bool _hasEnumType = false;
 
-  ClassElementImpl2? _boolElement;
-  ClassElementImpl2? _deprecatedElement;
-  ClassElementImpl2? _doubleElement;
-  ClassElementImpl2? _enumElement;
-  ClassElementImpl2? _functionElement;
-  ClassElementImpl2? _futureElement;
-  ClassElementImpl2? _futureOrElement;
-  ClassElementImpl2? _intElement;
-  ClassElementImpl2? _iterableElement;
-  ClassElementImpl2? _listElement;
-  ClassElementImpl2? _mapElement;
-  ClassElementImpl2? _nullElement;
-  ClassElementImpl2? _numElement;
-  ClassElementImpl2? _objectElement;
-  ClassElementImpl2? _recordElement;
-  ClassElementImpl2? _setElement;
-  ClassElementImpl2? _stackTraceElement;
-  ClassElementImpl2? _streamElement;
-  ClassElementImpl2? _stringElement;
-  ClassElementImpl2? _symbolElement;
-  ClassElementImpl2? _typeElement;
+  ClassElementImpl? _boolElement;
+  ClassElementImpl? _deprecatedElement;
+  ClassElementImpl? _doubleElement;
+  ClassElementImpl? _enumElement;
+  ClassElementImpl? _functionElement;
+  ClassElementImpl? _futureElement;
+  ClassElementImpl? _futureOrElement;
+  ClassElementImpl? _intElement;
+  ClassElementImpl? _iterableElement;
+  ClassElementImpl? _listElement;
+  ClassElementImpl? _mapElement;
+  ClassElementImpl? _nullElement;
+  ClassElementImpl? _numElement;
+  ClassElementImpl? _objectElement;
+  ClassElementImpl? _recordElement;
+  ClassElementImpl? _setElement;
+  ClassElementImpl? _stackTraceElement;
+  ClassElementImpl? _streamElement;
+  ClassElementImpl? _stringElement;
+  ClassElementImpl? _symbolElement;
+  ClassElementImpl? _typeElement;
 
   InterfaceTypeImpl? _boolType;
   InterfaceTypeImpl? _deprecatedType;
@@ -158,7 +158,7 @@ class TypeProviderImpl extends TypeProviderBase {
        _asyncLibrary = asyncLibrary;
 
   @override
-  ClassElementImpl2 get boolElement2 {
+  ClassElementImpl get boolElement2 {
     return _boolElement ??= _getClassElement(_coreLibrary, 'bool');
   }
 
@@ -175,7 +175,7 @@ class TypeProviderImpl extends TypeProviderBase {
     return NeverTypeImpl.instance;
   }
 
-  ClassElementImpl2 get deprecatedElement2 {
+  ClassElementImpl get deprecatedElement2 {
     return _deprecatedElement ??= _getClassElement(_coreLibrary, 'Deprecated');
   }
 
@@ -188,7 +188,7 @@ class TypeProviderImpl extends TypeProviderBase {
   }
 
   @override
-  ClassElementImpl2 get doubleElement2 {
+  ClassElementImpl get doubleElement2 {
     return _doubleElement ??= _getClassElement(_coreLibrary, "double");
   }
 
@@ -209,7 +209,7 @@ class TypeProviderImpl extends TypeProviderBase {
   TypeImpl get dynamicType => DynamicTypeImpl.instance;
 
   @override
-  ClassElementImpl2? get enumElement2 {
+  ClassElementImpl? get enumElement2 {
     if (!_hasEnumElement) {
       _hasEnumElement = true;
       _enumElement = _getClassElement(_coreLibrary, 'Enum');
@@ -232,7 +232,7 @@ class TypeProviderImpl extends TypeProviderBase {
     return _enumType;
   }
 
-  ClassElementImpl2 get functionElement2 {
+  ClassElementImpl get functionElement2 {
     return _functionElement ??= _getClassElement(_coreLibrary, 'Function');
   }
 
@@ -253,7 +253,7 @@ class TypeProviderImpl extends TypeProviderBase {
   }
 
   @override
-  ClassElementImpl2 get futureElement2 {
+  ClassElementImpl get futureElement2 {
     return _futureElement ??= _getClassElement(_asyncLibrary, 'Future');
   }
 
@@ -266,7 +266,7 @@ class TypeProviderImpl extends TypeProviderBase {
   }
 
   @override
-  ClassElementImpl2 get futureOrElement2 {
+  ClassElementImpl get futureOrElement2 {
     return _futureOrElement ??= _getClassElement(_asyncLibrary, 'FutureOr');
   }
 
@@ -279,7 +279,7 @@ class TypeProviderImpl extends TypeProviderBase {
   }
 
   @override
-  ClassElementImpl2 get intElement2 {
+  ClassElementImpl get intElement2 {
     return _intElement ??= _getClassElement(_coreLibrary, "int");
   }
 
@@ -303,7 +303,7 @@ class TypeProviderImpl extends TypeProviderBase {
   }
 
   @override
-  ClassElementImpl2 get iterableElement2 {
+  ClassElementImpl get iterableElement2 {
     return _iterableElement ??= _getClassElement(_coreLibrary, 'Iterable');
   }
 
@@ -316,12 +316,12 @@ class TypeProviderImpl extends TypeProviderBase {
   }
 
   @override
-  ClassElementImpl2 get listElement2 {
+  ClassElementImpl get listElement2 {
     return _listElement ??= _getClassElement(_coreLibrary, 'List');
   }
 
   @override
-  ClassElementImpl2 get mapElement2 {
+  ClassElementImpl get mapElement2 {
     return _mapElement ??= _getClassElement(_coreLibrary, 'Map');
   }
 
@@ -337,7 +337,7 @@ class TypeProviderImpl extends TypeProviderBase {
   NeverTypeImpl get neverType => NeverTypeImpl.instance;
 
   @override
-  ClassElementImpl2 get nullElement2 {
+  ClassElementImpl get nullElement2 {
     return _nullElement ??= _getClassElement(_coreLibrary, 'Null');
   }
 
@@ -350,7 +350,7 @@ class TypeProviderImpl extends TypeProviderBase {
   }
 
   @override
-  ClassElementImpl2 get numElement2 {
+  ClassElementImpl get numElement2 {
     return _numElement ??= _getClassElement(_coreLibrary, 'num');
   }
 
@@ -366,7 +366,7 @@ class TypeProviderImpl extends TypeProviderBase {
       _numTypeQuestion ??= numType.withNullability(NullabilitySuffix.question);
 
   @override
-  ClassElementImpl2 get objectElement2 {
+  ClassElementImpl get objectElement2 {
     return _objectElement ??= _getClassElement(_coreLibrary, 'Object');
   }
 
@@ -387,7 +387,7 @@ class TypeProviderImpl extends TypeProviderBase {
   }
 
   @override
-  ClassElementImpl2 get recordElement2 {
+  ClassElementImpl get recordElement2 {
     return _recordElement ??= _getClassElement(_coreLibrary, 'Record');
   }
 
@@ -400,11 +400,11 @@ class TypeProviderImpl extends TypeProviderBase {
   }
 
   @override
-  ClassElementImpl2 get setElement2 {
+  ClassElementImpl get setElement2 {
     return _setElement ??= _getClassElement(_coreLibrary, 'Set');
   }
 
-  ClassElementImpl2 get stackTraceElement2 {
+  ClassElementImpl get stackTraceElement2 {
     return _stackTraceElement ??= _getClassElement(_coreLibrary, 'StackTrace');
   }
 
@@ -425,12 +425,12 @@ class TypeProviderImpl extends TypeProviderBase {
   }
 
   @override
-  ClassElementImpl2 get streamElement2 {
+  ClassElementImpl get streamElement2 {
     return _streamElement ??= _getClassElement(_asyncLibrary, 'Stream');
   }
 
   @override
-  ClassElementImpl2 get stringElement2 {
+  ClassElementImpl get stringElement2 {
     return _stringElement ??= _getClassElement(_coreLibrary, 'String');
   }
 
@@ -443,7 +443,7 @@ class TypeProviderImpl extends TypeProviderBase {
   }
 
   @override
-  ClassElementImpl2 get symbolElement2 {
+  ClassElementImpl get symbolElement2 {
     return _symbolElement ??= _getClassElement(_coreLibrary, 'Symbol');
   }
 
@@ -455,7 +455,7 @@ class TypeProviderImpl extends TypeProviderBase {
     );
   }
 
-  ClassElementImpl2 get typeElement2 {
+  ClassElementImpl get typeElement2 {
     return _typeElement ??= _getClassElement(_coreLibrary, 'Type');
   }
 
@@ -542,7 +542,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   /// Return the class with the given [name] from the given [library], or
   /// throw a [StateError] if there is no class with the given name.
-  ClassElementImpl2 _getClassElement(LibraryElementImpl library, String name) {
+  ClassElementImpl _getClassElement(LibraryElementImpl library, String name) {
     var element = library.getClass2(name);
     if (element == null) {
       throw StateError('No definition of type $name');

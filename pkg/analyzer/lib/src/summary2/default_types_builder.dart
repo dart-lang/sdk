@@ -217,7 +217,7 @@ class DefaultTypesBuilder {
 
     var nodes = parameterList.typeParameters;
     var length = nodes.length;
-    var elements = <TypeParameterElementImpl2>[];
+    var elements = <TypeParameterElementImpl>[];
     var bounds = <TypeImpl>[];
     for (int i = 0; i < length; i++) {
       var node = nodes[i];
@@ -457,7 +457,7 @@ class _UpperLowerReplacementVisitor extends ReplacementVisitor {
 
   @override
   TypeImpl? visitTypeArgument(
-    TypeParameterElementImpl2 parameter,
+    TypeParameterElementImpl parameter,
     TypeImpl argument,
   ) {
     var savedVariance = _variance;

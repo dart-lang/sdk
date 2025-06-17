@@ -26,8 +26,8 @@ class AstResolver {
   final DiagnosticListener _diagnosticListener =
       DiagnosticListener.NULL_LISTENER;
   final AnalysisOptions analysisOptions;
-  final InterfaceElementImpl2? enclosingClassElement;
-  final ExecutableElementImpl2? enclosingExecutableElement;
+  final InterfaceElementImpl? enclosingClassElement;
+  final ExecutableElementImpl? enclosingExecutableElement;
   late final _resolutionVisitor = ResolutionVisitor(
     unitElement: _unitElement,
     nameScope: _nameScope,

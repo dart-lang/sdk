@@ -60,12 +60,12 @@ class ConstantInitializersResolver {
     class_.fields.forEach(_resolveVariable);
   }
 
-  void _resolveVariable(PropertyInducingElementImpl element) {
+  void _resolveVariable(PropertyInducingFragmentImpl element) {
     if (element is FieldFragmentImpl && element.isEnumConstant) {
       return;
     }
 
-    var constElement = element.ifTypeOrNull<ConstVariableElement>();
+    var constElement = element.ifTypeOrNull<ConstVariableFragment>();
     if (constElement == null) return;
     if (constElement.constantInitializer == null) return;
 
@@ -118,7 +118,7 @@ enum _InferenceStatus { notInferred, beingInferred, inferred }
 
 class _InitializerInference {
   final Linker _linker;
-  final List<PropertyInducingElementImpl> _toInfer = [];
+  final List<PropertyInducingFragmentImpl> _toInfer = [];
   final List<_PropertyInducingElementTypeInference> _inferring = [];
 
   late LibraryBuilder _libraryBuilder;
@@ -164,7 +164,7 @@ class _InitializerInference {
     extension_.fields.forEach(_addVariableNode);
   }
 
-  void _addVariableNode(PropertyInducingElementImpl element) {
+  void _addVariableNode(PropertyInducingFragmentImpl element) {
     if (element.isSynthetic &&
         !(element is FieldFragmentImpl && element.isSyntheticEnumField)) {
       return;
@@ -202,7 +202,7 @@ class _PropertyInducingElementTypeInference
   final LibraryBuilder _libraryBuilder;
   final LibraryFragmentImpl _unitElement;
   final Scope _scope;
-  final PropertyInducingElementImpl _element;
+  final PropertyInducingFragmentImpl _element;
   final VariableDeclarationImpl _node;
 
   _PropertyInducingElementTypeInference(

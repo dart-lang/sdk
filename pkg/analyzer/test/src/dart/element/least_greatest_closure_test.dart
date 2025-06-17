@@ -17,7 +17,7 @@ main() {
 
 @reflectiveTest
 class GreatestClosureTest extends AbstractTypeSystemTest {
-  late final TypeParameterElementImpl2 T;
+  late final TypeParameterElementImpl T;
   late final TypeParameterTypeImpl T_none;
   late final TypeParameterTypeImpl T_question;
 

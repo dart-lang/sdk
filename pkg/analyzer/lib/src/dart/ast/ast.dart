@@ -1058,7 +1058,7 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
   @override
   TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
     var element = element2;
-    if (element is PromotableElementImpl2) {
+    if (element is PromotableElementImpl) {
       return resolverVisitor
           .analyzeAssignedVariablePatternSchema(element)
           .unwrapTypeSchemaView();
@@ -3365,7 +3365,7 @@ final class CatchClauseParameterImpl extends AstNodeImpl
   }
 
   @override
-  LocalVariableElementImpl2? get declaredElement2 {
+  LocalVariableElementImpl? get declaredElement2 {
     return declaredFragment?.element;
   }
 
@@ -6232,7 +6232,7 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
 
   @experimental
   @override
-  LocalVariableElementImpl2? get declaredElement2 {
+  LocalVariableElementImpl? get declaredElement2 {
     return declaredFragment?.element;
   }
 
@@ -6370,7 +6370,7 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
 
   @experimental
   @override
-  BindPatternVariableElementImpl2? get declaredElement2 {
+  BindPatternVariableElementImpl? get declaredElement2 {
     return declaredFragment?.element;
   }
 
@@ -6843,7 +6843,7 @@ final class DotShorthandConstructorInvocationImpl
         DotShorthandConstructorInvocation {
   @generated
   @override
-  final Token? constKeyword;
+  Token? constKeyword;
 
   @generated
   @override
@@ -6853,7 +6853,7 @@ final class DotShorthandConstructorInvocationImpl
   SimpleIdentifierImpl _constructorName;
 
   @override
-  ConstructorElementImpl2? element;
+  ConstructorElementImpl? element;
 
   @generated
   DotShorthandConstructorInvocationImpl({
@@ -6873,6 +6873,26 @@ final class DotShorthandConstructorInvocationImpl
       return constKeyword;
     }
     return period;
+  }
+
+  @override
+  bool get canBeConst {
+    var element = constructorName.element;
+    if (element is! ConstructorElementMixin2) return false;
+    if (!element.isConst) return false;
+
+    // Ensure that dependencies (e.g. default parameter values) are computed.
+    element.baseElement.computeConstantDependencies();
+
+    // Verify that the evaluation of the constructor would not produce an
+    // exception.
+    var oldKeyword = constKeyword;
+    try {
+      constKeyword = KeywordToken(Keyword.CONST, offset);
+      return !hasConstantVerifierError;
+    } finally {
+      constKeyword = oldKeyword;
+    }
   }
 
   @generated
@@ -8971,7 +8991,7 @@ abstract final class ExtensionOverride implements Expression {
     GenerateNodeProperty('name'),
     GenerateNodeProperty('typeArguments'),
     GenerateNodeProperty('argumentList'),
-    GenerateNodeProperty('element2', type: ExtensionElementImpl2),
+    GenerateNodeProperty('element2', type: ExtensionElementImpl),
   ],
 )
 final class ExtensionOverrideImpl extends ExpressionImpl
@@ -8991,7 +9011,7 @@ final class ExtensionOverrideImpl extends ExpressionImpl
 
   @generated
   @override
-  final ExtensionElementImpl2 element2;
+  final ExtensionElementImpl element2;
 
   @override
   List<DartType>? typeArgumentTypes;
@@ -12634,7 +12654,7 @@ final class GuardedPatternImpl extends AstNodeImpl implements GuardedPattern {
 
   /// Variables declared in [pattern], available in [whenClause] guard, and
   /// to the `ifTrue` node.
-  late Map<String, PatternVariableElementImpl2> variables;
+  late Map<String, PatternVariableElementImpl> variables;
 
   @generated
   GuardedPatternImpl({
@@ -14945,7 +14965,7 @@ final class LabelImpl extends AstNodeImpl implements Label {
 
   @override
   LabelFragmentImpl? get declaredFragment =>
-      (label.element as LabelElementImpl2?)?.firstFragment;
+      (label.element as LabelElementImpl?)?.firstFragment;
 
   @generated
   @override
@@ -19270,7 +19290,7 @@ final class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
   TypeImpl? patternTypeSchema;
 
   /// Variables declared in [pattern].
-  late final List<BindPatternVariableElementImpl2> elements;
+  late final List<BindPatternVariableElementImpl> elements;
 
   @generated
   PatternVariableDeclarationImpl({
@@ -20782,7 +20802,7 @@ final class RedirectingConstructorInvocationImpl
   ArgumentListImpl _argumentList;
 
   @override
-  ConstructorElementImpl2? element;
+  ConstructorElementImpl? element;
 
   @generated
   RedirectingConstructorInvocationImpl({
@@ -23784,7 +23804,7 @@ class SwitchStatementCaseGroup {
   final bool hasLabels;
 
   /// Joined variables declared in [members], available in [statements].
-  late Map<String, PromotableElementImpl2> variables;
+  late Map<String, PromotableElementImpl> variables;
 
   SwitchStatementCaseGroup(this.members, this.hasLabels);
 
@@ -25194,8 +25214,8 @@ final class VariableDeclarationImpl extends DeclarationImpl
 
   @experimental
   @override
-  LocalVariableElementImpl2? get declaredElement2 {
-    return declaredFragment?.element.ifTypeOrNull<LocalVariableElementImpl2>();
+  LocalVariableElementImpl? get declaredElement2 {
+    return declaredFragment?.element.ifTypeOrNull<LocalVariableElementImpl>();
   }
 
   /// This overridden implementation of [documentationComment] looks in the

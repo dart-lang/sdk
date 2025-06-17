@@ -39,7 +39,7 @@ class NamedTypeResolver with ScopeHelpers {
 
   /// If not `null`, the element of the [ClassDeclaration], or the
   /// [ClassTypeAlias] being resolved.
-  InterfaceElementImpl2? enclosingClass;
+  InterfaceElementImpl? enclosingClass;
 
   /// If not `null`, a direct child of an [ExtendsClause], [WithClause],
   /// or [ImplementsClause].
@@ -175,7 +175,7 @@ class NamedTypeResolver with ScopeHelpers {
   /// We are resolving the [NamedType] in a redirecting constructor of the
   /// [enclosingClass].
   InterfaceTypeImpl _inferRedirectedConstructor(
-    InterfaceElementImpl2 element, {
+    InterfaceElementImpl element, {
     required TypeConstraintGenerationDataForTesting? dataForTesting,
     required AstNodeImpl? nodeForTesting,
   }) {
@@ -216,7 +216,7 @@ class NamedTypeResolver with ScopeHelpers {
 
     var argumentList = node.typeArguments;
     if (argumentList != null) {
-      if (element is InterfaceElementImpl2) {
+      if (element is InterfaceElementImpl) {
         var typeArguments = _buildTypeArguments(
           node,
           argumentList,
@@ -226,7 +226,7 @@ class NamedTypeResolver with ScopeHelpers {
           typeArguments: typeArguments,
           nullabilitySuffix: nullability,
         );
-      } else if (element is TypeAliasElementImpl2) {
+      } else if (element is TypeAliasElementImpl) {
         var typeArguments = _buildTypeArguments(
           node,
           argumentList,
@@ -240,13 +240,13 @@ class NamedTypeResolver with ScopeHelpers {
       } else if (_isInstanceCreation(node)) {
         _ErrorHelper(diagnosticReporter).reportNewWithNonType(node);
         return InvalidTypeImpl.instance;
-      } else if (element is DynamicElementImpl2) {
+      } else if (element is DynamicElementImpl) {
         _buildTypeArguments(node, argumentList, 0);
         return DynamicTypeImpl.instance;
-      } else if (element is NeverElementImpl2) {
+      } else if (element is NeverElementImpl) {
         _buildTypeArguments(node, argumentList, 0);
         return _instantiateElementNever(nullability);
-      } else if (element is TypeParameterElementImpl2) {
+      } else if (element is TypeParameterElementImpl) {
         _buildTypeArguments(node, argumentList, 0);
         return element.instantiate(nullabilitySuffix: nullability);
       } else {
@@ -257,7 +257,7 @@ class NamedTypeResolver with ScopeHelpers {
       }
     }
 
-    if (element is InterfaceElementImpl2) {
+    if (element is InterfaceElementImpl) {
       if (identical(node, withClause_namedType)) {
         for (var mixin in enclosingClass!.mixins) {
           if (mixin.element3 == element) {
@@ -278,7 +278,7 @@ class NamedTypeResolver with ScopeHelpers {
         element: element,
         nullabilitySuffix: nullability,
       );
-    } else if (element is TypeAliasElementImpl2) {
+    } else if (element is TypeAliasElementImpl) {
       var type = typeSystem.instantiateTypeAliasToBounds2(
         element: element,
         nullabilitySuffix: nullability,
@@ -287,11 +287,11 @@ class NamedTypeResolver with ScopeHelpers {
     } else if (_isInstanceCreation(node)) {
       _ErrorHelper(diagnosticReporter).reportNewWithNonType(node);
       return InvalidTypeImpl.instance;
-    } else if (element is DynamicElementImpl2) {
+    } else if (element is DynamicElementImpl) {
       return DynamicTypeImpl.instance;
-    } else if (element is NeverElementImpl2) {
+    } else if (element is NeverElementImpl) {
       return _instantiateElementNever(nullability);
-    } else if (element is TypeParameterElementImpl2) {
+    } else if (element is TypeParameterElementImpl) {
       return element.instantiate(nullabilitySuffix: nullability);
     } else {
       _ErrorHelper(

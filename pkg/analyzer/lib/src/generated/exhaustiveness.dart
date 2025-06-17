@@ -131,23 +131,23 @@ class AnalyzerExhaustivenessCache
 }
 
 class AnalyzerSealedClassOperations
-    implements SealedClassOperations<TypeImpl, InterfaceElementImpl2> {
+    implements SealedClassOperations<TypeImpl, InterfaceElementImpl> {
   final TypeSystemImpl _typeSystem;
 
   AnalyzerSealedClassOperations(this._typeSystem);
 
   @override
-  List<InterfaceElementImpl2> getDirectSubclasses(
-    InterfaceElementImpl2 sealedClass,
+  List<InterfaceElementImpl> getDirectSubclasses(
+    InterfaceElementImpl sealedClass,
   ) {
-    List<InterfaceElementImpl2> subclasses = [];
+    List<InterfaceElementImpl> subclasses = [];
     var library = sealedClass.library2;
     outer:
     for (var declaration in library.children2) {
       if (declaration is ExtensionTypeElement) {
         continue;
       }
-      if (declaration != sealedClass && declaration is InterfaceElementImpl2) {
+      if (declaration != sealedClass && declaration is InterfaceElementImpl) {
         bool checkType(InterfaceTypeImpl? type) {
           if (type?.element3 == sealedClass) {
             subclasses.add(declaration);
@@ -169,7 +169,7 @@ class AnalyzerSealedClassOperations
             continue outer;
           }
         }
-        if (declaration is MixinElementImpl2) {
+        if (declaration is MixinElementImpl) {
           for (var type in declaration.superclassConstraints) {
             if (checkType(type)) {
               continue outer;
@@ -182,9 +182,9 @@ class AnalyzerSealedClassOperations
   }
 
   @override
-  ClassElementImpl2? getSealedClass(TypeImpl type) {
+  ClassElementImpl? getSealedClass(TypeImpl type) {
     var element = type.element3;
-    if (element is ClassElementImpl2 && element.isSealed) {
+    if (element is ClassElementImpl && element.isSealed) {
       return element;
     }
     return null;
@@ -192,7 +192,7 @@ class AnalyzerSealedClassOperations
 
   @override
   TypeImpl? getSubclassAsInstanceOf(
-    InterfaceElementImpl2 subClass,
+    InterfaceElementImpl subClass,
     covariant InterfaceTypeImpl sealedClassType,
   ) {
     var thisType = subClass.thisType;
@@ -577,12 +577,12 @@ class PatternConverter with SpaceCreator<DartPattern, TypeImpl> {
         var element = field.element2;
         TypeImpl? extensionPropertyType;
         if (element is PropertyAccessorElement2OrMember &&
-            (element.enclosingElement is ExtensionElementImpl2 ||
-                element.enclosingElement is ExtensionTypeElementImpl2)) {
+            (element.enclosingElement is ExtensionElementImpl ||
+                element.enclosingElement is ExtensionTypeElementImpl)) {
           extensionPropertyType = element.returnType;
         } else if (element is ExecutableElement2OrMember &&
-            (element.enclosingElement is ExtensionElementImpl2 ||
-                element.enclosingElement is ExtensionTypeElementImpl2)) {
+            (element.enclosingElement is ExtensionElementImpl ||
+                element.enclosingElement is ExtensionTypeElementImpl)) {
           extensionPropertyType = element.type;
         }
         if (extensionPropertyType != null) {
@@ -779,7 +779,7 @@ class PatternConverter with SpaceCreator<DartPattern, TypeImpl> {
     }
     if (type is InterfaceTypeImpl) {
       var element = type.element3;
-      if (element is EnumElementImpl2) {
+      if (element is EnumElementImpl) {
         return Space(path, cache.getEnumElementStaticType(element, value));
       }
     }

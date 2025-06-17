@@ -167,7 +167,7 @@ class CommentReferenceResolver {
 
     // Usually referencing just an import prefix is an error.
     // But we allow this in documentation comments.
-    if (element is PrefixElementImpl2) {
+    if (element is PrefixElementImpl) {
       element.scope.notifyPrefixUsedInCommentReference();
     }
 

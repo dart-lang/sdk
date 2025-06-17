@@ -572,7 +572,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         );
       }
       type = declarationElement.type;
-    } else if (declarationElement is TopLevelVariableElementImpl2) {
+    } else if (declarationElement is TopLevelVariableElementImpl) {
       type = declarationElement.type;
     } else if (declarationElement is PropertyAccessorElement2OrMember) {
       var variable = declarationElement.variable3;
