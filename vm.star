@@ -20,7 +20,6 @@ load(
     "noble",
     "slow_shards",
     "windows",
-    "windows11",
 )
 load("//lib/helpers.star", "union")
 load("//lib/paths.star", "paths")
@@ -156,13 +155,13 @@ _vm_builder(
 _nightly_builder(
     "vm-win-debug-arm64",
     category = "vm|jit|wad",
-    dimensions = [windows11, arm64, flutter_pool],
+    dimensions = [windows, arm64, flutter_pool],
     properties = [no_reclient],
 )
 _vm_builder(
     "vm-win-release-arm64",
     category = "vm|jit|war",
-    dimensions = [windows11, arm64, flutter_pool],
+    dimensions = [windows, arm64, flutter_pool],
     properties = [no_reclient],
 )
 
@@ -250,13 +249,13 @@ _vm_builder(
 _nightly_builder(
     "vm-aot-win-debug-arm64",
     category = "vm|aot|wad",
-    dimensions = [windows11, arm64, flutter_pool],
+    dimensions = [windows, arm64, flutter_pool],
     properties = [no_reclient],
 )
 _vm_builder(
     "vm-aot-win-release-arm64",
     category = "vm|aot|war",
-    dimensions = [windows11, arm64, flutter_pool],
+    dimensions = [windows, arm64, flutter_pool],
     properties = [no_reclient],
 )
 

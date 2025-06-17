@@ -36,8 +36,7 @@ _ARM64 = {"cpu": "arm64"}
 _MAC = {"os": "Mac"}
 _JAMMY = {"os": "Ubuntu-22"}
 _NOBLE = {"os": "Ubuntu-24"}
-_WINDOWS10 = {"os": "Windows-10"}
-_WINDOWS11 = {"os": "Windows-11"}
+_WINDOWS = {"os": "Windows"}
 
 _FLUTTER_POOL = {"pool": "luci.flutter.prod"}
 _EXPERIMENTAL = {"host_class": "experimental"}
@@ -57,9 +56,7 @@ jammy = _JAMMY
 linux = _JAMMY
 mac = _MAC
 noble = _NOBLE
-windows = _WINDOWS10
-windows10 = _WINDOWS10
-windows11 = _WINDOWS11
+windows = _WINDOWS
 
 # Properties
 

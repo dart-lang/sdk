@@ -15,7 +15,6 @@ load(
     "no_android",
     "no_reclient",
     "windows",
-    "windows11",
 )
 load("//lib/paths.star", "paths")
 
@@ -51,7 +50,7 @@ dart.ci_sandbox_builder(
 dart.ci_sandbox_builder(
     "pkg-win-release-arm64",
     category = "pkg|wa",
-    dimensions = [windows11, arm64, flutter_pool],
+    dimensions = [windows, arm64, flutter_pool],
     properties = [no_reclient],
 )
 dart.ci_sandbox_builder(
