@@ -62,10 +62,14 @@ void main() {
     reportFileSize(executablePath, executable);
   }
 
-  for (final lib in libs) {
-    final libPath = '$rootDir/dart-sdk/lib/_internal/$lib';
-    reportFileSize(libPath, lib);
+  void reportLib(String lib, String name) {
+    reportFileSize('$rootDir/dart-sdk/lib/_internal/$lib', name);
   }
+
+  // Continue reporting the file size under the old name for continuity of
+  // benchmarking data.
+  reportLib('vm_platform.dill', 'vm_platform_strong.dill');
+  reportLib('vm_platform_product.dill', 'vm_platform_strong_product.dill');
 
   for (final snapshot in snapshots) {
     final snapshotPath =
