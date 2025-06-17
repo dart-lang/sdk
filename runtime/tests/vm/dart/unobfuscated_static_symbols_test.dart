@@ -12,9 +12,7 @@
 import "dart:io";
 
 import 'package:expect/expect.dart';
-import 'package:native_stack_traces/elf.dart';
 import 'package:native_stack_traces/src/dwarf_container.dart';
-import 'package:native_stack_traces/src/macho.dart';
 import 'package:path/path.dart' as path;
 
 import 'use_flag_test_helper.dart';
@@ -60,76 +58,6 @@ Future<void> main(List<String> args) async {
     await checkMachO(tempDir, scriptDill);
     await checkAssembly(tempDir, scriptDill);
   });
-}
-
-const commonGenSnapshotArgs = <String>[
-  // Make sure that the runs are deterministic so we can depend on the same
-  // snapshot being generated each time.
-  '--deterministic',
-];
-
-enum SnapshotType {
-  elf,
-  machoDylib,
-  assembly;
-
-  String get kindString {
-    switch (this) {
-      case elf:
-        return 'app-aot-elf';
-      case machoDylib:
-        return 'app-aot-macho-dylib';
-      case assembly:
-        return 'app-aot-assembly';
-    }
-  }
-
-  String get fileArgumentName {
-    switch (this) {
-      case elf:
-        return 'elf';
-      case machoDylib:
-        return 'macho';
-      case assembly:
-        return 'assembly';
-    }
-  }
-
-  DwarfContainer? fromFile(String filename) {
-    switch (this) {
-      case elf:
-        return Elf.fromFile(filename);
-      case machoDylib:
-        return MachO.fromFile(filename);
-      case assembly:
-        return Elf.fromFile(filename) ?? MachO.fromFile(filename);
-    }
-  }
-
-  @override
-  String toString() => name;
-}
-
-Future<void> createSnapshot(
-  String scriptDill,
-  SnapshotType snapshotType,
-  String finalPath, [
-  List<String> extraArgs = const [],
-]) async {
-  String output = finalPath;
-  if (snapshotType == SnapshotType.assembly) {
-    output = path.withoutExtension(finalPath) + '.S';
-  }
-  await run(genSnapshot, <String>[
-    ...commonGenSnapshotArgs,
-    ...extraArgs,
-    '--snapshot-kind=${snapshotType.kindString}',
-    '--${snapshotType.fileArgumentName}=$output',
-    scriptDill,
-  ]);
-  if (snapshotType == SnapshotType.assembly) {
-    await assembleSnapshot(output, finalPath);
-  }
 }
 
 Future<List<String>?> retrieveDebugMap(

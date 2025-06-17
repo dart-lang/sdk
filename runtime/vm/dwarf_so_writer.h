@@ -28,18 +28,19 @@ class DwarfSharedObjectStream : public DwarfWriteStream {
   intptr_t bytes_written() const { return stream_->bytes_written(); }
   intptr_t Position() const { return stream_->Position(); }
 
-  void sleb128(intptr_t value) { stream_->WriteSLEB128(value); }
-  void uleb128(uintptr_t value) { stream_->WriteLEB128(value); }
-  void u1(uint8_t value) { stream_->WriteByte(value); }
-  void u2(uint16_t value) { stream_->WriteFixed(value); }
-  void u4(uint32_t value) { stream_->WriteFixed(value); }
-  void u8(uint64_t value) { stream_->WriteFixed(value); }
-  void string(const char* cstr) {  // NOLINT
+  void sleb128(intptr_t value) override { stream_->WriteSLEB128(value); }
+  void uleb128(uintptr_t value) override { stream_->WriteLEB128(value); }
+  void u1(uint8_t value) override { stream_->WriteByte(value); }
+  void u2(uint16_t value) override { stream_->WriteFixed(value); }
+  void u4(uint32_t value) override { stream_->WriteFixed(value); }
+  void u8(uint64_t value) override { stream_->WriteFixed(value); }
+  void string(const char* cstr) override {  // NOLINT
     // Unlike stream_->WriteString(), we want the null terminator written.
     stream_->WriteBytes(cstr, strlen(cstr) + 1);
   }
   // The prefix is ignored for DwarfSharedObjectStreams.
-  void WritePrefixedLength(const char* unused, std::function<void()> body) {
+  void WritePrefixedLength(const char* unused,
+                           std::function<void()> body) override {
     const intptr_t fixup = stream_->Position();
     // We assume DWARF v2 currently, so all sizes are 32-bit.
     u4(0);
@@ -57,49 +58,53 @@ class DwarfSharedObjectStream : public DwarfWriteStream {
     WritePrefixedLength(nullptr, body);
   }
 
-  void OffsetFromSymbol(intptr_t label, intptr_t offset) {
-    relocations_->Add({kAddressSize, stream_->Position(),
+  void OffsetFromSymbol(intptr_t label,
+                        intptr_t offset,
+                        size_t size = kAddressSize) override {
+    ASSERT(size > 0);
+    ASSERT(size <= static_cast<size_t>(kInt64Size));
+    relocations_->Add({size, stream_->Position(),
                        SharedObjectWriter::Relocation::kSnapshotRelative, 0,
                        label, offset});
-    addr(0);  // Resolved later.
+    const uint64_t placeholder = 0;  // Resolved later.
+    stream_->WriteBytes(&placeholder, size);
   }
-  template <typename T>
-  void RelativeSymbolOffset(intptr_t label) {
-    relocations_->Add({sizeof(T), stream_->Position(),
-                       SharedObjectWriter::Relocation::kSelfRelative, 0, label,
-                       0});
-    stream_->WriteFixed<T>(0);  // Resolved later.
-  }
-  void InitializeAbstractOrigins(intptr_t size) {
+  void InitializeAbstractOrigins(intptr_t size) override {
     abstract_origins_size_ = size;
     abstract_origins_ = zone_->Alloc<uint32_t>(abstract_origins_size_);
   }
-  void RegisterAbstractOrigin(intptr_t index) {
+  void RegisterAbstractOrigin(intptr_t index) override {
     ASSERT(abstract_origins_ != nullptr);
     ASSERT(index < abstract_origins_size_);
     abstract_origins_[index] = stream_->Position();
   }
-  void AbstractOrigin(intptr_t index) { u4(abstract_origins_[index]); }
+  void AbstractOrigin(intptr_t index) override { u4(abstract_origins_[index]); }
+
+  // Generates the offset of the virtual address corresponding to the given
+  // symbol label from the current position in the output. That is, if
+  //   X = the virtual address of the current position
+  //   Y = the virtual address of the symbol
+  // then the value at the current position in the output is Y - X.
+  //
+  // If no size is provided, the size of the offset in the stream is
+  // the native word size.
+  void RelativeSymbolOffset(intptr_t label, size_t size = kAddressSize) {
+    relocations_->Add({size, stream_->Position(),
+                       SharedObjectWriter::Relocation::kSelfRelative, 0, label,
+                       0});
+    const uint64_t placeholder = 0;  // Resolved later.
+    stream_->WriteBytes(&placeholder, size);
+  }
+
+  intptr_t Align(intptr_t alignment, intptr_t offset = 0) {
+    return stream_->Align(alignment, offset);
+  }
 
   const SharedObjectWriter::RelocationArray* relocations() const {
     return relocations_;
   }
 
  protected:
-#if defined(TARGET_ARCH_IS_32_BIT)
-  static constexpr intptr_t kAddressSize = kInt32Size;
-#else
-  static constexpr intptr_t kAddressSize = kInt64Size;
-#endif
-
-  void addr(uword value) {
-#if defined(TARGET_ARCH_IS_32_BIT)
-    u4(value);
-#else
-    u8(value);
-#endif
-  }
-
   Zone* const zone_;
   NonStreamingWriteStream* const stream_;
   SharedObjectWriter::RelocationArray* const relocations_ = nullptr;

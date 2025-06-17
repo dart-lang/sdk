@@ -8,6 +8,10 @@ import 'dart:ffi';
 
 import 'package:expect/config.dart';
 import 'package:expect/expect.dart';
+import 'package:native_stack_traces/src/elf.dart' show Elf;
+import 'package:native_stack_traces/src/dwarf_container.dart'
+    show DwarfContainer;
+import 'package:native_stack_traces/src/macho.dart' show MachO;
 import 'package:path/path.dart' as path;
 
 final isAOTRuntime = isVmAotConfiguration;
@@ -284,5 +288,75 @@ Future<void> withTempDir(String name, Future<void> fun(String dir)) async {
         Platform.environment[keepTempKey]!.isEmpty) {
       tempDir.deleteSync(recursive: true);
     }
+  }
+}
+
+enum SnapshotType {
+  elf,
+  machoDylib,
+  assembly;
+
+  String get kindString {
+    switch (this) {
+      case elf:
+        return 'app-aot-elf';
+      case machoDylib:
+        return 'app-aot-macho-dylib';
+      case assembly:
+        return 'app-aot-assembly';
+    }
+  }
+
+  String get fileArgumentName {
+    switch (this) {
+      case elf:
+        return 'elf';
+      case machoDylib:
+        return 'macho';
+      case assembly:
+        return 'assembly';
+    }
+  }
+
+  DwarfContainer? fromFile(String filename) {
+    switch (this) {
+      case elf:
+        return Elf.fromFile(filename);
+      case machoDylib:
+        return MachO.fromFile(filename);
+      case assembly:
+        return Elf.fromFile(filename) ?? MachO.fromFile(filename);
+    }
+  }
+
+  @override
+  String toString() => name;
+}
+
+const _commonGenSnapshotArgs = <String>[
+  // Make sure that the runs are deterministic so we can depend on the same
+  // snapshot being generated each time.
+  '--deterministic',
+];
+
+Future<void> createSnapshot(
+  String scriptDill,
+  SnapshotType snapshotType,
+  String finalPath, [
+  List<String> extraArgs = const [],
+]) async {
+  String output = finalPath;
+  if (snapshotType == SnapshotType.assembly) {
+    output = path.withoutExtension(finalPath) + '.S';
+  }
+  await run(genSnapshot, <String>[
+    ..._commonGenSnapshotArgs,
+    ...extraArgs,
+    '--snapshot-kind=${snapshotType.kindString}',
+    '--${snapshotType.fileArgumentName}=$output',
+    scriptDill,
+  ]);
+  if (snapshotType == SnapshotType.assembly) {
+    await assembleSnapshot(output, finalPath);
   }
 }

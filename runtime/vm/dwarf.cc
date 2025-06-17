@@ -1000,7 +1000,7 @@ void Dwarf::WriteCallFrameInformationRecords(
       // backwards: it will be subtracted from the current position.
       stream->u4(stream->Position() - cie_start);
       // Start address as a PC relative reference.
-      stream->RelativeSymbolOffset<int32_t>(fde.label);
+      stream->RelativeSymbolOffset(fde.label, kInt32Size);
       stream->u4(fde.size);  // Size.
       stream->u1(0);         // Augmentation Data length.
 
