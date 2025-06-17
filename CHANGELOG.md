@@ -71,6 +71,22 @@ constraint][language version] lower bound to 3.9 or greater (`sdk: '^3.9.0'`).
       version: ^2.0.1
   ```
 
+- Starting from language version 3.9 the `flutter` constraint upper bound is now
+  respected in your root package. For example:
+
+```yaml
+name: my_app
+environment:
+  sdk: ^3.9.0
+  flutter: 3.33.0
+```
+
+Will fail `dart pub get` if invoked with any Flutter different from 3.33.0.
+
+The upper bound of the flutter constraint is still ignored in packages you use
+as dependencies.
+See https://github.com/flutter/flutter/issues/95472 for details.
+
 ## 3.8.1
 
 **Released on:** 2025-05-28
