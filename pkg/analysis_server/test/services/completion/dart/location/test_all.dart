@@ -22,6 +22,8 @@ import 'constructor_declaration_test.dart' as constructor_declaration;
 import 'constructor_invocation_test.dart' as constructor_invocation;
 import 'dart_doc_test.dart' as dart_doc;
 import 'directive_uri_test.dart' as directive_uri;
+import 'dot_shorthand_property_access_test.dart'
+    as dot_shorthand_property_access;
 import 'enum_constant_test.dart' as enum_constant;
 import 'enum_declaration_test.dart' as enum_declaration;
 import 'extends_clause_test.dart' as extends_clause;
@@ -104,6 +106,7 @@ void main() {
     constructor_invocation.main();
     dart_doc.main();
     directive_uri.main();
+    dot_shorthand_property_access.main();
     enum_constant.main();
     enum_declaration.main();
     extends_clause.main();

@@ -927,6 +927,26 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
+    var contextType = _computeContextType(node);
+    if (contextType == null) return;
+
+    var element = contextType.element3;
+    if (element == null) return;
+
+    var parent = node.parent;
+    var mustBeAssignable =
+        parent is AssignmentExpression && node == parent.leftHandSide;
+    var helper = declarationHelper(
+      mustBeAssignable: mustBeAssignable,
+      preferNonInvocation:
+          element is InterfaceElement &&
+          state.request.shouldSuggestTearOff(element),
+    );
+    helper.addStaticMembersOfElement(element);
+  }
+
+  @override
   void visitDoubleLiteral(DoubleLiteral node) {
     _visitParentIfAtOrBeforeNode(node);
   }
@@ -2277,10 +2297,19 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       collector.completionLocation = 'PropertyAccess_propertyName';
       var target = node.prefix;
       var type = target.staticType;
-      if (type != null) {
+      if (type != null && type is! InvalidType) {
         _forMemberAccess(node, type, onlySuper: target is SuperExpression);
       } else {
-        var element = target.element;
+        Element? element;
+        if (target.name.isEmpty &&
+            featureSet.isEnabled(Feature.dot_shorthands)) {
+          var contextType = _computeContextType(node);
+          if (contextType == null) return;
+          element = contextType.element3;
+        } else {
+          element = target.element;
+        }
+
         if (element != null) {
           var parent = node.parent;
           var mustBeAssignable =
