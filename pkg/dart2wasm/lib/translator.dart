@@ -32,6 +32,7 @@ import 'records.dart';
 import 'reference_extensions.dart';
 import 'serialization.dart';
 import 'static_dispatch_table.dart';
+import 'symbols.dart';
 import 'tags.dart';
 import 'types.dart';
 import 'util.dart' as util;
@@ -121,6 +122,8 @@ class TranslatorOptions {
 class Translator with KernelNodes {
   // Options for the translation.
   final TranslatorOptions options;
+
+  final Symbols symbols;
 
   // Kernel input and context.
   @override
@@ -448,7 +451,8 @@ class Translator with KernelNodes {
       this._moduleOutputData, this.options,
       {bool enableDynamicModules = false,
       required MainModuleMetadata mainModuleMetadata})
-      : libraries = component.libraries,
+      : symbols = Symbols(options.minify),
+        libraries = component.libraries,
         hierarchy =
             ClassHierarchy(component, coreTypes) as ClosedWorldClassHierarchy {
     if (enableDynamicModules) {
@@ -2150,7 +2154,7 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
       b.local_get(namedArgsListLocal);
       translator.constants.instantiateConstant(
           b,
-          SymbolConstant(paramName, null),
+          translator.symbols.symbolForNamedParameter(paramName),
           translator.classInfo[translator.symbolClass]!.nonNullableType);
       translator.callReference(translator.getNamedParameterIndex.reference, b);
       b.local_set(namedArgValueIndexLocal);

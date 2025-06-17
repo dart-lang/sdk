@@ -2039,8 +2039,8 @@ class Intrinsifier {
             translator,
             b,
             () => b.local_get(closureLocal),
-            () => createInvocationObject(translator, b, "call", typeArgsLocal,
-                posArgsLocal, namedArgsListLocal));
+            () => createInvocationObject(translator, b, Name('call'),
+                typeArgsLocal, posArgsLocal, namedArgsListLocal));
 
       // Error._throw
       case MemberIntrinsic.errorThrow:
