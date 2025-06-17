@@ -1,10 +1,16 @@
 # Coding style
 
 This document is a place to record information about the coding style that's
-currently being used by the developers of the analyzer packages (the
-`analysis_server`, `analyzer`, `analyzer_plugin`, `analyzer_utilities`,
-`dartdoc`, `linter`, and `markdown` packages). As such, it's subject to change
-as the language evolves and as our experience dictates.
+currently being used by the Dash Developer Experience team for some static
+analysis packages (the `analysis_server`, `analysis_server_plugin`,
+`analyzer_plugin`, `analyzer_testing`, `analyzer_utilities`, and `linter`
+packages). As such, it's subject to change as the language evolves and as our
+experience dictates.
+
+Note that the `analyzer` package is developed by the Dart Model team, which
+follows a different coding style. The `analyzer_testing` and
+`analyzer_utilities` packages are developed jointly between the Dart Model and
+Dash Developer Experience teams.
 
 The document is divided into three main sections covering the coding styles we
 - have decided to follow,
