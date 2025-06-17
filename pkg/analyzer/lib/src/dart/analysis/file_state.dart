@@ -590,30 +590,6 @@ class FileState {
     return other is FileState && other.uri == uri;
   }
 
-  /// Returns either new, or cached parsed result for this file.
-  ParsedFileState getParsed({required OperationPerformanceImpl performance}) {
-    var result = _fsState.parsedFileStateCache.get(this);
-    if (result != null) {
-      return result;
-    }
-
-    var diagnosticListener = RecordingDiagnosticListener();
-    var unit = parseCode(
-      code: content,
-      diagnosticListener: diagnosticListener,
-      performance: performance,
-    );
-
-    result = ParsedFileState(
-      code: content,
-      unit: unit,
-      errors: diagnosticListener.diagnostics,
-    );
-    _fsState.parsedFileStateCache.put(this, result);
-
-    return result;
-  }
-
   /// Return a new parsed unresolved [CompilationUnit].
   CompilationUnitImpl parse({
     DiagnosticListener diagnosticListener = DiagnosticListener.NULL_LISTENER,
@@ -680,7 +656,7 @@ class FileState {
     var rawFileState = _fsState.fileContentStrategy.get(path);
     var contentChanged = _fileContent?.contentHash != rawFileState.contentHash;
     _fileContent = rawFileState;
-    _fsState.parsedFileStateCache.remove(this);
+    _fsState._parsedFileStateCache.remove(this);
 
     // Prepare the unlinked bundle key.
     var previousUnlinkedKey = _unlinkedKey;
@@ -826,6 +802,30 @@ class FileState {
     return _fsState.getFileForUri(absoluteUri);
   }
 
+  /// Returns either new, or cached parsed result for this file.
+  _ParsedFileState _getParsed({required OperationPerformanceImpl performance}) {
+    var result = _fsState._parsedFileStateCache.get(this);
+    if (result != null) {
+      return result;
+    }
+
+    var diagnosticListener = RecordingDiagnosticListener();
+    var unit = parseCode(
+      code: content,
+      diagnosticListener: diagnosticListener,
+      performance: performance,
+    );
+
+    result = _ParsedFileState(
+      code: content,
+      unit: unit,
+      diagnostics: diagnosticListener.diagnostics,
+    );
+    _fsState._parsedFileStateCache.put(this, result);
+
+    return result;
+  }
+
   /// Return the unlinked unit, freshly deserialized from bytes,
   /// previously deserialized from bytes, or new.
   AnalysisDriverUnlinkedUnit _getUnlinkedUnit(
@@ -855,7 +855,7 @@ class FileState {
       return result;
     }
 
-    var unit = getParsed(performance: performance).unit;
+    var unit = _getParsed(performance: performance).unit;
 
     return performance.run('compute', (performance) {
       var unlinkedUnit = performance.run('serializeAstUnlinked2', (
@@ -1284,7 +1284,7 @@ class FileSystemState {
   /// in the process of a single analysis operation. But after that, even
   /// if these results are still valid, they are often never used again. So,
   /// currently we clear the cache after each operation.
-  ParsedFileStateCache parsedFileStateCache = ParsedFileStateCache();
+  final _ParsedFileStateCache _parsedFileStateCache = _ParsedFileStateCache();
 
   FileSystemState(
     this._byteStore,
@@ -1338,6 +1338,11 @@ class FileSystemState {
     for (var reference in file.referencingFiles.toList()) {
       changeFile(reference.path, removedFiles);
     }
+  }
+
+  /// Clears the parsed file state cache.
+  void clearParsedFileStateCache() {
+    _parsedFileStateCache.clear();
   }
 
   /// Collected files that transitively reference a file with the [path].
@@ -2105,39 +2110,6 @@ class LibraryResolutionResult {
   LibraryResolutionResult({required this.requirements, required this.bytes});
 }
 
-class ParsedFileState {
-  final String code;
-  final CompilationUnitImpl unit;
-  // TODO(srawlins): Rename to `diagnostics`.
-  final List<Diagnostic> errors;
-
-  ParsedFileState({
-    required this.code,
-    required this.unit,
-    required this.errors,
-  });
-}
-
-class ParsedFileStateCache {
-  final Map<FileState, ParsedFileState> _map = Map.identity();
-
-  void clear() {
-    _map.clear();
-  }
-
-  ParsedFileState? get(FileState file) {
-    return _map[file];
-  }
-
-  void put(FileState file, ParsedFileState result) {
-    _map[file] = result;
-  }
-
-  void remove(FileState file) {
-    _map.remove(file);
-  }
-}
-
 /// The file has `part of` directive.
 sealed class PartFileKind extends FileKind {
   PartFileKind({required super.file});
@@ -2424,6 +2396,38 @@ class _LibraryNameToFiles {
         }
       }
     }
+  }
+}
+
+class _ParsedFileState {
+  final String code;
+  final CompilationUnitImpl unit;
+  final List<Diagnostic> diagnostics;
+
+  _ParsedFileState({
+    required this.code,
+    required this.unit,
+    required this.diagnostics,
+  });
+}
+
+class _ParsedFileStateCache {
+  final Map<FileState, _ParsedFileState> _map = Map.identity();
+
+  void clear() {
+    _map.clear();
+  }
+
+  _ParsedFileState? get(FileState file) {
+    return _map[file];
+  }
+
+  void put(FileState file, _ParsedFileState result) {
+    _map[file] = result;
+  }
+
+  void remove(FileState file) {
+    _map.remove(file);
   }
 }
 
