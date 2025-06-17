@@ -103,13 +103,13 @@ main() {
   Expect.equals(null, nullC()?.bad);
   //                           ^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] The getter 'bad' isn't defined for the class 'C'.
+  // [cfe] The getter 'bad' isn't defined for the type 'C'.
   {
     B? b = new C(1) as dynamic;
     Expect.equals(1, b?.v);
     //                  ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-    // [cfe] The getter 'v' isn't defined for the class 'B'.
+    // [cfe] The getter 'v' isn't defined for the type 'B'.
   }
 
   // '?.' cannot be used to access toplevel properties in libraries imported via

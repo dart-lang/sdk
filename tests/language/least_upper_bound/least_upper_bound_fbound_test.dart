@@ -28,11 +28,11 @@ class A<X extends A<X, X>?, Y extends A<Y, Y>?> {
     zx?.whatever;
     //  ^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-    // [cfe] The getter 'whatever' isn't defined for the class 'Object'.
+    // [cfe] The getter 'whatever' isn't defined for the type 'Object'.
     zy?.whatever;
     //  ^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-    // [cfe] The getter 'whatever' isn't defined for the class 'Object'.
+    // [cfe] The getter 'whatever' isn't defined for the type 'Object'.
 
     if (zx == null || zy == null) throw 0;
     zx.expectStaticType<Exactly<Object>>();

@@ -430,6 +430,7 @@ typedef Dart_Handle (*Dart_CreateAppAOTSnapshotAsBinaryType)(
     void*,
     bool,
     void*,
+    const char*,
     const char*);
 typedef Dart_Handle (*Dart_CreateVMAOTSnapshotAsAssemblyType)(
     Dart_StreamingWriteCallback,
@@ -2569,10 +2570,11 @@ Dart_Handle Dart_CreateAppAOTSnapshotAsBinary(
     void* callback_data,
     bool stripped,
     void* debug_callback_data,
-    const char* identifier) {
+    const char* identifier,
+    const char* path) {
   return Dart_CreateAppAOTSnapshotAsBinaryFn(format, callback, callback_data,
                                              stripped, debug_callback_data,
-                                             identifier);
+                                             identifier, path);
 }
 
 Dart_Handle Dart_CreateVMAOTSnapshotAsAssembly(

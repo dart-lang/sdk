@@ -72,37 +72,37 @@ library;
 //   ext(c).property2 = 23;
 //          ^^^^^^^^^
 //
-// pkg/front_end/testcases/extensions/issue38745.dart:34:5: Error: The getter 'field' isn't defined for the class 'C<int>'.
+// pkg/front_end/testcases/extensions/issue38745.dart:34:5: Error: The getter 'field' isn't defined for the type 'C<int>'.
 //  - 'C' is from 'pkg/front_end/testcases/extensions/issue38745.dart'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'field'.
 //   c.field;
 //     ^^^^^
 //
-// pkg/front_end/testcases/extensions/issue38745.dart:35:5: Error: The setter 'field' isn't defined for the class 'C<int>'.
+// pkg/front_end/testcases/extensions/issue38745.dart:35:5: Error: The setter 'field' isn't defined for the type 'C<int>'.
 //  - 'C' is from 'pkg/front_end/testcases/extensions/issue38745.dart'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'field'.
 //   c.field = 23;
 //     ^^^^^
 //
-// pkg/front_end/testcases/extensions/issue38745.dart:36:5: Error: The getter 'property' isn't defined for the class 'C<int>'.
+// pkg/front_end/testcases/extensions/issue38745.dart:36:5: Error: The getter 'property' isn't defined for the type 'C<int>'.
 //  - 'C' is from 'pkg/front_end/testcases/extensions/issue38745.dart'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'property'.
 //   c.property;
 //     ^^^^^^^^
 //
-// pkg/front_end/testcases/extensions/issue38745.dart:37:5: Error: The setter 'property' isn't defined for the class 'C<int>'.
+// pkg/front_end/testcases/extensions/issue38745.dart:37:5: Error: The setter 'property' isn't defined for the type 'C<int>'.
 //  - 'C' is from 'pkg/front_end/testcases/extensions/issue38745.dart'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'property'.
 //   c.property = 23;
 //     ^^^^^^^^
 //
-// pkg/front_end/testcases/extensions/issue38745.dart:38:5: Error: The getter 'property2' isn't defined for the class 'C<int>'.
+// pkg/front_end/testcases/extensions/issue38745.dart:38:5: Error: The getter 'property2' isn't defined for the type 'C<int>'.
 //  - 'C' is from 'pkg/front_end/testcases/extensions/issue38745.dart'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'property2'.
 //   c.property2;
 //     ^^^^^^^^^
 //
-// pkg/front_end/testcases/extensions/issue38745.dart:39:5: Error: The setter 'property2' isn't defined for the class 'C<int>'.
+// pkg/front_end/testcases/extensions/issue38745.dart:39:5: Error: The setter 'property2' isn't defined for the type 'C<int>'.
 //  - 'C' is from 'pkg/front_end/testcases/extensions/issue38745.dart'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'property2'.
 //   c.property2 = 23;
@@ -153,32 +153,32 @@ static extension-member method ext|get#method<T extends core::Object? = dynamic>
 static method main() → dynamic {}
 static method errors() → dynamic {
   self::C<core::int> c = new self::C::•<core::int>();
-  invalid-expression "pkg/front_end/testcases/extensions/issue38745.dart:34:5: Error: The getter 'field' isn't defined for the class 'C<int>'.
+  invalid-expression "pkg/front_end/testcases/extensions/issue38745.dart:34:5: Error: The getter 'field' isn't defined for the type 'C<int>'.
  - 'C' is from 'pkg/front_end/testcases/extensions/issue38745.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'field'.
   c.field;
     ^^^^^" in c{<unresolved>}.field;
-  invalid-expression "pkg/front_end/testcases/extensions/issue38745.dart:35:5: Error: The setter 'field' isn't defined for the class 'C<int>'.
+  invalid-expression "pkg/front_end/testcases/extensions/issue38745.dart:35:5: Error: The setter 'field' isn't defined for the type 'C<int>'.
  - 'C' is from 'pkg/front_end/testcases/extensions/issue38745.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'field'.
   c.field = 23;
     ^^^^^" in c.{<unresolved>}field = 23;
-  invalid-expression "pkg/front_end/testcases/extensions/issue38745.dart:36:5: Error: The getter 'property' isn't defined for the class 'C<int>'.
+  invalid-expression "pkg/front_end/testcases/extensions/issue38745.dart:36:5: Error: The getter 'property' isn't defined for the type 'C<int>'.
  - 'C' is from 'pkg/front_end/testcases/extensions/issue38745.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'property'.
   c.property;
     ^^^^^^^^" in c{<unresolved>}.property;
-  invalid-expression "pkg/front_end/testcases/extensions/issue38745.dart:37:5: Error: The setter 'property' isn't defined for the class 'C<int>'.
+  invalid-expression "pkg/front_end/testcases/extensions/issue38745.dart:37:5: Error: The setter 'property' isn't defined for the type 'C<int>'.
  - 'C' is from 'pkg/front_end/testcases/extensions/issue38745.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'property'.
   c.property = 23;
     ^^^^^^^^" in c.{<unresolved>}property = 23;
-  invalid-expression "pkg/front_end/testcases/extensions/issue38745.dart:38:5: Error: The getter 'property2' isn't defined for the class 'C<int>'.
+  invalid-expression "pkg/front_end/testcases/extensions/issue38745.dart:38:5: Error: The getter 'property2' isn't defined for the type 'C<int>'.
  - 'C' is from 'pkg/front_end/testcases/extensions/issue38745.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'property2'.
   c.property2;
     ^^^^^^^^^" in c{<unresolved>}.property2;
-  invalid-expression "pkg/front_end/testcases/extensions/issue38745.dart:39:5: Error: The setter 'property2' isn't defined for the class 'C<int>'.
+  invalid-expression "pkg/front_end/testcases/extensions/issue38745.dart:39:5: Error: The setter 'property2' isn't defined for the type 'C<int>'.
  - 'C' is from 'pkg/front_end/testcases/extensions/issue38745.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'property2'.
   c.property2 = 23;

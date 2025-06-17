@@ -691,8 +691,9 @@ static void CreateAndWritePrecompiledSnapshot() {
     if (debugging_info_filename != nullptr) {
       debug_file = OpenFile(debugging_info_filename);
     }
-    result = Dart_CreateAppAOTSnapshotAsBinary(
-        format, StreamingWriteCallback, file, strip, debug_file, identifier);
+    result = Dart_CreateAppAOTSnapshotAsBinary(format, StreamingWriteCallback,
+                                               file, strip, debug_file,
+                                               identifier, filename);
     if (debug_file != nullptr) debug_file->Release();
     if (identifier != nullptr) {
       free(identifier);

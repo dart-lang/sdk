@@ -41,12 +41,12 @@ extension type E(C c) implements A, B {}
 testMethod3(E e) => e.method().$1.unresolved();
 //                                ^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-// [cfe] The method 'unresolved' isn't defined for the class 'Object?'.
+// [cfe] The method 'unresolved' isn't defined for the type 'Object?'.
 
 testMethod4(E e) => e.method().$2.unresolved();
 //                                ^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-// [cfe] The method 'unresolved' isn't defined for the class 'Object?'.
+// [cfe] The method 'unresolved' isn't defined for the type 'Object?'.
 
 (Object?, Object?) testGetter0(E e) => e.getter;
 

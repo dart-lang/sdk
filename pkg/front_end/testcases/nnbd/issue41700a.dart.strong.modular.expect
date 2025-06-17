@@ -2,12 +2,12 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd/issue41700a.dart:7:5: Error: The method 'foo' isn't defined for the class 'Null'.
+// pkg/front_end/testcases/nnbd/issue41700a.dart:7:5: Error: The method 'foo' isn't defined for the type 'Null'.
 // Try correcting the name to the name of an existing method, or defining a method named 'foo'.
 //   x.foo();
 //     ^^^
 //
-// pkg/front_end/testcases/nnbd/issue41700a.dart:9:5: Error: The method 'foo' isn't defined for the class 'Null'.
+// pkg/front_end/testcases/nnbd/issue41700a.dart:9:5: Error: The method 'foo' isn't defined for the type 'Null'.
 // Try correcting the name to the name of an existing method, or defining a method named 'foo'.
 //   y.foo();
 //     ^^^
@@ -16,12 +16,12 @@ import self as self;
 
 static method test() → dynamic {
   has-declared-initializer Null x = null;
-  invalid-expression "pkg/front_end/testcases/nnbd/issue41700a.dart:7:5: Error: The method 'foo' isn't defined for the class 'Null'.
+  invalid-expression "pkg/front_end/testcases/nnbd/issue41700a.dart:7:5: Error: The method 'foo' isn't defined for the type 'Null'.
 Try correcting the name to the name of an existing method, or defining a method named 'foo'.
   x.foo();
     ^^^" in x{<unresolved>}.foo();
   has-declared-initializer Null y = null;
-  invalid-expression "pkg/front_end/testcases/nnbd/issue41700a.dart:9:5: Error: The method 'foo' isn't defined for the class 'Null'.
+  invalid-expression "pkg/front_end/testcases/nnbd/issue41700a.dart:9:5: Error: The method 'foo' isn't defined for the type 'Null'.
 Try correcting the name to the name of an existing method, or defining a method named 'foo'.
   y.foo();
     ^^^" in y{<unresolved>}.foo();

@@ -22,6 +22,7 @@ import 'package:analysis_server/src/utilities/profiling.dart';
 import 'package:analysis_server_plugin/src/correction/performance.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:collection/collection.dart';
 import 'package:vm_service/vm_service_io.dart' as vm_service;
 
@@ -152,10 +153,11 @@ class CollectReportPage extends DiagnosticPage {
       var collectedOptionsData = collectOptionsData(driver);
       contextData['lints'] = collectedOptionsData.lints.sorted();
       contextData['plugins'] = collectedOptionsData.plugins.toList();
-
       Set<LibraryCycle> cycles = {};
       var contextRoot = driver.analysisContext!.contextRoot;
+      var pathContext = contextRoot.resourceProvider.pathContext;
       for (var filePath in contextRoot.analyzedFiles()) {
+        if (!file_paths.isDart(pathContext, filePath)) continue;
         var fileState = driver.fsState.getFileForPath(filePath);
         var kind = fileState.kind;
         if (kind is LibraryFileKind) {

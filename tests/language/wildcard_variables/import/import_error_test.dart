@@ -24,10 +24,10 @@ main() {
   value.bar;
   //    ^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] The getter 'bar' isn't defined for the class 'String'.
+  // [cfe] The getter 'bar' isn't defined for the type 'String'.
 
   value.fn;
   //    ^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] The getter 'fn' isn't defined for the class 'String'.
+  // [cfe] The getter 'fn' isn't defined for the type 'String'.
 }

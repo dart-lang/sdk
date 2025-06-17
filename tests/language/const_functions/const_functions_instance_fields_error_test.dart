@@ -20,7 +20,7 @@ const var1 = fn();
 int fn() => const A(1).x;
 //                     ^
 // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-// [cfe] The getter 'x' isn't defined for the class 'A'.
+// [cfe] The getter 'x' isn't defined for the type 'A'.
 
 const var2 = fn2();
 //           ^^^^^
@@ -30,7 +30,7 @@ int fn2() {
   return x.x;
   //       ^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] The getter 'x' isn't defined for the class 'A'.
+  // [cfe] The getter 'x' isn't defined for the type 'A'.
 }
 
 const var3 = const A(1).x;
@@ -38,4 +38,4 @@ const var3 = const A(1).x;
 // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_PROPERTY_ACCESS
 //                      ^
 // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-// [cfe] The getter 'x' isn't defined for the class 'A'.
+// [cfe] The getter 'x' isn't defined for the type 'A'.

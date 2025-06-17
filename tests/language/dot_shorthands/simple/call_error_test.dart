@@ -17,10 +17,10 @@ void main() {
   C c1 = .id1();
   //     ^
   // [analyzer] unspecified
-  // [cfe] The method 'call' isn't defined for the class 'C'.
+  // [cfe] The method 'call' isn't defined for the type 'C'.
 
   C c2 = .id2();
   //     ^
   // [analyzer] unspecified
-  // [cfe] The method 'call' isn't defined for the class 'C'.
+  // [cfe] The method 'call' isn't defined for the type 'C'.
 }

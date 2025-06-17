@@ -14,7 +14,7 @@ void f(int i) {
     i.bogus();
     //^^^^^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
-    // [cfe] The method 'bogus' isn't defined for the class 'int'.
+    // [cfe] The method 'bogus' isn't defined for the type 'int'.
   }
 }
 

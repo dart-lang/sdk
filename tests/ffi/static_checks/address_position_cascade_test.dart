@@ -23,133 +23,133 @@ external void myNativeWith3Param(
 void testDefinedLeaf() {
   final buffer = Int8List.fromList([1]);
   myNativeWith2Param(buffer.address, buffer.address);
-  //                        ^^^^^^^
-  // [cfe] The argument type 'Pointer<Int8>' can't be assigned to the parameter type 'Pointer<Void>'.
   //                 ^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  //                        ^
+  // [cfe] The argument type 'Pointer<Int8>' can't be assigned to the parameter type 'Pointer<Void>'.
 
   myNativeWith2Param(buffer.address.cast(), buffer.address.cast<Void>());
-  //                                                       ^^^^^^^^^^^^
-  // [cfe] The argument type 'Pointer<Void>' can't be assigned to the parameter type 'Pointer<Int8>'.
   //                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  //                                                       ^
+  // [cfe] The argument type 'Pointer<Void>' can't be assigned to the parameter type 'Pointer<Int8>'.
 
   myNativeWith3Param(buffer.address, buffer.address, buffer.address.cast());
-  //                        ^^^^^^^
-  // [cfe] The argument type 'Pointer<Int8>' can't be assigned to the parameter type 'Pointer<Void>'.
   //                 ^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  //                        ^
+  // [cfe] The argument type 'Pointer<Int8>' can't be assigned to the parameter type 'Pointer<Void>'.
 
   // dart format off
   myNativeWith3Param(
       buffer.address.cast(),
       /* */ buffer.address.cast<Void>(),
-      //                   ^^^^^^^^^^^^
-      // [cfe] The argument type 'Pointer<Void>' can't be assigned to the parameter type 'Pointer<Int8>'.
       //    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+      //                   ^
+      // [cfe] The argument type 'Pointer<Void>' can't be assigned to the parameter type 'Pointer<Int8>'.
       buffer.address.cast());
 
   myNativeWith3Param(buffer.address.cast(), buffer.address, buffer.address);
-  //                                                               ^^^^^^^
-  // [cfe] The argument type 'Pointer<Int8>' can't be assigned to the parameter type 'Pointer<Void>'.
   //                                                        ^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  //                                                               ^
+  // [cfe] The argument type 'Pointer<Int8>' can't be assigned to the parameter type 'Pointer<Void>'.
 
   myNativeWith3Param(
       /**/ buffer.address,
-      //          ^^^^^^^
-      // [cfe] The argument type 'Pointer<Int8>' can't be assigned to the parameter type 'Pointer<Void>'.
       //   ^^^^^^^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+      //          ^
+      // [cfe] The argument type 'Pointer<Int8>' can't be assigned to the parameter type 'Pointer<Void>'.
       /**/ buffer.address.cast<Void>(),
-      //                  ^^^^^^^^^^^^
-      // [cfe] The argument type 'Pointer<Void>' can't be assigned to the parameter type 'Pointer<Int8>'.
       //   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+      //                  ^
+      // [cfe] The argument type 'Pointer<Void>' can't be assigned to the parameter type 'Pointer<Int8>'.
       buffer.address.cast());
 
   myNativeWith3Param(
       buffer.address.cast(),
       /**/ buffer.address.cast<Void>(),
-      //                  ^^^^^^^^^^^^
-      // [cfe] The argument type 'Pointer<Void>' can't be assigned to the parameter type 'Pointer<Int8>'.
       //   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+      //                  ^
+      // [cfe] The argument type 'Pointer<Void>' can't be assigned to the parameter type 'Pointer<Int8>'.
       buffer.address);
-  //         ^^^^^^^
-  // [cfe] The argument type 'Pointer<Int8>' can't be assigned to the parameter type 'Pointer<Void>'.
   //  ^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  //         ^
+  // [cfe] The argument type 'Pointer<Int8>' can't be assigned to the parameter type 'Pointer<Void>'.
   myNativeWith3Param(
       /**/ buffer.address
-      //          ^^^^^^^
-      // [cfe] The argument type 'Pointer<Int8>' can't be assigned to the parameter type 'Pointer<Void>'.
       //   ^^^^^^^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+      //          ^
+      // [cfe] The argument type 'Pointer<Int8>' can't be assigned to the parameter type 'Pointer<Void>'.
       ,
       buffer.address,
       buffer.address);
-  //         ^^^^^^^
-  // [cfe] The argument type 'Pointer<Int8>' can't be assigned to the parameter type 'Pointer<Void>'.
   //  ^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  //         ^
+  // [cfe] The argument type 'Pointer<Int8>' can't be assigned to the parameter type 'Pointer<Void>'.
 
   myNativeWith3Param(
       /**/ buffer.address,
-      //          ^^^^^^^
-      // [cfe] The argument type 'Pointer<Int8>' can't be assigned to the parameter type 'Pointer<Void>'.
       //   ^^^^^^^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+      //          ^
+      // [cfe] The argument type 'Pointer<Int8>' can't be assigned to the parameter type 'Pointer<Void>'.
       /**/ buffer.address.cast<Void>(),
-      //                  ^^^^^^^^^^^^
-      // [cfe] The argument type 'Pointer<Void>' can't be assigned to the parameter type 'Pointer<Int8>'.
       //   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+      //                  ^
+      // [cfe] The argument type 'Pointer<Void>' can't be assigned to the parameter type 'Pointer<Int8>'.
       buffer.address);
-  //         ^^^^^^^
-  // [cfe] The argument type 'Pointer<Int8>' can't be assigned to the parameter type 'Pointer<Void>'.
   //  ^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  //         ^
+  // [cfe] The argument type 'Pointer<Int8>' can't be assigned to the parameter type 'Pointer<Void>'.
 }
 // dart format on
 
 void testUndefinedLeaf() {
   final buffer = Int8List.fromList([1]);
   myNativeWith2Param(buffer.address.cast(), buffer.address.doesntExist);
-  //                                                       ^^^^^^^^^^^
-  // [cfe] The getter 'doesntExist' isn't defined for the class 'Pointer<Int8>'.
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
   //                                               ^^^^^^^
-  // [cfe] The '.address' expression can only be used as argument to a leaf native external call.
   // [analyzer] COMPILE_TIME_ERROR.ADDRESS_POSITION
+  // [cfe] The '.address' expression can only be used as argument to a leaf native external call.
+  //                                                       ^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [cfe] The getter 'doesntExist' isn't defined for the type 'Pointer<Int8>'.
 
   myNativeWith2Param(buffer.address.cast<Int8>().doesntExist, buffer.address);
-  //                                             ^^^^^^^^^^^
-  // [cfe] The getter 'doesntExist' isn't defined for the class 'Pointer<Int8>'.
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
   //                        ^^^^^^^
-  // [cfe] The '.address' expression can only be used as argument to a leaf native external call.
   // [analyzer] COMPILE_TIME_ERROR.ADDRESS_POSITION
+  // [cfe] The '.address' expression can only be used as argument to a leaf native external call.
+  //                                             ^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [cfe] The getter 'doesntExist' isn't defined for the type 'Pointer<Int8>'.
 }
 
 void testUndefinedNonLeaf() {
   final buffer = Int8List.fromList([1]);
 
   myNonLeafNative(buffer.address.cast().doesntExist);
+  //                     ^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.ADDRESS_POSITION
+  // [cfe] The '.address' expression can only be used as argument to a leaf native external call.
   //                                    ^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] The getter 'doesntExist' isn't defined for the class 'Pointer<NativeType>'.
+  // [cfe] The getter 'doesntExist' isn't defined for the type 'Pointer<NativeType>'.
+  myNonLeafNative(buffer.address.doesntExist);
   //                     ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ADDRESS_POSITION
   // [cfe] The '.address' expression can only be used as argument to a leaf native external call.
-  myNonLeafNative(buffer.address.doesntExist);
   //                             ^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] The getter 'doesntExist' isn't defined for the class 'Pointer<Int8>'.
-  //                     ^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.ADDRESS_POSITION
-  // [cfe] The '.address' expression can only be used as argument to a leaf native external call.
+  // [cfe] The getter 'doesntExist' isn't defined for the type 'Pointer<Int8>'.
 }
 
 void testDefinedNonLeaf() {
@@ -157,20 +157,20 @@ void testDefinedNonLeaf() {
   myNonLeafNative(buffer.address.cast().address);
   //              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-  //                                    ^^^^^^^
-  // [cfe] The argument type 'int' can't be assigned to the parameter type 'Pointer<Void>'.
   //                     ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ADDRESS_POSITION
   // [cfe] The '.address' expression can only be used as argument to a leaf native external call.
+  //                                    ^
+  // [cfe] The argument type 'int' can't be assigned to the parameter type 'Pointer<Void>'.
 
   myNonLeafNative(buffer.address.address);
   //              ^^^^^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-  //                             ^^^^^^^
-  // [cfe] The argument type 'int' can't be assigned to the parameter type 'Pointer<Void>'.
   //                     ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ADDRESS_POSITION
   // [cfe] The '.address' expression can only be used as argument to a leaf native external call.
+  //                             ^
+  // [cfe] The argument type 'int' can't be assigned to the parameter type 'Pointer<Void>'.
 }
 
 void main() {

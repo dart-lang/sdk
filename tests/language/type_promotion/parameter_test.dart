@@ -36,15 +36,15 @@ void test(A a) {
   print(a.b);
   //      ^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] The getter 'b' isn't defined for the class 'A'.
+  // [cfe] The getter 'b' isn't defined for the type 'A'.
   print(a.c);
   //      ^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] The getter 'c' isn't defined for the class 'A'.
+  // [cfe] The getter 'c' isn't defined for the type 'A'.
   print(a.d);
   //      ^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] The getter 'd' isn't defined for the class 'A'.
+  // [cfe] The getter 'd' isn't defined for the type 'A'.
 
   if (a is B) {
     print(a.a);
@@ -52,11 +52,11 @@ void test(A a) {
     print(a.c);
     //      ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-    // [cfe] The getter 'c' isn't defined for the class 'B'.
+    // [cfe] The getter 'c' isn't defined for the type 'B'.
     print(a.d);
     //      ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-    // [cfe] The getter 'd' isn't defined for the class 'B'.
+    // [cfe] The getter 'd' isn't defined for the type 'B'.
 
     if (a is C) {
       print(a.a);
@@ -65,7 +65,7 @@ void test(A a) {
       print(a.d);
       //      ^
       // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-      // [cfe] The getter 'd' isn't defined for the class 'C'.
+      // [cfe] The getter 'd' isn't defined for the type 'C'.
     }
 
     print(a.a);
@@ -73,11 +73,11 @@ void test(A a) {
     print(a.c);
     //      ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-    // [cfe] The getter 'c' isn't defined for the class 'B'.
+    // [cfe] The getter 'c' isn't defined for the type 'B'.
     print(a.d);
     //      ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-    // [cfe] The getter 'd' isn't defined for the class 'B'.
+    // [cfe] The getter 'd' isn't defined for the type 'B'.
   }
   if (a is C) {
     print(a.a);
@@ -86,7 +86,7 @@ void test(A a) {
     print(a.d);
     //      ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-    // [cfe] The getter 'd' isn't defined for the class 'C'.
+    // [cfe] The getter 'd' isn't defined for the type 'C'.
 
     if (a is B) {
       print(a.a);
@@ -95,7 +95,7 @@ void test(A a) {
       print(a.d);
       //      ^
       // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-      // [cfe] The getter 'd' isn't defined for the class 'C'.
+      // [cfe] The getter 'd' isn't defined for the type 'C'.
     }
     if (a is D) {
       print(a.a);
@@ -104,7 +104,7 @@ void test(A a) {
       print(a.d);
       //      ^
       // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-      // [cfe] The getter 'd' isn't defined for the class 'C'.
+      // [cfe] The getter 'd' isn't defined for the type 'C'.
     }
 
     print(a.a);
@@ -113,33 +113,33 @@ void test(A a) {
     print(a.d);
     //      ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-    // [cfe] The getter 'd' isn't defined for the class 'C'.
+    // [cfe] The getter 'd' isn't defined for the type 'C'.
   }
 
   print(a.a);
   print(a.b);
   //      ^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] The getter 'b' isn't defined for the class 'A'.
+  // [cfe] The getter 'b' isn't defined for the type 'A'.
   print(a.c);
   //      ^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] The getter 'c' isn't defined for the class 'A'.
+  // [cfe] The getter 'c' isn't defined for the type 'A'.
   print(a.d);
   //      ^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] The getter 'd' isn't defined for the class 'A'.
+  // [cfe] The getter 'd' isn't defined for the type 'A'.
 
   if (a is D) {
     print(a.a);
     print(a.b);
     //      ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-    // [cfe] The getter 'b' isn't defined for the class 'D'.
+    // [cfe] The getter 'b' isn't defined for the type 'D'.
     print(a.c);
     //      ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-    // [cfe] The getter 'c' isn't defined for the class 'D'.
+    // [cfe] The getter 'c' isn't defined for the type 'D'.
     print(a.d);
   }
 
@@ -147,15 +147,15 @@ void test(A a) {
   print(a.b);
   //      ^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] The getter 'b' isn't defined for the class 'A'.
+  // [cfe] The getter 'b' isn't defined for the type 'A'.
   print(a.c);
   //      ^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] The getter 'c' isn't defined for the class 'A'.
+  // [cfe] The getter 'c' isn't defined for the type 'A'.
   print(a.d);
   //      ^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] The getter 'd' isn't defined for the class 'A'.
+  // [cfe] The getter 'd' isn't defined for the type 'A'.
 
   var o1 = a is B
       ? '${a.a}'
@@ -163,24 +163,24 @@ void test(A a) {
             '${a.c}'
             //   ^
             // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-            // [cfe] The getter 'c' isn't defined for the class 'B'.
+            // [cfe] The getter 'c' isn't defined for the type 'B'.
             '${a.d}'
       //         ^
       // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-      // [cfe] The getter 'd' isn't defined for the class 'B'.
+      // [cfe] The getter 'd' isn't defined for the type 'B'.
       : '${a.a}'
             '${a.b}'
             //   ^
             // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-            // [cfe] The getter 'b' isn't defined for the class 'A'.
+            // [cfe] The getter 'b' isn't defined for the type 'A'.
             '${a.c}'
             //   ^
             // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-            // [cfe] The getter 'c' isn't defined for the class 'A'.
+            // [cfe] The getter 'c' isn't defined for the type 'A'.
             '${a.d}';
   //             ^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] The getter 'd' isn't defined for the class 'A'.
+  // [cfe] The getter 'd' isn't defined for the type 'A'.
 
   var o2 = a is C
       ? '${a.a}'
@@ -189,45 +189,45 @@ void test(A a) {
             '${a.d}'
       //         ^
       // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-      // [cfe] The getter 'd' isn't defined for the class 'C'.
+      // [cfe] The getter 'd' isn't defined for the type 'C'.
       : '${a.a}'
             '${a.b}'
             //   ^
             // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-            // [cfe] The getter 'b' isn't defined for the class 'A'.
+            // [cfe] The getter 'b' isn't defined for the type 'A'.
             '${a.c}'
             //   ^
             // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-            // [cfe] The getter 'c' isn't defined for the class 'A'.
+            // [cfe] The getter 'c' isn't defined for the type 'A'.
             '${a.d}';
   //             ^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] The getter 'd' isn't defined for the class 'A'.
+  // [cfe] The getter 'd' isn't defined for the type 'A'.
 
   var o3 = a is D
       ? '${a.a}'
             '${a.b}'
             //   ^
             // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-            // [cfe] The getter 'b' isn't defined for the class 'D'.
+            // [cfe] The getter 'b' isn't defined for the type 'D'.
             '${a.c}'
             //   ^
             // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-            // [cfe] The getter 'c' isn't defined for the class 'D'.
+            // [cfe] The getter 'c' isn't defined for the type 'D'.
             '${a.d}'
       : '${a.a}'
             '${a.b}'
             //   ^
             // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-            // [cfe] The getter 'b' isn't defined for the class 'A'.
+            // [cfe] The getter 'b' isn't defined for the type 'A'.
             '${a.c}'
             //   ^
             // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-            // [cfe] The getter 'c' isn't defined for the class 'A'.
+            // [cfe] The getter 'c' isn't defined for the type 'A'.
             '${a.d}';
   //             ^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] The getter 'd' isn't defined for the class 'A'.
+  // [cfe] The getter 'd' isn't defined for the type 'A'.
 
   if (a is B && a is B) {
     print(a.a);
@@ -235,11 +235,11 @@ void test(A a) {
     print(a.c);
     //      ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-    // [cfe] The getter 'c' isn't defined for the class 'B'.
+    // [cfe] The getter 'c' isn't defined for the type 'B'.
     print(a.d);
     //      ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-    // [cfe] The getter 'd' isn't defined for the class 'B'.
+    // [cfe] The getter 'd' isn't defined for the type 'B'.
   }
   if (a is B && a is C) {
     print(a.a);
@@ -248,7 +248,7 @@ void test(A a) {
     print(a.d);
     //      ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-    // [cfe] The getter 'd' isn't defined for the class 'C'.
+    // [cfe] The getter 'd' isn't defined for the type 'C'.
   }
   if (a is C && a is B) {
     print(a.a);
@@ -257,7 +257,7 @@ void test(A a) {
     print(a.d);
     //      ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-    // [cfe] The getter 'd' isn't defined for the class 'C'.
+    // [cfe] The getter 'd' isn't defined for the type 'C'.
   }
   if (a is C && a is D) {
     print(a.a);
@@ -266,18 +266,18 @@ void test(A a) {
     print(a.d);
     //      ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-    // [cfe] The getter 'd' isn't defined for the class 'C'.
+    // [cfe] The getter 'd' isn't defined for the type 'C'.
   }
   if (a is D && a is C) {
     print(a.a);
     print(a.b);
     //      ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-    // [cfe] The getter 'b' isn't defined for the class 'D'.
+    // [cfe] The getter 'b' isn't defined for the type 'D'.
     print(a.c);
     //      ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-    // [cfe] The getter 'c' isn't defined for the class 'D'.
+    // [cfe] The getter 'c' isn't defined for the type 'D'.
     print(a.d);
   }
   if (a is D &&
@@ -285,40 +285,40 @@ void test(A a) {
       a.b == ""
       //^
       // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-      // [cfe] The getter 'b' isn't defined for the class 'D'.
+      // [cfe] The getter 'b' isn't defined for the type 'D'.
       &&
       a.c == ""
       //^
       // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-      // [cfe] The getter 'c' isn't defined for the class 'D'.
+      // [cfe] The getter 'c' isn't defined for the type 'D'.
       &&
       a.d == "") {
     print(a.a);
     print(a.b);
     //      ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-    // [cfe] The getter 'b' isn't defined for the class 'D'.
+    // [cfe] The getter 'b' isn't defined for the type 'D'.
     print(a.c);
     //      ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-    // [cfe] The getter 'c' isn't defined for the class 'D'.
+    // [cfe] The getter 'c' isn't defined for the type 'D'.
     print(a.d);
   }
   if (a.a == "" &&
       a.b == ""
       //^
       // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-      // [cfe] The getter 'b' isn't defined for the class 'A'.
+      // [cfe] The getter 'b' isn't defined for the type 'A'.
       &&
       a.c == ""
       //^
       // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-      // [cfe] The getter 'c' isn't defined for the class 'A'.
+      // [cfe] The getter 'c' isn't defined for the type 'A'.
       &&
       a.d == ""
       //^
       // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-      // [cfe] The getter 'd' isn't defined for the class 'A'.
+      // [cfe] The getter 'd' isn't defined for the type 'A'.
       &&
       a is B &&
       a.a == "" &&
@@ -326,12 +326,12 @@ void test(A a) {
       a.c == ""
       //^
       // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-      // [cfe] The getter 'c' isn't defined for the class 'B'.
+      // [cfe] The getter 'c' isn't defined for the type 'B'.
       &&
       a.d == ""
       //^
       // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-      // [cfe] The getter 'd' isn't defined for the class 'B'.
+      // [cfe] The getter 'd' isn't defined for the type 'B'.
       &&
       a is C &&
       a.a == "" &&
@@ -340,7 +340,7 @@ void test(A a) {
       a.d == ""
   //    ^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] The getter 'd' isn't defined for the class 'C'.
+  // [cfe] The getter 'd' isn't defined for the type 'C'.
   ) {
     print(a.a);
     print(a.b);
@@ -348,7 +348,7 @@ void test(A a) {
     print(a.d);
     //      ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-    // [cfe] The getter 'd' isn't defined for the class 'C'.
+    // [cfe] The getter 'd' isn't defined for the type 'C'.
   }
   if ((a is B)) {
     print(a.a);
@@ -356,11 +356,11 @@ void test(A a) {
     print(a.c);
     //      ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-    // [cfe] The getter 'c' isn't defined for the class 'B'.
+    // [cfe] The getter 'c' isn't defined for the type 'B'.
     print(a.d);
     //      ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-    // [cfe] The getter 'd' isn't defined for the class 'B'.
+    // [cfe] The getter 'd' isn't defined for the type 'B'.
   }
   if ((a is B && (a) is C) && a is B) {
     print(a.a);
@@ -369,6 +369,6 @@ void test(A a) {
     print(a.d);
     //      ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-    // [cfe] The getter 'd' isn't defined for the class 'C'.
+    // [cfe] The getter 'd' isn't defined for the type 'C'.
   }
 }

@@ -329,6 +329,8 @@ static constexpr uint8_t N_STSYM = 0x26;
 static constexpr uint8_t N_BNSYM = 0x2e;
 // The end of a function symbol in a specific section.
 static constexpr uint8_t N_ENSYM = 0x4e;
+// The name of the object file. (n_sect == 0, n_desc = 1, value = mtime)
+static constexpr uint8_t N_OSO = 0x66;
 
 // Values for n_desc.
 

@@ -43,7 +43,7 @@ library test;
 //     Function2<int, String> l2 =  /*@returnType=String*/ (/*@type=int*/ x) => x;
 //                                                                              ^
 //
-// pkg/front_end/testcases/inference/downwards_inference_on_function_expressions.dart:65:14: Error: The method 'substring' isn't defined for the class 'int'.
+// pkg/front_end/testcases/inference/downwards_inference_on_function_expressions.dart:65:14: Error: The method 'substring' isn't defined for the type 'int'.
 // Try correcting the name to the name of an existing method, or defining a method named 'substring'.
 //             .substring(3);
 //              ^^^^^^^^^
@@ -107,7 +107,7 @@ static method test() → void {
     (core::int) → core::String l2 = (core::int x) → core::String => invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_expressions.dart:62:78: Error: A value of type 'int' can't be returned from a function with return type 'String'.
     Function2<int, String> l2 =  /*@returnType=String*/ (/*@type=int*/ x) => x;
                                                                              ^" in x as{TypeError} core::String;
-    (core::int) → core::String l3 = (core::int x) → core::String => invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_expressions.dart:65:14: Error: The method 'substring' isn't defined for the class 'int'.
+    (core::int) → core::String l3 = (core::int x) → core::String => invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_expressions.dart:65:14: Error: The method 'substring' isn't defined for the type 'int'.
 Try correcting the name to the name of an existing method, or defining a method named 'substring'.
             .substring(3);
              ^^^^^^^^^" in x{<unresolved>}.substring(3) as{TypeError,ForDynamic} core::String;

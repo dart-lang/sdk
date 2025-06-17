@@ -4093,6 +4093,11 @@ typedef enum {
  *  CODE_SIGNATURE load commands for Mach-O dynamic libraries and for DW_AT_name
  *  in the Dart progam's root DWARF compilation unit.
  *
+ *  The path should be the full path of the resulting dynamic library.
+ *  Currently, it is only used in unstripped Mach-O snapshots to create an
+ *  appropriate N_OSO symbolic debugging variable so dsymutil can be used.
+ *  The N_OSO symbol is not created if the path is nullptr.
+ *
  * \return A valid handle if no error occurs during the operation.
  */
 DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
@@ -4101,7 +4106,8 @@ Dart_CreateAppAOTSnapshotAsBinary(Dart_AotBinaryFormat format,
                                   void* callback_data,
                                   bool stripped,
                                   void* debug_callback_data,
-                                  const char* identifier);
+                                  const char* identifier,
+                                  const char* path);
 
 /**
  *  Like Dart_CreateAppAOTSnapshotAsAssembly, but only includes

@@ -106,7 +106,7 @@ main() {
     Expect.equals(1, b?.f(() => 1));
     //                  ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
-    // [cfe] The method 'f' isn't defined for the class 'B'.
+    // [cfe] The method 'f' isn't defined for the type 'B'.
   }
   {
     var i = 1 as int?;

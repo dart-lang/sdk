@@ -10,12 +10,12 @@ library;
 //   r3(0); // Error.
 //   ^
 //
-// pkg/front_end/testcases/records/issue54616_2.dart:29:5: Error: The method 'call' isn't defined for the class '(String)'.
+// pkg/front_end/testcases/records/issue54616_2.dart:29:5: Error: The method 'call' isn't defined for the type '(String)'.
 // Try correcting the name to the name of an existing method, or defining a method named 'call'.
 //   r4(0); // Error.
 //     ^
 //
-// pkg/front_end/testcases/records/issue54616_2.dart:33:6: Error: The method 'call' isn't defined for the class '(String)'.
+// pkg/front_end/testcases/records/issue54616_2.dart:33:6: Error: The method 'call' isn't defined for the type '(String)'.
 // Try correcting the name to the name of an existing method, or defining a method named 'call'.
 //   r4.call(0); // Error.
 //      ^^^^
@@ -28,7 +28,7 @@ library;
 //   x3(0); // Error.
 //   ^
 //
-// pkg/front_end/testcases/records/issue54616_2.dart:38:5: Error: The method 'call' isn't defined for the class '(String)'.
+// pkg/front_end/testcases/records/issue54616_2.dart:38:5: Error: The method 'call' isn't defined for the type '(String)'.
 // Try correcting the name to the name of an existing method, or defining a method named 'call'.
 //   x4(0); // Error.
 //     ^
@@ -48,12 +48,12 @@ library;
 //   x3n(0); // Error.
 //      ^
 //
-// pkg/front_end/testcases/records/issue54616_2.dart:42:6: Error: The method 'call' isn't defined for the class '(String)?'.
+// pkg/front_end/testcases/records/issue54616_2.dart:42:6: Error: The method 'call' isn't defined for the type '(String)?'.
 // Try correcting the name to the name of an existing method, or defining a method named 'call'.
 //   x4n(0); // Error.
 //      ^
 //
-// pkg/front_end/testcases/records/issue54616_2.dart:47:6: Error: The method 'call' isn't defined for the class '(String)'.
+// pkg/front_end/testcases/records/issue54616_2.dart:47:6: Error: The method 'call' isn't defined for the type '(String)'.
 // Try correcting the name to the name of an existing method, or defining a method named 'call'.
 //   x4.call(0); // Error.
 //      ^^^^
@@ -73,7 +73,7 @@ library;
 //   x3n.call(0); // Error.
 //       ^
 //
-// pkg/front_end/testcases/records/issue54616_2.dart:51:7: Error: The method 'call' isn't defined for the class '(String)?'.
+// pkg/front_end/testcases/records/issue54616_2.dart:51:7: Error: The method 'call' isn't defined for the type '(String)?'.
 // Try correcting the name to the name of an existing method, or defining a method named 'call'.
 //   x4n.call(0); // Error.
 //       ^^^^
@@ -101,21 +101,21 @@ static method test<X1 extends (core::int), X2 extends (core::int, {required call
   self::EInt|call(r1, 0);
   r2.call{(dynamic) → dynamic}(0){(dynamic) → dynamic};
   r3.call{(dynamic) → dynamic}(0){(dynamic) → dynamic};
-  invalid-expression "pkg/front_end/testcases/records/issue54616_2.dart:29:5: Error: The method 'call' isn't defined for the class '(String)'.
+  invalid-expression "pkg/front_end/testcases/records/issue54616_2.dart:29:5: Error: The method 'call' isn't defined for the type '(String)'.
 Try correcting the name to the name of an existing method, or defining a method named 'call'.
   r4(0); // Error.
     ^" in r4{<unresolved>}.call(0);
   self::EInt|call(r1, 0);
   r2.call{(dynamic) → dynamic}(0){(dynamic) → dynamic};
   r3.call{(dynamic) → dynamic}(0){(dynamic) → dynamic};
-  invalid-expression "pkg/front_end/testcases/records/issue54616_2.dart:33:6: Error: The method 'call' isn't defined for the class '(String)'.
+  invalid-expression "pkg/front_end/testcases/records/issue54616_2.dart:33:6: Error: The method 'call' isn't defined for the type '(String)'.
 Try correcting the name to the name of an existing method, or defining a method named 'call'.
   r4.call(0); // Error.
      ^^^^" in r4{<unresolved>}.call(0);
   self::EInt|call(x1, 0);
   x2.call{(dynamic) → dynamic}(0){(dynamic) → dynamic};
   x3.call{(dynamic) → dynamic}(0){(dynamic) → dynamic};
-  invalid-expression "pkg/front_end/testcases/records/issue54616_2.dart:38:5: Error: The method 'call' isn't defined for the class '(String)'.
+  invalid-expression "pkg/front_end/testcases/records/issue54616_2.dart:38:5: Error: The method 'call' isn't defined for the type '(String)'.
 Try correcting the name to the name of an existing method, or defining a method named 'call'.
   x4(0); // Error.
     ^" in x4{<unresolved>}.call(0);
@@ -131,14 +131,14 @@ Try calling using ?.call instead.
 Try calling using ?.call instead.
   x3n(0); // Error.
      ^" in x3n.call{(dynamic) → dynamic}(0){(dynamic) → dynamic};
-  invalid-expression "pkg/front_end/testcases/records/issue54616_2.dart:42:6: Error: The method 'call' isn't defined for the class '(String)?'.
+  invalid-expression "pkg/front_end/testcases/records/issue54616_2.dart:42:6: Error: The method 'call' isn't defined for the type '(String)?'.
 Try correcting the name to the name of an existing method, or defining a method named 'call'.
   x4n(0); // Error.
      ^" in x4n{<unresolved>}.call(0);
   self::EInt|call(x1, 0);
   x2.call{(dynamic) → dynamic}(0){(dynamic) → dynamic};
   x3.call{(dynamic) → dynamic}(0){(dynamic) → dynamic};
-  invalid-expression "pkg/front_end/testcases/records/issue54616_2.dart:47:6: Error: The method 'call' isn't defined for the class '(String)'.
+  invalid-expression "pkg/front_end/testcases/records/issue54616_2.dart:47:6: Error: The method 'call' isn't defined for the type '(String)'.
 Try correcting the name to the name of an existing method, or defining a method named 'call'.
   x4.call(0); // Error.
      ^^^^" in x4{<unresolved>}.call(0);
@@ -154,7 +154,7 @@ Try calling using ?.call instead.
 Try calling using ?.call instead.
   x3n.call(0); // Error.
       ^" in x3n.call{(dynamic) → dynamic}(0){(dynamic) → dynamic};
-  invalid-expression "pkg/front_end/testcases/records/issue54616_2.dart:51:7: Error: The method 'call' isn't defined for the class '(String)?'.
+  invalid-expression "pkg/front_end/testcases/records/issue54616_2.dart:51:7: Error: The method 'call' isn't defined for the type '(String)?'.
 Try correcting the name to the name of an existing method, or defining a method named 'call'.
   x4n.call(0); // Error.
       ^^^^" in x4n{<unresolved>}.call(0);

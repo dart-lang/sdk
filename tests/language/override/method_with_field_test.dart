@@ -32,6 +32,6 @@ main() {
   Expect.equals(42, sup.superInstanceMethod());
   //                    ^^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
-  // [cfe] The method 'superInstanceMethod' isn't defined for the class 'Super'.
+  // [cfe] The method 'superInstanceMethod' isn't defined for the type 'Super'.
   Expect.equals(42, sub.superInstanceMethod());
 }

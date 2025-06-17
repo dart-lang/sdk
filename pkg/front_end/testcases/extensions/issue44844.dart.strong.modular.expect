@@ -9,7 +9,7 @@ library;
 //   static int foo = 2;
 //              ^^^
 //
-// pkg/front_end/testcases/extensions/issue44844.dart:11:5: Error: The method 'foo' isn't defined for the class 'int'.
+// pkg/front_end/testcases/extensions/issue44844.dart:11:5: Error: The method 'foo' isn't defined for the type 'int'.
 // Try correcting the name to the name of an existing method, or defining a method named 'foo'.
 //   3.foo();
 //     ^^^
@@ -22,7 +22,7 @@ extension /* unnamed */ _extension#0 on core::int {
 }
 static field core::int _extension#0|foo = 2;
 static method test() → void {
-  invalid-expression "pkg/front_end/testcases/extensions/issue44844.dart:11:5: Error: The method 'foo' isn't defined for the class 'int'.
+  invalid-expression "pkg/front_end/testcases/extensions/issue44844.dart:11:5: Error: The method 'foo' isn't defined for the type 'int'.
 Try correcting the name to the name of an existing method, or defining a method named 'foo'.
   3.foo();
     ^^^" in 3{<unresolved>}.foo();

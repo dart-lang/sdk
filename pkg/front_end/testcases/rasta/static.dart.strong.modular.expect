@@ -138,22 +138,22 @@ library;
 //     use(Foo.staticSetter ??= 87);
 //             ^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/rasta/static.dart:53:23: Error: The method 'call' isn't defined for the class 'int'.
+// pkg/front_end/testcases/rasta/static.dart:53:23: Error: The method 'call' isn't defined for the type 'int'.
 // Try correcting the name to the name of an existing method, or defining a method named 'call'.
 //     Foo.staticConstant();
 //                       ^
 //
-// pkg/front_end/testcases/rasta/static.dart:54:27: Error: The method 'call' isn't defined for the class 'int'.
+// pkg/front_end/testcases/rasta/static.dart:54:27: Error: The method 'call' isn't defined for the type 'int'.
 // Try correcting the name to the name of an existing method, or defining a method named 'call'.
 //     use(Foo.staticConstant());
 //                           ^
 //
-// pkg/front_end/testcases/rasta/static.dart:55:20: Error: The method 'call' isn't defined for the class 'int'.
+// pkg/front_end/testcases/rasta/static.dart:55:20: Error: The method 'call' isn't defined for the type 'int'.
 // Try correcting the name to the name of an existing method, or defining a method named 'call'.
 //     Foo.staticField();
 //                    ^
 //
-// pkg/front_end/testcases/rasta/static.dart:56:24: Error: The method 'call' isn't defined for the class 'int'.
+// pkg/front_end/testcases/rasta/static.dart:56:24: Error: The method 'call' isn't defined for the type 'int'.
 // Try correcting the name to the name of an existing method, or defining a method named 'call'.
 //     use(Foo.staticField());
 //                        ^
@@ -244,19 +244,19 @@ static method main() → dynamic {
     self::use(self::Foo::staticSetter = invalid-expression "pkg/front_end/testcases/rasta/static.dart:51:15: Error: Getter not found: 'staticSetter'.
     use(++Foo.staticSetter);
               ^^^^^^^^^^^^"{<invalid>}.+(1));
-    invalid-expression "pkg/front_end/testcases/rasta/static.dart:53:23: Error: The method 'call' isn't defined for the class 'int'.
+    invalid-expression "pkg/front_end/testcases/rasta/static.dart:53:23: Error: The method 'call' isn't defined for the type 'int'.
 Try correcting the name to the name of an existing method, or defining a method named 'call'.
     Foo.staticConstant();
                       ^" in #C1{<unresolved>}.call();
-    self::use(invalid-expression "pkg/front_end/testcases/rasta/static.dart:54:27: Error: The method 'call' isn't defined for the class 'int'.
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/static.dart:54:27: Error: The method 'call' isn't defined for the type 'int'.
 Try correcting the name to the name of an existing method, or defining a method named 'call'.
     use(Foo.staticConstant());
                           ^" in #C1{<unresolved>}.call());
-    invalid-expression "pkg/front_end/testcases/rasta/static.dart:55:20: Error: The method 'call' isn't defined for the class 'int'.
+    invalid-expression "pkg/front_end/testcases/rasta/static.dart:55:20: Error: The method 'call' isn't defined for the type 'int'.
 Try correcting the name to the name of an existing method, or defining a method named 'call'.
     Foo.staticField();
                    ^" in self::Foo::staticField{<unresolved>}.call();
-    self::use(invalid-expression "pkg/front_end/testcases/rasta/static.dart:56:24: Error: The method 'call' isn't defined for the class 'int'.
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/static.dart:56:24: Error: The method 'call' isn't defined for the type 'int'.
 Try correcting the name to the name of an existing method, or defining a method named 'call'.
     use(Foo.staticField());
                        ^" in self::Foo::staticField{<unresolved>}.call());

@@ -54,11 +54,11 @@ void testAB(A a, B b) {
   (true ? a : b).a = 0;
   //             ^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER
-  // [cfe] The setter 'a' isn't defined for the class 'Object'.
+  // [cfe] The setter 'a' isn't defined for the type 'Object'.
   (false ? a : b).b = 0;
   //              ^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER
-  // [cfe] The setter 'b' isn't defined for the class 'Object'.
+  // [cfe] The setter 'b' isn't defined for the type 'Object'.
   var c = new C();
   (true ? a as dynamic : c).a = 0;
   (false ? c : b).b = 0;
@@ -75,7 +75,7 @@ void testBC(B b, C c) {
   (false ? b : c).c = 0;
   //              ^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER
-  // [cfe] The setter 'c' isn't defined for the class 'B'.
+  // [cfe] The setter 'c' isn't defined for the type 'B'.
   var a = null;
   (true ? b : a).b = 0;
   (false ? a : b).c = 0;
@@ -99,11 +99,11 @@ void testCD(C c, D d) {
   (true ? c : d).c = 0;
   //             ^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER
-  // [cfe] The setter 'c' isn't defined for the class 'B'.
+  // [cfe] The setter 'c' isn't defined for the type 'B'.
   (false ? c : d).d = 0;
   //              ^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER
-  // [cfe] The setter 'd' isn't defined for the class 'B'.
+  // [cfe] The setter 'd' isn't defined for the type 'B'.
 }
 
 void testEE(E<B> e, E<C> f) {
@@ -151,5 +151,5 @@ void testEF(E<B> e, F<C> f) {
   r5 = (false ? e : f).f;
   //                   ^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] The getter 'f' isn't defined for the class 'E<B>'.
+  // [cfe] The getter 'f' isn't defined for the type 'E<B>'.
 }

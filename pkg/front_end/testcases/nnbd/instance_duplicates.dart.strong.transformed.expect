@@ -221,43 +221,43 @@ library;
 //   int? set methodAndSetter2() {}
 //                            ^
 //
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:80:5: Error: The setter 'methodAndField1' isn't defined for the class 'Class'.
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:80:5: Error: The setter 'methodAndField1' isn't defined for the type 'Class'.
 //  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'methodAndField1'.
 //   c.methodAndField1 = c.methodAndField1;
 //     ^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:84:5: Error: The setter 'methodAndFieldAndSetter1' isn't defined for the class 'Class'.
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:84:5: Error: The setter 'methodAndFieldAndSetter1' isn't defined for the type 'Class'.
 //  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'methodAndFieldAndSetter1'.
 //   c.methodAndFieldAndSetter1 = c.methodAndFieldAndSetter1;
 //     ^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:86:34: Error: The getter 'methodAndFieldAndSetter3' isn't defined for the class 'Class'.
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:86:34: Error: The getter 'methodAndFieldAndSetter3' isn't defined for the type 'Class'.
 //  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'methodAndFieldAndSetter3'.
 //   c.methodAndFieldAndSetter3 = c.methodAndFieldAndSetter3;
 //                                  ^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:87:34: Error: The getter 'methodAndFieldAndSetter4' isn't defined for the class 'Class'.
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:87:34: Error: The getter 'methodAndFieldAndSetter4' isn't defined for the type 'Class'.
 //  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'methodAndFieldAndSetter4'.
 //   c.methodAndFieldAndSetter4 = c.methodAndFieldAndSetter4;
 //                                  ^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:88:5: Error: The setter 'methodAndFinalFieldAndSetter1' isn't defined for the class 'Class'.
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:88:5: Error: The setter 'methodAndFinalFieldAndSetter1' isn't defined for the type 'Class'.
 //  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'methodAndFinalFieldAndSetter1'.
 //   c.methodAndFinalFieldAndSetter1 = c.methodAndFinalFieldAndSetter1;
 //     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:92:5: Error: The setter 'methodAndSetter1' isn't defined for the class 'Class'.
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:92:5: Error: The setter 'methodAndSetter1' isn't defined for the type 'Class'.
 //  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'methodAndSetter1'.
 //   c.methodAndSetter1 = c.methodAndSetter1;
 //     ^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:93:5: Error: The setter 'methodAndSetter2' isn't defined for the class 'Class'.
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:93:5: Error: The setter 'methodAndSetter2' isn't defined for the type 'Class'.
 //  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'methodAndSetter2'.
 //   c.methodAndSetter2 = c.methodAndSetter2;
@@ -298,7 +298,7 @@ class Class extends core::Object {
   set fieldAndFinalFieldAndSetter4(core::int? value) → void {}
 }
 static method test(self::Class c) → dynamic {
-  invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:80:5: Error: The setter 'methodAndField1' isn't defined for the class 'Class'.
+  invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:80:5: Error: The setter 'methodAndField1' isn't defined for the type 'Class'.
  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'methodAndField1'.
   c.methodAndField1 = c.methodAndField1;
@@ -306,23 +306,23 @@ Try correcting the name to the name of an existing setter, or defining a setter 
   c.{self::Class::methodAndField2} = c.{self::Class::methodAndField2}{core::int?};
   c.{self::Class::methodAndFinalField1}{() → core::int?};
   c.{self::Class::methodAndFinalField2}{core::int?};
-  invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:84:5: Error: The setter 'methodAndFieldAndSetter1' isn't defined for the class 'Class'.
+  invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:84:5: Error: The setter 'methodAndFieldAndSetter1' isn't defined for the type 'Class'.
  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'methodAndFieldAndSetter1'.
   c.methodAndFieldAndSetter1 = c.methodAndFieldAndSetter1;
     ^^^^^^^^^^^^^^^^^^^^^^^^" in c.{<unresolved>}methodAndFieldAndSetter1 = c.{self::Class::methodAndFieldAndSetter1}{() → core::int?};
   c.{self::Class::methodAndFieldAndSetter2} = c.{self::Class::methodAndFieldAndSetter2}{core::int?};
-  c.{self::Class::methodAndFieldAndSetter3} = invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:86:34: Error: The getter 'methodAndFieldAndSetter3' isn't defined for the class 'Class'.
+  c.{self::Class::methodAndFieldAndSetter3} = invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:86:34: Error: The getter 'methodAndFieldAndSetter3' isn't defined for the type 'Class'.
  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'methodAndFieldAndSetter3'.
   c.methodAndFieldAndSetter3 = c.methodAndFieldAndSetter3;
                                  ^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.methodAndFieldAndSetter3 as{TypeError,ForDynamic,Unchecked} core::int?;
-  c.{self::Class::methodAndFieldAndSetter4} = invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:87:34: Error: The getter 'methodAndFieldAndSetter4' isn't defined for the class 'Class'.
+  c.{self::Class::methodAndFieldAndSetter4} = invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:87:34: Error: The getter 'methodAndFieldAndSetter4' isn't defined for the type 'Class'.
  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'methodAndFieldAndSetter4'.
   c.methodAndFieldAndSetter4 = c.methodAndFieldAndSetter4;
                                  ^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.methodAndFieldAndSetter4 as{TypeError,ForDynamic,Unchecked} core::int?;
-  invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:88:5: Error: The setter 'methodAndFinalFieldAndSetter1' isn't defined for the class 'Class'.
+  invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:88:5: Error: The setter 'methodAndFinalFieldAndSetter1' isn't defined for the type 'Class'.
  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'methodAndFinalFieldAndSetter1'.
   c.methodAndFinalFieldAndSetter1 = c.methodAndFinalFieldAndSetter1;
@@ -330,12 +330,12 @@ Try correcting the name to the name of an existing setter, or defining a setter 
   c.{self::Class::methodAndFinalFieldAndSetter2} = c.{self::Class::methodAndFinalFieldAndSetter2}{core::int?};
   c.{self::Class::methodAndFinalFieldAndSetter3} = c.{self::Class::methodAndFinalFieldAndSetter3}{core::int?};
   c.{self::Class::methodAndFinalFieldAndSetter4} = c.{self::Class::methodAndFinalFieldAndSetter4}{core::int?};
-  invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:92:5: Error: The setter 'methodAndSetter1' isn't defined for the class 'Class'.
+  invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:92:5: Error: The setter 'methodAndSetter1' isn't defined for the type 'Class'.
  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'methodAndSetter1'.
   c.methodAndSetter1 = c.methodAndSetter1;
     ^^^^^^^^^^^^^^^^" in c.{<unresolved>}methodAndSetter1 = c.{self::Class::methodAndSetter1}{() → core::int?};
-  invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:93:5: Error: The setter 'methodAndSetter2' isn't defined for the class 'Class'.
+  invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:93:5: Error: The setter 'methodAndSetter2' isn't defined for the type 'Class'.
  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'methodAndSetter2'.
   c.methodAndSetter2 = c.methodAndSetter2;

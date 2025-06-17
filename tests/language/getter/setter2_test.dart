@@ -80,7 +80,7 @@ main() {
   instance1.field.b();
   //              ^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
-  // [cfe] The method 'b' isn't defined for the class 'A'.
+  // [cfe] The method 'b' isn't defined for the type 'A'.
 
   instance3.field = new B();
   result = instance3.field.a();

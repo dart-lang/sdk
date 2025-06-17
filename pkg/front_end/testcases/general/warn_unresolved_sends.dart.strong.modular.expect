@@ -2,37 +2,37 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/warn_unresolved_sends.dart:48:10: Error: The getter 'missingField' isn't defined for the class 'D'.
+// pkg/front_end/testcases/general/warn_unresolved_sends.dart:48:10: Error: The getter 'missingField' isn't defined for the type 'D'.
 //  - 'D' is from 'pkg/front_end/testcases/general/warn_unresolved_sends.dart'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'missingField'.
 //     this.missingField;
 //          ^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/warn_unresolved_sends.dart:49:10: Error: The setter 'missingField' isn't defined for the class 'D'.
+// pkg/front_end/testcases/general/warn_unresolved_sends.dart:49:10: Error: The setter 'missingField' isn't defined for the type 'D'.
 //  - 'D' is from 'pkg/front_end/testcases/general/warn_unresolved_sends.dart'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'missingField'.
 //     this.missingField = 0;
 //          ^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/warn_unresolved_sends.dart:50:10: Error: The method 'missingMethod' isn't defined for the class 'D'.
+// pkg/front_end/testcases/general/warn_unresolved_sends.dart:50:10: Error: The method 'missingMethod' isn't defined for the type 'D'.
 //  - 'D' is from 'pkg/front_end/testcases/general/warn_unresolved_sends.dart'.
 // Try correcting the name to the name of an existing method, or defining a method named 'missingMethod'.
 //     this.missingMethod();
 //          ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/warn_unresolved_sends.dart:52:5: Error: The getter 'missingField' isn't defined for the class 'D'.
+// pkg/front_end/testcases/general/warn_unresolved_sends.dart:52:5: Error: The getter 'missingField' isn't defined for the type 'D'.
 //  - 'D' is from 'pkg/front_end/testcases/general/warn_unresolved_sends.dart'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'missingField'.
 //     missingField;
 //     ^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/warn_unresolved_sends.dart:53:5: Error: The setter 'missingField' isn't defined for the class 'D'.
+// pkg/front_end/testcases/general/warn_unresolved_sends.dart:53:5: Error: The setter 'missingField' isn't defined for the type 'D'.
 //  - 'D' is from 'pkg/front_end/testcases/general/warn_unresolved_sends.dart'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'missingField'.
 //     missingField = 0;
 //     ^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/warn_unresolved_sends.dart:54:5: Error: The method 'missingMethod' isn't defined for the class 'D'.
+// pkg/front_end/testcases/general/warn_unresolved_sends.dart:54:5: Error: The method 'missingMethod' isn't defined for the type 'D'.
 //  - 'D' is from 'pkg/front_end/testcases/general/warn_unresolved_sends.dart'.
 // Try correcting the name to the name of an existing method, or defining a method named 'missingMethod'.
 //     missingMethod();
@@ -84,32 +84,32 @@ class D extends self::C {
     this.{self::D::setterOnly} = 0;
     this.{self::D::getterOnly}{dynamic};
     this.{self::C::getterOnly} = 0;
-    invalid-expression "pkg/front_end/testcases/general/warn_unresolved_sends.dart:48:10: Error: The getter 'missingField' isn't defined for the class 'D'.
+    invalid-expression "pkg/front_end/testcases/general/warn_unresolved_sends.dart:48:10: Error: The getter 'missingField' isn't defined for the type 'D'.
  - 'D' is from 'pkg/front_end/testcases/general/warn_unresolved_sends.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'missingField'.
     this.missingField;
          ^^^^^^^^^^^^" in this{<unresolved>}.missingField;
-    invalid-expression "pkg/front_end/testcases/general/warn_unresolved_sends.dart:49:10: Error: The setter 'missingField' isn't defined for the class 'D'.
+    invalid-expression "pkg/front_end/testcases/general/warn_unresolved_sends.dart:49:10: Error: The setter 'missingField' isn't defined for the type 'D'.
  - 'D' is from 'pkg/front_end/testcases/general/warn_unresolved_sends.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'missingField'.
     this.missingField = 0;
          ^^^^^^^^^^^^" in this.{<unresolved>}missingField = 0;
-    invalid-expression "pkg/front_end/testcases/general/warn_unresolved_sends.dart:50:10: Error: The method 'missingMethod' isn't defined for the class 'D'.
+    invalid-expression "pkg/front_end/testcases/general/warn_unresolved_sends.dart:50:10: Error: The method 'missingMethod' isn't defined for the type 'D'.
  - 'D' is from 'pkg/front_end/testcases/general/warn_unresolved_sends.dart'.
 Try correcting the name to the name of an existing method, or defining a method named 'missingMethod'.
     this.missingMethod();
          ^^^^^^^^^^^^^" in this{<unresolved>}.missingMethod();
-    invalid-expression "pkg/front_end/testcases/general/warn_unresolved_sends.dart:52:5: Error: The getter 'missingField' isn't defined for the class 'D'.
+    invalid-expression "pkg/front_end/testcases/general/warn_unresolved_sends.dart:52:5: Error: The getter 'missingField' isn't defined for the type 'D'.
  - 'D' is from 'pkg/front_end/testcases/general/warn_unresolved_sends.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'missingField'.
     missingField;
     ^^^^^^^^^^^^" in this{<unresolved>}.missingField;
-    invalid-expression "pkg/front_end/testcases/general/warn_unresolved_sends.dart:53:5: Error: The setter 'missingField' isn't defined for the class 'D'.
+    invalid-expression "pkg/front_end/testcases/general/warn_unresolved_sends.dart:53:5: Error: The setter 'missingField' isn't defined for the type 'D'.
  - 'D' is from 'pkg/front_end/testcases/general/warn_unresolved_sends.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'missingField'.
     missingField = 0;
     ^^^^^^^^^^^^" in this.{<unresolved>}missingField = 0;
-    invalid-expression "pkg/front_end/testcases/general/warn_unresolved_sends.dart:54:5: Error: The method 'missingMethod' isn't defined for the class 'D'.
+    invalid-expression "pkg/front_end/testcases/general/warn_unresolved_sends.dart:54:5: Error: The method 'missingMethod' isn't defined for the type 'D'.
  - 'D' is from 'pkg/front_end/testcases/general/warn_unresolved_sends.dart'.
 Try correcting the name to the name of an existing method, or defining a method named 'missingMethod'.
     missingMethod();

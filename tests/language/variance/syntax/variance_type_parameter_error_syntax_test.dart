@@ -17,7 +17,7 @@ void A(out int foo) {
   List<out String> bar;
   //  ^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
-  // [cfe] The operator '<' isn't defined for the class 'Type'.
+  // [cfe] The operator '<' isn't defined for the type 'Type'.
   //   ^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
   // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
@@ -25,7 +25,7 @@ void A(out int foo) {
   // [cfe] Undefined name 'out'.
   //             ^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
-  // [cfe] The operator '>' isn't defined for the class 'Type'.
+  // [cfe] The operator '>' isn't defined for the type 'Type'.
   //               ^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
   // [cfe] Undefined name 'bar'.

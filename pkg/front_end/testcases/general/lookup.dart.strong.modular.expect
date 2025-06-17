@@ -47,13 +47,13 @@ library;
 //     prefix.unresolved = null; // Error
 //            ^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/lookup.dart:77:5: Error: The getter 'unresolved' isn't defined for the class 'Class<T>'.
+// pkg/front_end/testcases/general/lookup.dart:77:5: Error: The getter 'unresolved' isn't defined for the type 'Class<T>'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/lookup.dart'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'unresolved'.
 //     unresolved; // Error
 //     ^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/lookup.dart:91:5: Error: The setter 'unresolved' isn't defined for the class 'Class<T>'.
+// pkg/front_end/testcases/general/lookup.dart:91:5: Error: The setter 'unresolved' isn't defined for the type 'Class<T>'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/lookup.dart'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'unresolved'.
 //     unresolved = null; // Error
@@ -123,13 +123,13 @@ library;
 //     prefix.unresolved = null; // Error
 //            ^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/lookup.dart:169:5: Error: The getter 'unresolved' isn't defined for the class 'Class<T>'.
+// pkg/front_end/testcases/general/lookup.dart:169:5: Error: The getter 'unresolved' isn't defined for the type 'Class<T>'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/lookup.dart'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'unresolved'.
 //     unresolved; // Error
 //     ^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/lookup.dart:184:5: Error: The setter 'unresolved' isn't defined for the class 'Class<T>'.
+// pkg/front_end/testcases/general/lookup.dart:184:5: Error: The setter 'unresolved' isn't defined for the type 'Class<T>'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/lookup.dart'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'unresolved'.
 //     unresolved = null; // Error
@@ -203,13 +203,13 @@ library;
 //     prefix.unresolved = null; // Error
 //            ^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/lookup.dart:268:5: Error: The getter 'unresolved' isn't defined for the class 'Class<T>'.
+// pkg/front_end/testcases/general/lookup.dart:268:5: Error: The getter 'unresolved' isn't defined for the type 'Class<T>'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/lookup.dart'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'unresolved'.
 //     unresolved; // Error
 //     ^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/lookup.dart:283:5: Error: The setter 'unresolved' isn't defined for the class 'Class<T>'.
+// pkg/front_end/testcases/general/lookup.dart:283:5: Error: The setter 'unresolved' isn't defined for the type 'Class<T>'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/lookup.dart'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'unresolved'.
 //     unresolved = null; // Error
@@ -291,12 +291,12 @@ library;
 //     prefix.unresolved = null; // Error
 //            ^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/lookup.dart:367:5: Error: The getter 'unresolved' isn't defined for the class 'ExtensionType<T>'.
+// pkg/front_end/testcases/general/lookup.dart:367:5: Error: The getter 'unresolved' isn't defined for the type 'ExtensionType<T>'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'unresolved'.
 //     unresolved; // Error
 //     ^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/lookup.dart:381:5: Error: The setter 'unresolved' isn't defined for the class 'ExtensionType<T>'.
+// pkg/front_end/testcases/general/lookup.dart:381:5: Error: The setter 'unresolved' isn't defined for the type 'ExtensionType<T>'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'unresolved'.
 //     unresolved = null; // Error
 //     ^^^^^^^^^^
@@ -373,12 +373,12 @@ library;
 //     prefix.unresolved = null; // Error
 //            ^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/lookup.dart:461:5: Error: The getter 'unresolved' isn't defined for the class 'ExtensionType<T>'.
+// pkg/front_end/testcases/general/lookup.dart:461:5: Error: The getter 'unresolved' isn't defined for the type 'ExtensionType<T>'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'unresolved'.
 //     unresolved; // Error
 //     ^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/lookup.dart:476:5: Error: The setter 'unresolved' isn't defined for the class 'ExtensionType<T>'.
+// pkg/front_end/testcases/general/lookup.dart:476:5: Error: The setter 'unresolved' isn't defined for the type 'ExtensionType<T>'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'unresolved'.
 //     unresolved = null; // Error
 //     ^^^^^^^^^^
@@ -472,7 +472,7 @@ class Class<T extends core::Object? = dynamic> extends self::SuperClass {
     parameter = null;
     local;
     local = null;
-    invalid-expression "pkg/front_end/testcases/general/lookup.dart:77:5: Error: The getter 'unresolved' isn't defined for the class 'Class<T>'.
+    invalid-expression "pkg/front_end/testcases/general/lookup.dart:77:5: Error: The getter 'unresolved' isn't defined for the type 'Class<T>'.
  - 'Class' is from 'pkg/front_end/testcases/general/lookup.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'unresolved'.
     unresolved; // Error
@@ -489,7 +489,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
     self::Class::staticField;
     #C4;
     self::topLevelField;
-    invalid-expression "pkg/front_end/testcases/general/lookup.dart:91:5: Error: The setter 'unresolved' isn't defined for the class 'Class<T>'.
+    invalid-expression "pkg/front_end/testcases/general/lookup.dart:91:5: Error: The setter 'unresolved' isn't defined for the type 'Class<T>'.
  - 'Class' is from 'pkg/front_end/testcases/general/lookup.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'unresolved'.
     unresolved = null; // Error
@@ -595,7 +595,7 @@ Try correcting the name to the name of an existing setter, or defining a setter 
     parameter = null;
     local;
     local = null;
-    invalid-expression "pkg/front_end/testcases/general/lookup.dart:169:5: Error: The getter 'unresolved' isn't defined for the class 'Class<T>'.
+    invalid-expression "pkg/front_end/testcases/general/lookup.dart:169:5: Error: The getter 'unresolved' isn't defined for the type 'Class<T>'.
  - 'Class' is from 'pkg/front_end/testcases/general/lookup.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'unresolved'.
     unresolved; // Error
@@ -613,7 +613,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
     self::Class::staticField;
     #C4;
     self::topLevelField;
-    invalid-expression "pkg/front_end/testcases/general/lookup.dart:184:5: Error: The setter 'unresolved' isn't defined for the class 'Class<T>'.
+    invalid-expression "pkg/front_end/testcases/general/lookup.dart:184:5: Error: The setter 'unresolved' isn't defined for the type 'Class<T>'.
  - 'Class' is from 'pkg/front_end/testcases/general/lookup.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'unresolved'.
     unresolved = null; // Error
@@ -797,7 +797,7 @@ static extension-member method Extension|instanceTest<T extends core::Object? = 
   parameter = null;
   local;
   local = null;
-  invalid-expression "pkg/front_end/testcases/general/lookup.dart:268:5: Error: The getter 'unresolved' isn't defined for the class 'Class<T>'.
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:268:5: Error: The getter 'unresolved' isn't defined for the type 'Class<T>'.
  - 'Class' is from 'pkg/front_end/testcases/general/lookup.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'unresolved'.
     unresolved; // Error
@@ -815,7 +815,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
   #C6;
   #C4;
   self::topLevelField;
-  invalid-expression "pkg/front_end/testcases/general/lookup.dart:283:5: Error: The setter 'unresolved' isn't defined for the class 'Class<T>'.
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:283:5: Error: The setter 'unresolved' isn't defined for the type 'Class<T>'.
  - 'Class' is from 'pkg/front_end/testcases/general/lookup.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'unresolved'.
     unresolved = null; // Error
@@ -937,7 +937,7 @@ static extension-type-member method ExtensionType|constructor#<T extends core::O
     parameter = null;
     local;
     local = null;
-    invalid-expression "pkg/front_end/testcases/general/lookup.dart:367:5: Error: The getter 'unresolved' isn't defined for the class 'ExtensionType<T>'.
+    invalid-expression "pkg/front_end/testcases/general/lookup.dart:367:5: Error: The getter 'unresolved' isn't defined for the type 'ExtensionType<T>'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'unresolved'.
     unresolved; // Error
     ^^^^^^^^^^" in #this{<unresolved>}.unresolved;
@@ -953,7 +953,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
     #C7;
     #C4;
     self::topLevelField;
-    invalid-expression "pkg/front_end/testcases/general/lookup.dart:381:5: Error: The setter 'unresolved' isn't defined for the class 'ExtensionType<T>'.
+    invalid-expression "pkg/front_end/testcases/general/lookup.dart:381:5: Error: The setter 'unresolved' isn't defined for the type 'ExtensionType<T>'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'unresolved'.
     unresolved = null; // Error
     ^^^^^^^^^^" in #this.{<unresolved>}unresolved = null;
@@ -1071,7 +1071,7 @@ static extension-type-member method ExtensionType|instanceTest<T extends core::O
   parameter = null;
   local;
   local = null;
-  invalid-expression "pkg/front_end/testcases/general/lookup.dart:461:5: Error: The getter 'unresolved' isn't defined for the class 'ExtensionType<T>'.
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:461:5: Error: The getter 'unresolved' isn't defined for the type 'ExtensionType<T>'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'unresolved'.
     unresolved; // Error
     ^^^^^^^^^^" in #this{<unresolved>}.unresolved;
@@ -1088,7 +1088,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
   #C7;
   #C4;
   self::topLevelField;
-  invalid-expression "pkg/front_end/testcases/general/lookup.dart:476:5: Error: The setter 'unresolved' isn't defined for the class 'ExtensionType<T>'.
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:476:5: Error: The setter 'unresolved' isn't defined for the type 'ExtensionType<T>'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'unresolved'.
     unresolved = null; // Error
     ^^^^^^^^^^" in #this.{<unresolved>}unresolved = null;

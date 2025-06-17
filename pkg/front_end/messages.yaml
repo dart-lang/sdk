@@ -4160,7 +4160,7 @@ InvalidUseOfNullAwareAccess:
   analyzerCode: INVALID_USE_OF_NULL_AWARE_ACCESS
 
 UndefinedGetter:
-  problemMessage: "The getter '#name' isn't defined for the class '#type'."
+  problemMessage: "The getter '#name' isn't defined for the type '#type'."
   correctionMessage: "Try correcting the name to the name of an existing getter, or defining a getter or field named '#name'."
   analyzerCode: UNDEFINED_GETTER
   script: >
@@ -4170,7 +4170,7 @@ UndefinedGetter:
     }
 
 UndefinedSetter:
-  problemMessage: "The setter '#name' isn't defined for the class '#type'."
+  problemMessage: "The setter '#name' isn't defined for the type '#type'."
   correctionMessage: "Try correcting the name to the name of an existing setter, or defining a setter or field named '#name'."
   analyzerCode: UNDEFINED_SETTER
   script: >
@@ -4180,7 +4180,7 @@ UndefinedSetter:
     }
 
 UndefinedMethod:
-  problemMessage: "The method '#name' isn't defined for the class '#type'."
+  problemMessage: "The method '#name' isn't defined for the type '#type'."
   correctionMessage: "Try correcting the name to the name of an existing method, or defining a method named '#name'."
   analyzerCode: UNDEFINED_METHOD
   script: >
@@ -4190,7 +4190,7 @@ UndefinedMethod:
     }
 
 UndefinedOperator:
-  problemMessage: "The operator '#name' isn't defined for the class '#type'."
+  problemMessage: "The operator '#name' isn't defined for the type '#type'."
   correctionMessage: "Try correcting the operator to an existing operator, or defining a '#name' operator."
   analyzerCode: UNDEFINED_METHOD
   script: >

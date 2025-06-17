@@ -71,7 +71,7 @@ void test2() {
     print(a.b);
     //      ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-    // [cfe] The getter 'b' isn't defined for the class 'A'.
+    // [cfe] The getter 'b' isn't defined for the type 'A'.
   }
 }
 
@@ -86,7 +86,7 @@ void test3() {
     print(a.b);
     //      ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-    // [cfe] The getter 'b' isn't defined for the class 'A'.
+    // [cfe] The getter 'b' isn't defined for the type 'A'.
     void foo() {
       a = new D();
     }
@@ -95,7 +95,7 @@ void test3() {
     print(a.b);
     //      ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-    // [cfe] The getter 'b' isn't defined for the class 'A'.
+    // [cfe] The getter 'b' isn't defined for the type 'A'.
   }
 }
 
@@ -110,7 +110,7 @@ void test3a() {
     print(a.b);
     //      ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-    // [cfe] The getter 'b' isn't defined for the class 'A'.
+    // [cfe] The getter 'b' isn't defined for the type 'A'.
     void foo() {
       a = new D();
     }
@@ -119,7 +119,7 @@ void test3a() {
     print(a.b);
     //      ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-    // [cfe] The getter 'b' isn't defined for the class 'A'.
+    // [cfe] The getter 'b' isn't defined for the type 'A'.
   }
 }
 
@@ -138,7 +138,7 @@ void test5() {
     func(() => a.b);
     //           ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-    // [cfe] The getter 'b' isn't defined for the class 'A'.
+    // [cfe] The getter 'b' isn't defined for the type 'A'.
     print(a.a);
   }
   a = A();
@@ -178,7 +178,7 @@ void test8() {
   if (a is B && func(() => a.b)) {
     //                       ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-    // [cfe] The getter 'b' isn't defined for the class 'A'.
+    // [cfe] The getter 'b' isn't defined for the type 'A'.
     print(a.a);
   }
   a = A();
@@ -189,7 +189,7 @@ void test9() {
   var b = a is B ? func(() => a.b) : false;
   //                            ^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] The getter 'b' isn't defined for the class 'A'.
+  // [cfe] The getter 'b' isn't defined for the type 'A'.
   a = A();
 }
 
@@ -219,7 +219,7 @@ void test12() {
     print(a.b);
     //      ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-    // [cfe] The getter 'b' isn't defined for the class 'A'.
+    // [cfe] The getter 'b' isn't defined for the type 'A'.
   }
   a = A();
 }

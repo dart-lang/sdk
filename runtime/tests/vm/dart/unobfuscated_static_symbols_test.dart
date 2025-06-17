@@ -132,6 +132,31 @@ Future<void> createSnapshot(
   }
 }
 
+Future<List<String>?> retrieveDebugMap(
+  SnapshotType snapshotType,
+  String snapshotPath,
+) async {
+  // Don't check the debug map of assembled Mach-O snapshots.
+  if (snapshotType != SnapshotType.machoDylib) return null;
+  final dsymutil = llvmTool('dsymutil');
+  if (dsymutil == null) {
+    // Only return a null debug map if this part of the test should be
+    // skipped on the current configuration.
+    if (Platform.isWindows || Platform.isFuchsia) {
+      // The identifier isn't provided on these platforms due to the lack
+      // of a basename implementation, so no debug map can be extracted.
+      return null;
+    }
+    if (isSimulator) {
+      // clangBuildToolsDir uses Abi.current(), so it returns the buildtools
+      // dir for the architecture being simulated, not the host.
+      return null;
+    }
+    throw StateError('Expected dsymutil');
+  }
+  return await runOutput(dsymutil, ['--dump-debug-map', snapshotPath]);
+}
+
 Future<void> checkSnapshotType(
   String tempDir,
   String scriptDill,
@@ -148,6 +173,7 @@ Future<void> checkSnapshotType(
   final unobfuscatedCase = TestCase(
     scriptUnobfuscatedSnapshot,
     snapshotType.fromFile(scriptUnobfuscatedSnapshot)!,
+    debugMap: await retrieveDebugMap(snapshotType, scriptUnobfuscatedSnapshot),
   );
 
   final scriptObfuscatedOnlySnapshot = path.join(
@@ -160,6 +186,10 @@ Future<void> checkSnapshotType(
   final obfuscatedOnlyCase = TestCase(
     scriptObfuscatedOnlySnapshot,
     snapshotType.fromFile(scriptObfuscatedOnlySnapshot)!,
+    debugMap: await retrieveDebugMap(
+      snapshotType,
+      scriptObfuscatedOnlySnapshot,
+    ),
   );
 
   // Don't compare to separate debugging information for assembled snapshots
@@ -183,7 +213,8 @@ Future<void> checkSnapshotType(
     obfuscatedCase = TestCase(
       scriptObfuscatedSnapshot,
       snapshotType.fromFile(scriptObfuscatedSnapshot)!,
-      snapshotType.fromFile(scriptDebuggingInfo)!,
+      debuggingInfoContainer: snapshotType.fromFile(scriptDebuggingInfo)!,
+      debugMap: await retrieveDebugMap(snapshotType, scriptObfuscatedSnapshot),
     );
 
     final scriptStrippedSnapshot = path.join(
@@ -202,15 +233,18 @@ Future<void> checkSnapshotType(
     strippedCase = TestCase(
       scriptStrippedSnapshot,
       /*container=*/ null, // No static symbols in stripped snapshot.
-      snapshotType.fromFile(scriptSeparateDebuggingInfo)!,
+      debuggingInfoContainer: snapshotType.fromFile(
+        scriptSeparateDebuggingInfo,
+      )!,
+      // No N_OSO symbol in stripped Mach-O snapshots.
+      debugMap: null,
     );
   }
 
   await checkCases(unobfuscatedCase, <TestCase>[
     obfuscatedOnlyCase,
     if (obfuscatedCase != null) obfuscatedCase,
-    if (strippedCase != null) strippedCase,
-  ]);
+  ], strippedCase);
 }
 
 Future<void> checkElf(String tempDir, String scriptDill) async {
@@ -233,16 +267,33 @@ class TestCase {
   final String snapshotPath;
   final DwarfContainer? container;
   final DwarfContainer? debuggingInfoContainer;
+  final List<String>? debugMap;
 
-  TestCase(this.snapshotPath, this.container, [this.debuggingInfoContainer]);
+  TestCase(
+    this.snapshotPath,
+    this.container, {
+    this.debuggingInfoContainer,
+    this.debugMap,
+  });
 }
 
 Future<void> checkCases(
   TestCase unobfuscated,
-  List<TestCase> obfuscateds,
+  List<TestCase> unstrippedObfuscateds,
+  TestCase? stripped,
 ) async {
+  final obfuscateds = [
+    ...unstrippedObfuscateds,
+    if (stripped != null) stripped,
+  ];
   checkStaticSymbolTables(unobfuscated, obfuscateds);
   await checkTraces(unobfuscated, obfuscateds);
+  if (unobfuscated.debugMap != null) {
+    checkDebugMaps(
+      unobfuscated.debugMap!,
+      unstrippedObfuscateds.map((c) => c.debugMap!).toList(),
+    );
+  }
 }
 
 Future<void> checkTraces(
@@ -358,4 +409,78 @@ void expectSimilarStaticSymbols(Set<String> expected, Set<String> got) {
     'Got $differences different symbols, which is '
     'more than $allowedDifferences.',
   );
+}
+
+final _tripleLineRegExp = RegExp(r'triple:\s+(.*)');
+final _timestampLineRegExp = RegExp(r'timestamp:\s+(.*)');
+// We only check that the number of symbols were the same.
+final _symbolLineRegExp = RegExp(r'{ sym: ');
+
+void checkDebugMaps(List<String> expected, List<List<String>> cases) {
+  // The dump should look like the following YAML:
+  // ---
+  // triple:        '<arch>-<vendor>-<os>'
+  // binary-path:   <filename>
+  // objects:
+  //   - filename:      <filename>
+  //   - timestamp:     0
+  //   - symbols:
+  //     - { sym: <name>, ... }
+  //     ...
+  // ...
+  //
+  // The initial --- and ending ... are literal, as those are used to
+  // separate multiple YAML documents in a single stream.
+  //
+  // For all test cases:
+  // - The triple should be the same.
+  // - The binary-path and filename lines should exist, though the filenames
+  //   may be different.
+  // - The timestamp should be 0.
+  // - The number of symbols should be the same.
+  Expect.isTrue(expected.length > 7);
+  for (final c in cases) {
+    Expect.equals(expected.length, c.length);
+  }
+  for (int i = 0; i < expected.length; i++) {
+    final expectedLine = expected[i];
+    final isSymbol = _symbolLineRegExp.hasMatch(expectedLine);
+    final expectedTriple = _tripleLineRegExp.firstMatch(expectedLine)?.group(1);
+
+    final expectedTimestampMatch = _timestampLineRegExp.firstMatch(
+      expectedLine,
+    );
+    if (expectedTimestampMatch != null) {
+      final expectedTimestamp = int.tryParse(expectedTimestampMatch.group(1)!);
+      // The timestamp (value of the N_OSO symbol) in our snapshots is always 0.
+      Expect.equals(0, expectedTimestamp);
+    }
+
+    // Lines that are allowed to have varying field values.
+    final prefixOnlyLinePrefixes = ['binary-path: ', '  - filename: '];
+    var expectedPrefixEnd = -1;
+    if (prefixOnlyLinePrefixes.any((s) => expectedLine.startsWith(s))) {
+      expectedPrefixEnd = expectedLine.indexOf(':');
+    }
+
+    for (final c in cases) {
+      final gotLine = c[i];
+      if (expectedTriple != null) {
+        final gotTriple = _tripleLineRegExp.firstMatch(gotLine)?.group(1);
+        Expect.equals(expectedTriple, gotTriple);
+      } else if (isSymbol) {
+        Expect.isTrue(_symbolLineRegExp.hasMatch(gotLine));
+      } else if (expectedPrefixEnd > 0) {
+        // If there's a unhandled field name, check that those match and don't
+        // check the rest of the line (as, say, the filename will differ).
+        Expect.stringEquals(
+          expectedLine.substring(0, expectedLine.indexOf(':')),
+          gotLine.substring(0, expectedLine.indexOf(':')),
+        );
+      } else {
+        // Check line equality for anything not already covered.
+        Expect.stringEquals(expectedLine, gotLine);
+      }
+    }
+  }
 }

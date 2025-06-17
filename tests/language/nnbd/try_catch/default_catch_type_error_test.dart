@@ -7,7 +7,7 @@ void main() {
     error.notAMethodOnObject();
     //    ^^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
-    // [cfe] The method 'notAMethodOnObject' isn't defined for the class 'Object'.
+    // [cfe] The method 'notAMethodOnObject' isn't defined for the type 'Object'.
     _takesObject(error);
   }
 }

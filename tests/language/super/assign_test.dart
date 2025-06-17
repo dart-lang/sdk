@@ -18,5 +18,5 @@ main() {
   a.setX(42);
   //^^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
-  // [cfe] The method 'setX' isn't defined for the class 'A'.
+  // [cfe] The method 'setX' isn't defined for the type 'A'.
 }

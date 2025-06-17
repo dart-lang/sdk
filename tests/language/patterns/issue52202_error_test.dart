@@ -12,7 +12,7 @@ void f(x) {
       // ^
       // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
       //      ^
-      // [cfe] The getter 'foo' isn't defined for the class 'int?'.
+      // [cfe] The getter 'foo' isn't defined for the type 'int?'.
       break;
   }
 }

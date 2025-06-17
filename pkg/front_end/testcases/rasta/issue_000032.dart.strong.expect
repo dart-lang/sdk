@@ -24,7 +24,7 @@ library;
 //   C<
 //    ^
 //
-// pkg/front_end/testcases/rasta/issue_000032.dart:10:4: Error: The operator '<' isn't defined for the class 'Type'.
+// pkg/front_end/testcases/rasta/issue_000032.dart:10:4: Error: The operator '<' isn't defined for the type 'Type'.
 //  - 'Type' is from 'dart:core'.
 // Try correcting the operator to an existing operator, or defining a '<' operator.
 //   C<
@@ -39,7 +39,7 @@ class C extends core::Object {
     ;
 }
 static method main() → dynamic {
-  invalid-expression "pkg/front_end/testcases/rasta/issue_000032.dart:10:4: Error: The operator '<' isn't defined for the class 'Type'.
+  invalid-expression "pkg/front_end/testcases/rasta/issue_000032.dart:10:4: Error: The operator '<' isn't defined for the type 'Type'.
  - 'Type' is from 'dart:core'.
 Try correcting the operator to an existing operator, or defining a '<' operator.
   C<

@@ -1067,7 +1067,7 @@ void runAgnosticSharedTestsShard1(
           expression: 'notInScope',
           expectedError:
               "Error: The getter 'notInScope' isn't defined for the"
-              " class 'C'.",
+              " type 'C'.",
         );
       });
 
@@ -1077,7 +1077,7 @@ void runAgnosticSharedTestsShard1(
           expression: 'innerNotInScope',
           expectedError:
               "Error: The getter 'innerNotInScope' isn't defined for the"
-              " class 'C'.",
+              " type 'C'.",
         );
       });
     });
@@ -1183,7 +1183,7 @@ void runAgnosticSharedTestsShard1(
         await driver.checkInFrame(
           breakpointId: 'methodBP',
           expression: 'typo',
-          expectedError: "The getter 'typo' isn't defined for the class 'C'",
+          expectedError: "The getter 'typo' isn't defined for the type 'C'",
         );
       });
 
@@ -1510,7 +1510,7 @@ void runAgnosticSharedTestsShard2(
         await driver.checkInFrame(
           breakpointId: 'constructorBP',
           expression: 'typo',
-          expectedError: "The getter 'typo' isn't defined for the class 'C'",
+          expectedError: "The getter 'typo' isn't defined for the type 'C'",
         );
       });
 
@@ -1645,7 +1645,7 @@ void runAgnosticSharedTestsShard2(
         await driver.checkInFrame(
           breakpointId: 'asyncTestBP1',
           expression: 'typo',
-          expectedError: "The getter 'typo' isn't defined for the class 'D'",
+          expectedError: "The getter 'typo' isn't defined for the type 'D'",
         );
       });
 

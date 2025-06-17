@@ -24,7 +24,7 @@ class External2 {
     a.x = 42;
     //^
     // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL
-    // [cfe] The setter 'x' isn't defined for the class 'External2'.
+    // [cfe] The setter 'x' isn't defined for the type 'External2'.
 
     String y = a.y;
     a.y = "ab";

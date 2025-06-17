@@ -19,7 +19,7 @@ main() {
     a.foo();
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
-    // [cfe] The method 'foo' isn't defined for the class 'int Function(dynamic, dynamic)'.
+    // [cfe] The method 'foo' isn't defined for the type 'int Function(dynamic, dynamic)'.
   }
   var b = new A();
   b.foo();

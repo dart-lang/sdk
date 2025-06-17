@@ -4801,7 +4801,7 @@ const Template<Message Function(String name, DartType _type)>
     const Template<Message Function(String name, DartType _type)>(
   "UndefinedGetter",
   problemMessageTemplate:
-      r"""The getter '#name' isn't defined for the class '#type'.""",
+      r"""The getter '#name' isn't defined for the type '#type'.""",
   correctionMessageTemplate:
       r"""Try correcting the name to the name of an existing getter, or defining a getter or field named '#name'.""",
   withArguments: _withArgumentsUndefinedGetter,
@@ -4824,7 +4824,7 @@ Message _withArgumentsUndefinedGetter(String name, DartType _type) {
   return new Message(
     codeUndefinedGetter,
     problemMessage:
-        """The getter '${name}' isn't defined for the class '${type}'.""" +
+        """The getter '${name}' isn't defined for the type '${type}'.""" +
             labeler.originMessages,
     correctionMessage:
         """Try correcting the name to the name of an existing getter, or defining a getter or field named '${name}'.""",
@@ -4841,7 +4841,7 @@ const Template<Message Function(String name, DartType _type)>
     const Template<Message Function(String name, DartType _type)>(
   "UndefinedMethod",
   problemMessageTemplate:
-      r"""The method '#name' isn't defined for the class '#type'.""",
+      r"""The method '#name' isn't defined for the type '#type'.""",
   correctionMessageTemplate:
       r"""Try correcting the name to the name of an existing method, or defining a method named '#name'.""",
   withArguments: _withArgumentsUndefinedMethod,
@@ -4864,7 +4864,7 @@ Message _withArgumentsUndefinedMethod(String name, DartType _type) {
   return new Message(
     codeUndefinedMethod,
     problemMessage:
-        """The method '${name}' isn't defined for the class '${type}'.""" +
+        """The method '${name}' isn't defined for the type '${type}'.""" +
             labeler.originMessages,
     correctionMessage:
         """Try correcting the name to the name of an existing method, or defining a method named '${name}'.""",
@@ -4881,7 +4881,7 @@ const Template<Message Function(String name, DartType _type)>
     const Template<Message Function(String name, DartType _type)>(
   "UndefinedOperator",
   problemMessageTemplate:
-      r"""The operator '#name' isn't defined for the class '#type'.""",
+      r"""The operator '#name' isn't defined for the type '#type'.""",
   correctionMessageTemplate:
       r"""Try correcting the operator to an existing operator, or defining a '#name' operator.""",
   withArguments: _withArgumentsUndefinedOperator,
@@ -4905,7 +4905,7 @@ Message _withArgumentsUndefinedOperator(String name, DartType _type) {
   return new Message(
     codeUndefinedOperator,
     problemMessage:
-        """The operator '${name}' isn't defined for the class '${type}'.""" +
+        """The operator '${name}' isn't defined for the type '${type}'.""" +
             labeler.originMessages,
     correctionMessage:
         """Try correcting the operator to an existing operator, or defining a '${name}' operator.""",
@@ -4922,7 +4922,7 @@ const Template<Message Function(String name, DartType _type)>
     const Template<Message Function(String name, DartType _type)>(
   "UndefinedSetter",
   problemMessageTemplate:
-      r"""The setter '#name' isn't defined for the class '#type'.""",
+      r"""The setter '#name' isn't defined for the type '#type'.""",
   correctionMessageTemplate:
       r"""Try correcting the name to the name of an existing setter, or defining a setter or field named '#name'.""",
   withArguments: _withArgumentsUndefinedSetter,
@@ -4945,7 +4945,7 @@ Message _withArgumentsUndefinedSetter(String name, DartType _type) {
   return new Message(
     codeUndefinedSetter,
     problemMessage:
-        """The setter '${name}' isn't defined for the class '${type}'.""" +
+        """The setter '${name}' isn't defined for the type '${type}'.""" +
             labeler.originMessages,
     correctionMessage:
         """Try correcting the name to the name of an existing setter, or defining a setter or field named '${name}'.""",

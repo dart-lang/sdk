@@ -20,7 +20,7 @@ class D0 extends A<dynamic> with M<Object?> {
     x.foo; // Check that we do not implement A<dynamic>
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
+    // [cfe] The getter 'foo' isn't defined for the type 'Object?'.
     x.toString; // Check that we do not implement A<void>
     takesObject(x); // Check that we do not implement A<Object>
     //          ^
@@ -35,7 +35,7 @@ class D1 extends A<Object?> with M<dynamic> {
     x.foo; // Check that we do not implement A<dynamic>
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
+    // [cfe] The getter 'foo' isn't defined for the type 'Object?'.
     x.toString; // Check that we do not implement A<void>
     takesObject(x); // Check that we do not implement A<Object>
     //          ^
@@ -50,7 +50,7 @@ class D2 extends A<void> with M<Object?> {
     x.foo; // Check that we do not implement A<dynamic>
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
+    // [cfe] The getter 'foo' isn't defined for the type 'Object?'.
     x.toString; // Check that we do not implement A<void>
     takesObject(x); // Check that we do not implement A<Object>
     //          ^
@@ -65,7 +65,7 @@ class D3 extends A<Object?> with M<void> {
     x.foo; // Check that we do not implement A<dynamic>
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
+    // [cfe] The getter 'foo' isn't defined for the type 'Object?'.
     x.toString; // Check that we do not implement A<void>
     takesObject(x); // Check that we do not implement A<Object>
     //          ^
@@ -80,7 +80,7 @@ class D4 extends A<void> with M<dynamic> {
     x.foo; // Check that we do not implement A<dynamic>
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
+    // [cfe] The getter 'foo' isn't defined for the type 'Object?'.
     x.toString; // Check that we do not implement A<void>
     takesObject(x); // Check that we do not implement A<Object>
     //          ^
@@ -95,7 +95,7 @@ class D5 extends A<dynamic> with M<void> {
     x.foo; // Check that we do not implement A<dynamic>
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
+    // [cfe] The getter 'foo' isn't defined for the type 'Object?'.
     x.toString; // Check that we do not implement A<void>
     takesObject(x); // Check that we do not implement A<Object>
     //          ^
@@ -112,7 +112,7 @@ class D6 extends A<void> with M<void> {
     // [cfe] This expression has type 'void' and can't be used.
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-    // [cfe] The getter 'foo' isn't defined for the class 'void'.
+    // [cfe] The getter 'foo' isn't defined for the type 'void'.
     x.toString; // Check that we do not implement A<Object?>
     // [error column 5]
     // [cfe] This expression has type 'void' and can't be used.
@@ -140,7 +140,7 @@ class ND0 extends A<FutureOr<dynamic>> with M<Object?> {
     x.foo; // Check that we do not implement A<dynamic>
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
+    // [cfe] The getter 'foo' isn't defined for the type 'Object?'.
     x.toString; // Check that we do not implement A<void>
     takesObject(x); // Check that we do not implement A<Object>
     //          ^
@@ -155,7 +155,7 @@ class ND1 extends A<FutureOr<Object?>> with M<dynamic> {
     x.foo; // Check that we do not implement A<dynamic>
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
+    // [cfe] The getter 'foo' isn't defined for the type 'Object?'.
     x.toString; // Check that we do not implement A<void>
     takesObject(x); // Check that we do not implement A<Object>
     //          ^
@@ -170,7 +170,7 @@ class ND2 extends A<FutureOr<void>> with M<Object?> {
     x.foo; // Check that we do not implement A<dynamic>
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
+    // [cfe] The getter 'foo' isn't defined for the type 'Object?'.
     x.toString; // Check that we do not implement A<void>
     takesObject(x); // Check that we do not implement A<Object>
     //          ^
@@ -185,7 +185,7 @@ class ND3 extends A<FutureOr<Object?>> with M<void> {
     x.foo; // Check that we do not implement A<dynamic>
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
+    // [cfe] The getter 'foo' isn't defined for the type 'Object?'.
     x.toString; // Check that we do not implement A<void>
     takesObject(x); // Check that we do not implement A<Object>
     //          ^
@@ -200,7 +200,7 @@ class ND4 extends A<FutureOr<void>> with M<dynamic> {
     x.foo; // Check that we do not implement A<dynamic>
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
+    // [cfe] The getter 'foo' isn't defined for the type 'Object?'.
     x.toString; // Check that we do not implement A<void>
     takesObject(x); // Check that we do not implement A<Object>
     //          ^
@@ -215,7 +215,7 @@ class ND5 extends A<FutureOr<dynamic>> with M<void> {
     x.foo; // Check that we do not implement A<dynamic>
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
+    // [cfe] The getter 'foo' isn't defined for the type 'Object?'.
     x.toString; // Check that we do not implement A<void>
     takesObject(x); // Check that we do not implement A<Object>
     //          ^
@@ -232,7 +232,7 @@ class ND6 extends A<FutureOr<void>> with M<void> {
     // [cfe] This expression has type 'void' and can't be used.
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-    // [cfe] The getter 'foo' isn't defined for the class 'void'.
+    // [cfe] The getter 'foo' isn't defined for the type 'void'.
     x.toString; // Check that we do not implement A<Object?>
     // [error column 5]
     // [cfe] This expression has type 'void' and can't be used.
@@ -260,7 +260,7 @@ class DND0 extends A<FutureOr<dynamic> Function()> with M<Object? Function()> {
     x.foo; // Check that we do not implement A<dynamic Function()>
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
+    // [cfe] The getter 'foo' isn't defined for the type 'Object?'.
     x.toString; // Check that we do not implement A<void Function()>
     takesObject(x); // Check that we do not implement A<Object Function()>
     //          ^
@@ -275,7 +275,7 @@ class DND1 extends A<FutureOr<Object?> Function()> with M<dynamic Function()> {
     x.foo; // Check that we do not implement A<dynamic Function()>
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
+    // [cfe] The getter 'foo' isn't defined for the type 'Object?'.
     x.toString; // Check that we do not implement A<void Function()>
     takesObject(x); // Check that we do not implement A<Object Function()>
     //          ^
@@ -290,7 +290,7 @@ class DND2 extends A<FutureOr<void> Function()> with M<Object? Function()> {
     x.foo; // Check that we do not implement A<dynamic Function()>
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
+    // [cfe] The getter 'foo' isn't defined for the type 'Object?'.
     x.toString; // Check that we do not implement A<void Function()>
     takesObject(x); // Check that we do not implement A<Object Function()>
     //          ^
@@ -305,7 +305,7 @@ class DND3 extends A<FutureOr<Object?> Function()> with M<void Function()> {
     x.foo; // Check that we do not implement A<dynamic Function()>
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
+    // [cfe] The getter 'foo' isn't defined for the type 'Object?'.
     x.toString; // Check that we do not implement A<void Function()>
     takesObject(x); // Check that we do not implement A<Object Function()>
     //          ^
@@ -320,7 +320,7 @@ class DND4 extends A<FutureOr<void> Function()> with M<dynamic Function()> {
     x.foo; // Check that we do not implement A<dynamic Function()>
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
+    // [cfe] The getter 'foo' isn't defined for the type 'Object?'.
     x.toString; // Check that we do not implement A<void Function()>
     takesObject(x); // Check that we do not implement A<Object Function()>
     //          ^
@@ -335,7 +335,7 @@ class DND5 extends A<FutureOr<dynamic> Function()> with M<void Function()> {
     x.foo; // Check that we do not implement A<dynamic Function()>
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
+    // [cfe] The getter 'foo' isn't defined for the type 'Object?'.
     x.toString; // Check that we do not implement A<void Function()>
     takesObject(x); // Check that we do not implement A<Object Function()>
     //          ^
@@ -352,7 +352,7 @@ class DND6 extends A<FutureOr<void> Function()> with M<void Function()> {
     // [cfe] This expression has type 'void' and can't be used.
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-    // [cfe] The getter 'foo' isn't defined for the class 'void'.
+    // [cfe] The getter 'foo' isn't defined for the type 'void'.
     x.toString; // Check that we do not implement A<Object? Function()>
     // [error column 5]
     // [cfe] This expression has type 'void' and can't be used.
@@ -382,7 +382,7 @@ class WND0 extends A<Wrap<FutureOr<dynamic>>> with M<Wrap<Object?>> {
     x.foo; // Check that we do not implement A<dynamic Function()>
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
+    // [cfe] The getter 'foo' isn't defined for the type 'Object?'.
     x.toString; // Check that we do not implement A<void Function()>
     takesObject(x); // Check that we do not implement A<Object Function()>
     //          ^
@@ -397,7 +397,7 @@ class WND1 extends A<Wrap<FutureOr<Object?>>> with M<Wrap<dynamic>> {
     x.foo; // Check that we do not implement A<dynamic Function()>
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
+    // [cfe] The getter 'foo' isn't defined for the type 'Object?'.
     x.toString; // Check that we do not implement A<void Function()>
     takesObject(x); // Check that we do not implement A<Object Function()>
     //          ^
@@ -412,7 +412,7 @@ class WND2 extends A<Wrap<FutureOr<void>>> with M<Wrap<Object?>> {
     x.foo; // Check that we do not implement A<dynamic Function()>
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
+    // [cfe] The getter 'foo' isn't defined for the type 'Object?'.
     x.toString; // Check that we do not implement A<void Function()>
     takesObject(x); // Check that we do not implement A<Object Function()>
     //          ^
@@ -427,7 +427,7 @@ class WND3 extends A<Wrap<FutureOr<Object?>>> with M<Wrap<void>> {
     x.foo; // Check that we do not implement A<dynamic Function()>
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
+    // [cfe] The getter 'foo' isn't defined for the type 'Object?'.
     x.toString; // Check that we do not implement A<void Function()>
     takesObject(x); // Check that we do not implement A<Object Function()>
     //          ^
@@ -442,7 +442,7 @@ class WND4 extends A<Wrap<FutureOr<void>>> with M<Wrap<dynamic>> {
     x.foo; // Check that we do not implement A<dynamic Function()>
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
+    // [cfe] The getter 'foo' isn't defined for the type 'Object?'.
     x.toString; // Check that we do not implement A<void Function()>
     takesObject(x); // Check that we do not implement A<Object Function()>
     //          ^
@@ -457,7 +457,7 @@ class WND5 extends A<Wrap<FutureOr<dynamic>>> with M<Wrap<void>> {
     x.foo; // Check that we do not implement A<dynamic Function()>
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
+    // [cfe] The getter 'foo' isn't defined for the type 'Object?'.
     x.toString; // Check that we do not implement A<void Function()>
     takesObject(x); // Check that we do not implement A<Object Function()>
     //          ^
@@ -474,7 +474,7 @@ class WND6 extends A<Wrap<FutureOr<void>>> with M<Wrap<void>> {
     // [cfe] This expression has type 'void' and can't be used.
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-    // [cfe] The getter 'foo' isn't defined for the class 'void'.
+    // [cfe] The getter 'foo' isn't defined for the type 'void'.
     x.toString; // Check that we do not implement A<Object? Function()>
     // [error column 5]
     // [cfe] This expression has type 'void' and can't be used.

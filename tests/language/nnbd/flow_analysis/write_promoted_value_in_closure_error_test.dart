@@ -16,7 +16,7 @@ void functionExpression(Object x) {
       print(x.isEven);
       //      ^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-      // [cfe] The getter 'isEven' isn't defined for the class 'Object'.
+      // [cfe] The getter 'isEven' isn't defined for the type 'Object'.
       x = 0;
     };
   }
@@ -32,7 +32,7 @@ void localFunction(Object x) {
       print(x.isEven);
       //      ^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-      // [cfe] The getter 'isEven' isn't defined for the class 'Object'.
+      // [cfe] The getter 'isEven' isn't defined for the type 'Object'.
       x = 0;
     }
   }

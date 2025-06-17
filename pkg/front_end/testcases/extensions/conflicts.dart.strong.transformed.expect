@@ -16,7 +16,7 @@ library;
 //   duplicateMethodName1() => 1;
 //   ^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/extensions/conflicts.dart:31:6: Error: The method 'uniqueMethod2' isn't defined for the class 'Class2'.
+// pkg/front_end/testcases/extensions/conflicts.dart:31:6: Error: The method 'uniqueMethod2' isn't defined for the type 'Class2'.
 //  - 'Class2' is from 'pkg/front_end/testcases/extensions/conflicts.dart'.
 // Try correcting the name to the name of an existing method, or defining a method named 'uniqueMethod2'.
 //   c2.uniqueMethod2();
@@ -62,7 +62,7 @@ static method main() → dynamic {
 }
 static method errors() → dynamic {
   self::Class2 c2 = new self::Class2::•();
-  invalid-expression "pkg/front_end/testcases/extensions/conflicts.dart:31:6: Error: The method 'uniqueMethod2' isn't defined for the class 'Class2'.
+  invalid-expression "pkg/front_end/testcases/extensions/conflicts.dart:31:6: Error: The method 'uniqueMethod2' isn't defined for the type 'Class2'.
  - 'Class2' is from 'pkg/front_end/testcases/extensions/conflicts.dart'.
 Try correcting the name to the name of an existing method, or defining a method named 'uniqueMethod2'.
   c2.uniqueMethod2();

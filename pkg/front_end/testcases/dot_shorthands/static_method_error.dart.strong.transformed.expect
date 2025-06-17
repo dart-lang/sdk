@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/dot_shorthands/static_method_error.dart:12:13: Error: The method 'call' isn't defined for the class 'Color'.
+// pkg/front_end/testcases/dot_shorthands/static_method_error.dart:12:13: Error: The method 'call' isn't defined for the type 'Color'.
 //  - 'Color' is from 'pkg/front_end/testcases/dot_shorthands/static_method_error.dart'.
 // Try correcting the name to the name of an existing method, or defining a method named 'call'.
 //   Color c = .red();
@@ -30,7 +30,7 @@ class Color extends core::Object {
     return new self::Color::•(1);
 }
 static method test() → void {
-  self::Color c = invalid-expression "pkg/front_end/testcases/dot_shorthands/static_method_error.dart:12:13: Error: The method 'call' isn't defined for the class 'Color'.
+  self::Color c = invalid-expression "pkg/front_end/testcases/dot_shorthands/static_method_error.dart:12:13: Error: The method 'call' isn't defined for the type 'Color'.
  - 'Color' is from 'pkg/front_end/testcases/dot_shorthands/static_method_error.dart'.
 Try correcting the name to the name of an existing method, or defining a method named 'call'.
   Color c = .red();

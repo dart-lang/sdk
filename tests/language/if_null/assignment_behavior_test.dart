@@ -125,7 +125,7 @@ class C {
     finalOne ??= null;
     // [error column 5, length 8]
     // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL
-    // [cfe] The setter 'finalOne' isn't defined for the class 'C'.
+    // [cfe] The setter 'finalOne' isn't defined for the type 'C'.
     //           ^^^^
     // [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
     yGetValue = 1;

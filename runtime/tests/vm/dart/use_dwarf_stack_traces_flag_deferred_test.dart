@@ -283,6 +283,7 @@ Future<DeferredAssemblyState?> runAssembly(
       final entry = debugManifest[id]!;
       final snapshotPath = MachO.handleDSYM(debugManifest[id]!.dwarfPath!);
       final singlePath = path.join(singleDir.path, path.basename(snapshotPath));
+      final lipo = llvmTool('llvm-lipo', verbose: true)!;
       await run(lipo, <String>[snapshotPath, '-create', '-output', singlePath]);
       final multiPath = path.join(multiDir.path, path.basename(snapshotPath));
       await run(lipo, <String>[
