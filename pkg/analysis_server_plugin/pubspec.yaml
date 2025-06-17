@@ -9,6 +9,8 @@ environment:
 resolution: workspace
 
 dependencies:
+  # See the release policy for managing this dependency at
+  # pkg/analyzer/doc/implementation/releasing.md.
   analyzer: ^8.0.0-0
   analyzer_plugin: ^0.13.0
   meta: ^1.16.0

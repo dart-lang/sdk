@@ -10,6 +10,8 @@ environment:
 resolution: workspace
 
 dependencies:
+  # See the release policy for this dependency at
+  # pkg/analyzer/doc/implementation/releasing.md.
   _fe_analyzer_shared: ^82.0.0
   collection: ^1.19.0
   convert: ^3.0.0
