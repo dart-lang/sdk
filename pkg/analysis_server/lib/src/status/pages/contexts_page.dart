@@ -151,7 +151,7 @@ class ContextsPage extends DiagnosticPageWithNav {
 
     void writeFile(String file) {
       var astPath = '/ast?file=${Uri.encodeQueryComponent(file)}';
-      var elementPath = '/element?file=${Uri.encodeQueryComponent(file)}';
+      var elementPath = '/element-model?file=${Uri.encodeQueryComponent(file)}';
       var contentsPath = '/contents?file=${Uri.encodeQueryComponent(file)}';
       var hasOverlay = server.resourceProvider.hasOverlay(file);
 

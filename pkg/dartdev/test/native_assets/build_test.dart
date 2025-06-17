@@ -32,7 +32,7 @@ void main([List<String> args = const []]) async {
 
   /// The relative uri from the package root to the app bundle.
   final relativeBundleUri = Uri.directory(
-      './build/cli/${OS.current}-${Architecture.current}/bundle/');
+      './build/cli/${OS.current}_${Architecture.current}/bundle/');
 
   for (final verbose in [true, false]) {
     final testModifier = verbose ? ' verbose' : '';
