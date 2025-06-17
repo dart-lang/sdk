@@ -2885,9 +2885,6 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       keywordHelper.addKeyword(Keyword.CASE);
       keywordHelper.addKeywordAndText(Keyword.DEFAULT, ':');
       if (members.isNotEmpty) {
-        if (!members.any((element) => element is SwitchDefault)) {
-          keywordHelper.addKeywordAndText(Keyword.DEFAULT, ':');
-        }
         var element = members.elementBefore(offset);
         if (element != null) {
           _forStatement(element);
