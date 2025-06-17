@@ -63,7 +63,7 @@ class SubClass2 extends core::Object implements acc::SuperClass {
     ;
   method noSuchMethod(core::Invocation invocation) → dynamic
     return 42;
-  synthetic no-such-method-forwarder method _inaccessibleMethod1() → void
+  synthetic no-such-method-forwarder method acc::_inaccessibleMethod1() → void
     return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
   synthetic no-such-method-forwarder method accessibleMethod() → void
     return this.{self::SubClass2::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4))){(core::Invocation) → dynamic};
@@ -138,7 +138,7 @@ class SubAbstractSubClass2 extends self::AbstractSubClass2 {
   synthetic constructor •() → self::SubAbstractSubClass2
     : super self::AbstractSubClass2::•()
     ;
-  synthetic no-such-method-forwarder method _inaccessibleMethod1() → void
+  synthetic no-such-method-forwarder method acc::_inaccessibleMethod1() → void
     return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
   synthetic no-such-method-forwarder method accessibleMethod() → void
     return this.{self::AbstractSubClass2::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4))){(core::Invocation) → dynamic};
@@ -159,7 +159,7 @@ class SubAbstractSubClassOverride2 extends self::AbstractSubClass2 {
     : super self::AbstractSubClass2::•()
     ;
   abstract method noSuchMethod(core::Invocation invocation) → dynamic;
-  synthetic no-such-method-forwarder method _inaccessibleMethod1() → void
+  synthetic no-such-method-forwarder method acc::_inaccessibleMethod1() → void
     return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
   synthetic no-such-method-forwarder method accessibleMethod() → void
     return this.{self::SubAbstractSubClassOverride2::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4))){(core::Invocation) → dynamic};
@@ -179,7 +179,7 @@ class SubClassImplements2 extends core::Object implements acc::SuperClass, acc::
   synthetic constructor •() → self::SubClassImplements2
     : super core::Object::•()
     ;
-  synthetic no-such-method-forwarder method _inaccessibleMethod1() → void
+  synthetic no-such-method-forwarder method acc::_inaccessibleMethod1() → void
     return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
 }
 class SubClassImplements3 extends self::_SubClassImplements3&Object&SuperClass implements acc::NoSuchMethodClass {
@@ -226,7 +226,7 @@ class SubAbstractSubClassImplements2 extends self::AbstractSubClassImplements2 {
   synthetic constructor •() → self::SubAbstractSubClassImplements2
     : super self::AbstractSubClassImplements2::•()
     ;
-  synthetic no-such-method-forwarder method _inaccessibleMethod1() → void
+  synthetic no-such-method-forwarder method acc::_inaccessibleMethod1() → void
     return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
 }
 class SubAbstractSubClassImplements3 extends self::AbstractSubClassImplements3 {
@@ -243,7 +243,7 @@ class SubClassWith2 extends self::_SubClassWith2&Object&NoSuchMethodClass implem
   synthetic constructor •() → self::SubClassWith2
     : super self::_SubClassWith2&Object&NoSuchMethodClass::•()
     ;
-  synthetic no-such-method-forwarder method _inaccessibleMethod1() → void
+  synthetic no-such-method-forwarder method acc::_inaccessibleMethod1() → void
     return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
   synthetic no-such-method-forwarder method accessibleMethod() → void
     return this.{self::_SubClassWith2&Object&NoSuchMethodClass::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4))){(core::Invocation) → dynamic};
@@ -307,7 +307,7 @@ class SubAbstractSubClassWith2 extends self::AbstractSubClassWith2 {
   synthetic constructor •() → self::SubAbstractSubClassWith2
     : super self::AbstractSubClassWith2::•()
     ;
-  synthetic no-such-method-forwarder method _inaccessibleMethod1() → void
+  synthetic no-such-method-forwarder method acc::_inaccessibleMethod1() → void
     return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
   synthetic no-such-method-forwarder method accessibleMethod() → void
     return this.{self::_AbstractSubClassWith2&Object&NoSuchMethodClass::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4))){(core::Invocation) → dynamic};
@@ -326,7 +326,7 @@ abstract class _SubClass3&Object&SuperClass = core::Object with acc::SuperClass 
   const synthetic constructor •() → self::_SubClass3&Object&SuperClass
     : super core::Object::•()
     ;
-  synthetic mixin-super-stub method _inaccessibleMethod1() → void
+  synthetic mixin-super-stub method acc::_inaccessibleMethod1() → void
     return super.{acc::SuperClass::_inaccessibleMethod1}();
   synthetic mixin-super-stub method accessibleMethod() → void
     return super.{acc::SuperClass::accessibleMethod}();
@@ -335,7 +335,7 @@ abstract class _AbstractSubClass3&Object&SuperClass = core::Object with acc::Sup
   const synthetic constructor •() → self::_AbstractSubClass3&Object&SuperClass
     : super core::Object::•()
     ;
-  synthetic mixin-super-stub method _inaccessibleMethod1() → void
+  synthetic mixin-super-stub method acc::_inaccessibleMethod1() → void
     return super.{acc::SuperClass::_inaccessibleMethod1}();
   synthetic mixin-super-stub method accessibleMethod() → void
     return super.{acc::SuperClass::accessibleMethod}();
@@ -344,7 +344,7 @@ abstract class _SubClassImplements3&Object&SuperClass = core::Object with acc::S
   const synthetic constructor •() → self::_SubClassImplements3&Object&SuperClass
     : super core::Object::•()
     ;
-  synthetic mixin-super-stub method _inaccessibleMethod1() → void
+  synthetic mixin-super-stub method acc::_inaccessibleMethod1() → void
     return super.{acc::SuperClass::_inaccessibleMethod1}();
   synthetic mixin-super-stub method accessibleMethod() → void
     return super.{acc::SuperClass::accessibleMethod}();
@@ -353,7 +353,7 @@ abstract class _AbstractSubClassImplements3&Object&SuperClass = core::Object wit
   const synthetic constructor •() → self::_AbstractSubClassImplements3&Object&SuperClass
     : super core::Object::•()
     ;
-  synthetic mixin-super-stub method _inaccessibleMethod1() → void
+  synthetic mixin-super-stub method acc::_inaccessibleMethod1() → void
     return super.{acc::SuperClass::_inaccessibleMethod1}();
   synthetic mixin-super-stub method accessibleMethod() → void
     return super.{acc::SuperClass::accessibleMethod}();
@@ -376,7 +376,7 @@ abstract class _SubClassWith3&Object&SuperClass = core::Object with acc::SuperCl
   const synthetic constructor •() → self::_SubClassWith3&Object&SuperClass
     : super core::Object::•()
     ;
-  synthetic mixin-super-stub method _inaccessibleMethod1() → void
+  synthetic mixin-super-stub method acc::_inaccessibleMethod1() → void
     return super.{acc::SuperClass::_inaccessibleMethod1}();
   synthetic mixin-super-stub method accessibleMethod() → void
     return super.{acc::SuperClass::accessibleMethod}();
@@ -399,7 +399,7 @@ abstract class _SubClassWith4&Object&NoSuchMethodClass&SuperClass = self::_SubCl
   const synthetic constructor •() → self::_SubClassWith4&Object&NoSuchMethodClass&SuperClass
     : super self::_SubClassWith4&Object&NoSuchMethodClass::•()
     ;
-  synthetic mixin-super-stub method _inaccessibleMethod1() → void
+  synthetic mixin-super-stub method acc::_inaccessibleMethod1() → void
     return super.{acc::SuperClass::_inaccessibleMethod1}();
   synthetic mixin-super-stub method accessibleMethod() → void
     return super.{acc::SuperClass::accessibleMethod}();
@@ -422,7 +422,7 @@ abstract class _AbstractSubClassWith3&Object&SuperClass = core::Object with acc:
   const synthetic constructor •() → self::_AbstractSubClassWith3&Object&SuperClass
     : super core::Object::•()
     ;
-  synthetic mixin-super-stub method _inaccessibleMethod1() → void
+  synthetic mixin-super-stub method acc::_inaccessibleMethod1() → void
     return super.{acc::SuperClass::_inaccessibleMethod1}();
   synthetic mixin-super-stub method accessibleMethod() → void
     return super.{acc::SuperClass::accessibleMethod}();
@@ -445,7 +445,7 @@ abstract class _AbstractSubClassWith4&Object&NoSuchMethodClass&SuperClass = self
   const synthetic constructor •() → self::_AbstractSubClassWith4&Object&NoSuchMethodClass&SuperClass
     : super self::_AbstractSubClassWith4&Object&NoSuchMethodClass::•()
     ;
-  synthetic mixin-super-stub method _inaccessibleMethod1() → void
+  synthetic mixin-super-stub method acc::_inaccessibleMethod1() → void
     return super.{acc::SuperClass::_inaccessibleMethod1}();
   synthetic mixin-super-stub method accessibleMethod() → void
     return super.{acc::SuperClass::accessibleMethod}();

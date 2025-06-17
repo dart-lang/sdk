@@ -12,7 +12,7 @@ class TestClass extends self::_TestClass&MyClass&MyMixin {
 abstract class MyMixin extends core::Object /*isMixinDeclaration*/  {
 }
 abstract class _TestClass&MyClass&MyMixin = mai::MyClass with self::MyMixin /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor _() → self::_TestClass&MyClass&MyMixin
+  const synthetic constructor mai::_() → self::_TestClass&MyClass&MyMixin
     : super mai::MyClass::_()
     ;
   const synthetic constructor named() → self::_TestClass&MyClass&MyMixin

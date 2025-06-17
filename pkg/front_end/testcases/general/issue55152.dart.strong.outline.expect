@@ -17,7 +17,7 @@ class E extends core::_Enum /*isEnum*/  {
   const constructor •(core::int #index, core::String #name, self::A<core::String> a) → self::E
     : self::E::a = a, super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E.${this.{core::_Enum::_name}{core::String}}";
 }
 

@@ -13,7 +13,7 @@ class Enum1 extends core::_Enum /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::Enum1
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "Enum1.${this.{core::_Enum::_name}{core::String}}";
 }
 static method test() → dynamic
@@ -34,7 +34,7 @@ class Enum2 extends core::_Enum /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self2::Enum2
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "Enum2.${this.{core::_Enum::_name}{core::String}}";
 }
 

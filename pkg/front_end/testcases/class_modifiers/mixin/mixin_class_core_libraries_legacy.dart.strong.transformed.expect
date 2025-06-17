@@ -33,7 +33,7 @@ abstract class _A&Object&Comparable extends core::Object implements core::Compar
 }
 abstract class _B&Object&Error extends core::Object implements core::Error /*isAnonymousMixin,isEliminatedMixin*/  {
   @#C3
-  field core::StackTrace? _stackTrace = null /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/errors_patch.dart */;
+  field core::StackTrace? core::_stackTrace = null /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/errors_patch.dart */;
   synthetic constructor •() → self::_B&Object&Error
     : super core::Object::•()
     ;

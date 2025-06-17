@@ -9,7 +9,7 @@ class Color extends core::_Enum /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::Color
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "Color.${this.{core::_Enum::_name}{core::String}}";
 }
 static method main() → void

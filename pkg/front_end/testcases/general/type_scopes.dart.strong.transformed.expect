@@ -63,7 +63,7 @@ class Enum<T10 extends dynamic> extends self::_Enum&_Enum&M<self::Enum::T10%> im
   const constructor •(core::int #index, core::String #name, self::Enum::T10% T10) → self::Enum<self::Enum::T10%>
     : super self::_Enum&_Enum&M::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "Enum.${this.{core::_Enum::_name}{core::String}}";
   static factory fact<T10 extends dynamic>(self::Enum::fact::T10% T10) → self::Enum<self::Enum::fact::T10%>
     return throw "";

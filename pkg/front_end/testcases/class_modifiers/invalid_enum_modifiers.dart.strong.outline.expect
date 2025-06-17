@@ -31,7 +31,7 @@ class Base extends core::_Enum /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::Base
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "Base.${this.{core::_Enum::_name}{core::String}}";
 }
 class Final extends core::_Enum /*isEnum*/  {
@@ -40,7 +40,7 @@ class Final extends core::_Enum /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::Final
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "Final.${this.{core::_Enum::_name}{core::String}}";
 }
 class Interface extends core::_Enum /*isEnum*/  {
@@ -49,7 +49,7 @@ class Interface extends core::_Enum /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::Interface
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "Interface.${this.{core::_Enum::_name}{core::String}}";
 }
 class Sealed extends core::_Enum /*isEnum*/  {
@@ -58,7 +58,7 @@ class Sealed extends core::_Enum /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::Sealed
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "Sealed.${this.{core::_Enum::_name}{core::String}}";
 }
 

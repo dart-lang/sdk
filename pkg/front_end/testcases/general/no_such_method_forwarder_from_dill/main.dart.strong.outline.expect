@@ -18,7 +18,7 @@ class B extends core::Object implements mai::A {
     ;
   method _method() → void
     ;
-  synthetic no-such-method-forwarder method _method() → void
+  synthetic no-such-method-forwarder method mai::_method() → void
     return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#_method, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
 }
 

@@ -65,7 +65,7 @@ class E1 extends core::_Enum /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::E1
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E1.${this.{core::_Enum::_name}{core::String}}";
   abstract method foo() → void;
 }
@@ -75,7 +75,7 @@ class E2 extends core::_Enum /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::E2
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E2.${this.{core::_Enum::_name}{core::String}}";
   abstract get foo() → core::int;
 }
@@ -85,7 +85,7 @@ class E3 extends core::_Enum /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::E3
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E3.${this.{core::_Enum::_name}{core::String}}";
   abstract set foo(core::int val) → void;
 }
@@ -101,7 +101,7 @@ class E4 extends core::_Enum implements self::InterfaceMethod /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::E4
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E4.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class InterfaceGetter extends core::Object {
@@ -116,7 +116,7 @@ class E5 extends core::_Enum implements self::InterfaceGetter /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::E5
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E5.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class InterfaceSetter extends core::Object {
@@ -131,7 +131,7 @@ class E6 extends core::_Enum implements self::InterfaceSetter /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::E6
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E6.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class MethodImplementation extends core::Object /*isMixinDeclaration*/  {
@@ -143,7 +143,7 @@ class E7 extends self::_E7&_Enum&MethodImplementation /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::E7
     : super self::_E7&_Enum&MethodImplementation::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E7.${this.{core::_Enum::_name}{core::String}}";
   abstract method foo() → void;
 }

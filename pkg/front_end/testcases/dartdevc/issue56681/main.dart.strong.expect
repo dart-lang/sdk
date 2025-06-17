@@ -26,7 +26,7 @@ class SomeEnum extends mai::_SomeEnum&_Enum&HasSomeField /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → mai::SomeEnum
     : super mai::_SomeEnum&_Enum&HasSomeField::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "SomeEnum.${this.{core::_Enum::_name}{core::String}}";
   @#C5
   get someField() → core::String

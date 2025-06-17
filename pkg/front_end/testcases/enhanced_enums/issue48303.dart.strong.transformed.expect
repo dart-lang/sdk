@@ -14,7 +14,7 @@ class E extends self::_E&_Enum&M1 /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::E
     : super self::_E&_Enum&M1::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class _E&_Enum&M1 extends core::_Enum implements self::M1 /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {

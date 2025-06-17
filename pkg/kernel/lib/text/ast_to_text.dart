@@ -240,6 +240,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   int column = 0;
   bool showOffsets;
   bool showMetadata;
+  Library? _currentLibrary;
 
   static final int SPACE = 0;
   static final int WORD = 1;
@@ -446,6 +447,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
 
   void writeStandardLibraryContent(Library library,
       {Printer? outerPrinter, LibraryImportTable? importsToPrint}) {
+    _currentLibrary = library;
     outerPrinter ??= this;
     outerPrinter.writeProblemsAsJson(
         "Problems in library", library.problemsAsJson);
@@ -465,6 +467,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     library.extensionTypeDeclarations.forEach(writeNode);
     library.fields.forEach(writeNode);
     library.procedures.forEach(writeNode);
+    _currentLibrary = null;
   }
 
   void writeAdditionalExports(List<Reference> additionalExports) {
@@ -700,11 +703,15 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     }
   }
 
-  void writeName(Name name) {
-    if (name.text == '') {
+  void writeName(Name name, {bool showLibrary = false}) {
+    if (showLibrary &&
+        name.isPrivate &&
+        name.libraryReference != _currentLibrary?.reference) {
+      writeWord('${getLibraryReference(name.libraryReference!)}::${name.text}');
+    } else if (name.text == '') {
       writeWord(emptyNameString);
     } else {
-      writeWord(name.text); // TODO: write library name
+      writeWord(name.text);
     }
   }
 
@@ -722,7 +729,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     if (name is String) {
       writeWord(name);
     } else if (name is Name) {
-      writeName(name);
+      writeName(name, showLibrary: true);
     } else {
       assert(name == null);
     }
@@ -1094,7 +1101,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeWord('field');
     writeSpace();
     writeAnnotatedType(node.type, annotator?.annotateField(this, node));
-    writeName(getMemberName(node));
+    writeName(getMemberName(node), showLibrary: true);
     Expression? initializer = node.initializer;
     if (initializer != null) {
       writeSpaced('=');
