@@ -535,6 +535,10 @@ template("dart_io") {
       }
     }
 
+    if (dart_disable_secure_socket) {
+      defines += [ "DART_IO_SECURE_SOCKET_DISABLED" ]
+    }
+
     include_dirs = [
       "..",
       "//third_party",
@@ -844,6 +848,9 @@ template("dart_executable") {
     defines = [ "DART_EMBED_ICU_DATA" ] + extra_defines
     if (exclude_kernel_service) {
       defines += [ "EXCLUDE_CFE_AND_KERNEL_PLATFORM" ]
+    }
+    if (dart_disable_secure_socket) {
+      defines += [ "DART_IO_SECURE_SOCKET_DISABLED" ]
     }
     include_dirs = [
       "..",
