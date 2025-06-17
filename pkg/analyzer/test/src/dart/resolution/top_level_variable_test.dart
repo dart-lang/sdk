@@ -49,7 +49,7 @@ VariableDeclaration
         SimpleIdentifier
           token: g
           correspondingParameter: ParameterMember
-            baseElement: <testLibraryFragment>::@function::f::@parameter::a#element
+            baseElement: <testLibrary>::@function::f::@formalParameter::a
             substitution: {T: String}
           element: <testLibrary>::@function::g
           staticType: String Function()
@@ -58,7 +58,7 @@ VariableDeclaration
             leftParenthesis: (
             parameter: SimpleFormalParameter
               name: z
-              declaredElement: null@null::@formalParameter::z
+              declaredElement: <testLibraryFragment> z@100
                 type: Object?
             rightParenthesis: )
           body: ExpressionFunctionBody
@@ -66,7 +66,7 @@ VariableDeclaration
             expression: PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: z
-                element: @99::@parameter::z#element
+                element: @99::@formalParameter::z
                 staticType: Object?
               period: .
               identifier: SimpleIdentifier
@@ -75,10 +75,10 @@ VariableDeclaration
                 staticType: InvalidType
               element: <null>
               staticType: InvalidType
-          declaredElement: null@null
+          declaredElement: <testLibraryFragment> null@null
             type: InvalidType Function(Object?)
           correspondingParameter: ParameterMember
-            baseElement: <testLibraryFragment>::@function::f::@parameter::b#element
+            baseElement: <testLibrary>::@function::f::@formalParameter::b
             substitution: {T: String}
           staticType: InvalidType Function(Object?)
       rightParenthesis: )
@@ -86,7 +86,7 @@ VariableDeclaration
     staticType: String?
     typeArgumentTypes
       String
-  declaredElement: <testLibraryFragment>::@topLevelVariable::x
+  declaredElement: <testLibraryFragment> x@90
 ''');
   }
 
@@ -114,7 +114,7 @@ VariableDeclaration
         SimpleIdentifier
           token: g
           correspondingParameter: ParameterMember
-            baseElement: <testLibraryFragment>::@function::f::@parameter::a#element
+            baseElement: <testLibrary>::@function::f::@formalParameter::a
             substitution: {T: String}
           element: <testLibrary>::@function::g
           staticType: String Function()
@@ -123,7 +123,7 @@ VariableDeclaration
             leftParenthesis: (
             parameter: SimpleFormalParameter
               name: z
-              declaredElement: null@null::@formalParameter::z
+              declaredElement: <testLibraryFragment> z@108
                 type: String
             rightParenthesis: )
           body: ExpressionFunctionBody
@@ -131,19 +131,19 @@ VariableDeclaration
             expression: PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: z
-                element: @107::@parameter::z#element
+                element: @107::@formalParameter::z
                 staticType: String
               period: .
               identifier: SimpleIdentifier
                 token: length
-                element: dart:core::<fragment>::@class::String::@getter::length#element
+                element: dart:core::@class::String::@getter::length
                 staticType: int
-              element: dart:core::<fragment>::@class::String::@getter::length#element
+              element: dart:core::@class::String::@getter::length
               staticType: int
-          declaredElement: null@null
+          declaredElement: <testLibraryFragment> null@null
             type: int Function(String)
           correspondingParameter: ParameterMember
-            baseElement: <testLibraryFragment>::@function::f::@parameter::b#element
+            baseElement: <testLibrary>::@function::f::@formalParameter::b
             substitution: {T: String}
           staticType: int Function(String)
       rightParenthesis: )
@@ -151,7 +151,7 @@ VariableDeclaration
     staticType: String?
     typeArgumentTypes
       String
-  declaredElement: <testLibraryFragment>::@topLevelVariable::x
+  declaredElement: <testLibraryFragment> x@98
 ''');
   }
 

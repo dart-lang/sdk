@@ -40,7 +40,7 @@ DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: member
-    element: <testLibraryFragment>::@class::C::@getter::member#element
+    element: <testLibrary>::@class::C::@getter::member
     staticType: C
   staticType: C
 ''');
@@ -67,7 +67,7 @@ DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: member
-    element: <testLibraryFragment>::@class::C::@getter::member#element
+    element: <testLibrary>::@class::C::@getter::member
     staticType: C
   staticType: C
 ''');
@@ -93,7 +93,7 @@ DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: member
-    element: <testLibraryFragment>::@class::C::@getter::member#element
+    element: <testLibrary>::@class::C::@getter::member
     staticType: C
   staticType: C
 ''');
@@ -119,9 +119,9 @@ DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: one
-    element: <testLibraryFragment>::@class::Integer::@getter::one#element
+    element: <testLibrary>::@class::Integer::@getter::one
     staticType: Integer
-  correspondingParameter: dart:core::<fragment>::@class::Object::@method::==::@parameter::other#element
+  correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
   staticType: Integer
 ''');
   }
@@ -141,9 +141,9 @@ DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: blue
-    element: <testLibraryFragment>::@enum::Color::@getter::blue#element
+    element: <testLibrary>::@enum::Color::@getter::blue
     staticType: Color
-  correspondingParameter: dart:core::<fragment>::@class::Object::@method::==::@parameter::other#element
+  correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
   staticType: Color
 ''');
   }
@@ -169,7 +169,7 @@ DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: member
-    element: <testLibraryFragment>::@class::C::@getter::member#element
+    element: <testLibrary>::@class::C::@getter::member
     staticType: C
   staticType: C
 ''');
@@ -191,7 +191,7 @@ DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: blue
-    element: <testLibraryFragment>::@enum::Color::@getter::blue#element
+    element: <testLibrary>::@enum::Color::@getter::blue
     staticType: Color
   staticType: Color
 ''');
@@ -216,7 +216,7 @@ DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: member
-    element: <testLibraryFragment>::@extensionType::C::@getter::member#element
+    element: <testLibrary>::@extensionType::C::@getter::member
     staticType: C
   staticType: C
 ''');
@@ -238,7 +238,7 @@ DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: red
-    element: <testLibraryFragment>::@enum::C::@getter::red#element
+    element: <testLibrary>::@enum::C::@getter::red
     staticType: C
   staticType: C
 ''');
@@ -265,9 +265,9 @@ DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: member
-    element: <testLibraryFragment>::@class::C::@getter::member#element
+    element: <testLibrary>::@class::C::@getter::member
     staticType: C
-  correspondingParameter: dart:core::<fragment>::@class::Object::@method::==::@parameter::other#element
+  correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
   staticType: C
 ''');
   }
@@ -291,7 +291,7 @@ DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: instances
-    element: <testLibraryFragment>::@class::C::@getter::instances#element
+    element: <testLibrary>::@class::C::@getter::instances
     staticType: List<C>
   staticType: List<C>
 ''');
@@ -316,7 +316,7 @@ DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: nullable
-    element: <testLibraryFragment>::@class::C::@getter::nullable#element
+    element: <testLibrary>::@class::C::@getter::nullable
     staticType: C?
   staticType: C?
 ''');
@@ -342,7 +342,7 @@ DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: nullable
-    element: <testLibraryFragment>::@class::C::@getter::nullable#element
+    element: <testLibrary>::@class::C::@getter::nullable
     staticType: C?
   staticType: C?
 ''');
@@ -364,7 +364,7 @@ DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: blue
-    element: <testLibraryFragment>::@enum::Color::@getter::blue#element
+    element: <testLibrary>::@enum::Color::@getter::blue
     staticType: Color
   staticType: Color
 ''');
@@ -444,7 +444,7 @@ DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: one
-    element: <testLibraryFragment>::@extensionType::C::@getter::one#element
+    element: <testLibrary>::@extensionType::C::@getter::one
     staticType: C
   staticType: C
 ''');
@@ -500,7 +500,7 @@ DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: red
-    element: <testLibraryFragment>::@enum::C::@getter::red#element
+    element: <testLibrary>::@enum::C::@getter::red
     staticType: C
   staticType: C
 ''');
@@ -524,7 +524,7 @@ DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: red
-    element: <testLibraryFragment>::@enum::C::@getter::red#element
+    element: <testLibrary>::@enum::C::@getter::red
     staticType: C
   staticType: C
 ''');
@@ -558,7 +558,7 @@ DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: mixinOne
-    element: <testLibraryFragment>::@mixin::CMixin::@getter::mixinOne#element
+    element: <testLibrary>::@mixin::CMixin::@getter::mixinOne
     staticType: CMixin
   staticType: CMixin
 ''');
@@ -629,7 +629,7 @@ DotShorthandPropertyAccess
     token: id
     element: <testLibrary>::@class::C1::@constructor::id
     staticType: C1 Function()
-  correspondingParameter: <testLibraryFragment>::@class::C1::@method::==::@parameter::other#element
+  correspondingParameter: <testLibrary>::@class::C1::@method::==::@formalParameter::other
   staticType: C1 Function()
 ''');
   }

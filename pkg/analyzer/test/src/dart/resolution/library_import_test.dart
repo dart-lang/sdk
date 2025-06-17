@@ -231,7 +231,7 @@ CompilationUnit
                 leftParenthesis: (
                 rightParenthesis: )
               staticType: A
-            declaredElement: <testLibraryFragment>::@topLevelVariable::a
+            declaredElement: <testLibraryFragment> a@96
       semicolon: ;
       declaredElement: <null>
 ''');
@@ -331,7 +331,7 @@ CompilationUnit
                 leftParenthesis: (
                 rightParenthesis: )
               staticType: A
-            declaredElement: <testLibraryFragment>::@topLevelVariable::a
+            declaredElement: <testLibraryFragment> a@96
       semicolon: ;
       declaredElement: <null>
 ''');
@@ -553,7 +553,7 @@ CompilationUnit
                 leftParenthesis: (
                 rightParenthesis: )
               staticType: A
-            declaredElement: <testLibraryFragment>::@topLevelVariable::a
+            declaredElement: <testLibraryFragment> a@96
       semicolon: ;
       declaredElement: <null>
 ''');

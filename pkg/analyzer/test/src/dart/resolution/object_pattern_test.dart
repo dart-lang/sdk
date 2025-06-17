@@ -185,7 +185,7 @@ ObjectPattern
           type: int
         matchedValueType: int
       element2: GetterMember
-        baseElement: <testLibraryFragment>::@class::A::@getter::foo#element
+        baseElement: <testLibrary>::@class::A::@getter::foo
         substitution: {T: int}
   rightParenthesis: )
   matchedValueType: dynamic
@@ -223,7 +223,7 @@ ObjectPattern
           literal: 0
           staticType: int
         matchedValueType: int
-      element2: <testLibraryFragment>::@class::A::@getter::foo#element
+      element2: <testLibrary>::@class::A::@getter::foo
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -262,7 +262,7 @@ ObjectPattern
           literal: 0
           staticType: int
         matchedValueType: int
-      element2: <testLibraryFragment>::@extension::E::@getter::foo#element
+      element2: <testLibrary>::@extension::E::@getter::foo
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -387,7 +387,7 @@ ObjectPattern
         declaredElement: hasImplicitType foo2@84
           type: int
         matchedValueType: int
-      element2: <testLibraryFragment>::@class::A::@getter::foo#element
+      element2: <testLibrary>::@class::A::@getter::foo
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -466,7 +466,7 @@ ObjectPattern
         declaredElement: hasImplicitType foo@81
           type: int
         matchedValueType: int
-      element2: <testLibraryFragment>::@class::A::@getter::foo#element
+      element2: <testLibrary>::@class::A::@getter::foo
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -513,7 +513,7 @@ ObjectPattern
           element2: dart:core::@class::int
           type: int
         matchedValueType: int?
-      element2: <testLibraryFragment>::@class::A::@getter::foo#element
+      element2: <testLibrary>::@class::A::@getter::foo
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -556,7 +556,7 @@ ObjectPattern
           matchedValueType: int
         operator: !
         matchedValueType: int?
-      element2: <testLibraryFragment>::@class::A::@getter::foo#element
+      element2: <testLibrary>::@class::A::@getter::foo
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -599,7 +599,7 @@ ObjectPattern
           matchedValueType: int
         operator: ?
         matchedValueType: int?
-      element2: <testLibraryFragment>::@class::A::@getter::foo#element
+      element2: <testLibrary>::@class::A::@getter::foo
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -643,7 +643,7 @@ ObjectPattern
           matchedValueType: int
         rightParenthesis: )
         matchedValueType: int
-      element2: <testLibraryFragment>::@class::A::@getter::foo#element
+      element2: <testLibrary>::@class::A::@getter::foo
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -789,7 +789,7 @@ ObjectPattern
           literal: 0
           staticType: int
         matchedValueType: int
-      element2: <testLibraryFragment>::@extensionType::A::@getter::foo#element
+      element2: <testLibrary>::@extensionType::A::@getter::foo
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -829,7 +829,7 @@ ObjectPattern
         declaredElement: hasImplicitType isFinal foo@96
           type: int
         matchedValueType: int
-      element2: <testLibraryFragment>::@extensionType::A::@getter::foo#element
+      element2: <testLibrary>::@extensionType::A::@getter::foo
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -1005,7 +1005,7 @@ ObjectPattern
         declaredElement: hasImplicitType y@145
           type: int
         matchedValueType: int
-      element2: <testLibraryFragment>::@extension::E::@getter::foo#element
+      element2: <testLibrary>::@extension::E::@getter::foo
   rightParenthesis: )
   matchedValueType: Object?
 ''');
@@ -1049,7 +1049,7 @@ ObjectPattern
         declaredElement: hasImplicitType y@141
           type: int
         matchedValueType: int
-      element2: <testLibraryFragment>::@extension::E::@getter::foo#element
+      element2: <testLibrary>::@extension::E::@getter::foo
   rightParenthesis: )
   matchedValueType: Object?
 ''');
@@ -1089,7 +1089,7 @@ ObjectPattern
         declaredElement: hasImplicitType y@90
           type: int
         matchedValueType: int
-      element2: dart:core::<fragment>::@class::Object::@getter::hashCode#element
+      element2: dart:core::@class::Object::@getter::hashCode
   rightParenthesis: )
   matchedValueType: Object?
 ''');
@@ -1252,14 +1252,14 @@ PatternVariableDeclaration
             type: int
           matchedValueType: int
         element2: GetterMember
-          baseElement: <testLibraryFragment>::@class::A::@getter::foo#element
+          baseElement: <testLibrary>::@class::A::@getter::foo
           substitution: {T: int}
     rightParenthesis: )
     matchedValueType: A<int>
   equals: =
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: A<int>
   patternTypeSchema: A<dynamic>
 ''');
@@ -1308,7 +1308,7 @@ PatternVariableDeclaration
             type: int
           matchedValueType: int
         element2: GetterMember
-          baseElement: <testLibraryFragment>::@class::A::@getter::foo#element
+          baseElement: <testLibrary>::@class::A::@getter::foo
           substitution: {T: int}
     rightParenthesis: )
     matchedValueType: A<int>
@@ -1370,7 +1370,7 @@ PatternVariableDeclaration
             type: int
           matchedValueType: dynamic
         element2: GetterMember
-          baseElement: <testLibraryFragment>::@class::A::@getter::foo#element
+          baseElement: <testLibrary>::@class::A::@getter::foo
           substitution: {T: dynamic}
     rightParenthesis: )
     matchedValueType: A<dynamic>

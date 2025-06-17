@@ -43,7 +43,7 @@ FieldDeclaration
         initializer: SuperExpression
           superKeyword: super
           staticType: A
-        declaredElement: <testLibraryFragment>::@class::A::@field::f
+        declaredElement: <testLibraryFragment> f@24
   semicolon: ;
   declaredElement: <null>
 ''');
@@ -72,7 +72,7 @@ FieldDeclaration
         initializer: ThisExpression
           thisKeyword: this
           staticType: A
-        declaredElement: <testLibraryFragment>::@class::A::@field::f
+        declaredElement: <testLibraryFragment> f@24
   semicolon: ;
   declaredElement: <null>
 ''');
@@ -110,9 +110,9 @@ FieldDeclaration
         equals: =
         initializer: SimpleIdentifier
           token: a
-          element: <testLibraryFragment>::@class::A::@getter::a#element
+          element: <testLibrary>::@class::A::@getter::a
           staticType: int
-        declaredElement: <testLibraryFragment>::@class::A::@field::b
+        declaredElement: <testLibraryFragment> b@41
   semicolon: ;
   declaredElement: <null>
 ''');
@@ -150,9 +150,9 @@ FieldDeclaration
         equals: =
         initializer: SimpleIdentifier
           token: a
-          element: <testLibraryFragment>::@class::A::@getter::a#element
+          element: <testLibrary>::@class::A::@getter::a
           staticType: int
-        declaredElement: <testLibraryFragment>::@class::A::@field::b
+        declaredElement: <testLibraryFragment> b@40
   semicolon: ;
   declaredElement: <null>
 ''');
@@ -198,7 +198,7 @@ FieldDeclaration
             rightParenthesis: )
           staticInvokeType: int Function()
           staticType: int
-        declaredElement: <testLibraryFragment>::@class::A::@field::b
+        declaredElement: <testLibraryFragment> b@38
   semicolon: ;
   declaredElement: <null>
 ''');
@@ -226,7 +226,7 @@ FieldDeclaration
         initializer: ThisExpression
           thisKeyword: this
           staticType: A
-        declaredElement: <testLibraryFragment>::@class::A::@field::a
+        declaredElement: <testLibraryFragment> a@18
   semicolon: ;
   declaredElement: <null>
 ''');
@@ -303,13 +303,13 @@ FieldDeclaration
             arguments
               NamedType
                 name: T
-                element2: T@8
+                element2: #E0 T
                 type: T
             rightBracket: >
           leftBracket: [
           rightBracket: ]
           staticType: List<T>
-        declaredElement: <testLibraryFragment>::@class::A::@field::f
+        declaredElement: <testLibraryFragment> f@19
   semicolon: ;
   declaredElement: <null>
 ''');

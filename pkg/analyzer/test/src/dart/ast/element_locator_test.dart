@@ -183,7 +183,7 @@ void main() {
     var node = findNode.singleDotShorthandPropertyAccess;
     var element = ElementLocator.locate2(node);
     _assertElement(element, r'''
-<testLibraryFragment>::@class::A::@getter::foo#element
+<testLibrary>::@class::A::@getter::foo
 ''');
   }
 
@@ -343,7 +343,7 @@ void main() {
     var node = findNode.simple('length');
     var element = ElementLocator.locate2(node);
     _assertElement(element, r'''
-dart:core::<fragment>::@class::String::@getter::length#element
+dart:core::@class::String::@getter::length
 ''');
   }
 
@@ -503,7 +503,7 @@ void f(Object? x) {
     var node = findNode.patternField('isEven:');
     var element = ElementLocator.locate2(node);
     _assertElement(element, r'''
-dart:core::<fragment>::@class::int::@getter::isEven#element
+dart:core::@class::int::@getter::isEven
 ''');
   }
 
@@ -538,7 +538,7 @@ void f(int a) {
     var node = findNode.prefixed('a.isEven');
     var element = ElementLocator.locate2(node);
     _assertElement(element, r'''
-dart:core::<fragment>::@class::int::@getter::isEven#element
+dart:core::@class::int::@getter::isEven
 ''');
   }
 

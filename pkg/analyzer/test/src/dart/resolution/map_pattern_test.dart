@@ -574,7 +574,7 @@ MapPattern
       key: FunctionExpressionInvocation
         function: SimpleIdentifier
           token: a
-          element: <testLibraryFragment>::@function::f::@parameter::a#element
+          element: <testLibrary>::@function::f::@formalParameter::a
           staticType: bool Function()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -626,7 +626,7 @@ PatternVariableDeclaration
   equals: =
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Map<bool, int>
   patternTypeSchema: Map<_, _>
 ''');

@@ -109,7 +109,7 @@ ExtendsClause
   extendsKeyword: extends
   superclass: NamedType
     name: v
-    element2: <testLibraryFragment>::@getter::v#element
+    element2: <testLibrary>::@getter::v
     type: InvalidType
 ''');
   }
@@ -137,7 +137,7 @@ ExtendsClause
           element2: dart:core::@class::int
           type: int
       rightBracket: >
-    element2: <testLibraryFragment>::@getter::v#element
+    element2: <testLibrary>::@getter::v
     type: InvalidType
 ''');
   }
@@ -224,7 +224,7 @@ ExtendsClause
     importPrefix: ImportPrefixReference
       name: p
       period: .
-      element2: package:test/a.dart::<fragment>::@prefix2::p
+      element2: package:test/a.dart::@prefix2::p
     name: A
     element2: <null>
     type: InvalidType
@@ -253,7 +253,7 @@ ExtendsClause
     importPrefix: ImportPrefixReference
       name: p
       period: .
-      element2: package:test/a.dart::@fragment::package:test/test.dart::@prefix2::p
+      element2: package:test/a.dart::@prefix2::p
     name: A
     element2: <null>
     type: InvalidType

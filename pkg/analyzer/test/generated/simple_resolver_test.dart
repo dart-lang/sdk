@@ -514,7 +514,7 @@ class A {
     assertResolvedNodeText(findNode.simple('x {}'), r'''
 SimpleIdentifier
   token: x
-  element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::x#element
+  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
   staticType: int
 ''');
   }
@@ -577,7 +577,7 @@ class C extends B with M1, M2 {
     assertResolvedNodeText(findNode.simple('x;'), r'''
 SimpleIdentifier
   token: x
-  element: <testLibraryFragment>::@mixin::M2::@getter::x#element
+  element: <testLibrary>::@mixin::M2::@getter::x
   staticType: dynamic
 ''');
   }
@@ -605,7 +605,7 @@ void main() {
     assertResolvedNodeText(findNode.simple('x;'), r'''
 SimpleIdentifier
   token: x
-  element: <testLibraryFragment>::@mixin::M2::@getter::x#element
+  element: <testLibrary>::@mixin::M2::@getter::x
   staticType: dynamic
 ''');
   }
@@ -875,9 +875,9 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    element: <testLibraryFragment>::@getter::A#element
+    element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibraryFragment>::@getter::A#element
+  element2: <testLibrary>::@getter::A
 ''');
   }
 
@@ -898,9 +898,9 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    element: <testLibraryFragment>::@getter::A#element
+    element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibraryFragment>::@getter::A#element
+  element2: <testLibrary>::@getter::A
 ''');
   }
 
@@ -919,9 +919,9 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    element: <testLibraryFragment>::@getter::A#element
+    element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibraryFragment>::@getter::A#element
+  element2: <testLibrary>::@getter::A
 ''');
   }
 
@@ -939,9 +939,9 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    element: <testLibraryFragment>::@getter::A#element
+    element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibraryFragment>::@getter::A#element
+  element2: <testLibrary>::@getter::A
 ''');
   }
 
@@ -991,9 +991,9 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    element: <testLibraryFragment>::@getter::A#element
+    element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibraryFragment>::@getter::A#element
+  element2: <testLibrary>::@getter::A
 ''');
   }
 
@@ -1012,9 +1012,9 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    element: <testLibraryFragment>::@getter::A#element
+    element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibraryFragment>::@getter::A#element
+  element2: <testLibrary>::@getter::A
 ''');
   }
 
@@ -1041,9 +1041,9 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    element: <testLibraryFragment>::@getter::A#element
+    element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibraryFragment>::@getter::A#element
+  element2: <testLibrary>::@getter::A
 ''');
   }
 
@@ -1062,9 +1062,9 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    element: <testLibraryFragment>::@getter::A#element
+    element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibraryFragment>::@getter::A#element
+  element2: <testLibrary>::@getter::A
 ''');
   }
 
@@ -1104,9 +1104,9 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    element: <testLibraryFragment>::@getter::A#element
+    element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibraryFragment>::@getter::A#element
+  element2: <testLibrary>::@getter::A
 ''');
   }
 
@@ -1124,9 +1124,9 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    element: <testLibraryFragment>::@getter::A#element
+    element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibraryFragment>::@getter::A#element
+  element2: <testLibrary>::@getter::A
 ''');
   }
 
@@ -1170,9 +1170,9 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    element: <testLibraryFragment>::@getter::A#element
+    element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibraryFragment>::@getter::A#element
+  element2: <testLibrary>::@getter::A
 ''');
   }
 

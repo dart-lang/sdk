@@ -71,7 +71,7 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: p
         period: .
-        element2: package:test/b.dart::<fragment>::@prefix2::p
+        element2: package:test/b.dart::@prefix2::p
       name: B
       element2: package:test/a.dart::@class::B
       type: B<num>
@@ -101,7 +101,7 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: p
         period: .
-        element2: package:test/b.dart::<fragment>::@prefix2::p
+        element2: package:test/b.dart::@prefix2::p
       name: B
       element2: package:test/a.dart::@class::B
       type: B<num>
@@ -163,7 +163,7 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: p
         period: .
-        element2: package:test/b.dart::<fragment>::@prefix2::p
+        element2: package:test/b.dart::@prefix2::p
       name: A
       element2: package:test/a.dart::@class::A
       type: A
@@ -189,7 +189,7 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: p
         period: .
-        element2: package:test/b.dart::<fragment>::@prefix2::p
+        element2: package:test/b.dart::@prefix2::p
       name: A
       element2: package:test/a.dart::@class::A
       type: A

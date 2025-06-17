@@ -581,7 +581,7 @@ int Function() foo(int Function<T extends int>() f) {
 FunctionReference
   function: SimpleIdentifier
     token: f
-    element: <testLibraryFragment>::@function::foo::@parameter::f#element
+    element: <testLibrary>::@function::foo::@formalParameter::f
     staticType: int Function<T extends int>()
   staticType: int Function()
   typeArgumentTypes

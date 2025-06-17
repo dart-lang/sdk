@@ -31,14 +31,14 @@ void f(A a) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A
   period: .
   identifier: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@getter::foo#element
+    element: <testLibrary>::@class::A::@getter::foo
     staticType: int
-  element: <testLibraryFragment>::@class::A::@getter::foo#element
+  element: <testLibrary>::@class::A::@getter::foo
   staticType: int
 ''');
   }
@@ -146,7 +146,7 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A
     period: .
     identifier: SimpleIdentifier
@@ -158,11 +158,11 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 1
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibraryFragment>::@class::A::@getter::foo#element
+  readElement2: <testLibrary>::@class::A::@getter::foo
   readType: int
-  writeElement2: <testLibraryFragment>::@class::A::@setter::foo#element
+  writeElement2: <testLibrary>::@class::A::@setter::foo
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -186,7 +186,7 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A
     period: .
     identifier: SimpleIdentifier
@@ -198,11 +198,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 1
-    correspondingParameter: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_foo#element
+    correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::_foo
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@class::A::@setter::foo#element
+  writeElement2: <testLibrary>::@class::A::@setter::foo
   writeType: int
   element: <null>
   staticType: int
@@ -252,14 +252,14 @@ void f(E e) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: e
-    element: <testLibraryFragment>::@function::f::@parameter::e#element
+    element: <testLibrary>::@function::f::@formalParameter::e
     staticType: E
   period: .
   identifier: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@enum::E::@getter::foo#element
+    element: <testLibrary>::@enum::E::@getter::foo
     staticType: int
-  element: <testLibraryFragment>::@enum::E::@getter::foo#element
+  element: <testLibrary>::@enum::E::@getter::foo
   staticType: int
 ''');
   }
@@ -282,7 +282,7 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: e
-      element: <testLibraryFragment>::@function::f::@parameter::e#element
+      element: <testLibrary>::@function::f::@formalParameter::e
       staticType: E
     period: .
     identifier: SimpleIdentifier
@@ -294,11 +294,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 1
-    correspondingParameter: <testLibraryFragment>::@enum::E::@setter::foo::@parameter::_#element
+    correspondingParameter: <testLibrary>::@enum::E::@setter::foo::@formalParameter::_
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@enum::E::@setter::foo#element
+  writeElement2: <testLibrary>::@enum::E::@setter::foo
   writeType: int
   element: <null>
   staticType: int
@@ -317,7 +317,7 @@ void f(Function a) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: Function
   period: .
   identifier: SimpleIdentifier
@@ -341,7 +341,7 @@ void f(int Function(String) a) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: int Function(String)
   period: .
   identifier: SimpleIdentifier
@@ -376,9 +376,9 @@ PrefixedIdentifier
   period: .
   identifier: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@getter::foo#element
+    element: <testLibrary>::@class::A::@getter::foo
     staticType: int
-  element: <testLibraryFragment>::@class::A::@getter::foo#element
+  element: <testLibrary>::@class::A::@getter::foo
   staticType: int
 ''');
   }
@@ -403,7 +403,7 @@ int Function() foo() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
-  element: package:test/a.dart::<fragment>::@getter::a#element
+  element: package:test/a.dart::@getter::a
   staticType: A
 ''');
   }
@@ -431,7 +431,7 @@ int Function() foo() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
-  element: package:test/a.dart::<fragment>::@getter::a#element
+  element: package:test/a.dart::@getter::a
   staticType: A?
 ''');
   }
@@ -549,9 +549,9 @@ PrefixedIdentifier
   period: .
   identifier: SimpleIdentifier
     token: foo
-    element: package:test/a.dart::<fragment>::@getter::foo#element
+    element: package:test/a.dart::@getter::foo
     staticType: int
-  element: package:test/a.dart::<fragment>::@getter::foo#element
+  element: package:test/a.dart::@getter::foo
   staticType: int
 ''');
   }
@@ -612,9 +612,9 @@ PrefixedIdentifier
   period: .
   identifier: SimpleIdentifier
     token: foo
-    element: package:test/a.dart::<fragment>::@getter::foo#element
+    element: package:test/a.dart::@getter::foo
     staticType: int
-  element: package:test/a.dart::<fragment>::@getter::foo#element
+  element: package:test/a.dart::@getter::foo
   staticType: int
 ''');
   }
@@ -834,14 +834,14 @@ void f(A a) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A
   period: .
   identifier: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
+    element: <testLibrary>::@extensionType::A::@getter::foo
     staticType: int
-  element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
+  element: <testLibrary>::@extensionType::A::@getter::foo
   staticType: int
 ''');
   }
@@ -862,14 +862,14 @@ void f(A a) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A
   period: .
   identifier: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
+    element: <testLibrary>::@extensionType::A::@getter::foo
     staticType: int
-  element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
+  element: <testLibrary>::@extensionType::A::@getter::foo
   staticType: int
 ''');
   }
@@ -899,14 +899,14 @@ void f(A? a) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A?
   period: .
   identifier: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
+    element: <testLibrary>::@extensionType::A::@getter::foo
     staticType: int
-  element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
+  element: <testLibrary>::@extensionType::A::@getter::foo
   staticType: int
 ''');
   }
@@ -927,12 +927,12 @@ void f(A? a) {
 PropertyAccess
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A?
   operator: ?.
   propertyName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
+    element: <testLibrary>::@extensionType::A::@getter::foo
     staticType: int
   staticType: int?
 ''');
@@ -955,7 +955,7 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A
     period: .
     identifier: SimpleIdentifier
@@ -967,11 +967,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: <testLibraryFragment>::@extensionType::A::@setter::foo::@parameter::_#element
+    correspondingParameter: <testLibrary>::@extensionType::A::@setter::foo::@formalParameter::_
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@extensionType::A::@setter::foo#element
+  writeElement2: <testLibrary>::@extensionType::A::@setter::foo
   writeType: int
   element: <null>
   staticType: int
@@ -1107,14 +1107,14 @@ void f(dynamic a) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: dynamic
   period: .
   identifier: SimpleIdentifier
     token: hashCode
-    element: dart:core::<fragment>::@class::Object::@getter::hashCode#element
+    element: dart:core::@class::Object::@getter::hashCode
     staticType: int
-  element: dart:core::<fragment>::@class::Object::@getter::hashCode#element
+  element: dart:core::@class::Object::@getter::hashCode
   staticType: int
 ''');
   }
@@ -1131,7 +1131,7 @@ void f(dynamic a) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: dynamic
   period: .
   identifier: SimpleIdentifier
@@ -1158,7 +1158,7 @@ void f(int a) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: int
   period: .
   identifier: SimpleIdentifier

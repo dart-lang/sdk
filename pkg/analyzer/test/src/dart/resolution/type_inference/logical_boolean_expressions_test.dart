@@ -44,7 +44,7 @@ BinaryExpression
   rightOperand: FunctionExpressionInvocation
     function: SimpleIdentifier
       token: b
-      element: <testLibraryFragment>::@function::f::@parameter::b#element
+      element: <testLibrary>::@function::f::@formalParameter::b
       staticType: dynamic
     argumentList: ArgumentList
       leftParenthesis: (
@@ -71,13 +71,13 @@ void f(bool a, bool b) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: bool
   operator: &&
   rightOperand: SimpleIdentifier
     token: b
     correspondingParameter: <null>
-    element: <testLibraryFragment>::@function::f::@parameter::b#element
+    element: <testLibrary>::@function::f::@formalParameter::b
     staticType: bool
   element: <null>
   staticInvokeType: null
@@ -117,7 +117,7 @@ BinaryExpression
   rightOperand: FunctionExpressionInvocation
     function: SimpleIdentifier
       token: b
-      element: <testLibraryFragment>::@function::f::@parameter::b#element
+      element: <testLibrary>::@function::f::@formalParameter::b
       staticType: dynamic
     argumentList: ArgumentList
       leftParenthesis: (
@@ -144,13 +144,13 @@ void f(bool a, bool b) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: bool
   operator: ||
   rightOperand: SimpleIdentifier
     token: b
     correspondingParameter: <null>
-    element: <testLibraryFragment>::@function::f::@parameter::b#element
+    element: <testLibrary>::@function::f::@formalParameter::b
     staticType: bool
   element: <null>
   staticInvokeType: null

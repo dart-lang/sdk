@@ -59,7 +59,7 @@ main() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v
-  element: <testLibraryFragment>::@getter::v#element
+  element: <testLibrary>::@getter::v
   staticType: int
 ''');
   }
@@ -93,7 +93,7 @@ ForElement
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
-      element: <testLibraryFragment>::@function::f::@parameter::x#element
+      element: <testLibrary>::@function::f::@formalParameter::x
       staticType: dynamic
   rightParenthesis: )
   body: SimpleIdentifier
@@ -128,7 +128,7 @@ ForElement
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
-      element: <testLibraryFragment>::@function::f::@parameter::x#element
+      element: <testLibrary>::@function::f::@formalParameter::x
       staticType: List<int>
   rightParenthesis: )
   body: SimpleIdentifier
@@ -166,7 +166,7 @@ ForElement
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
-      element: <testLibraryFragment>::@function::f::@parameter::x#element
+      element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Object
   rightParenthesis: )
   body: SimpleIdentifier
@@ -295,7 +295,7 @@ ForElement
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
-      element: <testLibraryFragment>::@function::f::@parameter::x#element
+      element: <testLibrary>::@function::f::@formalParameter::x
       staticType: List<int>
   rightParenthesis: )
   body: SimpleIdentifier
@@ -334,7 +334,7 @@ ForElement
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
-      element: <testLibraryFragment>::@function::f::@parameter::x#element
+      element: <testLibrary>::@function::f::@formalParameter::x
       staticType: List<int>
   rightParenthesis: )
   body: SimpleIdentifier
@@ -368,7 +368,7 @@ ForElement
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
-      element: <testLibraryFragment>::@getter::x#element
+      element: <testLibrary>::@getter::x
       staticType: List<int>
   rightParenthesis: )
   body: SimpleIdentifier
@@ -402,7 +402,7 @@ ForElement
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
-      element: <testLibraryFragment>::@getter::x#element
+      element: <testLibrary>::@getter::x
       staticType: List<int>
   rightParenthesis: )
   body: SimpleIdentifier
@@ -442,7 +442,7 @@ ForElement
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
-      element: <testLibraryFragment>::@function::f::@parameter::x#element
+      element: <testLibrary>::@function::f::@formalParameter::x
       staticType: dynamic
   rightParenthesis: )
   body: SimpleIdentifier
@@ -481,7 +481,7 @@ ForElement
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
-      element: <testLibraryFragment>::@function::f::@parameter::x#element
+      element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Object
   rightParenthesis: )
   body: SimpleIdentifier
@@ -517,7 +517,7 @@ ForElement
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
-      element: <testLibraryFragment>::@function::f::@parameter::x#element
+      element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Stream<int>
   rightParenthesis: )
   body: SimpleIdentifier
@@ -649,7 +649,7 @@ ForElement
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
-      element: <testLibraryFragment>::@function::f::@parameter::x#element
+      element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Stream<int>
   rightParenthesis: )
   body: SimpleIdentifier
@@ -689,7 +689,7 @@ ForElement
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
-      element: <testLibraryFragment>::@function::f::@parameter::x#element
+      element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Stream<int>
   rightParenthesis: )
   body: SimpleIdentifier
@@ -715,7 +715,7 @@ f(bool Function() b) {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: b
-    element: <testLibraryFragment>::@function::f::@parameter::b#element
+    element: <testLibrary>::@function::f::@formalParameter::b
     staticType: bool Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -792,7 +792,7 @@ ForElement
       equals: =
       expression: SimpleIdentifier
         token: x
-        element: <testLibraryFragment>::@function::f::@parameter::x#element
+        element: <testLibrary>::@function::f::@formalParameter::x
         staticType: (int, bool)
       patternTypeSchema: (_, _)
     leftSeparator: ;

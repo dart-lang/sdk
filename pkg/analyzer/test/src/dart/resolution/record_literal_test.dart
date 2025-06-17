@@ -38,7 +38,7 @@ RecordLiteral
       expression: PropertyAccess
         target: SimpleIdentifier
           token: r
-          element: <testLibraryFragment>::@function::f::@parameter::r#element
+          element: <testLibrary>::@function::f::@formalParameter::r
           staticType: (int, String)
         operator: .
         propertyName: SimpleIdentifier
@@ -66,7 +66,7 @@ RecordLiteral
     PropertyAccess
       target: SimpleIdentifier
         token: r
-        element: <testLibraryFragment>::@function::f::@parameter::r#element
+        element: <testLibrary>::@function::f::@formalParameter::r
         staticType: (int, String)
       operator: .
       propertyName: SimpleIdentifier
@@ -93,11 +93,11 @@ RecordLiteral
   fields
     SimpleIdentifier
       token: d
-      element: <testLibraryFragment>::@function::test::@parameter::d#element
+      element: <testLibrary>::@function::test::@formalParameter::d
       staticType: dynamic
     SimpleIdentifier
       token: d
-      element: <testLibraryFragment>::@function::test::@parameter::d#element
+      element: <testLibrary>::@function::test::@formalParameter::d
       staticType: dynamic
   rightParenthesis: )
   staticType: (List<Object?>, List<Object?>)
@@ -129,7 +129,7 @@ RecordLiteral
       expression: ImplicitCallReference
         expression: SimpleIdentifier
           token: a
-          element: <testLibraryFragment>::@getter::a#element
+          element: <testLibrary>::@getter::a
           staticType: A
         element: <testLibrary>::@class::A::@method::call
         staticType: void Function()
@@ -156,7 +156,7 @@ RecordLiteral
     ImplicitCallReference
       expression: SimpleIdentifier
         token: a
-        element: <testLibraryFragment>::@getter::a#element
+        element: <testLibrary>::@getter::a
         staticType: A
       element: <testLibrary>::@class::A::@method::call
       staticType: void Function()
@@ -185,7 +185,7 @@ RecordLiteral
         colon: :
       expression: SimpleIdentifier
         token: a
-        element: <testLibraryFragment>::@getter::a#element
+        element: <testLibrary>::@getter::a
         staticType: dynamic
   rightParenthesis: )
   staticType: ({int f1})
@@ -205,7 +205,7 @@ RecordLiteral
   fields
     SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@getter::a#element
+      element: <testLibrary>::@getter::a
       staticType: dynamic
   rightParenthesis: )
   staticType: (int,)
@@ -684,7 +684,7 @@ RecordLiteral
         colon: :
       expression: SimpleIdentifier
         token: a
-        element: <testLibraryFragment>::@getter::a#element
+        element: <testLibrary>::@getter::a
         staticType: dynamic
   rightParenthesis: )
   staticType: ({dynamic f1})
@@ -704,7 +704,7 @@ RecordLiteral
   fields
     SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@getter::a#element
+      element: <testLibrary>::@getter::a
       staticType: dynamic
   rightParenthesis: )
   staticType: (dynamic,)
@@ -885,11 +885,11 @@ RecordLiteral
   fields
     SimpleIdentifier
       token: d
-      element: <testLibraryFragment>::@function::test::@parameter::d#element
+      element: <testLibrary>::@function::test::@formalParameter::d
       staticType: dynamic
     SimpleIdentifier
       token: d
-      element: <testLibraryFragment>::@function::test::@parameter::d#element
+      element: <testLibrary>::@function::test::@formalParameter::d
       staticType: dynamic
   rightParenthesis: )
   staticType: (dynamic, dynamic)
@@ -914,7 +914,7 @@ VariableDeclaration
       staticType: int
     rightParenthesis: )
     staticType: int
-  declaredElement: <testLibraryFragment>::@topLevelVariable::x
+  declaredElement: <testLibraryFragment> x@22
 ''');
   }
 
@@ -946,7 +946,7 @@ VariableDeclaration
       staticType: int
     rightParenthesis: )
     staticType: int
-  declaredElement: <testLibraryFragment>::@topLevelVariable::x
+  declaredElement: <testLibraryFragment> x@22
 ''');
   }
 
@@ -971,7 +971,7 @@ VariableDeclaration
       staticType: int
     rightParenthesis: )
     staticType: int
-  declaredElement: <testLibraryFragment>::@topLevelVariable::x
+  declaredElement: <testLibraryFragment> x@22
 ''');
   }
 
@@ -996,7 +996,7 @@ VariableDeclaration
       staticType: int
     rightParenthesis: )
     staticType: int
-  declaredElement: <testLibraryFragment>::@topLevelVariable::x
+  declaredElement: <testLibraryFragment> x@22
 ''');
   }
 
@@ -1022,7 +1022,7 @@ VariableDeclaration
       staticType: InvalidType
     rightParenthesis: )
     staticType: InvalidType
-  declaredElement: <testLibraryFragment>::@topLevelVariable::x
+  declaredElement: <testLibraryFragment> x@22
 ''');
   }
 

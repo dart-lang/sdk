@@ -129,7 +129,7 @@ CompilationUnit
         variables
           VariableDeclaration
             name: a
-            declaredElement: <testLibraryFragment>::@topLevelVariable::a
+            declaredElement: <testLibraryFragment> a@93
       semicolon: ;
       declaredElement: <null>
 ''');
@@ -232,7 +232,7 @@ CompilationUnit
         variables
           VariableDeclaration
             name: a
-            declaredElement: <testLibraryFragment>::@topLevelVariable::a
+            declaredElement: <testLibraryFragment> a@93
       semicolon: ;
       declaredElement: <null>
 ''');
@@ -438,7 +438,7 @@ CompilationUnit
         variables
           VariableDeclaration
             name: a
-            declaredElement: <testLibraryFragment>::@topLevelVariable::a
+            declaredElement: <testLibraryFragment> a@93
       semicolon: ;
       declaredElement: <null>
 ''');

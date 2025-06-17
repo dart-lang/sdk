@@ -522,7 +522,7 @@ void f(A a) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A
   period: .
   identifier: SimpleIdentifier
@@ -563,7 +563,7 @@ PropertyAccess
     leftParenthesis: (
     expression: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A
     rightParenthesis: )
     staticType: A

@@ -30,9 +30,9 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@getter::a#element
+    element: <testLibrary>::@getter::a
     staticType: null
-  element2: <testLibraryFragment>::@getter::a#element
+  element2: <testLibrary>::@getter::a
 ''');
     _assertAnnotationValueText(annotation, '''
 int 42
@@ -103,9 +103,9 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: v
-    element: <testLibraryFragment>::@enum::E::@getter::v#element
+    element: <testLibrary>::@enum::E::@getter::v
     staticType: null
-  element2: <testLibraryFragment>::@enum::E::@getter::v#element
+  element2: <testLibrary>::@enum::E::@getter::v
 ''');
 
     _assertAnnotationValueText(annotation, '''
@@ -161,10 +161,10 @@ Annotation
           arguments
             IntegerLiteral
               literal: 0
-              correspondingParameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::f#element
+              correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
               staticType: int
           rightParenthesis: )
-        correspondingParameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::f#element
+        correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
         staticType: A
     rightParenthesis: )
   element2: <testLibrary>::@class::A::@constructor::new
@@ -247,7 +247,7 @@ Annotation
     arguments
       IntegerLiteral
         literal: 3
-        correspondingParameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
+        correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
         staticType: int
     rightParenthesis: )
   element2: <testLibrary>::@class::A::@constructor::new
@@ -350,7 +350,7 @@ Annotation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::f#element
+        correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
         staticType: int
     rightParenthesis: )
   element2: <testLibrary>::@class::A::@constructor::new
@@ -383,7 +383,7 @@ Annotation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::f#element
+        correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
         staticType: int
     rightParenthesis: )
   element2: <testLibrary>::@class::A::@constructor::new
@@ -448,7 +448,7 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
-        correspondingParameter: <testLibraryFragment>::@class::A::@constructor::named::@parameter::f#element
+        correspondingParameter: <testLibrary>::@class::A::@constructor::named::@formalParameter::f
         staticType: int
     rightParenthesis: )
   element2: <testLibrary>::@class::A::@constructor::named
@@ -491,7 +491,7 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
-        correspondingParameter: <testLibraryFragment>::@class::A::@constructor::named::@parameter::f#element
+        correspondingParameter: <testLibrary>::@class::A::@constructor::named::@formalParameter::f
         staticType: int
     rightParenthesis: )
   element2: <testLibrary>::@class::A::@constructor::named
@@ -525,11 +525,11 @@ Annotation
     period: .
     identifier: SimpleIdentifier
       token: foo
-      element: <testLibraryFragment>::@class::A::@getter::foo#element
+      element: <testLibrary>::@class::A::@getter::foo
       staticType: null
-    element: <testLibraryFragment>::@class::A::@getter::foo#element
+    element: <testLibrary>::@class::A::@getter::foo
     staticType: null
-  element2: <testLibraryFragment>::@class::A::@getter::foo#element
+  element2: <testLibrary>::@class::A::@getter::foo
 ''');
     _assertAnnotationValueText(annotation, '''
 int 42
@@ -561,7 +561,7 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
-        correspondingParameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::f#element
+        correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
         staticType: int
     rightParenthesis: )
   element2: <testLibrary>::@class::A::@constructor::new
@@ -610,7 +610,7 @@ Annotation
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
-        correspondingParameter: <testLibraryFragment>::@class::D::@constructor::new::@parameter::c#element
+        correspondingParameter: <testLibrary>::@class::D::@constructor::new::@formalParameter::c
         staticType: C
     rightParenthesis: )
   element2: <testLibrary>::@class::D::@constructor::new
@@ -651,7 +651,7 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
-        correspondingParameter: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::it#element
+        correspondingParameter: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
         staticType: int
     rightParenthesis: )
   element2: <testLibrary>::@extensionType::A::@constructor::named
@@ -683,7 +683,7 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
-        correspondingParameter: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
+        correspondingParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
         staticType: int
     rightParenthesis: )
   element2: <testLibrary>::@extensionType::A::@constructor::new
@@ -732,7 +732,7 @@ Annotation
         leftBracket: [
         rightBracket: ]
         correspondingParameter: FieldFormalParameterMember
-          baseElement: <testLibraryFragment>::@class::A::@constructor::named::@parameter::f#element
+          baseElement: <testLibrary>::@class::A::@constructor::named::@formalParameter::f
           substitution: {T: Object?}
         staticType: List<List<Object?>>
     rightParenthesis: )
@@ -773,7 +773,7 @@ Annotation
         leftBracket: [
         rightBracket: ]
         correspondingParameter: FieldFormalParameterMember
-          baseElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::f#element
+          baseElement: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
           substitution: {T: Object?}
         staticType: List<List<Object?>>
     rightParenthesis: )
@@ -825,7 +825,7 @@ Annotation
       IntegerLiteral
         literal: 42
         correspondingParameter: FieldFormalParameterMember
-          baseElement: <testLibraryFragment>::@class::A::@constructor::named::@parameter::f#element
+          baseElement: <testLibrary>::@class::A::@constructor::named::@formalParameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -864,7 +864,7 @@ Annotation
       IntegerLiteral
         literal: 42
         correspondingParameter: FieldFormalParameterMember
-          baseElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::f#element
+          baseElement: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -899,11 +899,11 @@ Annotation
     period: .
     identifier: SimpleIdentifier
       token: foo
-      element: <testLibraryFragment>::@class::A::@getter::foo#element
+      element: <testLibrary>::@class::A::@getter::foo
       staticType: null
-    element: <testLibraryFragment>::@class::A::@getter::foo#element
+    element: <testLibrary>::@class::A::@getter::foo
     staticType: null
-  element2: <testLibraryFragment>::@class::A::@getter::foo#element
+  element2: <testLibrary>::@class::A::@getter::foo
 ''');
   }
 
@@ -944,7 +944,7 @@ Annotation
       IntegerLiteral
         literal: 42
         correspondingParameter: FieldFormalParameterMember
-          baseElement: <testLibraryFragment>::@class::A::@constructor::named::@parameter::f#element
+          baseElement: <testLibrary>::@class::A::@constructor::named::@formalParameter::f
           substitution: {T: dynamic}
         staticType: int
     rightParenthesis: )
@@ -980,11 +980,11 @@ Annotation
     period: .
     identifier: SimpleIdentifier
       token: foo
-      element: <testLibraryFragment>::@class::A::@getter::foo#element
+      element: <testLibrary>::@class::A::@getter::foo
       staticType: null
-    element: <testLibraryFragment>::@class::A::@getter::foo#element
+    element: <testLibrary>::@class::A::@getter::foo
     staticType: null
-  element2: <testLibraryFragment>::@class::A::@getter::foo#element
+  element2: <testLibrary>::@class::A::@getter::foo
 ''');
     _assertAnnotationValueText(annotation, '''
 <null>
@@ -1031,7 +1031,7 @@ Annotation
       IntegerLiteral
         literal: 42
         correspondingParameter: FieldFormalParameterMember
-          baseElement: <testLibraryFragment>::@class::A::@constructor::named::@parameter::f#element
+          baseElement: <testLibrary>::@class::A::@constructor::named::@formalParameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -1078,7 +1078,7 @@ Annotation
       IntegerLiteral
         literal: 42
         correspondingParameter: FieldFormalParameterMember
-          baseElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::f#element
+          baseElement: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -1118,7 +1118,7 @@ Annotation
       IntegerLiteral
         literal: 42
         correspondingParameter: FieldFormalParameterMember
-          baseElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::f#element
+          baseElement: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
           substitution: {T: dynamic}
         staticType: int
     rightParenthesis: )
@@ -1161,7 +1161,7 @@ Annotation
       IntegerLiteral
         literal: 42
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::f#element
+          baseElement: <testLibrary>::@class::B::@constructor::new::@formalParameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -1208,7 +1208,7 @@ Annotation
       IntegerLiteral
         literal: 42
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::f#element
+          baseElement: <testLibrary>::@class::B::@constructor::new::@formalParameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -1252,7 +1252,7 @@ Annotation
       IntegerLiteral
         literal: 42
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::f#element
+          baseElement: <testLibrary>::@class::B::@constructor::new::@formalParameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -1295,7 +1295,7 @@ Annotation
       IntegerLiteral
         literal: 42
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::f#element
+          baseElement: <testLibrary>::@class::B::@constructor::new::@formalParameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -1339,7 +1339,7 @@ Annotation
       IntegerLiteral
         literal: 42
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::f#element
+          baseElement: <testLibrary>::@class::B::@constructor::new::@formalParameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -1385,7 +1385,7 @@ Annotation
       IntegerLiteral
         literal: 42
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::f#element
+          baseElement: <testLibrary>::@class::B::@constructor::new::@formalParameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -1437,7 +1437,7 @@ Annotation
       IntegerLiteral
         literal: 42
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::f#element
+          baseElement: <testLibrary>::@class::B::@constructor::new::@formalParameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -1582,7 +1582,7 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
-        correspondingParameter: package:test/a.dart::<fragment>::@class::A::@constructor::named::@parameter::f#element
+        correspondingParameter: package:test/a.dart::@class::A::@constructor::named::@formalParameter::f
         staticType: int
     rightParenthesis: )
   element2: package:test/a.dart::@class::A::@constructor::named
@@ -1626,9 +1626,9 @@ Annotation
   period: .
   constructorName: SimpleIdentifier
     token: foo
-    element: package:test/a.dart::<fragment>::@class::A::@getter::foo#element
+    element: package:test/a.dart::@class::A::@getter::foo
     staticType: null
-  element2: package:test/a.dart::<fragment>::@class::A::@getter::foo#element
+  element2: package:test/a.dart::@class::A::@getter::foo
 ''');
 
     _assertAnnotationValueText(node, '''
@@ -1673,7 +1673,7 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
-        correspondingParameter: package:test/a.dart::<fragment>::@class::A::@constructor::new::@parameter::f#element
+        correspondingParameter: package:test/a.dart::@class::A::@constructor::new::@formalParameter::f
         staticType: int
     rightParenthesis: )
   element2: package:test/a.dart::@class::A::@constructor::new
@@ -1709,11 +1709,11 @@ Annotation
     period: .
     identifier: SimpleIdentifier
       token: foo
-      element: package:test/a.dart::<fragment>::@getter::foo#element
+      element: package:test/a.dart::@getter::foo
       staticType: null
-    element: package:test/a.dart::<fragment>::@getter::foo#element
+    element: package:test/a.dart::@getter::foo
     staticType: null
-  element2: package:test/a.dart::<fragment>::@getter::foo#element
+  element2: package:test/a.dart::@getter::foo
 ''');
 
     _assertAnnotationValueText(node, '''
@@ -1756,9 +1756,9 @@ Annotation
   period: .
   constructorName: SimpleIdentifier
     token: foo
-    element: package:test/a.dart::<fragment>::@class::A::@getter::foo#element
+    element: package:test/a.dart::@class::A::@getter::foo
     staticType: null
-  element2: package:test/a.dart::<fragment>::@class::A::@getter::foo#element
+  element2: package:test/a.dart::@class::A::@getter::foo
 ''');
     _assertAnnotationValueText(annotation, '''
 int 42
@@ -1811,7 +1811,7 @@ Annotation
       IntegerLiteral
         literal: 42
         correspondingParameter: FieldFormalParameterMember
-          baseElement: package:test/a.dart::<fragment>::@class::A::@constructor::named::@parameter::f#element
+          baseElement: package:test/a.dart::@class::A::@constructor::named::@formalParameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -1863,7 +1863,7 @@ Annotation
       IntegerLiteral
         literal: 42
         correspondingParameter: FieldFormalParameterMember
-          baseElement: package:test/a.dart::<fragment>::@class::A::@constructor::new::@parameter::f#element
+          baseElement: package:test/a.dart::@class::A::@constructor::new::@formalParameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -1930,7 +1930,7 @@ Annotation
       IntegerLiteral
         literal: 42
         correspondingParameter: FieldFormalParameterMember
-          baseElement: package:test/a.dart::<fragment>::@class::A::@constructor::named::@parameter::f#element
+          baseElement: package:test/a.dart::@class::A::@constructor::named::@formalParameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -1990,7 +1990,7 @@ Annotation
       IntegerLiteral
         literal: 42
         correspondingParameter: FieldFormalParameterMember
-          baseElement: package:test/a.dart::<fragment>::@class::A::@constructor::new::@parameter::f#element
+          baseElement: package:test/a.dart::@class::A::@constructor::new::@formalParameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -2039,11 +2039,11 @@ Annotation
     period: .
     identifier: SimpleIdentifier
       token: foo
-      element: <testLibraryFragment>::@class::A::@getter::foo#element
+      element: <testLibrary>::@class::A::@getter::foo
       staticType: null
-    element: <testLibraryFragment>::@class::A::@getter::foo#element
+    element: <testLibrary>::@class::A::@getter::foo
     staticType: null
-  element2: <testLibraryFragment>::@class::A::@getter::foo#element
+  element2: <testLibrary>::@class::A::@getter::foo
 ''');
     _assertAnnotationValueText(annotation, '''
 int 42
@@ -2094,13 +2094,13 @@ Annotation
       IntegerLiteral
         literal: 42
         correspondingParameter: FieldFormalParameterMember
-          baseElement: <testLibraryFragment>::@class::A::@constructor::named::@parameter::t#element
+          baseElement: <testLibrary>::@class::A::@constructor::named::@formalParameter::t
           substitution: {T: int, U: double}
         staticType: int
       DoubleLiteral
         literal: 1.2
         correspondingParameter: FieldFormalParameterMember
-          baseElement: <testLibraryFragment>::@class::A::@constructor::named::@parameter::u#element
+          baseElement: <testLibrary>::@class::A::@constructor::named::@formalParameter::u
           substitution: {T: int, U: double}
         staticType: double
     rightParenthesis: )
@@ -2151,13 +2151,13 @@ Annotation
       IntegerLiteral
         literal: 42
         correspondingParameter: FieldFormalParameterMember
-          baseElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::t#element
+          baseElement: <testLibrary>::@class::A::@constructor::new::@formalParameter::t
           substitution: {T: int, U: double}
         staticType: int
       DoubleLiteral
         literal: 1.2
         correspondingParameter: FieldFormalParameterMember
-          baseElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::u#element
+          baseElement: <testLibrary>::@class::A::@constructor::new::@formalParameter::u
           substitution: {T: int, U: double}
         staticType: double
     rightParenthesis: )
@@ -2211,7 +2211,7 @@ Annotation
       IntegerLiteral
         literal: 42
         correspondingParameter: FieldFormalParameterMember
-          baseElement: <testLibraryFragment>::@class::A::@constructor::named::@parameter::f#element
+          baseElement: <testLibrary>::@class::A::@constructor::named::@formalParameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -2252,7 +2252,7 @@ Annotation
       IntegerLiteral
         literal: 42
         correspondingParameter: FieldFormalParameterMember
-          baseElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::f#element
+          baseElement: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -2308,7 +2308,7 @@ Annotation
       IntegerLiteral
         literal: 42
         correspondingParameter: FieldFormalParameterMember
-          baseElement: <testLibraryFragment>::@class::A::@constructor::named::@parameter::f#element
+          baseElement: <testLibrary>::@class::A::@constructor::named::@formalParameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -2357,7 +2357,7 @@ Annotation
       IntegerLiteral
         literal: 42
         correspondingParameter: FieldFormalParameterMember
-          baseElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::f#element
+          baseElement: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -2410,7 +2410,7 @@ Annotation
       IntegerLiteral
         literal: 42
         correspondingParameter: FieldFormalParameterMember
-          baseElement: <testLibraryFragment>::@class::A::@constructor::named::@parameter::f#element
+          baseElement: <testLibrary>::@class::A::@constructor::named::@formalParameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -2451,7 +2451,7 @@ Annotation
       IntegerLiteral
         literal: 42
         correspondingParameter: FieldFormalParameterMember
-          baseElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::f#element
+          baseElement: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -2499,7 +2499,7 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
-        correspondingParameter: <testLibraryFragment>::@class::A::@constructor::named::@parameter::f#element
+        correspondingParameter: <testLibrary>::@class::A::@constructor::named::@formalParameter::f
         staticType: int
     rightParenthesis: )
   element2: <testLibrary>::@class::A::@constructor::named
@@ -2536,7 +2536,7 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
-        correspondingParameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::f#element
+        correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
         staticType: int
     rightParenthesis: )
   element2: <testLibrary>::@class::A::@constructor::new
@@ -2559,9 +2559,9 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@getter::foo#element
+    element: <testLibrary>::@getter::foo
     staticType: null
-  element2: <testLibraryFragment>::@getter::foo#element
+  element2: <testLibrary>::@getter::foo
 ''');
 
     var element = node.elementAnnotation!;

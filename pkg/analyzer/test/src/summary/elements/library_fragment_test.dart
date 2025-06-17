@@ -38,19 +38,19 @@ part 'a.dart';
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      nextFragment: #F1
       libraryExports
         dart:io
       parts
         part_0
           uri: package:test/a.dart
-          unit: <testLibrary>::@fragment::package:test/a.dart
-    <testLibrary>::@fragment::package:test/a.dart
+          unit: #F1
+    #F1 package:test/a.dart
       element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
+      enclosingFragment: #F0
+      previousFragment: #F0
       libraryExports
         dart:math
 ''');
@@ -71,17 +71,17 @@ part 'a.dart';
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      nextFragment: #F1
       parts
         part_0
           uri: package:test/a.dart
-          unit: <testLibrary>::@fragment::package:test/a.dart
-    <testLibrary>::@fragment::package:test/a.dart
+          unit: #F1
+    #F1 package:test/a.dart
       element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
+      enclosingFragment: #F0
+      previousFragment: #F0
       libraryExports
         dart:math
           metadata
@@ -89,9 +89,9 @@ library
               atSign: @ @21
               name: SimpleIdentifier
                 token: deprecated @22
-                element: dart:core::<fragment>::@getter::deprecated#element
+                element: dart:core::@getter::deprecated
                 staticType: null
-              element2: dart:core::<fragment>::@getter::deprecated#element
+              element2: dart:core::@getter::deprecated
 ''');
   }
 
@@ -110,19 +110,19 @@ part 'a.dart';
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      nextFragment: #F1
       libraryImports
         dart:io
       parts
         part_0
           uri: package:test/a.dart
-          unit: <testLibrary>::@fragment::package:test/a.dart
-    <testLibrary>::@fragment::package:test/a.dart
+          unit: #F1
+    #F1 package:test/a.dart
       element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
+      enclosingFragment: #F0
+      previousFragment: #F0
       libraryImports
         dart:math
 ''');
@@ -143,17 +143,17 @@ part 'a.dart';
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      nextFragment: #F1
       parts
         part_0
           uri: package:test/a.dart
-          unit: <testLibrary>::@fragment::package:test/a.dart
-    <testLibrary>::@fragment::package:test/a.dart
+          unit: #F1
+    #F1 package:test/a.dart
       element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
+      enclosingFragment: #F0
+      previousFragment: #F0
       libraryImports
         dart:math
           metadata
@@ -161,9 +161,9 @@ library
               atSign: @ @21
               name: SimpleIdentifier
                 token: deprecated @22
-                element: dart:core::<fragment>::@getter::deprecated#element
+                element: dart:core::@getter::deprecated
                 staticType: null
-              element2: dart:core::<fragment>::@getter::deprecated#element
+              element2: dart:core::@getter::deprecated
 ''');
   }
 
@@ -380,13 +380,13 @@ part 'a.dart';
 package:test/test.dart
   prefix.exitCode
     prefix: <testLibraryFragment>::@prefix2::prefix
-    getter: dart:io::<fragment>::@getter::exitCode#element
-    setter: dart:io::<fragment>::@setter::exitCode#element
+    getter: dart:io::@getter::exitCode
+    setter: dart:io::@setter::exitCode
 package:test/a.dart
   prefix.exitCode
     prefix: <testLibraryFragment>::@prefix2::prefix
-    getter: dart:io::<fragment>::@getter::exitCode#element
-    setter: dart:io::<fragment>::@setter::exitCode#element
+    getter: dart:io::@getter::exitCode
+    setter: dart:io::@setter::exitCode
 ''',
     );
   }
@@ -431,24 +431,24 @@ package:test/test.dart
     getter: <null>
 package:test/a.dart
   prefix.File
-    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
+    prefix: <testLibrary>::@prefix2::prefix
     getter: dart:io::@class::File
   prefix.Random
-    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
+    prefix: <testLibrary>::@prefix2::prefix
     getter: dart:math::@class::Random
 package:test/aa.dart
   prefix.File
-    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
+    prefix: <testLibrary>::@prefix2::prefix
     getter: dart:io::@class::File
   prefix.Random
-    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
+    prefix: <testLibrary>::@prefix2::prefix
     getter: dart:math::@class::Random
 package:test/aaa.dart
   prefix.File
-    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
+    prefix: <testLibrary>::@prefix2::prefix
     getter: dart:io::@class::File
   prefix.Random
-    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
+    prefix: <testLibrary>::@prefix2::prefix
     getter: dart:math::@class::Random
 ''',
     );
@@ -495,10 +495,10 @@ package:test/a.dart
     getter: <null>
 package:test/aa.dart
   prefix.File
-    prefix: <testLibrary>::@fragment::package:test/aa.dart::@prefix2::prefix
+    prefix: <testLibrary>::@prefix2::prefix
     getter: dart:io::@class::File
   prefix.Random
-    prefix: <testLibrary>::@fragment::package:test/aa.dart::@prefix2::prefix
+    prefix: <testLibrary>::@prefix2::prefix
     getter: dart:math::@class::Random
 ''',
     );
@@ -543,19 +543,19 @@ package:test/a.dart
   loadLibrary
     getter: <null>
   prefix.File
-    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
+    prefix: <testLibrary>::@prefix2::prefix
     getter: <null>
   prefix.Random
-    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
+    prefix: <testLibrary>::@prefix2::prefix
     getter: dart:math::@class::Random
 package:test/aa.dart
   loadLibrary
     getter: <null>
   prefix.File
-    prefix: <testLibrary>::@fragment::package:test/aa.dart::@prefix2::prefix
+    prefix: <testLibrary>::@prefix2::prefix
     getter: <null>
   prefix.Random
-    prefix: <testLibrary>::@fragment::package:test/aa.dart::@prefix2::prefix
+    prefix: <testLibrary>::@prefix2::prefix
     getter: dart:math::@class::Random
 ''',
     );
@@ -611,11 +611,11 @@ package:test/test.dart
   prefix.foo
     prefix: <testLibraryFragment>::@prefix2::prefix
     getter: multiplyDefinedElement
-      package:test/a.dart::<fragment>::@getter::foo#element
-      package:test/b.dart::<fragment>::@getter::foo#element
+      package:test/a.dart::@getter::foo
+      package:test/b.dart::@getter::foo
     setter: multiplyDefinedElement
-      package:test/a.dart::<fragment>::@setter::foo#element
-      package:test/b.dart::<fragment>::@setter::foo#element
+      package:test/a.dart::@setter::foo
+      package:test/b.dart::@setter::foo
 ''',
     );
   }
@@ -638,8 +638,8 @@ import 'dart:math' as prefix;
 package:test/test.dart
   prefix.pi
     prefix: <testLibraryFragment>::@prefix2::prefix
-    getter: package:test/a.dart::<fragment>::@getter::pi#element
-    setter: package:test/a.dart::<fragment>::@setter::pi#element
+    getter: package:test/a.dart::@getter::pi
+    setter: package:test/a.dart::@setter::pi
 ''',
     );
   }
@@ -662,8 +662,8 @@ import 'a.dart' as prefix;
 package:test/test.dart
   prefix.pi
     prefix: <testLibraryFragment>::@prefix2::prefix
-    getter: package:test/a.dart::<fragment>::@getter::pi#element
-    setter: package:test/a.dart::<fragment>::@setter::pi#element
+    getter: package:test/a.dart::@getter::pi
+    setter: package:test/a.dart::@setter::pi
 ''',
     );
   }
@@ -690,8 +690,8 @@ import 'b.dart' as prefix;
 package:test/test.dart
   prefix.foo
     prefix: <testLibraryFragment>::@prefix2::prefix
-    getter: package:test/a.dart::<fragment>::@getter::foo#element
-    setter: package:test/a.dart::<fragment>::@setter::foo#element
+    getter: package:test/a.dart::@getter::foo
+    setter: package:test/a.dart::@setter::foo
 ''',
     );
   }
@@ -718,8 +718,8 @@ import 'b.dart' as prefix2;
 package:test/test.dart
   prefix.foo
     prefix: <testLibraryFragment>::@prefix2::prefix
-    getter: package:test/a.dart::<fragment>::@getter::foo#element
-    setter: package:test/a.dart::<fragment>::@setter::foo#element
+    getter: package:test/a.dart::@getter::foo
+    setter: package:test/a.dart::@setter::foo
   prefix.bar
     prefix: <testLibraryFragment>::@prefix2::prefix
     getter: <null>
@@ -728,8 +728,8 @@ package:test/test.dart
     getter: <null>
   prefix2.bar
     prefix2: <testLibraryFragment>::@prefix2::prefix2
-    getter: package:test/b.dart::<fragment>::@getter::bar#element
-    setter: package:test/b.dart::<fragment>::@setter::bar#element
+    getter: package:test/b.dart::@getter::bar
+    setter: package:test/b.dart::@setter::bar
 ''',
     );
   }
@@ -833,17 +833,17 @@ package:test/test.dart
     getter: dart:io::@class::Directory
 package:test/a.dart
   prefix.File
-    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
+    prefix: <testLibrary>::@prefix2::prefix
     getter: dart:io::@class::File
   prefix.Directory
-    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
+    prefix: <testLibrary>::@prefix2::prefix
     getter: package:test/x.dart::@class::Directory
 package:test/aa.dart
   prefix.File
-    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
+    prefix: <testLibrary>::@prefix2::prefix
     getter: dart:io::@class::File
   prefix.Directory
-    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
+    prefix: <testLibrary>::@prefix2::prefix
     getter: package:test/x.dart::@class::Directory
 ''',
     );
@@ -1100,18 +1100,18 @@ part 'b.dart';
       r'''
 package:test/test.dart
   exitCode
-    getter: dart:io::<fragment>::@getter::exitCode#element
-    setter: dart:io::<fragment>::@setter::exitCode#element
+    getter: dart:io::@getter::exitCode
+    setter: dart:io::@setter::exitCode
 package:test/a.dart
   exitCode
-    getter: package:test/x.dart::<fragment>::@getter::exitCode#element
+    getter: package:test/x.dart::@getter::exitCode
 package:test/aa.dart
   exitCode
-    getter: package:test/x.dart::<fragment>::@getter::exitCode#element
+    getter: package:test/x.dart::@getter::exitCode
 package:test/b.dart
   exitCode
-    getter: dart:io::<fragment>::@getter::exitCode#element
-    setter: dart:io::<fragment>::@setter::exitCode#element
+    getter: dart:io::@getter::exitCode
+    setter: dart:io::@setter::exitCode
 ''',
     );
   }
@@ -1159,14 +1159,14 @@ package:test/test.dart
   exit
     getter: dart:io::@function::exit
   exitCode
-    getter: dart:io::<fragment>::@getter::exitCode#element
-    setter: dart:io::<fragment>::@setter::exitCode#element
+    getter: dart:io::@getter::exitCode
+    setter: dart:io::@setter::exitCode
 package:test/a.dart
   exit
     getter: dart:io::@function::exit
   exitCode
-    getter: dart:io::<fragment>::@getter::exitCode#element
-    setter: dart:io::<fragment>::@setter::exitCode#element
+    getter: dart:io::@getter::exitCode
+    setter: dart:io::@setter::exitCode
 ''',
     );
   }
@@ -1206,12 +1206,12 @@ package:test/test.dart
     getter: <null>
 package:test/a.dart
   exitCode
-    getter: dart:io::<fragment>::@getter::exitCode#element
-    setter: dart:io::<fragment>::@setter::exitCode#element
+    getter: dart:io::@getter::exitCode
+    setter: dart:io::@setter::exitCode
 package:test/aa.dart
   exitCode
-    getter: dart:io::<fragment>::@getter::exitCode#element
-    setter: dart:io::<fragment>::@setter::exitCode#element
+    getter: dart:io::@getter::exitCode
+    setter: dart:io::@setter::exitCode
 package:test/b.dart
   exitCode
     getter: <null>
@@ -1246,13 +1246,13 @@ part 'b.dart';
       r'''
 package:test/test.dart
   exitCode
-    getter: <testLibrary>::@fragment::package:test/a.dart::@getter::exitCode#element
+    getter: <testLibrary>::@getter::exitCode
 package:test/a.dart
   exitCode
-    getter: <testLibrary>::@fragment::package:test/a.dart::@getter::exitCode#element
+    getter: <testLibrary>::@getter::exitCode
 package:test/b.dart
   exitCode
-    getter: <testLibrary>::@fragment::package:test/a.dart::@getter::exitCode#element
+    getter: <testLibrary>::@getter::exitCode
 ''',
     );
   }
@@ -1285,15 +1285,15 @@ part 'b.dart';
 package:test/test.dart
   exitCode
     getter: <null>
-    setter: <testLibrary>::@fragment::package:test/a.dart::@setter::exitCode#element
+    setter: <testLibrary>::@setter::exitCode
 package:test/a.dart
   exitCode
     getter: <null>
-    setter: <testLibrary>::@fragment::package:test/a.dart::@setter::exitCode#element
+    setter: <testLibrary>::@setter::exitCode
 package:test/b.dart
   exitCode
     getter: <null>
-    setter: <testLibrary>::@fragment::package:test/a.dart::@setter::exitCode#element
+    setter: <testLibrary>::@setter::exitCode
 ''',
     );
   }
@@ -1373,7 +1373,7 @@ package:test/test.dart
     getter: <testLibrary>::@class::_Z
   _foo
     getter: <null>
-    setter: <testLibrary>::@fragment::package:test/a.dart::@setter::_foo#element
+    setter: <testLibrary>::@setter::_foo
 package:test/a.dart
   _A
     getter: <testLibrary>::@class::_A
@@ -1381,7 +1381,7 @@ package:test/a.dart
     getter: <testLibrary>::@class::_Z
   _foo
     getter: <null>
-    setter: <testLibrary>::@fragment::package:test/a.dart::@setter::_foo#element
+    setter: <testLibrary>::@setter::_foo
 ''',
     );
   }
