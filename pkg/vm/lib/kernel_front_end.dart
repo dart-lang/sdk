@@ -77,7 +77,7 @@ import 'transformations/vm_constant_evaluator.dart' as vm_constant_evaluator;
 void declareCompilerOptions(ArgParser args) {
   args.addOption(
     'platform',
-    help: 'Path to vm_platform_strong.dill file',
+    help: 'Path to vm_platform.dill file',
     defaultsTo: null,
   );
   args.addOption(

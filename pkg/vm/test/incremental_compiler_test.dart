@@ -30,7 +30,7 @@ import 'common_test_utils.dart';
 
 main() {
   final platformKernel = computePlatformBinariesLocation().resolve(
-    'vm_platform_strong.dill',
+    'vm_platform.dill',
   );
   final sdkRoot = computePlatformBinariesLocation();
 

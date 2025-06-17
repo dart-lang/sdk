@@ -74,7 +74,7 @@ Error: No Dart file specified.
     "compile-platform": {
       "exitCode": 1,
       "stdout": """
-Usage: compile_platform [options] dart-library-uri libraries.json vm_outline_strong.dill platform.dill outline.dill
+Usage: compile_platform [options] dart-library-uri libraries.json vm_outline.dill platform.dill outline.dill
 
 Compiles Dart SDK platform to the Dill/Kernel IR format.
 

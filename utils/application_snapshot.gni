@@ -131,7 +131,7 @@ template("application_snapshot") {
     gen_kernel_kernel =
         get_label_info("$_dart_root/utils/gen_kernel:bootstrap_gen_kernel",
                        "target_gen_dir") + "/bootstrap_gen_kernel.dill"
-    platform_dill = "$root_out_dir/vm_platform_strong.dill"
+    platform_dill = "$root_out_dir/vm_platform.dill"
 
     inputs = extra_inputs + [
                gen_kernel_kernel,

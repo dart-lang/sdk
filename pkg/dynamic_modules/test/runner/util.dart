@@ -99,7 +99,7 @@ Uri dart2bytecodeSnapshot = buildRootUri.resolve(
 Uri aotRuntimeBin = buildRootUri.resolve(
   useProduct ? 'dartaotruntime_product' : 'dartaotruntime',
 );
-Uri vmPlatformDill = buildRootUri.resolve('vm_platform_strong.dill');
+Uri vmPlatformDill = buildRootUri.resolve('vm_platform.dill');
 
 Uri dart2wasmSnapshot = dartBin.resolve('snapshots/dart2wasm_product.snapshot');
 Uri dart2wasmPlatformDill = buildRootUri.resolve('dart2wasm_platform.dill');

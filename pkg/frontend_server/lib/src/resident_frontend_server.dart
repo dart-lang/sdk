@@ -351,7 +351,7 @@ class ResidentFrontendServer {
   static final Uri _sdkBinariesUri = computePlatformBinariesLocation();
   static final Uri _sdkUri = _sdkBinariesUri.resolve('../../');
   static final Uri _platformKernelUri =
-      _sdkBinariesUri.resolve('vm_platform_strong.dill');
+      _sdkBinariesUri.resolve('vm_platform.dill');
   static final Map<String, ResidentCompiler> compilers = {};
 
   /// Returns a [ResidentCompiler] that has been configured with

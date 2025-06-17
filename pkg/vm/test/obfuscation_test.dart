@@ -87,11 +87,11 @@ List<MappingPair> getSnapshotMap(Directory tmpDir, File compileDartFile) {
   }
 
   final Uri platformDill = computePlatformBinariesLocation().resolve(
-    'vm_platform_strong_product.dill',
+    'vm_platform_product.dill',
   );
   final File platformDillFile = new File.fromUri(platformDill);
   if (!platformDillFile.existsSync()) {
-    throw "Didn't find vm_platform_strong_product at $platformDill";
+    throw "Didn't find vm_platform_product at $platformDill";
   }
 
   final Uri tmpDirUri = tmpDir.uri;

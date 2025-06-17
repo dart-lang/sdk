@@ -540,7 +540,7 @@ class _Test {
     checkProcessResult(Process.runSync(dart, <String>[
       frontendServer,
       '--sdk-root=$sdkRoot',
-      '--platform=vm_platform_strong.dill',
+      '--platform=vm_platform.dill',
       '--target=vm',
       '--aot',
       '--tfa',

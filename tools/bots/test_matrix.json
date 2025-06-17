@@ -3475,7 +3475,7 @@
           "script": "${build_root}/dart",
           "arguments": [
             "pkg/vm/bin/gen_kernel.dart",
-            "--platform=${build_root}/vm_platform_strong.dill",
+            "--platform=${build_root}/vm_platform.dill",
             "--no-aot",
             "-Dtest_runner.configuration=vm-linux-release-${arch}",
             "-o",
@@ -3488,7 +3488,7 @@
           "script": "${build_root}/dart",
           "arguments": [
             "pkg/vm/bin/gen_kernel.dart",
-            "--platform=${build_root}/vm_platform_strong.dill",
+            "--platform=${build_root}/vm_platform.dill",
             "--aot",
             "-Dtest_runner.configuration=vm-aot-linux-release-${arch}",
             "-o",

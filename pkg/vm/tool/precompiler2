@@ -142,7 +142,7 @@ function gen_kernel() {
 }
 
 # Step 1: Generate Kernel binary from the input Dart source.
-gen_kernel --platform "${BUILD_DIR}/vm_platform_strong.dill"                   \
+gen_kernel --platform "${BUILD_DIR}/vm_platform.dill"                   \
      --aot                                                                     \
      "${GEN_KERNEL_OPTIONS[@]}"                                                \
      $PACKAGES                                                                 \

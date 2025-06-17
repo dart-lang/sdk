@@ -634,7 +634,7 @@ Future _processExpressionCompilationRequest(request) async {
           platformKernel = dartPlatformKernel;
         } else {
           final Uri platformUri = computePlatformBinariesLocation().resolve(
-            'vm_platform_strong.dill',
+            'vm_platform.dill',
           );
           final File platformFile = new File.fromUri(platformUri);
           if (platformFile.existsSync()) {
@@ -878,7 +878,7 @@ Future _processLoadRequest(request) async {
     platformKernel = request[3];
   } else {
     platformKernelPath = computePlatformBinariesLocation().resolve(
-      'vm_platform_strong.dill',
+      'vm_platform.dill',
     );
   }
 

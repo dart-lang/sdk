@@ -185,7 +185,7 @@ test(List<String> Function(String) createDartCommand, int taskIndex) async {
       [
         "out/ReleaseX64/dart",
         "pkg/vm/bin/gen_kernel.dart",
-        "--platform=$buildDir/vm_platform_strong.dill",
+        "--platform=$buildDir/vm_platform.dill",
         "--aot",
         "--output=out/dartfuzz/$taskIndex.dill",
         dartScript,

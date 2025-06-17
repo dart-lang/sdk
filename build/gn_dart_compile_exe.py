@@ -90,7 +90,7 @@ def main(argv):
         return 1
 
     platform_dill = os.path.join(prebuilt_sdk, "lib", "_internal",
-                                 "vm_platform_strong.dill")
+                                 "vm_platform.dill")
     if not os.path.isfile(platform_dill):
         print("Binary not found: " + platform_dill)
         return 1

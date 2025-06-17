@@ -360,8 +360,7 @@ trace to find the place to insert the appropriate support.
                 self.extra_paths.add(self.rebase(arg))
                 self.extra_paths.add(
                     self.rebase(
-                        os.path.join(self.dart_subdir,
-                                     'vm_platform_strong.dill')))
+                        os.path.join(self.dart_subdir, 'vm_platform.dill')))
                 return self.parse_kernel_service_snapshot()
             else:
                 self.unsupported('dart', arg)
@@ -509,7 +508,7 @@ trace to find the place to insert the appropriate support.
                     if sdk.endswith('libraries.json'):
                         sdk = os.path.dirname(sdk)
                     self.extra_paths.add(self.rebase(sdk))
-                elif len(compile_platform_args) == 2:  # vm_outline_strong dill
+                elif len(compile_platform_args) == 2:  # vm_outline dill
                     arg = self.rebase(arg)
                 elif len(compile_platform_args) == 3:  # platform dill
                     arg = self.rebase(arg)

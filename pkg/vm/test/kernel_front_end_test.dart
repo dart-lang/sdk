@@ -15,7 +15,7 @@ final String sdkDir = Platform.script.resolve('../../..').toFilePath();
 
 String platformPath() =>
     computePlatformBinariesLocation()
-        .resolve('vm_platform_strong.dill')
+        .resolve('vm_platform.dill')
         .toFilePath();
 
 const String mainScript = 'pkg/vm/bin/gen_kernel.dart';

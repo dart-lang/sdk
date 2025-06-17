@@ -37,7 +37,7 @@ import 'options.dart' show BytecodeOptions;
 
 final ArgParser _argParser = ArgParser(allowTrailingOptions: true)
   ..addOption('platform',
-      help: 'Path to vm_platform_strong.dill file', defaultsTo: null)
+      help: 'Path to vm_platform.dill file', defaultsTo: null)
   ..addOption('packages',
       help: 'Path to .dart_tool/package_config.json file', defaultsTo: null)
   ..addOption('output',
@@ -89,7 +89,7 @@ final ArgParser _argParser = ArgParser(allowTrailingOptions: true)
       defaultsTo: Verbosity.defaultValue);
 
 final String _usage = '''
-Usage: dart2bytecode --platform vm_platform_strong.dill [--import-dill host_app.dill] [--validate dynamic_interface.yaml] [options] input.dart
+Usage: dart2bytecode --platform vm_platform.dill [--import-dill host_app.dill] [--validate dynamic_interface.yaml] [options] input.dart
 Compiles Dart sources to Dart bytecode.
 
 Options:

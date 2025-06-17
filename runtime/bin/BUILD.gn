@@ -582,7 +582,7 @@ gen_snapshot_action("generate_snapshot_bin") {
   isolate_snapshot_instructions =
       "$target_gen_dir/isolate_snapshot_instructions.bin"
 
-  platform_dill = "$root_out_dir/vm_platform_strong_stripped.dill"
+  platform_dill = "$root_out_dir/vm_platform_stripped.dill"
   inputs = [ platform_dill ]
   outputs = [
     vm_snapshot_data,
@@ -734,11 +734,11 @@ bin_to_linkable("kernel_service_dill_linkable") {
   executable = false
 }
 
-bin_to_linkable("platform_strong_dill_linkable") {
+bin_to_linkable("platform_dill_linkable") {
   deps = [ "../vm:vm_platform" ]
-  input = "$root_out_dir/vm_platform_strong.dill"
-  symbol = "kPlatformStrongDill"
-  size_symbol = "kPlatformStrongDillSize"
+  input = "$root_out_dir/vm_platform.dill"
+  symbol = "kPlatformDill"
+  size_symbol = "kPlatformDillSize"
   executable = false
 }
 
@@ -776,10 +776,10 @@ source_set("dart_kernel_platform_cc") {
   ]
   deps = [
     ":kernel_service_dill_linkable",
-    ":platform_strong_dill_linkable",
+    ":platform_dill_linkable",
   ]
   sources = get_target_outputs(":kernel_service_dill_linkable") +
-            get_target_outputs(":platform_strong_dill_linkable")
+            get_target_outputs(":platform_dill_linkable")
 }
 
 source_set("icudtl_cc") {

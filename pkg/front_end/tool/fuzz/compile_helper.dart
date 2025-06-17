@@ -40,8 +40,8 @@ class Helper {
   Future<void> setup() async {
     final Uri sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
     base = Uri.parse("org-dartlang-test:///");
-    sdkSummary = base.resolve("vm_platform_strong.dill");
-    Uri platformUri = sdkRoot.resolve("vm_platform_strong.dill");
+    sdkSummary = base.resolve("vm_platform.dill");
+    Uri platformUri = sdkRoot.resolve("vm_platform.dill");
     sdkSummaryData = await new File.fromUri(platformUri).readAsBytes();
   }
 

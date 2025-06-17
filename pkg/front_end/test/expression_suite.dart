@@ -629,12 +629,12 @@ Future<Context> createContext(
   final Uri entryPoint = base.resolve("nothing.dart");
 
   /// The custom URI used to locate the dill file in the MemoryFileSystem.
-  final Uri sdkSummary = base.resolve("vm_platform_strong.dill");
+  final Uri sdkSummary = base.resolve("vm_platform.dill");
 
   /// The actual location of the dill file.
   final Uri sdkSummaryFile =
       computePlatformBinariesLocation(forceBuildDir: true)
-          .resolve("vm_platform_strong.dill");
+          .resolve("vm_platform.dill");
 
   final MemoryFileSystem fs = new MemoryFileSystem(base);
 
