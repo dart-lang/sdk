@@ -65,7 +65,7 @@ bundle/
         Directory.fromUri(Directory.current.uri.resolve('bin/'));
 
     final outputDirectoryDefault = Directory.fromUri(Directory.current.uri
-        .resolve('build/cli/${OS.current}-${Architecture.current}/'));
+        .resolve('build/cli/${OS.current}_${Architecture.current}/'));
     entryPoints = binDirectory.existsSync()
         ? binDirectory
             .listSync()
