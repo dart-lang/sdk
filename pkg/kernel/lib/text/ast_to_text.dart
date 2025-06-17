@@ -52,10 +52,10 @@ class ConstantNamer extends RecursiveVisitor with Namer<Constant> {
           // Name everything in post-order visit of DAG.
           getName(value);
         }
-      } else if (constant is StaticTearOffConstant) {
-        // We only care about naming the constants themselves. [TearOffConstant]
-        // has no Constant children.
-        // Avoid visiting `TearOffConstant.procedureReference`.
+      } else if (constant is TearOffConstant) {
+        // We only care about naming the constants themselves.
+        // [TearOffConstant]s has no Constant children.
+        // Avoid visiting `TearOffConstant.targetReference`.
       } else {
         // Name everything in post-order visit of DAG.
         constant.visitChildren(this);
@@ -139,7 +139,7 @@ String componentToString(Component node) {
 class NameSystem {
   final Namer<VariableDeclaration> variables =
       new NormalNamer<VariableDeclaration>('#t');
-  final Namer<Library> libraries = new NormalNamer<Library>('#lib');
+  final Namer<Reference> libraries = new NormalNamer<Reference>('#lib');
   final Namer<TypeParameter> typeParameters =
       new NormalNamer<TypeParameter>('#T');
   final Namer<StructuralParameter> structuralParameters =
@@ -150,7 +150,7 @@ class NameSystem {
       new Disambiguator<Reference, CanonicalName>();
 
   String nameVariable(VariableDeclaration node) => variables.getName(node);
-  String nameLibrary(Library node) => libraries.getName(node);
+  String nameLibrary(Reference node) => libraries.getName(node);
   String nameTypeParameter(TypeParameter node) => typeParameters.getName(node);
   String nameStructuralParameter(StructuralParameter node) =>
       structuralParameters.getName(node);
@@ -160,43 +160,52 @@ class NameSystem {
 
   final RegExp pathSeparator = new RegExp('[\\/]');
 
-  String nameLibraryPrefix(Library node, {String? proposedName}) {
-    return prefixes.disambiguate(node.reference, node.reference.canonicalName,
-        () {
+  String nameLibraryPrefix(Reference reference, {String? proposedName}) {
+    return prefixes.disambiguate(reference, reference.canonicalName, () {
       if (proposedName != null) {
         return proposedName;
       }
-      String? name = node.name;
-      if (name != null) {
-        return abbreviateName(name);
+      NamedNode? node = reference.node;
+      if (node is Library) {
+        String? name = node.name;
+        if (name != null) {
+          return abbreviateName(name);
+        }
+        String path = node.importUri.hasEmptyPath
+            ? '${node.importUri}'
+            : node.importUri.pathSegments.last;
+        if (path.endsWith('.dart')) {
+          path = path.substring(0, path.length - '.dart'.length);
+        }
+        return abbreviateName(path);
+      } else {
+        return _nameFromLibraryCanonicalName(
+            reference, reference.canonicalName);
       }
-      String path = node.importUri.hasEmptyPath
-          ? '${node.importUri}'
-          : node.importUri.pathSegments.last;
+    });
+  }
+
+  String _nameFromLibraryCanonicalName(Reference? node, CanonicalName? name) {
+    CanonicalName? canonicalName = name ?? node?.canonicalName;
+    if (canonicalName?.name != null) {
+      String path = canonicalName!.name;
+      int slash = path.lastIndexOf(pathSeparator);
+      if (slash >= 0) {
+        path = path.substring(slash + 1);
+      }
       if (path.endsWith('.dart')) {
         path = path.substring(0, path.length - '.dart'.length);
       }
       return abbreviateName(path);
-    });
+    }
+    return 'L';
   }
 
   String nameCanonicalNameAsLibraryPrefix(Reference? node, CanonicalName? name,
       {String? proposedName}) {
     return prefixes.disambiguate(node, name, () {
       if (proposedName != null) return proposedName;
-      CanonicalName? canonicalName = name ?? node?.canonicalName;
-      if (canonicalName?.name != null) {
-        String path = canonicalName!.name;
-        int slash = path.lastIndexOf(pathSeparator);
-        if (slash >= 0) {
-          path = path.substring(slash + 1);
-        }
-        if (path.endsWith('.dart')) {
-          path = path.substring(0, path.length - '.dart'.length);
-        }
-        return abbreviateName(path);
-      }
-      return 'L';
+      return _nameFromLibraryCanonicalName(node, name);
     });
   }
 
@@ -264,15 +273,19 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   void startHighlight(Node node) {}
   void endHighlight(Node node) {}
 
-  String getLibraryName(Library node) {
-    return node.name ?? syntheticNames.nameLibrary(node);
+  String getLibraryName(Reference reference) {
+    Node? node = reference.node;
+    return (node is Library ? node.name : null) ??
+        syntheticNames.nameLibrary(reference);
   }
 
-  String getLibraryReference(Library node) {
-    if (importTable != null && importTable?.getImportIndex(node) != -1) {
-      return syntheticNames.nameLibraryPrefix(node);
+  String getLibraryReference(Reference reference) {
+    Node? node = reference.node;
+    if (importTable != null &&
+        (node is! Library || importTable?.getImportIndex(node) != -1)) {
+      return syntheticNames.nameLibraryPrefix(reference);
     }
-    return getLibraryName(node);
+    return getLibraryName(reference);
   }
 
   String getClassName(Class node) {
@@ -289,18 +302,18 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
 
   String getClassReference(Class node) {
     String name = getClassName(node);
-    String library = getLibraryReference(node.enclosingLibrary);
+    String library = getLibraryReference(node.enclosingLibrary.reference);
     return '$library::$name';
   }
 
   String getExtensionTypeDeclarationReference(ExtensionTypeDeclaration node) {
     String name = getExtensionTypeDeclarationName(node);
-    String library = getLibraryReference(node.enclosingLibrary);
+    String library = getLibraryReference(node.enclosingLibrary.reference);
     return '$library::$name';
   }
 
   String getTypedefReference(Typedef node) {
-    String library = getLibraryReference(node.enclosingLibrary);
+    String library = getLibraryReference(node.enclosingLibrary.reference);
     return '$library::${node.name}';
   }
 
@@ -323,7 +336,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
           getExtensionTypeDeclarationReference(enclosingDeclaration);
       return '$declarationName::$name';
     } else {
-      String library = getLibraryReference(node.enclosingLibrary);
+      String library = getLibraryReference(node.enclosingLibrary.reference);
       return '$library::$name';
     }
   }
@@ -421,11 +434,11 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     for (Library library in imports.importedLibraries) {
       String importPath = imports.getImportPath(library);
       if (importPath == "") {
-        String prefix =
-            syntheticNames.nameLibraryPrefix(library, proposedName: 'self');
+        String prefix = syntheticNames.nameLibraryPrefix(library.reference,
+            proposedName: 'self');
         endLine('import self as $prefix;');
       } else {
-        String prefix = syntheticNames.nameLibraryPrefix(library);
+        String prefix = syntheticNames.nameLibraryPrefix(library.reference);
         endLine('import "$importPath" as $prefix;');
       }
     }
@@ -462,27 +475,27 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
       NamedNode? node = reference.node;
       if (node is Class) {
         Library nodeLibrary = node.enclosingLibrary;
-        String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
+        String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary.reference);
         write(prefix + '::' + node.name);
       } else if (node is Extension) {
         Library nodeLibrary = node.enclosingLibrary;
-        String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
+        String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary.reference);
         write(prefix + '::' + node.name);
       } else if (node is Field) {
         Library nodeLibrary = node.enclosingLibrary;
-        String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
+        String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary.reference);
         write(prefix + '::' + node.name.text);
       } else if (node is ExtensionTypeDeclaration) {
         Library nodeLibrary = node.enclosingLibrary;
-        String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
+        String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary.reference);
         write(prefix + '::' + node.name);
       } else if (node is Procedure) {
         Library nodeLibrary = node.enclosingLibrary;
-        String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
+        String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary.reference);
         write(prefix + '::' + node.name.text);
       } else if (node is Typedef) {
         Library nodeLibrary = node.enclosingLibrary;
-        String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
+        String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary.reference);
         write(prefix + '::' + node.name);
       } else if (reference.canonicalName != null) {
         write(reference.canonicalName.toString());
@@ -522,7 +535,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
       }
       writeSpaced('from');
       writeWord('"${library.importUri}"');
-      String prefix = syntheticNames.nameLibraryPrefix(library);
+      String prefix = syntheticNames.nameLibraryPrefix(library.reference);
       writeSpaced('as');
       writeWord(prefix);
       endLine(' {');
@@ -962,7 +975,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
 
     String libraryString(CanonicalName lib) {
       if (lib.reference.node != null) {
-        return getLibraryReference(lib.reference.asLibrary);
+        return getLibraryReference(lib.reference);
       }
       return syntheticNames.nameCanonicalNameAsLibraryPrefix(
           lib.reference, lib);
