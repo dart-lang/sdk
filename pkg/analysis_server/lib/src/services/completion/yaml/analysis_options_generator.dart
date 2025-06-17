@@ -74,8 +74,8 @@ class _ErrorProducer extends KeyValueProducer {
   @override
   Iterable<CompletionSuggestion> suggestions(YamlCompletionRequest request) {
     return [
-      for (var error in errorCodeValues)
-        identifier('${error.name.toLowerCase()}: '),
+      for (var diagnostic in diagnosticCodeValues)
+        identifier('${diagnostic.name.toLowerCase()}: '),
       for (var rule in Registry.ruleRegistry.rules)
         identifier('${rule.name}: '),
     ];

@@ -3820,7 +3820,7 @@ DART_EXPORT Dart_Port Dart_KernelPort(void);
  * Compiles the given `script_uri` to a kernel file.
  *
  * \param platform_kernel A buffer containing the kernel of the platform (e.g.
- * `vm_platform_strong.dill`). The VM does not take ownership of this memory.
+ * `vm_platform.dill`). The VM does not take ownership of this memory.
  *
  * \param platform_kernel_size The length of the platform_kernel buffer.
  *

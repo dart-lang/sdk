@@ -28,8 +28,8 @@ using dart::bin::Builtin;
 using dart::bin::DartUtils;
 
 extern "C" {
-extern const uint8_t kPlatformStrongDill[];
-extern intptr_t kPlatformStrongDillSize;
+extern const uint8_t kPlatformDill[];
+extern intptr_t kPlatformDillSize;
 }
 
 namespace dart {
@@ -37,8 +37,8 @@ namespace dart {
 DECLARE_FLAG(bool, gc_during_reload);
 DECLARE_FLAG(bool, force_evacuation);
 
-const uint8_t* platform_strong_dill = kPlatformStrongDill;
-const intptr_t platform_strong_dill_size = kPlatformStrongDillSize;
+const uint8_t* platform_dill = kPlatformDill;
+const intptr_t platform_dill_size = kPlatformDillSize;
 
 const uint8_t* TesterState::vm_snapshot_data = nullptr;
 Dart_IsolateGroupCreateCallback TesterState::create_callback = nullptr;
@@ -328,8 +328,8 @@ char* TestCase::CompileTestScriptWithDFE(const char* url,
                                          const char* multiroot_scheme) {
   Zone* zone = Thread::Current()->zone();
   Dart_KernelCompilationResult result = KernelIsolate::CompileToKernel(
-      url, platform_strong_dill, platform_strong_dill_size, sourcefiles_count,
-      sourcefiles, incrementally, /*for_snapshot=*/false,
+      url, platform_dill, platform_dill_size, sourcefiles_count, sourcefiles,
+      incrementally, /*for_snapshot=*/false,
       /*embed_sources=*/true, nullptr, multiroot_filepaths, multiroot_scheme);
   if (result.status == Dart_KernelCompilationStatus_Ok) {
     if (KernelIsolate::AcceptCompilation().status !=

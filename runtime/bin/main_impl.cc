@@ -1330,7 +1330,7 @@ void main(int argc, char** argv) {
 // Note: must read platform only *after* VM flags are parsed because
 // they might affect how the platform is loaded.
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  // Load vm_platform_strong.dill for dart:* source support.
+  // Load vm_platform.dill for dart:* source support.
   dfe.Init();
   dfe.set_verbosity(Options::verbosity_level());
   if (script_name != nullptr) {

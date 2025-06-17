@@ -4685,7 +4685,8 @@ package:analyzer/diagnostic/diagnostic.dart:
     values (static getter: List<Severity>)
     warning (static getter: Severity)
 package:analyzer/error/error.dart:
-  errorCodeValues (static getter: List<DiagnosticCode>)
+  diagnosticCodeValues (static getter: List<DiagnosticCode>)
+  errorCodeValues (static getter: List<DiagnosticCode>, deprecated)
   errorCodeByUniqueName (function: DiagnosticCode? Function(String))
   DiagnosticCode (class extends Object):
     new (constructor: DiagnosticCode Function({String? correctionMessage, bool hasPublishedDocs, bool isUnresolvedIdentifier, required String name, required String problemMessage, required String uniqueName}))

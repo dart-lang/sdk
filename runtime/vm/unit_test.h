@@ -247,8 +247,8 @@ extern const uint8_t* core_isolate_snapshot_data;
 extern const uint8_t* core_isolate_snapshot_instructions;
 }  // namespace bin
 
-extern const uint8_t* platform_strong_dill;
-extern const intptr_t platform_strong_dill_size;
+extern const uint8_t* platform_dill;
+extern const intptr_t platform_dill_size;
 
 class TesterState : public AllStatic {
  public:

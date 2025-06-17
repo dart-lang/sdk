@@ -19,13 +19,13 @@ extern "C" {
 #if !defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM)
 extern const uint8_t kKernelServiceDill[];
 extern intptr_t kKernelServiceDillSize;
-extern const uint8_t kPlatformStrongDill[];
-extern intptr_t kPlatformStrongDillSize;
+extern const uint8_t kPlatformDill[];
+extern intptr_t kPlatformDillSize;
 #else
 const uint8_t* kKernelServiceDill = nullptr;
 intptr_t kKernelServiceDillSize = 0;
-const uint8_t* kPlatformStrongDill = nullptr;
-intptr_t kPlatformStrongDillSize = 0;
+const uint8_t* kPlatformDill = nullptr;
+intptr_t kPlatformDillSize = 0;
 #endif  // !defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM)
 }
 
@@ -47,11 +47,11 @@ const intptr_t kernel_service_dill_size = kKernelServiceDillSize;
 #endif
 
 #if defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM)
-const uint8_t* platform_strong_dill = nullptr;
-const intptr_t platform_strong_dill_size = 0;
+const uint8_t* platform_dill = nullptr;
+const intptr_t platform_dill_size = 0;
 #else
-const uint8_t* platform_strong_dill = kPlatformStrongDill;
-const intptr_t platform_strong_dill_size = kPlatformStrongDillSize;
+const uint8_t* platform_dill = kPlatformDill;
+const intptr_t platform_dill_size = kPlatformDillSize;
 #endif
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -80,13 +80,12 @@ DFE::~DFE() {
 }
 
 void DFE::Init() {
-  if (platform_strong_dill == nullptr) {
+  if (platform_dill == nullptr) {
     return;
   }
 
   InitKernelServiceAndPlatformDills();
-  Dart_SetDartLibrarySourcesKernel(platform_strong_dill,
-                                   platform_strong_dill_size);
+  Dart_SetDartLibrarySourcesKernel(platform_dill, platform_dill_size);
 }
 
 void DFE::InitKernelServiceAndPlatformDills() {
@@ -130,12 +129,12 @@ void DFE::LoadKernelService(const uint8_t** kernel_service_buffer,
 
 void DFE::LoadPlatform(const uint8_t** kernel_buffer,
                        intptr_t* kernel_buffer_size) {
-  *kernel_buffer = platform_strong_dill;
-  *kernel_buffer_size = platform_strong_dill_size;
+  *kernel_buffer = platform_dill;
+  *kernel_buffer_size = platform_dill_size;
 }
 
 bool DFE::CanUseDartFrontend() const {
-  return (platform_strong_dill != nullptr) &&
+  return (platform_dill != nullptr) &&
          (KernelServiceDillAvailable() || (frontend_filename() != nullptr));
 }
 
@@ -190,9 +189,9 @@ Dart_KernelCompilationResult DFE::CompileScript(const char* script_uri,
   PathSanitizer path_sanitizer(script_uri);
   const char* sanitized_uri = path_sanitizer.sanitized_uri();
 
-  return Dart_CompileToKernel(
-      sanitized_uri, platform_strong_dill, platform_strong_dill_size,
-      incremental, for_snapshot, embed_sources, package_config, verbosity());
+  return Dart_CompileToKernel(sanitized_uri, platform_dill, platform_dill_size,
+                              incremental, for_snapshot, embed_sources,
+                              package_config, verbosity());
 }
 
 void DFE::CompileAndReadScript(const char* script_uri,

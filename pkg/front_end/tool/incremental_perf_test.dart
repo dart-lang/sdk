@@ -14,7 +14,7 @@ import 'incremental_perf.dart' as m show main;
 Future<void> main() async {
   var sdkOutline = computePlatformBinariesLocation(forceBuildDir: true).resolve(
       // TODO(sigmund): switch to `vm_outline.dill` (issue #29881).
-      "vm_platform_strong.dill");
+      "vm_platform.dill");
 
   final ikgBenchmarks = Platform.script.resolve('../benchmarks/ikg/');
   final helloEntry = ikgBenchmarks.resolve('hello.dart');

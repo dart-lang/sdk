@@ -1434,7 +1434,7 @@ abstract mixin class VMKernelCompilerMixin {
       kernelBinariesFolder += '/dart-sdk/lib/_internal';
     }
 
-    var vmPlatform = '$kernelBinariesFolder/vm_platform_strong.dill';
+    var vmPlatform = '$kernelBinariesFolder/vm_platform.dill';
 
     var dillFile = tempKernelFile(tempDir);
 
@@ -1483,7 +1483,7 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
       dillDir = buildDirectory.resolve("dart-sdk/lib/_internal/");
     }
 
-    var platformDill = dillDir.resolve("vm_platform_strong.dill");
+    var platformDill = dillDir.resolve("vm_platform.dill");
 
     var vmExecutable = buildDirectory
         .resolve(configuration.useSdk ? "dart-sdk/bin/dart" : "dart");
@@ -1588,8 +1588,8 @@ class BytecodeCompilerConfiguration extends CompilerConfiguration {
       : '${_configuration.buildDirectory}/gen/dart2bytecode.dart.snapshot';
 
   String platformKernelFile() => _useSdk
-      ? '${_configuration.buildDirectory}/dart-sdk/lib/_internal/vm_platform_strong.dill'
-      : '${_configuration.buildDirectory}/vm_platform_strong.dill';
+      ? '${_configuration.buildDirectory}/dart-sdk/lib/_internal/vm_platform.dill'
+      : '${_configuration.buildDirectory}/vm_platform.dill';
 
   String tempBytecodeFile(String tempDir) =>
       Path('$tempDir/out.bytecode').toNativePath();

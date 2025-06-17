@@ -287,13 +287,13 @@ template("gen_vm_platform") {
 gen_vm_platform("vm_platform") {
   add_implicit_vm_platform_dependency = false
   exclude_source = false
-  output_postfix = "_strong"
+  output_postfix = ""
 }
 
 gen_vm_platform("vm_platform_product") {
   add_implicit_vm_platform_dependency = false
   exclude_source = false
-  output_postfix = "_strong_product"
+  output_postfix = "_product"
 
   # In Debug mode we use debug binaries for dart2native.
   # (see also the "dart_product_config" config)
@@ -303,7 +303,7 @@ gen_vm_platform("vm_platform_product") {
 gen_vm_platform("vm_platform_stripped") {
   add_implicit_vm_platform_dependency = false
   exclude_source = true
-  output_postfix = "_strong_stripped"
+  output_postfix = "_stripped"
 }
 
 group("kernel_platform_files") {

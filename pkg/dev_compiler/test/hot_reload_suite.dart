@@ -1793,7 +1793,7 @@ class D8SuiteRunner extends DdcFeServerSuiteRunner with D8TestRunner {
 class VMSuiteRunner extends HotReloadFeServerSuiteRunner {
   final String vmPlatformDillFromSdkRoot = fe_shared.relativizeUri(
     sdkRoot,
-    buildRootUri.resolve('vm_platform_strong.dill'),
+    buildRootUri.resolve('vm_platform.dill'),
     fe_shared.isWindows,
   );
   late Uri outputDirectoryUri;

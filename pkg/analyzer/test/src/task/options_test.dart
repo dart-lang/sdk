@@ -34,7 +34,7 @@ class ErrorCodeValuesTest {
     // split the codes by class is to find all of the classes that need to be
     // checked against `errorCodeValues`.
     var errorTypeMap = <Type, List<DiagnosticCode>>{};
-    for (DiagnosticCode code in errorCodeValues) {
+    for (DiagnosticCode code in diagnosticCodeValues) {
       Type type = code.runtimeType;
       errorTypeMap.putIfAbsent(type, () => <DiagnosticCode>[]).add(code);
     }

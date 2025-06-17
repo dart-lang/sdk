@@ -25,12 +25,12 @@ main() async {
   late final String platformDill;
   if (executable.endsWith('ReleaseX64/dart')) {
     platformDill =
-        Uri.parse(executable).resolve('vm_platform_strong.dill').toFilePath();
+        Uri.parse(executable).resolve('vm_platform.dill').toFilePath();
   } else if (executable.endsWith('dart-sdk/bin/dart')) {
     platformDill =
         Uri.parse(
           executable,
-        ).resolve('../lib/_internal/vm_platform_strong.dill').toFilePath();
+        ).resolve('../lib/_internal/vm_platform.dill').toFilePath();
   } else {
     print(
       'Skipping test due to not being run .../ReleaseX64/dart or .../dart-sdk/bin/dart.',

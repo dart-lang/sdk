@@ -16,16 +16,16 @@ final sdkDir = path.dirname(path.dirname(buildDir));
 late final platformDill = () {
   final possiblePaths = [
     // No cross compilation.
-    path.join(buildDir, 'vm_platform_strong.dill'),
+    path.join(buildDir, 'vm_platform.dill'),
     // ${MODE}SIMARM_X64 for X64->SIMARM cross compilation.
-    path.join('${buildDir}_X64', 'vm_platform_strong.dill'),
+    path.join('${buildDir}_X64', 'vm_platform.dill'),
   ];
   for (final path in possiblePaths) {
     if (File(path).existsSync()) {
       return path;
     }
   }
-  throw 'Could not find vm_platform_strong.dill for build directory $buildDir';
+  throw 'Could not find vm_platform.dill for build directory $buildDir';
 }();
 final genKernel = path.join(
   sdkDir,

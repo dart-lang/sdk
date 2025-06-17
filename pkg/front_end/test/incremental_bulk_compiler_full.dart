@@ -43,7 +43,7 @@ CompilerOptions getOptions() {
     ..onDiagnostic = (DiagnosticMessage message) {
       // Ignored.
     };
-  options.sdkSummary = sdkRoot.resolve("vm_platform_strong.dill");
+  options.sdkSummary = sdkRoot.resolve("vm_platform.dill");
   return options;
 }
 

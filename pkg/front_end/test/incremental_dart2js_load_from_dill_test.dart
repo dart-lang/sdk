@@ -48,7 +48,7 @@ Future<void> testDart2jsCompile() async {
   {
     // Check that we don't include the source from files from the sdk.
     final Uri sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
-    Uri platformUri = sdkRoot.resolve("vm_platform_strong.dill");
+    Uri platformUri = sdkRoot.resolve("vm_platform.dill");
     Component cSdk = new Component();
     new BinaryBuilder(new File.fromUri(platformUri).readAsBytesSync(),
             disableLazyReading: false)

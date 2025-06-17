@@ -427,16 +427,16 @@ class _AnalyzerTopLevelOptionsValidator extends _TopLevelOptionValidator {
 /// This includes the format of the `cannot-ignore` section, the format of
 /// values in the section, and whether each value is a valid string.
 class _CannotIgnoreOptionValidator extends OptionsValidator {
-  /// Lazily populated set of error codes.
-  static final Set<String> _errorCodes =
-      errorCodeValues.map((DiagnosticCode code) => code.name).toSet();
+  /// Lazily populated set of diagnostic code names.
+  static final Set<String> _diagnosticCodes =
+      diagnosticCodeValues.map((DiagnosticCode code) => code.name).toSet();
 
-  /// The error code names that existed, but were removed.
+  /// The diagnostic code names that existed, but were removed.
   /// We don't want to report these, this breaks clients.
   // TODO(scheglov): https://github.com/flutter/flutter/issues/141576
-  static const Set<String> _removedErrorCodes = {'MISSING_RETURN'};
+  static const Set<String> _removedDiagnosticCodes = {'MISSING_RETURN'};
 
-  /// Lazily populated set of lint codes.
+  /// Lazily populated set of lint code names.
   late final Set<String> _lintCodes =
       Registry.ruleRegistry.rules
           .map((rule) => rule.name.toUpperCase())
@@ -457,9 +457,9 @@ class _CannotIgnoreOptionValidator extends OptionsValidator {
               continue;
             }
             var upperCaseName = unignorableName.toUpperCase();
-            if (!_errorCodes.contains(upperCaseName) &&
+            if (!_diagnosticCodes.contains(upperCaseName) &&
                 !_lintCodes.contains(upperCaseName) &&
-                !_removedErrorCodes.contains(upperCaseName)) {
+                !_removedDiagnosticCodes.contains(upperCaseName)) {
               reporter.atSourceSpan(
                 unignorableNameNode.span,
                 AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE,
@@ -677,16 +677,16 @@ class _ErrorFilterOptionValidator extends OptionsValidator {
   static final String legalValueString =
       legalValues.quotedAndCommaSeparatedWithAnd;
 
-  /// Lazily populated set of diagnostic codes.
+  /// Lazily populated set of diagnostic code names.
   static final Set<String> _diagnosticCodes =
-      errorCodeValues.map((DiagnosticCode code) => code.name).toSet();
+      diagnosticCodeValues.map((DiagnosticCode code) => code.name).toSet();
 
-  /// The error code names that existed, but were removed.
+  /// The diagnostic code names that existed, but were removed.
   /// We don't want to report these, this breaks clients.
   // TODO(scheglov): https://github.com/flutter/flutter/issues/141576
-  static const Set<String> _removedErrorCodes = {'MISSING_RETURN'};
+  static const Set<String> _removedDiagnosticCodes = {'MISSING_RETURN'};
 
-  /// Lazily populated set of lint codes.
+  /// Lazily populated set of lint code names.
   late final Set<String> _lintCodes =
       Registry.ruleRegistry.rules
           .map((rule) => rule.name.toUpperCase())
@@ -704,7 +704,7 @@ class _ErrorFilterOptionValidator extends OptionsValidator {
             value = toUpperCase(k.value);
             if (!_diagnosticCodes.contains(value) &&
                 !_lintCodes.contains(value) &&
-                !_removedErrorCodes.contains(value)) {
+                !_removedDiagnosticCodes.contains(value)) {
               reporter.atSourceSpan(
                 k.span,
                 AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE,

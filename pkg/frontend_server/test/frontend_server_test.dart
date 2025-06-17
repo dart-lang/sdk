@@ -562,7 +562,7 @@ Future<void> main() async {
 
   group('full compiler tests', () {
     final Uri platformKernel =
-        computePlatformBinariesLocation().resolve('vm_platform_strong.dill');
+        computePlatformBinariesLocation().resolve('vm_platform.dill');
     final Uri ddcPlatformKernel =
         computePlatformBinariesLocation().resolve('ddc_outline.dill');
     final Uri sdkRoot = computePlatformBinariesLocation();

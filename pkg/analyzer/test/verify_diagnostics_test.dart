@@ -484,7 +484,7 @@ class VerifyDiagnosticsTest {
     // _all_ codes with the same name are also marked that way.
     var nameToCodeMap = <String, List<DiagnosticCode>>{};
     var nameToPublishedMap = <String, bool>{};
-    for (var code in errorCodeValues) {
+    for (var code in diagnosticCodeValues) {
       var name = code.name;
       nameToCodeMap.putIfAbsent(name, () => []).add(code);
       nameToPublishedMap[name] =

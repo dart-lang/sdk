@@ -8,10 +8,7 @@ import 'dart:io';
 
 const executables = <String>['dart', 'dartaotruntime'];
 
-const libs = <String>[
-  'vm_platform_strong.dill',
-  'vm_platform_strong_product.dill',
-];
+const libs = <String>['vm_platform.dill', 'vm_platform_product.dill'];
 
 const snapshots = <String>[
   'analysis_server',

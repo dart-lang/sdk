@@ -117,7 +117,7 @@ class Tester {
     helper2File = base.resolve("helper2.dart");
     entryPoint = base.resolve("small.dart");
     entryPointImportDartFoo = base.resolve("small_foo.dart");
-    platformUri = sdkRoot.resolve("vm_platform_strong.dill");
+    platformUri = sdkRoot.resolve("vm_platform.dill");
     sdkSummaryData = await new File.fromUri(platformUri).readAsBytes();
     errorMessages = <DiagnosticMessage>[];
     warningMessages = <DiagnosticMessage>[];

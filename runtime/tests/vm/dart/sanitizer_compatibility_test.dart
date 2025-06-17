@@ -36,7 +36,7 @@ main() async {
     "TSAN": "--target_thread_sanitizer",
   }[sanitizer]!;
 
-  var nonePlatform = "$out/$mode$arch/vm_platform_strong.dill";
+  var nonePlatform = "$out/$mode$arch/vm_platform.dill";
   var noneGenSnapshot = "$out/$mode$arch/gen_snapshot";
   var noneJitRuntime = "$out/$mode$arch/dart";
   var noneAotRuntime = "$out/$mode$arch/dartaotruntime";

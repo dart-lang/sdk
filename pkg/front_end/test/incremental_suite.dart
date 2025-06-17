@@ -2489,7 +2489,7 @@ void checkIsEqual(List<int> a, List<int> b) {
 
 CompilerOptions getOptions({Target? target, String? sdkSummary}) {
   target ??= new VmTarget(new TargetFlags());
-  sdkSummary ??= 'vm_platform_strong.dill';
+  sdkSummary ??= 'vm_platform.dill';
   final Uri sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
   CompilerOptions options = new CompilerOptions()
     ..target = target

@@ -163,7 +163,7 @@ void main() async {
       node.enclosingClass != null;
 
   final Uri platform = computePlatformBinariesLocation(forceBuildDir: true)
-      .resolve("vm_platform_strong.dill");
+      .resolve("vm_platform.dill");
   final Uint8List platformBinary =
       await new File(platform.toFilePath()).readAsBytes();
 

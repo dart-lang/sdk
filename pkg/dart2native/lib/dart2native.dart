@@ -29,13 +29,13 @@ final platformDill = path.join(
   binDir.parent.path,
   'lib',
   '_internal',
-  'vm_platform_strong.dill',
+  'vm_platform.dill',
 );
 final productPlatformDill = path.join(
   binDir.parent.path,
   'lib',
   '_internal',
-  'vm_platform_strong_product.dill',
+  'vm_platform_product.dill',
 );
 
 // Maximum page size across all supported architectures (arm64 macOS has 16K

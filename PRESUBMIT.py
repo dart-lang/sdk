@@ -380,7 +380,7 @@ def _CheckAnalyzerFiles(input_api, output_api):
 
     # Verify the "error fix status" file.
     code_files = [
-        "pkg/analyzer/lib/src/error/error_code_values.g.dart",
+        "pkg/analyzer/lib/src/diagnostic/diagnostic_code_values.g.dart",
         "pkg/linter/lib/src/rules.dart",
     ]
 
