@@ -8,176 +8,144 @@ main() {
   Object x;
   // Integers.
   x = 100_;
-  //  ^^^^
-  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   //  ^
   // [analyzer] SYNTACTIC_ERROR.UNEXPECTED_SEPARATOR_IN_NUMBER
+  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   x = 100___;
-  //  ^^^^^^
-  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   //  ^
   // [analyzer] SYNTACTIC_ERROR.UNEXPECTED_SEPARATOR_IN_NUMBER
+  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
 
   // Hexadecimal.
   x = 0x_00;
-  //  ^^^^^
-  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   //  ^
   // [analyzer] SYNTACTIC_ERROR.UNEXPECTED_SEPARATOR_IN_NUMBER
+  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   x = 0x___00;
-  //  ^^^^^^^
-  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   //  ^
   // [analyzer] SYNTACTIC_ERROR.UNEXPECTED_SEPARATOR_IN_NUMBER
+  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   x = 0x00_;
-  //  ^^^^^
-  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   //  ^
   // [analyzer] SYNTACTIC_ERROR.UNEXPECTED_SEPARATOR_IN_NUMBER
+  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   x = 0x00___;
-  //  ^^^^^^^
-  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   //  ^
   // [analyzer] SYNTACTIC_ERROR.UNEXPECTED_SEPARATOR_IN_NUMBER
+  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   x = 0_x00;
-  //  ^^^^^
-  // [cfe] Expected ';' after this.
-  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
-  //    ^
-  // [cfe] Undefined name 'x00'.
   //  ^
   // [analyzer] SYNTACTIC_ERROR.UNEXPECTED_SEPARATOR_IN_NUMBER
-  //    ^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
   //  ^^
   // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
+  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
+  // [cfe] Expected ';' after this.
+  //    ^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+  // [cfe] Undefined name 'x00'.
 
   // Doubles.
   x = 3.14_;
-  //  ^^^^^
-  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   //  ^
   // [analyzer] SYNTACTIC_ERROR.UNEXPECTED_SEPARATOR_IN_NUMBER
+  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   x = 3.14___;
-  //  ^^^^^^^
-  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   //  ^
   // [analyzer] SYNTACTIC_ERROR.UNEXPECTED_SEPARATOR_IN_NUMBER
+  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   x = 3_.14;
-  //  ^^^^^
-  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   //  ^
   // [analyzer] SYNTACTIC_ERROR.UNEXPECTED_SEPARATOR_IN_NUMBER
+  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   x = 3___.14;
-  //  ^^^^^^^
-  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   //  ^
   // [analyzer] SYNTACTIC_ERROR.UNEXPECTED_SEPARATOR_IN_NUMBER
+  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   x = 3._14;
-  //    ^
-  // [cfe] The getter '_14' isn't defined for the class 'int'.
   //    ^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [cfe] The getter '_14' isn't defined for the type 'int'.
   x = 3.___14;
-  //    ^^^
-  // [cfe] The getter '___14' isn't defined for the class 'int'.
   //    ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [cfe] The getter '___14' isn't defined for the type 'int'.
 
   // Exponent notation.
   x = 1e3_;
-  //  ^^^^
-  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   //  ^
   // [analyzer] SYNTACTIC_ERROR.UNEXPECTED_SEPARATOR_IN_NUMBER
+  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   x = 1e3___;
-  //  ^^^^^^
-  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   //  ^
   // [analyzer] SYNTACTIC_ERROR.UNEXPECTED_SEPARATOR_IN_NUMBER
+  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   x = 1e_3;
-  //  ^^^^
-  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   //  ^
   // [analyzer] SYNTACTIC_ERROR.UNEXPECTED_SEPARATOR_IN_NUMBER
+  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   x = 1e___3;
-  //  ^^^^^^
-  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   //  ^
   // [analyzer] SYNTACTIC_ERROR.UNEXPECTED_SEPARATOR_IN_NUMBER
+  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   x = 1e_+3;
-  //  ^^^^^
-  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   //  ^
   // [analyzer] SYNTACTIC_ERROR.UNEXPECTED_SEPARATOR_IN_NUMBER
+  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   x = 1e___+3;
-  //  ^^^^^^^
-  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   //  ^
   // [analyzer] SYNTACTIC_ERROR.UNEXPECTED_SEPARATOR_IN_NUMBER
+  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   x = 1e+_3;
-  //  ^^^^^
-  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   //  ^
   // [analyzer] SYNTACTIC_ERROR.UNEXPECTED_SEPARATOR_IN_NUMBER
+  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   x = 1e+___3;
-  //  ^^^^^^^
-  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   //  ^
   // [analyzer] SYNTACTIC_ERROR.UNEXPECTED_SEPARATOR_IN_NUMBER
+  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   x = 1_e3;
-  //  ^^^^
-  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   //  ^
   // [analyzer] SYNTACTIC_ERROR.UNEXPECTED_SEPARATOR_IN_NUMBER
+  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   x = 1___e3;
-  //  ^^^^^^
-  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   //  ^
   // [analyzer] SYNTACTIC_ERROR.UNEXPECTED_SEPARATOR_IN_NUMBER
+  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   x = 1.2e3_;
-  //  ^^^^^^
-  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   //  ^
   // [analyzer] SYNTACTIC_ERROR.UNEXPECTED_SEPARATOR_IN_NUMBER
+  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   x = 1.2e3___;
-  //  ^^^^^^^^
-  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   //  ^
   // [analyzer] SYNTACTIC_ERROR.UNEXPECTED_SEPARATOR_IN_NUMBER
+  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   x = 1.2e_3;
-  //  ^^^^^^
-  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   //  ^
   // [analyzer] SYNTACTIC_ERROR.UNEXPECTED_SEPARATOR_IN_NUMBER
+  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   x = 1.2e___3;
-  //  ^^^^^^^^
-  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   //  ^
   // [analyzer] SYNTACTIC_ERROR.UNEXPECTED_SEPARATOR_IN_NUMBER
+  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   x = .0e_+3;
-  //  ^^^^^^
-  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   //  ^
   // [analyzer] SYNTACTIC_ERROR.UNEXPECTED_SEPARATOR_IN_NUMBER
+  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   x = .0e___+3;
-  //  ^^^^^^^^
-  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   //  ^
   // [analyzer] SYNTACTIC_ERROR.UNEXPECTED_SEPARATOR_IN_NUMBER
+  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   x = 1.2_e3;
-  //  ^^^^^^
-  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   //  ^
   // [analyzer] SYNTACTIC_ERROR.UNEXPECTED_SEPARATOR_IN_NUMBER
+  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   x = 1.2___e3;
-  //  ^^^^^^^^
-  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   //  ^
   // [analyzer] SYNTACTIC_ERROR.UNEXPECTED_SEPARATOR_IN_NUMBER
+  // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
 
   x = 1._0e-1;
   //    ^^^
-  // [cfe] The getter '_0e' isn't defined for the class 'int'.
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [cfe] The getter '_0e' isn't defined for the type 'int'.
 }

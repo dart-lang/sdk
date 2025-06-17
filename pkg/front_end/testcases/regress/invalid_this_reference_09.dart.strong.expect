@@ -20,7 +20,7 @@ library;
 //   late final foo2 = baz(0);
 //                     ^^^
 //
-// pkg/front_end/testcases/regress/invalid_this_reference_09.dart:10:11: Error: The getter 'bar' isn't defined for the class 'Foo'.
+// pkg/front_end/testcases/regress/invalid_this_reference_09.dart:10:11: Error: The getter 'bar' isn't defined for the type 'Foo'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'bar'.
 //     print(bar);
 //           ^^^
@@ -53,7 +53,7 @@ static extension-type-member synthetic method Foo|constructor#_#new#tearOff(dyna
 static abstract extension-type-member method Foo|get#foo1(lowered dynamic #this) → invalid-type;
 static abstract extension-type-member method Foo|get#foo2(lowered dynamic #this) → invalid-type;
 static extension-type-member method Foo|baz(lowered final self::Foo% /* erasure=dynamic, declared=! */ #this, core::int i) → core::int {
-  core::print(invalid-expression "pkg/front_end/testcases/regress/invalid_this_reference_09.dart:10:11: Error: The getter 'bar' isn't defined for the class 'Foo'.
+  core::print(invalid-expression "pkg/front_end/testcases/regress/invalid_this_reference_09.dart:10:11: Error: The getter 'bar' isn't defined for the type 'Foo'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'bar'.
     print(bar);
           ^^^" in #this{<unresolved>}.bar);

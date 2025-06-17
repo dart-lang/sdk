@@ -28,7 +28,7 @@ main() {
     result = lib10.Library10.static_fld;
     //             ^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-    // [cfe] The getter 'Library10' isn't defined for the class 'int'.
+    // [cfe] The getter 'Library10' isn't defined for the type 'int'.
     Expect.equals(4, result);
   }
 

@@ -69,7 +69,7 @@ main() {
         ..$1.abs(),
       //     ^^^
       // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-      // [cfe] The method 'abs' isn't defined for the class 'Object?'.
+      // [cfe] The method 'abs' isn't defined for the type 'Object?'.
     );
     contextRecordNamedUnknown(
       (f1: objQ)
@@ -77,7 +77,7 @@ main() {
         ..f1.abs(),
       //     ^^^
       // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-      // [cfe] The method 'abs' isn't defined for the class 'Object?'.
+      // [cfe] The method 'abs' isn't defined for the type 'Object?'.
     );
 
     // - Ki=dynamic and Si=Object?, so Ri=dynamic and Si <: Ri; thus
@@ -88,7 +88,7 @@ main() {
         ..$1.abs(),
       //     ^^^
       // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-      // [cfe] The method 'abs' isn't defined for the class 'Object?'.
+      // [cfe] The method 'abs' isn't defined for the type 'Object?'.
     );
     context<({dynamic f1})>(
       (f1: objQ)
@@ -96,7 +96,7 @@ main() {
         ..f1.abs(),
       //     ^^^
       // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-      // [cfe] The method 'abs' isn't defined for the class 'Object?'.
+      // [cfe] The method 'abs' isn't defined for the type 'Object?'.
     );
 
     // - Ki=Object? and Si=Object?, so Ri=Object? and Si <: Ri; thus
@@ -107,7 +107,7 @@ main() {
         ..$1.abs(),
       //     ^^^
       // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-      // [cfe] The method 'abs' isn't defined for the class 'Object?'.
+      // [cfe] The method 'abs' isn't defined for the type 'Object?'.
     );
     context<({Object? f1})>(
       (f1: objQ)
@@ -115,7 +115,7 @@ main() {
         ..f1.abs(),
       //     ^^^
       // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-      // [cfe] The method 'abs' isn't defined for the class 'Object?'.
+      // [cfe] The method 'abs' isn't defined for the type 'Object?'.
     );
   }
 

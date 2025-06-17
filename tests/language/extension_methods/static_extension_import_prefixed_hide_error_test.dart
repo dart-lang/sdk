@@ -13,7 +13,7 @@ void main() {
   i.onInt;
   //^^^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] The getter 'onInt' isn't defined for the class 'int'.
+  // [cfe] The getter 'onInt' isn't defined for the type 'int'.
   i.onObject;
   o.onObject;
 }

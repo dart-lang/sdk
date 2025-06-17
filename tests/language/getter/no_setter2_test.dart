@@ -17,8 +17,8 @@ class Example {
     //   ^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
     // [analyzer] COMPILE_TIME_ERROR.INSTANCE_ACCESS_TO_STATIC_MEMBER
-    // [cfe] The getter 'nextVar' isn't defined for the class 'Example'.
-    // [cfe] The setter 'nextVar' isn't defined for the class 'Example'.
+    // [cfe] The getter 'nextVar' isn't defined for the type 'Example'.
+    // [cfe] The setter 'nextVar' isn't defined for the type 'Example'.
   }
   static test() {
     nextVar++;

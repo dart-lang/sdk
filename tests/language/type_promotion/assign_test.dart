@@ -40,7 +40,7 @@ void main() {
     print(a.b);
     //      ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-    // [cfe] The getter 'b' isn't defined for the class 'A'.
+    // [cfe] The getter 'b' isn't defined for the type 'A'.
   }
   if (a is B) {
     print(a.a);
@@ -52,6 +52,6 @@ void main() {
     print(a.b);
     //      ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-    // [cfe] The getter 'b' isn't defined for the class 'A'.
+    // [cfe] The getter 'b' isn't defined for the type 'A'.
   }
 }

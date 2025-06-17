@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/none/operator.dart:48:10: Error: The operator '-' isn't defined for the class 'String'.
+// pkg/front_end/testcases/none/operator.dart:48:10: Error: The operator '-' isn't defined for the type 'String'.
 // Try correcting the operator to an existing operator, or defining a '-' operator.
 //   string - 42;
 //          ^
@@ -11,7 +11,7 @@ library;
 //   -c.method();
 //            ^
 //
-// pkg/front_end/testcases/none/operator.dart:69:3: Error: The operator 'unary-' isn't defined for the class 'String'.
+// pkg/front_end/testcases/none/operator.dart:69:3: Error: The operator 'unary-' isn't defined for the type 'String'.
 // Try correcting the operator to an existing operator, or defining a 'unary-' operator.
 //   -string;
 //   ^
@@ -81,7 +81,7 @@ static method add(core::num n, core::int i, core::double d, self::Class<core::St
   core::print("DynamicInvocation (Never)");
   never{Never}.+(n);
   core::print("DynamicInvocation (Invalid)");
-  invalid-expression "pkg/front_end/testcases/none/operator.dart:48:10: Error: The operator '-' isn't defined for the class 'String'.
+  invalid-expression "pkg/front_end/testcases/none/operator.dart:48:10: Error: The operator '-' isn't defined for the type 'String'.
 Try correcting the operator to an existing operator, or defining a '-' operator.
   string - 42;
          ^" in string{<unresolved>}.-(42);
@@ -101,7 +101,7 @@ static method unaryMinus(core::num n, core::int i, core::double d, self::Class<c
   -c.method();
            ^" in c.{self::Class::method}{<inapplicable>}.(){() → invalid-type}{<invalid>}.unary-();
   core::print("DynamicInvocation (Unresolved)");
-  invalid-expression "pkg/front_end/testcases/none/operator.dart:69:3: Error: The operator 'unary-' isn't defined for the class 'String'.
+  invalid-expression "pkg/front_end/testcases/none/operator.dart:69:3: Error: The operator 'unary-' isn't defined for the type 'String'.
 Try correcting the operator to an existing operator, or defining a 'unary-' operator.
   -string;
   ^" in string{<unresolved>}.unary-();

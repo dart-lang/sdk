@@ -2,13 +2,13 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/accessors.dart:16:13: Error: The getter 'onlySetter' isn't defined for the class 'C'.
+// pkg/front_end/testcases/general/accessors.dart:16:13: Error: The getter 'onlySetter' isn't defined for the type 'C'.
 //  - 'C' is from 'pkg/front_end/testcases/general/accessors.dart'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'onlySetter'.
 //       print(onlySetter);
 //             ^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/accessors.dart:25:11: Error: The getter 'onlySetter' isn't defined for the class 'C'.
+// pkg/front_end/testcases/general/accessors.dart:25:11: Error: The getter 'onlySetter' isn't defined for the type 'C'.
 //  - 'C' is from 'pkg/front_end/testcases/general/accessors.dart'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'onlySetter'.
 //     print(onlySetter);
@@ -30,7 +30,7 @@ class C extends core::Object {
   }
   method testC() → dynamic {
     try {
-      core::print(invalid-expression "pkg/front_end/testcases/general/accessors.dart:16:13: Error: The getter 'onlySetter' isn't defined for the class 'C'.
+      core::print(invalid-expression "pkg/front_end/testcases/general/accessors.dart:16:13: Error: The getter 'onlySetter' isn't defined for the type 'C'.
  - 'C' is from 'pkg/front_end/testcases/general/accessors.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'onlySetter'.
       print(onlySetter);
@@ -43,7 +43,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
     this.{self::C::onlySetter} = "hest";
   }
   method testD() → dynamic {
-    core::print(invalid-expression "pkg/front_end/testcases/general/accessors.dart:25:11: Error: The getter 'onlySetter' isn't defined for the class 'C'.
+    core::print(invalid-expression "pkg/front_end/testcases/general/accessors.dart:25:11: Error: The getter 'onlySetter' isn't defined for the type 'C'.
  - 'C' is from 'pkg/front_end/testcases/general/accessors.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'onlySetter'.
     print(onlySetter);

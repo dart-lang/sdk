@@ -33,7 +33,7 @@ void main() {
   s.e1;
   //^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] The getter 'e1' isn't defined for the class 'String'.
+  // [cfe] The getter 'e1' isn't defined for the type 'String'.
   E1(s).e1;
   // ^
   // [analyzer] COMPILE_TIME_ERROR.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE
@@ -56,7 +56,7 @@ void main() {
   s.e2;
   //^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] The getter 'e2' isn't defined for the class 'String'.
+  // [cfe] The getter 'e2' isn't defined for the type 'String'.
   E2(s).e2;
   // [error column 3, length 2]
   // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
@@ -122,7 +122,7 @@ void main() {
   superRec.e4;
   //       ^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] The getter 'e4' isn't defined for the class 'Rec<dynamic>'.
+  // [cfe] The getter 'e4' isn't defined for the type 'Rec<dynamic>'.
   E4(superRec).e4;
   // [error column 3, length 2]
   // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER

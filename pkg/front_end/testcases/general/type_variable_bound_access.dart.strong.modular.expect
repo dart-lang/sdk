@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/type_variable_bound_access.dart:22:36: Error: The getter 'length' isn't defined for the class 'num'.
+// pkg/front_end/testcases/general/type_variable_bound_access.dart:22:36: Error: The getter 'length' isn't defined for the type 'num'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'length'.
 //   num method2() => field1 + field2.length;
 //                                    ^^^^^^
@@ -28,7 +28,7 @@ class NumClass<T extends core::num, S extends self::NumClass::T = core::num> ext
   method method1() → core::num
     return this.{self::NumClass::field1}{self::NumClass::T}.{core::num::*}(this.{self::NumClass::field2}{self::NumClass::S}){(core::num) → core::num};
   method method2() → core::num
-    return this.{self::NumClass::field1}{self::NumClass::T}.{core::num::+}(invalid-expression "pkg/front_end/testcases/general/type_variable_bound_access.dart:22:36: Error: The getter 'length' isn't defined for the class 'num'.
+    return this.{self::NumClass::field1}{self::NumClass::T}.{core::num::+}(invalid-expression "pkg/front_end/testcases/general/type_variable_bound_access.dart:22:36: Error: The getter 'length' isn't defined for the type 'num'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'length'.
   num method2() => field1 + field2.length;
                                    ^^^^^^" in this.{self::NumClass::field2}{self::NumClass::S}{<unresolved>}.length as{TypeError,ForDynamic} core::num){(core::num) → core::num};

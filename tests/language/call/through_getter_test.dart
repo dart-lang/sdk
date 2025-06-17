@@ -33,12 +33,12 @@ class CallThroughGetterTest {
     // [error column 5, length 15]
     // [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
     //             ^
-    // [cfe] The method 'call' isn't defined for the class 'int'.
+    // [cfe] The method 'call' isn't defined for the type 'int'.
     (TOP_LEVEL_CONST)();
     // [error column 5, length 17]
     // [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
     //               ^
-    // [cfe] The method 'call' isn't defined for the class 'int'.
+    // [cfe] The method 'call' isn't defined for the type 'int'.
   }
 
   static void testField() {

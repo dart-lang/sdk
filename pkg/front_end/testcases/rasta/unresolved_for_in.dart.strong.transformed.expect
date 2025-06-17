@@ -27,19 +27,19 @@ library;
 //     for (1 in x) {
 //          ^
 //
-// pkg/front_end/testcases/rasta/unresolved_for_in.dart:11:10: Error: The setter 'key' isn't defined for the class 'Fisk'.
+// pkg/front_end/testcases/rasta/unresolved_for_in.dart:11:10: Error: The setter 'key' isn't defined for the type 'Fisk'.
 //  - 'Fisk' is from 'pkg/front_end/testcases/rasta/unresolved_for_in.dart'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'key'.
 //     for (key in x) {
 //          ^^^
 //
-// pkg/front_end/testcases/rasta/unresolved_for_in.dart:12:13: Error: The getter 'key' isn't defined for the class 'Fisk'.
+// pkg/front_end/testcases/rasta/unresolved_for_in.dart:12:13: Error: The getter 'key' isn't defined for the type 'Fisk'.
 //  - 'Fisk' is from 'pkg/front_end/testcases/rasta/unresolved_for_in.dart'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'key'.
 //       print(key);
 //             ^^^
 //
-// pkg/front_end/testcases/rasta/unresolved_for_in.dart:24:13: Error: The getter 'key' isn't defined for the class 'Fisk'.
+// pkg/front_end/testcases/rasta/unresolved_for_in.dart:24:13: Error: The getter 'key' isn't defined for the type 'Fisk'.
 //  - 'Fisk' is from 'pkg/front_end/testcases/rasta/unresolved_for_in.dart'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'key'.
 //       print(key);
@@ -98,16 +98,16 @@ class Fisk extends core::Object {
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t1 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
-          invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:11:10: Error: The setter 'key' isn't defined for the class 'Fisk'.
+          invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:11:10: Error: The setter 'key' isn't defined for the type 'Fisk'.
  - 'Fisk' is from 'pkg/front_end/testcases/rasta/unresolved_for_in.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'key'.
     for (key in x) {
-         ^^^" in this.{<unresolved>}key = invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:11:10: Error: The setter 'key' isn't defined for the class 'Fisk'.
+         ^^^" in this.{<unresolved>}key = invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:11:10: Error: The setter 'key' isn't defined for the type 'Fisk'.
  - 'Fisk' is from 'pkg/front_end/testcases/rasta/unresolved_for_in.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'key'.
     for (key in x) {
          ^^^";
-          core::print(invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:12:13: Error: The getter 'key' isn't defined for the class 'Fisk'.
+          core::print(invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:12:13: Error: The getter 'key' isn't defined for the type 'Fisk'.
  - 'Fisk' is from 'pkg/front_end/testcases/rasta/unresolved_for_in.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'key'.
       print(key);
@@ -166,7 +166,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
     for (1 in x) {
          ^";
             1;
-            core::print(invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:24:13: Error: The getter 'key' isn't defined for the class 'Fisk'.
+            core::print(invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:24:13: Error: The getter 'key' isn't defined for the type 'Fisk'.
  - 'Fisk' is from 'pkg/front_end/testcases/rasta/unresolved_for_in.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'key'.
       print(key);

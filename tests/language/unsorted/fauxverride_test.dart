@@ -100,9 +100,9 @@ main() {
   Expect.equals('super', new Super().instanceMethod());
   Expect.equals('sub', new Sub().instanceMethod());
   //                             ^
-  // [cfe] The method 'instanceMethod' isn't defined for the class 'Sub'.
+  // [cfe] The method 'instanceMethod' isn't defined for the type 'Sub'.
   Expect.equals('super', new Super().instanceMethod2());
   Expect.equals('super', new Sub().instanceMethod2());
   //                               ^
-  // [cfe] The method 'instanceMethod2' isn't defined for the class 'Sub'.
+  // [cfe] The method 'instanceMethod2' isn't defined for the type 'Sub'.
 }

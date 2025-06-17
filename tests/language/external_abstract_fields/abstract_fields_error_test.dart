@@ -30,7 +30,7 @@ abstract class Abstract2 {
     a.x = 42;
     //^
     // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL
-    // [cfe] The setter 'x' isn't defined for the class 'Abstract2'.
+    // [cfe] The setter 'x' isn't defined for the type 'Abstract2'.
 
     String y = a.y;
     a.y = "ab";
@@ -49,7 +49,7 @@ abstract class Abstract2 {
     this.x = 42;
     //   ^
     // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL
-    // [cfe] The setter 'x' isn't defined for the class 'Abstract2'.
+    // [cfe] The setter 'x' isn't defined for the type 'Abstract2'.
 
     String y = this.y;
     this.y = "ab";

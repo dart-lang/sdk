@@ -18,5 +18,5 @@ main() {
   print(ex.foo++);
   //       ^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] The getter 'foo' isn't defined for the class 'Example'.
+  // [cfe] The getter 'foo' isn't defined for the type 'Example'.
 }

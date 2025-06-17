@@ -11,7 +11,7 @@ class Test extends B {
     _staticField = true;
     // [error column 5]
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-    // [cfe] The setter '_staticField' isn't defined for the class 'Test'.
+    // [cfe] The setter '_staticField' isn't defined for the type 'Test'.
   }
 }
 

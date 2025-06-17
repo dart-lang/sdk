@@ -130,7 +130,7 @@ void _internal() {
           """dartdoctest:tester:3:20: Error: This expression has type 'void' and can't be used.
   dartDocTest.test(_internal() + 2, 42);
                    ^
-dartdoctest:tester:3:32: Error: The operator '+' isn't defined for the class 'void'.
+dartdoctest:tester:3:32: Error: The operator '+' isn't defined for the type 'void'.
 Try correcting the operator to an existing operator, or defining a '+' operator.
   dartDocTest.test(_internal() + 2, 42);
                                ^""",

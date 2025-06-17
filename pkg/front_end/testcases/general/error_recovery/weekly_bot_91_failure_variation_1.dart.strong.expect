@@ -18,7 +18,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/error_recovery/weekly_bot_91_failure_variation_1_lib.dart:8:5: Error: The method '_foo' isn't defined for the class 'int'.
+// pkg/front_end/testcases/general/error_recovery/weekly_bot_91_failure_variation_1_lib.dart:8:5: Error: The method '_foo' isn't defined for the type 'int'.
 // Try correcting the name to the name of an existing method, or defining a method named '_foo'.
 //   i._foo((x) {
 //     ^^^^
@@ -29,7 +29,7 @@ import "dart:core" as core;
 import "org-dartlang-testcase:///weekly_bot_91_failure_variation_1.dart";
 
 static method bar(core::int i) → dynamic {
-  invalid-expression "pkg/front_end/testcases/general/error_recovery/weekly_bot_91_failure_variation_1_lib.dart:8:5: Error: The method '_foo' isn't defined for the class 'int'.
+  invalid-expression "pkg/front_end/testcases/general/error_recovery/weekly_bot_91_failure_variation_1_lib.dart:8:5: Error: The method '_foo' isn't defined for the type 'int'.
 Try correcting the name to the name of an existing method, or defining a method named '_foo'.
   i._foo((x) {
     ^^^^" in i{<unresolved>}._foo((dynamic x) → Null {

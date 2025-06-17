@@ -100,25 +100,25 @@ library;
 //   void set instanceMethodAndSetter2(int value) {}
 //            ^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/duplicates_instance.dart:66:5: Error: The getter 'instanceFieldAndSetter2' isn't defined for the class 'Class'.
+// pkg/front_end/testcases/nnbd/duplicates_instance.dart:66:5: Error: The getter 'instanceFieldAndSetter2' isn't defined for the type 'Class'.
 //  - 'Class' is from 'pkg/front_end/testcases/nnbd/duplicates_instance.dart'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'instanceFieldAndSetter2'.
 //   c.instanceFieldAndSetter2;
 //     ^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/duplicates_instance.dart:76:5: Error: The getter 'instanceLateFinalFieldAndSetter2' isn't defined for the class 'Class'.
+// pkg/front_end/testcases/nnbd/duplicates_instance.dart:76:5: Error: The getter 'instanceLateFinalFieldAndSetter2' isn't defined for the type 'Class'.
 //  - 'Class' is from 'pkg/front_end/testcases/nnbd/duplicates_instance.dart'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'instanceLateFinalFieldAndSetter2'.
 //   c.instanceLateFinalFieldAndSetter2;
 //     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/duplicates_instance.dart:79:5: Error: The setter 'instanceMethodAndSetter1' isn't defined for the class 'Class'.
+// pkg/front_end/testcases/nnbd/duplicates_instance.dart:79:5: Error: The setter 'instanceMethodAndSetter1' isn't defined for the type 'Class'.
 //  - 'Class' is from 'pkg/front_end/testcases/nnbd/duplicates_instance.dart'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'instanceMethodAndSetter1'.
 //   c.instanceMethodAndSetter1 = 0;
 //     ^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/duplicates_instance.dart:80:5: Error: The method 'instanceMethodAndSetter2' isn't defined for the class 'Class'.
+// pkg/front_end/testcases/nnbd/duplicates_instance.dart:80:5: Error: The method 'instanceMethodAndSetter2' isn't defined for the type 'Class'.
 //  - 'Class' is from 'pkg/front_end/testcases/nnbd/duplicates_instance.dart'.
 // Try correcting the name to the name of an existing method, or defining a method named 'instanceMethodAndSetter2'.
 //   c.instanceMethodAndSetter2();
@@ -161,7 +161,7 @@ static method test() → dynamic {
   c.{self::Class::instanceField} = 0;
   c.{self::Class::instanceFieldAndSetter1}{core::int};
   c.{self::Class::instanceFieldAndSetter1} = 0;
-  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_instance.dart:66:5: Error: The getter 'instanceFieldAndSetter2' isn't defined for the class 'Class'.
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_instance.dart:66:5: Error: The getter 'instanceFieldAndSetter2' isn't defined for the type 'Class'.
  - 'Class' is from 'pkg/front_end/testcases/nnbd/duplicates_instance.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'instanceFieldAndSetter2'.
   c.instanceFieldAndSetter2;
@@ -175,19 +175,19 @@ Try correcting the name to the name of an existing getter, or defining a getter 
   c.{self::Class::instanceDuplicateFieldAndDuplicateSetter} = 0;
   c.{self::Class::instanceLateFinalFieldAndSetter1}{core::int};
   c.{self::Class::instanceLateFinalFieldAndSetter1} = 0;
-  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_instance.dart:76:5: Error: The getter 'instanceLateFinalFieldAndSetter2' isn't defined for the class 'Class'.
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_instance.dart:76:5: Error: The getter 'instanceLateFinalFieldAndSetter2' isn't defined for the type 'Class'.
  - 'Class' is from 'pkg/front_end/testcases/nnbd/duplicates_instance.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'instanceLateFinalFieldAndSetter2'.
   c.instanceLateFinalFieldAndSetter2;
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.instanceLateFinalFieldAndSetter2;
   c.{self::Class::instanceLateFinalFieldAndSetter2} = 0;
   c.{self::Class::instanceMethodAndSetter1}(){() → core::int};
-  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_instance.dart:79:5: Error: The setter 'instanceMethodAndSetter1' isn't defined for the class 'Class'.
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_instance.dart:79:5: Error: The setter 'instanceMethodAndSetter1' isn't defined for the type 'Class'.
  - 'Class' is from 'pkg/front_end/testcases/nnbd/duplicates_instance.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'instanceMethodAndSetter1'.
   c.instanceMethodAndSetter1 = 0;
     ^^^^^^^^^^^^^^^^^^^^^^^^" in c.{<unresolved>}instanceMethodAndSetter1 = 0;
-  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_instance.dart:80:5: Error: The method 'instanceMethodAndSetter2' isn't defined for the class 'Class'.
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_instance.dart:80:5: Error: The method 'instanceMethodAndSetter2' isn't defined for the type 'Class'.
  - 'Class' is from 'pkg/front_end/testcases/nnbd/duplicates_instance.dart'.
 Try correcting the name to the name of an existing method, or defining a method named 'instanceMethodAndSetter2'.
   c.instanceMethodAndSetter2();

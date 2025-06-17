@@ -6,13 +6,13 @@ library;
 // mixin _PlatformViewGestureMixin on RenderBox implements MouseTrackerAnnotation {
 //                                                         ^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/crashes/crash_03/main.dart:13:7: Error: The getter '_hitTestBehavior' isn't defined for the class '_PlatformViewGestureMixin'.
+// pkg/front_end/testcases/general/crashes/crash_03/main.dart:13:7: Error: The getter '_hitTestBehavior' isn't defined for the type '_PlatformViewGestureMixin'.
 //  - '_PlatformViewGestureMixin' is from 'pkg/front_end/testcases/general/crashes/crash_03/main.dart'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named '_hitTestBehavior'.
 //       _hitTestBehavior != PlatformViewHitTestBehavior.transparent;
 //       ^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/crashes/crash_03/main.dart:13:27: Error: The getter 'PlatformViewHitTestBehavior' isn't defined for the class '_PlatformViewGestureMixin'.
+// pkg/front_end/testcases/general/crashes/crash_03/main.dart:13:27: Error: The getter 'PlatformViewHitTestBehavior' isn't defined for the type '_PlatformViewGestureMixin'.
 //  - '_PlatformViewGestureMixin' is from 'pkg/front_end/testcases/general/crashes/crash_03/main.dart'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'PlatformViewHitTestBehavior'.
 //       _hitTestBehavior != PlatformViewHitTestBehavior.transparent;
@@ -36,11 +36,11 @@ class PlatformViewRenderBox extends self::_PlatformViewRenderBox&RenderBox&_Plat
 }
 abstract class _PlatformViewGestureMixin extends mai::RenderBox /*isMixinDeclaration*/  {
   method hitTestSelf(self::Offset position) → core::bool
-    return !(invalid-expression "pkg/front_end/testcases/general/crashes/crash_03/main.dart:13:7: Error: The getter '_hitTestBehavior' isn't defined for the class '_PlatformViewGestureMixin'.
+    return !(invalid-expression "pkg/front_end/testcases/general/crashes/crash_03/main.dart:13:7: Error: The getter '_hitTestBehavior' isn't defined for the type '_PlatformViewGestureMixin'.
  - '_PlatformViewGestureMixin' is from 'pkg/front_end/testcases/general/crashes/crash_03/main.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named '_hitTestBehavior'.
       _hitTestBehavior != PlatformViewHitTestBehavior.transparent;
-      ^^^^^^^^^^^^^^^^" in this{<unresolved>}._hitTestBehavior =={core::Object::==}{(core::Object) → core::bool} invalid-expression "pkg/front_end/testcases/general/crashes/crash_03/main.dart:13:27: Error: The getter 'PlatformViewHitTestBehavior' isn't defined for the class '_PlatformViewGestureMixin'.
+      ^^^^^^^^^^^^^^^^" in this{<unresolved>}._hitTestBehavior =={core::Object::==}{(core::Object) → core::bool} invalid-expression "pkg/front_end/testcases/general/crashes/crash_03/main.dart:13:27: Error: The getter 'PlatformViewHitTestBehavior' isn't defined for the type '_PlatformViewGestureMixin'.
  - '_PlatformViewGestureMixin' is from 'pkg/front_end/testcases/general/crashes/crash_03/main.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'PlatformViewHitTestBehavior'.
       _hitTestBehavior != PlatformViewHitTestBehavior.transparent;

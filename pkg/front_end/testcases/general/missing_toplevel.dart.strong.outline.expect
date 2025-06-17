@@ -2,31 +2,31 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/missing_toplevel.dart:27:48: Error: The operator '+' isn't defined for the class 'EmptyClass'.
+// pkg/front_end/testcases/general/missing_toplevel.dart:27:48: Error: The operator '+' isn't defined for the type 'EmptyClass'.
 //  - 'EmptyClass' is from 'pkg/front_end/testcases/general/missing_toplevel.dart'.
 // Try correcting the operator to an existing operator, or defining a '+' operator.
 // var missingBinary = classWithProperty.property += 2;
 //                                                ^
 //
-// pkg/front_end/testcases/general/missing_toplevel.dart:28:40: Error: The operator '[]' isn't defined for the class 'ClassWithIndexSet'.
+// pkg/front_end/testcases/general/missing_toplevel.dart:28:40: Error: The operator '[]' isn't defined for the type 'ClassWithIndexSet'.
 //  - 'ClassWithIndexSet' is from 'pkg/front_end/testcases/general/missing_toplevel.dart'.
 // Try correcting the operator to an existing operator, or defining a '[]' operator.
 // var missingIndexGet = classWithIndexSet[0] ??= 2;
 //                                        ^
 //
-// pkg/front_end/testcases/general/missing_toplevel.dart:29:40: Error: The operator '[]=' isn't defined for the class 'ClassWithIndexGet'.
+// pkg/front_end/testcases/general/missing_toplevel.dart:29:40: Error: The operator '[]=' isn't defined for the type 'ClassWithIndexGet'.
 //  - 'ClassWithIndexGet' is from 'pkg/front_end/testcases/general/missing_toplevel.dart'.
 // Try correcting the operator to an existing operator, or defining a '[]=' operator.
 // var missingIndexSet = classWithIndexGet[0] ??= 2;
 //                                        ^
 //
-// pkg/front_end/testcases/general/missing_toplevel.dart:30:37: Error: The getter 'property' isn't defined for the class 'EmptyClass'.
+// pkg/front_end/testcases/general/missing_toplevel.dart:30:37: Error: The getter 'property' isn't defined for the type 'EmptyClass'.
 //  - 'EmptyClass' is from 'pkg/front_end/testcases/general/missing_toplevel.dart'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'property'.
 // var missingPropertyGet = emptyClass.property;
 //                                     ^^^^^^^^
 //
-// pkg/front_end/testcases/general/missing_toplevel.dart:31:37: Error: The setter 'property' isn't defined for the class 'EmptyClass'.
+// pkg/front_end/testcases/general/missing_toplevel.dart:31:37: Error: The setter 'property' isn't defined for the type 'EmptyClass'.
 //  - 'EmptyClass' is from 'pkg/front_end/testcases/general/missing_toplevel.dart'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'property'.
 // var missingPropertySet = emptyClass.property = 42;

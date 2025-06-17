@@ -39,5 +39,5 @@ void main() {
   Integer i = .one();
   //          ^^^^
   // [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
-  // [cfe] The method 'call' isn't defined for the class 'Integer'.
+  // [cfe] The method 'call' isn't defined for the type 'Integer'.
 }

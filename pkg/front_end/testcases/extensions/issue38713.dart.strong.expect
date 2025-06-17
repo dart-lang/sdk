@@ -36,7 +36,7 @@ library;
 //   C.property3 = 42;
 //               ^
 //
-// pkg/front_end/testcases/extensions/issue38713.dart:17:6: Error: The getter 'property3' isn't defined for the class 'int'.
+// pkg/front_end/testcases/extensions/issue38713.dart:17:6: Error: The getter 'property3' isn't defined for the type 'int'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'property3'.
 //   42.property3;
 //      ^^^^^^^^^
@@ -60,7 +60,7 @@ static method test() → void {
   invalid-expression "pkg/front_end/testcases/extensions/issue38713.dart:16:15: Error: Can't assign to this.
   C.property3 = 42;
               ^";
-  invalid-expression "pkg/front_end/testcases/extensions/issue38713.dart:17:6: Error: The getter 'property3' isn't defined for the class 'int'.
+  invalid-expression "pkg/front_end/testcases/extensions/issue38713.dart:17:6: Error: The getter 'property3' isn't defined for the type 'int'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'property3'.
   42.property3;
      ^^^^^^^^^" in 42{<unresolved>}.property3;

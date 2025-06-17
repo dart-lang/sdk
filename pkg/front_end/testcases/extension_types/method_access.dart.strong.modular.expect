@@ -2,32 +2,32 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/extension_types/method_access.dart:27:10: Error: The getter 'setter' isn't defined for the class 'InlineClass'.
+// pkg/front_end/testcases/extension_types/method_access.dart:27:10: Error: The getter 'setter' isn't defined for the type 'InlineClass'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'setter'.
 //     this.setter; // Error, should not resolve to extension method.
 //          ^^^^^^
 //
-// pkg/front_end/testcases/extension_types/method_access.dart:28:5: Error: The getter 'setter' isn't defined for the class 'InlineClass'.
+// pkg/front_end/testcases/extension_types/method_access.dart:28:5: Error: The getter 'setter' isn't defined for the type 'InlineClass'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'setter'.
 //     setter; // Error, should not resolve to extension method.
 //     ^^^^^^
 //
-// pkg/front_end/testcases/extension_types/method_access.dart:29:10: Error: The setter 'getter' isn't defined for the class 'InlineClass'.
+// pkg/front_end/testcases/extension_types/method_access.dart:29:10: Error: The setter 'getter' isn't defined for the type 'InlineClass'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'getter'.
 //     this.getter = 42; // Error, should not resolve to extension method.
 //          ^^^^^^
 //
-// pkg/front_end/testcases/extension_types/method_access.dart:30:5: Error: The setter 'getter' isn't defined for the class 'InlineClass'.
+// pkg/front_end/testcases/extension_types/method_access.dart:30:5: Error: The setter 'getter' isn't defined for the type 'InlineClass'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'getter'.
 //     getter = 42; // Error, should not resolve to extension method.
 //     ^^^^^^
 //
-// pkg/front_end/testcases/extension_types/method_access.dart:73:6: Error: The getter 'setter' isn't defined for the class 'InlineClass'.
+// pkg/front_end/testcases/extension_types/method_access.dart:73:6: Error: The getter 'setter' isn't defined for the type 'InlineClass'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'setter'.
 //   ic.setter; // Error, should not resolve to extension method.
 //      ^^^^^^
 //
-// pkg/front_end/testcases/extension_types/method_access.dart:74:6: Error: The setter 'getter' isn't defined for the class 'InlineClass'.
+// pkg/front_end/testcases/extension_types/method_access.dart:74:6: Error: The setter 'getter' isn't defined for the type 'InlineClass'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'getter'.
 //   ic.getter = 42; // Error, should not resolve to extension method.
 //      ^^^^^^
@@ -82,19 +82,19 @@ static extension-type-member method InlineClass|test(lowered final self::InlineC
   self::InlineClass|set#setter(#this, 87);
   (core::int) → core::int h1 = self::InlineClass|get#genericMethod(#this)<core::int>;
   (core::int) → core::int h2 = self::InlineClass|get#genericMethod(#this)<core::int>;
-  invalid-expression "pkg/front_end/testcases/extension_types/method_access.dart:27:10: Error: The getter 'setter' isn't defined for the class 'InlineClass'.
+  invalid-expression "pkg/front_end/testcases/extension_types/method_access.dart:27:10: Error: The getter 'setter' isn't defined for the type 'InlineClass'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'setter'.
     this.setter; // Error, should not resolve to extension method.
          ^^^^^^" in #this{<unresolved>}.setter;
-  invalid-expression "pkg/front_end/testcases/extension_types/method_access.dart:28:5: Error: The getter 'setter' isn't defined for the class 'InlineClass'.
+  invalid-expression "pkg/front_end/testcases/extension_types/method_access.dart:28:5: Error: The getter 'setter' isn't defined for the type 'InlineClass'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'setter'.
     setter; // Error, should not resolve to extension method.
     ^^^^^^" in #this{<unresolved>}.setter;
-  invalid-expression "pkg/front_end/testcases/extension_types/method_access.dart:29:10: Error: The setter 'getter' isn't defined for the class 'InlineClass'.
+  invalid-expression "pkg/front_end/testcases/extension_types/method_access.dart:29:10: Error: The setter 'getter' isn't defined for the type 'InlineClass'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'getter'.
     this.getter = 42; // Error, should not resolve to extension method.
          ^^^^^^" in #this.{<unresolved>}getter = 42;
-  invalid-expression "pkg/front_end/testcases/extension_types/method_access.dart:30:5: Error: The setter 'getter' isn't defined for the class 'InlineClass'.
+  invalid-expression "pkg/front_end/testcases/extension_types/method_access.dart:30:5: Error: The setter 'getter' isn't defined for the type 'InlineClass'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'getter'.
     getter = 42; // Error, should not resolve to extension method.
     ^^^^^^" in #this.{<unresolved>}getter = 42;
@@ -144,11 +144,11 @@ static method test(self::InlineClass% /* erasure=core::int, declared=! */ ic) �
   core::int g = let final core::int #t12 = 42 in let final void #t13 = self::InlineClass|set#setter(ic, #t12) in #t12;
   self::InlineClass|set#setter(ic, 87);
   (core::int) → core::int h = self::InlineClass|get#genericMethod(ic)<core::int>;
-  invalid-expression "pkg/front_end/testcases/extension_types/method_access.dart:73:6: Error: The getter 'setter' isn't defined for the class 'InlineClass'.
+  invalid-expression "pkg/front_end/testcases/extension_types/method_access.dart:73:6: Error: The getter 'setter' isn't defined for the type 'InlineClass'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'setter'.
   ic.setter; // Error, should not resolve to extension method.
      ^^^^^^" in ic{<unresolved>}.setter;
-  invalid-expression "pkg/front_end/testcases/extension_types/method_access.dart:74:6: Error: The setter 'getter' isn't defined for the class 'InlineClass'.
+  invalid-expression "pkg/front_end/testcases/extension_types/method_access.dart:74:6: Error: The setter 'getter' isn't defined for the type 'InlineClass'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'getter'.
   ic.getter = 42; // Error, should not resolve to extension method.
      ^^^^^^" in ic.{<unresolved>}getter = 42;

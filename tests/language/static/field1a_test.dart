@@ -15,7 +15,7 @@ class StaticField1aTest {
       var m = foo.m;
       //          ^
       // [analyzer] COMPILE_TIME_ERROR.INSTANCE_ACCESS_TO_STATIC_MEMBER
-      // [cfe] The getter 'm' isn't defined for the class 'Foo'.
+      // [cfe] The getter 'm' isn't defined for the type 'Foo'.
     }
   }
 }

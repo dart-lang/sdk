@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference_update_4/assignment_promotion_in_if_statement.dart:44:7: Error: The getter 'isEven' isn't defined for the class 'num'.
+// pkg/front_end/testcases/inference_update_4/assignment_promotion_in_if_statement.dart:44:7: Error: The getter 'isEven' isn't defined for the type 'num'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'isEven'.
 //     x.isEven; // Error.
 //       ^^^^^^
@@ -39,7 +39,7 @@ static method is_plusEq() → dynamic {
 static method is_postfix() → dynamic {
   core::num x = 2;
   if((let final core::num #t2 = x in let final core::num #t3 = x = #t2.{core::num::+}(1){(core::num) → core::num} in #t2) is core::int) {
-    invalid-expression "pkg/front_end/testcases/inference_update_4/assignment_promotion_in_if_statement.dart:44:7: Error: The getter 'isEven' isn't defined for the class 'num'.
+    invalid-expression "pkg/front_end/testcases/inference_update_4/assignment_promotion_in_if_statement.dart:44:7: Error: The getter 'isEven' isn't defined for the type 'num'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'isEven'.
     x.isEven; // Error.
       ^^^^^^" in x{<unresolved>}.isEven;

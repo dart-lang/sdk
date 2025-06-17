@@ -2,55 +2,55 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/patch_extension_scope/main.dart:8:5: Error: The method '_namedExtensionPrivateMethod' isn't defined for the class 'Class'.
+// pkg/front_end/testcases/general/patch_extension_scope/main.dart:8:5: Error: The method '_namedExtensionPrivateMethod' isn't defined for the type 'Class'.
 //  - 'Class' is from 'dart:test'.
 // Try correcting the name to the name of an existing method, or defining a method named '_namedExtensionPrivateMethod'.
 //   c._namedExtensionPrivateMethod(); // Error
 //     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/patch_extension_scope/main.dart:9:5: Error: The method 'unnamedExtensionMethod' isn't defined for the class 'Class'.
+// pkg/front_end/testcases/general/patch_extension_scope/main.dart:9:5: Error: The method 'unnamedExtensionMethod' isn't defined for the type 'Class'.
 //  - 'Class' is from 'dart:test'.
 // Try correcting the name to the name of an existing method, or defining a method named 'unnamedExtensionMethod'.
 //   c.unnamedExtensionMethod(); // Error
 //     ^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/patch_extension_scope/main.dart:10:5: Error: The method '_unnamedExtensionPrivateMethod' isn't defined for the class 'Class'.
+// pkg/front_end/testcases/general/patch_extension_scope/main.dart:10:5: Error: The method '_unnamedExtensionPrivateMethod' isn't defined for the type 'Class'.
 //  - 'Class' is from 'dart:test'.
 // Try correcting the name to the name of an existing method, or defining a method named '_unnamedExtensionPrivateMethod'.
 //   c._unnamedExtensionPrivateMethod(); // Error
 //     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/patch_extension_scope/main.dart:12:5: Error: The method '_namedInjectedExtensionPrivateMethod1' isn't defined for the class 'Class'.
+// pkg/front_end/testcases/general/patch_extension_scope/main.dart:12:5: Error: The method '_namedInjectedExtensionPrivateMethod1' isn't defined for the type 'Class'.
 //  - 'Class' is from 'dart:test'.
 // Try correcting the name to the name of an existing method, or defining a method named '_namedInjectedExtensionPrivateMethod1'.
 //   c._namedInjectedExtensionPrivateMethod1(); // Error
 //     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/patch_extension_scope/main.dart:13:5: Error: The method 'unnamedInjectedExtensionMethod1' isn't defined for the class 'Class'.
+// pkg/front_end/testcases/general/patch_extension_scope/main.dart:13:5: Error: The method 'unnamedInjectedExtensionMethod1' isn't defined for the type 'Class'.
 //  - 'Class' is from 'dart:test'.
 // Try correcting the name to the name of an existing method, or defining a method named 'unnamedInjectedExtensionMethod1'.
 //   c.unnamedInjectedExtensionMethod1(); // Error
 //     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/patch_extension_scope/main.dart:14:5: Error: The method '_unnamedInjectedExtensionPrivateMethod1' isn't defined for the class 'Class'.
+// pkg/front_end/testcases/general/patch_extension_scope/main.dart:14:5: Error: The method '_unnamedInjectedExtensionPrivateMethod1' isn't defined for the type 'Class'.
 //  - 'Class' is from 'dart:test'.
 // Try correcting the name to the name of an existing method, or defining a method named '_unnamedInjectedExtensionPrivateMethod1'.
 //   c._unnamedInjectedExtensionPrivateMethod1(); // Error
 //     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/patch_extension_scope/main.dart:16:5: Error: The method '_namedInjectedExtensionPrivateMethod2' isn't defined for the class 'Class'.
+// pkg/front_end/testcases/general/patch_extension_scope/main.dart:16:5: Error: The method '_namedInjectedExtensionPrivateMethod2' isn't defined for the type 'Class'.
 //  - 'Class' is from 'dart:test'.
 // Try correcting the name to the name of an existing method, or defining a method named '_namedInjectedExtensionPrivateMethod2'.
 //   c._namedInjectedExtensionPrivateMethod2(); // Error
 //     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/patch_extension_scope/main.dart:17:5: Error: The method 'unnamedInjectedExtensionMethod2' isn't defined for the class 'Class'.
+// pkg/front_end/testcases/general/patch_extension_scope/main.dart:17:5: Error: The method 'unnamedInjectedExtensionMethod2' isn't defined for the type 'Class'.
 //  - 'Class' is from 'dart:test'.
 // Try correcting the name to the name of an existing method, or defining a method named 'unnamedInjectedExtensionMethod2'.
 //   c.unnamedInjectedExtensionMethod2(); // Error
 //     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/patch_extension_scope/main.dart:18:5: Error: The method '_unnamedInjectedExtensionPrivateMethod2' isn't defined for the class 'Class'.
+// pkg/front_end/testcases/general/patch_extension_scope/main.dart:18:5: Error: The method '_unnamedInjectedExtensionPrivateMethod2' isn't defined for the type 'Class'.
 //  - 'Class' is from 'dart:test'.
 // Try correcting the name to the name of an existing method, or defining a method named '_unnamedInjectedExtensionPrivateMethod2'.
 //   c._unnamedInjectedExtensionPrivateMethod2(); // Error
@@ -62,47 +62,47 @@ import "dart:test" as test;
 import "dart:test";
 
 static method test(test::Class c) → dynamic {
-  invalid-expression "pkg/front_end/testcases/general/patch_extension_scope/main.dart:8:5: Error: The method '_namedExtensionPrivateMethod' isn't defined for the class 'Class'.
+  invalid-expression "pkg/front_end/testcases/general/patch_extension_scope/main.dart:8:5: Error: The method '_namedExtensionPrivateMethod' isn't defined for the type 'Class'.
  - 'Class' is from 'dart:test'.
 Try correcting the name to the name of an existing method, or defining a method named '_namedExtensionPrivateMethod'.
   c._namedExtensionPrivateMethod(); // Error
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}._namedExtensionPrivateMethod();
-  invalid-expression "pkg/front_end/testcases/general/patch_extension_scope/main.dart:9:5: Error: The method 'unnamedExtensionMethod' isn't defined for the class 'Class'.
+  invalid-expression "pkg/front_end/testcases/general/patch_extension_scope/main.dart:9:5: Error: The method 'unnamedExtensionMethod' isn't defined for the type 'Class'.
  - 'Class' is from 'dart:test'.
 Try correcting the name to the name of an existing method, or defining a method named 'unnamedExtensionMethod'.
   c.unnamedExtensionMethod(); // Error
     ^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.unnamedExtensionMethod();
-  invalid-expression "pkg/front_end/testcases/general/patch_extension_scope/main.dart:10:5: Error: The method '_unnamedExtensionPrivateMethod' isn't defined for the class 'Class'.
+  invalid-expression "pkg/front_end/testcases/general/patch_extension_scope/main.dart:10:5: Error: The method '_unnamedExtensionPrivateMethod' isn't defined for the type 'Class'.
  - 'Class' is from 'dart:test'.
 Try correcting the name to the name of an existing method, or defining a method named '_unnamedExtensionPrivateMethod'.
   c._unnamedExtensionPrivateMethod(); // Error
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}._unnamedExtensionPrivateMethod();
-  invalid-expression "pkg/front_end/testcases/general/patch_extension_scope/main.dart:12:5: Error: The method '_namedInjectedExtensionPrivateMethod1' isn't defined for the class 'Class'.
+  invalid-expression "pkg/front_end/testcases/general/patch_extension_scope/main.dart:12:5: Error: The method '_namedInjectedExtensionPrivateMethod1' isn't defined for the type 'Class'.
  - 'Class' is from 'dart:test'.
 Try correcting the name to the name of an existing method, or defining a method named '_namedInjectedExtensionPrivateMethod1'.
   c._namedInjectedExtensionPrivateMethod1(); // Error
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}._namedInjectedExtensionPrivateMethod1();
-  invalid-expression "pkg/front_end/testcases/general/patch_extension_scope/main.dart:13:5: Error: The method 'unnamedInjectedExtensionMethod1' isn't defined for the class 'Class'.
+  invalid-expression "pkg/front_end/testcases/general/patch_extension_scope/main.dart:13:5: Error: The method 'unnamedInjectedExtensionMethod1' isn't defined for the type 'Class'.
  - 'Class' is from 'dart:test'.
 Try correcting the name to the name of an existing method, or defining a method named 'unnamedInjectedExtensionMethod1'.
   c.unnamedInjectedExtensionMethod1(); // Error
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.unnamedInjectedExtensionMethod1();
-  invalid-expression "pkg/front_end/testcases/general/patch_extension_scope/main.dart:14:5: Error: The method '_unnamedInjectedExtensionPrivateMethod1' isn't defined for the class 'Class'.
+  invalid-expression "pkg/front_end/testcases/general/patch_extension_scope/main.dart:14:5: Error: The method '_unnamedInjectedExtensionPrivateMethod1' isn't defined for the type 'Class'.
  - 'Class' is from 'dart:test'.
 Try correcting the name to the name of an existing method, or defining a method named '_unnamedInjectedExtensionPrivateMethod1'.
   c._unnamedInjectedExtensionPrivateMethod1(); // Error
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}._unnamedInjectedExtensionPrivateMethod1();
-  invalid-expression "pkg/front_end/testcases/general/patch_extension_scope/main.dart:16:5: Error: The method '_namedInjectedExtensionPrivateMethod2' isn't defined for the class 'Class'.
+  invalid-expression "pkg/front_end/testcases/general/patch_extension_scope/main.dart:16:5: Error: The method '_namedInjectedExtensionPrivateMethod2' isn't defined for the type 'Class'.
  - 'Class' is from 'dart:test'.
 Try correcting the name to the name of an existing method, or defining a method named '_namedInjectedExtensionPrivateMethod2'.
   c._namedInjectedExtensionPrivateMethod2(); // Error
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}._namedInjectedExtensionPrivateMethod2();
-  invalid-expression "pkg/front_end/testcases/general/patch_extension_scope/main.dart:17:5: Error: The method 'unnamedInjectedExtensionMethod2' isn't defined for the class 'Class'.
+  invalid-expression "pkg/front_end/testcases/general/patch_extension_scope/main.dart:17:5: Error: The method 'unnamedInjectedExtensionMethod2' isn't defined for the type 'Class'.
  - 'Class' is from 'dart:test'.
 Try correcting the name to the name of an existing method, or defining a method named 'unnamedInjectedExtensionMethod2'.
   c.unnamedInjectedExtensionMethod2(); // Error
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.unnamedInjectedExtensionMethod2();
-  invalid-expression "pkg/front_end/testcases/general/patch_extension_scope/main.dart:18:5: Error: The method '_unnamedInjectedExtensionPrivateMethod2' isn't defined for the class 'Class'.
+  invalid-expression "pkg/front_end/testcases/general/patch_extension_scope/main.dart:18:5: Error: The method '_unnamedInjectedExtensionPrivateMethod2' isn't defined for the type 'Class'.
  - 'Class' is from 'dart:test'.
 Try correcting the name to the name of an existing method, or defining a method named '_unnamedInjectedExtensionPrivateMethod2'.
   c._unnamedInjectedExtensionPrivateMethod2(); // Error

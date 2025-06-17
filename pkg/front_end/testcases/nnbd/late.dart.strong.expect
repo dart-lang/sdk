@@ -10,7 +10,7 @@ library;
 //     lateFinalStaticFieldWithInit = 0;
 //     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/late.dart:42:5: Error: The setter 'lateFinalInstanceFieldWithInit' isn't defined for the class 'Class'.
+// pkg/front_end/testcases/nnbd/late.dart:42:5: Error: The setter 'lateFinalInstanceFieldWithInit' isn't defined for the type 'Class'.
 //  - 'Class' is from 'pkg/front_end/testcases/nnbd/late.dart'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'lateFinalInstanceFieldWithInit'.
 //     lateFinalInstanceFieldWithInit = 0;
@@ -24,7 +24,7 @@ library;
 //   Class.lateFinalStaticFieldWithInit = 0;
 //         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/late.dart:65:5: Error: The setter 'lateFinalInstanceFieldWithInit' isn't defined for the class 'Class'.
+// pkg/front_end/testcases/nnbd/late.dart:65:5: Error: The setter 'lateFinalInstanceFieldWithInit' isn't defined for the type 'Class'.
 //  - 'Class' is from 'pkg/front_end/testcases/nnbd/late.dart'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'lateFinalInstanceFieldWithInit'.
 //   c.lateFinalInstanceFieldWithInit = 0;
@@ -63,7 +63,7 @@ class Class extends core::Object {
     invalid-expression "pkg/front_end/testcases/nnbd/late.dart:40:5: Error: Can't assign to the final variable 'lateFinalVariableWithInit'.
     lateFinalVariableWithInit = 0;
     ^^^^^^^^^^^^^^^^^^^^^^^^^";
-    invalid-expression "pkg/front_end/testcases/nnbd/late.dart:42:5: Error: The setter 'lateFinalInstanceFieldWithInit' isn't defined for the class 'Class'.
+    invalid-expression "pkg/front_end/testcases/nnbd/late.dart:42:5: Error: The setter 'lateFinalInstanceFieldWithInit' isn't defined for the type 'Class'.
  - 'Class' is from 'pkg/front_end/testcases/nnbd/late.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'lateFinalInstanceFieldWithInit'.
     lateFinalInstanceFieldWithInit = 0;
@@ -93,7 +93,7 @@ static method errors() → dynamic {
   lateFinalTopLevelFieldWithInit = 0;
   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
   self::Class c = new self::Class::•();
-  invalid-expression "pkg/front_end/testcases/nnbd/late.dart:65:5: Error: The setter 'lateFinalInstanceFieldWithInit' isn't defined for the class 'Class'.
+  invalid-expression "pkg/front_end/testcases/nnbd/late.dart:65:5: Error: The setter 'lateFinalInstanceFieldWithInit' isn't defined for the type 'Class'.
  - 'Class' is from 'pkg/front_end/testcases/nnbd/late.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'lateFinalInstanceFieldWithInit'.
   c.lateFinalInstanceFieldWithInit = 0;
