@@ -210,7 +210,9 @@ class ContextsPage extends DiagnosticPageWithNav {
     h3('Largest library cycles');
     Set<LibraryCycle> cycles = {};
     var contextRoot = driver.analysisContext!.contextRoot;
+    var pathContext = contextRoot.resourceProvider.pathContext;
     for (var filePath in contextRoot.analyzedFiles()) {
+      if (!file_paths.isDart(pathContext, filePath)) continue;
       var fileState = driver.fsState.getFileForPath(filePath);
       var kind = fileState.kind;
       if (kind is LibraryFileKind) {
