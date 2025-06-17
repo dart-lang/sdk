@@ -91,7 +91,7 @@ _nightly_builder(
     category = "vm|jit|d3",
     properties = slow_shards,
 )
-_nightly_builder(
+_vm_builder(
     "vm-linux-release-ia32",
     category = "vm|jit|r3",
 )
@@ -167,7 +167,7 @@ _vm_builder(
 )
 
 # vm|appjit
-_vm_builder(
+_nightly_builder(
     "vm-appjit-linux-debug-x64",
     category = "vm|appjit|d",
     properties = slow_shards,
@@ -182,6 +182,11 @@ _nightly_builder(
 )
 
 # vm|aot
+_nightly_builder(
+    "vm-aot-linux-debug-x64",
+    category = "vm|aot|d",
+    properties = slow_shards,
+)
 _vm_builder(
     "vm-aot-linux-release-x64",
     category = "vm|aot|r",
@@ -195,11 +200,6 @@ _vm_builder(
 _vm_builder(
     "vm-aot-linux-release-simarm_x64",
     category = "vm|aot|ra",
-)
-_nightly_builder(
-    "vm-aot-linux-debug-x64",
-    category = "vm|aot|d",
-    properties = slow_shards,
 )
 _nightly_builder(
     "vm-aot-linux-debug-simriscv32",
