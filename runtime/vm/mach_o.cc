@@ -1227,7 +1227,8 @@ class MachOSymbolTable : public MachOCommand {
     return &symbols_[symbols_index];
   }
 
-  void Initialize(const GrowableArray<MachOSection*>& sections,
+  void Initialize(const char* path,
+                  const GrowableArray<MachOSection*>& sections,
                   bool is_stripped);
 
   void UpdateSectionIndices(const GrowableArray<intptr_t>& index_map) {
@@ -1518,12 +1519,14 @@ class MachOHeader : public MachOContents {
               SnapshotType type,
               bool is_stripped,
               const char* identifier,
+              const char* path,
               Dwarf* dwarf)
       : MachOContents(),
         zone_(zone),
         type_(type),
         is_stripped_(is_stripped),
         identifier_(identifier != nullptr ? identifier : ""),
+        path_(path),
         dwarf_(dwarf),
         commands_(zone, 0),
         full_symtab_(zone) {
@@ -1774,6 +1777,9 @@ class MachOHeader : public MachOContents {
   bool const is_stripped_;
   // The identifier, used in the LC_ID_DYLIB command and the code signature.
   const char* const identifier_;
+  // The absolute path, used to create an N_OSO symbolic debugging variable
+  // in unstripped snapshots.
+  const char* const path_;
   Dwarf* const dwarf_;
   GrowableArray<MachOCommand*> commands_;
   // Contains all symbols for relocation calculations.
@@ -1831,10 +1837,12 @@ MachOWriter::MachOWriter(Zone* zone,
                          BaseWriteStream* stream,
                          Type type,
                          const char* id,
+                         const char* path,
                          Dwarf* dwarf)
     : SharedObjectWriter(zone, stream, type, dwarf),
       header_(*new (zone)
-                  MachOHeader(zone, type, IsStripped(dwarf), id, dwarf)) {}
+                  MachOHeader(zone, type, IsStripped(dwarf), id, path, dwarf)) {
+}
 
 void MachOWriter::AddText(const char* name,
                           intptr_t label,
@@ -2202,13 +2210,13 @@ void MachOHeader::InitializeSymbolTables() {
 
   // This symbol table is for the MachOWriter's internal use. All symbols
   // should be added to it so the writer can resolve relocations.
-  full_symtab_.Initialize(sections, /*is_stripped=*/false);
+  full_symtab_.Initialize(path_, sections, /*is_stripped=*/false);
   auto* table = &full_symtab_;
   if (is_stripped_) {
     // Create a separate symbol table that is actually written to the output.
     // This one will only contain what's needed for the dynamic symbol table.
     auto* const table = new (zone()) MachOSymbolTable(zone());
-    table->Initialize(sections, is_stripped_);
+    table->Initialize(path_, sections, is_stripped_);
   }
   commands_.Add(table);
 
@@ -2522,7 +2530,8 @@ void MachOHeader::ComputeOffsets() {
   }
 }
 
-void MachOSymbolTable::Initialize(const GrowableArray<MachOSection*>& sections,
+void MachOSymbolTable::Initialize(const char* path,
+                                  const GrowableArray<MachOSection*>& sections,
                                   bool is_stripped) {
   // Not idempotent.
   ASSERT(!num_local_symbols_is_set());
@@ -2550,6 +2559,13 @@ void MachOSymbolTable::Initialize(const GrowableArray<MachOSection*>& sections,
 
     // In the second pass, we add appropriate symbolic debugging symbols.
     using Type = SharedObjectWriter::SymbolData::Type;
+    if (path != nullptr) {
+      // The value of the OSO symbolic debugging symbol is the mtime of the
+      // object file. However, clang may warn about a mismatch if this is not
+      // 0 and differs from the actual mtime of the object file, so just use 0.
+      AddSymbol(path, mach_o::N_OSO, /*section_index=*/0,
+                /*description=*/1, /*value=*/0);
+    }
     auto add_symbolic_debugging_symbols =
         [&](const char* name, Type type, intptr_t section_index,
             intptr_t offset, intptr_t size, bool is_global) {

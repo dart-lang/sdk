@@ -191,6 +191,7 @@ Future<DwarfAssemblyState?> runAssembly(
 
     print("Generating multi-arch assembly debugging information");
     final singleArchSnapshotPath = path.join(tempDir, "ub-single");
+    final lipo = llvmTool('llvm-lipo', verbose: true)!;
     await run(lipo, <String>[
       debugSnapshotPath,
       '-create',
@@ -279,6 +280,7 @@ Future<DwarfMachOState> runMachODylib(String tempDir, String scriptDill) async {
 
     print("Generating multi-arch Mach-O debugging information");
     final singleArchSnapshotPath = path.join(tempDir, "ub-single");
+    final lipo = llvmTool('llvm-lipo', verbose: true)!;
     await run(lipo, <String>[
       debugInfoPath,
       '-create',

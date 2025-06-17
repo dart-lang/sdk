@@ -66,19 +66,23 @@ final checkedInDartVM = path.join(
   'bin',
   'dart' + (Platform.isWindows ? '.exe' : ''),
 );
-// Lazily initialize 'lipo' so that tests that don't use it on platforms
-// that don't have it don't fail.
-late final lipo = () {
+String? llvmTool(String name, {bool verbose = false}) {
   final clangBuildTools = clangBuildToolsDir;
   if (clangBuildTools != null) {
-    final lipoPath = path.join(clangBuildTools, "llvm-lipo");
-    if (File(lipoPath).existsSync()) {
-      return lipoPath;
+    final toolPath = path.join(clangBuildTools, name);
+    if (File(toolPath).existsSync()) {
+      return toolPath;
     }
-    throw 'Could not find lipo binary at $lipoPath';
+    if (verbose) {
+      print('Could not find $name binary at $toolPath');
+    }
+    return null;
   }
-  throw 'Could not find lipo binary';
-}();
+  if (verbose) {
+    print('Could not find $name binary');
+  }
+  return null;
+}
 
 final isSimulator = path.basename(buildDir).contains('SIM');
 

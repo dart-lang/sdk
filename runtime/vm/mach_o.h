@@ -28,6 +28,7 @@ class MachOWriter : public SharedObjectWriter {
               BaseWriteStream* stream,
               Type type,
               const char* id,
+              const char* path = nullptr,
               Dwarf* dwarf = nullptr);
 
 #if defined(TARGET_ARCH_ARM64)

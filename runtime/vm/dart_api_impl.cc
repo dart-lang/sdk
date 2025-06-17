@@ -6437,7 +6437,8 @@ static void CreateAppAOTSnapshot(
     GrowableArray<LoadingUnitSerializationData*>* units,
     LoadingUnitSerializationData* unit,
     uint32_t program_hash,
-    const char* identifier) {
+    const char* identifier,
+    const char* path) {
   Thread* T = Thread::Current();
 
   NOT_IN_PRODUCT(TimelineBeginEndScope tbes2(T, Timeline::GetIsolateStream(),
@@ -6470,7 +6471,7 @@ static void CreateAppAOTSnapshot(
     if (format == Dart_AotBinaryFormat_MachO_Dylib) {
       debug_so = new (Z)
           MachOWriter(Z, &debug_stream, SharedObjectWriter::Type::DebugInfo,
-                      identifier, debug_dwarf);
+                      identifier, /*path=*/nullptr, debug_dwarf);
     } else {
       debug_so = new (Z) ElfWriter(
           Z, &debug_stream, SharedObjectWriter::Type::DebugInfo, debug_dwarf);
@@ -6506,7 +6507,7 @@ static void CreateAppAOTSnapshot(
   } else if (format == Dart_AotBinaryFormat_MachO_Dylib) {
     so = new (Z)
         MachOWriter(Z, &output_stream, SharedObjectWriter::Type::Snapshot,
-                    identifier, dwarf);
+                    identifier, path, dwarf);
   }
 
   if (format == Dart_AotBinaryFormat_Assembly) {
@@ -6559,7 +6560,8 @@ static void Split(Dart_CreateLoadingUnitCallback next_callback,
     }
     CreateAppAOTSnapshot(write_callback, write_callback_data, strip, format,
                          write_debug_callback_data, &data, data[id],
-                         program_hash, /*identifier=*/nullptr);
+                         program_hash, /*identifier=*/nullptr,
+                         /*path=*/nullptr);
     {
       TransitionVMToNative transition(T);
       close_callback(write_callback_data);
@@ -6591,7 +6593,8 @@ Dart_CreateAppAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
 
   CreateAppAOTSnapshot(callback, callback_data, strip,
                        Dart_AotBinaryFormat_Assembly, debug_callback_data,
-                       nullptr, nullptr, 0, /*identifier=*/nullptr);
+                       nullptr, nullptr, 0, /*identifier=*/nullptr,
+                       /*path=*/nullptr);
 
   return Api::Success();
 #endif
@@ -6669,7 +6672,7 @@ Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
 
   CreateAppAOTSnapshot(callback, callback_data, strip, Dart_AotBinaryFormat_Elf,
                        debug_callback_data, nullptr, nullptr, 0,
-                       /*identifier=*/nullptr);
+                       /*identifier=*/nullptr, /*path=*/nullptr);
 
   return Api::Success();
 #endif
@@ -6706,7 +6709,8 @@ Dart_CreateAppAOTSnapshotAsBinary(Dart_AotBinaryFormat format,
                                   void* callback_data,
                                   bool strip,
                                   void* debug_callback_data,
-                                  const char* identifier) {
+                                  const char* identifier,
+                                  const char* path) {
 #if defined(TARGET_ARCH_IA32)
   return Api::NewError("AOT compilation is not supported on IA32.");
 #elif !defined(DART_PRECOMPILER)
@@ -6721,7 +6725,8 @@ Dart_CreateAppAOTSnapshotAsBinary(Dart_AotBinaryFormat format,
   T->isolate_group()->object_store()->set_loading_units(Object::null_array());
 
   CreateAppAOTSnapshot(callback, callback_data, strip, format,
-                       debug_callback_data, nullptr, nullptr, 0, identifier);
+                       debug_callback_data, nullptr, nullptr, 0, identifier,
+                       path);
 
   return Api::Success();
 #endif
