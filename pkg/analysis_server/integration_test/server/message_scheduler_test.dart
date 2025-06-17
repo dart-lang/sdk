@@ -14,10 +14,10 @@ import 'package:language_server_protocol/protocol_generated.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../analysis_server_base.dart';
-import '../../lsp/code_actions_refactor_test.dart';
-import '../../utils/message_scheduler_test_view.dart';
-import '../../utils/test_code_extensions.dart';
+import '../../test/analysis_server_base.dart';
+import '../../test/lsp/code_actions_refactor_test.dart';
+import '../../test/utils/message_scheduler_test_view.dart';
+import '../../test/utils/test_code_extensions.dart';
 
 void main() {
   defineReflectiveSuite(() {

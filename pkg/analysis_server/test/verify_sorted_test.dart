@@ -80,8 +80,8 @@ void buildTestsForAnalysisServer() {
     //  remove these exclusions.
     'lib/protocol/protocol_constants.dart',
     'lib/protocol/protocol_generated.dart',
-    'test/integration/support/integration_test_methods.dart',
-    'test/integration/support/protocol_matchers.dart',
+    'integration_test/support/integration_test_methods.dart',
+    'integration_test/support/protocol_matchers.dart',
     // The following are not generated, but can't be sorted because they contain
     // ignore comments in the directives, which sorting deletes.
     'lib/src/services/kythe/schema.dart',

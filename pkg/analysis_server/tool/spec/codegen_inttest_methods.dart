@@ -14,7 +14,7 @@ import 'from_html.dart';
 import 'to_html.dart';
 
 final GeneratedFile target = GeneratedFile(
-  'test/integration/support/integration_test_methods.dart',
+  'integration_test/support/integration_test_methods.dart',
   (String pkgPath) async {
     var visitor = CodegenInttestMethodsVisitor(
       path.basename(pkgPath),

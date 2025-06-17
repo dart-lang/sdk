@@ -47,7 +47,7 @@ import 'package:yaml/yaml.dart';
 // it and re-enable it everywhere.
 // Not private to enable testing.
 // NB: If you set this to `false` remember to disable the
-// `test/integration/serve/blaze_changes_test.dart`.
+// `integration_test/serve/blaze_changes_test.dart`.
 var experimentalEnableBlazeWatching = true;
 
 /// Class that maintains a mapping from included/excluded paths to a set of

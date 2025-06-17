@@ -6,7 +6,7 @@ import 'dart:async';
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../shared/shared_dtd_tests.dart';
+import '../../test/shared/shared_dtd_tests.dart';
 import 'integration_tests.dart';
 
 void main() {

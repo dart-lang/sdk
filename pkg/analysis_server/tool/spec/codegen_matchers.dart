@@ -13,7 +13,7 @@ import 'implied_types.dart';
 import 'to_html.dart';
 
 final GeneratedFile target = GeneratedFile(
-  'test/integration/support/protocol_matchers.dart',
+  'integration_test/support/protocol_matchers.dart',
   (String pkgPath) async {
     var visitor = CodegenMatchersVisitor(readApi(pkgPath));
     return visitor.collectCode(visitor.visitApi);

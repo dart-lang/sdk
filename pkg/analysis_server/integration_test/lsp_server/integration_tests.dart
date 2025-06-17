@@ -15,10 +15,10 @@ import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
-import '../../constants.dart';
-import '../../lsp/request_helpers_mixin.dart';
-import '../../lsp/server_abstract.dart';
-import '../../support/sdk_paths.dart';
+import '../../test/constants.dart';
+import '../../test/lsp/request_helpers_mixin.dart';
+import '../../test/lsp/server_abstract.dart';
+import '../../test/support/sdk_paths.dart';
 
 abstract class AbstractLspAnalysisServerIntegrationTest
     with

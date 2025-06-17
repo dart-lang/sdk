@@ -8,10 +8,10 @@
 #
 # - ../../doc/api.html: The human-readable API spec.
 #
-# - ../../test/integration/protocol_matchers.dart: matchers to be used by
+# - ../../integration_test/protocol_matchers.dart: matchers to be used by
 #   integration tests.
 #
-# - ../../test/integration/integration_test_methods.dart: convenience methods
+# - ../../integration_test/integration_test_methods.dart: convenience methods
 #   to be used by integration tests.
 
 set -e

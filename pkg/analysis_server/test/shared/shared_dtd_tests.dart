@@ -11,8 +11,8 @@ import 'package:dtd/dtd.dart';
 import 'package:json_rpc_2/json_rpc_2.dart';
 import 'package:test/test.dart';
 
-import '../integration/support/dart_tooling_daemon.dart';
-import '../integration/support/web_sockets.dart';
+import '../../integration_test/support/dart_tooling_daemon.dart';
+import '../../integration_test/support/web_sockets.dart';
 import '../lsp/request_helpers_mixin.dart';
 import '../tool/lsp_spec/matchers.dart';
 import '../utils/lsp_protocol_extensions.dart';
