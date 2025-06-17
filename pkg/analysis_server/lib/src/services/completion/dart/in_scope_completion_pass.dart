@@ -531,9 +531,6 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       keywordHelper.addKeyword(Keyword.ELSE);
     }
     _forStatement(node);
-    if (node.inCatchClause) {
-      keywordHelper.addKeyword(Keyword.RETHROW);
-    }
   }
 
   @override
