@@ -158,6 +158,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   @override
   final Library library;
 
+  @override
   final LibraryName libraryName;
 
   final List<PendingBoundsCheck> _pendingBoundsChecks = [];

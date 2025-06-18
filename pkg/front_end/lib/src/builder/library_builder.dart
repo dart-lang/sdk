@@ -25,6 +25,7 @@ import '../base/problems.dart' show internalProblem;
 import '../base/scope.dart';
 import '../fragment/fragment.dart';
 import '../kernel/body_builder_context.dart';
+import '../source/name_scheme.dart';
 import '../source/offset_map.dart';
 import '../source/outline_builder.dart';
 import '../source/source_class_builder.dart';
@@ -335,6 +336,8 @@ abstract class LibraryBuilder implements Builder, ProblemReporting {
 
   /// Returns the [Library] built by this builder.
   Library get library;
+
+  LibraryName get libraryName;
 
   @override
   Uri get fileUri;

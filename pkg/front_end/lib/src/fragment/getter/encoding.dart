@@ -395,7 +395,6 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
           : null;
 
   @override
-  // Coverage-ignore(suite): Not run.
   List<FormalParameterBuilder>? get formals =>
       [_thisFormal, ...?_fragment.declaredFormals];
 

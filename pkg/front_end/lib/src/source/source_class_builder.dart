@@ -391,23 +391,23 @@ class SourceClassBuilder extends ClassBuilderImpl
   @override
   SourceLibraryBuilder get parent => libraryBuilder;
 
-  Class build(LibraryBuilder coreLibrary) {
-    void buildBuilders(SourceMemberBuilder memberBuilder) {
-      assert(memberBuilder.parent == this,
-          "Unexpected member $memberBuilder from outside $this.");
-      memberBuilder.buildOutlineNodes((
-          {required Member member,
-          Member? tearOff,
-          required BuiltMemberKind kind}) {
-        _addMemberToClass(memberBuilder, member);
-        if (tearOff != null) {
-          _addMemberToClass(memberBuilder, tearOff);
-        }
-      });
-    }
+  void _buildMemberOutlineNodes(SourceMemberBuilder memberBuilder) {
+    assert(memberBuilder.parent == this,
+        "Unexpected member $memberBuilder from outside $this.");
+    memberBuilder.buildOutlineNodes((
+        {required Member member,
+        Member? tearOff,
+        required BuiltMemberKind kind}) {
+      _addMemberToClass(memberBuilder, member);
+      if (tearOff != null) {
+        _addMemberToClass(memberBuilder, tearOff);
+      }
+    });
+  }
 
-    _memberBuilders.forEach(buildBuilders);
-    _constructorBuilders.forEach(buildBuilders);
+  Class build(LibraryBuilder coreLibrary) {
+    _memberBuilders.forEach(_buildMemberOutlineNodes);
+    _constructorBuilders.forEach(_buildMemberOutlineNodes);
 
     if (_supertypeBuilder != null) {
       _supertypeBuilder = _checkSupertype(_supertypeBuilder!);
@@ -1286,12 +1286,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         "Unexpected existing constructor when adding synthetic constructor "
         "$constructorBuilder to $this.");
     addConstructorInternal(constructorBuilder, addToNameSpace: true);
-    // Synthetic constructors are created after the component has been built
-    // so we need to add the constructor to the class.
-    cls.addConstructor(constructorBuilder.invokeTarget as Constructor);
-    if (constructorBuilder.readTarget != constructorBuilder.invokeTarget) {
-      cls.addProcedure(constructorBuilder.readTarget as Procedure);
-    }
+    _buildMemberOutlineNodes(constructorBuilder);
     if (constructorBuilder.isConst) {
       cls.hasConstConstructor = true;
     }

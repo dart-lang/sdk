@@ -112,7 +112,6 @@ class FactoryDeclarationImpl
   Uri get fileUri => _fragment.fileUri;
 
   @override
-  // Coverage-ignore(suite): Not run.
   List<FormalParameterBuilder>? get formals => _fragment.formals;
 
   @override

@@ -38,7 +38,6 @@ class FactoryBodyBuilderContext extends BodyBuilderContext {
   TypeBuilder get returnType => _declaration.returnType;
 
   @override
-  // Coverage-ignore(suite): Not run.
   List<FormalParameterBuilder>? get formals => _declaration.formals;
 
   @override

@@ -53,23 +53,9 @@ abstract class ConstructorDeclaration {
 
   bool get hasParameters;
 
-  Member get readTarget;
-
-  Reference get readTargetReference;
-
-  Member get invokeTarget;
-
-  Reference get invokeTargetReference;
-
   List<Initializer> get initializers;
 
-  void createNode({
-    required String name,
-    required SourceLibraryBuilder libraryBuilder,
-    required NameScheme nameScheme,
-    required Reference? constructorReference,
-    required Reference? tearOffReference,
-  });
+  void createEncoding(SourceConstructorBuilder builder);
 
   void registerInferable(Inferable inferable);
 
@@ -77,7 +63,8 @@ abstract class ConstructorDeclaration {
     BuildNodesCallback f, {
     required SourceConstructorBuilder constructorBuilder,
     required SourceLibraryBuilder libraryBuilder,
-    required Member declarationConstructor,
+    required NameScheme nameScheme,
+    required ConstructorReferences? constructorReferences,
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   });
 
@@ -613,18 +600,6 @@ mixin _ConstructorEncodingMixin
   FunctionNode get function => _encoding.function;
 
   @override
-  Member get readTarget => _encoding.readTarget;
-
-  @override
-  Reference get readTargetReference => _encoding.readTargetReference;
-
-  @override
-  Member get invokeTarget => _encoding.invokeTarget;
-
-  @override
-  Reference get invokeTargetReference => _encoding.invokeTargetReference;
-
-  @override
   List<Initializer> get initializers => _encoding.initializers;
 
   @override
@@ -801,6 +776,11 @@ class RegularConstructorDeclaration
   }
 
   @override
+  void createEncoding(SourceConstructorBuilder builder) {
+    _fragment.builder = builder;
+  }
+
+  @override
   void becomeNative(SourceLoader loader) {
     _encoding.becomeNative(loader, _fragment.nativeMethodName!);
   }
@@ -827,38 +807,26 @@ class RegularConstructorDeclaration
   bool get isExternal => _fragment.modifiers.isExternal;
 
   @override
-  void createNode(
-      {required String name,
-      required SourceLibraryBuilder libraryBuilder,
-      required NameScheme nameScheme,
-      required Reference? constructorReference,
-      required Reference? tearOffReference}) {
-    _encoding.createNode(
-        name: name,
-        libraryBuilder: libraryBuilder,
-        nameScheme: nameScheme,
-        constructorReference: constructorReference,
-        tearOffReference: tearOffReference,
-        fileUri: _fragment.fileUri,
-        startOffset: _fragment.startOffset,
-        fileOffset: _fragment.fullNameOffset,
-        endOffset: _fragment.endOffset,
-        isSynthetic: false,
-        forAbstractClassOrEnumOrMixin: _fragment.forAbstractClassOrMixin);
-  }
-
-  @override
   void buildOutlineNodes(BuildNodesCallback f,
       {required SourceConstructorBuilder constructorBuilder,
       required SourceLibraryBuilder libraryBuilder,
-      required Member declarationConstructor,
+      required NameScheme nameScheme,
+      required ConstructorReferences? constructorReferences,
       required List<DelayedDefaultValueCloner> delayedDefaultValueCloners}) {
     _encoding.buildOutlineNodes(f,
         constructorBuilder: constructorBuilder,
         libraryBuilder: libraryBuilder,
         declarationBuilder:
             constructorBuilder.declarationBuilder as SourceClassBuilder,
-        declarationConstructor: declarationConstructor,
+        name: _fragment.name,
+        nameScheme: nameScheme,
+        constructorReferences: constructorReferences,
+        fileUri: _fragment.fileUri,
+        startOffset: _fragment.startOffset,
+        fileOffset: _fragment.fullNameOffset,
+        endOffset: _fragment.endOffset,
+        isSynthetic: false,
+        forAbstractClassOrEnumOrMixin: _fragment.forAbstractClassOrMixin,
         formalsOffset: _fragment.formalsOffset,
         isConst: _fragment.modifiers.isConst,
         returnType: returnType,
@@ -932,6 +900,11 @@ class PrimaryConstructorDeclaration
   }
 
   @override
+  void createEncoding(SourceConstructorBuilder builder) {
+    _fragment.builder = builder;
+  }
+
+  @override
   void becomeNative(SourceLoader loader) {
     throw new UnsupportedError("$runtimeType.becomeNative()");
   }
@@ -958,40 +931,28 @@ class PrimaryConstructorDeclaration
   bool get isExternal => _fragment.modifiers.isExternal;
 
   @override
-  void createNode(
-      {required String name,
-      required SourceLibraryBuilder libraryBuilder,
-      required NameScheme nameScheme,
-      required Reference? constructorReference,
-      required Reference? tearOffReference}) {
-    _encoding.createNode(
-        name: name,
-        libraryBuilder: libraryBuilder,
-        nameScheme: nameScheme,
-        constructorReference: constructorReference,
-        tearOffReference: tearOffReference,
-        fileUri: _fragment.fileUri,
-        startOffset: _fragment.startOffset,
-        fileOffset: _fragment.fileOffset,
-        // TODO(johnniwinther): Provide `endOffset`.
-        endOffset: _fragment.formalsOffset,
-        isSynthetic: false,
-        forAbstractClassOrEnumOrMixin: _fragment.forAbstractClassOrMixin);
-  }
-
-  @override
   void buildOutlineNodes(BuildNodesCallback f,
       {required SourceConstructorBuilder constructorBuilder,
       required SourceLibraryBuilder libraryBuilder,
-      required Member declarationConstructor,
+      required NameScheme nameScheme,
+      required ConstructorReferences? constructorReferences,
       required List<DelayedDefaultValueCloner> delayedDefaultValueCloners}) {
     _encoding.buildOutlineNodes(f,
         constructorBuilder: constructorBuilder,
         libraryBuilder: libraryBuilder,
         declarationBuilder:
             constructorBuilder.declarationBuilder as SourceClassBuilder,
-        declarationConstructor: declarationConstructor,
+        name: _fragment.name,
+        nameScheme: nameScheme,
+        constructorReferences: constructorReferences,
+        fileUri: _fragment.fileUri,
+        startOffset: _fragment.startOffset,
+        fileOffset: _fragment.fileOffset,
         formalsOffset: _fragment.formalsOffset,
+        // TODO(johnniwinther): Provide `endOffset`.
+        endOffset: _fragment.formalsOffset,
+        isSynthetic: false,
+        forAbstractClassOrEnumOrMixin: _fragment.forAbstractClassOrMixin,
         isConst: _fragment.modifiers.isConst,
         returnType: returnType,
         typeParameters: _typeParameters,
@@ -1075,6 +1036,10 @@ class DefaultEnumConstructorDeclaration
         _beginInitializers = new Token.eof(-1);
 
   @override
+  // Coverage-ignore(suite): Not run.
+  void createEncoding(SourceConstructorBuilder builder) {}
+
+  @override
   void becomeNative(SourceLoader loader) {
     throw new UnsupportedError("$runtimeType.becomeNative()");
   }
@@ -1096,39 +1061,27 @@ class DefaultEnumConstructorDeclaration
   bool get isExternal => false;
 
   @override
-  void createNode(
-      {required String name,
-      required SourceLibraryBuilder libraryBuilder,
-      required NameScheme nameScheme,
-      required Reference? constructorReference,
-      required Reference? tearOffReference}) {
-    _encoding.createNode(
-        name: name,
-        libraryBuilder: libraryBuilder,
-        nameScheme: nameScheme,
-        constructorReference: constructorReference,
-        tearOffReference: tearOffReference,
-        fileUri: fileUri,
-        startOffset: fileOffset,
-        fileOffset: fileOffset,
-        endOffset: fileOffset,
-        isSynthetic: true,
-        forAbstractClassOrEnumOrMixin: true);
-  }
-
-  @override
   void buildOutlineNodes(BuildNodesCallback f,
       {required SourceConstructorBuilder constructorBuilder,
       required SourceLibraryBuilder libraryBuilder,
-      required Member declarationConstructor,
+      required NameScheme nameScheme,
+      required ConstructorReferences? constructorReferences,
       required List<DelayedDefaultValueCloner> delayedDefaultValueCloners}) {
     _encoding.buildOutlineNodes(f,
         constructorBuilder: constructorBuilder,
         libraryBuilder: libraryBuilder,
         declarationBuilder:
             constructorBuilder.declarationBuilder as SourceClassBuilder,
-        declarationConstructor: declarationConstructor,
+        name: '',
+        nameScheme: nameScheme,
+        constructorReferences: constructorReferences,
+        fileUri: fileUri,
+        startOffset: fileOffset,
+        fileOffset: fileOffset,
         formalsOffset: fileOffset,
+        endOffset: fileOffset,
+        isSynthetic: true,
+        forAbstractClassOrEnumOrMixin: true,
         isConst: true,
         returnType: returnType,
         typeParameters: _typeParameters,
@@ -1318,6 +1271,11 @@ class ExtensionTypeConstructorDeclaration
   }
 
   @override
+  void createEncoding(SourceConstructorBuilder builder) {
+    _fragment.builder = builder;
+  }
+
+  @override
   LookupScope get _typeParameterScope => _fragment.typeParameterScope;
 
   @override
@@ -1337,38 +1295,25 @@ class ExtensionTypeConstructorDeclaration
   bool get isExternal => _fragment.modifiers.isExternal;
 
   @override
-  void createNode(
-      {required String name,
-      required SourceLibraryBuilder libraryBuilder,
-      required NameScheme nameScheme,
-      required Reference? constructorReference,
-      required Reference? tearOffReference}) {
-    _encoding.createNode(
-        name: name,
-        libraryBuilder: libraryBuilder,
-        nameScheme: nameScheme,
-        constructorReference: constructorReference,
-        tearOffReference: tearOffReference,
-        fileUri: _fragment.fileUri,
-        fileOffset: _fragment.fullNameOffset,
-        endOffset: _fragment.endOffset,
-        forAbstractClassOrEnumOrMixin: _fragment.forAbstractClassOrMixin);
-  }
-
-  @override
   void buildOutlineNodes(BuildNodesCallback f,
       {required SourceConstructorBuilder constructorBuilder,
       required SourceLibraryBuilder libraryBuilder,
-      required Member declarationConstructor,
+      required NameScheme nameScheme,
+      required ConstructorReferences? constructorReferences,
       required List<DelayedDefaultValueCloner> delayedDefaultValueCloners}) {
     _encoding.buildOutlineNodes(f,
         constructorBuilder: constructorBuilder,
         libraryBuilder: libraryBuilder,
         declarationBuilder: constructorBuilder.declarationBuilder
             as SourceExtensionTypeDeclarationBuilder,
-        declarationConstructor: declarationConstructor,
+        name: _fragment.name,
+        nameScheme: nameScheme,
+        constructorReferences: constructorReferences,
+        fileUri: _fragment.fileUri,
         fileOffset: _fragment.fullNameOffset,
         formalsOffset: _fragment.formalsOffset,
+        endOffset: _fragment.endOffset,
+        forAbstractClassOrEnumOrMixin: _fragment.forAbstractClassOrMixin,
         isConst: _fragment.modifiers.isConst,
         returnType: returnType,
         typeParameters: _typeParameters,
@@ -1444,6 +1389,11 @@ class ExtensionTypePrimaryConstructorDeclaration
   }
 
   @override
+  void createEncoding(SourceConstructorBuilder builder) {
+    _fragment.builder = builder;
+  }
+
+  @override
   LookupScope get _typeParameterScope => _fragment.typeParameterScope;
 
   @override
@@ -1463,39 +1413,26 @@ class ExtensionTypePrimaryConstructorDeclaration
   bool get isExternal => _fragment.modifiers.isExternal;
 
   @override
-  void createNode(
-      {required String name,
-      required SourceLibraryBuilder libraryBuilder,
-      required NameScheme nameScheme,
-      required Reference? constructorReference,
-      required Reference? tearOffReference}) {
-    _encoding.createNode(
-        name: name,
-        libraryBuilder: libraryBuilder,
-        nameScheme: nameScheme,
-        constructorReference: constructorReference,
-        tearOffReference: tearOffReference,
-        fileUri: _fragment.fileUri,
-        fileOffset: _fragment.fileOffset,
-        // TODO(johnniwinther): Provide `endOffset`.
-        endOffset: _fragment.formalsOffset,
-        forAbstractClassOrEnumOrMixin: _fragment.forAbstractClassOrMixin);
-  }
-
-  @override
   void buildOutlineNodes(BuildNodesCallback f,
       {required SourceConstructorBuilder constructorBuilder,
       required SourceLibraryBuilder libraryBuilder,
-      required Member declarationConstructor,
+      required NameScheme nameScheme,
+      required ConstructorReferences? constructorReferences,
       required List<DelayedDefaultValueCloner> delayedDefaultValueCloners}) {
     _encoding.buildOutlineNodes(f,
         constructorBuilder: constructorBuilder,
         libraryBuilder: libraryBuilder,
         declarationBuilder: constructorBuilder.declarationBuilder
             as SourceExtensionTypeDeclarationBuilder,
-        declarationConstructor: declarationConstructor,
+        name: _fragment.name,
+        nameScheme: nameScheme,
+        constructorReferences: constructorReferences,
+        fileUri: _fragment.fileUri,
         fileOffset: _fragment.fileOffset,
         formalsOffset: _fragment.formalsOffset,
+        // TODO(johnniwinther): Provide `endOffset`.
+        endOffset: _fragment.formalsOffset,
+        forAbstractClassOrEnumOrMixin: _fragment.forAbstractClassOrMixin,
         isConst: _fragment.modifiers.isConst,
         returnType: returnType,
         typeParameters: _typeParameters,
@@ -1700,6 +1637,11 @@ class ExtensionConstructorDeclaration
   }
 
   @override
+  void createEncoding(SourceConstructorBuilder builder) {
+    _fragment.builder = builder;
+  }
+
+  @override
   // Coverage-ignore(suite): Not run.
   LookupScope get _typeParameterScope => _fragment.typeParameterScope;
 
@@ -1721,38 +1663,25 @@ class ExtensionConstructorDeclaration
   bool get isExternal => _fragment.modifiers.isExternal;
 
   @override
-  void createNode(
-      {required String name,
-      required SourceLibraryBuilder libraryBuilder,
-      required NameScheme nameScheme,
-      required Reference? constructorReference,
-      required Reference? tearOffReference}) {
-    _encoding.createNode(
-        name: name,
-        libraryBuilder: libraryBuilder,
-        nameScheme: nameScheme,
-        constructorReference: constructorReference,
-        tearOffReference: tearOffReference,
-        fileUri: _fragment.fileUri,
-        fileOffset: _fragment.fullNameOffset,
-        endOffset: _fragment.endOffset,
-        forAbstractClassOrEnumOrMixin: _fragment.forAbstractClassOrMixin);
-  }
-
-  @override
   void buildOutlineNodes(BuildNodesCallback f,
       {required SourceConstructorBuilder constructorBuilder,
       required SourceLibraryBuilder libraryBuilder,
-      required Member declarationConstructor,
+      required NameScheme nameScheme,
+      required ConstructorReferences? constructorReferences,
       required List<DelayedDefaultValueCloner> delayedDefaultValueCloners}) {
     _encoding.buildOutlineNodes(f,
         constructorBuilder: constructorBuilder,
         libraryBuilder: libraryBuilder,
         declarationBuilder:
             constructorBuilder.declarationBuilder as SourceExtensionBuilder,
-        declarationConstructor: declarationConstructor,
+        name: _fragment.name,
+        nameScheme: nameScheme,
+        constructorReferences: constructorReferences,
+        fileUri: _fragment.fileUri,
         fileOffset: _fragment.fullNameOffset,
         formalsOffset: _fragment.formalsOffset,
+        endOffset: _fragment.endOffset,
+        forAbstractClassOrEnumOrMixin: _fragment.forAbstractClassOrMixin,
         isConst: _fragment.modifiers.isConst,
         returnType: returnType,
         typeParameters: _typeParameters,
@@ -1853,6 +1782,7 @@ abstract class ConstructorFragmentDeclaration {
 
 mixin _SyntheticConstructorDeclarationMixin implements ConstructorDeclaration {
   Constructor get _constructor;
+
   Procedure? get _constructorTearOff;
 
   @override
@@ -1867,12 +1797,6 @@ mixin _SyntheticConstructorDeclarationMixin implements ConstructorDeclaration {
   bool get hasParameters =>
       _constructor.function.positionalParameters.isNotEmpty ||
       _constructor.function.namedParameters.isNotEmpty;
-
-  @override
-  Member get invokeTarget => _constructor;
-
-  @override
-  Reference get invokeTargetReference => _constructor.reference;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -1899,13 +1823,6 @@ mixin _SyntheticConstructorDeclarationMixin implements ConstructorDeclaration {
   List<MetadataBuilder>? get metadata => null;
 
   @override
-  Member get readTarget => _constructorTearOff ?? _constructor;
-
-  @override
-  Reference get readTargetReference =>
-      (_constructorTearOff ?? _constructor).reference;
-
-  @override
   void checkTypes(SourceLibraryBuilder libraryBuilder, NameSpace nameSpace,
       TypeEnvironment typeEnvironment) {}
 
@@ -1924,10 +1841,13 @@ mixin _SyntheticConstructorDeclarationMixin implements ConstructorDeclaration {
   void buildOutlineNodes(BuildNodesCallback f,
       {required SourceConstructorBuilder constructorBuilder,
       required SourceLibraryBuilder libraryBuilder,
-      required Member declarationConstructor,
+      required NameScheme nameScheme,
+      required ConstructorReferences? constructorReferences,
       required List<DelayedDefaultValueCloner> delayedDefaultValueCloners}) {
-    throw new UnsupportedError(
-        "Unexpected call to $runtimeType.buildOutlineNodes");
+    f(
+        member: _constructor,
+        tearOff: _constructorTearOff,
+        kind: BuiltMemberKind.Constructor);
   }
 
   @override
@@ -1936,14 +1856,6 @@ mixin _SyntheticConstructorDeclarationMixin implements ConstructorDeclaration {
     throw new UnsupportedError(
         "Unexpected call to $runtimeType.computeFieldTypeSubstitution");
   }
-
-  @override
-  void createNode(
-      {required String name,
-      required SourceLibraryBuilder libraryBuilder,
-      required NameScheme nameScheme,
-      required Reference? constructorReference,
-      required Reference? tearOffReference}) {}
 
   @override
   List<Initializer> get initializers {
@@ -1980,6 +1892,10 @@ class DefaultConstructorDeclaration
     required Procedure? constructorTearOff,
   })  : this._constructor = constructor,
         this._constructorTearOff = constructorTearOff;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void createEncoding(SourceConstructorBuilder builder) {}
 
   @override
   void addSuperParameterDefaultValueCloners(
@@ -2038,6 +1954,10 @@ class ForwardingConstructorDeclaration
         _immediatelyDefiningConstructor = definingConstructor,
         _delayedDefaultValueCloner = delayedDefaultValueCloner,
         _typeDependency = typeDependency;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void createEncoding(SourceConstructorBuilder builder) {}
 
   @override
   void addSuperParameterDefaultValueCloners(

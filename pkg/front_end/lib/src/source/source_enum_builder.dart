@@ -36,7 +36,6 @@ import '../fragment/fragment.dart';
 import '../fragment/getter/declaration.dart';
 import '../fragment/method/declaration.dart';
 import '../kernel/body_builder_context.dart';
-import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/kernel_helper.dart';
@@ -189,14 +188,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
         containerType: ContainerType.Class,
         libraryName: libraryName);
 
-    Reference? constructorReference;
-    Reference? tearOffReference;
     Reference? toStringReference;
     if (indexedClass != null) {
-      constructorReference =
-          indexedClass!.lookupConstructorReference(new Name(""));
-      tearOffReference = indexedClass!.lookupGetterReference(
-          new Name(constructorTearOffName(""), indexedClass!.library));
       toStringReference = indexedClass!.lookupGetterReference(
           new Name("_enumToString", coreLibrary.library));
     }
@@ -324,6 +317,20 @@ class SourceEnumBuilder extends SourceClassBuilder {
               fileUri: fileUri,
               fileOffset: fileOffset,
               lookupScope: _introductory.compilationUnitScope);
+
+      NameScheme nameScheme = new NameScheme(
+          isInstanceMember: false,
+          containerName: new ClassName(name),
+          containerType: ContainerType.Class,
+          libraryName: libraryName);
+
+      ConstructorReferences constructorReferences = new ConstructorReferences(
+          name: '',
+          nameScheme: nameScheme,
+          indexedContainer: indexedClass,
+          loader: libraryBuilder.loader,
+          declarationBuilder: this);
+
       SourceConstructorBuilder constructorBuilder =
           _synthesizedDefaultConstructorBuilder = new SourceConstructorBuilder(
               name: "",
@@ -331,13 +338,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
               declarationBuilder: this,
               fileUri: fileUri,
               fileOffset: fileOffset,
-              constructorReference: constructorReference,
-              tearOffReference: tearOffReference,
-              nameScheme: new NameScheme(
-                  isInstanceMember: false,
-                  containerName: new ClassName(name),
-                  containerType: ContainerType.Class,
-                  libraryName: libraryName),
+              constructorReferences: constructorReferences,
+              nameScheme: nameScheme,
               introductory: constructorDeclaration,
               isConst: true,
               isExternal: false);
@@ -434,8 +436,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
               objectClass.name.length,
               objectClass.fileUri);
         } else {
-          constructor.initializers.add(new SuperInitializer(
-              superConstructor.invokeTarget as Constructor,
+          constructor.initializers.add(new SuperInitializer.byReference(
+              superConstructor.invokeTargetReference!,
               new Arguments.forwarded(
                   constructor.function, libraryBuilder.library))
             ..parent = constructor);

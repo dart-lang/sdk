@@ -2771,19 +2771,16 @@ _AddBuilder _createConstructorBuilder(
   createNominalParameterBuilders(
       fragment.typeParameters, unboundNominalParameters);
 
-  Reference? constructorReference;
-  Reference? tearOffReference;
-
-  if (indexedContainer != null) {
-    constructorReference = indexedContainer.lookupConstructorReference(
-        nameScheme.getConstructorMemberName(name, isTearOff: false).name);
-    tearOffReference = indexedContainer.lookupGetterReference(
-        nameScheme.getConstructorMemberName(name, isTearOff: true).name);
-  }
+  ConstructorReferences constructorReferences = new ConstructorReferences(
+      name: name,
+      nameScheme: nameScheme,
+      indexedContainer: indexedContainer,
+      loader: loader,
+      declarationBuilder: declarationBuilder!);
 
   ConstructorDeclaration createConstructorDeclaration(
       ConstructorFragment fragment) {
-    switch (declarationBuilder!) {
+    switch (declarationBuilder) {
       case ExtensionTypeDeclarationBuilder():
         List<SourceNominalParameterBuilder>? typeParameters = fragment
             .typeParameters
@@ -2892,40 +2889,70 @@ _AddBuilder _createConstructorBuilder(
         isExternal = false;
       }
     }
+    augmentations.clear();
   }
 
+  return _createConstructorBuilderFromDeclarations(
+      constructorDeclaration, augmentationDeclarations,
+      problemReporting: problemReporting,
+      loader: loader,
+      name: name,
+      uriOffset: fragment.uriOffset,
+      nameScheme: nameScheme,
+      enclosingLibraryBuilder: enclosingLibraryBuilder,
+      declarationBuilder: declarationBuilder,
+      unboundNominalParameters: unboundNominalParameters,
+      indexedLibrary: indexedLibrary,
+      containerType: containerType,
+      indexedContainer: indexedContainer,
+      containerName: containerName,
+      constructorReferences: constructorReferences,
+      nativeMethodName: fragment.nativeMethodName,
+      isConst: isConst,
+      isExternal: isExternal,
+      inPatch: fragment.enclosingDeclaration.isPatch);
+}
+
+_AddBuilder _createConstructorBuilderFromDeclarations(
+    ConstructorDeclaration constructorDeclaration,
+    List<ConstructorDeclaration> augmentationDeclarations,
+    {required ProblemReporting problemReporting,
+    required SourceLoader loader,
+    required String name,
+    required UriOffsetLength uriOffset,
+    required NameScheme nameScheme,
+    required SourceLibraryBuilder enclosingLibraryBuilder,
+    required DeclarationBuilder? declarationBuilder,
+    required List<NominalParameterBuilder> unboundNominalParameters,
+    required IndexedLibrary? indexedLibrary,
+    required ContainerType containerType,
+    required IndexedContainer? indexedContainer,
+    required ContainerName? containerName,
+    required ConstructorReferences constructorReferences,
+    required String? nativeMethodName,
+    required bool isConst,
+    required bool isExternal,
+    required bool inPatch}) {
   SourceConstructorBuilder constructorBuilder = new SourceConstructorBuilder(
       name: name,
       libraryBuilder: enclosingLibraryBuilder,
       declarationBuilder: declarationBuilder!,
-      fileUri: fragment.fileUri,
-      fileOffset: fragment.fullNameOffset,
-      constructorReference: constructorReference,
-      tearOffReference: tearOffReference,
+      fileUri: uriOffset.fileUri,
+      fileOffset: uriOffset.fileOffset,
+      constructorReferences: constructorReferences,
       nameScheme: nameScheme,
-      nativeMethodName: fragment.nativeMethodName,
+      nativeMethodName: nativeMethodName,
       introductory: constructorDeclaration,
       augmentations: augmentationDeclarations,
       isConst: isConst,
       isExternal: isExternal);
-  fragment.builder = constructorBuilder;
-  if (augmentations != null) {
-    for (Fragment augmentation in augmentations) {
-      // Promote [augmentation] to [ConstructorFragment].
-      augmentation as ConstructorFragment;
-      augmentation.builder = constructorBuilder;
-    }
-    augmentations.clear();
-  }
-  // TODO(johnniwinther): There is no way to pass the tear off reference
-  //  here.
-  if (constructorReference != null) {
-    loader.buildersCreatedWithReferences[constructorReference] =
-        constructorBuilder;
-  }
+  constructorReferences.registerReference(loader, constructorBuilder);
 
-  return new _AddBuilder(fragment.name, constructorBuilder, fragment.uriOffset,
-      inPatch: fragment.enclosingDeclaration.isPatch);
+  constructorDeclaration.createEncoding(constructorBuilder);
+  for (ConstructorDeclaration augmentation in augmentationDeclarations) {
+    augmentation.createEncoding(constructorBuilder);
+  }
+  return new _AddBuilder(name, constructorBuilder, uriOffset, inPatch: inPatch);
 }
 
 _AddBuilder _createPrimaryConstructorBuilder(
@@ -2949,18 +2976,15 @@ _AddBuilder _createPrimaryConstructorBuilder(
           ? new LibraryName(indexedLibrary.library.reference)
           : enclosingLibraryBuilder.libraryName);
 
-  Reference? constructorReference;
-  Reference? tearOffReference;
+  ConstructorReferences constructorReferences = new ConstructorReferences(
+      name: name,
+      nameScheme: nameScheme,
+      indexedContainer: indexedContainer,
+      loader: loader,
+      declarationBuilder: declarationBuilder!);
 
-  if (indexedContainer != null) {
-    constructorReference = indexedContainer.lookupConstructorReference(
-        nameScheme.getConstructorMemberName(name, isTearOff: false).name);
-    tearOffReference = indexedContainer.lookupGetterReference(
-        nameScheme.getConstructorMemberName(name, isTearOff: true).name);
-  }
-
-  SourceConstructorBuilder constructorBuilder;
-  switch (declarationBuilder!) {
+  ConstructorDeclaration constructorDeclaration;
+  switch (declarationBuilder) {
     case ExtensionTypeDeclarationBuilder():
       NominalParameterCopy? nominalVariableCopy =
           NominalParameterCopy.copyTypeParameters(
@@ -2977,52 +3001,35 @@ _AddBuilder _createPrimaryConstructorBuilder(
       fragment.typeParameterNameSpace.addTypeParameters(
           problemReporting, typeParameters,
           ownerName: fragment.name, allowNameConflict: true);
-      ConstructorDeclaration constructorDeclaration =
-          new ExtensionTypePrimaryConstructorDeclaration(fragment,
-              typeParameters: typeParameters);
-      constructorBuilder = new SourceConstructorBuilder(
-          name: name,
-          libraryBuilder: enclosingLibraryBuilder,
-          declarationBuilder:
-              declarationBuilder as SourceExtensionTypeDeclarationBuilder,
-          fileUri: fragment.fileUri,
-          fileOffset: fragment.fileOffset,
-          constructorReference: constructorReference,
-          tearOffReference: tearOffReference,
-          nameScheme: nameScheme,
-          introductory: constructorDeclaration,
-          isConst: fragment.modifiers.isConst,
-          isExternal: fragment.modifiers.isExternal);
+      constructorDeclaration = new ExtensionTypePrimaryConstructorDeclaration(
+          fragment,
+          typeParameters: typeParameters);
     // Coverage-ignore(suite): Not run.
     case ClassBuilder():
-      ConstructorDeclaration constructorDeclaration =
-          new PrimaryConstructorDeclaration(fragment);
-      constructorBuilder = new SourceConstructorBuilder(
-          name: fragment.name,
-          libraryBuilder: enclosingLibraryBuilder,
-          declarationBuilder: declarationBuilder,
-          fileUri: fragment.fileUri,
-          fileOffset: fragment.fileOffset,
-          constructorReference: constructorReference,
-          tearOffReference: tearOffReference,
-          nameScheme: nameScheme,
-          introductory: constructorDeclaration,
-          isConst: fragment.modifiers.isConst,
-          isExternal: fragment.modifiers.isExternal);
+      constructorDeclaration = new PrimaryConstructorDeclaration(fragment);
     // Coverage-ignore(suite): Not run.
     case ExtensionBuilder():
       throw new UnsupportedError(
           'Unexpected extension primary constructor $fragment');
   }
-  fragment.builder = constructorBuilder;
-
-  // TODO(johnniwinther): There is no way to pass the tear off reference
-  //  here.
-  if (constructorReference != null) {
-    loader.buildersCreatedWithReferences[constructorReference] =
-        constructorBuilder;
-  }
-  return new _AddBuilder(fragment.name, constructorBuilder, fragment.uriOffset,
+  return _createConstructorBuilderFromDeclarations(
+      constructorDeclaration, const [],
+      problemReporting: problemReporting,
+      loader: loader,
+      name: name,
+      uriOffset: fragment.uriOffset,
+      nameScheme: nameScheme,
+      enclosingLibraryBuilder: enclosingLibraryBuilder,
+      declarationBuilder: declarationBuilder,
+      unboundNominalParameters: unboundNominalParameters,
+      indexedLibrary: indexedLibrary,
+      containerType: containerType,
+      indexedContainer: indexedContainer,
+      containerName: containerName,
+      constructorReferences: constructorReferences,
+      nativeMethodName: null,
+      isConst: fragment.modifiers.isConst,
+      isExternal: fragment.modifiers.isExternal,
       inPatch: fragment.enclosingDeclaration.isPatch);
 }
 

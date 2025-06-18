@@ -31,14 +31,6 @@ import 'declaration.dart';
 abstract class ConstructorEncoding {
   FunctionNode get function;
 
-  Member get readTarget;
-
-  Reference get readTargetReference;
-
-  Member get invokeTarget;
-
-  Reference get invokeTargetReference;
-
   List<Initializer> get initializers;
 
   void prepareInitializers();
@@ -73,23 +65,6 @@ class RegularConstructorEncoding implements ConstructorEncoding {
       : _isExternal = isExternal,
         _isEnumConstructor = isEnumConstructor;
 
-  @override
-  Member get readTarget =>
-      _constructorTearOff ??
-      // The case is need to ensure that the upper bound is [Member] and not
-      // [GenericFunction].
-      _constructor as Member;
-
-  @override
-  Reference get readTargetReference =>
-      (_constructorTearOff ?? _constructor).reference;
-
-  @override
-  Member get invokeTarget => _constructor;
-
-  @override
-  Reference get invokeTargetReference => _constructor.reference;
-
   void registerFunctionBody(Statement value) {
     function.body = value..parent = function;
   }
@@ -102,39 +77,6 @@ class RegularConstructorEncoding implements ConstructorEncoding {
 
   @override
   FunctionNode get function => _constructor.function;
-
-  void createNode(
-      {required String name,
-      required SourceLibraryBuilder libraryBuilder,
-      required NameScheme nameScheme,
-      required Reference? constructorReference,
-      required Reference? tearOffReference,
-      required Uri fileUri,
-      required int startOffset,
-      required int fileOffset,
-      required int endOffset,
-      required bool isSynthetic,
-      required bool forAbstractClassOrEnumOrMixin}) {
-    _constructor = new Constructor(
-        new FunctionNode(_isExternal ? null : new EmptyStatement()),
-        name: dummyName,
-        fileUri: fileUri,
-        reference: constructorReference,
-        isSynthetic: isSynthetic)
-      ..startFileOffset = startOffset
-      ..fileOffset = fileOffset
-      ..fileEndOffset = endOffset;
-    nameScheme
-        .getConstructorMemberName(name, isTearOff: false)
-        .attachMember(_constructor);
-    _constructorTearOff = createConstructorTearOffProcedure(
-        nameScheme.getConstructorMemberName(name, isTearOff: true),
-        libraryBuilder,
-        fileUri,
-        fileOffset,
-        tearOffReference,
-        forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin);
-  }
 
   // Coverage-ignore(suite): Not run.
   Member get constructor => _constructor;
@@ -150,8 +92,16 @@ class RegularConstructorEncoding implements ConstructorEncoding {
     required SourceConstructorBuilder constructorBuilder,
     required SourceLibraryBuilder libraryBuilder,
     required SourceClassBuilder declarationBuilder,
-    required Member declarationConstructor,
+    required String name,
+    required NameScheme nameScheme,
+    required ConstructorReferences? constructorReferences,
+    required Uri fileUri,
+    required int startOffset,
+    required int fileOffset,
     required int formalsOffset,
+    required int endOffset,
+    required bool isSynthetic,
+    required bool forAbstractClassOrEnumOrMixin,
     required bool isConst,
     required TypeBuilder returnType,
     required List<SourceNominalParameterBuilder>? typeParameters,
@@ -162,8 +112,16 @@ class RegularConstructorEncoding implements ConstructorEncoding {
         constructorBuilder: constructorBuilder,
         libraryBuilder: libraryBuilder,
         classBuilder: declarationBuilder,
-        declarationConstructor: declarationConstructor,
+        name: name,
+        nameScheme: nameScheme,
+        constructorReferences: constructorReferences,
+        fileUri: fileUri,
+        startOffset: startOffset,
+        fileOffset: fileOffset,
         formalsOffset: formalsOffset,
+        endOffset: endOffset,
+        forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin,
+        isSynthetic: isSynthetic,
         isConst: isConst,
         returnType: returnType,
         typeParameters: typeParameters,
@@ -181,8 +139,16 @@ class RegularConstructorEncoding implements ConstructorEncoding {
     required SourceConstructorBuilder constructorBuilder,
     required SourceLibraryBuilder libraryBuilder,
     required SourceClassBuilder classBuilder,
-    required Member declarationConstructor,
+    required String name,
+    required NameScheme nameScheme,
+    required ConstructorReferences? constructorReferences,
+    required Uri fileUri,
+    required int startOffset,
+    required int fileOffset,
     required int formalsOffset,
+    required int endOffset,
+    required bool forAbstractClassOrEnumOrMixin,
+    required bool isSynthetic,
     required bool isConst,
     required TypeBuilder returnType,
     required List<SourceNominalParameterBuilder>? typeParameters,
@@ -190,6 +156,27 @@ class RegularConstructorEncoding implements ConstructorEncoding {
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   }) {
     if (!_hasBeenBuilt) {
+      _constructor = new Constructor(
+          new FunctionNode(_isExternal ? null : new EmptyStatement()),
+          name: dummyName,
+          fileUri: fileUri,
+          reference: constructorReferences?.constructorReference,
+          isSynthetic: isSynthetic)
+        ..startFileOffset = startOffset
+        ..fileOffset = fileOffset
+        ..fileEndOffset = endOffset;
+      nameScheme
+          .getConstructorMemberName(name, isTearOff: false)
+          .attachMember(_constructor);
+      _constructorTearOff = createConstructorTearOffProcedure(
+          nameScheme.getConstructorMemberName(name, isTearOff: true),
+          libraryBuilder,
+          fileUri,
+          fileOffset,
+          constructorReferences?.tearOffReference,
+          forAbstractClassOrEnumOrMixin:
+              forAbstractClassOrEnumOrMixin || _isEnumConstructor);
+
       // According to the specification §9.3 the return type of a constructor
       // function is its enclosing class.
       function.asyncMarker = AsyncMarker.Sync;
@@ -216,7 +203,7 @@ class RegularConstructorEncoding implements ConstructorEncoding {
         DelayedDefaultValueCloner delayedDefaultValueCloner =
             buildConstructorTearOffProcedure(
                 tearOff: _constructorTearOff,
-                declarationConstructor: declarationConstructor,
+                declarationConstructor: _constructor,
                 implementationConstructor: _constructor,
                 enclosingDeclarationTypeParameters:
                     classBuilder.cls.typeParameters,
@@ -376,23 +363,6 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
   List<Initializer> _initializers = [];
 
   @override
-  Member get readTarget =>
-      _constructorTearOff ?? // Coverage-ignore(suite): Not run.
-      _constructor;
-
-  @override
-  Reference get readTargetReference =>
-      (_constructorTearOff ?? // Coverage-ignore(suite): Not run.
-              _constructor)
-          .reference;
-
-  @override
-  Member get invokeTarget => _constructor;
-
-  @override
-  Reference get invokeTargetReference => _constructor.reference;
-
-  @override
   List<Initializer> get initializers => _initializers;
 
   void registerFunctionBody(Statement value) {
@@ -408,36 +378,6 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
   @override
   FunctionNode get function => _constructor.function;
 
-  void createNode(
-      {required String name,
-      required SourceLibraryBuilder libraryBuilder,
-      required NameScheme nameScheme,
-      required Reference? constructorReference,
-      required Reference? tearOffReference,
-      required Uri fileUri,
-      required int fileOffset,
-      required int endOffset,
-      required bool forAbstractClassOrEnumOrMixin}) {
-    _constructor = new Procedure(dummyName, ProcedureKind.Method,
-        new FunctionNode(_isExternal ? null : new EmptyStatement()),
-        fileUri: fileUri, reference: constructorReference)
-      ..fileOffset = fileOffset
-      ..fileEndOffset = endOffset;
-    nameScheme
-        .getConstructorMemberName(name, isTearOff: false)
-        .attachMember(_constructor);
-    _constructorTearOff = createConstructorTearOffProcedure(
-        nameScheme.getConstructorMemberName(name, isTearOff: true),
-        libraryBuilder,
-        fileUri,
-        fileOffset,
-        tearOffReference,
-        forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin,
-        forceCreateLowering: true)
-      ?..isExtensionMember = _isExtensionMember
-      ..isExtensionTypeMember = _isExtensionTypeMember;
-  }
-
   bool _hasBeenBuilt = false;
 
   DartType _computeThisType(T declarationBuilder, List<DartType> typeArguments);
@@ -446,9 +386,14 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
     required SourceConstructorBuilder constructorBuilder,
     required SourceLibraryBuilder libraryBuilder,
     required T declarationBuilder,
-    required Member declarationConstructor,
+    required String name,
+    required NameScheme nameScheme,
+    required ConstructorReferences? constructorReferences,
+    required Uri fileUri,
     required int fileOffset,
     required int formalsOffset,
+    required int endOffset,
+    required bool forAbstractClassOrEnumOrMixin,
     required bool isConst,
     required TypeBuilder returnType,
     required List<SourceNominalParameterBuilder>? typeParameters,
@@ -456,6 +401,26 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   }) {
     if (!_hasBeenBuilt) {
+      _constructor = new Procedure(dummyName, ProcedureKind.Method,
+          new FunctionNode(_isExternal ? null : new EmptyStatement()),
+          fileUri: fileUri,
+          reference: constructorReferences?.constructorReference)
+        ..fileOffset = fileOffset
+        ..fileEndOffset = endOffset;
+      nameScheme
+          .getConstructorMemberName(name, isTearOff: false)
+          .attachMember(_constructor);
+      _constructorTearOff = createConstructorTearOffProcedure(
+          nameScheme.getConstructorMemberName(name, isTearOff: true),
+          libraryBuilder,
+          fileUri,
+          fileOffset,
+          constructorReferences?.tearOffReference,
+          forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin,
+          forceCreateLowering: true)
+        ?..isExtensionMember = _isExtensionMember
+        ..isExtensionTypeMember = _isExtensionTypeMember;
+
       // According to the specification §9.3 the return type of a constructor
       // function is its enclosing class.
       function.asyncMarker = AsyncMarker.Sync;
@@ -504,7 +469,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
       if (_constructorTearOff != null) {
         delayedDefaultValueCloners.add(buildConstructorTearOffProcedure(
             tearOff: _constructorTearOff,
-            declarationConstructor: declarationConstructor,
+            declarationConstructor: _constructor,
             implementationConstructor: _constructor,
             libraryBuilder: libraryBuilder));
       }
@@ -603,8 +568,8 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
     if (!_isExternal) {
       VariableDeclaration thisVariable = this.thisVariable!;
       List<Statement> statements = [thisVariable];
-      ExtensionTypeInitializerToStatementConverter visitor =
-          new ExtensionTypeInitializerToStatementConverter(
+      _ExtensionTypeInitializerToStatementConverter visitor =
+          new _ExtensionTypeInitializerToStatementConverter(
               statements, thisVariable);
       for (Initializer initializer in _initializers) {
         initializer.accept(visitor);
@@ -628,6 +593,75 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
   @override
   void markAsErroneous() {
     _constructor.isErroneous = true;
+  }
+}
+
+class _ExtensionTypeInitializerToStatementConverter
+    implements InitializerVisitor<void> {
+  VariableDeclaration thisVariable;
+  final List<Statement> statements;
+
+  _ExtensionTypeInitializerToStatementConverter(
+      this.statements, this.thisVariable);
+
+  @override
+  void visitAssertInitializer(AssertInitializer node) {
+    statements.add(node.statement);
+  }
+
+  @override
+  void visitAuxiliaryInitializer(AuxiliaryInitializer node) {
+    if (node is ExtensionTypeRedirectingInitializer) {
+      statements.add(new ExpressionStatement(
+          new VariableSet(
+              thisVariable,
+              new StaticInvocation(node.target, node.arguments)
+                ..fileOffset = node.fileOffset)
+            ..fileOffset = node.fileOffset)
+        ..fileOffset = node.fileOffset);
+      return;
+    } else if (node is ExtensionTypeRepresentationFieldInitializer) {
+      thisVariable
+        ..initializer = (node.value..parent = thisVariable)
+        ..fileOffset = node.fileOffset;
+      return;
+    }
+    // Coverage-ignore-block(suite): Not run.
+    throw new UnsupportedError(
+        "Unexpected initializer $node (${node.runtimeType})");
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void visitFieldInitializer(FieldInitializer node) {
+    thisVariable
+      ..initializer = (node.value..parent = thisVariable)
+      ..fileOffset = node.fileOffset;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void visitInvalidInitializer(InvalidInitializer node) {
+    statements.add(new ExpressionStatement(
+        new InvalidExpression(null)..fileOffset = node.fileOffset)
+      ..fileOffset);
+  }
+
+  @override
+  void visitLocalInitializer(LocalInitializer node) {
+    statements.add(node.variable);
+  }
+
+  @override
+  void visitRedirectingInitializer(RedirectingInitializer node) {
+    throw new UnsupportedError(
+        "Unexpected initializer $node (${node.runtimeType})");
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void visitSuperInitializer(SuperInitializer node) {
+    // TODO(johnniwinther): Report error for this case.
   }
 }
 
@@ -658,9 +692,14 @@ class ExtensionTypeConstructorEncoding
     required SourceConstructorBuilder constructorBuilder,
     required SourceLibraryBuilder libraryBuilder,
     required SourceExtensionTypeDeclarationBuilder declarationBuilder,
-    required Member declarationConstructor,
+    required String name,
+    required NameScheme nameScheme,
+    required ConstructorReferences? constructorReferences,
+    required Uri fileUri,
     required int fileOffset,
     required int formalsOffset,
+    required int endOffset,
+    required bool forAbstractClassOrEnumOrMixin,
     required bool isConst,
     required TypeBuilder returnType,
     required List<SourceNominalParameterBuilder>? typeParameters,
@@ -671,9 +710,14 @@ class ExtensionTypeConstructorEncoding
         constructorBuilder: constructorBuilder,
         libraryBuilder: libraryBuilder,
         declarationBuilder: declarationBuilder,
-        declarationConstructor: declarationConstructor,
+        name: name,
+        nameScheme: nameScheme,
+        constructorReferences: constructorReferences,
+        fileUri: fileUri,
         fileOffset: fileOffset,
         formalsOffset: formalsOffset,
+        endOffset: endOffset,
+        forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin,
         isConst: isConst,
         returnType: returnType,
         typeParameters: typeParameters,
@@ -706,9 +750,14 @@ class ExtensionConstructorEncoding
     required SourceConstructorBuilder constructorBuilder,
     required SourceLibraryBuilder libraryBuilder,
     required SourceExtensionBuilder declarationBuilder,
-    required Member declarationConstructor,
+    required String name,
+    required NameScheme nameScheme,
+    required ConstructorReferences? constructorReferences,
+    required Uri fileUri,
     required int fileOffset,
     required int formalsOffset,
+    required int endOffset,
+    required bool forAbstractClassOrEnumOrMixin,
     required bool isConst,
     required TypeBuilder returnType,
     required List<SourceNominalParameterBuilder>? typeParameters,
@@ -719,9 +768,14 @@ class ExtensionConstructorEncoding
         constructorBuilder: constructorBuilder,
         libraryBuilder: libraryBuilder,
         declarationBuilder: declarationBuilder,
-        declarationConstructor: declarationConstructor,
+        name: name,
+        nameScheme: nameScheme,
+        constructorReferences: constructorReferences,
+        fileUri: fileUri,
         fileOffset: fileOffset,
         formalsOffset: formalsOffset,
+        endOffset: endOffset,
+        forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin,
         isConst: isConst,
         returnType: returnType,
         typeParameters: typeParameters,
