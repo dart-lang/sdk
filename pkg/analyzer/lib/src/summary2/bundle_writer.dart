@@ -546,7 +546,6 @@ class BundleWriter {
 
   void _writeLoadLibraryFunctionReferences(LibraryElementImpl library) {
     var element = library.loadLibraryFunction2;
-    _writeReference2(element.firstFragment.reference);
     _writeReference2(element.reference);
   }
 
@@ -653,7 +652,6 @@ class BundleWriter {
     _sink.writeBool(element is ConstVariableFragment);
     _sink.writeBool(element.isInitializingFormal);
     _sink.writeBool(element.isSuperFormal);
-    _writeOptionalReference(element.reference);
     _sink._writeFormalParameterKind(element);
     ParameterElementFlags.write(_sink, element);
 

@@ -1374,7 +1374,6 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     var functionExpression = node.functionExpression;
     var body = functionExpression.body;
 
-    Reference reference;
     ExecutableFragmentImpl executableFragment;
     if (node.isGetter) {
       var getterFragment = GetterFragmentImpl(
@@ -1385,7 +1384,6 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       getterFragment.isAugmentation = node.augmentKeyword != null;
       getterFragment.isStatic = true;
 
-      reference = Reference.root(); // TODO(scheglov): remove this
       getterFragment.enclosingElement3 = _unitElement;
       executableFragment = getterFragment;
 
@@ -1400,7 +1398,6 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       setterFragment.isAugmentation = node.augmentKeyword != null;
       setterFragment.isStatic = true;
 
-      reference = Reference.root(); // TODO(scheglov): remove this
       setterFragment.enclosingElement3 = _unitElement;
       executableFragment = setterFragment;
 
@@ -1416,7 +1413,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       fragment.isStatic = true;
       executableFragment = fragment;
 
-      reference = _enclosingContext.addFunction(name, fragment);
+      _enclosingContext.addFunction(name, fragment);
 
       fragment.enclosingElement3 = _unitElement;
       _libraryBuilder.addTopFragment(fragment);
@@ -1434,7 +1431,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     _linker.elementNodes[executableFragment] = node;
 
     _buildExecutableElementChildren(
-      reference: reference,
+      reference: Reference.root(), // TODO(scheglov): remove this
       fragment: executableFragment,
       formalParameters: functionExpression.parameters,
       typeParameters: functionExpression.typeParameters,
@@ -2240,10 +2237,6 @@ class _EnclosingContext {
     return _fields.toFixedList();
   }
 
-  Reference get fragmentReference {
-    return fragment.reference!;
-  }
-
   List<TopLevelFunctionFragmentImpl> get functions {
     return _functions.toFixedList();
   }
@@ -2335,11 +2328,8 @@ class _EnclosingContext {
     _bindReference(reference, element);
   }
 
-  Reference addFunction(String name, TopLevelFunctionFragmentImpl element) {
+  void addFunction(String name, TopLevelFunctionFragmentImpl element) {
     _functions.add(element);
-    var containerName =
-        element.isAugmentation ? '@functionAugmentation' : '@function';
-    return _addReference(containerName, name, element);
   }
 
   Reference addGetter(String name, PropertyAccessorFragmentImpl element) {
@@ -2363,15 +2353,8 @@ class _EnclosingContext {
     return _addReference(containerName, name, element);
   }
 
-  Reference? addParameter(String? name, FormalParameterFragmentImpl element) {
+  void addParameter(String? name, FormalParameterFragmentImpl element) {
     _parameters.add(element);
-    if (name == null) {
-      return null;
-    }
-    if (fragment.reference == null) {
-      return null;
-    }
-    return _addReference('@parameter', name, element);
   }
 
   void addPropertyAccessorSynthetic(PropertyAccessorFragmentImpl element) {
@@ -2385,16 +2368,8 @@ class _EnclosingContext {
     return _addReference(containerName, name, element);
   }
 
-  Reference addTopLevelVariable(
-    String name,
-    TopLevelVariableFragmentImpl element,
-  ) {
+  void addTopLevelVariable(String name, TopLevelVariableFragmentImpl element) {
     _topLevelVariables.add(element);
-    var containerName =
-        element.isAugmentation
-            ? '@topLevelVariableAugmentation'
-            : '@topLevelVariable';
-    return _addReference(containerName, name, element);
   }
 
   void addTopLevelVariableSynthetic(
@@ -2422,15 +2397,12 @@ class _EnclosingContext {
     String name,
     FragmentImpl element,
   ) {
-    var containerRef = fragmentReference.getChild(containerName);
-    var reference = containerRef.addChild(name);
-    _bindReference(reference, element);
-    return reference;
+    // TODO(scheglov): remove this method
+    throw StateError('Should not be used');
   }
 
   void _bindReference(Reference reference, FragmentImpl fragment) {
-    reference.element = fragment;
-    fragment.reference = reference;
-    this.fragment.encloseElement(fragment);
+    // TODO(scheglov): remove this method
+    throw StateError('Should not be used');
   }
 }

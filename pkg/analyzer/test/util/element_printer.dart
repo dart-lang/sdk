@@ -90,11 +90,6 @@ class ElementPrinter {
         writelnReference(element.reference);
       case MethodElementImpl element:
         writelnReference(element.reference);
-      case FragmentedElementMixin element:
-        var firstFragment = element.firstFragment as FragmentImpl;
-        var reference = firstFragment.reference!;
-        writeReference(reference);
-        _sink.writeln('#element');
       case LabelFragmentImpl():
         _sink.writeln('${element.name3}@${element.firstFragment.nameOffset2}');
       case LabelElementImpl():
@@ -135,11 +130,6 @@ class ElementPrinter {
         _sink.writeln('Never@-1');
       case PrefixElementImpl element:
         writelnReference(element.reference);
-      case SetterElement element:
-        var firstFragment = element.firstFragment as FragmentImpl;
-        var reference = firstFragment.reference;
-        writeReference(reference!);
-        _sink.writeln('#element');
       default:
         throw UnimplementedError('(${element.runtimeType}) $element');
     }
@@ -318,10 +308,7 @@ class ElementPrinter {
     }
 
     var enclosingFragment = fragment.enclosingFragment;
-    var reference = (fragment as FragmentImpl).reference;
-    if (reference != null) {
-      return _referenceToString(reference);
-    } else if (fragment is FormalParameterFragment &&
+    if (fragment is FormalParameterFragment &&
         enclosingFragment is! GenericFunctionTypeFragment) {
       // Positional parameters don't have actual references.
       // But we fabricate one to make the output better.

@@ -30,11 +30,7 @@ import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 
 class DefiningLinkingUnit extends LinkingUnit {
-  DefiningLinkingUnit({
-    required super.reference,
-    required super.node,
-    required super.element,
-  });
+  DefiningLinkingUnit({required super.node, required super.element});
 }
 
 class ImplicitEnumNodes {
@@ -627,9 +623,12 @@ class LibraryBuilder {
       isDeferred: isDeferred,
     )..offset = offset;
 
-    var containerRef = libraryFragment.reference!;
     var refName = getReferenceName(unlinkedName?.name);
-    var reference = containerRef.getChild('@prefix2').getChild(refName);
+    var reference = this.reference
+        .getChild('@fragment')
+        .getChild('${libraryFragment.source.uri}')
+        .getChild('@prefix2')
+        .getChild(refName);
     var element = reference.element2 as PrefixElementImpl?;
 
     if (element == null) {
@@ -668,18 +667,7 @@ class LibraryBuilder {
           unitElement.isSynthetic = !partFile.exists;
           unitElement.setCodeRange(0, partUnitNode.length);
 
-          var unitReference = reference
-              .getChild('@fragment')
-              .getChild(partFile.uriStr);
-          _bindReference(unitReference, unitElement);
-
-          units.add(
-            LinkingUnit(
-              reference: unitReference,
-              node: partUnitNode,
-              element: unitElement,
-            ),
-          );
+          units.add(LinkingUnit(node: partUnitNode, element: unitElement));
 
           _buildDirectives(kind: includedPart, containerUnit: unitElement);
 
@@ -728,14 +716,10 @@ class LibraryBuilder {
   void _createLoadLibraryReferences() {
     var name = TopLevelFunctionElement.LOAD_LIBRARY_NAME;
 
-    var fragmentContainer = units[0].reference.getChild('@function');
-    var fragmentReference = fragmentContainer.addChild(name);
-
     var elementContainer = reference.getChild('@function');
     var elementReference = elementContainer.addChild(name);
 
     element.loadLibraryProvider = LoadLibraryFunctionProvider(
-      fragmentReference: fragmentReference,
       elementReference: elementReference,
     );
   }
@@ -797,8 +781,6 @@ class LibraryBuilder {
     libraryElement.reference = libraryReference;
     libraryReference.element2 = libraryElement;
 
-    var unitContainerRef = libraryReference.getChild('@fragment');
-
     var linkingUnits = <LinkingUnit>[];
     {
       var unitElement = LibraryFragmentImpl(
@@ -810,15 +792,8 @@ class LibraryBuilder {
       unitElement.isSynthetic = !libraryFile.exists;
       unitElement.setCodeRange(0, libraryUnitNode.length);
 
-      var unitReference = unitContainerRef.getChild(libraryFile.uriStr);
-      _bindReference(unitReference, unitElement);
-
       linkingUnits.add(
-        DefiningLinkingUnit(
-          reference: unitReference,
-          node: libraryUnitNode,
-          element: unitElement,
-        ),
+        DefiningLinkingUnit(node: libraryUnitNode, element: unitElement),
       );
 
       libraryElement.definingCompilationUnit = unitElement;
@@ -838,23 +813,13 @@ class LibraryBuilder {
 
     linker.builders[builder.uri] = builder;
   }
-
-  static void _bindReference(Reference reference, FragmentImpl element) {
-    reference.element = element;
-    element.reference = reference;
-  }
 }
 
 class LinkingUnit {
-  final Reference reference;
   final ast.CompilationUnitImpl node;
   final LibraryFragmentImpl element;
 
-  LinkingUnit({
-    required this.reference,
-    required this.node,
-    required this.element,
-  });
+  LinkingUnit({required this.node, required this.element});
 }
 
 /// This class examines all the [InterfaceElementImpl]s in a library and

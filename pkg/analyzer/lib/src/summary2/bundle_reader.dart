@@ -166,7 +166,6 @@ class LibraryReader {
     _libraryElement.manifest = manifest;
 
     _libraryElement.loadLibraryProvider = LoadLibraryFunctionProvider(
-      fragmentReference: _readReference(),
       elementReference: _readReference(),
     );
 
@@ -1073,7 +1072,6 @@ class LibraryReader {
       var isDefault = _reader.readBool();
       var isInitializingFormal = _reader.readBool();
       var isSuperFormal = _reader.readBool();
-      var reference = _readOptionalReference();
 
       var kindIndex = _reader.readByte();
       var kind = ResolutionReader._formalParameterKind(kindIndex);
@@ -1124,10 +1122,6 @@ class LibraryReader {
             nameOffset2: null,
             parameterKind: kind,
           );
-        }
-        if (reference != null) {
-          element.reference = reference;
-          reference.element = element;
         }
       }
       idFragmentMap[id] = element;
