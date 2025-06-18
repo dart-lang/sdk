@@ -868,7 +868,6 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     var holder = _EnclosingContext(
       instanceElementBuilder: null,
       fragment: fragment,
-      constFieldsForFinalInstance: true,
     );
     _withEnclosing(holder, () {
       node.typeParameters?.accept(this);
@@ -1011,7 +1010,6 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     var holder = _EnclosingContext(
       instanceElementBuilder: null,
       fragment: fragment,
-      constFieldsForFinalInstance: true,
     );
 
     // Build fields for all enum constants.
@@ -1279,24 +1277,6 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
         name2: _getFragmentName(nameToken),
         nameOffset: nameOffset,
       );
-      if (variable.initializer case var initializer?) {
-        if (node.fields.isConst) {
-          fragment = FieldFragmentImpl(
-            name2: _getFragmentName(nameToken),
-            nameOffset: nameOffset,
-          )..constantInitializer = initializer;
-        } else if (_enclosingContext.constFieldsForFinalInstance) {
-          if (node.fields.isFinal && !node.isStatic) {
-            var constElement = FieldFragmentImpl(
-              name2: _getFragmentName(nameToken),
-              nameOffset: nameOffset,
-            )..constantInitializer = initializer;
-            fragment = constElement;
-            _libraryBuilder.finalInstanceFields.add(constElement);
-          }
-        }
-      }
-
       fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
       fragment.hasInitializer = variable.initializer != null;
       fragment.isAbstract = node.abstractKeyword != null;
@@ -1310,6 +1290,15 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       fragment.metadata = metadata;
       _setCodeRange(fragment, variable);
       _setDocumentation(fragment, node);
+
+      if (variable.initializer case var initializer?) {
+        if (node.fields.isConst) {
+          fragment.constantInitializer = initializer;
+        } else if (node.fields.isFinal && !node.isStatic) {
+          fragment.constantInitializer = initializer;
+          _libraryBuilder.finalInstanceFields.add(fragment);
+        }
+      }
 
       if (node.fields.type == null) {
         fragment.hasImplicitType = true;
@@ -2213,10 +2202,6 @@ class _EnclosingContext {
   final List<TypeAliasFragmentImpl> _typeAliases = [];
   final List<TypeParameterFragmentImpl> _typeParameters = [];
 
-  /// A class can have `const` constructors, and if it has we need values
-  /// of final instance fields.
-  final bool constFieldsForFinalInstance;
-
   /// Not all optional formal parameters can have default values.
   /// For example, formal parameters of methods can, but formal parameters
   /// of function types - not. This flag specifies if we should create
@@ -2226,7 +2211,6 @@ class _EnclosingContext {
   _EnclosingContext({
     required this.instanceElementBuilder,
     required this.fragment,
-    this.constFieldsForFinalInstance = false,
     this.hasDefaultFormalParameters = false,
   });
 

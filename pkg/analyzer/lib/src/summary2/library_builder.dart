@@ -27,7 +27,6 @@ import 'package:analyzer/src/summary2/types_builder.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
-import 'package:analyzer/src/utilities/extensions/object.dart';
 
 class DefiningLinkingUnit extends LinkingUnit {
   DefiningLinkingUnit({required super.node, required super.element});
@@ -300,22 +299,23 @@ class LibraryBuilder {
   }
 
   void replaceConstFieldsIfNoConstConstructor() {
-    var withConstConstructors = Set<ClassFragmentImpl>.identity();
-    for (var classFragment in element.topLevelElements) {
-      if (classFragment is! ClassFragmentImpl) continue;
-      if (classFragment.isMixinApplication) continue;
-      if (classFragment.isAugmentation) continue;
-      var hasConst = classFragment.element.constructors.any((e) => e.isConst);
-      if (hasConst) {
-        withConstConstructors.add(classFragment);
+    var hasConstConstructorCache = <InterfaceElement, bool>{};
+
+    bool hasConstConstructor(Element element) {
+      if (element is InterfaceElement) {
+        var result = hasConstConstructorCache[element];
+        if (result == null) {
+          result = element.constructors.any((e) => e.isConst);
+          hasConstConstructorCache[element] = result;
+        }
+        return result;
       }
+      return false;
     }
 
     for (var fieldFragment in finalInstanceFields) {
-      var enclosing = fieldFragment.enclosingElement3;
-      var element = enclosing.ifTypeOrNull<ClassFragmentImpl>()?.element;
-      if (element == null) continue;
-      if (!withConstConstructors.contains(element.firstFragment)) {
+      var enclosingElement = fieldFragment.enclosingFragment.element;
+      if (!hasConstConstructor(enclosingElement)) {
         fieldFragment.constantInitializer = null;
       }
     }
