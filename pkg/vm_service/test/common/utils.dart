@@ -6,18 +6,10 @@ import 'dart:convert';
 import 'dart:io';
 
 // TODO(bkonyi): Share this logic with _ServiceTesteeRunner.launch.
-Future<(Process, Uri?)> spawnDartProcess(
+Future<(Process, Uri)> spawnDartProcess(
   String script, {
-  bool enableDds = true,
-  int vmServicePort = 0,
-
-  /// If true, the second element in the returned record will be a [Uri] that
-  /// can be used to connect to the VM Service running on the testee. If false,
-  /// the second element in the returned record will be null.
-  bool returnServiceUri = true,
   bool serveObservatory = true,
-  required bool pauseOnStart,
-  required bool pauseOnExit,
+  bool pauseOnStart = true,
   bool disableServiceAuthCodes = false,
   bool subscribeToStdio = true,
 }) async {
@@ -27,18 +19,16 @@ Future<(Process, Uri?)> spawnDartProcess(
   final serviceInfoFile = await File.fromUri(serviceInfoUri).create();
 
   final arguments = [
-    if (!enableDds) '--no-dds',
-    '--observe=$vmServicePort',
+    '--no-dds',
+    '--observe=0',
     if (!serveObservatory) '--no-serve-observatory',
     if (pauseOnStart) '--pause-isolates-on-start',
-    if (pauseOnExit) '--pause-isolates-on-exit',
     if (disableServiceAuthCodes) '--disable-service-auth-codes',
     '--write-service-info=$serviceInfoUri',
     ...Platform.executableArguments,
     Platform.script.resolve(script).toString(),
   ];
   final process = await Process.start(executable, arguments);
-
   if (subscribeToStdio) {
     process.stdout
         .transform(utf8.decoder)
@@ -47,11 +37,6 @@ Future<(Process, Uri?)> spawnDartProcess(
         .transform(utf8.decoder)
         .listen((line) => print('TESTEE ERR: $line'));
   }
-
-  if (!returnServiceUri) {
-    return (process, null);
-  }
-
   while ((await serviceInfoFile.length()) <= 5) {
     await Future.delayed(const Duration(milliseconds: 50));
   }
