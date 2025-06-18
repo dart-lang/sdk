@@ -505,12 +505,12 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/fragment/constructor/declaration.dart": (
-    hitCount: 735,
+    hitCount: 622,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/fragment/constructor/encoding.dart": (
-    hitCount: 421,
+    hitCount: 489,
     missCount: 0,
   ),
   // 100.0%.
@@ -955,12 +955,12 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/source_constructor_builder.dart": (
-    hitCount: 360,
+    hitCount: 356,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/source/source_enum_builder.dart": (
-    hitCount: 423,
+    hitCount: 428,
     missCount: 0,
   ),
   // 100.0%.
@@ -1026,7 +1026,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/type_parameter_scope_builder.dart": (
-    hitCount: 1519,
+    hitCount: 1458,
     missCount: 0,
   ),
   // 100.0%.

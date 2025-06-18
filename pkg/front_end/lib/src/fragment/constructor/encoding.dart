@@ -2,18 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_algebra.dart';
 
 import '../../api_prototype/lowering_predicates.dart';
+import '../../base/modifiers.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
+import '../../builder/named_type_builder.dart';
 import '../../builder/omitted_type_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../kernel/body_builder_context.dart';
 import '../../kernel/constructor_tearoff_lowering.dart';
 import '../../kernel/internal_ast.dart';
 import '../../kernel/kernel_helper.dart';
+import '../../source/builder_factory.dart';
 import '../../source/name_scheme.dart';
 import '../../source/source_class_builder.dart';
 import '../../source/source_constructor_builder.dart';
@@ -25,6 +29,7 @@ import '../../source/source_loader.dart';
 import '../../source/source_member_builder.dart';
 import '../../source/source_type_parameter_builder.dart';
 import '../../type_inference/type_schema.dart';
+import '../fragment.dart';
 import 'body_builder_context.dart';
 import 'declaration.dart';
 
@@ -41,12 +46,63 @@ abstract class ConstructorEncoding {
 
   VariableDeclaration? getTearOffParameter(int index);
 
+  VariableDeclaration? get thisVariable;
+
+  List<TypeParameter>? get thisTypeParameters;
+
   /// Mark the constructor as erroneous.
   ///
   /// This is used during the compilation phase to set the appropriate flag on
   /// the input AST node. The flag helps the verifier to skip apriori erroneous
   /// members and to avoid reporting cascading errors.
   void markAsErroneous();
+
+  void buildOutlineNodes(
+    BuildNodesCallback f, {
+    required SourceConstructorBuilder constructorBuilder,
+    required SourceLibraryBuilder libraryBuilder,
+    required covariant DeclarationBuilder declarationBuilder,
+    required String name,
+    required NameScheme nameScheme,
+    required ConstructorReferences? constructorReferences,
+    required Uri fileUri,
+    required int startOffset,
+    required int fileOffset,
+    required int formalsOffset,
+    required int endOffset,
+    required bool forAbstractClassOrEnumOrMixin,
+    required bool isConst,
+    required bool isSynthetic,
+    required TypeBuilder returnType,
+    required List<SourceNominalParameterBuilder>? typeParameters,
+    required List<FormalParameterBuilder>? formals,
+    required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+  });
+
+  void buildBody();
+
+  BodyBuilderContext createBodyBuilderContext(
+      SourceConstructorBuilder constructorBuilder,
+      ConstructorFragmentDeclaration constructorDeclaration);
+
+  void registerFunctionBody(Statement value);
+
+  void registerNoBodyConstructor();
+
+  void addSuperParameterDefaultValueCloners(
+      {required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+      required Member superTarget,
+      required List<int?>? positionalSuperParameters,
+      required List<String>? namedSuperParameters,
+      required SourceLibraryBuilder libraryBuilder});
+
+  void becomeNative(SourceLoader loader, String nativeMethodName);
+
+  Substitution computeFieldTypeSubstitution(
+      covariant DeclarationBuilder declarationBuilder,
+      List<SourceNominalParameterBuilder>? typeParameters);
+
+  bool get isRedirecting;
 }
 
 class RegularConstructorEncoding implements ConstructorEncoding {
@@ -65,10 +121,12 @@ class RegularConstructorEncoding implements ConstructorEncoding {
       : _isExternal = isExternal,
         _isEnumConstructor = isEnumConstructor;
 
+  @override
   void registerFunctionBody(Statement value) {
     function.body = value..parent = function;
   }
 
+  @override
   void registerNoBodyConstructor() {
     if (!_isExternal) {
       registerFunctionBody(new EmptyStatement());
@@ -87,6 +145,23 @@ class RegularConstructorEncoding implements ConstructorEncoding {
   @override
   List<Initializer> get initializers => _constructor.initializers;
 
+  @override
+  bool get isRedirecting {
+    for (Initializer initializer in initializers) {
+      if (initializer is RedirectingInitializer) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  VariableDeclaration? get thisVariable => null;
+
+  @override
+  List<TypeParameter>? get thisTypeParameters => null;
+
+  @override
   void buildOutlineNodes(
     BuildNodesCallback f, {
     required SourceConstructorBuilder constructorBuilder,
@@ -233,6 +308,9 @@ class RegularConstructorEncoding implements ConstructorEncoding {
   }
 
   @override
+  void buildBody() {}
+
+  @override
   void prepareInitializers() {
     // For const constructors we parse initializers already at the outlining
     // stage, there is no easy way to make body building stage skip initializer
@@ -256,6 +334,7 @@ class RegularConstructorEncoding implements ConstructorEncoding {
     _constructor.initializers.insert(0, initializer);
   }
 
+  @override
   void becomeNative(SourceLoader loader, String nativeMethodName) {
     _constructor.isExternal = true;
 
@@ -295,6 +374,7 @@ class RegularConstructorEncoding implements ConstructorEncoding {
 
   bool _hasAddedDefaultValueCloners = false;
 
+  @override
   void addSuperParameterDefaultValueCloners(
       {required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
       required Member superTarget,
@@ -323,6 +403,7 @@ class RegularConstructorEncoding implements ConstructorEncoding {
     }
   }
 
+  @override
   BodyBuilderContext createBodyBuilderContext(
       SourceConstructorBuilder constructorBuilder,
       ConstructorFragmentDeclaration constructorDeclaration) {
@@ -333,6 +414,15 @@ class RegularConstructorEncoding implements ConstructorEncoding {
   @override
   void markAsErroneous() {
     _constructor.isErroneous = true;
+  }
+
+  @override
+  Substitution computeFieldTypeSubstitution(
+      covariant DeclarationBuilder declarationBuilder,
+      List<SourceNominalParameterBuilder>? typeParameters) {
+    // Nothing to substitute. Regular generative constructors don't have their
+    // own type parameters.
+    return Substitution.empty;
   }
 }
 
@@ -365,10 +455,12 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
   @override
   List<Initializer> get initializers => _initializers;
 
+  @override
   void registerFunctionBody(Statement value) {
     function.body = value..parent = function;
   }
 
+  @override
   void registerNoBodyConstructor() {
     if (!_hasBuiltBody && !_isExternal) {
       registerFunctionBody(new EmptyStatement());
@@ -495,12 +587,14 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
     }
   }
 
+  @override
   VariableDeclaration? get thisVariable {
     assert(_thisVariable != null,
         "ProcedureBuilder.thisVariable has not been set.");
     return _thisVariable;
   }
 
+  @override
   List<TypeParameter>? get thisTypeParameters {
     // Use [_thisVariable] as marker for whether this type parameters have
     // been computed.
@@ -561,6 +655,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
 
   bool _hasBuiltBody = false;
 
+  @override
   void buildBody() {
     if (_hasBuiltBody) {
       return;
@@ -583,6 +678,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
     _hasBuiltBody = true;
   }
 
+  @override
   BodyBuilderContext createBodyBuilderContext(
       SourceConstructorBuilder constructorBuilder,
       ConstructorFragmentDeclaration constructorDeclaration) {
@@ -593,6 +689,22 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
   @override
   void markAsErroneous() {
     _constructor.isErroneous = true;
+  }
+
+  @override
+  void addSuperParameterDefaultValueCloners(
+      {required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+      required Member superTarget,
+      required List<int?>? positionalSuperParameters,
+      required List<String>? namedSuperParameters,
+      required SourceLibraryBuilder libraryBuilder}) {
+    throw new UnsupportedError(
+        '$runtimeType.addSuperParameterDefaultValueCloners');
+  }
+
+  @override
+  void becomeNative(SourceLoader loader, String nativeMethodName) {
+    throw new UnsupportedError('$runtimeType.becomeNative');
   }
 }
 
@@ -687,6 +799,7 @@ class ExtensionTypeConstructorEncoding
         extensionTypeDeclaration, Nullability.nonNullable, typeArguments);
   }
 
+  @override
   void buildOutlineNodes(
     BuildNodesCallback f, {
     required SourceConstructorBuilder constructorBuilder,
@@ -696,11 +809,13 @@ class ExtensionTypeConstructorEncoding
     required NameScheme nameScheme,
     required ConstructorReferences? constructorReferences,
     required Uri fileUri,
+    required int startOffset,
     required int fileOffset,
     required int formalsOffset,
     required int endOffset,
     required bool forAbstractClassOrEnumOrMixin,
     required bool isConst,
+    required bool isSynthetic,
     required TypeBuilder returnType,
     required List<SourceNominalParameterBuilder>? typeParameters,
     required List<FormalParameterBuilder>? formals,
@@ -734,6 +849,36 @@ class ExtensionTypeConstructorEncoding
 
   @override
   bool get _isExtensionTypeMember => true;
+
+  @override
+  Substitution computeFieldTypeSubstitution(
+      DeclarationBuilder declarationBuilder,
+      List<SourceNominalParameterBuilder>? typeParameters) {
+    if (typeParameters != null) {
+      assert(
+          declarationBuilder.typeParameters!.length == typeParameters.length);
+      return Substitution.fromPairs(
+          (declarationBuilder as SourceExtensionTypeDeclarationBuilder)
+              .extensionTypeDeclaration
+              .typeParameters,
+          new List<DartType>.generate(
+              declarationBuilder.typeParameters!.length,
+              (int index) => new TypeParameterType.withDefaultNullability(
+                  function.typeParameters[index])));
+    } else {
+      return Substitution.empty;
+    }
+  }
+
+  @override
+  bool get isRedirecting {
+    for (Initializer initializer in initializers) {
+      if (initializer is ExtensionTypeRedirectingInitializer) {
+        return true;
+      }
+    }
+    return false;
+  }
 }
 
 class ExtensionConstructorEncoding
@@ -745,6 +890,7 @@ class ExtensionConstructorEncoding
   ExtensionConstructorEncoding({required bool isExternal})
       : _isExternal = isExternal;
 
+  @override
   void buildOutlineNodes(
     BuildNodesCallback f, {
     required SourceConstructorBuilder constructorBuilder,
@@ -754,11 +900,13 @@ class ExtensionConstructorEncoding
     required NameScheme nameScheme,
     required ConstructorReferences? constructorReferences,
     required Uri fileUri,
+    required int startOffset,
     required int fileOffset,
     required int formalsOffset,
     required int endOffset,
     required bool forAbstractClassOrEnumOrMixin,
     required bool isConst,
+    required bool isSynthetic,
     required TypeBuilder returnType,
     required List<SourceNominalParameterBuilder>? typeParameters,
     required List<FormalParameterBuilder>? formals,
@@ -797,5 +945,222 @@ class ExtensionConstructorEncoding
     Extension extension = declarationBuilder.extension;
     return Substitution.fromPairs(extension.typeParameters, typeArguments)
         .substituteType(extension.onType);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Substitution computeFieldTypeSubstitution(
+      SourceExtensionBuilder declarationBuilder,
+      List<SourceNominalParameterBuilder>? typeParameters) {
+    if (typeParameters != null) {
+      assert(
+          declarationBuilder.typeParameters!.length == typeParameters.length);
+      return Substitution.fromPairs(
+          declarationBuilder.extension.typeParameters,
+          new List<DartType>.generate(
+              declarationBuilder.typeParameters!.length,
+              (int index) => new TypeParameterType.withDefaultNullability(
+                  function.typeParameters[index])));
+    } else {
+      return Substitution.empty;
+    }
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isRedirecting {
+    // TODO(johnniwinther): Update this if redirecting extension constructors
+    //  are supported.
+    return false;
+  }
+}
+
+abstract class ConstructorEncodingStrategy {
+  factory ConstructorEncodingStrategy(DeclarationBuilder declarationBuilder) {
+    switch (declarationBuilder) {
+      case ClassBuilder():
+        if (declarationBuilder.isEnum) {
+          return const EnumConstructorEncodingStrategy();
+        } else {
+          return const RegularConstructorEncodingStrategy();
+        }
+      case ExtensionBuilder():
+        return const ExtensionConstructorEncodingStrategy();
+      case ExtensionTypeDeclarationBuilder():
+        return const ExtensionTypeConstructorEncodingStrategy();
+    }
+  }
+
+  List<FormalParameterBuilder>? createFormals({
+    required SourceLoader loader,
+    required List<FormalParameterBuilder>? formals,
+    required Uri fileUri,
+    required int fileOffset,
+  });
+
+  List<SourceNominalParameterBuilder>? createTypeParameters({
+    required DeclarationBuilder declarationBuilder,
+    required List<TypeParameterFragment>? declarationTypeParameterFragments,
+    required List<SourceNominalParameterBuilder>? typeParameters,
+    required List<NominalParameterBuilder> unboundNominalParameters,
+  });
+
+  ConstructorEncoding createEncoding({required bool isExternal});
+}
+
+class RegularConstructorEncodingStrategy
+    implements ConstructorEncodingStrategy {
+  const RegularConstructorEncodingStrategy();
+
+  @override
+  ConstructorEncoding createEncoding({required bool isExternal}) {
+    return new RegularConstructorEncoding(
+        isExternal: isExternal, isEnumConstructor: false);
+  }
+
+  @override
+  List<FormalParameterBuilder>? createFormals(
+      {required SourceLoader loader,
+      required List<FormalParameterBuilder>? formals,
+      required Uri fileUri,
+      required int fileOffset}) {
+    return formals;
+  }
+
+  @override
+  List<SourceNominalParameterBuilder>? createTypeParameters(
+      {required DeclarationBuilder declarationBuilder,
+      required List<TypeParameterFragment>? declarationTypeParameterFragments,
+      required List<SourceNominalParameterBuilder>? typeParameters,
+      required List<NominalParameterBuilder> unboundNominalParameters}) {
+    return typeParameters;
+  }
+}
+
+class EnumConstructorEncodingStrategy implements ConstructorEncodingStrategy {
+  const EnumConstructorEncodingStrategy();
+
+  @override
+  ConstructorEncoding createEncoding({required bool isExternal}) {
+    return new RegularConstructorEncoding(
+        isExternal: isExternal, isEnumConstructor: true);
+  }
+
+  @override
+  List<FormalParameterBuilder>? createFormals({
+    required SourceLoader loader,
+    required List<FormalParameterBuilder>? formals,
+    required Uri fileUri,
+    required int fileOffset,
+  }) {
+    return [
+      new FormalParameterBuilder(FormalParameterKind.requiredPositional,
+          Modifiers.empty, loader.target.intType, "#index", fileOffset,
+          fileUri: fileUri, hasImmediatelyDeclaredInitializer: false),
+      new FormalParameterBuilder(FormalParameterKind.requiredPositional,
+          Modifiers.empty, loader.target.stringType, "#name", fileOffset,
+          fileUri: fileUri, hasImmediatelyDeclaredInitializer: false),
+      ...?formals
+    ];
+  }
+
+  @override
+  List<SourceNominalParameterBuilder>? createTypeParameters(
+      {required DeclarationBuilder declarationBuilder,
+      required List<TypeParameterFragment>? declarationTypeParameterFragments,
+      required List<SourceNominalParameterBuilder>? typeParameters,
+      required List<NominalParameterBuilder> unboundNominalParameters}) {
+    return typeParameters;
+  }
+}
+
+class ExtensionConstructorEncodingStrategy
+    implements ConstructorEncodingStrategy {
+  const ExtensionConstructorEncodingStrategy();
+
+  @override
+  ConstructorEncoding createEncoding({required bool isExternal}) {
+    return new ExtensionConstructorEncoding(isExternal: isExternal);
+  }
+
+  @override
+  List<FormalParameterBuilder>? createFormals(
+      {required SourceLoader loader,
+      required List<FormalParameterBuilder>? formals,
+      required Uri fileUri,
+      required int fileOffset}) {
+    return formals;
+  }
+
+  @override
+  List<SourceNominalParameterBuilder>? createTypeParameters(
+      {required DeclarationBuilder declarationBuilder,
+      required List<TypeParameterFragment>? declarationTypeParameterFragments,
+      required List<SourceNominalParameterBuilder>? typeParameters,
+      required List<NominalParameterBuilder> unboundNominalParameters}) {
+    NominalParameterCopy? nominalVariableCopy =
+        NominalParameterCopy.copyTypeParameters(
+            unboundNominalParameters: unboundNominalParameters,
+            oldParameterBuilders: declarationBuilder.typeParameters,
+            oldParameterFragments: declarationTypeParameterFragments,
+            kind: TypeParameterKind.extensionSynthesized,
+            instanceTypeParameterAccess:
+                InstanceTypeParameterAccessState.Allowed);
+    if (nominalVariableCopy != null) {
+      if (typeParameters != null) {
+        // Coverage-ignore-block(suite): Not run.
+        typeParameters = nominalVariableCopy.newParameterBuilders
+          ..addAll(typeParameters);
+      } else {
+        typeParameters = nominalVariableCopy.newParameterBuilders;
+      }
+    }
+    return typeParameters;
+  }
+}
+
+class ExtensionTypeConstructorEncodingStrategy
+    implements ConstructorEncodingStrategy {
+  const ExtensionTypeConstructorEncodingStrategy();
+
+  @override
+  List<FormalParameterBuilder>? createFormals(
+      {required SourceLoader loader,
+      required List<FormalParameterBuilder>? formals,
+      required Uri fileUri,
+      required int fileOffset}) {
+    return formals;
+  }
+
+  @override
+  List<SourceNominalParameterBuilder>? createTypeParameters({
+    required DeclarationBuilder declarationBuilder,
+    required List<TypeParameterFragment>? declarationTypeParameterFragments,
+    required List<SourceNominalParameterBuilder>? typeParameters,
+    required List<NominalParameterBuilder> unboundNominalParameters,
+  }) {
+    NominalParameterCopy? nominalVariableCopy =
+        NominalParameterCopy.copyTypeParameters(
+            unboundNominalParameters: unboundNominalParameters,
+            oldParameterBuilders: declarationBuilder.typeParameters,
+            oldParameterFragments: declarationTypeParameterFragments,
+            kind: TypeParameterKind.extensionSynthesized,
+            instanceTypeParameterAccess:
+                InstanceTypeParameterAccessState.Allowed);
+    if (nominalVariableCopy != null) {
+      if (typeParameters != null) {
+        // Coverage-ignore-block(suite): Not run.
+        typeParameters = nominalVariableCopy.newParameterBuilders
+          ..addAll(typeParameters);
+      } else {
+        typeParameters = nominalVariableCopy.newParameterBuilders;
+      }
+    }
+    return typeParameters;
+  }
+
+  @override
+  ConstructorEncoding createEncoding({required bool isExternal}) {
+    return new ExtensionTypeConstructorEncoding(isExternal: isExternal);
   }
 }

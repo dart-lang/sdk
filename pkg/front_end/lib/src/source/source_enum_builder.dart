@@ -6,6 +6,7 @@ import 'package:_fe_analyzer_shared/src/metadata/expressions.dart' as shared;
 import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
 import 'package:front_end/src/base/messages.dart';
 import 'package:front_end/src/builder/property_builder.dart';
+import 'package:front_end/src/fragment/constructor/encoding.dart';
 import 'package:front_end/src/fragment/method/encoding.dart';
 import 'package:front_end/src/source/source_method_builder.dart';
 import 'package:kernel/ast.dart';
@@ -286,6 +287,9 @@ class SourceEnumBuilder extends SourceClassBuilder {
       }
     }
     if (needsSynthesizedDefaultConstructor) {
+      ConstructorEncodingStrategy encodingStrategy =
+          new ConstructorEncodingStrategy(this);
+
       FormalParameterBuilder nameFormalParameterBuilder =
           new FormalParameterBuilder(
               FormalParameterKind.requiredPositional,
@@ -343,6 +347,14 @@ class SourceEnumBuilder extends SourceClassBuilder {
               introductory: constructorDeclaration,
               isConst: true,
               isExternal: false);
+      constructorDeclaration.createEncoding(
+          problemReporting: libraryBuilder,
+          loader: libraryBuilder.loader,
+          declarationBuilder: this,
+          constructorBuilder: constructorBuilder,
+          unboundNominalParameters: const [],
+          encodingStrategy: encodingStrategy);
+
       constructorBuilder.registerInitializedField(valuesBuilder);
       addConstructorInternal(constructorBuilder, addToNameSpace: true);
       nameSpaceBuilder.checkTypeParameterConflict(
