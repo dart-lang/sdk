@@ -24,7 +24,7 @@ void CPU::FlushICache(uword start, uword size) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   UNREACHABLE();
 #else
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
   if (FLAG_use_simulator) {
     return;
   }
@@ -65,9 +65,9 @@ void CPU::FlushICache(uword start, uword size) {
 
 const char* CPU::Id() {
   return
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
       "sim"
-#endif  // !defined(USING_SIMULATOR)
+#endif  // !defined(DART_INCLUDE_SIMULATOR)
       "arm64";
 }
 
@@ -76,7 +76,7 @@ const char* HostCPUFeatures::hardware_ = nullptr;
 bool HostCPUFeatures::initialized_ = false;
 #endif
 
-#if !defined(USING_SIMULATOR)
+#if !defined(DART_INCLUDE_SIMULATOR)
 void HostCPUFeatures::Init() {
   CpuInfo::Init();
   hardware_ = CpuInfo::GetCpuModel();
@@ -96,7 +96,7 @@ void HostCPUFeatures::Cleanup() {
   CpuInfo::Cleanup();
 }
 
-#else  // !defined(USING_SIMULATOR)
+#else  // !defined(DART_INCLUDE_SIMULATOR)
 
 void HostCPUFeatures::Init() {
   CpuInfo::Init();
@@ -116,7 +116,7 @@ void HostCPUFeatures::Cleanup() {
   hardware_ = nullptr;
   CpuInfo::Cleanup();
 }
-#endif  // !defined(USING_SIMULATOR)
+#endif  // !defined(DART_INCLUDE_SIMULATOR)
 
 }  // namespace dart
 

@@ -123,7 +123,7 @@ uword RuntimeEntry::GetEntryPoint() const {
   // this is a redirection address that forces the simulator to call
   // into the runtime system.
   uword entry = reinterpret_cast<uword>(function());
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
   if (FLAG_use_simulator) {
     // Redirection to leaf runtime calls supports a maximum of 4 arguments
     // passed in registers (maximum 2 double arguments for leaf float runtime
@@ -153,14 +153,14 @@ uword RuntimeEntry::GetEntryPoint() const {
   } while (0)
 #endif
 
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
 #define CHECK_SIMULATOR_STACK_OVERFLOW()                                       \
   if (FLAG_use_simulator && !OSThread::Current()->HasStackHeadroom()) {        \
     Exceptions::ThrowStackOverflow();                                          \
   }
 #else
 #define CHECK_SIMULATOR_STACK_OVERFLOW()
-#endif  // defined(USING_SIMULATOR)
+#endif  // defined(DART_INCLUDE_SIMULATOR)
 
 void OnEveryRuntimeEntryCall(Thread* thread,
                              const char* runtime_call_name,
@@ -3490,7 +3490,7 @@ static void HandleOSRRequest(Thread* thread) {
 
 DEFINE_RUNTIME_ENTRY(InterruptOrStackOverflow, 0) {
   uword stack_pos = OSThread::GetCurrentStackPointer();
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
   if (FLAG_use_simulator) {
     stack_pos = Simulator::Current()->get_sp();
     // If simulator was never called it may return 0 as a value of SPREG.
@@ -4384,7 +4384,7 @@ extern "C" uword /*ObjectPtr*/ InterpretCall(uword /*FunctionPtr*/ function_in,
 uword RuntimeEntry::InterpretCallEntry() {
 #if defined(DART_DYNAMIC_MODULES)
   uword entry = reinterpret_cast<uword>(InterpretCall);
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
   if (FLAG_use_simulator) {
     entry = Simulator::RedirectExternalReference(
         entry, Simulator::kLeafRuntimeCall, 5);

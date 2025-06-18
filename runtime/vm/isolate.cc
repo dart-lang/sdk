@@ -1869,7 +1869,7 @@ Isolate::~Isolate() {
 
   free(name_);
   delete field_table_;
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
   delete simulator_;
 #endif
   delete message_handler_;

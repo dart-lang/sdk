@@ -624,11 +624,11 @@ TEST_CASE(SafepointTestDart) {
 // to get their verification done and exit. Use a specific UserTag
 // to enable the helpers to verify that the main thread is
 // successfully interrupted in the pure Dart loop.
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
   const intptr_t kLoopCount = 12345678;
 #else
   const intptr_t kLoopCount = 1234567890;
-#endif  // defined(USING_SIMULATOR)
+#endif  // defined(DART_INCLUDE_SIMULATOR)
   char buffer[1024];
   Utils::SNPrint(buffer, sizeof(buffer),
                  "import 'dart:developer';\n"

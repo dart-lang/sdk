@@ -9,7 +9,7 @@
 #if defined(TARGET_ARCH_X64)
 
 // Only build the simulator if not compiling for real X64 hardware.
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
 
 #include "vm/simulator.h"
 
@@ -67,6 +67,6 @@ uword Simulator::FunctionForRedirect(uword redirect) {
 
 }  // namespace dart
 
-#endif  // !defined(USING_SIMULATOR)
+#endif  // !defined(DART_INCLUDE_SIMULATOR)
 
 #endif  // defined TARGET_ARCH_X64

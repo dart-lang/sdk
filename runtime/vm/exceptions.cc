@@ -618,7 +618,7 @@ NO_SANITIZE_SAFE_STACK  // This function manipulates the safestack pointer.
     thread->set_execution_state(Thread::kThreadInGenerated);
   }
 
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
   // Unwinding of the C++ frames and destroying of their stack resources is done
   // by the simulator, because the target stack_pointer is a simulated stack
   // pointer and not the C++ stack pointer.

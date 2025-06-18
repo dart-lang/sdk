@@ -33,7 +33,7 @@ const char* Version::str_ =
     "{{VERSION_STR}} ({{CHANNEL}}) ({{COMMIT_TIME}})"
     " on \"" kHostOperatingSystemName
     "_"
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
     "sim"
 #endif
     kTargetArchitectureName "\"";

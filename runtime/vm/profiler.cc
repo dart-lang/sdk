@@ -45,7 +45,7 @@ DEFINE_FLAG(int,
             max_profile_depth,
             Sample::kPCArraySizeInWords* kMaxSamplesPerTick,
             "Maximum number stack frames walked. Minimum 1. Maximum 255.");
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
 DEFINE_FLAG(bool, profile_vm, true, "Always collect native stack traces.");
 #else
 DEFINE_FLAG(bool, profile_vm, false, "Always collect native stack traces.");
@@ -363,7 +363,7 @@ static bool GetAndValidateThreadStackBounds(OSThread* os_thread,
   ASSERT(stack_lower != nullptr);
   ASSERT(stack_upper != nullptr);
 
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
   const bool use_simulator_stack_bounds =
       FLAG_use_simulator && thread != nullptr && thread->IsExecutingDartCode();
   if (use_simulator_stack_bounds) {
@@ -375,7 +375,7 @@ static bool GetAndValidateThreadStackBounds(OSThread* os_thread,
   }
 #else
   const bool use_simulator_stack_bounds = false;
-#endif  // defined(USING_SIMULATOR)
+#endif  // defined(DART_INCLUDE_SIMULATOR)
 
   if (!use_simulator_stack_bounds) {
     *stack_lower = os_thread->stack_limit();
@@ -514,7 +514,7 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
 #else
   const char kCompressedPointers[] = "no";
 #endif
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
   const char kUsingSimulator[] = "yes";
 #else
   const char kUsingSimulator[] = "no";
@@ -1249,7 +1249,7 @@ static Sample* SetupSample(Thread* thread,
   }
   sample->Init(isolate->main_port(), OS::GetCurrentMonotonicMicros(), tid);
   uword vm_tag = thread->vm_tag();
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
   // When running in the simulator, the runtime entry function address
   // (stored as the vm tag) is the address of a redirect function.
   // Attempt to find the real runtime entry function address and use that.
@@ -1393,7 +1393,7 @@ void Profiler::SampleThread(Thread* thread,
 
   if (in_dart_code) {
     // If we're in Dart code, use the Dart stack pointer.
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
     if (FLAG_use_simulator) {
       Simulator* simulator = isolate->simulator();
       sp = simulator->get_register(SPREG);

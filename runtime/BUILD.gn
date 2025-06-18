@@ -169,7 +169,7 @@ config("dart_arch_config") {
     assert(false)
   }
   if (dart_force_simulator) {
-    defines += [ "USING_SIMULATOR" ]
+    defines += [ "DART_INCLUDE_SIMULATOR" ]
     if (dart_target_arch == "arm64") {
       defines += [ "SIMULATOR_FFI" ]
     }

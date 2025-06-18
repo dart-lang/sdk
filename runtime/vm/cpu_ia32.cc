@@ -20,9 +20,9 @@ void CPU::FlushICache(uword start, uword size) {
 
 const char* CPU::Id() {
   return
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
       "sim"
-#endif  // !defined(USING_SIMULATOR)
+#endif  // !defined(DART_INCLUDE_SIMULATOR)
       "ia32";
 }
 

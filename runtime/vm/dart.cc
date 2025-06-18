@@ -386,7 +386,7 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
   TargetCPUFeatures::Init();
   FfiCallbackMetadata::Init();
 
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
   Simulator::Init();
 #endif
   // Create the read-only handles area.

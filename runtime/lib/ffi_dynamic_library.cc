@@ -29,11 +29,11 @@
 
 namespace dart {
 
-#if (defined(USING_SIMULATOR) && !defined(SIMULATOR_FFI)) ||                   \
+#if (defined(DART_INCLUDE_SIMULATOR) && !defined(SIMULATOR_FFI)) ||            \
     (defined(DART_PRECOMPILER) && !defined(TESTING))
 
 DART_NORETURN static void SimulatorUnsupported() {
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
   Exceptions::ThrowUnsupportedError("Not supported on this simulator.");
 #else
   Exceptions::ThrowUnsupportedError("Not supported in precompiler.");
@@ -66,7 +66,7 @@ DEFINE_NATIVE_ENTRY(Ffi_GetFfiNativeResolver, 1, 0) {
   SimulatorUnsupported();
 }
 
-#else  // defined(USING_SIMULATOR) ||                                          \
+#else  // defined(DART_INCLUDE_SIMULATOR) ||                                   \
        // (defined(DART_PRECOMPILER) && !defined(TESTING))
 
 // If an error occurs populates |error| (if provided) with an error message
@@ -516,7 +516,7 @@ DEFINE_NATIVE_ENTRY(Ffi_GetFfiNativeResolver, 1, 0) {
   return Pointer::New(reinterpret_cast<intptr_t>(FfiResolve));
 }
 
-#endif  // (defined(USING_SIMULATOR) && !defined (SIMULATOR_FFI)) ||           \
+#endif  // (defined(DART_INCLUDE_SIMULATOR) && !defined (SIMULATOR_FFI)) ||    \
         // (defined(DART_PRECOMPILER) && !defined(TESTING))
 
 }  // namespace dart

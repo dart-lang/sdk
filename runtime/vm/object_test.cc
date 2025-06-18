@@ -8206,7 +8206,8 @@ TEST_CASE(TypeArguments_Cache_SomeInstantiations) {
 // reasons. Any core issues will likely be found by SomeInstantiations.
 #if !defined(DEBUG) && !defined(USING_MEMORY_SANITIZER) &&                     \
     !defined(USING_THREAD_SANITIZER) && !defined(USING_LEAK_SANITIZER) &&      \
-    !defined(USING_UNDEFINED_BEHAVIOR_SANITIZER) && !defined(USING_SIMULATOR)
+    !defined(USING_UNDEFINED_BEHAVIOR_SANITIZER) &&                            \
+    !defined(DART_INCLUDE_SIMULATOR)
 TEST_CASE(TypeArguments_Cache_ManyInstantiations) {
   const intptr_t kNumClasses = 100000;
   static_assert(kNumClasses > TypeArguments::Cache::kMaxLinearCacheEntries,
