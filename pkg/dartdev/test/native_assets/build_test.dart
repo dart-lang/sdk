@@ -66,6 +66,31 @@ void main([List<String> args = const []]) async {
           final link = Link.fromUri(
               tempUri.resolve(OS.current.executableFileName('my_link')));
           await link.create(absoluteExeUri.toFilePath());
+          if (OS.current == OS.windows) {
+            for (final exeUri in [
+              removeDotExe(link.uri),
+              removeDotExe(absoluteExeUri),
+              removeDotExe(relativeExeUri),
+            ]) {
+              final result = await runProcess(
+                executable: exeUri,
+                arguments: [],
+                workingDirectory: dartAppUri,
+                logger: logger,
+              );
+              // TODO(https://dartbug.com/60946): Support PATHEXT.
+              expect(result.exitCode, isNot(0));
+              expect(
+                result.stderr,
+                stringContainsInOrder(
+                  [
+                    'Failed to canonicalize the script uri',
+                    'The system cannot find the file specified.',
+                  ],
+                ),
+              );
+            }
+          }
           for (final exeUri in [
             absoluteExeUri,
             relativeExeUri,
@@ -353,4 +378,13 @@ Future<void> _withTempDir(Future<void> Function(Uri tempUri) fun) async {
       await tempDirResolved.delete(recursive: true);
     }
   }
+}
+
+Uri removeDotExe(Uri withExe) {
+  final exeName = withExe.pathSegments.lastWhere((e) => e.isNotEmpty);
+  if (!exeName.endsWith('.exe')) {
+    throw StateError('Expected executable to end in .exe, got $exeName');
+  }
+  final fileName = exeName.replaceAll('.exe', '');
+  return withExe.resolve(fileName);
 }
