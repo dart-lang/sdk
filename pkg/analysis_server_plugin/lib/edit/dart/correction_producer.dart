@@ -496,6 +496,10 @@ abstract class ResolvedCorrectionProducer
   /// inferred.
   DartType? inferUndefinedExpressionType(Expression expression) {
     var parent = expression.parent;
+    // `await (v + v2)`
+    if (parent is ParenthesizedExpression) {
+      return inferUndefinedExpressionType(parent);
+    }
     // `myFunction();`.
     if (expression is MethodInvocation) {
       if (parent is CascadeExpression && parent.parent is ExpressionStatement) {
