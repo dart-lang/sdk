@@ -160,11 +160,6 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
       _augmentedDeclarations = [_introductory, ..._augmentations];
       _lastDeclaration = _augmentedDeclarations.removeLast();
     }
-
-    _introductory.registerInferable(this);
-    for (ConstructorDeclaration augmentation in _augmentations) {
-      augmentation.registerInferable(this);
-    }
   }
 
   // TODO(johnniwinther): Add annotations to tear-offs.
