@@ -1039,7 +1039,10 @@ class KernelTarget {
     }
 
     Procedure? constructorTearOff = createConstructorTearOffProcedure(
-        new MemberName(libraryBuilder.libraryName,
+        new MemberName(
+            superConstructor.name.isPrivate
+                ? new LibraryName(superConstructor.name.libraryReference!)
+                : libraryBuilder.libraryName,
             constructorTearOffName(superConstructor.name.text)),
         libraryBuilder,
         cls.fileUri,

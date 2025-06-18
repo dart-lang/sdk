@@ -1,0 +1,9 @@
+import 'private_lib.dart';
+
+mixin M {}
+
+class D = A with M;
+
+class E = B with M;
+
+class F = C with M;
