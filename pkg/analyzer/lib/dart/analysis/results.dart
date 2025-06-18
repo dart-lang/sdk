@@ -13,6 +13,9 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:meta/meta.dart';
 
+@Deprecated('Use AnalysisResultWithDiagnostics instead')
+typedef AnalysisResultWithErrors = AnalysisResultWithDiagnostics;
+
 /// The result of performing some kind of analysis on a single file. Every
 /// result that implements this interface will also implement a sub-interface.
 ///
@@ -22,10 +25,10 @@ abstract class AnalysisResult {
   AnalysisSession get session;
 }
 
-/// An analysis result that includes the errors computed during analysis.
+/// An analysis result that includes the diagnostics computed during analysis.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class AnalysisResultWithErrors implements FileResult {
+abstract class AnalysisResultWithDiagnostics implements FileResult {
   /// The diagnostics that were computed during analysis.
   List<Diagnostic> get diagnostics;
 
@@ -83,7 +86,7 @@ abstract class ElementDeclarationResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ErrorsResult
-    implements SomeErrorsResult, AnalysisResultWithErrors {}
+    implements SomeErrorsResult, AnalysisResultWithDiagnostics {}
 
 /// The result of computing some cheap information for a single file, when full
 /// parsed file is not required, so [ParsedUnitResult] is not necessary.
@@ -239,7 +242,7 @@ abstract class ParsedLibraryResult
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ParsedUnitResult
-    implements SomeParsedUnitResult, AnalysisResultWithErrors {
+    implements SomeParsedUnitResult, AnalysisResultWithDiagnostics {
   /// The parsed, unresolved compilation unit for the [content].
   CompilationUnit get unit;
 }

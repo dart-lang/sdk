@@ -1151,7 +1151,7 @@ abstract class CommonServerContextManagerCallbacks
       analysisServer.sendLspNotification(message);
     }
 
-    if (result is AnalysisResultWithErrors) {
+    if (result is AnalysisResultWithDiagnostics) {
       if (analysisServer.isAnalyzed(path)) {
         var serverErrors = server.doAnalysisError_listFromEngine(result);
         recordAnalysisErrors(path, serverErrors);

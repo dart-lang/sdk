@@ -1583,9 +1583,9 @@ class AnalysisDriver {
       events.GetErrorsFromBytes(file: file, library: library),
     );
     var unit = AnalysisDriverResolvedUnit.fromBuffer(bytes);
-    var errors = _getDiagnosticsFromSerialized(file, unit.errors);
-    _updateHasErrorOrWarningFlag(file, errors);
-    var result = _createErrorsResultImpl(file: file, diagnostics: errors);
+    var diagnostics = _getDiagnosticsFromSerialized(file, unit.errors);
+    _updateHasErrorOrWarningFlag(file, diagnostics);
+    var result = _createErrorsResultImpl(file: file, diagnostics: diagnostics);
     return result;
   }
 
@@ -1694,9 +1694,9 @@ class AnalysisDriver {
   ) {
     List<Diagnostic> diagnostics = <Diagnostic>[];
     for (AnalysisDriverUnitError error in serialized) {
-      var analysisError = ErrorEncoding.decode(file.source, error);
-      if (analysisError != null) {
-        diagnostics.add(analysisError);
+      var diagnostic = ErrorEncoding.decode(file.source, error);
+      if (diagnostic != null) {
+        diagnostics.add(diagnostic);
       }
     }
     return diagnostics;

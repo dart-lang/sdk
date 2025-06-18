@@ -444,8 +444,8 @@ package:analyzer/dart/analysis/results.dart:
   AnalysisResult (class extends Object):
     new (constructor: AnalysisResult Function())
     session (getter: AnalysisSession)
-  AnalysisResultWithErrors (class extends Object implements FileResult):
-    new (constructor: AnalysisResultWithErrors Function())
+  AnalysisResultWithDiagnostics (class extends Object implements FileResult):
+    new (constructor: AnalysisResultWithDiagnostics Function())
     diagnostics (getter: List<Diagnostic>)
     errors (getter: List<Diagnostic>, deprecated)
   CannotResolveUriResult (class extends Object implements InvalidResult, SomeLibraryElementResult, SomeParsedLibraryResult, SomeResolvedLibraryResult):
@@ -458,7 +458,7 @@ package:analyzer/dart/analysis/results.dart:
     node (getter: AstNode)
     parsedUnit (getter: ParsedUnitResult?)
     resolvedUnit (getter: ResolvedUnitResult?)
-  ErrorsResult (class extends Object implements SomeErrorsResult, AnalysisResultWithErrors):
+  ErrorsResult (class extends Object implements SomeErrorsResult, AnalysisResultWithDiagnostics):
     new (constructor: ErrorsResult Function())
   FileResult (class extends Object implements SomeFileResult, AnalysisResult):
     new (constructor: FileResult Function())
@@ -500,7 +500,7 @@ package:analyzer/dart/analysis/results.dart:
     units (getter: List<ParsedUnitResult>)
     getElementDeclaration2 (method: ElementDeclarationResult? Function(Fragment), deprecated, experimental)
     getFragmentDeclaration (method: FragmentDeclarationResult? Function(Fragment), experimental)
-  ParsedUnitResult (class extends Object implements SomeParsedUnitResult, AnalysisResultWithErrors):
+  ParsedUnitResult (class extends Object implements SomeParsedUnitResult, AnalysisResultWithDiagnostics):
     new (constructor: ParsedUnitResult Function())
     unit (getter: CompilationUnit)
   ResolvedLibraryResult (class extends Object implements ParsedLibraryResult, SomeResolvedLibraryResult):
@@ -539,6 +539,7 @@ package:analyzer/dart/analysis/results.dart:
     new (constructor: UnspecifiedInvalidResult Function())
   UriOfExternalLibraryResult (class extends Object implements InvalidResult, SomeParsedLibraryResult, SomeResolvedLibraryResult):
     new (constructor: UriOfExternalLibraryResult Function())
+  AnalysisResultWithErrors (type alias for AnalysisResultWithDiagnostics, deprecated)
 package:analyzer/dart/analysis/session.dart:
   AnalysisSession (class extends Object):
     new (constructor: AnalysisSession Function())
