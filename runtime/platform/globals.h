@@ -125,6 +125,9 @@
 #if TARGET_OS_WATCH
 #define DART_HOST_OS_WATCH 1
 #endif
+#if TARGET_OS_SIMULATOR
+#define DART_HOST_OS_SIMULATOR 1
+#endif
 
 #elif defined(_WIN32)
 

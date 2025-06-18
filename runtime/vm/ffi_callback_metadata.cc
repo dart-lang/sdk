@@ -97,11 +97,17 @@ FfiCallbackMetadata* FfiCallbackMetadata::Instance() {
   return singleton_;
 }
 
+namespace {
+uword RXAreaStart(VirtualMemory* page) {
+  return page->start() + page->OffsetToExecutableAlias();
+}
+}  // namespace
+
 void FfiCallbackMetadata::FillRuntimeFunction(VirtualMemory* page,
                                               uword index,
                                               void* function) {
-  void** slot =
-      reinterpret_cast<void**>(page->start() + RuntimeFunctionOffset(index));
+  void** slot = reinterpret_cast<void**>(RXAreaStart(page) +
+                                         RuntimeFunctionOffset(index));
   *slot = function;
 }
 
@@ -113,13 +119,21 @@ VirtualMemory* FfiCallbackMetadata::AllocateTrampolinePage() {
   return nullptr;
 #else
 
-#if defined(DART_HOST_OS_MACOS) && !defined(DART_PRECOMPILED_RUNTIME)
-  // If we are not going to use vm_remap then we need to pass
-  // is_executable=true so that pages get allocated with MAP_JIT flag if
-  // necessary. Otherwise OS will kill us with a codesigning violation if
-  // hardened runtime is enabled.
-  const bool is_executable = !VirtualMemory::ShouldDualMapExecutablePages();
+#if defined(DART_HOST_OS_MACOS) && defined(DART_PRECOMPILED_RUNTIME)
+  const bool should_remap_stub_page = true;
 #else
+  const bool should_remap_stub_page = false;  // No support for remapping.
+#endif
+
+#if defined(DART_HOST_OS_MACOS)
+  // If we are not going to use vm_remap then we need to pass
+  // is_executable=true so that pages get allocated with MAP_JIT flag or
+  // using RX workarounds if necessary. Otherwise OS will kill us with a
+  // codesigning violation if hardened runtime is enabled or we will simply
+  // not be able to execute trampoline code.
+  const bool is_executable = !should_remap_stub_page;
+#else
+  // On other operating systems we can simply flip RW->RX as necessary.
   const bool is_executable = false;
 #endif
 
@@ -130,9 +144,37 @@ VirtualMemory* FfiCallbackMetadata::AllocateTrampolinePage() {
     return nullptr;
   }
 
-  if (!stub_page_->DuplicateRX(new_page)) {
-    delete new_page;
-    return nullptr;
+  if (should_remap_stub_page) {
+#if defined(DART_HOST_OS_MACOS)
+    if (!stub_page_->DuplicateRX(new_page)) {
+      delete new_page;
+      return nullptr;
+    }
+#else
+    static_assert(!should_remap_stub_page,
+                  "Remaping only supported on Mac OS X");
+#endif
+  } else {
+    // If we are creating executable mapping then simply fill it with code by
+    // copying the page.
+    const intptr_t aligned_size =
+        Utils::RoundUp(stub_page_->size(), VirtualMemory::PageSize());
+    ASSERT(new_page->start() >= stub_page_->end() ||
+           new_page->end() <= stub_page_->start());
+    memcpy(new_page->address(), stub_page_->address(),  // NOLINT
+           stub_page_->size());
+
+    if (VirtualMemory::ShouldDualMapExecutablePages()) {
+      ASSERT(new_page->OffsetToExecutableAlias() != 0);
+      VirtualMemory::Protect(new_page->address(), aligned_size,
+                             VirtualMemory::kReadOnly);
+      VirtualMemory::Protect(
+          reinterpret_cast<void*>(RXAreaStart(new_page) + RXMappingSize()),
+          RWMappingSize(), VirtualMemory::kReadWrite);
+    } else {
+      VirtualMemory::Protect(new_page->address(), aligned_size,
+                             VirtualMemory::kReadExecute);
+    }
   }
 
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
@@ -140,7 +182,7 @@ VirtualMemory* FfiCallbackMetadata::AllocateTrampolinePage() {
     DisassembleToStdout formatter;
     THR_Print("Code for duplicated stub 'FfiCallbackTrampoline' {\n");
     const uword code_start =
-        new_page->start() + offset_of_first_trampoline_in_page_;
+        RXAreaStart(new_page) + offset_of_first_trampoline_in_page_;
     Disassembler::Disassemble(code_start, code_start + kPageSize, &formatter,
                               /*comments=*/nullptr);
     THR_Print("}\n");
@@ -176,8 +218,8 @@ void FfiCallbackMetadata::EnsureFreeListNotEmptyLocked() {
 
   // Add all the trampolines to the free list.
   const intptr_t trampolines_per_page = NumCallbackTrampolinesPerPage();
-  MetadataEntry* metadata_entry =
-      reinterpret_cast<MetadataEntry*>(new_page->start() + MetadataOffset());
+  MetadataEntry* metadata_entry = reinterpret_cast<MetadataEntry*>(
+      RXAreaStart(new_page) + MetadataOffset());
   for (intptr_t i = 0; i < trampolines_per_page; ++i) {
     AddToFreeListLocked(&metadata_entry[i]);
   }
