@@ -365,7 +365,7 @@ static bool GetAndValidateThreadStackBounds(OSThread* os_thread,
 
 #if defined(USING_SIMULATOR)
   const bool use_simulator_stack_bounds =
-      thread != nullptr && thread->IsExecutingDartCode();
+      FLAG_use_simulator && thread != nullptr && thread->IsExecutingDartCode();
   if (use_simulator_stack_bounds) {
     Isolate* isolate = thread->isolate();
     ASSERT(isolate != nullptr);
@@ -1253,9 +1253,11 @@ static Sample* SetupSample(Thread* thread,
   // When running in the simulator, the runtime entry function address
   // (stored as the vm tag) is the address of a redirect function.
   // Attempt to find the real runtime entry function address and use that.
-  uword redirect_vm_tag = Simulator::FunctionForRedirect(vm_tag);
-  if (redirect_vm_tag != 0) {
-    vm_tag = redirect_vm_tag;
+  if (FLAG_use_simulator) {
+    uword redirect_vm_tag = Simulator::FunctionForRedirect(vm_tag);
+    if (redirect_vm_tag != 0) {
+      vm_tag = redirect_vm_tag;
+    }
   }
 #endif
   sample->set_vm_tag(vm_tag);
@@ -1388,18 +1390,19 @@ void Profiler::SampleThread(Thread* thread,
   uintptr_t fp = state.fp;
   uintptr_t pc = state.pc;
   uintptr_t lr = state.lr;
-#if defined(USING_SIMULATOR)
-  Simulator* simulator = nullptr;
-#endif
 
   if (in_dart_code) {
-// If we're in Dart code, use the Dart stack pointer.
+    // If we're in Dart code, use the Dart stack pointer.
 #if defined(USING_SIMULATOR)
-    simulator = isolate->simulator();
-    sp = simulator->get_register(SPREG);
-    fp = simulator->get_register(FPREG);
-    pc = simulator->get_pc();
-    lr = simulator->get_lr();
+    if (FLAG_use_simulator) {
+      Simulator* simulator = isolate->simulator();
+      sp = simulator->get_register(SPREG);
+      fp = simulator->get_register(FPREG);
+      pc = simulator->get_pc();
+      lr = simulator->get_lr();
+    } else {
+      sp = state.dsp;
+    }
 #else
     sp = state.dsp;
 #endif

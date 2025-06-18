@@ -22,7 +22,10 @@ int32_t DarwinVersion();
 
 }  // namespace internal
 
-#if defined(DART_HOST_OS_IOS)
+// iOS simulators run on underlying Mac OS X kernel, so questions about
+// iOS version are meaningless (and return incorrect results because we
+// rely on `uname`).
+#if defined(DART_HOST_OS_IOS) && !defined(DART_HOST_OS_SIMULATOR)
 
 // Run-time OS version checks.
 #define DEFINE_IS_OS_FUNCS(VERSION_NAME, VALUE)                                \
@@ -51,7 +54,7 @@ DEFINE_IS_OS_FUNCS(10_14)
 // current and expected versions.
 char* CheckIsAtLeastMinRequiredMacOSXVersion();
 
-#endif  // defined(DART_HOST_OS_IOS)
+#endif  // defined(DART_HOST_OS_IOS) && !defined(DART_HOST_OS_SIMULATOR)
 
 inline uint16_t Utils::HostToBigEndian16(uint16_t value) {
   return OSSwapHostToBigInt16(value);

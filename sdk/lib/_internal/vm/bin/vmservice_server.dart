@@ -4,9 +4,6 @@
 
 part of vmservice_io;
 
-// This must be kept in sync with kErrorExitCode in runtime/bin/error_exit.h.
-const vmErrorExitCode = 255;
-
 // TODO(48602): deprecate SILENT_OBSERVATORY in favor of SILENT_VM_SERVICE
 bool silentObservatory = bool.fromEnvironment('SILENT_OBSERVATORY');
 bool silentVMService = bool.fromEnvironment('SILENT_VM_SERVICE');
@@ -145,20 +142,13 @@ class HttpRequestClient extends Client {
 /// Responsible for launching a DevTools instance when the service is started
 /// via SIGQUIT.
 class _DebuggingSession {
-  /// Starts DDS.
-  ///
-  /// Throws a [_StartupException] if it fails to start.
-  Future<void> start(
+  Future<bool> start(
     Uri serverAddress,
     String host,
     String port,
     bool disableServiceAuthCodes,
     bool enableDevTools,
   ) async {
-    void _throwStartupException(String details) {
-      throw _StartupException('Could not start the VM service:\n$details');
-    }
-
     // This code is part of the SDK and it is ok to have a reference to the
     // internals of the Dart SDK in terms of location of the snapshot etc.
     // It is more efficient doing it this way instead of invoking the Dart CLI
@@ -190,24 +180,28 @@ class _DebuggingSession {
             FileSystemEntityType.notFound) {
       executable = dart;
     }
-    try {
-      _process = await Process.start(executable, [
-        script,
-        '--vm-service-uri=$serverAddress',
-        '--bind-address=$host',
-        '--bind-port=$port',
-        if (disableServiceAuthCodes) '--disable-service-auth-codes',
-        if (enableDevTools) '--serve-devtools',
-        if (_enableServicePortFallback) '--enable-service-port-fallback',
-      ], mode: ProcessStartMode.detachedWithStdio);
-    } on ProcessException catch (e) {
-      _throwStartupException('Process.start failed: ${e.message}');
+    var process = await Process.start(executable, [
+      script,
+      '--vm-service-uri=$serverAddress',
+      '--bind-address=$host',
+      '--bind-port=$port',
+      if (disableServiceAuthCodes) '--disable-service-auth-codes',
+      if (enableDevTools) '--serve-devtools',
+      if (_enableServicePortFallback) '--enable-service-port-fallback',
+    ], mode: ProcessStartMode.detachedWithStdio);
+    if (process == null) {
+      stderr.writeln('Could not start the VM service: Process.start failed\n');
+      return false;
     }
+    _process = process;
 
     // DDS will close stderr once it's finished launching.
     final launchResultStderr = await _process.stderr
         .transform(utf8.decoder)
         .join();
+
+    void printError(String details) =>
+        stderr.writeln('Could not start the VM service: $details');
 
     try {
       final result = json.decode(launchResultStderr) as Map<String, dynamic>;
@@ -223,13 +217,16 @@ class _DebuggingSession {
           serverPrint('The Dart Tooling Daemon (DTD) is available at: $dtdUri');
         }
       } else {
-        _throwStartupException(result['error'] ?? result);
+        printError(result['error'] ?? result);
+        return false;
       }
     } catch (_) {
       // Malformed JSON was likely encountered, so output the entirety of
       // stderr in the error message.
-      _throwStartupException("Couldn't parse JSON: ${launchResultStderr}");
+      printError("Couldn't parse JSON: ${launchResultStderr}");
+      return false;
     }
+    return true;
   }
 
   void shutdown() => _process.kill();
@@ -289,10 +286,6 @@ class Server {
     this._enableServicePortFallback,
   ) : _authCodesDisabled = (authCodesDisabled || Platform.isFuchsia);
 
-  /// Starts the VM Service HTTP server. If [_waitForDdsToAdvertiseService] is
-  /// true, starts DDS as well.
-  ///
-  /// Throws a [_StartupException] if either of them fails to start.
   Future<void> startup() async {
     if (running) {
       // Already running.
@@ -312,7 +305,7 @@ class Server {
     final startingCompleter = Completer<bool>();
     _startingCompleter = startingCompleter;
     // Startup HTTP server.
-    Future<void> startServer() async {
+    Future<bool> startServer() async {
       try {
         var address;
         var addresses = await InternetAddress.lookup(_ip);
@@ -331,17 +324,22 @@ class Server {
           _port = 0;
           return await startServer();
         } else {
-          startingCompleter.complete(true);
-          _startingCompleter = null;
-          throw _StartupException(
-            'Could not start the VM service HTTP server:\n'
+          serverPrint(
+            'Could not start Dart VM service HTTP server:\n'
             '$e\n$st',
           );
+          _notifyServerState('');
+          onServerAddressChange(null);
+          return false;
         }
       }
+      return true;
     }
 
-    await startServer();
+    if (!(await startServer())) {
+      startingCompleter.complete(true);
+      return;
+    }
     if (_service.isExiting) {
       serverPrint(
         'Dart VM service HTTP server exiting before listening as '
@@ -356,29 +354,16 @@ class Server {
 
     if (_waitForDdsToAdvertiseService) {
       _ddsInstance = _DebuggingSession();
-      try {
-        await _ddsInstance!.start(
-          serverAddress!,
-          _ddsIP,
-          _ddsPort.toString(),
-          _authCodesDisabled,
-          _serveDevtools,
-        );
-      } on _StartupException {
-        // If DDS fails to start, shut down the HTTP server as well.
-        try {
-          await server.close(force: true);
-        } catch (_) {}
-        _ddsInstance = null;
-        _httpServer = null;
-        startingCompleter.complete(true);
-        _startingCompleter = null;
-        rethrow;
-      }
+      await _ddsInstance!.start(
+        serverAddress!,
+        _ddsIP,
+        _ddsPort.toString(),
+        _authCodesDisabled,
+        _serveDevtools,
+      );
     } else {
       await outputConnectionInformation();
     }
-
     // Server is up and running.
     _running = true;
     _notifyServerState(serverAddress.toString());

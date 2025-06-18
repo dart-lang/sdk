@@ -483,7 +483,7 @@ GenericFunctionType
         name: int
         element2: dart:core::@class::int
         type: int
-      declaredElement: null@null
+      declaredElement: <testLibraryFragment> null@null
         type: int
     rightParenthesis: )
   declaredElement: GenericFunctionTypeElement
@@ -594,7 +594,7 @@ GenericFunctionType
         name: String
         element2: dart:core::@class::String
         type: String
-      declaredElement: null@null
+      declaredElement: <testLibraryFragment> null@null
         type: String
     rightParenthesis: )
   declaredElement: GenericFunctionTypeElement
@@ -1103,7 +1103,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: root::@formalParameter::<null-name>
+        correspondingParameter: <null-name>@null
         staticType: int
     rightParenthesis: )
   element: <null>
@@ -1714,7 +1714,7 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: o
-        correspondingParameter: root::@formalParameter::x
+        correspondingParameter: x@null
         element: <testLibrary>::@function::f::@formalParameter::o
         staticType: C
     rightParenthesis: )

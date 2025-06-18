@@ -104,12 +104,10 @@ class LibraryContext {
     LibraryFileKind library,
     FileState unit,
   ) {
-    var reference = elementFactory.rootReference
-        .getChild(library.file.uriStr)
-        .getChild('@fragment')
-        .getChild(unit.uriStr);
-    var element = elementFactory.elementOfReference(reference);
-    return element as LibraryFragmentImpl;
+    var libraryElement = elementFactory.libraryOfUri2(library.file.uri);
+    return libraryElement.fragments.singleWhere(
+      (fragment) => fragment.source.uri == unit.uri,
+    );
   }
 
   /// Notifies this object that it is about to be discarded.

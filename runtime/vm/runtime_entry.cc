@@ -124,17 +124,20 @@ uword RuntimeEntry::GetEntryPoint() const {
   // into the runtime system.
   uword entry = reinterpret_cast<uword>(function());
 #if defined(USING_SIMULATOR)
-  // Redirection to leaf runtime calls supports a maximum of 4 arguments passed
-  // in registers (maximum 2 double arguments for leaf float runtime calls).
-  ASSERT(argument_count() >= 0);
-  ASSERT(!is_leaf() || (!is_float() && (argument_count() <= 4)) ||
-         (argument_count() <= 2));
-  Simulator::CallKind call_kind =
-      is_leaf() ? (is_float() ? Simulator::kLeafFloatRuntimeCall
-                              : Simulator::kLeafRuntimeCall)
-                : Simulator::kRuntimeCall;
-  entry =
-      Simulator::RedirectExternalReference(entry, call_kind, argument_count());
+  if (FLAG_use_simulator) {
+    // Redirection to leaf runtime calls supports a maximum of 4 arguments
+    // passed in registers (maximum 2 double arguments for leaf float runtime
+    // calls).
+    ASSERT(argument_count() >= 0);
+    ASSERT(!is_leaf() || (!is_float() && (argument_count() <= 4)) ||
+           (argument_count() <= 2));
+    Simulator::CallKind call_kind =
+        is_leaf() ? (is_float() ? Simulator::kLeafFloatRuntimeCall
+                                : Simulator::kLeafRuntimeCall)
+                  : Simulator::kRuntimeCall;
+    entry = Simulator::RedirectExternalReference(entry, call_kind,
+                                                 argument_count());
+  }
 #endif
   return entry;
 }
@@ -152,7 +155,7 @@ uword RuntimeEntry::GetEntryPoint() const {
 
 #if defined(USING_SIMULATOR)
 #define CHECK_SIMULATOR_STACK_OVERFLOW()                                       \
-  if (!OSThread::Current()->HasStackHeadroom()) {                              \
+  if (FLAG_use_simulator && !OSThread::Current()->HasStackHeadroom()) {        \
     Exceptions::ThrowStackOverflow();                                          \
   }
 #else
@@ -3486,16 +3489,17 @@ static void HandleOSRRequest(Thread* thread) {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 DEFINE_RUNTIME_ENTRY(InterruptOrStackOverflow, 0) {
-#if defined(USING_SIMULATOR)
-  uword stack_pos = Simulator::Current()->get_sp();
-  // If simulator was never called it may return 0 as a value of SPREG.
-  if (stack_pos == 0) {
-    // Use any reasonable value which would not be treated
-    // as stack overflow.
-    stack_pos = thread->saved_stack_limit();
-  }
-#else
   uword stack_pos = OSThread::GetCurrentStackPointer();
+#if defined(USING_SIMULATOR)
+  if (FLAG_use_simulator) {
+    stack_pos = Simulator::Current()->get_sp();
+    // If simulator was never called it may return 0 as a value of SPREG.
+    if (stack_pos == 0) {
+      // Use any reasonable value which would not be treated
+      // as stack overflow.
+      stack_pos = thread->saved_stack_limit();
+    }
+  }
 #endif
   // Always clear the stack overflow flags.  They are meant for this
   // particular stack overflow runtime call and are not meant to
@@ -4381,8 +4385,10 @@ uword RuntimeEntry::InterpretCallEntry() {
 #if defined(DART_DYNAMIC_MODULES)
   uword entry = reinterpret_cast<uword>(InterpretCall);
 #if defined(USING_SIMULATOR)
-  entry = Simulator::RedirectExternalReference(entry,
-                                               Simulator::kLeafRuntimeCall, 5);
+  if (FLAG_use_simulator) {
+    entry = Simulator::RedirectExternalReference(
+        entry, Simulator::kLeafRuntimeCall, 5);
+  }
 #endif
   return entry;
 #else

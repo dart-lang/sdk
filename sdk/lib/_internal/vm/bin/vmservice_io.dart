@@ -220,35 +220,13 @@ Future<List<Map<String, dynamic>>> listFilesCallback(Uri dirPath) async {
 
 Uri? serverInformationCallback() => server.serverAddress;
 
-/// Thrown when either the VM Service HTTP server or DDS fails to start.
-class _StartupException implements Exception {
-  final String message;
-
-  _StartupException(this.message);
-}
-
-/// Toggles the running state of the VM Service HTTP server. If
-/// [server._waitForDdsToAdvertiseService] is true, toggles DDS alongside the VM
-/// Service HTTP server.
-///
-/// Logs error messages to stderr and completes the returned [Future] with
-/// [false] if an attempt is made to enable the VM Service HTTP server or DDS
-/// and the attempt fails. Completes the returned [Future] with [true]
-/// otherwise.
-Future<bool> _toggleWebServer() async {
+Future<void> _toggleWebServer() async {
   // Toggle HTTP server.
   if (server.running) {
     await server.shutdown(true);
     await VMService().clearState();
-    return true;
   } else {
-    try {
-      await server.startup();
-      return true;
-    } on _StartupException catch (e) {
-      stderr.writeln(e.message);
-      return false;
-    }
+    await server.startup();
   }
 }
 
@@ -284,7 +262,7 @@ void _registerSignalHandler() {
   }
   _signalSubscription = signalWatch(
     ProcessSignal.sigquit,
-  ).listen((_) => unawaited(_toggleWebServer()));
+  ).listen((_) => _toggleWebServer());
 }
 
 @pragma('vm:entry-point', !bool.fromEnvironment('dart.vm.product'))
@@ -319,13 +297,7 @@ void main() {
   );
 
   if (_autoStart) {
-    unawaited(
-      _toggleWebServer().then((wasSuccessful) {
-        if (!wasSuccessful) {
-          exit(vmErrorExitCode);
-        }
-      }),
-    );
+    _toggleWebServer();
   }
   _registerSignalHandler();
 }

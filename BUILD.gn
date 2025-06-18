@@ -32,18 +32,6 @@ group("most") {
   ]
 }
 
-# Delete this after Golem moves to vm_platform.dill.
-copy("copy_vm_strong_dill_files") {
-  deps = [ "runtime/vm:kernel_platform_files($host_toolchain)" ]
-  sources = [ "$root_out_dir/vm_platform.dill" ]
-  outputs = [ "$root_out_dir/vm_platform_strong.dill" ]
-}
-copy("copy_vm_strong_outline_files") {
-  deps = [ "runtime/vm:kernel_platform_files($host_toolchain)" ]
-  sources = [ "$root_out_dir/vm_outline.dill" ]
-  outputs = [ "$root_out_dir/vm_outline_strong.dill" ]
-}
-
 group("runtime") {
   import("runtime/runtime_args.gni")
 
@@ -53,8 +41,6 @@ group("runtime") {
   }
 
   deps = [
-    ":copy_vm_strong_dill_files",
-    ":copy_vm_strong_outline_files",
     "runtime/bin:dart",
     "runtime/bin:ffi_test_dynamic_library",
     "runtime/bin:ffi_test_functions",

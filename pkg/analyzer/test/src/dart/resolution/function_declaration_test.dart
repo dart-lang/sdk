@@ -579,7 +579,7 @@ TypeParameter
       typeParameters
         TypeParameter
           name: _
-          declaredElement: _@31
+          declaredElement: <testLibraryFragment> _@31
             defaultType: null
       rightBracket: >
     parameters: FormalParameterList
@@ -589,14 +589,14 @@ TypeParameter
           name: _
           element2: <null>
           type: InvalidType
-        declaredElement: null@null
+        declaredElement: <testLibraryFragment> null@null
           type: InvalidType
       parameter: SimpleFormalParameter
         type: NamedType
           name: _
           element2: <null>
           type: InvalidType
-        declaredElement: null@null
+        declaredElement: <testLibraryFragment> null@null
           type: InvalidType
       rightParenthesis: )
     declaredElement: GenericFunctionTypeElement

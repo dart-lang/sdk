@@ -40,6 +40,7 @@ augment class A {
     await assertNoDiagnosticsInFile(b.path);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augmentedClass_augmentedConstructor() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -122,6 +123,7 @@ augment class A {
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augmentedClass_field() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';

@@ -360,7 +360,7 @@ FunctionExpressionInvocation
       IntegerLiteral
         literal: 0
         correspondingParameter: ParameterMember
-          baseElement: root::@formalParameter::a
+          baseElement: a@null
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -471,19 +471,19 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 1
-        correspondingParameter: root::@formalParameter::a
+        correspondingParameter: a@null
         staticType: int
       NamedExpression
         name: Label
           label: SimpleIdentifier
             token: b
-            element: root::@formalParameter::b
+            element: b@null
             staticType: null
           colon: :
         expression: IntegerLiteral
           literal: 2
           staticType: int
-        correspondingParameter: root::@formalParameter::b
+        correspondingParameter: b@null
     rightParenthesis: )
   element: <null>
   staticInvokeType: String Function(int, {int b})
@@ -825,7 +825,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: root::@formalParameter::<null-name>
+        correspondingParameter: <null-name>@null
         staticType: int
     rightParenthesis: )
   element: <null>
@@ -860,7 +860,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: root::@formalParameter::<null-name>
+        correspondingParameter: <null-name>@null
         staticType: int
     rightParenthesis: )
   element: <null>
@@ -899,7 +899,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: root::@formalParameter::<null-name>
+        correspondingParameter: <null-name>@null
         staticType: int
     rightParenthesis: )
   element: <null>

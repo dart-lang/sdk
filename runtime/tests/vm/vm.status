@@ -336,9 +336,6 @@ dart/stacktrace_mixin_application_test: SkipByDesign # Relies symbol names in st
 [ $compiler == dart2analyzer || $compiler == dart2js ]
 dart/data_uri*test: Skip # Data uri's not supported by dart2js or the analyzer.
 
-[ $compiler != dartk || $runtime != vm || $system != macos ]
-dart/macos_dual_mapping_smoke: SkipByDesign
-
 [ $mode == debug || $runtime != dart_precompiled || $system == android ]
 dart/emit_aot_size_info_flag_test: SkipByDesign # This test is for VM AOT only and is quite slow (so we don't run it in debug mode).
 dart/split_aot_kernel_generation2_test: SkipByDesign # This test is for VM AOT only and is quite slow (so we don't run it in debug mode).

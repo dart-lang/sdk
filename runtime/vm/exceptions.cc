@@ -627,9 +627,12 @@ NO_SANITIZE_SAFE_STACK  // This function manipulates the safestack pointer.
   // exception object in the kExceptionObjectReg register and the stacktrace
   // object (may be raw null) in the kStackTraceObjectReg register.
 
-  Simulator::Current()->JumpToFrame(program_counter, stack_pointer,
-                                    frame_pointer, thread);
-#else
+  if (FLAG_use_simulator) {
+    Simulator::Current()->JumpToFrame(program_counter, stack_pointer,
+                                      frame_pointer, thread);
+    UNREACHABLE();
+  }
+#endif
 
   // Zero out HWASAN tags from the current stack pointer to the destination.
   //
@@ -677,7 +680,6 @@ NO_SANITIZE_SAFE_STACK  // This function manipulates the safestack pointer.
   }
   func(program_counter, stack_pointer, frame_pointer, thread);
 
-#endif
   UNREACHABLE();
 }
 

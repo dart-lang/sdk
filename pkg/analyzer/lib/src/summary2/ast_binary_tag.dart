@@ -23,8 +23,8 @@ enum ElementTag {
   multiplyDefined,
   memberWithTypeArguments,
   elementImpl,
-  // TODO(scheglov): remove once we untangle Element2 from Fragment in storage.
-  viaFragment,
+  typeParameter,
+  formalParameter,
 }
 
 enum ImportElementPrefixKind { isDeferred, isNotDeferred, isNull }

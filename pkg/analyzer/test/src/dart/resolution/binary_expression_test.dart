@@ -1846,7 +1846,7 @@ BinaryExpression
   operator: +
   rightOperand: IntegerLiteral
     literal: 1
-    correspondingParameter: root::@formalParameter::i
+    correspondingParameter: i@null
     staticType: int
   element: MethodMember
     baseElement: <testLibrary>::@extension::FooExtension::@method::+

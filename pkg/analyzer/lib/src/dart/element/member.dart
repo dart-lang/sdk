@@ -698,9 +698,6 @@ class GetterMember extends PropertyAccessorMember
   }
 
   @override
-  PropertyInducingElement2OrMember? get variable3 => variable2?.asElement2;
-
-  @override
   GetterElementImpl get _element2 {
     return declaration.asElement2 as GetterElementImpl;
   }
@@ -1272,6 +1269,20 @@ abstract class PropertyAccessorMember extends ExecutableMember
   }
 
   @override
+  PropertyInducingElement2OrMember? get variable3 {
+    var variable = baseElement.variable3;
+    switch (variable) {
+      case FieldElementImpl():
+        return FieldMember(
+          declaration: variable.firstFragment,
+          substitution: substitution,
+        );
+      default:
+        return variable;
+    }
+  }
+
+  @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeExecutableElement(
       this,
@@ -1348,9 +1359,6 @@ class SetterMember extends PropertyAccessorMember
     }
     throw StateError('Synthetic setter has no variable');
   }
-
-  @override
-  PropertyInducingElement2OrMember? get variable3 => variable2?.asElement2;
 
   @override
   SetterElementImpl get _element2 {

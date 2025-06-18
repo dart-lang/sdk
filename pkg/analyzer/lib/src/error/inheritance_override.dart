@@ -254,12 +254,12 @@ class _ClassVerifier {
           _checkDeclaredMember(
             field.name,
             libraryUri,
-            fieldElement.getter?.asElement2,
+            fieldElement.element.getter2,
           );
           _checkDeclaredMember(
             field.name,
             libraryUri,
-            fieldElement.setter?.asElement2,
+            fieldElement.element.setter2,
           );
           if (!member.isStatic && firstFragment is! EnumFragmentImpl) {
             _checkIllegalEnumValuesDeclaration(field.name);

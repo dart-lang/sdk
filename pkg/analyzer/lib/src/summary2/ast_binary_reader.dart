@@ -709,6 +709,7 @@ class AstBinaryReader {
     fragment.returnType = returnType?.type ?? DynamicTypeImpl.instance;
     fragment.type = type;
     node.declaredFragment = fragment;
+    _reader.currentLibraryFragment.encloseElement(fragment);
 
     return node;
   }

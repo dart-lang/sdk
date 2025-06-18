@@ -48,10 +48,8 @@ class DocumentationCommentScope with _GettersAndSetters implements Scope {
         // TODO(kallentu): Handle combinators.
         for (var exportedReference in importedLibrary.exportedReferences) {
           var reference = exportedReference.reference;
-          var element =
-              importedLibrary.session.elementFactory.elementOfReference2(
-                reference,
-              )!;
+          var element = importedLibrary.session.elementFactory
+              .elementOfReference3(reference);
           if (element is SetterElement) {
             _addSetter(element);
           } else {
@@ -185,7 +183,7 @@ class ImportsTrackingOfPrefix {
 
     for (var exportedReference in importedLibrary.exportedReferences) {
       var reference = exportedReference.reference;
-      var element = elementFactory.elementOfReference2(reference)!;
+      var element = elementFactory.elementOfReference3(reference);
 
       // Check only accessed elements.
       if (!accessedElements.contains(element)) {
@@ -253,7 +251,7 @@ class ImportsTrackingOfPrefix {
       for (var exportedReference in importedLibrary.exportedReferences) {
         var reference = exportedReference.reference;
         if (combinators.allows(reference.name)) {
-          var element = elementFactory.elementOfReference2(reference)!;
+          var element = elementFactory.elementOfReference3(reference);
           (_elementImports[element] ??= []).add(import);
         }
       }
@@ -521,7 +519,7 @@ class PrefixScope implements Scope {
         for (var exportedReference in importedLibrary.exportedReferences) {
           var reference = exportedReference.reference;
           if (combinators.allows(reference.name)) {
-            var element = elementFactory.elementOfReference2(reference)!;
+            var element = elementFactory.elementOfReference3(reference);
             if (_shouldAdd(importedLibrary, element)) {
               _add(
                 element,

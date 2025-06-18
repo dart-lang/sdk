@@ -584,10 +584,10 @@ class MemberDuplicateDefinitionVerifier {
       _checkDuplicateIdentifier(
         getterScope,
         identifier,
-        element: element.getter!,
+        element: element.element.getter2!.firstFragment,
         setterScope: setterScope,
       );
-      var setter = element.setter;
+      var setter = element.element.setter2?.firstFragment;
       if (setter != null && setter.isSynthetic) {
         _checkDuplicateIdentifier(
           getterScope,
@@ -816,7 +816,8 @@ class MemberDuplicateDefinitionVerifier {
     var fragment = node.declaredFragment!;
     var firstFragment = fragment.element.firstFragment;
     var primaryConstructorName = firstFragment.constructors.first.name2;
-    var representationGetter = firstFragment.representation.getter!;
+    var representationGetter =
+        firstFragment.representation.element.getter2!.firstFragment;
     var elementContext = _getElementContext(firstFragment);
     elementContext.constructorNames.add(primaryConstructorName);
     if (representationGetter.name2 case var getterName?) {

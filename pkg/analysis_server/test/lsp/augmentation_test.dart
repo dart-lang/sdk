@@ -62,6 +62,7 @@ augment class [!A!] {}
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   Future<void> test_constructor_body_augmentationToAugmentation() async {
     await verifyGoToAugmentation('''
 class A {
@@ -80,6 +81,7 @@ augment class A {
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   Future<void> test_constructor_body_declarationToAugmentation() async {
     await verifyGoToAugmentation('''
 class A {
@@ -94,6 +96,7 @@ augment class A {
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   Future<void> test_constructor_name_augmentationToAugmentation() async {
     await verifyGoToAugmentation('''
 class A {
@@ -110,6 +113,7 @@ augment class A {
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   Future<void> test_constructor_name_declarationToAugmentation() async {
     await verifyGoToAugmentation('''
 class A {

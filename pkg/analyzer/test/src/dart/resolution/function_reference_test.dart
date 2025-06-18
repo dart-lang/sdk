@@ -4102,7 +4102,7 @@ FunctionReference
         typeParameters
           TypeParameter
             name: T
-            declaredElement: T@89
+            declaredElement: <testLibraryFragment> T@89
               defaultType: null
         rightBracket: >
       parameters: FormalParameterList
@@ -4112,7 +4112,7 @@ FunctionReference
             name: T
             element2: #E0 T
             type: T
-          declaredElement: null@null
+          declaredElement: <testLibraryFragment> null@null
             type: T
         rightParenthesis: )
       declaredElement: GenericFunctionTypeElement

@@ -7206,11 +7206,11 @@ library
           element: <testLibrary>::@class::C
           fields
             #F2 hasInitializer foo @16
-              element: <testLibrary>::@class::C::@field::foo
+              element: <testLibrary>::@class::C::@field::foo::@def::0
               getter2: #F3
               setter2: #F4
             #F5 synthetic foo
-              element: <testLibrary>::@class::C::@field::foo
+              element: <testLibrary>::@class::C::@field::foo::@def::1
               getter2: #F6
           constructors
             #F7 synthetic new
@@ -7237,13 +7237,13 @@ library
       firstFragment: #F1
       fields
         hasInitializer foo
-          reference: <testLibrary>::@class::C::@field::foo
+          reference: <testLibrary>::@class::C::@field::foo::@def::0
           firstFragment: #F2
           type: int
           getter: <testLibrary>::@class::C::@getter::foo::@def::0
           setter: <testLibrary>::@class::C::@setter::foo
         synthetic foo
-          reference: <testLibrary>::@class::C::@field::foo
+          reference: <testLibrary>::@class::C::@field::foo::@def::1
           firstFragment: #F5
           type: int
           getter: <testLibrary>::@class::C::@getter::foo::@def::1
@@ -7256,12 +7256,12 @@ library
           reference: <testLibrary>::@class::C::@getter::foo::@def::0
           firstFragment: #F3
           returnType: int
-          variable: <testLibrary>::@class::C::@field::foo
+          variable: <testLibrary>::@class::C::@field::foo::@def::0
         foo
           reference: <testLibrary>::@class::C::@getter::foo::@def::1
           firstFragment: #F6
           returnType: int
-          variable: <testLibrary>::@class::C::@field::foo
+          variable: <testLibrary>::@class::C::@field::foo::@def::1
       setters
         synthetic foo
           reference: <testLibrary>::@class::C::@setter::foo
@@ -7295,11 +7295,11 @@ library
           element: <testLibrary>::@class::C
           fields
             #F2 hasInitializer foo @16
-              element: <testLibrary>::@class::C::@field::foo
+              element: <testLibrary>::@class::C::@field::foo::@def::0
               getter2: #F3
               setter2: #F4
             #F5 synthetic foo
-              element: <testLibrary>::@class::C::@field::foo
+              element: <testLibrary>::@class::C::@field::foo::@def::1
               setter2: #F6
           constructors
             #F7 synthetic new
@@ -7327,13 +7327,13 @@ library
       firstFragment: #F1
       fields
         hasInitializer foo
-          reference: <testLibrary>::@class::C::@field::foo
+          reference: <testLibrary>::@class::C::@field::foo::@def::0
           firstFragment: #F2
           type: int
           getter: <testLibrary>::@class::C::@getter::foo
           setter: <testLibrary>::@class::C::@setter::foo::@def::0
         synthetic foo
-          reference: <testLibrary>::@class::C::@field::foo
+          reference: <testLibrary>::@class::C::@field::foo::@def::1
           firstFragment: #F5
           type: int
           setter: <testLibrary>::@class::C::@setter::foo::@def::1
@@ -7346,7 +7346,7 @@ library
           reference: <testLibrary>::@class::C::@getter::foo
           firstFragment: #F3
           returnType: int
-          variable: <testLibrary>::@class::C::@field::foo
+          variable: <testLibrary>::@class::C::@field::foo::@def::0
       setters
         synthetic foo
           reference: <testLibrary>::@class::C::@setter::foo::@def::0
@@ -7550,7 +7550,7 @@ library
                                   element2: dart:core::@class::double
                                   type: double
                                 name: a @78
-                                declaredElement: a@78
+                                declaredElement: <testLibraryFragment> a@78
                                   type: double
                               rightParenthesis: ) @79
                             declaredElement: GenericFunctionTypeElement
@@ -9371,7 +9371,7 @@ library
               returnType: Object
               variable: #F2
             #F6 synthetic <null-name>
-              element: <testLibrary>::@class::C::@getter::0
+              element: <testLibrary>::@class::C::@getter::1
               returnType: Object
               variable: #F5
           setters
@@ -9381,10 +9381,10 @@ library
                 #F9 _a
                   element: <testLibrary>::@class::C::@setter::a::@formalParameter::_a
             #F7 synthetic <null-name>
-              element: <testLibrary>::@class::C::@setter::0
+              element: <testLibrary>::@class::C::@setter::2
               formalParameters
-                #F10 <null-name>
-                  element: <testLibrary>::@class::C::@setter::0::@formalParameter::<null-name>
+                #F10 _
+                  element: <testLibrary>::@class::C::@setter::2::@formalParameter::_
   classes
     abstract class C
       reference: <testLibrary>::@class::C
@@ -9400,8 +9400,8 @@ library
           reference: <testLibrary>::@class::C::@field::0
           firstFragment: #F5
           type: Object
-          getter: <testLibrary>::@class::C::@getter::0
-          setter: <testLibrary>::@class::C::@setter::0
+          getter: <testLibrary>::@class::C::@getter::1
+          setter: <testLibrary>::@class::C::@setter::2
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -9413,7 +9413,7 @@ library
           returnType: Object
           variable: <testLibrary>::@class::C::@field::a
         synthetic <null-name>
-          reference: <testLibrary>::@class::C::@getter::0
+          reference: <testLibrary>::@class::C::@getter::1
           firstFragment: #F6
           returnType: Object
           variable: <testLibrary>::@class::C::@field::0
@@ -9427,10 +9427,10 @@ library
               type: Object
           returnType: void
         synthetic <null-name>
-          reference: <testLibrary>::@class::C::@setter::0
+          reference: <testLibrary>::@class::C::@setter::2
           firstFragment: #F7
           formalParameters
-            requiredPositional <null-name>
+            requiredPositional _
               firstFragment: #F10
               type: Object
           returnType: void
@@ -11033,6 +11033,184 @@ library
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
+''');
+  }
+
+  test_class_fragmentOrder_g1_s2_s1() async {
+    var library = await buildLibrary(r'''
+class A {
+  int get a => 0;
+  set b(int _) {}
+  set a(int _) {}
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A @6
+          element: <testLibrary>::@class::A
+          fields
+            #F2 synthetic a
+              element: <testLibrary>::@class::A::@field::a
+              getter2: #F3
+              setter2: #F4
+            #F5 synthetic b
+              element: <testLibrary>::@class::A::@field::b
+              setter2: #F6
+          constructors
+            #F7 synthetic new
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          getters
+            #F3 a @20
+              element: <testLibrary>::@class::A::@getter::a
+              returnType: int
+              variable: #F2
+          setters
+            #F6 b @34
+              element: <testLibrary>::@class::A::@setter::b
+              formalParameters
+                #F8 _ @40
+                  element: <testLibrary>::@class::A::@setter::b::@formalParameter::_
+            #F4 a @52
+              element: <testLibrary>::@class::A::@setter::a
+              formalParameters
+                #F9 _ @58
+                  element: <testLibrary>::@class::A::@setter::a::@formalParameter::_
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        synthetic a
+          reference: <testLibrary>::@class::A::@field::a
+          firstFragment: #F2
+          type: int
+          getter: <testLibrary>::@class::A::@getter::a
+          setter: <testLibrary>::@class::A::@setter::a
+        synthetic b
+          reference: <testLibrary>::@class::A::@field::b
+          firstFragment: #F5
+          type: int
+          setter: <testLibrary>::@class::A::@setter::b
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F7
+      getters
+        a
+          reference: <testLibrary>::@class::A::@getter::a
+          firstFragment: #F3
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::a
+      setters
+        b
+          reference: <testLibrary>::@class::A::@setter::b
+          firstFragment: #F6
+          formalParameters
+            requiredPositional _
+              firstFragment: #F8
+              type: int
+          returnType: void
+        a
+          reference: <testLibrary>::@class::A::@setter::a
+          firstFragment: #F4
+          formalParameters
+            requiredPositional _
+              firstFragment: #F9
+              type: int
+          returnType: void
+''');
+  }
+
+  test_class_fragmentOrder_s1_g2_g1() async {
+    var library = await buildLibrary(r'''
+class A {
+  set a(int _) {}
+  int get b => 0;
+  int get a => 0;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A @6
+          element: <testLibrary>::@class::A
+          fields
+            #F2 synthetic a
+              element: <testLibrary>::@class::A::@field::a
+              getter2: #F3
+              setter2: #F4
+            #F5 synthetic b
+              element: <testLibrary>::@class::A::@field::b
+              getter2: #F6
+          constructors
+            #F7 synthetic new
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          getters
+            #F6 b @38
+              element: <testLibrary>::@class::A::@getter::b
+              returnType: int
+              variable: #F5
+            #F3 a @56
+              element: <testLibrary>::@class::A::@getter::a
+              returnType: int
+              variable: #F2
+          setters
+            #F4 a @16
+              element: <testLibrary>::@class::A::@setter::a
+              formalParameters
+                #F8 _ @22
+                  element: <testLibrary>::@class::A::@setter::a::@formalParameter::_
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        synthetic a
+          reference: <testLibrary>::@class::A::@field::a
+          firstFragment: #F2
+          type: int
+          getter: <testLibrary>::@class::A::@getter::a
+          setter: <testLibrary>::@class::A::@setter::a
+        synthetic b
+          reference: <testLibrary>::@class::A::@field::b
+          firstFragment: #F5
+          type: int
+          getter: <testLibrary>::@class::A::@getter::b
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F7
+      getters
+        b
+          reference: <testLibrary>::@class::A::@getter::b
+          firstFragment: #F6
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::b
+        a
+          reference: <testLibrary>::@class::A::@getter::a
+          firstFragment: #F3
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::a
+      setters
+        a
+          reference: <testLibrary>::@class::A::@setter::a
+          firstFragment: #F4
+          formalParameters
+            requiredPositional _
+              firstFragment: #F8
+              type: int
+          returnType: void
 ''');
   }
 
@@ -18213,6 +18391,210 @@ class X = A with M;
     expect(X.constructors, hasLength(1));
   }
 
+  test_classAlias_constructors_chain_backward() async {
+    var library = await buildLibrary('''
+class A {
+  A.named();
+}
+class C = B with M;
+class B = A with M;
+mixin M {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A @6
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 named @14
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 12
+              periodOffset: 13
+        #F3 class C @31
+          element: <testLibrary>::@class::C
+          constructors
+            #F4 synthetic named
+              element: <testLibrary>::@class::C::@constructor::named
+              typeName: C
+        #F5 class B @51
+          element: <testLibrary>::@class::B
+          constructors
+            #F6 synthetic named
+              element: <testLibrary>::@class::B::@constructor::named
+              typeName: B
+      mixins
+        #F7 mixin M @71
+          element: <testLibrary>::@mixin::M
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        named
+          reference: <testLibrary>::@class::A::@constructor::named
+          firstFragment: #F2
+    class alias C
+      reference: <testLibrary>::@class::C
+      firstFragment: #F3
+      supertype: B
+      mixins
+        M
+      constructors
+        synthetic named
+          reference: <testLibrary>::@class::C::@constructor::named
+          firstFragment: #F4
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @0
+              period: . @0
+              constructorName: SimpleIdentifier
+                token: named @-1
+                element: <testLibrary>::@class::B::@constructor::named
+                staticType: null
+              argumentList: ArgumentList
+                leftParenthesis: ( @0
+                rightParenthesis: ) @0
+              element: <testLibrary>::@class::B::@constructor::named
+          superConstructor: <testLibrary>::@class::B::@constructor::named
+    class alias B
+      reference: <testLibrary>::@class::B
+      firstFragment: #F5
+      supertype: A
+      mixins
+        M
+      constructors
+        synthetic named
+          reference: <testLibrary>::@class::B::@constructor::named
+          firstFragment: #F6
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @0
+              period: . @0
+              constructorName: SimpleIdentifier
+                token: named @-1
+                element: <testLibrary>::@class::A::@constructor::named
+                staticType: null
+              argumentList: ArgumentList
+                leftParenthesis: ( @0
+                rightParenthesis: ) @0
+              element: <testLibrary>::@class::A::@constructor::named
+          superConstructor: <testLibrary>::@class::A::@constructor::named
+  mixins
+    mixin M
+      reference: <testLibrary>::@mixin::M
+      firstFragment: #F7
+      superclassConstraints
+        Object
+''');
+  }
+
+  test_classAlias_constructors_chain_forward() async {
+    var library = await buildLibrary('''
+class A {
+  A.named();
+}
+class B = A with M;
+class C = B with M;
+mixin M {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A @6
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 named @14
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 12
+              periodOffset: 13
+        #F3 class B @31
+          element: <testLibrary>::@class::B
+          constructors
+            #F4 synthetic named
+              element: <testLibrary>::@class::B::@constructor::named
+              typeName: B
+        #F5 class C @51
+          element: <testLibrary>::@class::C
+          constructors
+            #F6 synthetic named
+              element: <testLibrary>::@class::C::@constructor::named
+              typeName: C
+      mixins
+        #F7 mixin M @71
+          element: <testLibrary>::@mixin::M
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        named
+          reference: <testLibrary>::@class::A::@constructor::named
+          firstFragment: #F2
+    class alias B
+      reference: <testLibrary>::@class::B
+      firstFragment: #F3
+      supertype: A
+      mixins
+        M
+      constructors
+        synthetic named
+          reference: <testLibrary>::@class::B::@constructor::named
+          firstFragment: #F4
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @0
+              period: . @0
+              constructorName: SimpleIdentifier
+                token: named @-1
+                element: <testLibrary>::@class::A::@constructor::named
+                staticType: null
+              argumentList: ArgumentList
+                leftParenthesis: ( @0
+                rightParenthesis: ) @0
+              element: <testLibrary>::@class::A::@constructor::named
+          superConstructor: <testLibrary>::@class::A::@constructor::named
+    class alias C
+      reference: <testLibrary>::@class::C
+      firstFragment: #F5
+      supertype: B
+      mixins
+        M
+      constructors
+        synthetic named
+          reference: <testLibrary>::@class::C::@constructor::named
+          firstFragment: #F6
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @0
+              period: . @0
+              constructorName: SimpleIdentifier
+                token: named @-1
+                element: <testLibrary>::@class::B::@constructor::named
+                staticType: null
+              argumentList: ArgumentList
+                leftParenthesis: ( @0
+                rightParenthesis: ) @0
+              element: <testLibrary>::@class::B::@constructor::named
+          superConstructor: <testLibrary>::@class::B::@constructor::named
+  mixins
+    mixin M
+      reference: <testLibrary>::@mixin::M
+      firstFragment: #F7
+      superclassConstraints
+        Object
+''');
+  }
+
   test_classAlias_constructors_default() async {
     var library = await buildLibrary('''
 class A {}
@@ -20247,40 +20629,40 @@ library
         #F5 class E @37
           element: <testLibrary>::@class::E
           fields
-            #F6 x @105
-              element: <testLibrary>::@class::E::@field::x
-              getter2: #F7
-              setter2: #F8
-            #F9 synthetic a
+            #F6 synthetic a
               element: <testLibrary>::@class::E::@field::a
-              getter2: #F10
-            #F11 synthetic b
+              getter2: #F7
+            #F8 synthetic b
               element: <testLibrary>::@class::E::@field::b
+              setter2: #F9
+            #F10 x @105
+              element: <testLibrary>::@class::E::@field::x
+              getter2: #F11
               setter2: #F12
           constructors
             #F13 synthetic new
               element: <testLibrary>::@class::E::@constructor::new
               typeName: E
           getters
-            #F7 synthetic x
-              element: <testLibrary>::@class::E::@getter::x
-              returnType: int
-              variable: #F6
-            #F10 a @51
+            #F7 a @51
               element: <testLibrary>::@class::E::@getter::a
               returnType: int
-              variable: #F9
+              variable: #F6
+            #F11 synthetic x
+              element: <testLibrary>::@class::E::@getter::x
+              returnType: int
+              variable: #F10
           setters
-            #F8 synthetic x
-              element: <testLibrary>::@class::E::@setter::x
-              formalParameters
-                #F14 _x
-                  element: <testLibrary>::@class::E::@setter::x::@formalParameter::_x
-            #F12 b @73
+            #F9 b @73
               element: <testLibrary>::@class::E::@setter::b
               formalParameters
-                #F15 i @79
+                #F14 i @79
                   element: <testLibrary>::@class::E::@setter::b::@formalParameter::i
+            #F12 synthetic x
+              element: <testLibrary>::@class::E::@setter::x
+              formalParameters
+                #F15 _x
+                  element: <testLibrary>::@class::E::@setter::x::@formalParameter::_x
           methods
             #F16 f @92
               element: <testLibrary>::@class::E::@method::f
@@ -20314,51 +20696,51 @@ library
       reference: <testLibrary>::@class::E
       firstFragment: #F5
       fields
-        x
-          reference: <testLibrary>::@class::E::@field::x
-          firstFragment: #F6
-          type: int
-          getter: <testLibrary>::@class::E::@getter::x
-          setter: <testLibrary>::@class::E::@setter::x
         synthetic a
           reference: <testLibrary>::@class::E::@field::a
-          firstFragment: #F9
+          firstFragment: #F6
           type: int
           getter: <testLibrary>::@class::E::@getter::a
         synthetic b
           reference: <testLibrary>::@class::E::@field::b
-          firstFragment: #F11
+          firstFragment: #F8
           type: int
           setter: <testLibrary>::@class::E::@setter::b
+        x
+          reference: <testLibrary>::@class::E::@field::x
+          firstFragment: #F10
+          type: int
+          getter: <testLibrary>::@class::E::@getter::x
+          setter: <testLibrary>::@class::E::@setter::x
       constructors
         synthetic new
           reference: <testLibrary>::@class::E::@constructor::new
           firstFragment: #F13
       getters
-        synthetic x
-          reference: <testLibrary>::@class::E::@getter::x
-          firstFragment: #F7
-          returnType: int
-          variable: <testLibrary>::@class::E::@field::x
         a
           reference: <testLibrary>::@class::E::@getter::a
-          firstFragment: #F10
+          firstFragment: #F7
           returnType: int
           variable: <testLibrary>::@class::E::@field::a
-      setters
         synthetic x
-          reference: <testLibrary>::@class::E::@setter::x
-          firstFragment: #F8
+          reference: <testLibrary>::@class::E::@getter::x
+          firstFragment: #F11
+          returnType: int
+          variable: <testLibrary>::@class::E::@field::x
+      setters
+        b
+          reference: <testLibrary>::@class::E::@setter::b
+          firstFragment: #F9
           formalParameters
-            requiredPositional _x
+            requiredPositional i
               firstFragment: #F14
               type: int
           returnType: void
-        b
-          reference: <testLibrary>::@class::E::@setter::b
+        synthetic x
+          reference: <testLibrary>::@class::E::@setter::x
           firstFragment: #F12
           formalParameters
-            requiredPositional i
+            requiredPositional _x
               firstFragment: #F15
               type: int
           returnType: void

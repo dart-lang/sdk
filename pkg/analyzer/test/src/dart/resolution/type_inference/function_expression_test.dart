@@ -444,13 +444,13 @@ FunctionExpression
         ExpressionStatement
           expression: SimpleIdentifier
             token: item
-            element: @42::@formalParameter::item
+            element: item@43
             staticType: int
           semicolon: ;
       rightBracket: }
   declaredElement: <testLibraryFragment> null@null
     type: void Function(int)
-  correspondingParameter: root::@formalParameter::f
+  correspondingParameter: f@null
   staticType: void Function(int)
 ''');
   }
@@ -562,7 +562,7 @@ FunctionExpression
       elements
         SimpleIdentifier
           token: a
-          element: @23::@formalParameter::a
+          element: a@29
           staticType: T
       rightBracket: ]
       staticType: List<T>
@@ -917,7 +917,7 @@ int test<T extends int Function(int)>(T Function() createT) {
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: root::@formalParameter::<null-name>
+        correspondingParameter: <null-name>@null
         staticType: int
     rightParenthesis: )
   element: <null>

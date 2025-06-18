@@ -22,6 +22,8 @@
 * Deprecate `RecordingErrorListener.errors`; use
   `RecordingDiagnosticListener.diagnostics` instead.
 * Deprecate `RecordingErrorListener.getErrorsForSource`; no longer supported.
+* Deprecate `AnalysisResultWithErrors`; use `AnalysisResultWithDiagnostics`
+  instead.
 * Deprecate `AnalysisResultWithErrors.errors`; use
   `AnalysisResultWithErrors.diagnostics` instead.
 * Deprecate `ErrorType`; use `DiagnosticType` instead.

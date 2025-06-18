@@ -177,7 +177,30 @@ class TypesBuilder {
         }
       }
       var fragment = node.declaredFragment!;
+      var element = fragment.element;
       fragment.returnType = returnType;
+
+      switch (element) {
+        case GetterElementImpl():
+          element.returnType = returnType;
+          element.variable3!.firstFragment.type = returnType;
+        case SetterElementImpl():
+          element.returnType = returnType;
+          var valueElement =
+              element.formalParameters.singleOrNull
+                  as FormalParameterElementImpl?;
+          var valueNode =
+              node.functionExpression.parameters?.parameters.firstOrNull;
+          var valueNodeType = valueNode?.declaredFragment!.type;
+          valueElement?.type = valueNodeType ?? InvalidTypeImpl.instance;
+
+          var variableElement = element.variable3!;
+          if (variableElement.isSynthetic && valueElement != null) {
+            variableElement.firstFragment.type = valueElement.type;
+          }
+        case TopLevelFunctionElementImpl():
+          element.returnType = returnType;
+      }
     } else if (node is FunctionTypeAliasImpl) {
       _functionTypeAlias(node);
     } else if (node is FunctionTypedFormalParameterImpl) {
@@ -198,7 +221,22 @@ class TypesBuilder {
         }
       }
       var fragment = node.declaredFragment!;
+      var element = fragment.element;
       fragment.returnType = returnType;
+      switch (element) {
+        case GetterElementImpl():
+          element.returnType = returnType;
+          element.variable3!.firstFragment.type = returnType;
+        case SetterElementImpl():
+          element.returnType = returnType;
+          var fragmentValue =
+              element.formalParameters.singleOrNull as FormalParameterElementImpl?;
+          var valueNode = node.parameters?.parameters.firstOrNull;
+          var valueNodeType = valueNode?.declaredFragment!.type;
+          fragmentValue?.type = valueNodeType ?? InvalidTypeImpl.instance;
+        case MethodElementImpl():
+          element.returnType = returnType;
+      }
     } else if (node is MixinDeclarationImpl) {
       _mixinDeclaration(node);
     } else if (node is SimpleFormalParameterImpl) {
@@ -212,7 +250,26 @@ class TypesBuilder {
       var type = node.type?.type;
       if (type != null) {
         for (var variable in node.variables) {
-          variable.declaredFragment!.type = type;
+          var variableFragment = variable.declaredFragment!;
+          var variableElement = variableFragment.element;
+          variableFragment.type = type;
+          if (variableElement is PropertyInducingElementImpl) {
+            if (variableElement.getter2 case var getterElement?) {
+              getterElement.returnType = type;
+              getterElement.firstFragment.returnType = type;
+            }
+            if (variableElement.setter2 case var setterElement?) {
+              setterElement.returnType = VoidTypeImpl.instance;
+              setterElement.firstFragment.returnType = VoidTypeImpl.instance;
+              (setterElement.formalParameters.single
+                      as FormalParameterElementImpl)
+                  .type = type;
+              (setterElement.formalParameters.single
+                      as FormalParameterElementImpl)
+                  .firstFragment
+                  .type = type;
+            }
+          }
         }
       }
     } else {

@@ -246,7 +246,7 @@ class ConstantEvaluationEngine {
     ConstantEvaluationTarget constant,
     ReferenceFinderCallback callback,
   ) {
-    if (constant is ConstFieldFragmentImpl && constant.isEnumConstant) {
+    if (constant is FieldFragmentImpl && constant.isEnumConstant) {
       var enclosing = constant.enclosingElement3;
       if (enclosing is EnumFragmentImpl) {
         if (enclosing.name2 == 'values') {
@@ -504,7 +504,7 @@ class ConstantEvaluationEngine {
   }
 
   static _EnumConstant? _enumConstant(VariableFragmentImpl element) {
-    if (element is ConstFieldFragmentImpl && element.isEnumConstant) {
+    if (element is FieldFragmentImpl && element.isEnumConstant) {
       var enum_ = element.enclosingElement3;
       if (enum_ is EnumFragmentImpl) {
         var index = enum_.constants.indexOf(element);
@@ -3047,9 +3047,7 @@ class _InstanceCreationEvaluator {
     var substitution = Substitution.fromInterfaceType(_constructor.returnType);
     var fields = _constructor.declaration.enclosingElement3.fields;
     for (var field in fields) {
-      if ((field.isFinal || field.isConst) &&
-          !field.isStatic &&
-          field is ConstFieldFragmentImpl) {
+      if ((field.isFinal || field.isConst) && !field.isStatic) {
         var fieldValue = field.evaluationResult;
 
         // It is possible that the evaluation result is null.

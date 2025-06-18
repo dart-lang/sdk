@@ -90,17 +90,7 @@ class LinkedElementFactory {
     var exportedNames = <String, Element>{};
 
     for (var exportedReference in exportedReferences) {
-      var fragment = elementOfReference(exportedReference.reference);
-      // TODO(scheglov): Remove after https://github.com/dart-lang/sdk/issues/41212
-      if (fragment == null) {
-        throw StateError(
-          '[No element]'
-          '[uri: $uri]'
-          '[exportedReferences: $exportedReferences]'
-          '[exportedReference: $exportedReference]',
-        );
-      }
-      var element = fragment.asElement2!;
+      var element = elementOfReference3(exportedReference.reference);
       exportedNames[element.lookupName!] = element;
     }
 
@@ -184,14 +174,6 @@ class LinkedElementFactory {
       return null;
     }
 
-    var parentRef = reference.parentNotContainer;
-    var parentElement = elementOfReference(parentRef);
-
-    // Only classes delay creating children.
-    if (parentElement is ClassFragmentImpl) {
-      parentElement.linkedData?.readMembers(parentElement);
-    }
-
     var element = reference.element;
     if (element == null) {
       throw StateError('Expected existing element: $reference');
@@ -220,7 +202,9 @@ class LinkedElementFactory {
     // Only classes delay creating children.
     if (parentElement is ClassElementImpl) {
       var firstFragment = parentElement.firstFragment;
-      firstFragment.linkedData?.readMembers(firstFragment);
+      // TODO(scheglov): directly ask to read all?
+      firstFragment.constructors;
+      parentElement.constructors;
     }
 
     var element = reference.element2;

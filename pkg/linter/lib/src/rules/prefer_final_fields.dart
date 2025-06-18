@@ -52,6 +52,7 @@ class _DeclarationsCollector extends RecursiveAstVisitor<void> {
     for (var variable in node.fields.variables) {
       var element = variable.declaredFragment?.element;
       if (element is FieldElement &&
+          element.name3 != null &&
           element.isPrivate &&
           !overridesField(element)) {
         fields[element] = variable;

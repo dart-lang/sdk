@@ -52,13 +52,14 @@ class ElementWriter with TreeWriter {
         properties['isValidMixin'] = element.isValidMixin;
       }
     }
-    if (firstFragment is ConstFieldFragmentImpl) {
+    if (firstFragment is FieldFragmentImpl) {
       properties['evaluationResult'] = firstFragment.evaluationResult;
     }
-    if (firstFragment is ConstLocalVariableFragmentImpl) {
+    if (firstFragment is ConstLocalVariableFragmentImpl &&
+        firstFragment.constantInitializer != null) {
       properties['evaluationResult'] = firstFragment.evaluationResult;
     }
-    if (firstFragment is ConstTopLevelVariableFragmentImpl) {
+    if (firstFragment is TopLevelVariableFragmentImpl) {
       properties['evaluationResult'] = firstFragment.evaluationResult;
     }
     if (element is ConstructorElement) {

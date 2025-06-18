@@ -32,7 +32,7 @@ export 'package:analyzer_plugin/protocol/protocol_common.dart';
 /// Returns a list of AnalysisErrors corresponding to the given list of Engine
 /// errors.
 List<AnalysisError> doAnalysisError_listFromEngine(
-  engine.AnalysisResultWithErrors result,
+  engine.AnalysisResultWithDiagnostics result,
 ) {
   return mapEngineErrors(
     result,
@@ -111,10 +111,10 @@ String? getReturnTypeString(engine.Element element) {
 
 /// Translates engine errors through the ErrorProcessor.
 List<T> mapEngineErrors<T>(
-  engine.AnalysisResultWithErrors result,
+  engine.AnalysisResultWithDiagnostics result,
   List<engine.Diagnostic> diagnostics,
   T Function(
-    engine.AnalysisResultWithErrors result,
+    engine.AnalysisResultWithDiagnostics result,
     engine.Diagnostic diagnostic, [
     engine.DiagnosticSeverity severity,
   ])
@@ -144,7 +144,7 @@ List<T> mapEngineErrors<T>(
 /// If an [diagnosticSeverity] is specified, it will override the one in
 /// [diagnostic].
 AnalysisError newAnalysisError_fromEngine(
-  engine.AnalysisResultWithErrors result,
+  engine.AnalysisResultWithDiagnostics result,
   engine.Diagnostic diagnostic, [
   engine.DiagnosticSeverity? diagnosticSeverity,
 ]) {
@@ -212,7 +212,7 @@ AnalysisError newAnalysisError_fromEngine(
 
 /// Create a DiagnosticMessage based on an [engine.DiagnosticMessage].
 DiagnosticMessage newDiagnosticMessage(
-  engine.AnalysisResultWithErrors result,
+  engine.AnalysisResultWithDiagnostics result,
   engine.DiagnosticMessage message,
 ) {
   var file = message.filePath;

@@ -190,7 +190,7 @@ mixin ElementsTypesMixin {
 
   EnumFragmentImpl enum_({
     required String name,
-    required List<ConstFieldFragmentImpl> constants,
+    required List<FieldFragmentImpl> constants,
   }) {
     var fragment = EnumFragmentImpl(name2: name, nameOffset: 0);
     EnumElementImpl(Reference.root(), fragment);
@@ -201,7 +201,7 @@ mixin ElementsTypesMixin {
 
   EnumElementImpl enum_2({
     required String name,
-    required List<ConstFieldFragmentImpl> constants,
+    required List<FieldFragmentImpl> constants,
   }) {
     var fragment = EnumFragmentImpl(name2: name, nameOffset: 0);
     var element = EnumElementImpl(Reference.root(), fragment);
@@ -210,9 +210,8 @@ mixin ElementsTypesMixin {
     return element;
   }
 
-  ConstFieldFragmentImpl enumConstant_(String name) {
-    return ConstFieldFragmentImpl(name2: name, nameOffset: 0)
-      ..isEnumConstant = true;
+  FieldFragmentImpl enumConstant_(String name) {
+    return FieldFragmentImpl(name2: name, nameOffset: 0)..isEnumConstant = true;
   }
 
   ExtensionFragmentImpl extension({
@@ -245,6 +244,7 @@ mixin ElementsTypesMixin {
     fragment.interfaces = interfaces;
 
     var field = FieldFragmentImpl(name2: representationName, nameOffset: -1);
+    FieldElementImpl(reference: Reference.root(), firstFragment: field);
     field.type = representationType;
     fragment.fields = [field];
 
@@ -267,14 +267,16 @@ mixin ElementsTypesMixin {
     fragment.typeParameters = typeParameters.map((e) => e.asElement).toList();
     fragment.interfaces = interfaces;
 
-    var field = FieldFragmentImpl(name2: representationName, nameOffset: -1);
-    field.type = representationType;
-    fragment.fields = [field];
-
+    var fieldFragment = FieldFragmentImpl(
+      name2: representationName,
+      nameOffset: -1,
+    );
     FieldElementImpl(
       reference: Reference.root(),
-      firstFragment: field,
+      firstFragment: fieldFragment,
     );
+    fieldFragment.type = representationType;
+    fragment.fields = [fieldFragment];
 
     fragment.typeErasure = representationType;
 

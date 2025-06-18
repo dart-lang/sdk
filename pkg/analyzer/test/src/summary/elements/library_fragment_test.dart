@@ -431,24 +431,24 @@ package:test/test.dart
     getter: <null>
 package:test/a.dart
   prefix.File
-    prefix: <testLibrary>::@prefix2::prefix
+    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
     getter: dart:io::@class::File
   prefix.Random
-    prefix: <testLibrary>::@prefix2::prefix
+    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
     getter: dart:math::@class::Random
 package:test/aa.dart
   prefix.File
-    prefix: <testLibrary>::@prefix2::prefix
+    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
     getter: dart:io::@class::File
   prefix.Random
-    prefix: <testLibrary>::@prefix2::prefix
+    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
     getter: dart:math::@class::Random
 package:test/aaa.dart
   prefix.File
-    prefix: <testLibrary>::@prefix2::prefix
+    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
     getter: dart:io::@class::File
   prefix.Random
-    prefix: <testLibrary>::@prefix2::prefix
+    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
     getter: dart:math::@class::Random
 ''',
     );
@@ -495,10 +495,10 @@ package:test/a.dart
     getter: <null>
 package:test/aa.dart
   prefix.File
-    prefix: <testLibrary>::@prefix2::prefix
+    prefix: <testLibrary>::@fragment::package:test/aa.dart::@prefix2::prefix
     getter: dart:io::@class::File
   prefix.Random
-    prefix: <testLibrary>::@prefix2::prefix
+    prefix: <testLibrary>::@fragment::package:test/aa.dart::@prefix2::prefix
     getter: dart:math::@class::Random
 ''',
     );
@@ -543,19 +543,19 @@ package:test/a.dart
   loadLibrary
     getter: <null>
   prefix.File
-    prefix: <testLibrary>::@prefix2::prefix
+    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
     getter: <null>
   prefix.Random
-    prefix: <testLibrary>::@prefix2::prefix
+    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
     getter: dart:math::@class::Random
 package:test/aa.dart
   loadLibrary
     getter: <null>
   prefix.File
-    prefix: <testLibrary>::@prefix2::prefix
+    prefix: <testLibrary>::@fragment::package:test/aa.dart::@prefix2::prefix
     getter: <null>
   prefix.Random
-    prefix: <testLibrary>::@prefix2::prefix
+    prefix: <testLibrary>::@fragment::package:test/aa.dart::@prefix2::prefix
     getter: dart:math::@class::Random
 ''',
     );
@@ -833,17 +833,17 @@ package:test/test.dart
     getter: dart:io::@class::Directory
 package:test/a.dart
   prefix.File
-    prefix: <testLibrary>::@prefix2::prefix
+    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
     getter: dart:io::@class::File
   prefix.Directory
-    prefix: <testLibrary>::@prefix2::prefix
+    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
     getter: package:test/x.dart::@class::Directory
 package:test/aa.dart
   prefix.File
-    prefix: <testLibrary>::@prefix2::prefix
+    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
     getter: dart:io::@class::File
   prefix.Directory
-    prefix: <testLibrary>::@prefix2::prefix
+    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
     getter: package:test/x.dart::@class::Directory
 ''',
     );

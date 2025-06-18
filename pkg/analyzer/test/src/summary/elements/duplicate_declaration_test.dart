@@ -1114,9 +1114,9 @@ library
           element: <testLibrary>::@function::f
           formalParameters
             #F2 default a @12
-              element: <testLibrary>::@function::f::@formalParameter::a::@def::0
+              element: <testLibrary>::@function::f::@formalParameter::a
             #F3 default a @22
-              element: <testLibrary>::@function::f::@formalParameter::a::@def::1
+              element: <testLibrary>::@function::f::@formalParameter::a
   functions
     f
       reference: <testLibrary>::@function::f
@@ -1437,34 +1437,42 @@ library
       element: <testLibrary>
       topLevelVariables
         #F1 synthetic foo (offset=-1)
-          element: <testLibrary>::@topLevelVariable::foo
+          element: <testLibrary>::@topLevelVariable::foo::@def::0
           getter: #F2
+        #F3 synthetic foo (offset=-1)
+          element: <testLibrary>::@topLevelVariable::foo::@def::1
+          getter: #F4
       getters
-        #F3 foo @8
+        #F2 foo @8
           element: <testLibrary>::@getter::foo::@def::0
           returnType: int
           variable: #F1
-        #F2 foo @26
+        #F4 foo @26
           element: <testLibrary>::@getter::foo::@def::1
           returnType: double
-          variable: #F1
+          variable: #F3
   topLevelVariables
     synthetic foo
-      reference: <testLibrary>::@topLevelVariable::foo
+      reference: <testLibrary>::@topLevelVariable::foo::@def::0
       firstFragment: #F1
+      type: int
+      getter: <testLibrary>::@getter::foo::@def::0
+    synthetic foo
+      reference: <testLibrary>::@topLevelVariable::foo::@def::1
+      firstFragment: #F3
       type: double
       getter: <testLibrary>::@getter::foo::@def::1
   getters
     static foo
       reference: <testLibrary>::@getter::foo::@def::0
-      firstFragment: #F3
+      firstFragment: #F2
       returnType: int
-      variable: <testLibrary>::@topLevelVariable::foo
+      variable: <testLibrary>::@topLevelVariable::foo::@def::0
     static foo
       reference: <testLibrary>::@getter::foo::@def::1
-      firstFragment: #F2
+      firstFragment: #F4
       returnType: double
-      variable: <testLibrary>::@topLevelVariable::foo
+      variable: <testLibrary>::@topLevelVariable::foo::@def::1
 ''');
   }
 
@@ -1482,40 +1490,48 @@ library
       element: <testLibrary>
       topLevelVariables
         #F1 synthetic foo (offset=-1)
-          element: <testLibrary>::@topLevelVariable::foo
+          element: <testLibrary>::@topLevelVariable::foo::@def::0
           setter: #F2
+        #F3 synthetic foo (offset=-1)
+          element: <testLibrary>::@topLevelVariable::foo::@def::1
+          setter: #F4
       setters
-        #F3 foo @4
+        #F2 foo @4
           element: <testLibrary>::@setter::foo::@def::0
           formalParameters
-            #F4 _ @12
+            #F5 _ @12
               element: <testLibrary>::@setter::foo::@def::0::@formalParameter::_
-        #F2 foo @22
+        #F4 foo @22
           element: <testLibrary>::@setter::foo::@def::1
           formalParameters
-            #F5 _ @33
+            #F6 _ @33
               element: <testLibrary>::@setter::foo::@def::1::@formalParameter::_
   topLevelVariables
     synthetic foo
-      reference: <testLibrary>::@topLevelVariable::foo
+      reference: <testLibrary>::@topLevelVariable::foo::@def::0
       firstFragment: #F1
+      type: int
+      setter: <testLibrary>::@setter::foo::@def::0
+    synthetic foo
+      reference: <testLibrary>::@topLevelVariable::foo::@def::1
+      firstFragment: #F3
       type: double
       setter: <testLibrary>::@setter::foo::@def::1
   setters
     static foo
       reference: <testLibrary>::@setter::foo::@def::0
-      firstFragment: #F3
-      formalParameters
-        requiredPositional _
-          firstFragment: #F4
-          type: int
-      returnType: void
-    static foo
-      reference: <testLibrary>::@setter::foo::@def::1
       firstFragment: #F2
       formalParameters
         requiredPositional _
           firstFragment: #F5
+          type: int
+      returnType: void
+    static foo
+      reference: <testLibrary>::@setter::foo::@def::1
+      firstFragment: #F4
+      formalParameters
+        requiredPositional _
+          firstFragment: #F6
           type: double
       returnType: void
 ''');

@@ -417,7 +417,9 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub() {
 #endif
 
 #if defined(SIMULATOR_FFI)
-  __ Emit(Instr::kSimulatorFfiRedirectInstruction);
+  if (FLAG_use_simulator) {
+    __ Emit(Instr::kSimulatorFfiRedirectInstruction);
+  }
 #endif
   __ blr(R9);
 
@@ -469,11 +471,6 @@ void StubCodeCompiler::GenerateLoadFfiCallbackMetadataRuntimeFunction(
 }
 
 void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
-#if defined(USING_SIMULATOR) && !defined(DART_PRECOMPILER)
-  // TODO(37299): FFI is not supported in SIMARM64.
-  // See Simulator::DoDirectedFfiCallback.
-  __ Breakpoint();
-#else
   Label body;
 
   // R9 is volatile and not used for passing any arguments.
@@ -705,7 +702,6 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ Breakpoint();
   }
 #endif
-#endif  // !defined(HOST_ARCH_ARM64)
 }
 
 void StubCodeCompiler::GenerateDispatchTableNullErrorStub() {

@@ -19,6 +19,27 @@ main() {
 }
 
 abstract class ExtensionElementTest extends ElementsBaseTest {
+  test_extendedType_recordType() async {
+    var library = await buildLibrary('''
+extension E on (int, String) {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensions
+        #F1 extension E @10
+          element: <testLibrary>::@extension::E
+  extensions
+    extension E
+      reference: <testLibrary>::@extension::E
+      firstFragment: #F1
+      extendedType: (int, String)
+''');
+  }
+
   test_extension_documented_tripleSlash() async {
     var library = await buildLibrary('''
 /// aaa
@@ -446,6 +467,37 @@ library
       firstFragment: #F5
       returnType: dynamic
       variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_method() async {
+    var library = await buildLibrary('''
+extension E on int {
+  void foo() {}
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensions
+        #F1 extension E @10
+          element: <testLibrary>::@extension::E
+          methods
+            #F2 foo @28
+              element: <testLibrary>::@extension::E::@method::foo
+  extensions
+    extension E
+      reference: <testLibrary>::@extension::E
+      firstFragment: #F1
+      extendedType: int
+      methods
+        foo
+          reference: <testLibrary>::@extension::E::@method::foo
+          firstFragment: #F2
+          returnType: void
 ''');
   }
 

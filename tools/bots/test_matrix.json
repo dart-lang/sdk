@@ -297,7 +297,7 @@
         "builder-tag": "ffi"
       }
     },
-    "vm-(linux|mac|win|android|fuchsia)-(debug|product|release)-(ia32|x64|x64c|arm|arm64|arm64c|simarm|simarm64|simarm64_arm64|simriscv32|simriscv64)": {
+    "vm-(linux|mac|win|android|fuchsia)-(debug|product|release)-(ia32|x64|x64c|arm|arm64|arm64c|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {}
     },
     "vm-checked-(linux|mac|win|fuchsia)-(debug|product|release)-(ia32|x64|x64c|arm64|arm64c|simarm|simarm64|simriscv32|simriscv64)": {
@@ -346,6 +346,26 @@
     "vm-aot-ubsan-(linux|mac|win)-(debug|product|release)-(x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
         "gen-snapshot-format" : "elf"
+      }
+    },
+    "vm-linux-(debug|product|release)-simarm64_arm64": {
+      "options": {
+        "vm-options": ["--use_simulator=true"], "use-qemu": true
+      }
+    },
+    "vm-linux-(debug|product|release)-simarm64_arm64-nosim": {
+      "options": {
+        "vm-options": ["--use_simulator=false"], "use-qemu": true
+      }
+    },
+    "vm-mac-(debug|product|release)-simarm64_arm64": {
+      "options": {
+        "vm-options": ["--use_simulator=true"]
+      }
+    },
+    "vm-mac-(debug|product|release)-simarm64_arm64-nosim": {
+      "options": {
+        "vm-options": ["--use_simulator=false"]
       }
     },
     "dart2js-(linux|win)-chrome": {
@@ -812,6 +832,13 @@
           "name": "vm ffi tests",
           "arguments": [
             "-nvm-${system}-${mode}-${arch}",
+            "ffi"
+          ]
+        },
+        {
+          "name": "vm ffi tests",
+          "arguments": [
+            "-nvm-${system}-${mode}-${arch}-nosim",
             "ffi"
           ]
         }

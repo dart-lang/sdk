@@ -6,6 +6,8 @@
 /// available.
 library;
 
+import 'package:analyzer/src/summary2/data_writer.dart';
+
 /// The set of [Enum] values, backed by [int].
 extension type EnumSet<T extends Enum>(int _bits) {
   EnumSet.empty() : this(0);
@@ -30,6 +32,10 @@ extension type EnumSet<T extends Enum>(int _bits) {
     } else {
       return EnumSet<T>(_bits & ~mask);
     }
+  }
+
+  void write(BufferedSink writer) {
+    writer.writeInt64(_bits);
   }
 
   /// Throws an exception if the [index] does not fit [int].

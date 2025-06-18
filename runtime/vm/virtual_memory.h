@@ -16,11 +16,27 @@
 
 namespace dart {
 
-#if defined(DART_HOST_OS_MACOS) && !defined(DART_PRECOMPILED_RUNTIME)
-// We only enable dual mapping of code on iOS (for Flutter debug mode)
-// and Mac OS X (for smoke testing of the dual mapping code path
-// on Dart bots).
-#define DART_SUPPORT_DUAL_MAPPING_OF_CODE
+#if defined(DART_HOST_OS_IOS) && !defined(DART_PRECOMPILED_RUNTIME) &&         \
+    !defined(DART_HOST_OS_SIMULATOR)
+// We might need RX workarounds to enable JIT on physical iOS devices.
+//
+// Older iOS versions allow mprotect to flip between RW <-> RX on code
+// pages as long as debugger is connected to the process.
+//
+// Newever iOS versions do not allow that, but we have discovered that
+// dual mapping RX mapping as RW mapping via |vm_remap| and touching original RX
+// mapping from the debugger allows us to write code via RW page and then
+// execute it via original RX page.
+//
+// Thus our RX workarounds consist of two parts:
+//
+// * Dual mapping of executable pages (see ShouldDualMapExecutablePages and
+//   OffsetToExecutableAlias).
+// * Debugger integration point (see NOTIFY_DEBUGGER_ABOUT_RX_PAGES).
+//
+// Note: we only use this on newer iOS versions because dual mapping causes
+// kernel crashes on M4 Mac OS X devices.
+#define DART_ENABLE_RX_WORKAROUNDS
 #endif
 
 class VirtualMemory {
@@ -42,7 +58,7 @@ class VirtualMemory {
   intptr_t size() const { return region_.size(); }
 
   DART_FORCE_INLINE intptr_t OffsetToExecutableAlias() const {
-#if defined(DART_SUPPORT_DUAL_MAPPING_OF_CODE)
+#if defined(DART_ENABLE_RX_WORKAROUNDS)
     return executable_alias_.start() - region_.start();
 #else
     return 0;
@@ -57,7 +73,7 @@ class VirtualMemory {
   static void Cleanup();
 
   DART_FORCE_INLINE static bool ShouldDualMapExecutablePages() {
-#if defined(DART_SUPPORT_DUAL_MAPPING_OF_CODE)
+#if defined(DART_ENABLE_RX_WORKAROUNDS)
     return should_dual_map_executable_pages_;
 #else
     return false;
@@ -87,16 +103,22 @@ class VirtualMemory {
                                         bool is_compressed,
                                         const char* name);
 
-  // Duplicates `this` memory into the `target` memory. This is designed to work
-  // on all platforms, including iOS, which doesn't allow creating new
-  // executable memory.
+  // Duplicates `this` memory into the `target` memory using Mach specific
+  // vm_remap call.
+  //
+  // This exists specifically to clone executable pages originating from
+  // codesigned binaries on iOS and Mac OS X.
+  //
+  // IMPORTANT: using this to remap unsigned RX pages results in kernel
+  // crashes in certain combinations of hardware and kernel version and thus
+  // should be avoided.
   //
   // Assumes
-  //   * `this` has RX protection.
+  //   * `this` has RX protection and is codesigned.
   //   * `target` has RW protection, and is at least as large as `this`.
-#if !defined(DART_TARGET_OS_FUCHSIA)
+#if defined(DART_HOST_OS_MACOS)
   bool DuplicateRX(VirtualMemory* target);
-#endif  // !defined(DART_TARGET_OS_FUCHSIA)
+#endif  // defined(DART_HOST_OS_MACOS)
 
   // Returns the cached page size. Use only if Init() has been called.
   static intptr_t PageSize() {
@@ -127,7 +149,7 @@ class VirtualMemory {
   static void Commit(void* address, intptr_t size);
   static void Decommit(void* address, intptr_t size);
 
-#if defined(DART_SUPPORT_DUAL_MAPPING_OF_CODE)
+#if defined(DART_ENABLE_RX_WORKAROUNDS)
   // These constructors are only used internally when reserving new virtual
   // spaces. They do not reserve any virtual address space on their own.
   VirtualMemory(const MemoryRegion& region,
@@ -140,7 +162,7 @@ class VirtualMemory {
 
   VirtualMemory(const MemoryRegion& region, const MemoryRegion& reserved)
       : region_(region),
-#if defined(DART_SUPPORT_DUAL_MAPPING_OF_CODE)
+#if defined(DART_ENABLE_RX_WORKAROUNDS)
         executable_alias_(region),
 #endif
         reserved_(reserved) {
@@ -148,7 +170,7 @@ class VirtualMemory {
 
   MemoryRegion region_;
 
-#if defined(DART_SUPPORT_DUAL_MAPPING_OF_CODE)
+#if defined(DART_ENABLE_RX_WORKAROUNDS)
   // For dual mapped RW+RX pages this will contain address of the executable
   // alias. Objects will be allocated in the writable mapping but entry points
   // will point into executable (RX) alias.
@@ -163,11 +185,7 @@ class VirtualMemory {
   static uword page_size_;
   static VirtualMemory* compressed_heap_;
 
-#if defined(DART_HOST_OS_IOS) && !defined(DART_PRECOMPILED_RUNTIME)
-  static bool notify_debugger_about_rx_pages_;
-#endif
-
-#if defined(DART_SUPPORT_DUAL_MAPPING_OF_CODE)
+#if defined(DART_ENABLE_RX_WORKAROUNDS)
   static bool should_dual_map_executable_pages_;
 #endif
 

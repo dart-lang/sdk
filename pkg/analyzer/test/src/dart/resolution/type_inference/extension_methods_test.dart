@@ -82,7 +82,7 @@ MethodInvocation
       DoubleLiteral
         literal: 1.0
         correspondingParameter: ParameterMember
-          baseElement: root::@formalParameter::u
+          baseElement: u@null
           substitution: {U: double}
         staticType: double
     rightParenthesis: )
@@ -154,7 +154,7 @@ MethodInvocation
       IntegerLiteral
         literal: 0
         correspondingParameter: ParameterMember
-          baseElement: root::@formalParameter::value
+          baseElement: value@null
           substitution: {U: int}
         staticType: int
     rightParenthesis: )
@@ -523,7 +523,7 @@ MethodInvocation
       DoubleLiteral
         literal: 1.0
         correspondingParameter: ParameterMember
-          baseElement: root::@formalParameter::u
+          baseElement: u@null
           substitution: {U: double}
         staticType: double
     rightParenthesis: )
@@ -762,7 +762,7 @@ MethodInvocation
       DoubleLiteral
         literal: 1.0
         correspondingParameter: ParameterMember
-          baseElement: root::@formalParameter::u
+          baseElement: u@null
           substitution: {U: double}
         staticType: double
     rightParenthesis: )

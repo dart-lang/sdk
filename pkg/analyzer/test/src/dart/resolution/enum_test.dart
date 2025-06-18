@@ -57,7 +57,7 @@ GenericFunctionType
         name: double
         element2: dart:core::@class::double
         type: double
-      declaredElement: null@null
+      declaredElement: <testLibraryFragment> null@null
         type: double
     rightParenthesis: )
   declaredElement: GenericFunctionTypeElement

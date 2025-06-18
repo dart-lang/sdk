@@ -629,6 +629,33 @@ linter:
     });
   });
 
+  group('regression', () {
+    test('field without name', () async {
+      // This is a test for https://github.com/dart-lang/sdk/issues/60927.
+      p = project(
+        mainSrc: '''
+class C {
+  int? a,;
+}
+''',
+        analysisOptions: '''
+linter:
+  rules:
+    - prefer_final_fields
+''',
+      );
+      var result = await p!.runFix(['--apply', '.'], workingDir: p!.dirPath);
+      expect(result.exitCode, 0);
+      expect(result.stderr, isEmpty);
+      expect(
+          result.stdout,
+          stringContainsInOrderWithVariableBullets([
+            'Computing fixes in myapp...',
+            'Nothing to fix!',
+          ]));
+    });
+  });
+
   group('compare-to-golden', () {
     test('target is not a directory', () async {
       p = project(

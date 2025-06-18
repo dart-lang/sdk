@@ -110,7 +110,7 @@ testFineAfterLibraryAnalyzerHook;
 // TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 475;
+  static const int DATA_VERSION = 476;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -574,9 +574,7 @@ class AnalysisDriver {
     addFile(file.path);
   }
 
-  void afterPerformWork() {
-    _fsState.clearParsedFileStateCache();
-  }
+  void afterPerformWork() {}
 
   /// Return a [Future] that completes after pending file changes are applied,
   /// so that [currentSession] can be used to compute results.
@@ -606,9 +604,7 @@ class AnalysisDriver {
     required List<Uri> uriList,
     PackageBundleSdk? packageBundleSdk,
   }) async {
-    var elementFactory = libraryContext.elementFactory;
-
-    var bundleWriter = BundleWriter(elementFactory.dynamicRef);
+    var bundleWriter = BundleWriter();
     var packageBundleBuilder = PackageBundleBuilder();
 
     for (var uri in uriList) {
@@ -1587,9 +1583,9 @@ class AnalysisDriver {
       events.GetErrorsFromBytes(file: file, library: library),
     );
     var unit = AnalysisDriverResolvedUnit.fromBuffer(bytes);
-    var errors = _getDiagnosticsFromSerialized(file, unit.errors);
-    _updateHasErrorOrWarningFlag(file, errors);
-    var result = _createErrorsResultImpl(file: file, diagnostics: errors);
+    var diagnostics = _getDiagnosticsFromSerialized(file, unit.errors);
+    _updateHasErrorOrWarningFlag(file, diagnostics);
+    var result = _createErrorsResultImpl(file: file, diagnostics: diagnostics);
     return result;
   }
 
@@ -1698,9 +1694,9 @@ class AnalysisDriver {
   ) {
     List<Diagnostic> diagnostics = <Diagnostic>[];
     for (AnalysisDriverUnitError error in serialized) {
-      var analysisError = ErrorEncoding.decode(file.source, error);
-      if (analysisError != null) {
-        diagnostics.add(analysisError);
+      var diagnostic = ErrorEncoding.decode(file.source, error);
+      if (diagnostic != null) {
+        diagnostics.add(diagnostic);
       }
     }
     return diagnostics;

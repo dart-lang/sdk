@@ -4610,124 +4610,124 @@ library
           element: <testLibrary>::@topLevelVariable::topLevelVariable
           getter: #F14
           setter: #F15
-        #F16 hasInitializer r_topLevelFunction @280
-          element: <testLibrary>::@topLevelVariable::r_topLevelFunction
-          getter: #F17
-          setter: #F18
-        #F19 hasInitializer r_topLevelVariable @323
-          element: <testLibrary>::@topLevelVariable::r_topLevelVariable
-          getter: #F20
-          setter: #F21
-        #F22 hasInitializer r_topLevelGetter @366
-          element: <testLibrary>::@topLevelVariable::r_topLevelGetter
-          getter: #F23
-          setter: #F24
-        #F25 hasInitializer r_staticClassVariable @405
-          element: <testLibrary>::@topLevelVariable::r_staticClassVariable
-          getter: #F26
-          setter: #F27
-        #F28 hasInitializer r_staticGetter @456
-          element: <testLibrary>::@topLevelVariable::r_staticGetter
-          getter: #F29
-          setter: #F30
-        #F31 hasInitializer r_staticClassMethod @493
-          element: <testLibrary>::@topLevelVariable::r_staticClassMethod
-          getter: #F32
-          setter: #F33
-        #F34 hasInitializer instanceOfA @540
-          element: <testLibrary>::@topLevelVariable::instanceOfA
-          getter: #F35
-          setter: #F36
-        #F37 hasInitializer r_instanceClassMethod @567
-          element: <testLibrary>::@topLevelVariable::r_instanceClassMethod
-          getter: #F38
-          setter: #F39
-        #F40 synthetic topLevelGetter (offset=-1)
+        #F16 synthetic topLevelGetter (offset=-1)
           element: <testLibrary>::@topLevelVariable::topLevelGetter
-          getter: #F41
+          getter: #F17
+        #F18 hasInitializer r_topLevelFunction @280
+          element: <testLibrary>::@topLevelVariable::r_topLevelFunction
+          getter: #F19
+          setter: #F20
+        #F21 hasInitializer r_topLevelVariable @323
+          element: <testLibrary>::@topLevelVariable::r_topLevelVariable
+          getter: #F22
+          setter: #F23
+        #F24 hasInitializer r_topLevelGetter @366
+          element: <testLibrary>::@topLevelVariable::r_topLevelGetter
+          getter: #F25
+          setter: #F26
+        #F27 hasInitializer r_staticClassVariable @405
+          element: <testLibrary>::@topLevelVariable::r_staticClassVariable
+          getter: #F28
+          setter: #F29
+        #F30 hasInitializer r_staticGetter @456
+          element: <testLibrary>::@topLevelVariable::r_staticGetter
+          getter: #F31
+          setter: #F32
+        #F33 hasInitializer r_staticClassMethod @493
+          element: <testLibrary>::@topLevelVariable::r_staticClassMethod
+          getter: #F34
+          setter: #F35
+        #F36 hasInitializer instanceOfA @540
+          element: <testLibrary>::@topLevelVariable::instanceOfA
+          getter: #F37
+          setter: #F38
+        #F39 hasInitializer r_instanceClassMethod @567
+          element: <testLibrary>::@topLevelVariable::r_instanceClassMethod
+          getter: #F40
+          setter: #F41
       getters
         #F14 synthetic topLevelVariable
           element: <testLibrary>::@getter::topLevelVariable
           returnType: int
           variable: #F13
-        #F17 synthetic r_topLevelFunction
-          element: <testLibrary>::@getter::r_topLevelFunction
-          returnType: String Function(int)
-          variable: #F16
-        #F20 synthetic r_topLevelVariable
-          element: <testLibrary>::@getter::r_topLevelVariable
-          returnType: int
-          variable: #F19
-        #F23 synthetic r_topLevelGetter
-          element: <testLibrary>::@getter::r_topLevelGetter
-          returnType: int
-          variable: #F22
-        #F26 synthetic r_staticClassVariable
-          element: <testLibrary>::@getter::r_staticClassVariable
-          returnType: int
-          variable: #F25
-        #F29 synthetic r_staticGetter
-          element: <testLibrary>::@getter::r_staticGetter
-          returnType: int
-          variable: #F28
-        #F32 synthetic r_staticClassMethod
-          element: <testLibrary>::@getter::r_staticClassMethod
-          returnType: String Function(int)
-          variable: #F31
-        #F35 synthetic instanceOfA
-          element: <testLibrary>::@getter::instanceOfA
-          returnType: A
-          variable: #F34
-        #F38 synthetic r_instanceClassMethod
-          element: <testLibrary>::@getter::r_instanceClassMethod
-          returnType: String Function(int)
-          variable: #F37
-        #F41 topLevelGetter @74
+        #F17 topLevelGetter @74
           element: <testLibrary>::@getter::topLevelGetter
           returnType: int
-          variable: #F40
+          variable: #F16
+        #F19 synthetic r_topLevelFunction
+          element: <testLibrary>::@getter::r_topLevelFunction
+          returnType: String Function(int)
+          variable: #F18
+        #F22 synthetic r_topLevelVariable
+          element: <testLibrary>::@getter::r_topLevelVariable
+          returnType: int
+          variable: #F21
+        #F25 synthetic r_topLevelGetter
+          element: <testLibrary>::@getter::r_topLevelGetter
+          returnType: int
+          variable: #F24
+        #F28 synthetic r_staticClassVariable
+          element: <testLibrary>::@getter::r_staticClassVariable
+          returnType: int
+          variable: #F27
+        #F31 synthetic r_staticGetter
+          element: <testLibrary>::@getter::r_staticGetter
+          returnType: int
+          variable: #F30
+        #F34 synthetic r_staticClassMethod
+          element: <testLibrary>::@getter::r_staticClassMethod
+          returnType: String Function(int)
+          variable: #F33
+        #F37 synthetic instanceOfA
+          element: <testLibrary>::@getter::instanceOfA
+          returnType: A
+          variable: #F36
+        #F40 synthetic r_instanceClassMethod
+          element: <testLibrary>::@getter::r_instanceClassMethod
+          returnType: String Function(int)
+          variable: #F39
       setters
         #F15 synthetic topLevelVariable
           element: <testLibrary>::@setter::topLevelVariable
           formalParameters
             #F42 _topLevelVariable
               element: <testLibrary>::@setter::topLevelVariable::@formalParameter::_topLevelVariable
-        #F18 synthetic r_topLevelFunction
+        #F20 synthetic r_topLevelFunction
           element: <testLibrary>::@setter::r_topLevelFunction
           formalParameters
             #F43 _r_topLevelFunction
               element: <testLibrary>::@setter::r_topLevelFunction::@formalParameter::_r_topLevelFunction
-        #F21 synthetic r_topLevelVariable
+        #F23 synthetic r_topLevelVariable
           element: <testLibrary>::@setter::r_topLevelVariable
           formalParameters
             #F44 _r_topLevelVariable
               element: <testLibrary>::@setter::r_topLevelVariable::@formalParameter::_r_topLevelVariable
-        #F24 synthetic r_topLevelGetter
+        #F26 synthetic r_topLevelGetter
           element: <testLibrary>::@setter::r_topLevelGetter
           formalParameters
             #F45 _r_topLevelGetter
               element: <testLibrary>::@setter::r_topLevelGetter::@formalParameter::_r_topLevelGetter
-        #F27 synthetic r_staticClassVariable
+        #F29 synthetic r_staticClassVariable
           element: <testLibrary>::@setter::r_staticClassVariable
           formalParameters
             #F46 _r_staticClassVariable
               element: <testLibrary>::@setter::r_staticClassVariable::@formalParameter::_r_staticClassVariable
-        #F30 synthetic r_staticGetter
+        #F32 synthetic r_staticGetter
           element: <testLibrary>::@setter::r_staticGetter
           formalParameters
             #F47 _r_staticGetter
               element: <testLibrary>::@setter::r_staticGetter::@formalParameter::_r_staticGetter
-        #F33 synthetic r_staticClassMethod
+        #F35 synthetic r_staticClassMethod
           element: <testLibrary>::@setter::r_staticClassMethod
           formalParameters
             #F48 _r_staticClassMethod
               element: <testLibrary>::@setter::r_staticClassMethod::@formalParameter::_r_staticClassMethod
-        #F36 synthetic instanceOfA
+        #F38 synthetic instanceOfA
           element: <testLibrary>::@setter::instanceOfA
           formalParameters
             #F49 _instanceOfA
               element: <testLibrary>::@setter::instanceOfA::@formalParameter::_instanceOfA
-        #F39 synthetic r_instanceClassMethod
+        #F41 synthetic r_instanceClassMethod
           element: <testLibrary>::@setter::r_instanceClassMethod
           formalParameters
             #F50 _r_instanceClassMethod
@@ -4802,110 +4802,110 @@ library
       type: int
       getter: <testLibrary>::@getter::topLevelVariable
       setter: <testLibrary>::@setter::topLevelVariable
+    synthetic topLevelGetter
+      reference: <testLibrary>::@topLevelVariable::topLevelGetter
+      firstFragment: #F16
+      type: int
+      getter: <testLibrary>::@getter::topLevelGetter
     hasInitializer r_topLevelFunction
       reference: <testLibrary>::@topLevelVariable::r_topLevelFunction
-      firstFragment: #F16
+      firstFragment: #F18
       type: String Function(int)
       getter: <testLibrary>::@getter::r_topLevelFunction
       setter: <testLibrary>::@setter::r_topLevelFunction
     hasInitializer r_topLevelVariable
       reference: <testLibrary>::@topLevelVariable::r_topLevelVariable
-      firstFragment: #F19
+      firstFragment: #F21
       type: int
       getter: <testLibrary>::@getter::r_topLevelVariable
       setter: <testLibrary>::@setter::r_topLevelVariable
     hasInitializer r_topLevelGetter
       reference: <testLibrary>::@topLevelVariable::r_topLevelGetter
-      firstFragment: #F22
+      firstFragment: #F24
       type: int
       getter: <testLibrary>::@getter::r_topLevelGetter
       setter: <testLibrary>::@setter::r_topLevelGetter
     hasInitializer r_staticClassVariable
       reference: <testLibrary>::@topLevelVariable::r_staticClassVariable
-      firstFragment: #F25
+      firstFragment: #F27
       type: int
       getter: <testLibrary>::@getter::r_staticClassVariable
       setter: <testLibrary>::@setter::r_staticClassVariable
     hasInitializer r_staticGetter
       reference: <testLibrary>::@topLevelVariable::r_staticGetter
-      firstFragment: #F28
+      firstFragment: #F30
       type: int
       getter: <testLibrary>::@getter::r_staticGetter
       setter: <testLibrary>::@setter::r_staticGetter
     hasInitializer r_staticClassMethod
       reference: <testLibrary>::@topLevelVariable::r_staticClassMethod
-      firstFragment: #F31
+      firstFragment: #F33
       type: String Function(int)
       getter: <testLibrary>::@getter::r_staticClassMethod
       setter: <testLibrary>::@setter::r_staticClassMethod
     hasInitializer instanceOfA
       reference: <testLibrary>::@topLevelVariable::instanceOfA
-      firstFragment: #F34
+      firstFragment: #F36
       type: A
       getter: <testLibrary>::@getter::instanceOfA
       setter: <testLibrary>::@setter::instanceOfA
     hasInitializer r_instanceClassMethod
       reference: <testLibrary>::@topLevelVariable::r_instanceClassMethod
-      firstFragment: #F37
+      firstFragment: #F39
       type: String Function(int)
       getter: <testLibrary>::@getter::r_instanceClassMethod
       setter: <testLibrary>::@setter::r_instanceClassMethod
-    synthetic topLevelGetter
-      reference: <testLibrary>::@topLevelVariable::topLevelGetter
-      firstFragment: #F40
-      type: int
-      getter: <testLibrary>::@getter::topLevelGetter
   getters
     synthetic static topLevelVariable
       reference: <testLibrary>::@getter::topLevelVariable
       firstFragment: #F14
       returnType: int
       variable: <testLibrary>::@topLevelVariable::topLevelVariable
+    static topLevelGetter
+      reference: <testLibrary>::@getter::topLevelGetter
+      firstFragment: #F17
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::topLevelGetter
     synthetic static r_topLevelFunction
       reference: <testLibrary>::@getter::r_topLevelFunction
-      firstFragment: #F17
+      firstFragment: #F19
       returnType: String Function(int)
       variable: <testLibrary>::@topLevelVariable::r_topLevelFunction
     synthetic static r_topLevelVariable
       reference: <testLibrary>::@getter::r_topLevelVariable
-      firstFragment: #F20
+      firstFragment: #F22
       returnType: int
       variable: <testLibrary>::@topLevelVariable::r_topLevelVariable
     synthetic static r_topLevelGetter
       reference: <testLibrary>::@getter::r_topLevelGetter
-      firstFragment: #F23
+      firstFragment: #F25
       returnType: int
       variable: <testLibrary>::@topLevelVariable::r_topLevelGetter
     synthetic static r_staticClassVariable
       reference: <testLibrary>::@getter::r_staticClassVariable
-      firstFragment: #F26
+      firstFragment: #F28
       returnType: int
       variable: <testLibrary>::@topLevelVariable::r_staticClassVariable
     synthetic static r_staticGetter
       reference: <testLibrary>::@getter::r_staticGetter
-      firstFragment: #F29
+      firstFragment: #F31
       returnType: int
       variable: <testLibrary>::@topLevelVariable::r_staticGetter
     synthetic static r_staticClassMethod
       reference: <testLibrary>::@getter::r_staticClassMethod
-      firstFragment: #F32
+      firstFragment: #F34
       returnType: String Function(int)
       variable: <testLibrary>::@topLevelVariable::r_staticClassMethod
     synthetic static instanceOfA
       reference: <testLibrary>::@getter::instanceOfA
-      firstFragment: #F35
+      firstFragment: #F37
       returnType: A
       variable: <testLibrary>::@topLevelVariable::instanceOfA
     synthetic static r_instanceClassMethod
       reference: <testLibrary>::@getter::r_instanceClassMethod
-      firstFragment: #F38
+      firstFragment: #F40
       returnType: String Function(int)
       variable: <testLibrary>::@topLevelVariable::r_instanceClassMethod
-    static topLevelGetter
-      reference: <testLibrary>::@getter::topLevelGetter
-      firstFragment: #F41
-      returnType: int
-      variable: <testLibrary>::@topLevelVariable::topLevelGetter
   setters
     synthetic static topLevelVariable
       reference: <testLibrary>::@setter::topLevelVariable
@@ -4917,7 +4917,7 @@ library
       returnType: void
     synthetic static r_topLevelFunction
       reference: <testLibrary>::@setter::r_topLevelFunction
-      firstFragment: #F18
+      firstFragment: #F20
       formalParameters
         requiredPositional _r_topLevelFunction
           firstFragment: #F43
@@ -4925,7 +4925,7 @@ library
       returnType: void
     synthetic static r_topLevelVariable
       reference: <testLibrary>::@setter::r_topLevelVariable
-      firstFragment: #F21
+      firstFragment: #F23
       formalParameters
         requiredPositional _r_topLevelVariable
           firstFragment: #F44
@@ -4933,7 +4933,7 @@ library
       returnType: void
     synthetic static r_topLevelGetter
       reference: <testLibrary>::@setter::r_topLevelGetter
-      firstFragment: #F24
+      firstFragment: #F26
       formalParameters
         requiredPositional _r_topLevelGetter
           firstFragment: #F45
@@ -4941,7 +4941,7 @@ library
       returnType: void
     synthetic static r_staticClassVariable
       reference: <testLibrary>::@setter::r_staticClassVariable
-      firstFragment: #F27
+      firstFragment: #F29
       formalParameters
         requiredPositional _r_staticClassVariable
           firstFragment: #F46
@@ -4949,7 +4949,7 @@ library
       returnType: void
     synthetic static r_staticGetter
       reference: <testLibrary>::@setter::r_staticGetter
-      firstFragment: #F30
+      firstFragment: #F32
       formalParameters
         requiredPositional _r_staticGetter
           firstFragment: #F47
@@ -4957,7 +4957,7 @@ library
       returnType: void
     synthetic static r_staticClassMethod
       reference: <testLibrary>::@setter::r_staticClassMethod
-      firstFragment: #F33
+      firstFragment: #F35
       formalParameters
         requiredPositional _r_staticClassMethod
           firstFragment: #F48
@@ -4965,7 +4965,7 @@ library
       returnType: void
     synthetic static instanceOfA
       reference: <testLibrary>::@setter::instanceOfA
-      firstFragment: #F36
+      firstFragment: #F38
       formalParameters
         requiredPositional _instanceOfA
           firstFragment: #F49
@@ -4973,7 +4973,7 @@ library
       returnType: void
     synthetic static r_instanceClassMethod
       reference: <testLibrary>::@setter::r_instanceClassMethod
-      firstFragment: #F39
+      firstFragment: #F41
       formalParameters
         requiredPositional _r_instanceClassMethod
           firstFragment: #F50

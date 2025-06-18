@@ -946,11 +946,11 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     if (node == null) {
       f();
     } else {
-      var fragment =
+      var typeParameterElements =
           node.typeParameters
-              .map((typeParameter) => typeParameter.declaredFragment!)
+              .map((typeParameter) => typeParameter.declaredFragment!.element)
               .toList();
-      _sink.localElements.withElements(fragment, () {
+      _sink.localElements.withElements(typeParameterElements, () {
         f();
       });
     }

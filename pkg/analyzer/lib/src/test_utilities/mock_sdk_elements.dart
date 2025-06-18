@@ -939,7 +939,16 @@ class _MockSdkElementsBuilder {
     return _asyncLibrary;
   }
 
-  void _buildClassElement(ClassFragmentImpl fragment) {}
+  void _buildClassElement(ClassFragmentImpl classFragment) {
+    var classElement = classFragment.element;
+    classElement.methods = classFragment.methods.map((f) => f.element).toList();
+    classElement.constructors =
+        classFragment.constructors.map((f) => f.element).toList();
+    // TODO(scheglov): other members
+    // classElement.fields = classFragment.fields.map((f) => f.element).toList();
+    // classElement.getters = classFragment.getters.map((f) => f.element).toList();
+    // classElement.setters = classFragment.setters.map((f) => f.element).toList();
+  }
 
   LibraryElementImpl _buildCore() {
     var coreSource = analysisContext.sourceFactory.forUri('dart:core')!;
@@ -1007,18 +1016,25 @@ class _MockSdkElementsBuilder {
     bool isFinal = false,
     bool isStatic = false,
   }) {
-    var fragment =
-        isConst
-            ? ConstFieldFragmentImpl(name2: name, nameOffset: 0)
-            : FieldFragmentImpl(name2: name, nameOffset: 0);
+    var fragment = FieldFragmentImpl(name2: name, nameOffset: 0);
+    var element = FieldElementImpl(
+      reference: Reference.root(),
+      firstFragment: fragment,
+    );
     fragment.isConst = isConst;
     fragment.isFinal = isFinal;
     fragment.isStatic = isStatic;
-    fragment.type = type;
-    PropertyAccessorFragmentImplImplicitGetter(fragment);
+
+    var getterFragment = PropertyAccessorFragmentImplImplicitGetter(fragment);
+    var getterElement = GetterElementImpl(Reference.root(), getterFragment);
+    element.getter2 = getterElement;
+
     if (!isConst && !isFinal) {
-      PropertyAccessorFragmentImplImplicitSetter(fragment);
+      var setterFragment = PropertyAccessorFragmentImplImplicitSetter(fragment);
+      var setterElement = SetterElementImpl(Reference.root(), setterFragment);
+      element.setter2 = setterElement;
     }
+    fragment.type = type;
     return fragment;
   }
 
@@ -1058,19 +1074,21 @@ class _MockSdkElementsBuilder {
     TypeImpl type, {
     bool isStatic = false,
   }) {
-    var field = FieldFragmentImpl(name2: name, nameOffset: -1);
-    field.isStatic = isStatic;
-    field.isSynthetic = true;
-    field.type = type;
+    var fieldFragment = FieldFragmentImpl(name2: name, nameOffset: -1);
+    var fieldElement = FieldElementImpl(reference: Reference.root(), firstFragment: fieldFragment);
+    fieldFragment.isStatic = isStatic;
+    fieldFragment.isSynthetic = true;
+    fieldFragment.type = type;
 
-    var getter = GetterFragmentImpl(name2: name, nameOffset: 0);
-    getter.isStatic = isStatic;
-    getter.isSynthetic = false;
-    getter.returnType = type;
-    getter.variable2 = field;
+    var getterFragment = GetterFragmentImpl(name2: name, nameOffset: 0);
+    var getterElement = GetterElementImpl(Reference.root(), getterFragment);
+    fieldElement.getter2 = getterElement;
+    getterElement.variable3 = fieldElement;
+    getterFragment.isStatic = isStatic;
+    getterFragment.isSynthetic = false;
+    getterFragment.returnType = type;
 
-    field.getter = getter;
-    return getter;
+    return getterFragment;
   }
 
   InterfaceTypeImpl _interfaceType(
@@ -1236,12 +1254,13 @@ class _MockSdkElementsBuilder {
     String name,
     TypeImpl type,
   ) {
-    var fragment =
-        ConstTopLevelVariableFragmentImpl(name2: name, nameOffset: -1)
-          ..isConst = true
-          ..type = type;
-    TopLevelVariableElementImpl(Reference.root(), fragment);
-    PropertyAccessorFragmentImplImplicitGetter(fragment);
+    var fragment = TopLevelVariableFragmentImpl(name2: name, nameOffset: -1)
+      ..isConst = true;
+    var element = TopLevelVariableElementImpl(Reference.root(), fragment);
+    var getterFragment = PropertyAccessorFragmentImplImplicitGetter(fragment);
+    var getterElement = GetterElementImpl(Reference.root(), getterFragment);
+    element.getter2 = getterElement;
+    fragment.type = type;
     return fragment;
   }
 
