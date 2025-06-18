@@ -706,11 +706,12 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
       } else if (parent is FunctionExpressionImpl) {
         // If the surrounding function has a context type, use it.
         var functionContextType = parent.body.bodyContext?.contextType;
-        if (functionContextType != null) {
+        if (functionContextType != null &&
+            functionContextType is! InvalidType) {
           return functionContextType;
-        } else if (parent.parent is FunctionDeclaration) {
+        } else if (parent.parent case FunctionDeclaration(:var returnType)) {
           // Don't walk up past the function declaration.
-          return null;
+          return returnType?.type;
         }
         return _visitParent(parent);
       }
@@ -1082,7 +1083,14 @@ parent3: ${node.parent?.parent?.parent}
     if (node.returnKeyword.end < offset) {
       var functionBody = node.thisOrAncestorOfType<FunctionBodyImpl>();
       if (functionBody != null) {
-        return functionBody.bodyContext?.contextType;
+        AstNode? invocationParent;
+        if (functionBody.parent?.parent case FunctionExpressionInvocation(
+          :var parent,
+        )) {
+          invocationParent = parent;
+        }
+        return functionBody.bodyContext?.contextType ??
+            invocationParent?.accept(this);
       }
     }
     return null;
@@ -1142,6 +1150,14 @@ parent3: ${node.parent?.parent?.parent}
       }
     }
     return super.visitSwitchCase(node);
+  }
+
+  @override
+  DartType? visitSwitchExpressionCase(SwitchExpressionCase node) {
+    if (node.parent case SwitchExpression(:var parent?)) {
+      return parent.accept(this);
+    }
+    return super.visitSwitchExpressionCase(node);
   }
 
   @override

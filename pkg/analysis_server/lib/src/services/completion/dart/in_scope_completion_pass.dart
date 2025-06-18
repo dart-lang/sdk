@@ -4040,7 +4040,13 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     required RecordLiteral? recordLiteral,
     required bool isNewField,
   }) {
-    if (contextType is! RecordType) {
+    if (contextType != null && (contextType.isDartAsyncFutureOr)) {
+      contextType = (contextType as InterfaceType).typeArguments.firstOrNull;
+    }
+    RecordType recordType;
+    if (contextType is RecordType) {
+      recordType = contextType;
+    } else {
       return;
     }
 
@@ -4058,7 +4064,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
               .toSet();
     }
 
-    for (var field in contextType.namedFields) {
+    for (var field in recordType.namedFields) {
       if (!includedNames.contains(field.name)) {
         var matcherScore = state.matcher.score(field.name);
         if (matcherScore != -1) {
