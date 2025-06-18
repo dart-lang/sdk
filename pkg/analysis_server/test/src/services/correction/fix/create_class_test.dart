@@ -25,6 +25,15 @@ class CreateClassLowercaseTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CREATE_CLASS_LOWERCASE;
 
+  Future<void> test_instanceMethod_noFix() async {
+    await resolveTestCode('''
+class C {}
+
+String? f(C c) => c.foo();
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_lowercaseAssignment() async {
     await resolveTestCode('''
 void f() {
@@ -71,6 +80,20 @@ void f() {
 class _0newName {
 }
 ''');
+  }
+
+  Future<void> test_prefix() async {
+    newFile('$testPackageLibPath/lib.dart', '');
+    await resolveTestCode('''
+import 'lib.dart' as lib;
+
+String? f() => lib.foo();
+''');
+    await assertHasFix('''
+
+class foo {
+}
+''', target: '$testPackageLibPath/lib.dart');
   }
 
   Future<void> test_startWithDollarSign() async {
@@ -454,6 +477,15 @@ class Test {
     assertLinkedGroup(change.linkedEditGroups[0], ['Test ()', 'Test {']);
   }
 
+  Future<void> test_instanceMethod_noFix() async {
+    await resolveTestCode('''
+class C {}
+
+String? f(C c) => c.Foo();
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_itemOfList() async {
     await resolveTestCode('''
 void f() {
@@ -498,6 +530,20 @@ class Test {
       },
     );
     assertLinkedGroup(change.linkedEditGroups[0], ['Test])', 'Test {']);
+  }
+
+  Future<void> test_prefix() async {
+    newFile('$testPackageLibPath/lib.dart', '');
+    await resolveTestCode('''
+import 'lib.dart' as lib;
+
+String? f() => lib.Foo();
+''');
+    await assertHasFix('''
+
+class Foo {
+}
+''', target: '$testPackageLibPath/lib.dart');
   }
 
   Future<void> test_simple() async {

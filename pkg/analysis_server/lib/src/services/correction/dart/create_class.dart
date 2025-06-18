@@ -49,6 +49,13 @@ class CreateClass extends MultiCorrectionProducer {
     } else if (targetNode case SimpleIdentifier(
       :var parent,
     ) when parent is! PropertyAccess && parent is! PrefixedIdentifier) {
+      if (parent case MethodInvocation(:var target)) {
+        if (target case SimpleIdentifier(:PrefixElement element)) {
+          prefixElement = element;
+        } else if (target?.staticType != null) {
+          return const [];
+        }
+      }
       className = targetNode.nameOfType ?? targetNode.name;
       requiresConstConstructor |= _requiresConstConstructor(targetNode);
     } else if (targetNode case SimpleIdentifier(
