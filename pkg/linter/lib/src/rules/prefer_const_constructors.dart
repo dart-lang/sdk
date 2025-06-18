@@ -24,6 +24,7 @@ class PreferConstConstructors extends LintRule {
   @override
   void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
+    registry.addDotShorthandConstructorInvocation(this, visitor);
     registry.addInstanceCreationExpression(this, visitor);
   }
 }
@@ -32,6 +33,30 @@ class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
   _Visitor(this.rule);
+
+  @override
+  void visitDotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocation node,
+  ) {
+    if (node.isConst) return;
+
+    var element = node.constructorName.element;
+    if (element is! ConstructorElement) return;
+    if (!element.isConst) return;
+
+    // Handled by an analyzer warning.
+    if (element.metadata.hasLiteral) return;
+
+    var enclosingElement = element.enclosingElement;
+    if (enclosingElement is ClassElement && enclosingElement.isDartCoreObject) {
+      // Skip lint for `new Object()`, because it can be used for ID creation.
+      return;
+    }
+
+    if (node.canBeConst) {
+      rule.reportAtNode(node);
+    }
+  }
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {

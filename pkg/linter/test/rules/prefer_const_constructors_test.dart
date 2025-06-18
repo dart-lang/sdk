@@ -74,6 +74,18 @@ var a = A({});
     );
   }
 
+  test_canBeConst_dotShorthand() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  const A();
+}
+A a = .new();
+''',
+      [lint(31, 6)],
+    );
+  }
+
   test_canBeConst_explicitTypeArgument_dynamic() async {
     await assertDiagnostics(
       r'''
@@ -275,6 +287,15 @@ var a = A();
 ''');
   }
 
+  test_cannotBeConst_notConstConstructor_dotShorthand() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A();
+}
+A a = .new();
+''');
+  }
+
   test_cannotBeConst_stringLiteralArgument_withInterpolation() async {
     await assertNoDiagnostics(r'''
 class A {
@@ -363,6 +384,28 @@ K k() {
     );
   }
 
+  test_extraPositionalArgument_dotShorthands() async {
+    await assertDiagnostics(
+      r'''
+import 'package:meta/meta.dart';
+
+class K {
+  @literal
+  const K();
+}
+
+K k() {
+  K kk = .new();
+  return kk;
+}
+''',
+      [
+        // No lint
+        error(WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR, 88, 6),
+      ],
+    );
+  }
+
   test_isConst_intLiteralArgument() async {
     await assertNoDiagnostics(r'''
 class A {
@@ -386,6 +429,12 @@ var a = const A();
   test_objectConstructorCall() async {
     await assertNoDiagnostics(r'''
 var x = Object();
+''');
+  }
+
+  test_objectConstructorCall_dotShorthand() async {
+    await assertNoDiagnostics(r'''
+Object x = .new();
 ''');
   }
 }
