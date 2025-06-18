@@ -299,8 +299,11 @@ final class CorrectionUtils {
       for (var lineRange in lineRanges) {
         if (lineOffset > lineRange.offset && lineOffset < lineRange.end) {
           inString = true;
+          break;
         }
-        if (lineOffset > lineRange.end) {
+        // We can skip the rest if this line ends before the end of this range
+        // because subsequent ranges are after it.
+        if (lineOffset < lineRange.end) {
           break;
         }
       }
