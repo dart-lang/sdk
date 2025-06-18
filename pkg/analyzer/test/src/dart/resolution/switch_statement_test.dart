@@ -37,7 +37,7 @@ SwitchStatement
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -117,7 +117,7 @@ SwitchStatement
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -191,7 +191,7 @@ SwitchStatement
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -239,7 +239,7 @@ SwitchStatement
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -257,7 +257,7 @@ SwitchStatement
           expression: FunctionExpressionInvocation
             function: SimpleIdentifier
               token: a
-              element: <testLibraryFragment>::@function::f::@parameter::a#element
+              element: <testLibrary>::@function::f::@formalParameter::a
               staticType: bool Function()
             argumentList: ArgumentList
               leftParenthesis: (
@@ -292,7 +292,7 @@ SwitchStatement
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -319,7 +319,7 @@ SwitchStatement
             operator: <
             rightOperand: IntegerLiteral
               literal: 0
-              correspondingParameter: dart:core::<fragment>::@class::num::@method::<::@parameter::other#element
+              correspondingParameter: dart:core::@class::num::@method::<::@formalParameter::other
               staticType: int
             element: dart:core::@class::num::@method::<
             staticInvokeType: bool Function(num)
@@ -347,7 +347,7 @@ SwitchStatement
             operator: >
             rightOperand: IntegerLiteral
               literal: 0
-              correspondingParameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other#element
+              correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
               staticType: int
             element: dart:core::@class::num::@method::>
             staticInvokeType: bool Function(num)
@@ -382,7 +382,7 @@ SwitchStatement
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -410,7 +410,7 @@ SwitchStatement
             operator: <
             rightOperand: IntegerLiteral
               literal: 0
-              correspondingParameter: dart:core::<fragment>::@class::num::@method::<::@parameter::other#element
+              correspondingParameter: dart:core::@class::num::@method::<::@formalParameter::other
               staticType: int
             element: dart:core::@class::num::@method::<
             staticInvokeType: bool Function(num)
@@ -439,7 +439,7 @@ SwitchStatement
             operator: >
             rightOperand: IntegerLiteral
               literal: 0
-              correspondingParameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other#element
+              correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
               staticType: int
             element: dart:core::@class::num::@method::>
             staticInvokeType: bool Function(num)
@@ -474,7 +474,7 @@ SwitchStatement
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -519,7 +519,7 @@ SwitchStatement
             operator: <
             rightOperand: IntegerLiteral
               literal: 0
-              correspondingParameter: dart:core::<fragment>::@class::num::@method::<::@parameter::other#element
+              correspondingParameter: dart:core::@class::num::@method::<::@formalParameter::other
               staticType: int
             element: dart:core::@class::num::@method::<
             staticInvokeType: bool Function(num)
@@ -565,7 +565,7 @@ SwitchStatement
             operator: >
             rightOperand: IntegerLiteral
               literal: 0
-              correspondingParameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other#element
+              correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
               staticType: int
             element: dart:core::@class::num::@method::>
             staticInvokeType: bool Function(num)
@@ -610,7 +610,7 @@ SwitchStatement
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -638,7 +638,7 @@ SwitchStatement
             operator: <
             rightOperand: IntegerLiteral
               literal: 0
-              correspondingParameter: dart:core::<fragment>::@class::num::@method::<::@parameter::other#element
+              correspondingParameter: dart:core::@class::num::@method::<::@formalParameter::other
               staticType: int
             element: dart:core::@class::num::@method::<
             staticInvokeType: bool Function(num)
@@ -666,7 +666,7 @@ SwitchStatement
             operator: >
             rightOperand: IntegerLiteral
               literal: 0
-              correspondingParameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other#element
+              correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
               staticType: int
             element: dart:core::@class::num::@method::>
             staticInvokeType: bool Function(num)
@@ -711,7 +711,7 @@ SwitchStatement
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -739,7 +739,7 @@ SwitchStatement
             operator: <
             rightOperand: IntegerLiteral
               literal: 0
-              correspondingParameter: dart:core::<fragment>::@class::num::@method::<::@parameter::other#element
+              correspondingParameter: dart:core::@class::num::@method::<::@formalParameter::other
               staticType: int
             element: dart:core::@class::num::@method::<
             staticInvokeType: bool Function(num)
@@ -767,7 +767,7 @@ SwitchStatement
             operator: >
             rightOperand: IntegerLiteral
               literal: 0
-              correspondingParameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other#element
+              correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
               staticType: int
             element: dart:core::@class::num::@method::>
             staticInvokeType: bool Function(num)
@@ -812,7 +812,7 @@ SwitchStatement
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -839,7 +839,7 @@ SwitchStatement
             operator: <
             rightOperand: IntegerLiteral
               literal: 0
-              correspondingParameter: dart:core::<fragment>::@class::num::@method::<::@parameter::other#element
+              correspondingParameter: dart:core::@class::num::@method::<::@formalParameter::other
               staticType: int
             element: dart:core::@class::num::@method::<
             staticInvokeType: bool Function(num)
@@ -867,7 +867,7 @@ SwitchStatement
             operator: >
             rightOperand: IntegerLiteral
               literal: 0
-              correspondingParameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other#element
+              correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
               staticType: int
             element: dart:core::@class::num::@method::>
             staticInvokeType: bool Function(num)
@@ -911,7 +911,7 @@ SwitchStatement
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -947,7 +947,7 @@ SwitchStatement
             operator: >
             rightOperand: IntegerLiteral
               literal: 0
-              correspondingParameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other#element
+              correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
               staticType: int
             element: dart:core::@class::num::@method::>
             staticInvokeType: bool Function(num)
@@ -991,7 +991,7 @@ SwitchStatement
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -1018,7 +1018,7 @@ SwitchStatement
             operator: >
             rightOperand: IntegerLiteral
               literal: 0
-              correspondingParameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other#element
+              correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
               staticType: int
             element: dart:core::@class::num::@method::>
             staticInvokeType: bool Function(num)
@@ -1071,7 +1071,7 @@ SwitchStatement
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -1098,7 +1098,7 @@ SwitchStatement
             operator: >
             rightOperand: IntegerLiteral
               literal: 0
-              correspondingParameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other#element
+              correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
               staticType: int
             element: dart:core::@class::num::@method::>
             staticInvokeType: bool Function(num)
@@ -1149,7 +1149,7 @@ SwitchStatement
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -1216,7 +1216,7 @@ SwitchStatement
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -1250,7 +1250,7 @@ SwitchStatement
             operator: >
             rightOperand: IntegerLiteral
               literal: 0
-              correspondingParameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other#element
+              correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
               staticType: int
             element: dart:core::@class::num::@method::>
             staticInvokeType: bool Function(num)
@@ -1307,7 +1307,7 @@ SwitchStatement
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -1394,7 +1394,7 @@ SwitchStatement
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -1476,7 +1476,7 @@ SwitchStatement
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -1517,7 +1517,7 @@ SwitchStatement
             operator: >
             rightOperand: IntegerLiteral
               literal: 0
-              correspondingParameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other#element
+              correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
               staticType: int
             element: dart:core::@class::num::@method::>
             staticInvokeType: bool Function(num)
@@ -1551,7 +1551,7 @@ SwitchStatement
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -1578,7 +1578,7 @@ SwitchStatement
             operator: >
             rightOperand: IntegerLiteral
               literal: 0
-              correspondingParameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other#element
+              correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
               staticType: int
             element: dart:core::@class::num::@method::>
             staticInvokeType: bool Function(num)
@@ -1612,7 +1612,7 @@ SwitchStatement
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -1662,7 +1662,7 @@ SwitchStatement
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -1708,7 +1708,7 @@ SwitchStatement
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
   rightParenthesis: )
   leftBracket: {

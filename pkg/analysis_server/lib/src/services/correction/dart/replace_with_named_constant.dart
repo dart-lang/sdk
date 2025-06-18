@@ -35,7 +35,7 @@ class ReplaceWithNamedConstant extends ResolvedCorrectionProducer {
       }
 
       await builder.addDartFileEdit(file, (builder) {
-        builder.addSimpleReplacement(range.error(diagnostic), correction);
+        builder.addSimpleReplacement(range.diagnostic(diagnostic), correction);
       });
     }
   }

@@ -107,7 +107,7 @@ PatternAssignment
     elements
       AssignedVariablePattern
         name: a
-        element2: <testLibraryFragment>::@function::f::@parameter::a#element
+        element2: <testLibrary>::@function::f::@formalParameter::a
         matchedValueType: int
     rightBracket: ]
     matchedValueType: List<int>
@@ -115,7 +115,7 @@ PatternAssignment
   equals: =
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: List<int>
   patternTypeSchema: List<num>
   staticType: List<int>
@@ -147,9 +147,9 @@ PatternAssignment
           colon: :
         pattern: AssignedVariablePattern
           name: foo
-          element2: <testLibraryFragment>::@function::f::@parameter::foo#element
+          element2: <testLibrary>::@function::f::@formalParameter::foo
           matchedValueType: int
-        element2: <testLibraryFragment>::@class::A::@getter::foo#element
+        element2: <testLibrary>::@class::A::@getter::foo
     rightParenthesis: )
     matchedValueType: A
   equals: =
@@ -182,14 +182,14 @@ PatternAssignment
     leftParenthesis: (
     pattern: AssignedVariablePattern
       name: a
-      element2: <testLibraryFragment>::@function::f::@parameter::a#element
+      element2: <testLibrary>::@function::f::@formalParameter::a
       matchedValueType: int
     rightParenthesis: )
     matchedValueType: int
   equals: =
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: int
   patternTypeSchema: num
   staticType: int
@@ -211,7 +211,7 @@ PatternAssignment
     leftParenthesis: (
     pattern: AssignedVariablePattern
       name: a
-      element2: <testLibraryFragment>::@function::f::@parameter::a#element
+      element2: <testLibrary>::@function::f::@formalParameter::a
       matchedValueType: int
     rightParenthesis: )
     matchedValueType: int
@@ -251,7 +251,7 @@ PatternAssignment
           colon: :
         pattern: AssignedVariablePattern
           name: a
-          element2: <testLibraryFragment>::@function::f::@parameter::a#element
+          element2: <testLibrary>::@function::f::@formalParameter::a
           matchedValueType: int
         element2: <null>
     rightParenthesis: )
@@ -259,7 +259,7 @@ PatternAssignment
   equals: =
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: ({int foo})
   patternTypeSchema: ({num foo})
   staticType: ({int foo})
@@ -283,7 +283,7 @@ PatternAssignment
           colon: :
         pattern: AssignedVariablePattern
           name: a
-          element2: <testLibraryFragment>::@function::f::@parameter::a#element
+          element2: <testLibrary>::@function::f::@formalParameter::a
           matchedValueType: int
         element2: <null>
     rightParenthesis: )
@@ -324,7 +324,7 @@ PatternAssignment
       PatternField
         pattern: AssignedVariablePattern
           name: a
-          element2: <testLibraryFragment>::@function::f::@parameter::a#element
+          element2: <testLibrary>::@function::f::@formalParameter::a
           matchedValueType: int
         element2: <null>
     rightParenthesis: )
@@ -332,7 +332,7 @@ PatternAssignment
   equals: =
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: (int,)
   patternTypeSchema: (num,)
   staticType: (int,)
@@ -404,7 +404,7 @@ void f(num a) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
-  element: <testLibraryFragment>::@function::f::@parameter::a#element
+  element: <testLibrary>::@function::f::@formalParameter::a
   staticType: int
 ''');
   }

@@ -278,7 +278,7 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: c
-      element: <testLibraryFragment>::@function::f::@parameter::c#element
+      element: <testLibrary>::@function::f::@formalParameter::c
       staticType: C
     period: .
     identifier: SimpleIdentifier

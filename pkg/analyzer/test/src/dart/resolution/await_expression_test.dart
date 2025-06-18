@@ -103,7 +103,7 @@ AwaitExpression
     operator: .
     propertyName: SimpleIdentifier
       token: hashCode
-      element: dart:core::<fragment>::@class::Object::@getter::hashCode#element
+      element: dart:core::@class::Object::@getter::hashCode
       staticType: int
     staticType: int
   staticType: int
@@ -186,7 +186,7 @@ AwaitExpression
       operator: .
       propertyName: SimpleIdentifier
         token: isEven
-        element: dart:core::<fragment>::@class::int::@getter::isEven#element
+        element: dart:core::@class::int::@getter::isEven
         staticType: bool
       staticType: bool
     operator: .

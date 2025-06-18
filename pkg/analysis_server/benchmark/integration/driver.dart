@@ -9,8 +9,8 @@ import 'dart:math' show max, sqrt;
 import 'package:logging/logging.dart';
 import 'package:path/path.dart';
 
-import '../../test/integration/support/integration_test_methods.dart';
-import '../../test/integration/support/integration_tests.dart';
+import '../../integration_test/support/integration_test_methods.dart';
+import '../../integration_test/support/integration_tests.dart';
 import 'operation.dart';
 
 /// [Driver] launches and manages an instance of analysis server,

@@ -61,7 +61,7 @@ To run all analysis server tests:
 To run just the analysis server integration tests:
 
 ```
-./tools/test.py -mrelease pkg/analysis_server/test/integration/
+./tools/test.py -mrelease pkg/analysis_server/integration_test/
 ```
 
 To run a single test:

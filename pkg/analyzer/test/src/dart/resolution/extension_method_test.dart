@@ -95,9 +95,9 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: ann
-    element: <testLibraryFragment>::@getter::ann#element
+    element: <testLibrary>::@getter::ann
     staticType: null
-  element2: <testLibraryFragment>::@getter::ann#element
+  element2: <testLibrary>::@getter::ann
 ''');
   }
 
@@ -234,14 +234,14 @@ f(C c) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
-    element: <testLibraryFragment>::@function::f::@parameter::c#element
+    element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
   period: .
   identifier: SimpleIdentifier
     token: a
-    element: package:test/lib.dart::<fragment>::@extension::E::@getter::a#element
+    element: package:test/lib.dart::@extension::E::@getter::a
     staticType: int
-  element: package:test/lib.dart::<fragment>::@extension::E::@getter::a#element
+  element: package:test/lib.dart::@extension::E::@getter::a
   staticType: int
 ''');
   }
@@ -269,14 +269,14 @@ f(Object o, A a) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: o
-    element: <testLibraryFragment>::@function::f::@parameter::o#element
+    element: <testLibrary>::@function::f::@formalParameter::o
     staticType: Object
   period: .
   identifier: SimpleIdentifier
     token: a
-    element: package:test/lib1.dart::<fragment>::@extension::E::@getter::a#element
+    element: package:test/lib1.dart::@extension::E::@getter::a
     staticType: int
-  element: package:test/lib1.dart::<fragment>::@extension::E::@getter::a#element
+  element: package:test/lib1.dart::@extension::E::@getter::a
   staticType: int
 ''');
   }
@@ -304,14 +304,14 @@ f(C c) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
-    element: <testLibraryFragment>::@function::f::@parameter::c#element
+    element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
   period: .
   identifier: SimpleIdentifier
     token: a
-    element: package:test/lib.dart::<fragment>::@extension::E::@getter::a#element
+    element: package:test/lib.dart::@extension::E::@getter::a
     staticType: int
-  element: package:test/lib.dart::<fragment>::@extension::E::@getter::a#element
+  element: package:test/lib.dart::@extension::E::@getter::a
   staticType: int
 ''');
   }
@@ -335,14 +335,14 @@ f(C c) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
-    element: <testLibraryFragment>::@function::f::@parameter::c#element
+    element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
   period: .
   identifier: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@extension::E::@getter::a#element
+    element: <testLibrary>::@extension::E::@getter::a
     staticType: int
-  element: <testLibraryFragment>::@extension::E::@getter::a#element
+  element: <testLibrary>::@extension::E::@getter::a
   staticType: int
 ''');
   }
@@ -367,14 +367,14 @@ f(C c) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
-    element: <testLibraryFragment>::@function::f::@parameter::c#element
+    element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
   period: .
   identifier: SimpleIdentifier
     token: a
-    element: package:test/lib.dart::<fragment>::@extension::E::@getter::a#element
+    element: package:test/lib.dart::@extension::E::@getter::a
     staticType: int
-  element: package:test/lib.dart::<fragment>::@extension::E::@getter::a#element
+  element: package:test/lib.dart::@extension::E::@getter::a
   staticType: int
 ''');
   }
@@ -429,7 +429,7 @@ NamedType
     arguments
       NamedType
         name: S
-        element2: S@26
+        element2: #E0 S
         type: S
     rightBracket: >
   element2: <testLibrary>::@class::C
@@ -540,7 +540,7 @@ NamedType
     arguments
       NamedType
         name: S
-        element2: S@24
+        element2: #E0 S
         type: S
     rightBracket: >
   element2: <testLibrary>::@class::C
@@ -679,14 +679,14 @@ f(C c) {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: c
-    element: <testLibraryFragment>::@function::f::@parameter::c#element
+    element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 2
-        correspondingParameter: <testLibraryFragment>::@class::C::@method::call::@parameter::x#element
+        correspondingParameter: <testLibrary>::@class::C::@method::call::@formalParameter::x
         staticType: int
     rightParenthesis: )
   element: <testLibrary>::@class::C::@method::call
@@ -712,14 +712,14 @@ f(C c) {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: c
-    element: <testLibraryFragment>::@function::f::@parameter::c#element
+    element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 2
-        correspondingParameter: <testLibraryFragment>::@extension::E::@method::call::@parameter::x#element
+        correspondingParameter: <testLibrary>::@extension::E::@method::call::@formalParameter::x
         staticType: int
     rightParenthesis: )
   element: <testLibrary>::@extension::E::@method::call
@@ -749,7 +749,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 2
-        correspondingParameter: <testLibraryFragment>::@extension::E::@method::call::@parameter::x#element
+        correspondingParameter: <testLibrary>::@extension::E::@method::call::@formalParameter::x
         staticType: int
     rightParenthesis: )
   element: <testLibrary>::@extension::E::@method::call
@@ -775,16 +775,16 @@ f(C c) {
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: c
-    element: <testLibraryFragment>::@function::f::@parameter::c#element
+    element: <testLibrary>::@function::f::@formalParameter::c
     staticType: null
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 2
-    correspondingParameter: <testLibraryFragment>::@class::C::@method::+::@parameter::i#element
+    correspondingParameter: <testLibrary>::@class::C::@method::+::@formalParameter::i
     staticType: int
-  readElement2: <testLibraryFragment>::@function::f::@parameter::c#element
+  readElement2: <testLibrary>::@function::f::@formalParameter::c
   readType: C
-  writeElement2: <testLibraryFragment>::@function::f::@parameter::c#element
+  writeElement2: <testLibrary>::@function::f::@formalParameter::c
   writeType: C
   element: <testLibrary>::@class::C::@method::+
   staticType: C
@@ -806,16 +806,16 @@ f(C c) {
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: c
-    element: <testLibraryFragment>::@function::f::@parameter::c#element
+    element: <testLibrary>::@function::f::@formalParameter::c
     staticType: null
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 2
-    correspondingParameter: <testLibraryFragment>::@extension::E::@method::+::@parameter::i#element
+    correspondingParameter: <testLibrary>::@extension::E::@method::+::@formalParameter::i
     staticType: int
-  readElement2: <testLibraryFragment>::@function::f::@parameter::c#element
+  readElement2: <testLibrary>::@function::f::@formalParameter::c
   readType: C
-  writeElement2: <testLibraryFragment>::@function::f::@parameter::c#element
+  writeElement2: <testLibrary>::@function::f::@formalParameter::c
   writeType: C
   element: <testLibrary>::@extension::E::@method::+
   staticType: C
@@ -838,7 +838,7 @@ extension E2<T extends B> on T {
     assertResolvedNodeText(identifier, r'''
 SimpleIdentifier
   token: g
-  element: <testLibraryFragment>::@extension::E1::@getter::g#element
+  element: <testLibrary>::@extension::E1::@getter::g
   staticType: int
 ''');
   }
@@ -859,7 +859,7 @@ extension E2 on C {
     assertResolvedNodeText(identifier, r'''
 SimpleIdentifier
   token: a
-  element: <testLibraryFragment>::@extension::E1::@getter::a#element
+  element: <testLibrary>::@extension::E1::@getter::a
   staticType: int
 ''');
   }
@@ -879,7 +879,7 @@ extension E<T extends B> on T {
     assertResolvedNodeText(identifier, r'''
 SimpleIdentifier
   token: g
-  element: <testLibraryFragment>::@class::B::@getter::g#element
+  element: <testLibrary>::@class::B::@getter::g
   staticType: int
 ''');
   }
@@ -899,7 +899,7 @@ extension E on C {
     assertResolvedNodeText(identifier, r'''
 SimpleIdentifier
   token: a
-  element: <testLibraryFragment>::@extension::E::@getter::a#element
+  element: <testLibrary>::@extension::E::@getter::a
   staticType: int
 ''');
   }
@@ -918,14 +918,14 @@ g(int Function(int) f) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: f
-    element: <testLibraryFragment>::@function::g::@parameter::f#element
+    element: <testLibrary>::@function::g::@formalParameter::f
     staticType: int Function(int)
   period: .
   identifier: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@extension::E::@getter::a#element
+    element: <testLibrary>::@extension::E::@getter::a
     staticType: int
-  element: <testLibraryFragment>::@extension::E::@getter::a#element
+  element: <testLibrary>::@extension::E::@getter::a
   staticType: int
 ''');
   }
@@ -947,14 +947,14 @@ f(C c) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
-    element: <testLibraryFragment>::@function::f::@parameter::c#element
+    element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
   period: .
   identifier: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@extension::E::@getter::a#element
+    element: <testLibrary>::@extension::E::@getter::a
     staticType: int
-  element: <testLibraryFragment>::@extension::E::@getter::a#element
+  element: <testLibrary>::@extension::E::@getter::a
   staticType: int
 ''');
   }
@@ -977,14 +977,14 @@ void f(A a) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A
   period: .
   identifier: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@extension::E::@getter::foo#element
+    element: <testLibrary>::@extension::E::@getter::foo
     staticType: int
-  element: <testLibraryFragment>::@extension::E::@getter::foo#element
+  element: <testLibrary>::@extension::E::@getter::foo
   staticType: int
 ''');
   }
@@ -1007,7 +1007,7 @@ f(Never a) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: Never
   period: .
   identifier: SimpleIdentifier
@@ -1034,14 +1034,14 @@ f(int? a) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: int?
   period: .
   identifier: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@extension::E::@getter::foo#element
+    element: <testLibrary>::@extension::E::@getter::foo
     staticType: int
-  element: <testLibraryFragment>::@extension::E::@getter::foo#element
+  element: <testLibrary>::@extension::E::@getter::foo
   staticType: int
 ''');
   }
@@ -1061,12 +1061,12 @@ f(int? a) {
 PropertyAccess
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: int?
   operator: ?.
   propertyName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@extension::E::@getter::foo#element
+    element: <testLibrary>::@extension::E::@getter::foo
     staticType: int
   staticType: int?
 ''');
@@ -1090,12 +1090,12 @@ FunctionExpressionInvocation
   function: PropertyAccess
     target: SimpleIdentifier
       token: c
-      element: <testLibraryFragment>::@function::f::@parameter::c#element
+      element: <testLibrary>::@function::f::@formalParameter::c
       staticType: C
     operator: .
     propertyName: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@extension::E::@getter::a#element
+      element: <testLibrary>::@extension::E::@getter::a
       staticType: double Function(int)
     staticType: double Function(int)
   argumentList: ArgumentList
@@ -1103,7 +1103,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: root::@parameter::#element
+        correspondingParameter: root::@formalParameter::<null-name>
         staticType: int
     rightParenthesis: )
   element: <null>
@@ -1133,14 +1133,14 @@ f(B b) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: b
-    element: <testLibraryFragment>::@function::f::@parameter::b#element
+    element: <testLibrary>::@function::f::@formalParameter::b
     staticType: B
   period: .
   identifier: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@extension::B_Ext::@getter::a#element
+    element: <testLibrary>::@extension::B_Ext::@getter::a
     staticType: int
-  element: <testLibraryFragment>::@extension::B_Ext::@getter::a#element
+  element: <testLibrary>::@extension::B_Ext::@getter::a
   staticType: int
 ''');
   }
@@ -1160,12 +1160,12 @@ FunctionExpressionInvocation
   function: PropertyAccess
     target: SimpleIdentifier
       token: f
-      element: <testLibraryFragment>::@function::g::@parameter::f#element
+      element: <testLibrary>::@function::g::@formalParameter::f
       staticType: int Function(int)
     operator: .
     propertyName: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@extension::E::@getter::a#element
+      element: <testLibrary>::@extension::E::@getter::a
       staticType: String Function()
     staticType: String Function()
   argumentList: ArgumentList
@@ -1297,7 +1297,7 @@ g(int Function(int) f) {
 MethodInvocation
   target: SimpleIdentifier
     token: f
-    element: <testLibraryFragment>::@function::g::@parameter::f#element
+    element: <testLibrary>::@function::g::@formalParameter::f
     staticType: int Function(int)
   operator: .
   methodName: SimpleIdentifier
@@ -1329,7 +1329,7 @@ f(B b) {
 MethodInvocation
   target: SimpleIdentifier
     token: b
-    element: <testLibraryFragment>::@function::f::@parameter::b#element
+    element: <testLibrary>::@function::f::@formalParameter::b
     staticType: B
   operator: .
   methodName: SimpleIdentifier
@@ -1362,7 +1362,7 @@ void f(A a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A
   operator: .
   methodName: SimpleIdentifier
@@ -1440,7 +1440,7 @@ f(Never a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: Never
   operator: .
   methodName: SimpleIdentifier
@@ -1470,7 +1470,7 @@ f(int? a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: int?
   operator: .
   methodName: SimpleIdentifier
@@ -1529,7 +1529,7 @@ f(int? a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: int?
   operator: ?.
   methodName: SimpleIdentifier
@@ -1660,7 +1660,7 @@ f(B b) {
 MethodInvocation
   target: SimpleIdentifier
     token: b
-    element: <testLibraryFragment>::@function::f::@parameter::b#element
+    element: <testLibrary>::@function::f::@formalParameter::b
     staticType: B
   operator: .
   methodName: SimpleIdentifier
@@ -1700,7 +1700,7 @@ f(B<C> x, C o) {
 MethodInvocation
   target: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: B<C>
   operator: .
   methodName: SimpleIdentifier
@@ -1714,8 +1714,8 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: o
-        correspondingParameter: root::@parameter::x#element
-        element: <testLibraryFragment>::@function::f::@parameter::o#element
+        correspondingParameter: root::@formalParameter::x
+        element: <testLibrary>::@function::f::@formalParameter::o
         staticType: C
     rightParenthesis: )
   staticInvokeType: void Function(C)
@@ -1740,12 +1740,12 @@ f(C c) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: c
-    element: <testLibraryFragment>::@function::f::@parameter::c#element
+    element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
   operator: +
   rightOperand: IntegerLiteral
     literal: 2
-    correspondingParameter: <testLibraryFragment>::@class::C::@method::+::@parameter::i#element
+    correspondingParameter: <testLibrary>::@class::C::@method::+::@formalParameter::i
     staticType: int
   element: <testLibrary>::@class::C::@method::+
   staticInvokeType: void Function(int)
@@ -1767,12 +1767,12 @@ g(int Function(int) f) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: f
-    element: <testLibraryFragment>::@function::g::@parameter::f#element
+    element: <testLibrary>::@function::g::@formalParameter::f
     staticType: int Function(int)
   operator: +
   rightOperand: IntegerLiteral
     literal: 2
-    correspondingParameter: <testLibraryFragment>::@extension::E::@method::+::@parameter::i#element
+    correspondingParameter: <testLibrary>::@extension::E::@method::+::@formalParameter::i
     staticType: int
   element: <testLibrary>::@extension::E::@method::+
   staticInvokeType: void Function(int)
@@ -1795,12 +1795,12 @@ f(C c) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: c
-    element: <testLibraryFragment>::@function::f::@parameter::c#element
+    element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
   operator: +
   rightOperand: IntegerLiteral
     literal: 2
-    correspondingParameter: <testLibraryFragment>::@extension::E::@method::+::@parameter::i#element
+    correspondingParameter: <testLibrary>::@extension::E::@method::+::@formalParameter::i
     staticType: int
   element: <testLibrary>::@extension::E::@method::+
   staticInvokeType: void Function(int)
@@ -1825,12 +1825,12 @@ f(A? a) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A?
   operator: +
   rightOperand: IntegerLiteral
     literal: 1
-    correspondingParameter: <testLibraryFragment>::@extension::E::@method::+::@parameter::_#element
+    correspondingParameter: <testLibrary>::@extension::E::@method::+::@formalParameter::_
     staticType: int
   element: <testLibrary>::@extension::E::@method::+
   staticInvokeType: int Function(int)
@@ -1869,12 +1869,12 @@ f(C c) {
 IndexExpression
   target: SimpleIdentifier
     token: c
-    element: <testLibraryFragment>::@function::f::@parameter::c#element
+    element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
   leftBracket: [
   index: IntegerLiteral
     literal: 2
-    correspondingParameter: <testLibraryFragment>::@class::C::@method::[]::@parameter::index#element
+    correspondingParameter: <testLibrary>::@class::C::@method::[]::@formalParameter::index
     staticType: int
   rightBracket: ]
   element: <testLibrary>::@class::C::@method::[]
@@ -1896,12 +1896,12 @@ g(int Function(int) f) {
 IndexExpression
   target: SimpleIdentifier
     token: f
-    element: <testLibraryFragment>::@function::g::@parameter::f#element
+    element: <testLibrary>::@function::g::@formalParameter::f
     staticType: int Function(int)
   leftBracket: [
   index: IntegerLiteral
     literal: 2
-    correspondingParameter: <testLibraryFragment>::@extension::E::@method::[]::@parameter::index#element
+    correspondingParameter: <testLibrary>::@extension::E::@method::[]::@formalParameter::index
     staticType: int
   rightBracket: ]
   element: <testLibrary>::@extension::E::@method::[]
@@ -1924,12 +1924,12 @@ f(C c) {
 IndexExpression
   target: SimpleIdentifier
     token: c
-    element: <testLibraryFragment>::@function::f::@parameter::c#element
+    element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
   leftBracket: [
   index: IntegerLiteral
     literal: 2
-    correspondingParameter: <testLibraryFragment>::@extension::E::@method::[]::@parameter::index#element
+    correspondingParameter: <testLibrary>::@extension::E::@method::[]::@formalParameter::index
     staticType: int
   rightBracket: ]
   element: <testLibrary>::@extension::E::@method::[]
@@ -1952,12 +1952,12 @@ f(int? a) {
 IndexExpression
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: int?
   leftBracket: [
   index: IntegerLiteral
     literal: 0
-    correspondingParameter: <testLibraryFragment>::@extension::E::@method::[]::@parameter::index#element
+    correspondingParameter: <testLibrary>::@extension::E::@method::[]::@formalParameter::index
     staticType: int
   rightBracket: ]
   element: <testLibrary>::@extension::E::@method::[]
@@ -1980,13 +1980,13 @@ f(int? a) {
 IndexExpression
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: int?
   question: ?
   leftBracket: [
   index: IntegerLiteral
     literal: 0
-    correspondingParameter: <testLibraryFragment>::@extension::E::@method::[]::@parameter::index#element
+    correspondingParameter: <testLibrary>::@extension::E::@method::[]::@formalParameter::index
     staticType: int
   rightBracket: ]
   element: <testLibrary>::@extension::E::@method::[]
@@ -2012,12 +2012,12 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: c
-      element: <testLibraryFragment>::@function::f::@parameter::c#element
+      element: <testLibrary>::@function::f::@formalParameter::c
       staticType: C
     leftBracket: [
     index: IntegerLiteral
       literal: 2
-      correspondingParameter: <testLibraryFragment>::@class::C::@method::[]=::@parameter::index#element
+      correspondingParameter: <testLibrary>::@class::C::@method::[]=::@formalParameter::index
       staticType: int
     rightBracket: ]
     element: <null>
@@ -2025,7 +2025,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 1
-    correspondingParameter: <testLibraryFragment>::@class::C::@method::[]=::@parameter::value#element
+    correspondingParameter: <testLibrary>::@class::C::@method::[]=::@formalParameter::value
     staticType: int
   readElement2: <null>
   readType: null
@@ -2051,12 +2051,12 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: f
-      element: <testLibraryFragment>::@function::g::@parameter::f#element
+      element: <testLibrary>::@function::g::@formalParameter::f
       staticType: int Function(int)
     leftBracket: [
     index: IntegerLiteral
       literal: 2
-      correspondingParameter: <testLibraryFragment>::@extension::E::@method::[]=::@parameter::index#element
+      correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::index
       staticType: int
     rightBracket: ]
     element: <null>
@@ -2064,7 +2064,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 3
-    correspondingParameter: <testLibraryFragment>::@extension::E::@method::[]=::@parameter::value#element
+    correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::value
     staticType: int
   readElement2: <null>
   readType: null
@@ -2091,12 +2091,12 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: c
-      element: <testLibraryFragment>::@function::f::@parameter::c#element
+      element: <testLibrary>::@function::f::@formalParameter::c
       staticType: C
     leftBracket: [
     index: IntegerLiteral
       literal: 2
-      correspondingParameter: <testLibraryFragment>::@extension::E::@method::[]=::@parameter::index#element
+      correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::index
       staticType: int
     rightBracket: ]
     element: <null>
@@ -2104,7 +2104,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 3
-    correspondingParameter: <testLibraryFragment>::@extension::E::@method::[]=::@parameter::value#element
+    correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::value
     staticType: int
   readElement2: <null>
   readType: null
@@ -2132,12 +2132,12 @@ f(C c) {
 PostfixExpression
   operand: SimpleIdentifier
     token: c
-    element: <testLibraryFragment>::@function::f::@parameter::c#element
+    element: <testLibrary>::@function::f::@formalParameter::c
     staticType: null
   operator: ++
-  readElement2: <testLibraryFragment>::@function::f::@parameter::c#element
+  readElement2: <testLibrary>::@function::f::@formalParameter::c
   readType: C
-  writeElement2: <testLibraryFragment>::@function::f::@parameter::c#element
+  writeElement2: <testLibrary>::@function::f::@formalParameter::c
   writeType: C
   element: <testLibrary>::@class::C::@method::+
   staticType: C
@@ -2158,12 +2158,12 @@ g(int Function(int) f) {
 PostfixExpression
   operand: SimpleIdentifier
     token: f
-    element: <testLibraryFragment>::@function::g::@parameter::f#element
+    element: <testLibrary>::@function::g::@formalParameter::f
     staticType: null
   operator: ++
-  readElement2: <testLibraryFragment>::@function::g::@parameter::f#element
+  readElement2: <testLibrary>::@function::g::@formalParameter::f
   readType: int Function(int)
-  writeElement2: <testLibraryFragment>::@function::g::@parameter::f#element
+  writeElement2: <testLibrary>::@function::g::@formalParameter::f
   writeType: int Function(int)
   element: <testLibrary>::@extension::E::@method::+
   staticType: int Function(int)
@@ -2185,12 +2185,12 @@ f(C c) {
 PostfixExpression
   operand: SimpleIdentifier
     token: c
-    element: <testLibraryFragment>::@function::f::@parameter::c#element
+    element: <testLibrary>::@function::f::@formalParameter::c
     staticType: null
   operator: ++
-  readElement2: <testLibraryFragment>::@function::f::@parameter::c#element
+  readElement2: <testLibrary>::@function::f::@formalParameter::c
   readType: C
-  writeElement2: <testLibraryFragment>::@function::f::@parameter::c#element
+  writeElement2: <testLibrary>::@function::f::@formalParameter::c
   writeType: C
   element: <testLibrary>::@extension::E::@method::+
   staticType: C
@@ -2214,12 +2214,12 @@ f(A? a) {
 PostfixExpression
   operand: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: null
   operator: ++
-  readElement2: <testLibraryFragment>::@function::f::@parameter::a#element
+  readElement2: <testLibrary>::@function::f::@formalParameter::a
   readType: A?
-  writeElement2: <testLibraryFragment>::@function::f::@parameter::a#element
+  writeElement2: <testLibrary>::@function::f::@formalParameter::a
   writeType: A?
   element: <testLibrary>::@extension::E::@method::+
   staticType: A?
@@ -2244,11 +2244,11 @@ PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: c
-    element: <testLibraryFragment>::@function::f::@parameter::c#element
+    element: <testLibrary>::@function::f::@formalParameter::c
     staticType: null
-  readElement2: <testLibraryFragment>::@function::f::@parameter::c#element
+  readElement2: <testLibrary>::@function::f::@formalParameter::c
   readType: C
-  writeElement2: <testLibraryFragment>::@function::f::@parameter::c#element
+  writeElement2: <testLibrary>::@function::f::@formalParameter::c
   writeType: C
   element: <testLibrary>::@class::C::@method::+
   staticType: C
@@ -2270,11 +2270,11 @@ PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: f
-    element: <testLibraryFragment>::@function::g::@parameter::f#element
+    element: <testLibrary>::@function::g::@formalParameter::f
     staticType: null
-  readElement2: <testLibraryFragment>::@function::g::@parameter::f#element
+  readElement2: <testLibrary>::@function::g::@formalParameter::f
   readType: int Function(int)
-  writeElement2: <testLibraryFragment>::@function::g::@parameter::f#element
+  writeElement2: <testLibrary>::@function::g::@formalParameter::f
   writeType: int Function(int)
   element: <testLibrary>::@extension::E::@method::+
   staticType: int Function(int)
@@ -2297,11 +2297,11 @@ PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: c
-    element: <testLibraryFragment>::@function::f::@parameter::c#element
+    element: <testLibrary>::@function::f::@formalParameter::c
     staticType: null
-  readElement2: <testLibraryFragment>::@function::f::@parameter::c#element
+  readElement2: <testLibrary>::@function::f::@formalParameter::c
   readType: C
-  writeElement2: <testLibraryFragment>::@function::f::@parameter::c#element
+  writeElement2: <testLibrary>::@function::f::@formalParameter::c
   writeType: C
   element: <testLibrary>::@extension::E::@method::+
   staticType: C
@@ -2326,11 +2326,11 @@ PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: null
-  readElement2: <testLibraryFragment>::@function::f::@parameter::a#element
+  readElement2: <testLibrary>::@function::f::@formalParameter::a
   readType: A?
-  writeElement2: <testLibraryFragment>::@function::f::@parameter::a#element
+  writeElement2: <testLibrary>::@function::f::@formalParameter::a
   writeType: A?
   element: <testLibrary>::@extension::E::@method::+
   staticType: A?
@@ -2355,7 +2355,7 @@ PrefixExpression
   operator: -
   operand: SimpleIdentifier
     token: c
-    element: <testLibraryFragment>::@function::f::@parameter::c#element
+    element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
   element: <testLibrary>::@class::C::@method::unary-
   staticType: C
@@ -2377,7 +2377,7 @@ PrefixExpression
   operator: -
   operand: SimpleIdentifier
     token: f
-    element: <testLibraryFragment>::@function::g::@parameter::f#element
+    element: <testLibrary>::@function::g::@formalParameter::f
     staticType: int Function(int)
   element: <testLibrary>::@extension::E::@method::unary-
   staticType: void
@@ -2400,7 +2400,7 @@ PrefixExpression
   operator: -
   operand: SimpleIdentifier
     token: c
-    element: <testLibraryFragment>::@function::f::@parameter::c#element
+    element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
   element: <testLibrary>::@extension::E::@method::unary-
   staticType: C
@@ -2425,7 +2425,7 @@ PrefixExpression
   operator: -
   operand: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A?
   element: <testLibrary>::@extension::E::@method::unary-
   staticType: A?
@@ -2447,7 +2447,7 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: f
-      element: <testLibraryFragment>::@function::g::@parameter::f#element
+      element: <testLibrary>::@function::g::@formalParameter::f
       staticType: int Function(int)
     period: .
     identifier: SimpleIdentifier
@@ -2459,11 +2459,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 1
-    correspondingParameter: <testLibraryFragment>::@extension::E::@setter::a::@parameter::x#element
+    correspondingParameter: <testLibrary>::@extension::E::@setter::a::@formalParameter::x
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@extension::E::@setter::a#element
+  writeElement2: <testLibrary>::@extension::E::@setter::a
   writeType: int
   element: <null>
   staticType: int
@@ -2489,7 +2489,7 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A
     period: .
     identifier: SimpleIdentifier
@@ -2501,11 +2501,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: <testLibraryFragment>::@extension::E::@setter::foo::@parameter::_#element
+    correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::_
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@extension::E::@setter::foo#element
+  writeElement2: <testLibrary>::@extension::E::@setter::foo
   writeType: int
   element: <null>
   staticType: int
@@ -2527,7 +2527,7 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: int?
     period: .
     identifier: SimpleIdentifier
@@ -2539,11 +2539,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 1
-    correspondingParameter: <testLibraryFragment>::@extension::E::@setter::foo::@parameter::_#element
+    correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::_
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@extension::E::@setter::foo#element
+  writeElement2: <testLibrary>::@extension::E::@setter::foo
   writeType: int
   element: <null>
   staticType: int
@@ -2565,7 +2565,7 @@ AssignmentExpression
   leftHandSide: PropertyAccess
     target: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: int?
     operator: ?.
     propertyName: SimpleIdentifier
@@ -2576,11 +2576,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 1
-    correspondingParameter: <testLibraryFragment>::@extension::E::@setter::foo::@parameter::_#element
+    correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::_
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@extension::E::@setter::foo#element
+  writeElement2: <testLibrary>::@extension::E::@setter::foo
   writeType: int
   element: <null>
   staticType: int?
@@ -2605,7 +2605,7 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: c
-      element: <testLibraryFragment>::@function::f::@parameter::c#element
+      element: <testLibrary>::@function::f::@formalParameter::c
       staticType: C
     period: .
     identifier: SimpleIdentifier
@@ -2617,11 +2617,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 1
-    correspondingParameter: <testLibraryFragment>::@extension::E::@setter::a::@parameter::x#element
+    correspondingParameter: <testLibrary>::@extension::E::@setter::a::@formalParameter::x
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@extension::E::@setter::a#element
+  writeElement2: <testLibrary>::@extension::E::@setter::a
   writeType: int
   element: <null>
   staticType: int
@@ -2640,7 +2640,7 @@ g(int Function(int) f) => f.a;
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: f
-    element: <testLibraryFragment>::@function::g::@parameter::f#element
+    element: <testLibrary>::@function::g::@formalParameter::f
     staticType: int Function(int)
   period: .
   identifier: SimpleIdentifier
@@ -2667,7 +2667,7 @@ f(C c) => c.a;
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
-    element: <testLibraryFragment>::@function::f::@parameter::c#element
+    element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
   period: .
   identifier: SimpleIdentifier
@@ -2712,7 +2712,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: a
-    element: package:test/lib.dart::<fragment>::@extension::E::@getter::a#element
+    element: package:test/lib.dart::@extension::E::@getter::a
     staticType: int
   staticType: int
 ''');
@@ -2740,9 +2740,9 @@ PrefixedIdentifier
   period: .
   identifier: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@extension::E::@getter::a#element
+    element: <testLibrary>::@extension::E::@getter::a
     staticType: int
-  element: <testLibraryFragment>::@extension::E::@getter::a#element
+  element: <testLibrary>::@extension::E::@getter::a
   staticType: int
 ''');
   }
@@ -2780,7 +2780,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: a
-    element: package:test/lib.dart::<fragment>::@extension::E::@getter::a#element
+    element: package:test/lib.dart::@extension::E::@getter::a
     staticType: int
   staticType: int
 ''');
@@ -2808,9 +2808,9 @@ PrefixedIdentifier
   period: .
   identifier: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@extension::E::@getter::a#element
+    element: <testLibrary>::@extension::E::@getter::a
     staticType: int
-  element: <testLibraryFragment>::@extension::E::@getter::a#element
+  element: <testLibrary>::@extension::E::@getter::a
   staticType: int
 ''');
   }
@@ -2930,11 +2930,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 3
-    correspondingParameter: package:test/lib.dart::<fragment>::@extension::E::@setter::a::@parameter::x#element
+    correspondingParameter: package:test/lib.dart::@extension::E::@setter::a::@formalParameter::x
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: package:test/lib.dart::<fragment>::@extension::E::@setter::a#element
+  writeElement2: package:test/lib.dart::@extension::E::@setter::a
   writeType: int
   element: <null>
   staticType: int
@@ -2971,11 +2971,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 3
-    correspondingParameter: <testLibraryFragment>::@extension::E::@setter::a::@parameter::x#element
+    correspondingParameter: <testLibrary>::@extension::E::@setter::a::@formalParameter::x
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@extension::E::@setter::a#element
+  writeElement2: <testLibrary>::@extension::E::@setter::a
   writeType: int
   element: <null>
   staticType: int
@@ -3061,7 +3061,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 2
-        correspondingParameter: <testLibraryFragment>::@extension::E::@method::call::@parameter::x#element
+        correspondingParameter: <testLibrary>::@extension::E::@method::call::@formalParameter::x
         staticType: int
     rightParenthesis: )
   element: <testLibrary>::@extension::E::@method::call
@@ -3100,7 +3100,7 @@ AssignmentExpression
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@extension::E2::@getter::foo#element
+  writeElement2: <testLibrary>::@extension::E2::@getter::foo
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -3122,7 +3122,7 @@ extension E on C {
     assertResolvedNodeText(identifier, r'''
 SimpleIdentifier
   token: a
-  element: <testLibraryFragment>::@extension::E::@getter::a#element
+  element: <testLibrary>::@extension::E::@getter::a
   staticType: int
 ''');
   }
@@ -3147,7 +3147,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@class::C::@getter::a#element
+    element: <testLibrary>::@class::C::@getter::a
     staticType: int
   staticType: int
 ''');
@@ -3172,7 +3172,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@extension::E::@getter::a#element
+    element: <testLibrary>::@extension::E::@getter::a
     staticType: int
   staticType: int
 ''');
@@ -3278,7 +3278,7 @@ BinaryExpression
   operator: +
   rightOperand: IntegerLiteral
     literal: 2
-    correspondingParameter: <testLibraryFragment>::@class::C::@method::+::@parameter::i#element
+    correspondingParameter: <testLibrary>::@class::C::@method::+::@formalParameter::i
     staticType: int
   element: <testLibrary>::@class::C::@method::+
   staticInvokeType: void Function(int)
@@ -3303,7 +3303,7 @@ BinaryExpression
   operator: +
   rightOperand: IntegerLiteral
     literal: 2
-    correspondingParameter: <testLibraryFragment>::@extension::E::@method::+::@parameter::i#element
+    correspondingParameter: <testLibrary>::@extension::E::@method::+::@formalParameter::i
     staticType: int
   element: <testLibrary>::@extension::E::@method::+
   staticInvokeType: void Function(int)
@@ -3330,7 +3330,7 @@ IndexExpression
   leftBracket: [
   index: IntegerLiteral
     literal: 2
-    correspondingParameter: <testLibraryFragment>::@class::C::@method::[]::@parameter::index#element
+    correspondingParameter: <testLibrary>::@class::C::@method::[]::@formalParameter::index
     staticType: int
   rightBracket: ]
   element: <testLibrary>::@class::C::@method::[]
@@ -3355,7 +3355,7 @@ IndexExpression
   leftBracket: [
   index: IntegerLiteral
     literal: 2
-    correspondingParameter: <testLibraryFragment>::@extension::E::@method::[]::@parameter::index#element
+    correspondingParameter: <testLibrary>::@extension::E::@method::[]::@formalParameter::index
     staticType: int
   rightBracket: ]
   element: <testLibrary>::@extension::E::@method::[]
@@ -3383,7 +3383,7 @@ AssignmentExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 2
-      correspondingParameter: <testLibraryFragment>::@class::C::@method::[]=::@parameter::index#element
+      correspondingParameter: <testLibrary>::@class::C::@method::[]=::@formalParameter::index
       staticType: int
     rightBracket: ]
     element: <null>
@@ -3391,7 +3391,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 1
-    correspondingParameter: <testLibraryFragment>::@class::C::@method::[]=::@parameter::value#element
+    correspondingParameter: <testLibrary>::@class::C::@method::[]=::@formalParameter::value
     staticType: int
   readElement2: <null>
   readType: null
@@ -3420,7 +3420,7 @@ AssignmentExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 2
-      correspondingParameter: <testLibraryFragment>::@extension::E::@method::[]=::@parameter::index#element
+      correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::index
       staticType: int
     rightBracket: ]
     element: <null>
@@ -3428,7 +3428,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 3
-    correspondingParameter: <testLibraryFragment>::@extension::E::@method::[]=::@parameter::value#element
+    correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::value
     staticType: int
   readElement2: <null>
   readType: null
@@ -3529,11 +3529,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 3
-    correspondingParameter: <testLibraryFragment>::@extension::E::@setter::a::@parameter::_#element
+    correspondingParameter: <testLibrary>::@extension::E::@setter::a::@formalParameter::_
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@extension::E::@setter::a#element
+  writeElement2: <testLibrary>::@extension::E::@setter::a
   writeType: int
   element: <null>
   staticType: int
@@ -3569,11 +3569,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 3
-    correspondingParameter: <testLibraryFragment>::@class::C::@setter::a::@parameter::_#element
+    correspondingParameter: <testLibrary>::@class::C::@setter::a::@formalParameter::_
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@class::C::@setter::a#element
+  writeElement2: <testLibrary>::@class::C::@setter::a
   writeType: int
   element: <null>
   staticType: int
@@ -3607,11 +3607,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 3
-    correspondingParameter: <testLibraryFragment>::@extension::E::@setter::a::@parameter::_#element
+    correspondingParameter: <testLibrary>::@extension::E::@setter::a::@formalParameter::_
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@extension::E::@setter::a#element
+  writeElement2: <testLibrary>::@extension::E::@setter::a
   writeType: int
   element: <null>
   staticType: int
@@ -3673,7 +3673,7 @@ extension E on C {
     assertResolvedNodeText(identifier, r'''
 SimpleIdentifier
   token: a
-  element: <testLibraryFragment>::@extension::E::@getter::a#element
+  element: <testLibrary>::@extension::E::@getter::a
   staticType: int
 ''');
   }
@@ -3691,7 +3691,7 @@ extension E on C {
     assertResolvedNodeText(identifier, r'''
 SimpleIdentifier
   token: a
-  element: <testLibraryFragment>::@extension::E::@getter::a#element
+  element: <testLibrary>::@extension::E::@getter::a
   staticType: int
 ''');
   }
@@ -3709,7 +3709,7 @@ extension E on C {
     assertResolvedNodeText(identifier, r'''
 SimpleIdentifier
   token: a
-  element: <testLibraryFragment>::@extension::E::@getter::a#element
+  element: <testLibrary>::@extension::E::@getter::a
   staticType: int
 ''');
   }
@@ -3727,7 +3727,7 @@ extension E on C {
     assertResolvedNodeText(identifier, r'''
 SimpleIdentifier
   token: a
-  element: <testLibraryFragment>::@extension::E::@getter::a#element
+  element: <testLibrary>::@extension::E::@getter::a
   staticType: int
 ''');
   }
@@ -3799,11 +3799,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 3
-    correspondingParameter: <testLibraryFragment>::@extension::E::@setter::a::@parameter::x#element
+    correspondingParameter: <testLibrary>::@extension::E::@setter::a::@formalParameter::x
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@extension::E::@setter::a#element
+  writeElement2: <testLibrary>::@extension::E::@setter::a
   writeType: int
   element: <null>
   staticType: int
@@ -3831,11 +3831,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 3
-    correspondingParameter: <testLibraryFragment>::@extension::E::@setter::a::@parameter::x#element
+    correspondingParameter: <testLibrary>::@extension::E::@setter::a::@formalParameter::x
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@extension::E::@setter::a#element
+  writeElement2: <testLibrary>::@extension::E::@setter::a
   writeType: int
   element: <null>
   staticType: int
@@ -3954,7 +3954,7 @@ extension E on C {
     assertResolvedNodeText(identifier, r'''
 SimpleIdentifier
   token: a
-  element: <testLibraryFragment>::@getter::a#element
+  element: <testLibrary>::@getter::a
   staticType: int
 ''');
   }
@@ -3977,7 +3977,7 @@ extension E on C {
     assertResolvedNodeText(identifier, r'''
 SimpleIdentifier
   token: a
-  element: <testLibraryFragment>::@getter::a#element
+  element: <testLibrary>::@getter::a
   staticType: int
 ''');
   }
@@ -4006,11 +4006,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: <testLibraryFragment>::@setter::a::@parameter::_#element
+    correspondingParameter: <testLibrary>::@setter::a::@formalParameter::_
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@setter::a#element
+  writeElement2: <testLibrary>::@setter::a
   writeType: int
   element: <null>
   staticType: int
@@ -4041,11 +4041,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: <testLibraryFragment>::@setter::a::@parameter::_#element
+    correspondingParameter: <testLibrary>::@setter::a::@formalParameter::_
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@setter::a#element
+  writeElement2: <testLibrary>::@setter::a
   writeType: int
   element: <null>
   staticType: int

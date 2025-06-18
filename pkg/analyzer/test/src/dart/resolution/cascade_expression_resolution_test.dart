@@ -40,7 +40,7 @@ test(C c) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: _d
-  element: <testLibraryFragment>::@class::C::@getter::_d#element
+  element: <testLibrary>::@class::C::@getter::_d
   staticType: D?
 ''');
   }
@@ -69,7 +69,7 @@ test(C c, int? i) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: i
-  element: <testLibraryFragment>::@function::test::@parameter::i#element
+  element: <testLibrary>::@function::test::@formalParameter::i
   staticType: int?
 ''');
   }
@@ -97,7 +97,7 @@ test(C c, int? i) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: i
-  element: <testLibraryFragment>::@function::test::@parameter::i#element
+  element: <testLibrary>::@function::test::@formalParameter::i
   staticType: int?
 ''');
   }
@@ -125,7 +125,7 @@ test(C c) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: _d
-  element: <testLibraryFragment>::@class::C::@getter::_d#element
+  element: <testLibrary>::@class::C::@getter::_d
   staticType: D?
 ''');
   }
@@ -152,7 +152,7 @@ test(C c, int? i) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: i
-  element: <testLibraryFragment>::@function::test::@parameter::i#element
+  element: <testLibrary>::@function::test::@formalParameter::i
   staticType: int?
 ''');
   }
@@ -181,7 +181,7 @@ test(C c) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: _d
-  element: <testLibraryFragment>::@class::C::@getter::_d#element
+  element: <testLibrary>::@class::C::@getter::_d
   staticType: D?
 ''');
   }
@@ -210,7 +210,7 @@ test(C c, int? i) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: i
-  element: <testLibraryFragment>::@function::test::@parameter::i#element
+  element: <testLibrary>::@function::test::@formalParameter::i
   staticType: int?
 ''');
   }
@@ -233,7 +233,7 @@ test(C c, int? i) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: i
-  element: <testLibraryFragment>::@function::test::@parameter::i#element
+  element: <testLibrary>::@function::test::@formalParameter::i
   staticType: int?
 ''');
   }

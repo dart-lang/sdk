@@ -8,8 +8,8 @@ import 'dart:math';
 
 import 'package:path/path.dart';
 
-import '../integration/support/integration_test_methods.dart';
-import '../integration/support/integration_tests.dart';
+import '../../integration_test/support/integration_test_methods.dart';
+import '../../integration_test/support/integration_tests.dart';
 
 /// Instances of the class [TimingResult] represent the timing information
 /// gathered while executing a given timing test.

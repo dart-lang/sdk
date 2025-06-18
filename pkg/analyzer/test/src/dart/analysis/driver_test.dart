@@ -850,7 +850,7 @@ var B = 0;
     flags: exists isLibrary
     selectedNode: SimpleIdentifier
       token: B
-      element: package:test/b.dart::<fragment>::@getter::B#element
+      element: package:test/b.dart::@getter::B
       staticType: int
 [status] idle
 ''');
@@ -876,7 +876,7 @@ var B = 1.2;
     flags: exists isLibrary
     selectedNode: SimpleIdentifier
       token: B
-      element: package:test/b.dart::<fragment>::@getter::B#element
+      element: package:test/b.dart::@getter::B
       staticType: double
 [status] idle
 ''');
@@ -4050,7 +4050,7 @@ final a = new A();
   path: /home/test/lib/b.dart
   uri: package:test/b.dart
   flags: isPart
-  enclosing: package:test/hidden/a.dart::<fragment>
+  enclosing: #F0
 [status] idle
 ''');
   }
@@ -4086,7 +4086,7 @@ final a = new A();
   path: /home/test/lib/b.dart
   uri: package:test/b.dart
   flags: isPart
-  enclosing: package:test/hidden/a.dart::<fragment>
+  enclosing: #F0
 [operation] analyzeFile
   file: /home/test/lib/hidden/a.dart
   library: /home/test/lib/hidden/a.dart
@@ -13494,7 +13494,7 @@ export 'a.dart';
 [future] getLibraryByUri T1
   library
     exportedReferences
-      exported[(0, 0)] package:test/a.dart::<fragment>::@class::A
+      exported[(0, 0)] package:test/a.dart::@class::A
     exportNamespace
       A: package:test/a.dart::@class::A
 [operation] linkLibraryCycle
@@ -13537,7 +13537,7 @@ class _B2 {}
 [future] getLibraryByUri T2
   library
     exportedReferences
-      exported[(0, 0)] package:test/a.dart::<fragment>::@class::A
+      exported[(0, 0)] package:test/a.dart::@class::A
     exportNamespace
       A: package:test/a.dart::@class::A
 [operation] readLibraryCycleBundle
@@ -13575,9 +13575,9 @@ class C {}
         constructors
           synthetic new
     exportedReferences
-      exported[(0, 0)] package:test/a.dart::<fragment>::@class::A
-      declared <testLibraryFragment>::@class::B
-      declared <testLibraryFragment>::@class::C
+      exported[(0, 0)] package:test/a.dart::@class::A
+      declared <testLibrary>::@class::B
+      declared <testLibrary>::@class::C
     exportNamespace
       A: package:test/a.dart::@class::A
       B: <testLibrary>::@class::B
@@ -13638,9 +13638,9 @@ class C {}
         constructors
           synthetic new
     exportedReferences
-      exported[(0, 0)] package:test/a.dart::<fragment>::@class::A
-      declared <testLibraryFragment>::@class::B
-      declared <testLibraryFragment>::@class::C
+      exported[(0, 0)] package:test/a.dart::@class::A
+      declared <testLibrary>::@class::B
+      declared <testLibrary>::@class::C
     exportNamespace
       A: package:test/a.dart::@class::A
       B: <testLibrary>::@class::B
@@ -13676,8 +13676,8 @@ class B {}
         constructors
           synthetic new
     exportedReferences
-      exported[(0, 0)] package:test/a.dart::<fragment>::@class::A
-      declared <testLibraryFragment>::@class::B
+      exported[(0, 0)] package:test/a.dart::@class::A
+      declared <testLibrary>::@class::B
     exportNamespace
       A: package:test/a.dart::@class::A
       B: <testLibrary>::@class::B
@@ -13732,9 +13732,9 @@ class C {}
         constructors
           synthetic new
     exportedReferences
-      exported[(0, 0)] package:test/a.dart::<fragment>::@class::A
-      exported[(0, 0)] package:test/a.dart::<fragment>::@class::C
-      declared <testLibraryFragment>::@class::B
+      exported[(0, 0)] package:test/a.dart::@class::A
+      exported[(0, 0)] package:test/a.dart::@class::C
+      declared <testLibrary>::@class::B
     exportNamespace
       A: package:test/a.dart::@class::A
       B: <testLibrary>::@class::B
@@ -13790,8 +13790,8 @@ export 'b.dart';
 [future] getLibraryByUri T1
   library
     exportedReferences
-      exported[(0, 0)] package:test/a.dart::<fragment>::@class::A
-      exported[(0, 0)] package:test/b.dart::<fragment>::@class::B
+      exported[(0, 0)] package:test/a.dart::@class::A
+      exported[(0, 0)] package:test/b.dart::@class::B
     exportNamespace
       A: package:test/a.dart::@class::A
       B: package:test/b.dart::@class::B
@@ -13851,8 +13851,8 @@ class A2 {}
 [future] getLibraryByUri T2
   library
     exportedReferences
-      exported[(0, 0)] package:test/a.dart::<fragment>::@class::A
-      exported[(0, 0)] package:test/b.dart::<fragment>::@class::B
+      exported[(0, 0)] package:test/a.dart::@class::A
+      exported[(0, 0)] package:test/b.dart::@class::B
     exportNamespace
       A: package:test/a.dart::@class::A
       B: package:test/b.dart::@class::B
@@ -13884,9 +13884,9 @@ export ':';
 [future] getLibraryByUri T1
   library
     exportedReferences
-      exported[(0, 0)] package:test/a.dart::<fragment>::@getter::a
+      exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
-      a: package:test/a.dart::<fragment>::@getter::a#element
+      a: package:test/a.dart::@getter::a
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
@@ -13924,9 +13924,9 @@ final a = 1;
 [future] getLibraryByUri T2
   library
     exportedReferences
-      exported[(0, 0)] package:test/a.dart::<fragment>::@getter::a
+      exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
-      a: package:test/a.dart::<fragment>::@getter::a#element
+      a: package:test/a.dart::@getter::a
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [status] idle
@@ -13952,9 +13952,9 @@ export 'a.dart';
 [future] getLibraryByUri T1
   library
     exportedReferences
-      exported[(0, 0)] package:test/a.dart::<fragment>::@getter::a
+      exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
-      a: package:test/a.dart::<fragment>::@getter::a#element
+      a: package:test/a.dart::@getter::a
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
@@ -13995,11 +13995,11 @@ final b = 0;
 [future] getLibraryByUri T2
   library
     exportedReferences
-      exported[(0, 0)] package:test/a.dart::<fragment>::@getter::a
-      exported[(0, 0)] package:test/a.dart::<fragment>::@getter::b
+      exported[(0, 0)] package:test/a.dart::@getter::a
+      exported[(0, 0)] package:test/a.dart::@getter::b
     exportNamespace
-      a: package:test/a.dart::<fragment>::@getter::a#element
-      b: package:test/a.dart::<fragment>::@getter::b#element
+      a: package:test/a.dart::@getter::a
+      b: package:test/a.dart::@getter::b
 [operation] cannotReuseLinkedBundle
   exportIdMismatch
     fragmentUri: package:test/test.dart
@@ -14042,9 +14042,9 @@ export 'a.dart' hide b;
 [future] getLibraryByUri T1
   library
     exportedReferences
-      exported[(0, 0)] package:test/a.dart::<fragment>::@getter::a
+      exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
-      a: package:test/a.dart::<fragment>::@getter::a#element
+      a: package:test/a.dart::@getter::a
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
@@ -14087,9 +14087,9 @@ final b = 0;
 [future] getLibraryByUri T2
   library
     exportedReferences
-      exported[(0, 0)] package:test/a.dart::<fragment>::@getter::a
+      exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
-      a: package:test/a.dart::<fragment>::@getter::a#element
+      a: package:test/a.dart::@getter::a
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [status] idle
@@ -14115,9 +14115,9 @@ export 'a.dart' hide c;
 [future] getLibraryByUri T1
   library
     exportedReferences
-      exported[(0, 0)] package:test/a.dart::<fragment>::@getter::a
+      exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
-      a: package:test/a.dart::<fragment>::@getter::a#element
+      a: package:test/a.dart::@getter::a
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
@@ -14160,11 +14160,11 @@ final b = 0;
 [future] getLibraryByUri T2
   library
     exportedReferences
-      exported[(0, 0)] package:test/a.dart::<fragment>::@getter::a
-      exported[(0, 0)] package:test/a.dart::<fragment>::@getter::b
+      exported[(0, 0)] package:test/a.dart::@getter::a
+      exported[(0, 0)] package:test/a.dart::@getter::b
     exportNamespace
-      a: package:test/a.dart::<fragment>::@getter::a#element
-      b: package:test/a.dart::<fragment>::@getter::b#element
+      a: package:test/a.dart::@getter::a
+      b: package:test/a.dart::@getter::b
 [operation] cannotReuseLinkedBundle
   exportIdMismatch
     fragmentUri: package:test/test.dart
@@ -14209,9 +14209,9 @@ export 'a.dart' show a;
 [future] getLibraryByUri T1
   library
     exportedReferences
-      exported[(0, 0)] package:test/a.dart::<fragment>::@getter::a
+      exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
-      a: package:test/a.dart::<fragment>::@getter::a#element
+      a: package:test/a.dart::@getter::a
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
@@ -14254,9 +14254,9 @@ final b = 0;
 [future] getLibraryByUri T2
   library
     exportedReferences
-      exported[(0, 0)] package:test/a.dart::<fragment>::@getter::a
+      exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
-      a: package:test/a.dart::<fragment>::@getter::a#element
+      a: package:test/a.dart::@getter::a
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [status] idle
@@ -14282,9 +14282,9 @@ export 'a.dart' show a, b;
 [future] getLibraryByUri T1
   library
     exportedReferences
-      exported[(0, 0)] package:test/a.dart::<fragment>::@getter::a
+      exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
-      a: package:test/a.dart::<fragment>::@getter::a#element
+      a: package:test/a.dart::@getter::a
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
@@ -14327,11 +14327,11 @@ final b = 0;
 [future] getLibraryByUri T2
   library
     exportedReferences
-      exported[(0, 0)] package:test/a.dart::<fragment>::@getter::a
-      exported[(0, 0)] package:test/a.dart::<fragment>::@getter::b
+      exported[(0, 0)] package:test/a.dart::@getter::a
+      exported[(0, 0)] package:test/a.dart::@getter::b
     exportNamespace
-      a: package:test/a.dart::<fragment>::@getter::a#element
-      b: package:test/a.dart::<fragment>::@getter::b#element
+      a: package:test/a.dart::@getter::a
+      b: package:test/a.dart::@getter::b
 [operation] cannotReuseLinkedBundle
   exportIdMismatch
     fragmentUri: package:test/test.dart
@@ -14376,9 +14376,9 @@ export 'a.dart' show a, b hide c;
 [future] getLibraryByUri T1
   library
     exportedReferences
-      exported[(0, 0)] package:test/a.dart::<fragment>::@getter::a
+      exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
-      a: package:test/a.dart::<fragment>::@getter::a#element
+      a: package:test/a.dart::@getter::a
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
@@ -14422,11 +14422,11 @@ final b = 0;
 [future] getLibraryByUri T2
   library
     exportedReferences
-      exported[(0, 0)] package:test/a.dart::<fragment>::@getter::a
-      exported[(0, 0)] package:test/a.dart::<fragment>::@getter::b
+      exported[(0, 0)] package:test/a.dart::@getter::a
+      exported[(0, 0)] package:test/a.dart::@getter::b
     exportNamespace
-      a: package:test/a.dart::<fragment>::@getter::a#element
-      b: package:test/a.dart::<fragment>::@getter::b#element
+      a: package:test/a.dart::@getter::a
+      b: package:test/a.dart::@getter::b
 [operation] cannotReuseLinkedBundle
   exportIdMismatch
     fragmentUri: package:test/test.dart
@@ -14472,9 +14472,9 @@ export 'a.dart';
 [future] getLibraryByUri T1
   library
     exportedReferences
-      exported[(0, 0)] package:test/a.dart::<fragment>::@getter::a
+      exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
-      a: package:test/a.dart::<fragment>::@getter::a#element
+      a: package:test/a.dart::@getter::a
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
@@ -14515,9 +14515,9 @@ final _b = 0;
 [future] getLibraryByUri T2
   library
     exportedReferences
-      exported[(0, 0)] package:test/a.dart::<fragment>::@getter::a
+      exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
-      a: package:test/a.dart::<fragment>::@getter::a#element
+      a: package:test/a.dart::@getter::a
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [status] idle
@@ -14544,11 +14544,11 @@ export 'a.dart';
 [future] getLibraryByUri T1
   library
     exportedReferences
-      exported[(0, 0)] package:test/a.dart::<fragment>::@getter::a
-      exported[(0, 0)] package:test/a.dart::<fragment>::@getter::b
+      exported[(0, 0)] package:test/a.dart::@getter::a
+      exported[(0, 0)] package:test/a.dart::@getter::b
     exportNamespace
-      a: package:test/a.dart::<fragment>::@getter::a#element
-      b: package:test/a.dart::<fragment>::@getter::b#element
+      a: package:test/a.dart::@getter::a
+      b: package:test/a.dart::@getter::b
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
@@ -14590,9 +14590,9 @@ final a = 0;
 [future] getLibraryByUri T2
   library
     exportedReferences
-      exported[(0, 0)] package:test/a.dart::<fragment>::@getter::a
+      exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
-      a: package:test/a.dart::<fragment>::@getter::a#element
+      a: package:test/a.dart::@getter::a
 [operation] cannotReuseLinkedBundle
   exportCountMismatch
     fragmentUri: package:test/test.dart
@@ -14633,9 +14633,9 @@ export 'a.dart' show a;
 [future] getLibraryByUri T1
   library
     exportedReferences
-      exported[(0, 0)] package:test/a.dart::<fragment>::@getter::a
+      exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
-      a: package:test/a.dart::<fragment>::@getter::a#element
+      a: package:test/a.dart::@getter::a
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
@@ -14677,9 +14677,9 @@ final a = 0;
 [future] getLibraryByUri T2
   library
     exportedReferences
-      exported[(0, 0)] package:test/a.dart::<fragment>::@getter::a
+      exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
-      a: package:test/a.dart::<fragment>::@getter::a#element
+      a: package:test/a.dart::@getter::a
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [status] idle
@@ -14706,11 +14706,11 @@ export 'a.dart';
 [future] getLibraryByUri T1
   library
     exportedReferences
-      exported[(0, 0)] package:test/a.dart::<fragment>::@getter::a
-      exported[(0, 0)] package:test/a.dart::<fragment>::@getter::b
+      exported[(0, 0)] package:test/a.dart::@getter::a
+      exported[(0, 0)] package:test/a.dart::@getter::b
     exportNamespace
-      a: package:test/a.dart::<fragment>::@getter::a#element
-      b: package:test/a.dart::<fragment>::@getter::b#element
+      a: package:test/a.dart::@getter::a
+      b: package:test/a.dart::@getter::b
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
@@ -14755,11 +14755,11 @@ final c = 0;
 [future] getLibraryByUri T2
   library
     exportedReferences
-      exported[(0, 0)] package:test/a.dart::<fragment>::@getter::a
-      exported[(0, 0)] package:test/a.dart::<fragment>::@getter::c
+      exported[(0, 0)] package:test/a.dart::@getter::a
+      exported[(0, 0)] package:test/a.dart::@getter::c
     exportNamespace
-      a: package:test/a.dart::<fragment>::@getter::a#element
-      c: package:test/a.dart::<fragment>::@getter::c#element
+      a: package:test/a.dart::@getter::a
+      c: package:test/a.dart::@getter::c
 [operation] cannotReuseLinkedBundle
   exportIdMismatch
     fragmentUri: package:test/test.dart
@@ -14811,9 +14811,9 @@ final x = a;
       final hasInitializer x
         type: int
     exportedReferences
-      declared <testLibraryFragment>::@getter::x
+      declared <testLibrary>::@getter::x
     exportNamespace
-      x: <testLibraryFragment>::@getter::x#element
+      x: <testLibrary>::@getter::x
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
@@ -14868,9 +14868,9 @@ final a = 1.2;
       final hasInitializer x
         type: double
     exportedReferences
-      declared <testLibraryFragment>::@getter::x
+      declared <testLibrary>::@getter::x
     exportNamespace
-      x: <testLibraryFragment>::@getter::x#element
+      x: <testLibrary>::@getter::x
 [operation] cannotReuseLinkedBundle
   exportIdMismatch
     fragmentUri: package:test/b.dart

@@ -67,7 +67,7 @@ void f() {
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
-  element2: <testLibraryFragment>::@getter::A#element
+  element2: <testLibrary>::@getter::A
   type: InvalidType
 ''');
   }
@@ -95,7 +95,7 @@ NamedType
         element2: dart:core::@class::int
         type: int
     rightBracket: >
-  element2: <testLibraryFragment>::@getter::A#element
+  element2: <testLibrary>::@getter::A
   type: InvalidType
 ''');
   }

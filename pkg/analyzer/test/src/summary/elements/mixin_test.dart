@@ -38,124 +38,117 @@ mixin M<T extends num, U> on A, B implements C, D {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A @6
           element: <testLibrary>::@class::A
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
+            #F2 synthetic new
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        class B @17
-          reference: <testLibraryFragment>::@class::B
+        #F3 class B @17
           element: <testLibrary>::@class::B
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::B::@constructor::new
+            #F4 synthetic new
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-        class C @28
-          reference: <testLibraryFragment>::@class::C
+        #F5 class C @28
           element: <testLibrary>::@class::C
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::C::@constructor::new
+            #F6 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-        class D @39
-          reference: <testLibraryFragment>::@class::D
+        #F7 class D @39
           element: <testLibrary>::@class::D
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::D::@constructor::new
+            #F8 synthetic new
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
       mixins
-        mixin M @51
-          reference: <testLibraryFragment>::@mixin::M
+        #F9 mixin M @51
           element: <testLibrary>::@mixin::M
           typeParameters
-            T @53
-              element: T@53
-            U @68
-              element: U@68
+            #F10 T @53
+              element: #E0 T
+            #F11 U @68
+              element: #E1 U
           fields
-            f @101
-              reference: <testLibraryFragment>::@mixin::M::@field::f
+            #F12 f @101
               element: <testLibrary>::@mixin::M::@field::f
-              getter2: <testLibraryFragment>::@mixin::M::@getter::f
-              setter2: <testLibraryFragment>::@mixin::M::@setter::f
-            synthetic g
-              reference: <testLibraryFragment>::@mixin::M::@field::g
+              getter2: #F13
+              setter2: #F14
+            #F15 synthetic g
               element: <testLibrary>::@mixin::M::@field::g
-              getter2: <testLibraryFragment>::@mixin::M::@getter::g
-            synthetic s
-              reference: <testLibraryFragment>::@mixin::M::@field::s
+              getter2: #F16
+            #F17 synthetic s
               element: <testLibrary>::@mixin::M::@field::s
-              setter2: <testLibraryFragment>::@mixin::M::@setter::s
+              setter2: #F18
           getters
-            synthetic get f
-              reference: <testLibraryFragment>::@mixin::M::@getter::f
-              element: <testLibraryFragment>::@mixin::M::@getter::f#element
-            get g @112
-              reference: <testLibraryFragment>::@mixin::M::@getter::g
-              element: <testLibraryFragment>::@mixin::M::@getter::g#element
+            #F13 synthetic f
+              element: <testLibrary>::@mixin::M::@getter::f
+              returnType: T
+              variable: #F12
+            #F16 g @112
+              element: <testLibrary>::@mixin::M::@getter::g
+              returnType: U
+              variable: #F15
           setters
-            synthetic set f
-              reference: <testLibraryFragment>::@mixin::M::@setter::f
-              element: <testLibraryFragment>::@mixin::M::@setter::f#element
+            #F14 synthetic f
+              element: <testLibrary>::@mixin::M::@setter::f
               formalParameters
-                _f
-                  element: <testLibraryFragment>::@mixin::M::@setter::f::@parameter::_f#element
-            set s @126
-              reference: <testLibraryFragment>::@mixin::M::@setter::s
-              element: <testLibraryFragment>::@mixin::M::@setter::s#element
+                #F19 _f
+                  element: <testLibrary>::@mixin::M::@setter::f::@formalParameter::_f
+            #F18 s @126
+              element: <testLibrary>::@mixin::M::@setter::s
               formalParameters
-                v @132
-                  element: <testLibraryFragment>::@mixin::M::@setter::s::@parameter::v#element
+                #F20 v @132
+                  element: <testLibrary>::@mixin::M::@setter::s::@formalParameter::v
           methods
-            m @144
-              reference: <testLibraryFragment>::@mixin::M::@method::m
+            #F21 m @144
               element: <testLibrary>::@mixin::M::@method::m
               formalParameters
-                v @153
-                  element: <testLibraryFragment>::@mixin::M::@method::m::@parameter::v#element
+                #F22 v @153
+                  element: <testLibrary>::@mixin::M::@method::m::@formalParameter::v
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
     class B
       reference: <testLibrary>::@class::B
-      firstFragment: <testLibraryFragment>::@class::B
+      firstFragment: #F3
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F4
     class C
       reference: <testLibrary>::@class::C
-      firstFragment: <testLibraryFragment>::@class::C
+      firstFragment: #F5
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F6
     class D
       reference: <testLibrary>::@class::D
-      firstFragment: <testLibraryFragment>::@class::D
+      firstFragment: #F7
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::D::@constructor::new
+          reference: <testLibrary>::@class::D::@constructor::new
+          firstFragment: #F8
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
-      firstFragment: <testLibraryFragment>::@mixin::M
+      firstFragment: #F9
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F10
           bound: num
-        U
+        #E1 U
+          firstFragment: #F11
       superclassConstraints
         A
         B
@@ -164,49 +157,61 @@ library
         D
       fields
         f
-          firstFragment: <testLibraryFragment>::@mixin::M::@field::f
+          reference: <testLibrary>::@mixin::M::@field::f
+          firstFragment: #F12
           hasEnclosingTypeParameterReference: true
           type: T
-          getter: <testLibraryFragment>::@mixin::M::@getter::f#element
-          setter: <testLibraryFragment>::@mixin::M::@setter::f#element
+          getter: <testLibrary>::@mixin::M::@getter::f
+          setter: <testLibrary>::@mixin::M::@setter::f
         synthetic g
-          firstFragment: <testLibraryFragment>::@mixin::M::@field::g
+          reference: <testLibrary>::@mixin::M::@field::g
+          firstFragment: #F15
           hasEnclosingTypeParameterReference: true
           type: U
-          getter: <testLibraryFragment>::@mixin::M::@getter::g#element
+          getter: <testLibrary>::@mixin::M::@getter::g
         synthetic s
-          firstFragment: <testLibraryFragment>::@mixin::M::@field::s
+          reference: <testLibrary>::@mixin::M::@field::s
+          firstFragment: #F17
           type: int
-          setter: <testLibraryFragment>::@mixin::M::@setter::s#element
+          setter: <testLibrary>::@mixin::M::@setter::s
       getters
-        synthetic get f
-          firstFragment: <testLibraryFragment>::@mixin::M::@getter::f
+        synthetic f
+          reference: <testLibrary>::@mixin::M::@getter::f
+          firstFragment: #F13
           hasEnclosingTypeParameterReference: true
           returnType: T
-        get g
-          firstFragment: <testLibraryFragment>::@mixin::M::@getter::g
+          variable: <testLibrary>::@mixin::M::@field::f
+        g
+          reference: <testLibrary>::@mixin::M::@getter::g
+          firstFragment: #F16
           hasEnclosingTypeParameterReference: true
           returnType: U
+          variable: <testLibrary>::@mixin::M::@field::g
       setters
-        synthetic set f
-          firstFragment: <testLibraryFragment>::@mixin::M::@setter::f
+        synthetic f
+          reference: <testLibrary>::@mixin::M::@setter::f
+          firstFragment: #F14
           hasEnclosingTypeParameterReference: true
           formalParameters
             requiredPositional _f
+              firstFragment: #F19
               type: T
           returnType: void
-        set s
-          firstFragment: <testLibraryFragment>::@mixin::M::@setter::s
+        s
+          reference: <testLibrary>::@mixin::M::@setter::s
+          firstFragment: #F18
           formalParameters
             requiredPositional v
+              firstFragment: #F20
               type: int
           returnType: void
       methods
         m
           reference: <testLibrary>::@mixin::M::@method::m
-          firstFragment: <testLibraryFragment>::@mixin::M::@method::m
+          firstFragment: #F21
           formalParameters
             requiredPositional v
+              firstFragment: #F22
               type: double
           returnType: int
 ''');
@@ -220,16 +225,15 @@ base mixin M on A {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       mixins
-        mixin M @11
-          reference: <testLibraryFragment>::@mixin::M
+        #F1 mixin M @11
           element: <testLibrary>::@mixin::M
   mixins
     base mixin M
       reference: <testLibrary>::@mixin::M
-      firstFragment: <testLibraryFragment>::@mixin::M
+      firstFragment: #F1
       superclassConstraints
         Object
 ''');
@@ -244,36 +248,38 @@ mixin M {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       mixins
-        mixin M @6
-          reference: <testLibraryFragment>::@mixin::M
+        #F1 mixin M @6
           element: <testLibrary>::@mixin::M
           fields
-            hasInitializer x @18
-              reference: <testLibraryFragment>::@mixin::M::@field::x
+            #F2 hasInitializer x @18
               element: <testLibrary>::@mixin::M::@field::x
-              getter2: <testLibraryFragment>::@mixin::M::@getter::x
+              getter2: #F3
           getters
-            synthetic get x
-              reference: <testLibraryFragment>::@mixin::M::@getter::x
-              element: <testLibraryFragment>::@mixin::M::@getter::x#element
+            #F3 synthetic x
+              element: <testLibrary>::@mixin::M::@getter::x
+              returnType: int
+              variable: #F2
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
-      firstFragment: <testLibraryFragment>::@mixin::M
+      firstFragment: #F1
       superclassConstraints
         Object
       fields
         final hasInitializer x
-          firstFragment: <testLibraryFragment>::@mixin::M::@field::x
+          reference: <testLibrary>::@mixin::M::@field::x
+          firstFragment: #F2
           type: int
-          getter: <testLibraryFragment>::@mixin::M::@getter::x#element
+          getter: <testLibrary>::@mixin::M::@getter::x
       getters
-        synthetic get x
-          firstFragment: <testLibraryFragment>::@mixin::M::@getter::x
+        synthetic x
+          reference: <testLibrary>::@mixin::M::@getter::x
+          firstFragment: #F3
           returnType: int
+          variable: <testLibrary>::@mixin::M::@field::x
 ''');
   }
 
@@ -301,36 +307,38 @@ mixin M on A {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       mixins
-        mixin M @6
-          reference: <testLibraryFragment>::@mixin::M
+        #F1 mixin M @6
           element: <testLibrary>::@mixin::M
           fields
-            synthetic foo
-              reference: <testLibraryFragment>::@mixin::M::@field::foo
+            #F2 synthetic foo
               element: <testLibrary>::@mixin::M::@field::foo
-              getter2: <testLibraryFragment>::@mixin::M::@getter::foo
+              getter2: #F3
           getters
-            get foo @25
-              reference: <testLibraryFragment>::@mixin::M::@getter::foo
-              element: <testLibraryFragment>::@mixin::M::@getter::foo#element
+            #F3 foo @25
+              element: <testLibrary>::@mixin::M::@getter::foo
+              returnType: int
+              variable: #F2
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
-      firstFragment: <testLibraryFragment>::@mixin::M
+      firstFragment: #F1
       superclassConstraints
         Object
       fields
         synthetic foo
-          firstFragment: <testLibraryFragment>::@mixin::M::@field::foo
+          reference: <testLibrary>::@mixin::M::@field::foo
+          firstFragment: #F2
           type: int
-          getter: <testLibraryFragment>::@mixin::M::@getter::foo#element
+          getter: <testLibrary>::@mixin::M::@getter::foo
       getters
-        get foo
-          firstFragment: <testLibraryFragment>::@mixin::M::@getter::foo
+        foo
+          reference: <testLibrary>::@mixin::M::@getter::foo
+          firstFragment: #F3
           returnType: int
+          variable: <testLibrary>::@mixin::M::@field::foo
 ''');
   }
 
@@ -346,36 +354,38 @@ mixin M on A {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       mixins
-        mixin M @6
-          reference: <testLibraryFragment>::@mixin::M
+        #F1 mixin M @6
           element: <testLibrary>::@mixin::M
           fields
-            synthetic foo
-              reference: <testLibraryFragment>::@mixin::M::@field::foo
+            #F2 synthetic foo
               element: <testLibrary>::@mixin::M::@field::foo
-              getter2: <testLibraryFragment>::@mixin::M::@getter::foo
+              getter2: #F3
           getters
-            get foo @25
-              reference: <testLibraryFragment>::@mixin::M::@getter::foo
-              element: <testLibraryFragment>::@mixin::M::@getter::foo#element
+            #F3 foo @25
+              element: <testLibrary>::@mixin::M::@getter::foo
+              returnType: int
+              variable: #F2
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
-      firstFragment: <testLibraryFragment>::@mixin::M
+      firstFragment: #F1
       superclassConstraints
         Object
       fields
         synthetic foo
-          firstFragment: <testLibraryFragment>::@mixin::M::@field::foo
+          reference: <testLibrary>::@mixin::M::@field::foo
+          firstFragment: #F2
           type: int
-          getter: <testLibraryFragment>::@mixin::M::@getter::foo#element
+          getter: <testLibrary>::@mixin::M::@getter::foo
       getters
-        get foo
-          firstFragment: <testLibraryFragment>::@mixin::M::@getter::foo
+        foo
+          reference: <testLibrary>::@mixin::M::@getter::foo
+          firstFragment: #F3
           returnType: int
+          variable: <testLibrary>::@mixin::M::@field::foo
 ''');
   }
 
@@ -391,36 +401,38 @@ mixin M on A {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       mixins
-        mixin M @6
-          reference: <testLibraryFragment>::@mixin::M
+        #F1 mixin M @6
           element: <testLibrary>::@mixin::M
           fields
-            synthetic foo
-              reference: <testLibraryFragment>::@mixin::M::@field::foo
+            #F2 synthetic foo
               element: <testLibrary>::@mixin::M::@field::foo
-              getter2: <testLibraryFragment>::@mixin::M::@getter::foo
+              getter2: #F3
           getters
-            get foo @25
-              reference: <testLibraryFragment>::@mixin::M::@getter::foo
-              element: <testLibraryFragment>::@mixin::M::@getter::foo#element
+            #F3 foo @25
+              element: <testLibrary>::@mixin::M::@getter::foo
+              returnType: int
+              variable: #F2
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
-      firstFragment: <testLibraryFragment>::@mixin::M
+      firstFragment: #F1
       superclassConstraints
         Object
       fields
         synthetic foo
-          firstFragment: <testLibraryFragment>::@mixin::M::@field::foo
+          reference: <testLibrary>::@mixin::M::@field::foo
+          firstFragment: #F2
           type: int
-          getter: <testLibraryFragment>::@mixin::M::@getter::foo#element
+          getter: <testLibrary>::@mixin::M::@getter::foo
       getters
-        get foo
-          firstFragment: <testLibraryFragment>::@mixin::M::@getter::foo
+        foo
+          reference: <testLibrary>::@mixin::M::@getter::foo
+          firstFragment: #F3
           returnType: int
+          variable: <testLibrary>::@mixin::M::@field::foo
 ''');
   }
 
@@ -432,16 +444,15 @@ mixin M {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       mixins
-        mixin M @6
-          reference: <testLibraryFragment>::@mixin::M
+        #F1 mixin M @6
           element: <testLibrary>::@mixin::M
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
-      firstFragment: <testLibraryFragment>::@mixin::M
+      firstFragment: #F1
       superclassConstraints
         Object
 ''');
@@ -457,60 +468,59 @@ class B extends A<int> with M {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A @6
           element: <testLibrary>::@class::A
           typeParameters
-            T @8
-              element: T@8
+            #F2 T @8
+              element: #E0 T
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
+            #F3 synthetic new
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        class B @42
-          reference: <testLibraryFragment>::@class::B
+        #F4 class B @42
           element: <testLibrary>::@class::B
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::B::@constructor::new
+            #F5 synthetic new
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
       mixins
-        mixin M @20
-          reference: <testLibraryFragment>::@mixin::M
+        #F6 mixin M @20
           element: <testLibrary>::@mixin::M
           typeParameters
-            U @22
-              element: U@22
+            #F7 U @22
+              element: #E1 U
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
     class B
       reference: <testLibrary>::@class::B
-      firstFragment: <testLibraryFragment>::@class::B
+      firstFragment: #F4
       supertype: A<int>
       mixins
         M<int>
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F5
           superConstructor: <testLibrary>::@class::A::@constructor::new
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
-      firstFragment: <testLibraryFragment>::@mixin::M
+      firstFragment: #F6
       typeParameters
-        U
+        #E1 U
+          firstFragment: #F7
       superclassConstraints
         A<U>
 ''');
@@ -530,59 +540,57 @@ class C = A<int> with B;
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A @6
           element: <testLibrary>::@class::A
           typeParameters
-            T @8
-              element: T@8
+            #F2 T @8
+              element: #E0 T
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
+            #F3 synthetic new
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        class B @20
-          reference: <testLibraryFragment>::@class::B
+        #F4 class B @20
           element: <testLibrary>::@class::B
           typeParameters
-            T @22
-              element: T@22
+            #F5 T @22
+              element: #E1 T
           constructors
-            synthetic const new
-              reference: <testLibraryFragment>::@class::B::@constructor::new
+            #F6 synthetic const new
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-        class C @51
-          reference: <testLibraryFragment>::@class::C
+        #F7 class C @51
           element: <testLibrary>::@class::C
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::C::@constructor::new
+            #F8 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
     class alias B
       reference: <testLibrary>::@class::B
-      firstFragment: <testLibraryFragment>::@class::B
+      firstFragment: #F4
       typeParameters
-        T
+        #E1 T
+          firstFragment: #F5
       supertype: Object
       mixins
         A<T>
       constructors
         synthetic const new
-          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F6
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
@@ -592,13 +600,14 @@ library
               element: dart:core::@class::Object::@constructor::new
     class alias C
       reference: <testLibrary>::@class::C
-      firstFragment: <testLibraryFragment>::@class::C
+      firstFragment: #F7
       supertype: A<int>
       mixins
         B<dynamic>
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F8
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
@@ -627,87 +636,83 @@ class C = Base with B;
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class A1 @6
-          reference: <testLibraryFragment>::@class::A1
+        #F1 class A1 @6
           element: <testLibrary>::@class::A1
           typeParameters
-            T @9
-              element: T@9
+            #F2 T @9
+              element: #E0 T
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A1::@constructor::new
+            #F3 synthetic new
               element: <testLibrary>::@class::A1::@constructor::new
               typeName: A1
-        class A2 @21
-          reference: <testLibraryFragment>::@class::A2
+        #F4 class A2 @21
           element: <testLibrary>::@class::A2
           typeParameters
-            T @24
-              element: T@24
+            #F5 T @24
+              element: #E1 T
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A2::@constructor::new
+            #F6 synthetic new
               element: <testLibrary>::@class::A2::@constructor::new
               typeName: A2
-        class B @36
-          reference: <testLibraryFragment>::@class::B
+        #F7 class B @36
           element: <testLibrary>::@class::B
           typeParameters
-            T @38
-              element: T@38
+            #F8 T @38
+              element: #E2 T
           constructors
-            synthetic const new
-              reference: <testLibraryFragment>::@class::B::@constructor::new
+            #F9 synthetic const new
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-        class Base @75
-          reference: <testLibraryFragment>::@class::Base
+        #F10 class Base @75
           element: <testLibrary>::@class::Base
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::Base::@constructor::new
+            #F11 synthetic new
               element: <testLibrary>::@class::Base::@constructor::new
               typeName: Base
-        class C @108
-          reference: <testLibraryFragment>::@class::C
+        #F12 class C @108
           element: <testLibrary>::@class::C
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::C::@constructor::new
+            #F13 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
   classes
     class A1
       reference: <testLibrary>::@class::A1
-      firstFragment: <testLibraryFragment>::@class::A1
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A1::@constructor::new
+          reference: <testLibrary>::@class::A1::@constructor::new
+          firstFragment: #F3
     class A2
       reference: <testLibrary>::@class::A2
-      firstFragment: <testLibraryFragment>::@class::A2
+      firstFragment: #F4
       typeParameters
-        T
+        #E1 T
+          firstFragment: #F5
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A2::@constructor::new
+          reference: <testLibrary>::@class::A2::@constructor::new
+          firstFragment: #F6
     class alias B
       reference: <testLibrary>::@class::B
-      firstFragment: <testLibraryFragment>::@class::B
+      firstFragment: #F7
       typeParameters
-        T
+        #E2 T
+          firstFragment: #F8
       supertype: Object
       mixins
         A1<T>
         A2<T>
       constructors
         synthetic const new
-          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F9
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
@@ -717,21 +722,23 @@ library
               element: dart:core::@class::Object::@constructor::new
     class Base
       reference: <testLibrary>::@class::Base
-      firstFragment: <testLibraryFragment>::@class::Base
+      firstFragment: #F10
       interfaces
         A1<int>
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::Base::@constructor::new
+          reference: <testLibrary>::@class::Base::@constructor::new
+          firstFragment: #F11
     class alias C
       reference: <testLibrary>::@class::C
-      firstFragment: <testLibraryFragment>::@class::C
+      firstFragment: #F12
       supertype: Base
       mixins
         B<int>
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F13
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
@@ -753,63 +760,63 @@ class C extends A<int Function(String)> with M {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A @6
           element: <testLibrary>::@class::A
           typeParameters
-            T @8
-              element: T@8
+            #F2 T @8
+              element: #E0 T
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
+            #F3 synthetic new
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        class C @57
-          reference: <testLibraryFragment>::@class::C
+        #F4 class C @57
           element: <testLibrary>::@class::C
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::C::@constructor::new
+            #F5 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       mixins
-        mixin M @20
-          reference: <testLibraryFragment>::@mixin::M
+        #F6 mixin M @20
           element: <testLibrary>::@mixin::M
           typeParameters
-            T @22
-              element: T@22
-            U @25
-              element: U@25
+            #F7 T @22
+              element: #E1 T
+            #F8 U @25
+              element: #E2 U
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
     class C
       reference: <testLibrary>::@class::C
-      firstFragment: <testLibraryFragment>::@class::C
+      firstFragment: #F4
       supertype: A<int Function(String)>
       mixins
         M<int, String>
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F5
           superConstructor: <testLibrary>::@class::A::@constructor::new
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
-      firstFragment: <testLibraryFragment>::@mixin::M
+      firstFragment: #F6
       typeParameters
-        T
-        U
+        #E1 T
+          firstFragment: #F7
+        #E2 U
+          firstFragment: #F8
       superclassConstraints
         A<T Function(U)>
 ''');
@@ -825,60 +832,59 @@ class C extends A<List<int>> with M {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class A @15
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A @15
           element: <testLibrary>::@class::A
           typeParameters
-            T @17
-              element: T@17
+            #F2 T @17
+              element: #E0 T
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
+            #F3 synthetic new
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        class C @57
-          reference: <testLibraryFragment>::@class::C
+        #F4 class C @57
           element: <testLibrary>::@class::C
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::C::@constructor::new
+            #F5 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       mixins
-        mixin M @29
-          reference: <testLibraryFragment>::@mixin::M
+        #F6 mixin M @29
           element: <testLibrary>::@mixin::M
           typeParameters
-            T @31
-              element: T@31
+            #F7 T @31
+              element: #E1 T
   classes
     abstract class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
     class C
       reference: <testLibrary>::@class::C
-      firstFragment: <testLibraryFragment>::@class::C
+      firstFragment: #F4
       supertype: A<List<int>>
       mixins
         M<int>
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F5
           superConstructor: <testLibrary>::@class::A::@constructor::new
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
-      firstFragment: <testLibraryFragment>::@mixin::M
+      firstFragment: #F6
       typeParameters
-        T
+        #E1 T
+          firstFragment: #F7
       superclassConstraints
         A<List<T>>
 ''');
@@ -896,60 +902,57 @@ class A = I<int> with M1, M2;
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class I @6
-          reference: <testLibraryFragment>::@class::I
+        #F1 class I @6
           element: <testLibrary>::@class::I
           typeParameters
-            X @8
-              element: X@8
+            #F2 X @8
+              element: #E0 X
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::I::@constructor::new
+            #F3 synthetic new
               element: <testLibrary>::@class::I::@constructor::new
               typeName: I
-        class A @66
-          reference: <testLibraryFragment>::@class::A
+        #F4 class A @66
           element: <testLibrary>::@class::A
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
+            #F5 synthetic new
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       mixins
-        mixin M1 @20
-          reference: <testLibraryFragment>::@mixin::M1
+        #F6 mixin M1 @20
           element: <testLibrary>::@mixin::M1
           typeParameters
-            T @23
-              element: T@23
-        mixin M2 @43
-          reference: <testLibraryFragment>::@mixin::M2
+            #F7 T @23
+              element: #E1 T
+        #F8 mixin M2 @43
           element: <testLibrary>::@mixin::M2
           typeParameters
-            T @46
-              element: T@46
+            #F9 T @46
+              element: #E2 T
   classes
     class I
       reference: <testLibrary>::@class::I
-      firstFragment: <testLibraryFragment>::@class::I
+      firstFragment: #F1
       typeParameters
-        X
+        #E0 X
+          firstFragment: #F2
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::I::@constructor::new
+          reference: <testLibrary>::@class::I::@constructor::new
+          firstFragment: #F3
     class alias A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F4
       supertype: I<int>
       mixins
         M1<int>
         M2<int>
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F5
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
@@ -961,16 +964,18 @@ library
   mixins
     mixin M1
       reference: <testLibrary>::@mixin::M1
-      firstFragment: <testLibraryFragment>::@mixin::M1
+      firstFragment: #F6
       typeParameters
-        T
+        #E1 T
+          firstFragment: #F7
       superclassConstraints
         I<T>
     mixin M2
       reference: <testLibrary>::@mixin::M2
-      firstFragment: <testLibraryFragment>::@mixin::M2
+      firstFragment: #F8
       typeParameters
-        T
+        #E2 T
+          firstFragment: #F9
       superclassConstraints
         I<T>
 ''');
@@ -990,56 +995,52 @@ class X extends S<String> with M2 {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class S @62
-          reference: <testLibraryFragment>::@class::S
+        #F1 class S @62
           element: <testLibrary>::@class::S
           typeParameters
-            T3 @64
-              element: T3@64
+            #F2 T3 @64
+              element: #E0 T3
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::S::@constructor::new
+            #F3 synthetic new
               element: <testLibrary>::@class::S::@constructor::new
               typeName: S
-        class X @78
-          reference: <testLibraryFragment>::@class::X
+        #F4 class X @78
           element: <testLibrary>::@class::X
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::X::@constructor::new
+            #F5 synthetic new
               element: <testLibrary>::@class::X::@constructor::new
               typeName: X
       mixins
-        mixin M @6
-          reference: <testLibraryFragment>::@mixin::M
+        #F6 mixin M @6
           element: <testLibrary>::@mixin::M
           typeParameters
-            T @8
-              element: T@8
-            U @11
-              element: U@11
+            #F7 T @8
+              element: #E1 T
+            #F8 U @11
+              element: #E2 U
       typeAliases
-        M2 @34
-          reference: <testLibraryFragment>::@typeAlias::M2
+        #F9 M2 @34
           element: <testLibrary>::@typeAlias::M2
           typeParameters
-            T2 @37
-              element: T2@37
+            #F10 T2 @37
+              element: #E3 T2
   classes
     class S
       reference: <testLibrary>::@class::S
-      firstFragment: <testLibraryFragment>::@class::S
+      firstFragment: #F1
       typeParameters
-        T3
+        #E0 T3
+          firstFragment: #F2
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::S::@constructor::new
+          reference: <testLibrary>::@class::S::@constructor::new
+          firstFragment: #F3
     class X
       reference: <testLibrary>::@class::X
-      firstFragment: <testLibraryFragment>::@class::X
+      firstFragment: #F4
       supertype: S<String>
       mixins
         M<String, int>
@@ -1048,22 +1049,27 @@ library
               String
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::X::@constructor::new
+          reference: <testLibrary>::@class::X::@constructor::new
+          firstFragment: #F5
           superConstructor: <testLibrary>::@class::S::@constructor::new
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
-      firstFragment: <testLibraryFragment>::@mixin::M
+      firstFragment: #F6
       typeParameters
-        T
-        U
+        #E1 T
+          firstFragment: #F7
+        #E2 U
+          firstFragment: #F8
       superclassConstraints
         S<T>
   typeAliases
     M2
-      firstFragment: <testLibraryFragment>::@typeAlias::M2
+      reference: <testLibrary>::@typeAlias::M2
+      firstFragment: #F9
       typeParameters
-        T2
+        #E3 T2
+          firstFragment: #F10
       aliasedType: M<T2, int>
 ''');
   }
@@ -1084,62 +1090,57 @@ class X extends S<String> with M3 {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class S @88
-          reference: <testLibraryFragment>::@class::S
+        #F1 class S @88
           element: <testLibrary>::@class::S
           typeParameters
-            T4 @90
-              element: T4@90
+            #F2 T4 @90
+              element: #E0 T4
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::S::@constructor::new
+            #F3 synthetic new
               element: <testLibrary>::@class::S::@constructor::new
               typeName: S
-        class X @104
-          reference: <testLibraryFragment>::@class::X
+        #F4 class X @104
           element: <testLibrary>::@class::X
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::X::@constructor::new
+            #F5 synthetic new
               element: <testLibrary>::@class::X::@constructor::new
               typeName: X
       mixins
-        mixin M @6
-          reference: <testLibraryFragment>::@mixin::M
+        #F6 mixin M @6
           element: <testLibrary>::@mixin::M
           typeParameters
-            T @8
-              element: T@8
-            U @11
-              element: U@11
+            #F7 T @8
+              element: #E1 T
+            #F8 U @11
+              element: #E2 U
       typeAliases
-        M2 @34
-          reference: <testLibraryFragment>::@typeAlias::M2
+        #F9 M2 @34
           element: <testLibrary>::@typeAlias::M2
           typeParameters
-            T2 @37
-              element: T2@37
-        M3 @64
-          reference: <testLibraryFragment>::@typeAlias::M3
+            #F10 T2 @37
+              element: #E3 T2
+        #F11 M3 @64
           element: <testLibrary>::@typeAlias::M3
           typeParameters
-            T3 @67
-              element: T3@67
+            #F12 T3 @67
+              element: #E4 T3
   classes
     class S
       reference: <testLibrary>::@class::S
-      firstFragment: <testLibraryFragment>::@class::S
+      firstFragment: #F1
       typeParameters
-        T4
+        #E0 T4
+          firstFragment: #F2
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::S::@constructor::new
+          reference: <testLibrary>::@class::S::@constructor::new
+          firstFragment: #F3
     class X
       reference: <testLibrary>::@class::X
-      firstFragment: <testLibraryFragment>::@class::X
+      firstFragment: #F4
       supertype: S<String>
       mixins
         M<String, int>
@@ -1148,27 +1149,34 @@ library
               String
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::X::@constructor::new
+          reference: <testLibrary>::@class::X::@constructor::new
+          firstFragment: #F5
           superConstructor: <testLibrary>::@class::S::@constructor::new
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
-      firstFragment: <testLibraryFragment>::@mixin::M
+      firstFragment: #F6
       typeParameters
-        T
-        U
+        #E1 T
+          firstFragment: #F7
+        #E2 U
+          firstFragment: #F8
       superclassConstraints
         S<T>
   typeAliases
     M2
-      firstFragment: <testLibraryFragment>::@typeAlias::M2
+      reference: <testLibrary>::@typeAlias::M2
+      firstFragment: #F9
       typeParameters
-        T2
+        #E3 T2
+          firstFragment: #F10
       aliasedType: M<T2, int>
     M3
-      firstFragment: <testLibraryFragment>::@typeAlias::M3
+      reference: <testLibrary>::@typeAlias::M3
+      firstFragment: #F11
       typeParameters
-        T3
+        #E4 T3
+          firstFragment: #F12
       aliasedType: M<T3, int>
         alias: <testLibrary>::@typeAlias::M2
           typeArguments
@@ -1188,59 +1196,58 @@ mixin M implements A, B, C {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A @6
           element: <testLibrary>::@class::A
-        class C @45
-          reference: <testLibraryFragment>::@class::C
+        #F2 class C @45
           element: <testLibrary>::@class::C
       extensionTypes
-        extension type B @26
-          reference: <testLibraryFragment>::@extensionType::B
+        #F3 extension type B @26
           element: <testLibrary>::@extensionType::B
           fields
-            it @32
-              reference: <testLibraryFragment>::@extensionType::B::@field::it
+            #F4 it @32
               element: <testLibrary>::@extensionType::B::@field::it
-              getter2: <testLibraryFragment>::@extensionType::B::@getter::it
+              getter2: #F5
           getters
-            synthetic get it
-              reference: <testLibraryFragment>::@extensionType::B::@getter::it
-              element: <testLibraryFragment>::@extensionType::B::@getter::it#element
+            #F5 synthetic it
+              element: <testLibrary>::@extensionType::B::@getter::it
+              returnType: int
+              variable: #F4
       mixins
-        mixin M @56
-          reference: <testLibraryFragment>::@mixin::M
+        #F6 mixin M @56
           element: <testLibrary>::@mixin::M
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
     class C
       reference: <testLibrary>::@class::C
-      firstFragment: <testLibraryFragment>::@class::C
+      firstFragment: #F2
   extensionTypes
     extension type B
       reference: <testLibrary>::@extensionType::B
-      firstFragment: <testLibraryFragment>::@extensionType::B
+      firstFragment: #F3
       representation: <testLibrary>::@extensionType::B::@field::it
       primaryConstructor: <testLibrary>::@extensionType::B::@constructor::new
       typeErasure: int
       fields
         final it
-          firstFragment: <testLibraryFragment>::@extensionType::B::@field::it
+          reference: <testLibrary>::@extensionType::B::@field::it
+          firstFragment: #F4
           type: int
-          getter: <testLibraryFragment>::@extensionType::B::@getter::it#element
+          getter: <testLibrary>::@extensionType::B::@getter::it
       getters
-        synthetic get it
-          firstFragment: <testLibraryFragment>::@extensionType::B::@getter::it
+        synthetic it
+          reference: <testLibrary>::@extensionType::B::@getter::it
+          firstFragment: #F5
           returnType: int
+          variable: <testLibrary>::@extensionType::B::@field::it
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
-      firstFragment: <testLibraryFragment>::@mixin::M
+      firstFragment: #F6
       superclassConstraints
         Object
       interfaces
@@ -1261,26 +1268,24 @@ mixin M on A {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       mixins
-        mixin M @6
-          reference: <testLibraryFragment>::@mixin::M
+        #F1 mixin M @6
           element: <testLibrary>::@mixin::M
           methods
-            foo @22 invokesSuperSelf
-              reference: <testLibraryFragment>::@mixin::M::@method::foo
+            #F2 foo @22 invokesSuperSelf
               element: <testLibrary>::@mixin::M::@method::foo
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
-      firstFragment: <testLibraryFragment>::@mixin::M
+      firstFragment: #F1
       superclassConstraints
         Object
       methods
         foo
           reference: <testLibrary>::@mixin::M::@method::foo
-          firstFragment: <testLibraryFragment>::@mixin::M::@method::foo
+          firstFragment: #F2
           returnType: void
 ''');
   }
@@ -1296,42 +1301,39 @@ mixin B on A {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A @6
           element: <testLibrary>::@class::A
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
+            #F2 synthetic new
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       mixins
-        mixin B @17
-          reference: <testLibraryFragment>::@mixin::B
+        #F3 mixin B @17
           element: <testLibrary>::@mixin::B
           methods
-            A @33
-              reference: <testLibraryFragment>::@mixin::B::@method::A
+            #F4 A @33
               element: <testLibrary>::@mixin::B::@method::A
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
   mixins
     mixin B
       reference: <testLibrary>::@mixin::B
-      firstFragment: <testLibraryFragment>::@mixin::B
+      firstFragment: #F3
       superclassConstraints
         A
       methods
         A
           reference: <testLibrary>::@mixin::B::@method::A
-          firstFragment: <testLibraryFragment>::@mixin::B::@method::A
+          firstFragment: #F4
           returnType: void
 ''');
   }
@@ -1347,31 +1349,30 @@ mixin M<T> {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       mixins
-        mixin M @6
-          reference: <testLibraryFragment>::@mixin::M
+        #F1 mixin M @6
           element: <testLibrary>::@mixin::M
           typeParameters
-            T @8
-              element: T@8
+            #F2 T @8
+              element: #E0 T
           methods
-            foo @20
-              reference: <testLibraryFragment>::@mixin::M::@method::foo
+            #F3 foo @20
               element: <testLibrary>::@mixin::M::@method::foo
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
-      firstFragment: <testLibraryFragment>::@mixin::M
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       superclassConstraints
         Object
       methods
         foo
           reference: <testLibrary>::@mixin::M::@method::foo
-          firstFragment: <testLibraryFragment>::@mixin::M::@method::foo
+          firstFragment: #F3
           returnType: void
 ''');
   }
@@ -1387,37 +1388,37 @@ mixin M<T> {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       mixins
-        mixin M @6
-          reference: <testLibraryFragment>::@mixin::M
+        #F1 mixin M @6
           element: <testLibrary>::@mixin::M
           typeParameters
-            T @8
-              element: T@8
+            #F2 T @8
+              element: #E0 T
           methods
-            foo @20
-              reference: <testLibraryFragment>::@mixin::M::@method::foo
+            #F3 foo @20
               element: <testLibrary>::@mixin::M::@method::foo
               formalParameters
-                _ @26
-                  element: <testLibraryFragment>::@mixin::M::@method::foo::@parameter::_#element
+                #F4 _ @26
+                  element: <testLibrary>::@mixin::M::@method::foo::@formalParameter::_
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
-      firstFragment: <testLibraryFragment>::@mixin::M
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       superclassConstraints
         Object
       methods
         foo
           reference: <testLibrary>::@mixin::M::@method::foo
-          firstFragment: <testLibraryFragment>::@mixin::M::@method::foo
+          firstFragment: #F3
           hasEnclosingTypeParameterReference: true
           formalParameters
             requiredPositional _
+              firstFragment: #F4
               type: T
           returnType: void
 ''');
@@ -1431,16 +1432,15 @@ mixin {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       mixins
-        mixin <null-name> (offset=6)
-          reference: <testLibraryFragment>::@mixin::0
+        #F1 mixin <null-name> (offset=6)
           element: <testLibrary>::@mixin::0
   mixins
     mixin <null-name>
       reference: <testLibrary>::@mixin::0
-      firstFragment: <testLibraryFragment>::@mixin::0
+      firstFragment: #F1
       superclassConstraints
         Object
 ''');
@@ -1458,40 +1458,40 @@ mixin M on A {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       mixins
-        mixin M @6
-          reference: <testLibraryFragment>::@mixin::M
+        #F1 mixin M @6
           element: <testLibrary>::@mixin::M
           fields
-            synthetic foo
-              reference: <testLibraryFragment>::@mixin::M::@field::foo
+            #F2 synthetic foo
               element: <testLibrary>::@mixin::M::@field::foo
-              setter2: <testLibraryFragment>::@mixin::M::@setter::foo
+              setter2: #F3
           setters
-            set foo @21
-              reference: <testLibraryFragment>::@mixin::M::@setter::foo
-              element: <testLibraryFragment>::@mixin::M::@setter::foo#element
+            #F3 foo @21
+              element: <testLibrary>::@mixin::M::@setter::foo
               formalParameters
-                _ @29
-                  element: <testLibraryFragment>::@mixin::M::@setter::foo::@parameter::_#element
+                #F4 _ @29
+                  element: <testLibrary>::@mixin::M::@setter::foo::@formalParameter::_
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
-      firstFragment: <testLibraryFragment>::@mixin::M
+      firstFragment: #F1
       superclassConstraints
         Object
       fields
         synthetic foo
-          firstFragment: <testLibraryFragment>::@mixin::M::@field::foo
+          reference: <testLibrary>::@mixin::M::@field::foo
+          firstFragment: #F2
           type: int
-          setter: <testLibraryFragment>::@mixin::M::@setter::foo#element
+          setter: <testLibrary>::@mixin::M::@setter::foo
       setters
-        set foo
-          firstFragment: <testLibraryFragment>::@mixin::M::@setter::foo
+        foo
+          reference: <testLibrary>::@mixin::M::@setter::foo
+          firstFragment: #F3
           formalParameters
             requiredPositional _
+              firstFragment: #F4
               type: int
           returnType: void
 ''');
@@ -1509,40 +1509,40 @@ mixin M on A {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       mixins
-        mixin M @6
-          reference: <testLibraryFragment>::@mixin::M
+        #F1 mixin M @6
           element: <testLibrary>::@mixin::M
           fields
-            synthetic foo
-              reference: <testLibraryFragment>::@mixin::M::@field::foo
+            #F2 synthetic foo
               element: <testLibrary>::@mixin::M::@field::foo
-              setter2: <testLibraryFragment>::@mixin::M::@setter::foo
+              setter2: #F3
           setters
-            set foo @21
-              reference: <testLibraryFragment>::@mixin::M::@setter::foo
-              element: <testLibraryFragment>::@mixin::M::@setter::foo#element
+            #F3 foo @21
+              element: <testLibrary>::@mixin::M::@setter::foo
               formalParameters
-                _ @29
-                  element: <testLibraryFragment>::@mixin::M::@setter::foo::@parameter::_#element
+                #F4 _ @29
+                  element: <testLibrary>::@mixin::M::@setter::foo::@formalParameter::_
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
-      firstFragment: <testLibraryFragment>::@mixin::M
+      firstFragment: #F1
       superclassConstraints
         Object
       fields
         synthetic foo
-          firstFragment: <testLibraryFragment>::@mixin::M::@field::foo
+          reference: <testLibrary>::@mixin::M::@field::foo
+          firstFragment: #F2
           type: int
-          setter: <testLibraryFragment>::@mixin::M::@setter::foo#element
+          setter: <testLibrary>::@mixin::M::@setter::foo
       setters
-        set foo
-          firstFragment: <testLibraryFragment>::@mixin::M::@setter::foo
+        foo
+          reference: <testLibrary>::@mixin::M::@setter::foo
+          firstFragment: #F3
           formalParameters
             requiredPositional _
+              firstFragment: #F4
               type: int
           returnType: void
 ''');
@@ -1560,59 +1560,58 @@ mixin M on A, B, C {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A @6
           element: <testLibrary>::@class::A
-        class C @45
-          reference: <testLibraryFragment>::@class::C
+        #F2 class C @45
           element: <testLibrary>::@class::C
       extensionTypes
-        extension type B @26
-          reference: <testLibraryFragment>::@extensionType::B
+        #F3 extension type B @26
           element: <testLibrary>::@extensionType::B
           fields
-            it @32
-              reference: <testLibraryFragment>::@extensionType::B::@field::it
+            #F4 it @32
               element: <testLibrary>::@extensionType::B::@field::it
-              getter2: <testLibraryFragment>::@extensionType::B::@getter::it
+              getter2: #F5
           getters
-            synthetic get it
-              reference: <testLibraryFragment>::@extensionType::B::@getter::it
-              element: <testLibraryFragment>::@extensionType::B::@getter::it#element
+            #F5 synthetic it
+              element: <testLibrary>::@extensionType::B::@getter::it
+              returnType: int
+              variable: #F4
       mixins
-        mixin M @56
-          reference: <testLibraryFragment>::@mixin::M
+        #F6 mixin M @56
           element: <testLibrary>::@mixin::M
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
     class C
       reference: <testLibrary>::@class::C
-      firstFragment: <testLibraryFragment>::@class::C
+      firstFragment: #F2
   extensionTypes
     extension type B
       reference: <testLibrary>::@extensionType::B
-      firstFragment: <testLibraryFragment>::@extensionType::B
+      firstFragment: #F3
       representation: <testLibrary>::@extensionType::B::@field::it
       primaryConstructor: <testLibrary>::@extensionType::B::@constructor::new
       typeErasure: int
       fields
         final it
-          firstFragment: <testLibraryFragment>::@extensionType::B::@field::it
+          reference: <testLibrary>::@extensionType::B::@field::it
+          firstFragment: #F4
           type: int
-          getter: <testLibraryFragment>::@extensionType::B::@getter::it#element
+          getter: <testLibrary>::@extensionType::B::@getter::it
       getters
-        synthetic get it
-          firstFragment: <testLibraryFragment>::@extensionType::B::@getter::it
+        synthetic it
+          reference: <testLibrary>::@extensionType::B::@getter::it
+          firstFragment: #F5
           returnType: int
+          variable: <testLibrary>::@extensionType::B::@field::it
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
-      firstFragment: <testLibraryFragment>::@mixin::M
+      firstFragment: #F6
       superclassConstraints
         A
         C
@@ -1625,21 +1624,21 @@ library
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       mixins
-        mixin M @6
-          reference: <testLibraryFragment>::@mixin::M
+        #F1 mixin M @6
           element: <testLibrary>::@mixin::M
           typeParameters
-            T @11
-              element: T@11
+            #F2 T @11
+              element: #E0 T
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
-      firstFragment: <testLibraryFragment>::@mixin::M
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       superclassConstraints
         Object
 ''');
@@ -1651,21 +1650,21 @@ library
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       mixins
-        mixin M @6
-          reference: <testLibraryFragment>::@mixin::M
+        #F1 mixin M @6
           element: <testLibrary>::@mixin::M
           typeParameters
-            T @12
-              element: T@12
+            #F2 T @12
+              element: #E0 T
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
-      firstFragment: <testLibraryFragment>::@mixin::M
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       superclassConstraints
         Object
 ''');
@@ -1677,21 +1676,21 @@ library
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       mixins
-        mixin M @6
-          reference: <testLibraryFragment>::@mixin::M
+        #F1 mixin M @6
           element: <testLibrary>::@mixin::M
           typeParameters
-            T @14
-              element: T@14
+            #F2 T @14
+              element: #E0 T
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
-      firstFragment: <testLibraryFragment>::@mixin::M
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       superclassConstraints
         Object
 ''');
@@ -1703,27 +1702,29 @@ library
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       mixins
-        mixin M @6
-          reference: <testLibraryFragment>::@mixin::M
+        #F1 mixin M @6
           element: <testLibrary>::@mixin::M
           typeParameters
-            T @14
-              element: T@14
-            U @20
-              element: U@20
-            V @27
-              element: V@27
+            #F2 T @14
+              element: #E0 T
+            #F3 U @20
+              element: #E1 U
+            #F4 V @27
+              element: #E2 V
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
-      firstFragment: <testLibraryFragment>::@mixin::M
+      firstFragment: #F1
       typeParameters
-        T
-        U
-        V
+        #E0 T
+          firstFragment: #F2
+        #E1 U
+          firstFragment: #F3
+        #E2 V
+          firstFragment: #F4
       superclassConstraints
         Object
 ''');

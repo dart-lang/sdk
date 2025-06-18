@@ -36,7 +36,7 @@ SwitchExpression
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -116,7 +116,7 @@ SwitchExpression
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@class::A::@method::bar::@parameter::x#element
+    element: <testLibrary>::@class::A::@method::bar::@formalParameter::x
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -163,7 +163,7 @@ SwitchExpression
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: void
   rightParenthesis: )
   leftBracket: {
@@ -226,7 +226,7 @@ SwitchExpression
   leftParenthesis: (
   expression: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@getter::a#element
+    element: <testLibrary>::@getter::a
     staticType: num
   rightParenthesis: )
   leftBracket: {
@@ -249,7 +249,7 @@ SwitchExpression
                 declaredElement: hasImplicitType isEven@46
                   type: bool
                 matchedValueType: bool
-              element2: dart:core::<fragment>::@class::int::@getter::isEven#element
+              element2: dart:core::@class::int::@getter::isEven
           rightParenthesis: )
           matchedValueType: num
         whenClause: WhenClause
@@ -296,7 +296,7 @@ SwitchExpressionCase
   expression: FunctionExpressionInvocation
     function: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: int Function()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -370,7 +370,7 @@ SwitchExpressionCase
       expression: FunctionExpressionInvocation
         function: SimpleIdentifier
           token: a
-          element: <testLibraryFragment>::@function::f::@parameter::a#element
+          element: <testLibrary>::@function::f::@formalParameter::a
           staticType: bool Function()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -402,7 +402,7 @@ SwitchExpression
   expression: FunctionExpressionInvocation
     function: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: int Function()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -444,7 +444,7 @@ SwitchExpression
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -491,7 +491,7 @@ SwitchExpression
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -541,7 +541,7 @@ SwitchExpression
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -629,7 +629,7 @@ SwitchExpression
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -669,7 +669,7 @@ SwitchExpression
             operator: >
             rightOperand: IntegerLiteral
               literal: 0
-              correspondingParameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other#element
+              correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
               staticType: int
             element: dart:core::@class::num::@method::>
             staticInvokeType: bool Function(num)
@@ -713,7 +713,7 @@ SwitchExpression
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -739,7 +739,7 @@ SwitchExpression
             operator: >
             rightOperand: IntegerLiteral
               literal: 0
-              correspondingParameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other#element
+              correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
               staticType: int
             element: dart:core::@class::num::@method::>
             staticInvokeType: bool Function(num)

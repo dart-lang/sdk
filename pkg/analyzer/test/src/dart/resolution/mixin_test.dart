@@ -64,7 +64,7 @@ mixin M {}
 CommentReference
   expression: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@getter::a#element
+    element: <testLibrary>::@getter::a
     staticType: null
 ''');
   }
@@ -83,12 +83,12 @@ FieldDeclaration
     lateKeyword: late
     type: NamedType
       name: T
-      element2: T@8
+      element2: #E0 T
       type: T
     variables
       VariableDeclaration
         name: f
-        declaredElement: <testLibraryFragment>::@mixin::M::@field::f
+        declaredElement: <testLibraryFragment> f@22
   semicolon: ;
   declaredElement: <null>
 ''');
@@ -116,7 +116,7 @@ MethodDeclaration
       literal: 0
       staticType: int
     semicolon: ;
-  declaredElement: <testLibraryFragment>::@mixin::M::@getter::foo
+  declaredElement: <testLibraryFragment> foo@20
     type: int Function()
 ''');
   }
@@ -197,9 +197,9 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@getter::a#element
+    element: <testLibrary>::@getter::a
     staticType: null
-  element2: <testLibraryFragment>::@getter::a#element
+  element2: <testLibrary>::@getter::a
 ''');
   }
 
@@ -225,7 +225,7 @@ MethodDeclaration
     block: Block
       leftBracket: {
       rightBracket: }
-  declaredElement: <testLibraryFragment>::@mixin::M::@method::foo
+  declaredElement: <testLibraryFragment> foo@17
     type: void Function()
 ''');
   }
@@ -249,7 +249,7 @@ mixin M<T> on C<T> {}
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: f
-    element: <testLibraryFragment>::@function::g::@parameter::f#element
+    element: <testLibrary>::@function::g::@formalParameter::f
     staticType: M<T> Function<T>()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -310,14 +310,14 @@ MethodDeclaration
         element2: dart:core::@class::int
         type: int
       name: _
-      declaredElement: <testLibraryFragment>::@mixin::M::@setter::foo::@formalParameter::_
+      declaredElement: <testLibraryFragment> _@29
         type: int
     rightParenthesis: )
   body: BlockFunctionBody
     block: Block
       leftBracket: {
       rightBracket: }
-  declaredElement: <testLibraryFragment>::@mixin::M::@setter::foo
+  declaredElement: <testLibraryFragment> foo@21
     type: void Function(int)
 ''');
   }
@@ -346,7 +346,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@getter::foo#element
+    element: <testLibrary>::@class::A::@getter::foo
     staticType: int
   staticType: int
 ''');
@@ -383,7 +383,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 42
-        correspondingParameter: <testLibraryFragment>::@class::A::@method::foo::@parameter::x#element
+        correspondingParameter: <testLibrary>::@class::A::@method::foo::@formalParameter::x
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -422,11 +422,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_#element
+    correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@class::A::@setter::foo#element
+  writeElement2: <testLibrary>::@class::A::@setter::foo
   writeType: int
   element: <null>
   staticType: int

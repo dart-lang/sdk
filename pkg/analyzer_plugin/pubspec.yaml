@@ -9,6 +9,8 @@ environment:
 resolution: workspace
 
 dependencies:
+  # See the release policy for managing this dependency at
+  # pkg/analyzer/doc/implementation/releasing.md.
   analyzer: ^8.0.0-0
   collection: ^1.15.0
   dart_style: '>=2.3.7 <4.0.0'

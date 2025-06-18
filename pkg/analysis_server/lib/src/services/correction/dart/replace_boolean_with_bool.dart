@@ -25,7 +25,7 @@ class ReplaceBooleanWithBool extends ResolvedCorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     if (diagnostic case var diagnostic?) {
       await builder.addDartFileEdit(file, (builder) {
-        builder.addSimpleReplacement(range.error(diagnostic), 'bool');
+        builder.addSimpleReplacement(range.diagnostic(diagnostic), 'bool');
       });
     }
   }

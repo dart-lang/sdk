@@ -575,7 +575,7 @@ class AnalysisDriver {
   }
 
   void afterPerformWork() {
-    _fsState.parsedFileStateCache.clear();
+    _fsState.clearParsedFileStateCache();
   }
 
   /// Return a [Future] that completes after pending file changes are applied,

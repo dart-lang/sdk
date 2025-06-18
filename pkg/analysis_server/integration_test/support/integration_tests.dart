@@ -18,9 +18,9 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
-import '../../constants.dart';
-import '../../support/configuration_files.dart';
-import '../../support/sdk_paths.dart';
+import '../../test/constants.dart';
+import '../../test/support/configuration_files.dart';
+import '../../test/support/sdk_paths.dart';
 import 'integration_test_methods.dart';
 import 'protocol_matchers.dart';
 

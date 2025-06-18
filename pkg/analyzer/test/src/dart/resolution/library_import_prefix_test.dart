@@ -125,7 +125,7 @@ InstanceCreationExpression
       SimpleIdentifier
         token: p
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@class::C::@constructor::new::@parameter::a#element
+          baseElement: <testLibrary>::@class::C::@constructor::new::@formalParameter::a
           substitution: {T: dynamic}
         element: <testLibraryFragment>::@prefix2::p
         staticType: InvalidType
@@ -239,7 +239,7 @@ f() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
-  element: package:test/a.dart::<fragment>::@getter::a#element
+  element: package:test/a.dart::@getter::a
   staticType: int
 ''');
   }

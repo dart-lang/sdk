@@ -538,7 +538,7 @@ const class B {}
 ''');
     var result = await resolveFile(testFile);
     var diagnostic = result.diagnostics.single;
-    expect(range.error(diagnostic), SourceRange(11, 5));
+    expect(range.diagnostic(diagnostic), SourceRange(11, 5));
   }
 
   Future<void> test_node() async {

@@ -6,7 +6,7 @@ import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../utils/test_code_extensions.dart';
+import '../../test/utils/test_code_extensions.dart';
 import 'integration_tests.dart';
 
 void main() {

@@ -37,12 +37,12 @@ FunctionExpression
             arguments
               NamedType
                 name: T
-                element2: T@14
+                element2: #E0 T
                 type: T
             rightBracket: >
           element2: dart:core::@class::List
           type: List<T>
-        declaredElement: T@14
+        declaredElement: <testLibraryFragment> T@14
           defaultType: List<dynamic>
     rightBracket: >
   parameters: FormalParameterList
@@ -52,7 +52,7 @@ FunctionExpression
     block: Block
       leftBracket: {
       rightBracket: }
-  declaredElement: null@null
+  declaredElement: <testLibraryFragment> null@null
     type: Null Function<T extends List<T>>()
   staticType: Null Function<T extends List<T>>()
 ''');
@@ -78,7 +78,7 @@ FunctionExpression
           name: num
           element2: dart:core::@class::num
           type: num
-        declaredElement: T@14
+        declaredElement: <testLibraryFragment> T@14
           defaultType: num
     rightBracket: >
   parameters: FormalParameterList
@@ -88,7 +88,7 @@ FunctionExpression
     block: Block
       leftBracket: {
       rightBracket: }
-  declaredElement: null@null
+  declaredElement: <testLibraryFragment> null@null
     type: Null Function<T extends num>()
   staticType: Null Function<T extends num>()
 ''');

@@ -93,7 +93,7 @@ class A {
 ConditionalExpression
   condition: SimpleIdentifier
     token: c
-    element: <testLibraryFragment>::@class::A::@method::f::@parameter::c#element
+    element: <testLibrary>::@class::A::@method::f::@formalParameter::c
     staticType: bool
   question: ?
   thenExpression: IntegerLiteral
@@ -126,17 +126,17 @@ f(bool b, C1 c1, C2 c2, Object? o) {
 ConditionalExpression
   condition: SimpleIdentifier
     token: b
-    element: <testLibraryFragment>::@function::f::@parameter::b#element
+    element: <testLibrary>::@function::f::@formalParameter::b
     staticType: bool
   question: ?
   thenExpression: SimpleIdentifier
     token: c1
-    element: <testLibraryFragment>::@function::f::@parameter::c1#element
+    element: <testLibrary>::@function::f::@formalParameter::c1
     staticType: C1
   colon: :
   elseExpression: SimpleIdentifier
     token: c2
-    element: <testLibraryFragment>::@function::f::@parameter::c2#element
+    element: <testLibrary>::@function::f::@formalParameter::c2
     staticType: C2
   correspondingParameter: <null>
   staticType: A
@@ -163,12 +163,12 @@ T f<T>(T t, bool b) {
 ConditionalExpression
   condition: SimpleIdentifier
     token: b
-    element: <testLibraryFragment>::@function::f::@parameter::b#element
+    element: <testLibrary>::@function::f::@formalParameter::b
     staticType: bool
   question: ?
   thenExpression: SimpleIdentifier
     token: t
-    element: <testLibraryFragment>::@function::f::@parameter::t#element
+    element: <testLibrary>::@function::f::@formalParameter::t
     staticType: T & int
   colon: :
   elseExpression: NullLiteral
@@ -190,17 +190,17 @@ void f(bool b, (int, String) r1, ({int a}) r2) {
 ConditionalExpression
   condition: SimpleIdentifier
     token: b
-    element: <testLibraryFragment>::@function::f::@parameter::b#element
+    element: <testLibrary>::@function::f::@formalParameter::b
     staticType: bool
   question: ?
   thenExpression: SimpleIdentifier
     token: r1
-    element: <testLibraryFragment>::@function::f::@parameter::r1#element
+    element: <testLibrary>::@function::f::@formalParameter::r1
     staticType: (int, String)
   colon: :
   elseExpression: SimpleIdentifier
     token: r2
-    element: <testLibraryFragment>::@function::f::@parameter::r2#element
+    element: <testLibrary>::@function::f::@formalParameter::r2
     staticType: ({int a})
   staticType: Record
 ''');
@@ -218,17 +218,17 @@ void f(bool b, ({int a}) r1, ({double a}) r2) {
 ConditionalExpression
   condition: SimpleIdentifier
     token: b
-    element: <testLibraryFragment>::@function::f::@parameter::b#element
+    element: <testLibrary>::@function::f::@formalParameter::b
     staticType: bool
   question: ?
   thenExpression: SimpleIdentifier
     token: r1
-    element: <testLibraryFragment>::@function::f::@parameter::r1#element
+    element: <testLibrary>::@function::f::@formalParameter::r1
     staticType: ({int a})
   colon: :
   elseExpression: SimpleIdentifier
     token: r2
-    element: <testLibraryFragment>::@function::f::@parameter::r2#element
+    element: <testLibrary>::@function::f::@formalParameter::r2
     staticType: ({double a})
   staticType: ({num a})
 ''');
@@ -251,7 +251,7 @@ class A {
 ConditionalExpression
   condition: SimpleIdentifier
     token: c
-    element: <testLibraryFragment>::@class::A::@method::f::@parameter::c#element
+    element: <testLibrary>::@class::A::@method::f::@formalParameter::c
     staticType: bool
   question: ?
   thenExpression: SuperExpression
@@ -277,7 +277,7 @@ void f(bool b) {
 ConditionalExpression
   condition: SimpleIdentifier
     token: b
-    element: <testLibraryFragment>::@function::f::@parameter::b#element
+    element: <testLibrary>::@function::f::@formalParameter::b
     staticType: bool
   question: ?
   thenExpression: IntegerLiteral
@@ -303,7 +303,7 @@ void f(bool b) {
 ConditionalExpression
   condition: SimpleIdentifier
     token: b
-    element: <testLibraryFragment>::@function::f::@parameter::b#element
+    element: <testLibrary>::@function::f::@formalParameter::b
     staticType: bool
   question: ?
   thenExpression: IntegerLiteral
@@ -353,20 +353,20 @@ f(bool b, C1<int> c1, C2<double> c2) {
       r'''ConditionalExpression
   condition: SimpleIdentifier
     token: b
-    element: <testLibraryFragment>::@function::f::@parameter::b#element
+    element: <testLibrary>::@function::f::@formalParameter::b
     staticType: bool
   question: ?
   thenExpression: SimpleIdentifier
     token: c1
-    element: <testLibraryFragment>::@function::f::@parameter::c1#element
+    element: <testLibrary>::@function::f::@formalParameter::c1
     staticType: C1<int>
   colon: :
   elseExpression: SimpleIdentifier
     token: c2
-    element: <testLibraryFragment>::@function::f::@parameter::c2#element
+    element: <testLibrary>::@function::f::@formalParameter::c2
     staticType: C2<double>
   correspondingParameter: ParameterMember
-    baseElement: <testLibraryFragment>::@function::contextB1::@parameter::b1#element
+    baseElement: <testLibrary>::@function::contextB1::@formalParameter::b1
     substitution: {T: Object?}
   staticType: B1<Object?>
 ''',
@@ -392,17 +392,17 @@ f(bool b, B2 b2, C1 c1, Object? o) {
       r'''ConditionalExpression
   condition: SimpleIdentifier
     token: b
-    element: <testLibraryFragment>::@function::f::@parameter::b#element
+    element: <testLibrary>::@function::f::@formalParameter::b
     staticType: bool
   question: ?
   thenExpression: SimpleIdentifier
     token: b2
-    element: <testLibraryFragment>::@function::f::@parameter::b2#element
+    element: <testLibrary>::@function::f::@formalParameter::b2
     staticType: B2
   colon: :
   elseExpression: SimpleIdentifier
     token: c1
-    element: <testLibraryFragment>::@function::f::@parameter::c1#element
+    element: <testLibrary>::@function::f::@formalParameter::c1
     staticType: C1
   correspondingParameter: <null>
   staticType: B2
@@ -429,17 +429,17 @@ f(bool b, C1 c1, B2 b2, Object? o) {
       r'''ConditionalExpression
   condition: SimpleIdentifier
     token: b
-    element: <testLibraryFragment>::@function::f::@parameter::b#element
+    element: <testLibrary>::@function::f::@formalParameter::b
     staticType: bool
   question: ?
   thenExpression: SimpleIdentifier
     token: c1
-    element: <testLibraryFragment>::@function::f::@parameter::c1#element
+    element: <testLibrary>::@function::f::@formalParameter::c1
     staticType: C1
   colon: :
   elseExpression: SimpleIdentifier
     token: b2
-    element: <testLibraryFragment>::@function::f::@parameter::b2#element
+    element: <testLibrary>::@function::f::@formalParameter::b2
     staticType: B2
   correspondingParameter: <null>
   staticType: B2
@@ -461,17 +461,17 @@ B1 f(bool b, C1 c1, C2 c2) => b ? c1 : c2;
 ConditionalExpression
   condition: SimpleIdentifier
     token: b
-    element: <testLibraryFragment>::@function::f::@parameter::b#element
+    element: <testLibrary>::@function::f::@formalParameter::b
     staticType: bool
   question: ?
   thenExpression: SimpleIdentifier
     token: c1
-    element: <testLibraryFragment>::@function::f::@parameter::c1#element
+    element: <testLibrary>::@function::f::@formalParameter::c1
     staticType: C1
   colon: :
   elseExpression: SimpleIdentifier
     token: c2
-    element: <testLibraryFragment>::@function::f::@parameter::c2#element
+    element: <testLibrary>::@function::f::@formalParameter::c2
     staticType: C2
   staticType: B1
 ''');

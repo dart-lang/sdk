@@ -679,7 +679,7 @@ class FileResolver {
   }
 
   void _clearFileSystemStateParsedCache() {
-    fsState?.parsedFileStateCache.clear();
+    fsState?.clearParsedFileStateCache();
   }
 
   /// Make sure that [fsState], [contextObjects], and [libraryContext] are

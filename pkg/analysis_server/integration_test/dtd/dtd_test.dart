@@ -4,7 +4,7 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../shared/shared_dtd_tests.dart';
+import '../../test/shared/shared_dtd_tests.dart';
 import '../lsp/abstract_lsp_over_legacy.dart';
 
 void main() {

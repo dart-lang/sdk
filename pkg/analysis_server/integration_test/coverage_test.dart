@@ -8,8 +8,8 @@ import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
-import '../../tool/spec/api.dart';
-import '../../tool/spec/from_html.dart';
+import '../tool/spec/api.dart';
+import '../tool/spec/from_html.dart';
 
 /// Define tests to fail if there's no mention in the coverage file.
 void main() {
@@ -28,9 +28,7 @@ void main() {
     pathPrefix = path.join('pkg', 'analysis_server');
   }
 
-  coverageFile = File(
-    path.join(pathPrefix, 'test', 'integration', 'coverage.md'),
-  );
+  coverageFile = File(path.join(pathPrefix, 'integration_test', 'coverage.md'));
   var lines = coverageFile.readAsLinesSync();
 
   // ## server domain
@@ -87,12 +85,7 @@ void main() {
               request.method,
             ).map((s) => s.toLowerCase()).join('_');
             var testName = path.join(domain.name, '${fileName}_test.dart');
-            var testPath = path.join(
-              pathPrefix,
-              'test',
-              'integration',
-              testName,
-            );
+            var testPath = path.join(pathPrefix, 'integration_test', testName);
 
             // Test that if checked, a test file exists; if not checked, no such
             // file exists.

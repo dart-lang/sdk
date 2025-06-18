@@ -50,7 +50,7 @@ AssertInitializer
         IntegerLiteral
           literal: 0
           correspondingParameter: ParameterMember
-            baseElement: <testLibraryFragment>::@function::foo::@parameter::_#element
+            baseElement: <testLibrary>::@function::foo::@formalParameter::_
             substitution: {T: bool}
           staticType: int
       rightParenthesis: )
@@ -70,7 +70,7 @@ AssertInitializer
         IntegerLiteral
           literal: 1
           correspondingParameter: ParameterMember
-            baseElement: <testLibraryFragment>::@function::foo::@parameter::_#element
+            baseElement: <testLibrary>::@function::foo::@formalParameter::_
             substitution: {T: dynamic}
           staticType: int
       rightParenthesis: )
@@ -107,7 +107,7 @@ AssertStatement
         IntegerLiteral
           literal: 0
           correspondingParameter: ParameterMember
-            baseElement: <testLibraryFragment>::@function::foo::@parameter::_#element
+            baseElement: <testLibrary>::@function::foo::@formalParameter::_
             substitution: {T: bool}
           staticType: int
       rightParenthesis: )
@@ -127,7 +127,7 @@ AssertStatement
         IntegerLiteral
           literal: 1
           correspondingParameter: ParameterMember
-            baseElement: <testLibraryFragment>::@function::foo::@parameter::_#element
+            baseElement: <testLibrary>::@function::foo::@formalParameter::_
             substitution: {T: dynamic}
           staticType: int
       rightParenthesis: )

@@ -14,6 +14,7 @@ final RangeFactory range = RangeFactory();
 
 /// A factory used to create instances of [SourceRange] based on various
 /// syntactic and semantic entities.
+// TODO(srawlins): Make this class final.
 class RangeFactory {
   /// Return a source range that covers all of the arguments in the
   /// [argumentList] between the [lower] and [upper] indices, inclusive. The
@@ -95,6 +96,10 @@ class RangeFactory {
     return startOffsetEndOffset(startOffset, endOffset);
   }
 
+  /// A source range that covers the same range as the given [diagnostic].
+  SourceRange diagnostic(Diagnostic diagnostic) =>
+      SourceRange(diagnostic.offset, diagnostic.length);
+
   /// Return a source range that starts at the end of [leftEntity] and ends at
   /// the end of [rightEntity].
   SourceRange endEnd(SyntacticEntity leftEntity, SyntacticEntity rightEntity) {
@@ -123,12 +128,8 @@ class RangeFactory {
     return SourceRange(node.offset, node.length);
   }
 
-  /// Returns a source range that covers the same range as the given
-  /// [diagnostic].
-  // TODO(srawlins): Rename to 'diagnostic'.
-  SourceRange error(Diagnostic diagnostic) {
-    return SourceRange(diagnostic.offset, diagnostic.length);
-  }
+  @Deprecated("Use 'diagnostic' instead")
+  SourceRange error(Diagnostic d) => diagnostic(d);
 
   /// Returns a source range that covers the name of the given [fragment].
   ///

@@ -26,42 +26,44 @@ class A {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A @6
           element: <testLibrary>::@class::A
           fields
-            x @32
-              reference: <testLibraryFragment>::@class::A::@field::x
+            #F2 x @32
               element: <testLibrary>::@class::A::@field::x
-              getter2: <testLibraryFragment>::@class::A::@getter::x
+              getter2: #F3
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
+            #F4 synthetic new
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            synthetic get x
-              reference: <testLibraryFragment>::@class::A::@getter::x
-              element: <testLibraryFragment>::@class::A::@getter::x#element
+            #F3 synthetic x
+              element: <testLibrary>::@class::A::@getter::x
+              returnType: (int, String)
+              variable: #F2
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       fields
         final x
-          firstFragment: <testLibraryFragment>::@class::A::@field::x
+          reference: <testLibrary>::@class::A::@field::x
+          firstFragment: #F2
           type: (int, String)
-          getter: <testLibraryFragment>::@class::A::@getter::x#element
+          getter: <testLibrary>::@class::A::@getter::x
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F4
       getters
-        synthetic get x
-          firstFragment: <testLibraryFragment>::@class::A::@getter::x
+        synthetic x
+          reference: <testLibrary>::@class::A::@getter::x
+          firstFragment: #F3
           returnType: (int, String)
+          variable: <testLibrary>::@class::A::@field::x
 ''');
   }
 
@@ -75,42 +77,44 @@ class A {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A @6
           element: <testLibrary>::@class::A
           fields
-            hasInitializer x @18
-              reference: <testLibraryFragment>::@class::A::@field::x
+            #F2 hasInitializer x @18
               element: <testLibrary>::@class::A::@field::x
-              getter2: <testLibraryFragment>::@class::A::@getter::x
+              getter2: #F3
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
+            #F4 synthetic new
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            synthetic get x
-              reference: <testLibraryFragment>::@class::A::@getter::x
-              element: <testLibraryFragment>::@class::A::@getter::x#element
+            #F3 synthetic x
+              element: <testLibrary>::@class::A::@getter::x
+              returnType: (int, bool)
+              variable: #F2
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       fields
         final hasInitializer x
-          firstFragment: <testLibraryFragment>::@class::A::@field::x
+          reference: <testLibrary>::@class::A::@field::x
+          firstFragment: #F2
           type: (int, bool)
-          getter: <testLibraryFragment>::@class::A::@getter::x#element
+          getter: <testLibrary>::@class::A::@getter::x
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F4
       getters
-        synthetic get x
-          firstFragment: <testLibraryFragment>::@class::A::@getter::x
+        synthetic x
+          reference: <testLibrary>::@class::A::@getter::x
+          firstFragment: #F3
           returnType: (int, bool)
+          variable: <testLibrary>::@class::A::@field::x
 ''');
   }
 
@@ -124,37 +128,36 @@ class A {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A @6
           element: <testLibrary>::@class::A
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
+            #F2 synthetic new
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            foo @17
-              reference: <testLibraryFragment>::@class::A::@method::foo
+            #F3 foo @17
               element: <testLibrary>::@class::A::@method::foo
               formalParameters
-                a @35
-                  element: <testLibraryFragment>::@class::A::@method::foo::@parameter::a#element
+                #F4 a @35
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::a
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
       methods
         foo
           reference: <testLibrary>::@class::A::@method::foo
-          firstFragment: <testLibraryFragment>::@class::A::@method::foo
+          firstFragment: #F3
           formalParameters
             requiredPositional a
+              firstFragment: #F4
               type: (int, String)
           returnType: void
 ''');
@@ -170,32 +173,30 @@ class A {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A @6
           element: <testLibrary>::@class::A
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
+            #F2 synthetic new
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            foo @26
-              reference: <testLibraryFragment>::@class::A::@method::foo
+            #F3 foo @26
               element: <testLibrary>::@class::A::@method::foo
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
       methods
         foo
           reference: <testLibrary>::@class::A::@method::foo
-          firstFragment: <testLibraryFragment>::@class::A::@method::foo
+          firstFragment: #F3
           returnType: (int, String)
 ''');
   }
@@ -208,30 +209,30 @@ class A<T extends (int, String)> {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A @6
           element: <testLibrary>::@class::A
           typeParameters
-            T @8
-              element: T@8
+            #F2 T @8
+              element: #E0 T
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
+            #F3 synthetic new
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
           bound: (int, String)
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
 ''');
   }
 
@@ -243,16 +244,16 @@ extension IntStringExtension on (int, String) {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       extensions
-        extension IntStringExtension @10
-          reference: <testLibraryFragment>::@extension::IntStringExtension
+        #F1 extension IntStringExtension @10
           element: <testLibrary>::@extension::IntStringExtension
   extensions
     extension IntStringExtension
       reference: <testLibrary>::@extension::IntStringExtension
-      firstFragment: <testLibraryFragment>::@extension::IntStringExtension
+      firstFragment: #F1
+      extendedType: (int, String)
 ''');
   }
 
@@ -264,21 +265,21 @@ void f(void Function((int, String) a) b) {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        f @5
-          reference: <testLibraryFragment>::@function::f
+        #F1 f @5
           element: <testLibrary>::@function::f
           formalParameters
-            b @38
-              element: <testLibraryFragment>::@function::f::@parameter::b#element
+            #F2 b @38
+              element: <testLibrary>::@function::f::@formalParameter::b
   functions
     f
       reference: <testLibrary>::@function::f
-      firstFragment: <testLibraryFragment>::@function::f
+      firstFragment: #F1
       formalParameters
         requiredPositional b
+          firstFragment: #F2
           type: void Function((int, String))
       returnType: void
 ''');
@@ -292,21 +293,21 @@ void f((int, String) Function() a) {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        f @5
-          reference: <testLibraryFragment>::@function::f
+        #F1 f @5
           element: <testLibrary>::@function::f
           formalParameters
-            a @32
-              element: <testLibraryFragment>::@function::f::@parameter::a#element
+            #F2 a @32
+              element: <testLibrary>::@function::f::@formalParameter::a
   functions
     f
       reference: <testLibrary>::@function::f
-      firstFragment: <testLibraryFragment>::@function::f
+      firstFragment: #F1
       formalParameters
         requiredPositional a
+          firstFragment: #F2
           type: (int, String) Function()
       returnType: void
 ''');
@@ -320,21 +321,21 @@ void f((int, String) a) {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        f @5
-          reference: <testLibraryFragment>::@function::f
+        #F1 f @5
           element: <testLibrary>::@function::f
           formalParameters
-            a @21
-              element: <testLibraryFragment>::@function::f::@parameter::a#element
+            #F2 a @21
+              element: <testLibrary>::@function::f::@formalParameter::a
   functions
     f
       reference: <testLibrary>::@function::f
-      firstFragment: <testLibraryFragment>::@function::f
+      firstFragment: #F1
       formalParameters
         requiredPositional a
+          firstFragment: #F2
           type: (int, String)
       returnType: void
 ''');
@@ -348,16 +349,15 @@ library
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        f @3
-          reference: <testLibraryFragment>::@function::f
+        #F1 f @3
           element: <testLibrary>::@function::f
   functions
     f
       reference: <testLibrary>::@function::f
-      firstFragment: <testLibraryFragment>::@function::f
+      firstFragment: #F1
       returnType: ()
 ''');
   }
@@ -370,21 +370,21 @@ library
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        f @9
-          reference: <testLibraryFragment>::@function::f
+        #F1 f @9
           element: <testLibrary>::@function::f
           typeParameters
-            T @11
-              element: T@11
+            #F2 T @11
+              element: #E0 T
   functions
     f
       reference: <testLibrary>::@function::f
-      firstFragment: <testLibraryFragment>::@function::f
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       returnType: (int, T)
 ''');
   }
@@ -397,16 +397,15 @@ library
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        f @24
-          reference: <testLibraryFragment>::@function::f
+        #F1 f @24
           element: <testLibrary>::@function::f
   functions
     f
       reference: <testLibrary>::@function::f
-      firstFragment: <testLibraryFragment>::@function::f
+      firstFragment: #F1
       returnType: (int, String, {bool c})
 ''');
   }
@@ -419,16 +418,15 @@ library
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        f @20
-          reference: <testLibraryFragment>::@function::f
+        #F1 f @20
           element: <testLibrary>::@function::f
   functions
     f
       reference: <testLibrary>::@function::f
-      firstFragment: <testLibraryFragment>::@function::f
+      firstFragment: #F1
       returnType: ({int a, String b})
 ''');
   }
@@ -441,16 +439,15 @@ library
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        f @32
-          reference: <testLibraryFragment>::@function::f
+        #F1 f @32
           element: <testLibrary>::@function::f
   functions
     f
       reference: <testLibrary>::@function::f
-      firstFragment: <testLibraryFragment>::@function::f
+      firstFragment: #F1
       returnType: ((int, String), (bool, double))
 ''');
   }
@@ -463,16 +460,15 @@ library
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        f @15
-          reference: <testLibraryFragment>::@function::f
+        #F1 f @15
           element: <testLibrary>::@function::f
   functions
     f
       reference: <testLibrary>::@function::f
-      firstFragment: <testLibraryFragment>::@function::f
+      firstFragment: #F1
       returnType: (int, String)?
 ''');
   }
@@ -485,16 +481,15 @@ library
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        f @14
-          reference: <testLibraryFragment>::@function::f
+        #F1 f @14
           element: <testLibrary>::@function::f
   functions
     f
       reference: <testLibrary>::@function::f
-      firstFragment: <testLibraryFragment>::@function::f
+      firstFragment: #F1
       returnType: (int, String)
 ''');
   }
@@ -507,16 +502,15 @@ library
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        f @7
-          reference: <testLibraryFragment>::@function::f
+        #F1 f @7
           element: <testLibrary>::@function::f
   functions
     f
       reference: <testLibrary>::@function::f
-      firstFragment: <testLibraryFragment>::@function::f
+      firstFragment: #F1
       returnType: (int,)
 ''');
   }
@@ -529,27 +523,29 @@ final (int, String) x;
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        x @20
-          reference: <testLibraryFragment>::@topLevelVariable::x
+        #F1 x @20
           element: <testLibrary>::@topLevelVariable::x
-          getter2: <testLibraryFragment>::@getter::x
+          getter: #F2
       getters
-        synthetic get x
-          reference: <testLibraryFragment>::@getter::x
-          element: <testLibraryFragment>::@getter::x#element
+        #F2 synthetic x
+          element: <testLibrary>::@getter::x
+          returnType: (int, String)
+          variable: #F1
   topLevelVariables
     final x
       reference: <testLibrary>::@topLevelVariable::x
-      firstFragment: <testLibraryFragment>::@topLevelVariable::x
+      firstFragment: #F1
       type: (int, String)
-      getter: <testLibraryFragment>::@getter::x#element
+      getter: <testLibrary>::@getter::x
   getters
-    synthetic static get x
-      firstFragment: <testLibraryFragment>::@getter::x
+    synthetic static x
+      reference: <testLibrary>::@getter::x
+      firstFragment: #F2
       returnType: (int, String)
+      variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
 
@@ -561,27 +557,29 @@ final x = (0, true);
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        hasInitializer x @6
-          reference: <testLibraryFragment>::@topLevelVariable::x
+        #F1 hasInitializer x @6
           element: <testLibrary>::@topLevelVariable::x
-          getter2: <testLibraryFragment>::@getter::x
+          getter: #F2
       getters
-        synthetic get x
-          reference: <testLibraryFragment>::@getter::x
-          element: <testLibraryFragment>::@getter::x#element
+        #F2 synthetic x
+          element: <testLibrary>::@getter::x
+          returnType: (int, bool)
+          variable: #F1
   topLevelVariables
     final hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
-      firstFragment: <testLibraryFragment>::@topLevelVariable::x
+      firstFragment: #F1
       type: (int, bool)
-      getter: <testLibraryFragment>::@getter::x#element
+      getter: <testLibrary>::@getter::x
   getters
-    synthetic static get x
-      firstFragment: <testLibraryFragment>::@getter::x
+    synthetic static x
+      reference: <testLibrary>::@getter::x
+      firstFragment: #F2
       returnType: (int, bool)
+      variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
 
@@ -593,11 +591,10 @@ const x = List<({int f1, String f2})>;
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        hasInitializer x @6
-          reference: <testLibraryFragment>::@topLevelVariable::x
+        #F1 hasInitializer x @6
           element: <testLibrary>::@topLevelVariable::x
           initializer: expression_0
             TypeLiteral
@@ -630,24 +627,27 @@ library
                 element2: dart:core::@class::List
                 type: List<({int f1, String f2})>
               staticType: Type
-          getter2: <testLibraryFragment>::@getter::x
+          getter: #F2
       getters
-        synthetic get x
-          reference: <testLibraryFragment>::@getter::x
-          element: <testLibraryFragment>::@getter::x#element
+        #F2 synthetic x
+          element: <testLibrary>::@getter::x
+          returnType: Type
+          variable: #F1
   topLevelVariables
     const hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
-      firstFragment: <testLibraryFragment>::@topLevelVariable::x
+      firstFragment: #F1
       type: Type
       constantInitializer
-        fragment: <testLibraryFragment>::@topLevelVariable::x
+        fragment: #F1
         expression: expression_0
-      getter: <testLibraryFragment>::@getter::x#element
+      getter: <testLibrary>::@getter::x
   getters
-    synthetic static get x
-      firstFragment: <testLibraryFragment>::@getter::x
+    synthetic static x
+      reference: <testLibrary>::@getter::x
+      firstFragment: #F2
       returnType: Type
+      variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
 
@@ -659,11 +659,10 @@ const x = List<(int, String f2)>;
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        hasInitializer x @6
-          reference: <testLibraryFragment>::@topLevelVariable::x
+        #F1 hasInitializer x @6
           element: <testLibrary>::@topLevelVariable::x
           initializer: expression_0
             TypeLiteral
@@ -692,24 +691,27 @@ library
                 element2: dart:core::@class::List
                 type: List<(int, String)>
               staticType: Type
-          getter2: <testLibraryFragment>::@getter::x
+          getter: #F2
       getters
-        synthetic get x
-          reference: <testLibraryFragment>::@getter::x
-          element: <testLibraryFragment>::@getter::x#element
+        #F2 synthetic x
+          element: <testLibrary>::@getter::x
+          returnType: Type
+          variable: #F1
   topLevelVariables
     const hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
-      firstFragment: <testLibraryFragment>::@topLevelVariable::x
+      firstFragment: #F1
       type: Type
       constantInitializer
-        fragment: <testLibraryFragment>::@topLevelVariable::x
+        fragment: #F1
         expression: expression_0
-      getter: <testLibraryFragment>::@getter::x#element
+      getter: <testLibrary>::@getter::x
   getters
-    synthetic static get x
-      firstFragment: <testLibraryFragment>::@getter::x
+    synthetic static x
+      reference: <testLibrary>::@getter::x
+      firstFragment: #F2
       returnType: Type
+      variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
 }

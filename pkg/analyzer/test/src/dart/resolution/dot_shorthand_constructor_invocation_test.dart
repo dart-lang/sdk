@@ -56,7 +56,7 @@ DotShorthandConstructorInvocation
       SimpleIdentifier
         token: iter
         correspondingParameter: ParameterMember
-          baseElement: dart:async::@fragment::dart:async/stream.dart::@class::Stream::@constructor::fromIterable::@parameter::data#element
+          baseElement: dart:async::@class::Stream::@constructor::fromIterable::@formalParameter::data
           substitution: {T: int}
         element: iter@26
         staticType: List<int>
@@ -92,7 +92,7 @@ DotShorthandConstructorInvocation
     arguments
       IntegerLiteral
         literal: 1
-        correspondingParameter: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
+        correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
         staticType: int
     rightParenthesis: )
   staticType: C
@@ -126,7 +126,7 @@ DotShorthandConstructorInvocation
     arguments
       IntegerLiteral
         literal: 1
-        correspondingParameter: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
+        correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
         staticType: int
     rightParenthesis: )
   staticType: C
@@ -160,10 +160,10 @@ DotShorthandConstructorInvocation
     arguments
       IntegerLiteral
         literal: 1
-        correspondingParameter: <testLibraryFragment>::@class::C::@constructor::named::@parameter::x#element
+        correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
         staticType: int
     rightParenthesis: )
-  correspondingParameter: dart:core::<fragment>::@class::Object::@method::==::@parameter::other#element
+  correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
   staticType: C
 ''');
   }
@@ -194,7 +194,7 @@ DotShorthandConstructorInvocation
     arguments
       IntegerLiteral
         literal: 1
-        correspondingParameter: <testLibraryFragment>::@class::C::@constructor::named::@parameter::x#element
+        correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
         staticType: int
     rightParenthesis: )
   staticType: C
@@ -228,7 +228,7 @@ DotShorthandConstructorInvocation
     arguments
       IntegerLiteral
         literal: 1
-        correspondingParameter: <testLibraryFragment>::@class::C::@constructor::named::@parameter::x#element
+        correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
         staticType: int
     rightParenthesis: )
   staticType: C
@@ -296,7 +296,7 @@ DotShorthandConstructorInvocation
     arguments
       IntegerLiteral
         literal: 1
-        correspondingParameter: <testLibraryFragment>::@class::C::@constructor::named::@parameter::x#element
+        correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
         staticType: int
     rightParenthesis: )
   staticType: C
@@ -334,7 +334,7 @@ DotShorthandConstructorInvocation
       IntegerLiteral
         literal: 2
         correspondingParameter: FieldFormalParameterMember
-          baseElement: <testLibraryFragment>::@class::C::@constructor::id::@parameter::value#element
+          baseElement: <testLibrary>::@class::C::@constructor::id::@formalParameter::value
           substitution: {T: dynamic}
         staticType: int
     rightParenthesis: )
@@ -393,10 +393,10 @@ DotShorthandConstructorInvocation
     arguments
       IntegerLiteral
         literal: 1
-        correspondingParameter: <testLibraryFragment>::@class::C::@constructor::named::@parameter::x#element
+        correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
         staticType: int
     rightParenthesis: )
-  correspondingParameter: dart:core::<fragment>::@class::Object::@method::==::@parameter::other#element
+  correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
   staticType: C
 ''');
   }
@@ -425,13 +425,13 @@ DotShorthandConstructorInvocation
       IntegerLiteral
         literal: 2
         correspondingParameter: ParameterMember
-          baseElement: dart:core::<fragment>::@class::List::@constructor::filled::@parameter::length#element
+          baseElement: dart:core::@class::List::@constructor::filled::@formalParameter::length
           substitution: {E: String}
         staticType: int
       SimpleStringLiteral
         literal: '2'
     rightParenthesis: )
-  correspondingParameter: dart:core::<fragment>::@class::Object::@method::==::@parameter::other#element
+  correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
   staticType: List<String>
 ''');
   }
@@ -463,7 +463,7 @@ DotShorthandConstructorInvocation
     arguments
       IntegerLiteral
         literal: 2
-        correspondingParameter: <testLibraryFragment>::@class::C::@constructor::named::@parameter::x#element
+        correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
         staticType: int
     rightParenthesis: )
   staticType: C
@@ -507,7 +507,7 @@ DotShorthandConstructorInvocation
           leftParenthesis: (
           rightParenthesis: )
         correspondingParameter: FieldFormalParameterMember
-          baseElement: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
+          baseElement: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           substitution: {T: C<dynamic>}
         staticInvokeType: C<dynamic> Function()
         staticType: C<dynamic>
@@ -547,10 +547,10 @@ DotShorthandConstructorInvocation
         period: .
         propertyName: SimpleIdentifier
           token: member
-          element: <testLibraryFragment>::@class::C::@getter::member#element
+          element: <testLibrary>::@class::C::@getter::member
           staticType: C<dynamic>
         correspondingParameter: FieldFormalParameterMember
-          baseElement: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
+          baseElement: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           substitution: {T: C<dynamic>}
         staticType: C<dynamic>
     rightParenthesis: )
@@ -584,7 +584,7 @@ DotShorthandConstructorInvocation
     arguments
       IntegerLiteral
         literal: 1
-        correspondingParameter: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
+        correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
         staticType: int
     rightParenthesis: )
   staticType: C

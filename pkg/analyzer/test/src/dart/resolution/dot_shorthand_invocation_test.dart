@@ -101,7 +101,7 @@ DotShorthandInvocation
       IntegerLiteral
         literal: 1
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@class::C::@method::member::@parameter::x#element
+          baseElement: <testLibrary>::@class::C::@method::member::@formalParameter::x
           substitution: {U: int}
         staticType: int
     rightParenthesis: )
@@ -139,7 +139,7 @@ DotShorthandInvocation
     arguments
       IntegerLiteral
         literal: 1
-        correspondingParameter: <testLibraryFragment>::@class::C::@method::member::@parameter::x#element
+        correspondingParameter: <testLibrary>::@class::C::@method::member::@formalParameter::x
         staticType: int
     rightParenthesis: )
   staticInvokeType: C Function(int)
@@ -170,7 +170,7 @@ FunctionExpressionInvocation
     period: .
     propertyName: SimpleIdentifier
       token: id1
-      element: <testLibraryFragment>::@class::C::@getter::id1#element
+      element: <testLibrary>::@class::C::@getter::id1
       staticType: C
     staticType: C
   argumentList: ArgumentList
@@ -228,7 +228,7 @@ FunctionExpressionInvocation
     period: .
     propertyName: SimpleIdentifier
       token: id1
-      element: <testLibraryFragment>::@class::C::@getter::id1#element
+      element: <testLibrary>::@class::C::@getter::id1
       staticType: C
     staticType: C
   argumentList: ArgumentList
@@ -330,10 +330,10 @@ DotShorthandInvocation
     arguments
       IntegerLiteral
         literal: 1
-        correspondingParameter: <testLibraryFragment>::@class::C::@method::member::@parameter::x#element
+        correspondingParameter: <testLibrary>::@class::C::@method::member::@formalParameter::x
         staticType: int
     rightParenthesis: )
-  correspondingParameter: dart:core::<fragment>::@class::Object::@method::==::@parameter::other#element
+  correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
   staticInvokeType: C Function(int)
   staticType: C
 ''');
@@ -602,13 +602,13 @@ DotShorthandInvocation
                 leftParenthesis: (
                 rightParenthesis: )
               correspondingParameter: FieldFormalParameterMember
-                baseElement: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
+                baseElement: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
                 substitution: {T: C<dynamic>}
               staticInvokeType: C<int> Function()
               staticType: C<int>
           rightParenthesis: )
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@class::C::@method::memberType::@parameter::u#element
+          baseElement: <testLibrary>::@class::C::@method::memberType::@formalParameter::u
           substitution: {U: C<C<dynamic>>, V: dynamic}
         staticType: C<C<dynamic>>
     rightParenthesis: )

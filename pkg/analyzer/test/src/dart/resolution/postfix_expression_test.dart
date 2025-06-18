@@ -58,12 +58,12 @@ void f(int x) {
 PostfixExpression
   operand: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
   operator: --
-  readElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+  readElement2: <testLibrary>::@function::f::@formalParameter::x
   readType: int
-  writeElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+  writeElement2: <testLibrary>::@function::f::@formalParameter::x
   writeType: int
   element: dart:core::@class::num::@method::-
   staticType: int
@@ -86,12 +86,12 @@ PostfixExpression
   operand: PostfixExpression
     operand: SimpleIdentifier
       token: x
-      element: <testLibraryFragment>::@function::f::@parameter::x#element
+      element: <testLibrary>::@function::f::@formalParameter::x
       staticType: null
     operator: ++
-    readElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+    readElement2: <testLibrary>::@function::f::@formalParameter::x
     readType: int
-    writeElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+    writeElement2: <testLibrary>::@function::f::@formalParameter::x
     writeType: int
     element: dart:core::@class::num::@method::+
     staticType: int
@@ -122,12 +122,12 @@ void f(A a) {
 PostfixExpression
   operand: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: null
   operator: ++
-  readElement2: <testLibraryFragment>::@function::f::@parameter::a#element
+  readElement2: <testLibrary>::@function::f::@formalParameter::a
   readType: A
-  writeElement2: <testLibraryFragment>::@function::f::@parameter::a#element
+  writeElement2: <testLibrary>::@function::f::@formalParameter::a
   writeType: A
   element: <null>
   staticType: A
@@ -146,12 +146,12 @@ void f(dynamic x) {
 PostfixExpression
   operand: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
   operator: ++
-  readElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+  readElement2: <testLibrary>::@function::f::@formalParameter::x
   readType: dynamic
-  writeElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+  writeElement2: <testLibrary>::@function::f::@formalParameter::x
   writeType: dynamic
   element: <null>
   staticType: dynamic
@@ -175,12 +175,12 @@ PrefixExpression
   operand: PostfixExpression
     operand: SimpleIdentifier
       token: x
-      element: <testLibraryFragment>::@function::f::@parameter::x#element
+      element: <testLibrary>::@function::f::@formalParameter::x
       staticType: null
     operator: ++
-    readElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+    readElement2: <testLibrary>::@function::f::@formalParameter::x
     readType: int
-    writeElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+    writeElement2: <testLibrary>::@function::f::@formalParameter::x
     writeType: int
     element: dart:core::@class::num::@method::+
     staticType: int
@@ -211,12 +211,12 @@ PostfixExpression
   operand: IndexExpression
     target: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A
     leftBracket: [
     index: IntegerLiteral
       literal: 0
-      correspondingParameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::index#element
+      correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
       staticType: int
     rightBracket: ]
     element: <null>
@@ -255,7 +255,7 @@ PostfixExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
-      correspondingParameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::index#element
+      correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
       staticType: int
     rightBracket: ]
     element: <null>
@@ -292,7 +292,7 @@ PostfixExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
-      correspondingParameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::index#element
+      correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
       staticType: int
     rightBracket: ]
     element: <null>
@@ -382,9 +382,9 @@ PostfixExpression
     element: <null>
     staticType: null
   operator: ++
-  readElement2: T@7
+  readElement2: #E0 T
   readType: InvalidType
-  writeElement2: T@7
+  writeElement2: #E0 T
   writeType: InvalidType
   element: <null>
   staticType: InvalidType
@@ -409,7 +409,7 @@ PostfixExpression
   operand: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A
     period: .
     identifier: SimpleIdentifier
@@ -419,9 +419,9 @@ PostfixExpression
     element: <null>
     staticType: null
   operator: ++
-  readElement2: <testLibraryFragment>::@extensionType::A::@getter::foo#element
+  readElement2: <testLibrary>::@extensionType::A::@getter::foo
   readType: int
-  writeElement2: <testLibraryFragment>::@extensionType::A::@setter::foo#element
+  writeElement2: <testLibrary>::@extensionType::A::@setter::foo
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -445,7 +445,7 @@ PostfixExpression
   operand: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A
     period: .
     identifier: SimpleIdentifier
@@ -455,9 +455,9 @@ PostfixExpression
     element: <null>
     staticType: null
   operator: ++
-  readElement2: <testLibraryFragment>::@class::A::@getter::x#element
+  readElement2: <testLibrary>::@class::A::@getter::x
   readType: int
-  writeElement2: <testLibraryFragment>::@class::A::@setter::x#element
+  writeElement2: <testLibrary>::@class::A::@setter::x
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -492,9 +492,9 @@ PostfixExpression
     element: <null>
     staticType: null
   operator: ++
-  readElement2: package:test/a.dart::<fragment>::@getter::x#element
+  readElement2: package:test/a.dart::@getter::x
   readType: int
-  writeElement2: package:test/a.dart::<fragment>::@setter::x#element
+  writeElement2: package:test/a.dart::@setter::x
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -534,9 +534,9 @@ PostfixExpression
       staticType: null
     staticType: null
   operator: ++
-  readElement2: <testLibraryFragment>::@class::A::@getter::x#element
+  readElement2: <testLibrary>::@class::A::@getter::x
   readType: int
-  writeElement2: <testLibraryFragment>::@class::A::@setter::x#element
+  writeElement2: <testLibrary>::@class::A::@setter::x
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -559,7 +559,7 @@ PostfixExpression
   operand: PropertyAccess
     target: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A?
     operator: ?.
     propertyName: SimpleIdentifier
@@ -568,9 +568,9 @@ PostfixExpression
       staticType: null
     staticType: null
   operator: ++
-  readElement2: <testLibraryFragment>::@class::A::@getter::foo#element
+  readElement2: <testLibrary>::@class::A::@getter::foo
   readType: int
-  writeElement2: <testLibraryFragment>::@class::A::@setter::foo#element
+  writeElement2: <testLibrary>::@class::A::@setter::foo
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int?
@@ -608,9 +608,9 @@ PostfixExpression
       staticType: null
     staticType: null
   operator: ++
-  readElement2: <testLibraryFragment>::@class::A::@getter::x#element
+  readElement2: <testLibrary>::@class::A::@getter::x
   readType: int
-  writeElement2: <testLibraryFragment>::@class::A::@setter::x#element
+  writeElement2: <testLibrary>::@class::A::@setter::x
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -643,9 +643,9 @@ PostfixExpression
       staticType: null
     staticType: null
   operator: ++
-  readElement2: <testLibraryFragment>::@class::A::@getter::x#element
+  readElement2: <testLibrary>::@class::A::@getter::x
   readType: int
-  writeElement2: <testLibraryFragment>::@class::A::@setter::x#element
+  writeElement2: <testLibrary>::@class::A::@setter::x
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -670,12 +670,12 @@ void f(Object x) {
 PostfixExpression
   operand: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
   operator: ++
-  readElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+  readElement2: <testLibrary>::@function::f::@formalParameter::x
   readType: A
-  writeElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+  writeElement2: <testLibrary>::@function::f::@formalParameter::x
   writeType: Object
   element: <testLibrary>::@class::A::@method::+
   staticType: A
@@ -696,12 +696,12 @@ void f(double x) {
 PostfixExpression
   operand: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
   operator: ++
-  readElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+  readElement2: <testLibrary>::@function::f::@formalParameter::x
   readType: double
-  writeElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+  writeElement2: <testLibrary>::@function::f::@formalParameter::x
   writeType: double
   element: dart:core::@class::double::@method::+
   staticType: double
@@ -720,12 +720,12 @@ void f(int x) {
 PostfixExpression
   operand: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
   operator: ++
-  readElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+  readElement2: <testLibrary>::@function::f::@formalParameter::x
   readType: int
-  writeElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+  writeElement2: <testLibrary>::@function::f::@formalParameter::x
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -744,12 +744,12 @@ void f(num x) {
 PostfixExpression
   operand: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
   operator: ++
-  readElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+  readElement2: <testLibrary>::@function::f::@formalParameter::x
   readType: num
-  writeElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+  writeElement2: <testLibrary>::@function::f::@formalParameter::x
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: num
@@ -778,9 +778,9 @@ PostfixExpression
     element: <null>
     staticType: null
   operator: ++
-  readElement2: <testLibraryFragment>::@class::B::@getter::x#element
+  readElement2: <testLibrary>::@class::B::@getter::x
   readType: int
-  writeElement2: <testLibraryFragment>::@class::A::@setter::x#element
+  writeElement2: <testLibrary>::@class::A::@setter::x
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -806,9 +806,9 @@ PostfixExpression
     element: <null>
     staticType: null
   operator: ++
-  readElement2: <testLibraryFragment>::@getter::x#element
+  readElement2: <testLibrary>::@getter::x
   readType: int
-  writeElement2: <testLibraryFragment>::@setter::x#element
+  writeElement2: <testLibrary>::@setter::x
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -836,9 +836,9 @@ PostfixExpression
     element: <null>
     staticType: null
   operator: ++
-  readElement2: <testLibraryFragment>::@getter::x#element
+  readElement2: <testLibrary>::@getter::x
   readType: int
-  writeElement2: <testLibraryFragment>::@setter::x#element
+  writeElement2: <testLibrary>::@setter::x
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -893,7 +893,7 @@ PostfixExpression
     leftParenthesis: (
     expression: SimpleIdentifier
       token: x
-      element: <testLibraryFragment>::@function::f::@parameter::x#element
+      element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Object?
     rightParenthesis: )
     leftBracket: {
@@ -957,7 +957,7 @@ void f(int? x) {
 PostfixExpression
   operand: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: int?
   operator: !
   element: <null>
@@ -985,7 +985,7 @@ void f(Map<String, int> a) {
 IndexExpression
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: Map<String, int>
   leftBracket: [
   index: SimpleStringLiteral
@@ -1002,7 +1002,7 @@ PostfixExpression
   operand: IndexExpression
     target: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: Map<String, int>
     leftBracket: [
     index: SimpleStringLiteral
@@ -1032,7 +1032,7 @@ void f(A? x) {
 PostfixExpression
   operand: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: String?
       alias: <testLibrary>::@typeAlias::A
   operator: !
@@ -1076,7 +1076,7 @@ PostfixExpression
         NullLiteral
           literal: null
           correspondingParameter: ParameterMember
-            baseElement: <testLibraryFragment>::@function::f::@parameter::t#element
+            baseElement: <testLibrary>::@function::f::@formalParameter::t
             substitution: {T: int?}
           staticType: Null
       rightParenthesis: )
@@ -1168,7 +1168,7 @@ void f(A? x) {
 PostfixExpression
   operand: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: (int,)?
       alias: <testLibrary>::@typeAlias::A
   operator: !
@@ -1229,7 +1229,7 @@ void f<T>(T? x) {
 PostfixExpression
   operand: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: T?
   operator: !
   element: <null>
@@ -1251,7 +1251,7 @@ void f<T>(T? x) {
 PostfixExpression
   operand: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: (T & num?)?
   operator: !
   element: <null>

@@ -38,7 +38,7 @@ RedirectingConstructorInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: <testLibraryFragment>::@class::C::@constructor::named::@parameter::a#element
+        correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::a
         staticType: int
     rightParenthesis: )
   element: <testLibrary>::@class::C::@constructor::named
@@ -99,7 +99,7 @@ RedirectingConstructorInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: <testLibraryFragment>::@class::C::@constructor::new::@parameter::a#element
+        correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::a
         staticType: int
     rightParenthesis: )
   element: <testLibrary>::@class::C::@constructor::new

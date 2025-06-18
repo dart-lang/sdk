@@ -166,7 +166,7 @@ ObjectPattern
         declaredElement: hasImplicitType isFinal a@63
           type: int
         matchedValueType: int
-      element2: dart:core::<fragment>::@class::int::@getter::sign#element
+      element2: dart:core::@class::int::@getter::sign
   rightParenthesis: )
   matchedValueType: int
 ''');

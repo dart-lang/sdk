@@ -375,6 +375,26 @@ action("generate_version_cc_file") {
     "../tools/VERSION",
     "vm/version_in.cc",
   ]
+
+  # This list must be kept in sync with the VM_SNAPSHOT_FILES in
+  # tools/make_version.py.
+  inputs += [
+    "vm/app_snapshot.cc",
+    "vm/app_snapshot.h",
+    "vm/dart.cc",
+    "vm/dart_api_impl.cc",
+    "vm/datastream.h",
+    "vm/image_snapshot.cc",
+    "vm/image_snapshot.h",
+    "vm/object.cc",
+    "vm/object.h",
+    "vm/raw_object.cc",
+    "vm/raw_object.h",
+    "vm/snapshot.cc",
+    "vm/snapshot.h",
+    "vm/symbols.cc",
+    "vm/symbols.h",
+  ]
   if (dart_version_git_info) {
     inputs += [ "$default_git_folder/logs/HEAD" ]
   }

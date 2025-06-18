@@ -41,7 +41,7 @@ FormalParameterList
     thisKeyword: this
     period: .
     name: it
-    declaredElement: <testLibraryFragment>::@extensionType::E::@constructor::named::@formalParameter::it
+    declaredElement: <testLibraryFragment> it@42
       type: int
   leftDelimiter: {
   parameter: DefaultFormalParameter
@@ -49,9 +49,9 @@ FormalParameterList
       superKeyword: super
       period: .
       name: foo
-      declaredElement: <testLibraryFragment>::@extensionType::E::@constructor::named::@parameter::foo
+      declaredElement: <testLibraryFragment> foo@53
         type: dynamic
-    declaredElement: <testLibraryFragment>::@extensionType::E::@constructor::named::@parameter::foo
+    declaredElement: <testLibraryFragment> foo@53
       type: dynamic
   rightDelimiter: }
   rightParenthesis: )
@@ -83,13 +83,13 @@ FormalParameterList
     thisKeyword: this
     period: .
     name: it
-    declaredElement: <testLibraryFragment>::@extensionType::E::@constructor::named::@formalParameter::it
+    declaredElement: <testLibraryFragment> it@42
       type: int
   parameter: SuperFormalParameter
     superKeyword: super
     period: .
     name: foo
-    declaredElement: <testLibraryFragment>::@extensionType::E::@constructor::named::@formalParameter::foo
+    declaredElement: <testLibraryFragment> foo@52
       type: dynamic
   rightParenthesis: )
 ''');

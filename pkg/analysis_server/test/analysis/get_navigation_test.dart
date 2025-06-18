@@ -263,7 +263,7 @@ f() {
 
   Future<void> test_fieldType() async {
     // This test mirrors test_navigation() from
-    // test/integration/analysis/get_navigation_test.dart
+    // integration_test/analysis/get_navigation_test.dart
     var text = r'''
 class Foo {}
 

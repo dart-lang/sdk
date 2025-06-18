@@ -32,52 +32,53 @@ extension type B(int it) implements A, num {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       extensionTypes
-        extension type A @15
-          reference: <testLibraryFragment>::@extensionType::A
+        #F1 extension type A @15
           element: <testLibrary>::@extensionType::A
           fields
-            it @22
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
+            #F2 it @22
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: <testLibraryFragment>::@extensionType::A::@getter::it
+              getter2: #F3
           getters
-            synthetic get it
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
-        extension type B @44
-          reference: <testLibraryFragment>::@extensionType::B
+            #F3 synthetic it
+              element: <testLibrary>::@extensionType::A::@getter::it
+              returnType: int?
+              variable: #F2
+        #F4 extension type B @44
           element: <testLibrary>::@extensionType::B
           fields
-            it @50
-              reference: <testLibraryFragment>::@extensionType::B::@field::it
+            #F5 it @50
               element: <testLibrary>::@extensionType::B::@field::it
-              getter2: <testLibraryFragment>::@extensionType::B::@getter::it
+              getter2: #F6
           getters
-            synthetic get it
-              reference: <testLibraryFragment>::@extensionType::B::@getter::it
-              element: <testLibraryFragment>::@extensionType::B::@getter::it#element
+            #F6 synthetic it
+              element: <testLibrary>::@extensionType::B::@getter::it
+              returnType: int
+              variable: #F5
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
-      firstFragment: <testLibraryFragment>::@extensionType::A
+      firstFragment: #F1
       representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int?
       fields
         final it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
+          reference: <testLibrary>::@extensionType::A::@field::it
+          firstFragment: #F2
           type: int?
-          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
+          getter: <testLibrary>::@extensionType::A::@getter::it
       getters
-        synthetic get it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+        synthetic it
+          reference: <testLibrary>::@extensionType::A::@getter::it
+          firstFragment: #F3
           returnType: int?
+          variable: <testLibrary>::@extensionType::A::@field::it
     extension type B
       reference: <testLibrary>::@extensionType::B
-      firstFragment: <testLibraryFragment>::@extensionType::B
+      firstFragment: #F4
       representation: <testLibrary>::@extensionType::B::@field::it
       primaryConstructor: <testLibrary>::@extensionType::B::@constructor::new
       typeErasure: int
@@ -91,13 +92,16 @@ library
         num
       fields
         final it
-          firstFragment: <testLibraryFragment>::@extensionType::B::@field::it
+          reference: <testLibrary>::@extensionType::B::@field::it
+          firstFragment: #F5
           type: int
-          getter: <testLibraryFragment>::@extensionType::B::@getter::it#element
+          getter: <testLibrary>::@extensionType::B::@getter::it
       getters
-        synthetic get it
-          firstFragment: <testLibraryFragment>::@extensionType::B::@getter::it
+        synthetic it
+          reference: <testLibrary>::@extensionType::B::@getter::it
+          firstFragment: #F6
           returnType: int
+          variable: <testLibrary>::@extensionType::B::@field::it
 ''');
   }
 
@@ -110,52 +114,55 @@ extension type const A(int it) {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       extensionTypes
-        extension type A @21
-          reference: <testLibraryFragment>::@extensionType::A
+        #F1 extension type A @21
           element: <testLibrary>::@extensionType::A
           fields
-            it @27
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
+            #F2 it @27
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: <testLibraryFragment>::@extensionType::A::@getter::it
+              getter2: #F3
           constructors
-            const new
-              reference: <testLibraryFragment>::@extensionType::A::@constructor::new
+            #F4 const new
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 21
               formalParameters
-                this.it @27
-                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
+                #F5 this.it @27
+                  element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            synthetic get it
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
+            #F3 synthetic it
+              element: <testLibrary>::@extensionType::A::@getter::it
+              returnType: int
+              variable: #F2
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
-      firstFragment: <testLibraryFragment>::@extensionType::A
+      firstFragment: #F1
       representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
         final it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
+          reference: <testLibrary>::@extensionType::A::@field::it
+          firstFragment: #F2
           type: int
-          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
+          getter: <testLibrary>::@extensionType::A::@getter::it
       constructors
         const new
-          firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
+          reference: <testLibrary>::@extensionType::A::@constructor::new
+          firstFragment: #F4
           formalParameters
             requiredPositional final hasImplicitType it
+              firstFragment: #F5
               type: int
       getters
-        synthetic get it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+        synthetic it
+          reference: <testLibrary>::@extensionType::A::@getter::it
+          firstFragment: #F3
           returnType: int
+          variable: <testLibrary>::@extensionType::A::@field::it
 ''');
   }
 
@@ -169,20 +176,17 @@ extension type A.named(int it) {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       extensionTypes
-        extension type A @15
-          reference: <testLibraryFragment>::@extensionType::A
+        #F1 extension type A @15
           element: <testLibrary>::@extensionType::A
           fields
-            it @27
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
+            #F2 it @27
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: <testLibraryFragment>::@extensionType::A::@getter::it
+              getter2: #F3
           constructors
-            named @17
-              reference: <testLibraryFragment>::@extensionType::A::@constructor::named
+            #F4 named @17
               element: <testLibrary>::@extensionType::A::@constructor::named
               codeOffset: 16
               codeLength: 14
@@ -190,34 +194,40 @@ library
               typeNameOffset: 15
               periodOffset: 16
               formalParameters
-                this.it @27
-                  element: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::it#element
+                #F5 this.it @27
+                  element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
           getters
-            synthetic get it
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
+            #F3 synthetic it
+              element: <testLibrary>::@extensionType::A::@getter::it
+              returnType: int
+              variable: #F2
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
-      firstFragment: <testLibraryFragment>::@extensionType::A
+      firstFragment: #F1
       representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::named
       typeErasure: int
       fields
         final it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
+          reference: <testLibrary>::@extensionType::A::@field::it
+          firstFragment: #F2
           type: int
-          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
+          getter: <testLibrary>::@extensionType::A::@getter::it
       constructors
         named
-          firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::named
+          reference: <testLibrary>::@extensionType::A::@constructor::named
+          firstFragment: #F4
           formalParameters
             requiredPositional final hasImplicitType it
+              firstFragment: #F5
               type: int
       getters
-        synthetic get it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+        synthetic it
+          reference: <testLibrary>::@extensionType::A::@getter::it
+          firstFragment: #F3
           returnType: int
+          variable: <testLibrary>::@extensionType::A::@field::it
 ''');
   }
 
@@ -232,66 +242,70 @@ extension type A(num it) {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       extensionTypes
-        extension type A @15
-          reference: <testLibraryFragment>::@extensionType::A
+        #F1 extension type A @15
           element: <testLibrary>::@extensionType::A
           fields
-            it @21
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
+            #F2 it @21
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: <testLibraryFragment>::@extensionType::A::@getter::it
+              getter2: #F3
           constructors
-            new
-              reference: <testLibraryFragment>::@extensionType::A::@constructor::new
+            #F4 new
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
-                this.it @21
-                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
-            named @31
-              reference: <testLibraryFragment>::@extensionType::A::@constructor::named
+                #F5 this.it @21
+                  element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+            #F6 named @31
               element: <testLibrary>::@extensionType::A::@constructor::named
               typeName: A
               typeNameOffset: 29
               periodOffset: 30
               formalParameters
-                this.it @42
-                  element: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::it#element
+                #F7 this.it @42
+                  element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
           getters
-            synthetic get it
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
+            #F3 synthetic it
+              element: <testLibrary>::@extensionType::A::@getter::it
+              returnType: num
+              variable: #F2
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
-      firstFragment: <testLibraryFragment>::@extensionType::A
+      firstFragment: #F1
       representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: num
       fields
         final it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
+          reference: <testLibrary>::@extensionType::A::@field::it
+          firstFragment: #F2
           type: num
-          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
+          getter: <testLibrary>::@extensionType::A::@getter::it
       constructors
         new
-          firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
+          reference: <testLibrary>::@extensionType::A::@constructor::new
+          firstFragment: #F4
           formalParameters
             requiredPositional final hasImplicitType it
+              firstFragment: #F5
               type: num
         named
-          firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::named
+          reference: <testLibrary>::@extensionType::A::@constructor::named
+          firstFragment: #F6
           formalParameters
             requiredPositional final hasImplicitType it
+              firstFragment: #F7
               type: num
       getters
-        synthetic get it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+        synthetic it
+          reference: <testLibrary>::@extensionType::A::@getter::it
+          firstFragment: #F3
           returnType: num
+          variable: <testLibrary>::@extensionType::A::@field::it
 ''');
   }
 
@@ -306,66 +320,70 @@ extension type A(num it) {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       extensionTypes
-        extension type A @15
-          reference: <testLibraryFragment>::@extensionType::A
+        #F1 extension type A @15
           element: <testLibrary>::@extensionType::A
           fields
-            it @21
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
+            #F2 it @21
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: <testLibraryFragment>::@extensionType::A::@getter::it
+              getter2: #F3
           constructors
-            new
-              reference: <testLibraryFragment>::@extensionType::A::@constructor::new
+            #F4 new
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
-                this.it @21
-                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
-            named @31
-              reference: <testLibraryFragment>::@extensionType::A::@constructor::named
+                #F5 this.it @21
+                  element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+            #F6 named @31
               element: <testLibrary>::@extensionType::A::@constructor::named
               typeName: A
               typeNameOffset: 29
               periodOffset: 30
               formalParameters
-                this.it @46
-                  element: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::it#element
+                #F7 this.it @46
+                  element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
           getters
-            synthetic get it
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
+            #F3 synthetic it
+              element: <testLibrary>::@extensionType::A::@getter::it
+              returnType: num
+              variable: #F2
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
-      firstFragment: <testLibraryFragment>::@extensionType::A
+      firstFragment: #F1
       representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: num
       fields
         final it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
+          reference: <testLibrary>::@extensionType::A::@field::it
+          firstFragment: #F2
           type: num
-          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
+          getter: <testLibrary>::@extensionType::A::@getter::it
       constructors
         new
-          firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
+          reference: <testLibrary>::@extensionType::A::@constructor::new
+          firstFragment: #F4
           formalParameters
             requiredPositional final hasImplicitType it
+              firstFragment: #F5
               type: num
         named
-          firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::named
+          reference: <testLibrary>::@extensionType::A::@constructor::named
+          firstFragment: #F6
           formalParameters
             requiredPositional final it
+              firstFragment: #F7
               type: int
       getters
-        synthetic get it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+        synthetic it
+          reference: <testLibrary>::@extensionType::A::@getter::it
+          firstFragment: #F3
           returnType: num
+          variable: <testLibrary>::@extensionType::A::@field::it
 ''');
   }
 
@@ -380,61 +398,63 @@ extension type A(num it) {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       extensionTypes
-        extension type A @15
-          reference: <testLibraryFragment>::@extensionType::A
+        #F1 extension type A @15
           element: <testLibrary>::@extensionType::A
           fields
-            it @21
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
+            #F2 it @21
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: <testLibraryFragment>::@extensionType::A::@getter::it
+              getter2: #F3
           constructors
-            new
-              reference: <testLibraryFragment>::@extensionType::A::@constructor::new
+            #F4 new
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
-                this.it @21
-                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
-            const named @37
-              reference: <testLibraryFragment>::@extensionType::A::@constructor::named
+                #F5 this.it @21
+                  element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+            #F6 const named @37
               element: <testLibrary>::@extensionType::A::@constructor::named
               typeName: A
               typeNameOffset: 35
               periodOffset: 36
               formalParameters
-                a @47
-                  element: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::a#element
+                #F7 a @47
+                  element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::a
           getters
-            synthetic get it
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
+            #F3 synthetic it
+              element: <testLibrary>::@extensionType::A::@getter::it
+              returnType: num
+              variable: #F2
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
-      firstFragment: <testLibraryFragment>::@extensionType::A
+      firstFragment: #F1
       representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: num
       fields
         final it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
+          reference: <testLibrary>::@extensionType::A::@field::it
+          firstFragment: #F2
           type: num
-          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
+          getter: <testLibrary>::@extensionType::A::@getter::it
       constructors
         new
-          firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
+          reference: <testLibrary>::@extensionType::A::@constructor::new
+          firstFragment: #F4
           formalParameters
             requiredPositional final hasImplicitType it
+              firstFragment: #F5
               type: num
         const named
-          firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::named
+          reference: <testLibrary>::@extensionType::A::@constructor::named
+          firstFragment: #F6
           formalParameters
             requiredPositional a
+              firstFragment: #F7
               type: int
           constantInitializers
             ConstructorFieldInitializer
@@ -445,12 +465,14 @@ library
               equals: = @55
               expression: SimpleIdentifier
                 token: a @57
-                element: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::a#element
+                element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::a
                 staticType: int
       getters
-        synthetic get it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+        synthetic it
+          reference: <testLibrary>::@extensionType::A::@getter::it
+          firstFragment: #F3
           returnType: num
+          variable: <testLibrary>::@extensionType::A::@field::it
 ''');
   }
 
@@ -464,54 +486,57 @@ extension type A(int it) {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       extensionTypes
-        extension type A @15
-          reference: <testLibraryFragment>::@extensionType::A
+        #F1 extension type A @15
           element: <testLibrary>::@extensionType::A
           fields
-            it @21
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
+            #F2 it @21
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: <testLibraryFragment>::@extensionType::A::@getter::it
+              getter2: #F3
           constructors
-            new
-              reference: <testLibraryFragment>::@extensionType::A::@constructor::new
+            #F4 new
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 16
               codeLength: 8
               typeName: A
               typeNameOffset: 15
               formalParameters
-                this.it @21
-                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
+                #F5 this.it @21
+                  element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            synthetic get it
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
+            #F3 synthetic it
+              element: <testLibrary>::@extensionType::A::@getter::it
+              returnType: int
+              variable: #F2
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
-      firstFragment: <testLibraryFragment>::@extensionType::A
+      firstFragment: #F1
       representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
         final it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
+          reference: <testLibrary>::@extensionType::A::@field::it
+          firstFragment: #F2
           type: int
-          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
+          getter: <testLibrary>::@extensionType::A::@getter::it
       constructors
         new
-          firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
+          reference: <testLibrary>::@extensionType::A::@constructor::new
+          firstFragment: #F4
           formalParameters
             requiredPositional final hasImplicitType it
+              firstFragment: #F5
               type: int
       getters
-        synthetic get it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+        synthetic it
+          reference: <testLibrary>::@extensionType::A::@getter::it
+          firstFragment: #F3
           returnType: int
+          variable: <testLibrary>::@extensionType::A::@field::it
 ''');
   }
 
@@ -526,53 +551,56 @@ extension type A(int it) {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       extensionTypes
-        extension type A @24
-          reference: <testLibraryFragment>::@extensionType::A
+        #F1 extension type A @24
           element: <testLibrary>::@extensionType::A
           fields
-            it @30
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
+            #F2 it @30
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: <testLibraryFragment>::@extensionType::A::@getter::it
+              getter2: #F3
           constructors
-            new
-              reference: <testLibraryFragment>::@extensionType::A::@constructor::new
+            #F4 new
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 24
               formalParameters
-                this.it @30
-                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
+                #F5 this.it @30
+                  element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            synthetic get it
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
+            #F3 synthetic it
+              element: <testLibrary>::@extensionType::A::@getter::it
+              returnType: int
+              variable: #F2
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
-      firstFragment: <testLibraryFragment>::@extensionType::A
+      firstFragment: #F1
       documentationComment: /// Docs
       representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
         final it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
+          reference: <testLibrary>::@extensionType::A::@field::it
+          firstFragment: #F2
           type: int
-          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
+          getter: <testLibrary>::@extensionType::A::@getter::it
       constructors
         new
-          firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
+          reference: <testLibrary>::@extensionType::A::@constructor::new
+          firstFragment: #F4
           formalParameters
             requiredPositional final hasImplicitType it
+              firstFragment: #F5
               type: int
       getters
-        synthetic get it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+        synthetic it
+          reference: <testLibrary>::@extensionType::A::@getter::it
+          firstFragment: #F3
           returnType: int
+          variable: <testLibrary>::@extensionType::A::@field::it
 ''');
   }
 
@@ -588,58 +616,63 @@ extension type A(int it) {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       extensionTypes
-        extension type A @15
-          reference: <testLibraryFragment>::@extensionType::A
+        #F1 extension type A @15
           element: <testLibrary>::@extensionType::A
           fields
-            it @21
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
+            #F2 it @21
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: <testLibraryFragment>::@extensionType::A::@getter::it
-            hasInitializer foo @46
-              reference: <testLibraryFragment>::@extensionType::A::@field::foo
+              getter2: #F3
+            #F4 hasInitializer foo @46
               element: <testLibrary>::@extensionType::A::@field::foo
               initializer: expression_0
                 IntegerLiteral
                   literal: 0 @52
                   staticType: int
-              getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
+              getter2: #F5
           getters
-            synthetic get it
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
-            synthetic get foo
-              reference: <testLibraryFragment>::@extensionType::A::@getter::foo
-              element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
+            #F3 synthetic it
+              element: <testLibrary>::@extensionType::A::@getter::it
+              returnType: int
+              variable: #F2
+            #F5 synthetic foo
+              element: <testLibrary>::@extensionType::A::@getter::foo
+              returnType: int
+              variable: #F4
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
-      firstFragment: <testLibraryFragment>::@extensionType::A
+      firstFragment: #F1
       representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
         final it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
+          reference: <testLibrary>::@extensionType::A::@field::it
+          firstFragment: #F2
           type: int
-          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
+          getter: <testLibrary>::@extensionType::A::@getter::it
         static const hasInitializer foo
-          firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
+          reference: <testLibrary>::@extensionType::A::@field::foo
+          firstFragment: #F4
           type: int
           constantInitializer
-            fragment: <testLibraryFragment>::@extensionType::A::@field::foo
+            fragment: #F4
             expression: expression_0
-          getter: <testLibraryFragment>::@extensionType::A::@getter::foo#element
+          getter: <testLibrary>::@extensionType::A::@getter::foo
       getters
-        synthetic get it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+        synthetic it
+          reference: <testLibrary>::@extensionType::A::@getter::it
+          firstFragment: #F3
           returnType: int
-        synthetic static get foo
-          firstFragment: <testLibraryFragment>::@extensionType::A::@getter::foo
+          variable: <testLibrary>::@extensionType::A::@field::it
+        synthetic static foo
+          reference: <testLibrary>::@extensionType::A::@getter::foo
+          firstFragment: #F5
           returnType: int
+          variable: <testLibrary>::@extensionType::A::@field::foo
 ''');
   }
 
@@ -655,58 +688,63 @@ extension type A(int it) {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       extensionTypes
-        extension type A @15
-          reference: <testLibraryFragment>::@extensionType::A
+        #F1 extension type A @15
           element: <testLibrary>::@extensionType::A
           fields
-            it @21
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
+            #F2 it @21
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: <testLibraryFragment>::@extensionType::A::@getter::it
-            hasInitializer foo @42
-              reference: <testLibraryFragment>::@extensionType::A::@field::foo
+              getter2: #F3
+            #F4 hasInitializer foo @42
               element: <testLibrary>::@extensionType::A::@field::foo
               initializer: expression_0
                 IntegerLiteral
                   literal: 0 @48
                   staticType: int
-              getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
+              getter2: #F5
           getters
-            synthetic get it
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
-            synthetic get foo
-              reference: <testLibraryFragment>::@extensionType::A::@getter::foo
-              element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
+            #F3 synthetic it
+              element: <testLibrary>::@extensionType::A::@getter::it
+              returnType: int
+              variable: #F2
+            #F5 synthetic foo
+              element: <testLibrary>::@extensionType::A::@getter::foo
+              returnType: int
+              variable: #F4
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
-      firstFragment: <testLibraryFragment>::@extensionType::A
+      firstFragment: #F1
       representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
         final it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
+          reference: <testLibrary>::@extensionType::A::@field::it
+          firstFragment: #F2
           type: int
-          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
+          getter: <testLibrary>::@extensionType::A::@getter::it
         static const hasInitializer foo
-          firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
+          reference: <testLibrary>::@extensionType::A::@field::foo
+          firstFragment: #F4
           type: int
           constantInitializer
-            fragment: <testLibraryFragment>::@extensionType::A::@field::foo
+            fragment: #F4
             expression: expression_0
-          getter: <testLibraryFragment>::@extensionType::A::@getter::foo#element
+          getter: <testLibrary>::@extensionType::A::@getter::foo
       getters
-        synthetic get it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+        synthetic it
+          reference: <testLibrary>::@extensionType::A::@getter::it
+          firstFragment: #F3
           returnType: int
-        synthetic static get foo
-          firstFragment: <testLibraryFragment>::@extensionType::A::@getter::foo
+          variable: <testLibrary>::@extensionType::A::@field::it
+        synthetic static foo
+          reference: <testLibrary>::@extensionType::A::@getter::foo
+          firstFragment: #F5
           returnType: int
+          variable: <testLibrary>::@extensionType::A::@field::foo
 ''');
   }
 
@@ -722,51 +760,56 @@ extension type A(int it) {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       extensionTypes
-        extension type A @15
-          reference: <testLibraryFragment>::@extensionType::A
+        #F1 extension type A @15
           element: <testLibrary>::@extensionType::A
           fields
-            it @21
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
+            #F2 it @21
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: <testLibraryFragment>::@extensionType::A::@getter::it
-            hasInitializer foo @35
-              reference: <testLibraryFragment>::@extensionType::A::@field::foo
+              getter2: #F3
+            #F4 hasInitializer foo @35
               element: <testLibrary>::@extensionType::A::@field::foo
-              getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
+              getter2: #F5
           getters
-            synthetic get it
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
-            synthetic get foo
-              reference: <testLibraryFragment>::@extensionType::A::@getter::foo
-              element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
+            #F3 synthetic it
+              element: <testLibrary>::@extensionType::A::@getter::it
+              returnType: int
+              variable: #F2
+            #F5 synthetic foo
+              element: <testLibrary>::@extensionType::A::@getter::foo
+              returnType: int
+              variable: #F4
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
-      firstFragment: <testLibraryFragment>::@extensionType::A
+      firstFragment: #F1
       representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
         final it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
+          reference: <testLibrary>::@extensionType::A::@field::it
+          firstFragment: #F2
           type: int
-          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
+          getter: <testLibrary>::@extensionType::A::@getter::it
         final hasInitializer foo
-          firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
+          reference: <testLibrary>::@extensionType::A::@field::foo
+          firstFragment: #F4
           type: int
-          getter: <testLibraryFragment>::@extensionType::A::@getter::foo#element
+          getter: <testLibrary>::@extensionType::A::@getter::foo
       getters
-        synthetic get it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+        synthetic it
+          reference: <testLibrary>::@extensionType::A::@getter::it
+          firstFragment: #F3
           returnType: int
-        synthetic get foo
-          firstFragment: <testLibraryFragment>::@extensionType::A::@getter::foo
+          variable: <testLibrary>::@extensionType::A::@field::it
+        synthetic foo
+          reference: <testLibrary>::@extensionType::A::@getter::foo
+          firstFragment: #F5
           returnType: int
+          variable: <testLibrary>::@extensionType::A::@field::foo
 ''');
   }
 
@@ -784,54 +827,57 @@ extension type A(@foo int it) {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       libraryImports
         package:test/a.dart
       extensionTypes
-        extension type A @32
-          reference: <testLibraryFragment>::@extensionType::A
+        #F1 extension type A @32
           element: <testLibrary>::@extensionType::A
           fields
-            it @43
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
+            #F2 it @43
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: <testLibraryFragment>::@extensionType::A::@getter::it
+              getter2: #F3
           constructors
-            new
-              reference: <testLibraryFragment>::@extensionType::A::@constructor::new
+            #F4 new
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 32
               formalParameters
-                this.it @43
-                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
+                #F5 this.it @43
+                  element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            synthetic get it
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
+            #F3 synthetic it
+              element: <testLibrary>::@extensionType::A::@getter::it
+              returnType: int
+              variable: #F2
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
-      firstFragment: <testLibraryFragment>::@extensionType::A
+      firstFragment: #F1
       representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
         final it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
+          reference: <testLibrary>::@extensionType::A::@field::it
+          firstFragment: #F2
           type: int
-          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
+          getter: <testLibrary>::@extensionType::A::@getter::it
       constructors
         new
-          firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
+          reference: <testLibrary>::@extensionType::A::@constructor::new
+          firstFragment: #F4
           formalParameters
             requiredPositional final hasImplicitType it
+              firstFragment: #F5
               type: int
       getters
-        synthetic get it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+        synthetic it
+          reference: <testLibrary>::@extensionType::A::@getter::it
+          firstFragment: #F3
           returnType: int
+          variable: <testLibrary>::@extensionType::A::@field::it
 ''');
   }
 
@@ -847,51 +893,56 @@ extension type A(int it) {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       extensionTypes
-        extension type A @15
-          reference: <testLibraryFragment>::@extensionType::A
+        #F1 extension type A @15
           element: <testLibrary>::@extensionType::A
           fields
-            it @21
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
+            #F2 it @21
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: <testLibraryFragment>::@extensionType::A::@getter::it
-            synthetic foo
-              reference: <testLibraryFragment>::@extensionType::A::@field::foo
+              getter2: #F3
+            #F4 synthetic foo
               element: <testLibrary>::@extensionType::A::@field::foo
-              getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
+              getter2: #F5
           getters
-            synthetic get it
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
-            get foo @37
-              reference: <testLibraryFragment>::@extensionType::A::@getter::foo
-              element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
+            #F3 synthetic it
+              element: <testLibrary>::@extensionType::A::@getter::it
+              returnType: int
+              variable: #F2
+            #F5 foo @37
+              element: <testLibrary>::@extensionType::A::@getter::foo
+              returnType: int
+              variable: #F4
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
-      firstFragment: <testLibraryFragment>::@extensionType::A
+      firstFragment: #F1
       representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
         final it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
+          reference: <testLibrary>::@extensionType::A::@field::it
+          firstFragment: #F2
           type: int
-          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
+          getter: <testLibrary>::@extensionType::A::@getter::it
         synthetic foo
-          firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
+          reference: <testLibrary>::@extensionType::A::@field::foo
+          firstFragment: #F4
           type: int
-          getter: <testLibraryFragment>::@extensionType::A::@getter::foo#element
+          getter: <testLibrary>::@extensionType::A::@getter::foo
       getters
-        synthetic get it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+        synthetic it
+          reference: <testLibrary>::@extensionType::A::@getter::it
+          firstFragment: #F3
           returnType: int
-        get foo
-          firstFragment: <testLibraryFragment>::@extensionType::A::@getter::foo
+          variable: <testLibrary>::@extensionType::A::@field::it
+        foo
+          reference: <testLibrary>::@extensionType::A::@getter::foo
+          firstFragment: #F5
           returnType: int
+          variable: <testLibrary>::@extensionType::A::@field::foo
 ''');
   }
 
@@ -908,48 +959,44 @@ extension type X(C it) implements A, B {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A @6
           element: <testLibrary>::@class::A
-        class B @17
-          reference: <testLibraryFragment>::@class::B
+        #F2 class B @17
           element: <testLibrary>::@class::B
-        class C @28
-          reference: <testLibraryFragment>::@class::C
+        #F3 class C @28
           element: <testLibrary>::@class::C
       extensionTypes
-        extension type X @64
-          reference: <testLibraryFragment>::@extensionType::X
+        #F4 extension type X @64
           element: <testLibrary>::@extensionType::X
           fields
-            it @68
-              reference: <testLibraryFragment>::@extensionType::X::@field::it
+            #F5 it @68
               element: <testLibrary>::@extensionType::X::@field::it
-              getter2: <testLibraryFragment>::@extensionType::X::@getter::it
+              getter2: #F6
           getters
-            synthetic get it
-              reference: <testLibraryFragment>::@extensionType::X::@getter::it
-              element: <testLibraryFragment>::@extensionType::X::@getter::it#element
+            #F6 synthetic it
+              element: <testLibrary>::@extensionType::X::@getter::it
+              returnType: C
+              variable: #F5
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
     class B
       reference: <testLibrary>::@class::B
-      firstFragment: <testLibraryFragment>::@class::B
+      firstFragment: #F2
     class C
       reference: <testLibrary>::@class::C
-      firstFragment: <testLibraryFragment>::@class::C
+      firstFragment: #F3
       interfaces
         A
         B
   extensionTypes
     extension type X
       reference: <testLibrary>::@extensionType::X
-      firstFragment: <testLibraryFragment>::@extensionType::X
+      firstFragment: #F4
       representation: <testLibrary>::@extensionType::X::@field::it
       primaryConstructor: <testLibrary>::@extensionType::X::@constructor::new
       typeErasure: C
@@ -958,13 +1005,16 @@ library
         B
       fields
         final it
-          firstFragment: <testLibraryFragment>::@extensionType::X::@field::it
+          reference: <testLibrary>::@extensionType::X::@field::it
+          firstFragment: #F5
           type: C
-          getter: <testLibraryFragment>::@extensionType::X::@getter::it#element
+          getter: <testLibrary>::@extensionType::X::@getter::it
       getters
-        synthetic get it
-          firstFragment: <testLibraryFragment>::@extensionType::X::@getter::it
+        synthetic it
+          reference: <testLibrary>::@extensionType::X::@getter::it
+          firstFragment: #F6
           returnType: C
+          variable: <testLibrary>::@extensionType::X::@field::it
 ''');
   }
 
@@ -979,37 +1029,35 @@ extension type B(int it) implements A {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       extensionTypes
-        extension type A @15
-          reference: <testLibraryFragment>::@extensionType::A
+        #F1 extension type A @15
           element: <testLibrary>::@extensionType::A
           fields
-            it @21
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
+            #F2 it @21
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: <testLibraryFragment>::@extensionType::A::@getter::it
+              getter2: #F3
           getters
-            synthetic get it
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
-        extension type B @56
-          reference: <testLibraryFragment>::@extensionType::B
+            #F3 synthetic it
+              element: <testLibrary>::@extensionType::A::@getter::it
+              returnType: int
+              variable: #F2
+        #F4 extension type B @56
           element: <testLibrary>::@extensionType::B
           fields
-            it @62
-              reference: <testLibraryFragment>::@extensionType::B::@field::it
+            #F5 it @62
               element: <testLibrary>::@extensionType::B::@field::it
-              getter2: <testLibraryFragment>::@extensionType::B::@getter::it
+              getter2: #F6
           getters
-            synthetic get it
-              reference: <testLibraryFragment>::@extensionType::B::@getter::it
-              element: <testLibraryFragment>::@extensionType::B::@getter::it#element
+            #F6 synthetic it
+              element: <testLibrary>::@extensionType::B::@getter::it
+              returnType: int
+              variable: #F5
   extensionTypes
     hasImplementsSelfReference extension type A
       reference: <testLibrary>::@extensionType::A
-      firstFragment: <testLibraryFragment>::@extensionType::A
+      firstFragment: #F1
       representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
@@ -1017,16 +1065,19 @@ library
         Object
       fields
         final it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
+          reference: <testLibrary>::@extensionType::A::@field::it
+          firstFragment: #F2
           type: int
-          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
+          getter: <testLibrary>::@extensionType::A::@getter::it
       getters
-        synthetic get it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+        synthetic it
+          reference: <testLibrary>::@extensionType::A::@getter::it
+          firstFragment: #F3
           returnType: int
+          variable: <testLibrary>::@extensionType::A::@field::it
     hasImplementsSelfReference extension type B
       reference: <testLibrary>::@extensionType::B
-      firstFragment: <testLibraryFragment>::@extensionType::B
+      firstFragment: #F4
       representation: <testLibrary>::@extensionType::B::@field::it
       primaryConstructor: <testLibrary>::@extensionType::B::@constructor::new
       typeErasure: int
@@ -1034,13 +1085,16 @@ library
         Object
       fields
         final it
-          firstFragment: <testLibraryFragment>::@extensionType::B::@field::it
+          reference: <testLibrary>::@extensionType::B::@field::it
+          firstFragment: #F5
           type: int
-          getter: <testLibraryFragment>::@extensionType::B::@getter::it#element
+          getter: <testLibrary>::@extensionType::B::@getter::it
       getters
-        synthetic get it
-          firstFragment: <testLibraryFragment>::@extensionType::B::@getter::it
+        synthetic it
+          reference: <testLibrary>::@extensionType::B::@getter::it
+          firstFragment: #F6
           returnType: int
+          variable: <testLibrary>::@extensionType::B::@field::it
 ''');
   }
 
@@ -1054,25 +1108,24 @@ extension type A(int it) implements A {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       extensionTypes
-        extension type A @15
-          reference: <testLibraryFragment>::@extensionType::A
+        #F1 extension type A @15
           element: <testLibrary>::@extensionType::A
           fields
-            it @21
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
+            #F2 it @21
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: <testLibraryFragment>::@extensionType::A::@getter::it
+              getter2: #F3
           getters
-            synthetic get it
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
+            #F3 synthetic it
+              element: <testLibrary>::@extensionType::A::@getter::it
+              returnType: int
+              variable: #F2
   extensionTypes
     hasImplementsSelfReference extension type A
       reference: <testLibrary>::@extensionType::A
-      firstFragment: <testLibraryFragment>::@extensionType::A
+      firstFragment: #F1
       representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
@@ -1080,13 +1133,16 @@ library
         Object
       fields
         final it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
+          reference: <testLibrary>::@extensionType::A::@field::it
+          firstFragment: #F2
           type: int
-          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
+          getter: <testLibrary>::@extensionType::A::@getter::it
       getters
-        synthetic get it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+        synthetic it
+          reference: <testLibrary>::@extensionType::A::@getter::it
+          firstFragment: #F3
           returnType: int
+          variable: <testLibrary>::@extensionType::A::@field::it
 ''');
   }
 
@@ -1101,52 +1157,53 @@ extension type B(int it) implements A {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       extensionTypes
-        extension type A @15
-          reference: <testLibraryFragment>::@extensionType::A
+        #F1 extension type A @15
           element: <testLibrary>::@extensionType::A
           fields
-            it @21
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
+            #F2 it @21
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: <testLibraryFragment>::@extensionType::A::@getter::it
+              getter2: #F3
           getters
-            synthetic get it
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
-        extension type B @43
-          reference: <testLibraryFragment>::@extensionType::B
+            #F3 synthetic it
+              element: <testLibrary>::@extensionType::A::@getter::it
+              returnType: num
+              variable: #F2
+        #F4 extension type B @43
           element: <testLibrary>::@extensionType::B
           fields
-            it @49
-              reference: <testLibraryFragment>::@extensionType::B::@field::it
+            #F5 it @49
               element: <testLibrary>::@extensionType::B::@field::it
-              getter2: <testLibraryFragment>::@extensionType::B::@getter::it
+              getter2: #F6
           getters
-            synthetic get it
-              reference: <testLibraryFragment>::@extensionType::B::@getter::it
-              element: <testLibraryFragment>::@extensionType::B::@getter::it#element
+            #F6 synthetic it
+              element: <testLibrary>::@extensionType::B::@getter::it
+              returnType: int
+              variable: #F5
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
-      firstFragment: <testLibraryFragment>::@extensionType::A
+      firstFragment: #F1
       representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: num
       fields
         final it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
+          reference: <testLibrary>::@extensionType::A::@field::it
+          firstFragment: #F2
           type: num
-          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
+          getter: <testLibrary>::@extensionType::A::@getter::it
       getters
-        synthetic get it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+        synthetic it
+          reference: <testLibrary>::@extensionType::A::@getter::it
+          firstFragment: #F3
           returnType: num
+          variable: <testLibrary>::@extensionType::A::@field::it
     extension type B
       reference: <testLibrary>::@extensionType::B
-      firstFragment: <testLibraryFragment>::@extensionType::B
+      firstFragment: #F4
       representation: <testLibrary>::@extensionType::B::@field::it
       primaryConstructor: <testLibrary>::@extensionType::B::@constructor::new
       typeErasure: int
@@ -1154,13 +1211,16 @@ library
         A
       fields
         final it
-          firstFragment: <testLibraryFragment>::@extensionType::B::@field::it
+          reference: <testLibrary>::@extensionType::B::@field::it
+          firstFragment: #F5
           type: int
-          getter: <testLibraryFragment>::@extensionType::B::@getter::it#element
+          getter: <testLibrary>::@extensionType::B::@getter::it
       getters
-        synthetic get it
-          firstFragment: <testLibraryFragment>::@extensionType::B::@getter::it
+        synthetic it
+          reference: <testLibrary>::@extensionType::B::@getter::it
+          firstFragment: #F6
           returnType: int
+          variable: <testLibrary>::@extensionType::B::@field::it
 ''');
   }
 
@@ -1174,25 +1234,24 @@ extension type A(int it) implements num, FutureOr<int> {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       extensionTypes
-        extension type A @15
-          reference: <testLibraryFragment>::@extensionType::A
+        #F1 extension type A @15
           element: <testLibrary>::@extensionType::A
           fields
-            it @21
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
+            #F2 it @21
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: <testLibraryFragment>::@extensionType::A::@getter::it
+              getter2: #F3
           getters
-            synthetic get it
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
+            #F3 synthetic it
+              element: <testLibrary>::@extensionType::A::@getter::it
+              returnType: int
+              variable: #F2
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
-      firstFragment: <testLibraryFragment>::@extensionType::A
+      firstFragment: #F1
       representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
@@ -1200,13 +1259,16 @@ library
         num
       fields
         final it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
+          reference: <testLibrary>::@extensionType::A::@field::it
+          firstFragment: #F2
           type: int
-          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
+          getter: <testLibrary>::@extensionType::A::@getter::it
       getters
-        synthetic get it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+        synthetic it
+          reference: <testLibrary>::@extensionType::A::@getter::it
+          firstFragment: #F3
           returnType: int
+          variable: <testLibrary>::@extensionType::A::@field::it
 ''');
   }
 
@@ -1220,37 +1282,39 @@ extension type X(int? it) {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       extensionTypes
-        extension type X @15
-          reference: <testLibraryFragment>::@extensionType::X
+        #F1 extension type X @15
           element: <testLibrary>::@extensionType::X
           fields
-            it @22
-              reference: <testLibraryFragment>::@extensionType::X::@field::it
+            #F2 it @22
               element: <testLibrary>::@extensionType::X::@field::it
-              getter2: <testLibraryFragment>::@extensionType::X::@getter::it
+              getter2: #F3
           getters
-            synthetic get it
-              reference: <testLibraryFragment>::@extensionType::X::@getter::it
-              element: <testLibraryFragment>::@extensionType::X::@getter::it#element
+            #F3 synthetic it
+              element: <testLibrary>::@extensionType::X::@getter::it
+              returnType: int?
+              variable: #F2
   extensionTypes
     extension type X
       reference: <testLibrary>::@extensionType::X
-      firstFragment: <testLibraryFragment>::@extensionType::X
+      firstFragment: #F1
       representation: <testLibrary>::@extensionType::X::@field::it
       primaryConstructor: <testLibrary>::@extensionType::X::@constructor::new
       typeErasure: int?
       fields
         final it
-          firstFragment: <testLibraryFragment>::@extensionType::X::@field::it
+          reference: <testLibrary>::@extensionType::X::@field::it
+          firstFragment: #F2
           type: int?
-          getter: <testLibraryFragment>::@extensionType::X::@getter::it#element
+          getter: <testLibrary>::@extensionType::X::@getter::it
       getters
-        synthetic get it
-          firstFragment: <testLibraryFragment>::@extensionType::X::@getter::it
+        synthetic it
+          reference: <testLibrary>::@extensionType::X::@getter::it
+          firstFragment: #F3
           returnType: int?
+          variable: <testLibrary>::@extensionType::X::@field::it
 ''');
   }
 
@@ -1264,44 +1328,47 @@ extension type A<T>(T it) {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       extensionTypes
-        extension type A @15
-          reference: <testLibraryFragment>::@extensionType::A
+        #F1 extension type A @15
           element: <testLibrary>::@extensionType::A
           typeParameters
-            T @17
-              element: T@17
+            #F2 T @17
+              element: #E0 T
           fields
-            it @22
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
+            #F3 it @22
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: <testLibraryFragment>::@extensionType::A::@getter::it
+              getter2: #F4
           getters
-            synthetic get it
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
+            #F4 synthetic it
+              element: <testLibrary>::@extensionType::A::@getter::it
+              returnType: T
+              variable: #F3
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
-      firstFragment: <testLibraryFragment>::@extensionType::A
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: T
       fields
         final it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
+          reference: <testLibrary>::@extensionType::A::@field::it
+          firstFragment: #F3
           hasEnclosingTypeParameterReference: true
           type: T
-          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
+          getter: <testLibrary>::@extensionType::A::@getter::it
       getters
-        synthetic get it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+        synthetic it
+          reference: <testLibrary>::@extensionType::A::@getter::it
+          firstFragment: #F4
           hasEnclosingTypeParameterReference: true
           returnType: T
+          variable: <testLibrary>::@extensionType::A::@field::it
 ''');
   }
 
@@ -1316,29 +1383,27 @@ extension type X(int it) implements A, num {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       extensionTypes
-        extension type X @33
-          reference: <testLibraryFragment>::@extensionType::X
+        #F1 extension type X @33
           element: <testLibrary>::@extensionType::X
           fields
-            it @39
-              reference: <testLibraryFragment>::@extensionType::X::@field::it
+            #F2 it @39
               element: <testLibrary>::@extensionType::X::@field::it
-              getter2: <testLibraryFragment>::@extensionType::X::@getter::it
+              getter2: #F3
           getters
-            synthetic get it
-              reference: <testLibraryFragment>::@extensionType::X::@getter::it
-              element: <testLibraryFragment>::@extensionType::X::@getter::it#element
+            #F3 synthetic it
+              element: <testLibrary>::@extensionType::X::@getter::it
+              returnType: int
+              variable: #F2
       typeAliases
-        A @8
-          reference: <testLibraryFragment>::@typeAlias::A
+        #F4 A @8
           element: <testLibrary>::@typeAlias::A
   extensionTypes
     extension type X
       reference: <testLibrary>::@extensionType::X
-      firstFragment: <testLibraryFragment>::@extensionType::X
+      firstFragment: #F1
       representation: <testLibrary>::@extensionType::X::@field::it
       primaryConstructor: <testLibrary>::@extensionType::X::@constructor::new
       typeErasure: int
@@ -1346,16 +1411,20 @@ library
         num
       fields
         final it
-          firstFragment: <testLibraryFragment>::@extensionType::X::@field::it
+          reference: <testLibrary>::@extensionType::X::@field::it
+          firstFragment: #F2
           type: int
-          getter: <testLibraryFragment>::@extensionType::X::@getter::it#element
+          getter: <testLibrary>::@extensionType::X::@getter::it
       getters
-        synthetic get it
-          firstFragment: <testLibraryFragment>::@extensionType::X::@getter::it
+        synthetic it
+          reference: <testLibrary>::@extensionType::X::@getter::it
+          firstFragment: #F3
           returnType: int
+          variable: <testLibrary>::@extensionType::X::@field::it
   typeAliases
     A
-      firstFragment: <testLibraryFragment>::@typeAlias::A
+      reference: <testLibrary>::@typeAlias::A
+      firstFragment: #F4
       aliasedType: void
 ''');
   }
@@ -1382,21 +1451,22 @@ library
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
-      firstFragment: <testLibraryFragment>::@extensionType::A
+      firstFragment: #F0
       representation: <testLibrary>::@extensionType::A::@field::_it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int?
       fields
         final promotable _it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@field::_it
+          reference: <testLibrary>::@extensionType::A::@field::_it
+          firstFragment: #F1
           type: int?
-          getter: <testLibraryFragment>::@extensionType::A::@getter::_it#element
+          getter: <testLibrary>::@extensionType::A::@getter::_it
   fieldNameNonPromotabilityInfo
     _it
       conflictingFields
         <testLibrary>::@class::B::@field::_it
       conflictingGetters
-        <testLibraryFragment>::@class::C::@getter::_it#element
+        <testLibrary>::@class::C::@getter::_it
 ''');
   }
 
@@ -1415,54 +1485,57 @@ extension type A(int it) {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       libraryImports
         package:test/a.dart
       extensionTypes
-        extension type A @37
-          reference: <testLibraryFragment>::@extensionType::A
+        #F1 extension type A @37
           element: <testLibrary>::@extensionType::A
           fields
-            it @43
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
+            #F2 it @43
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: <testLibraryFragment>::@extensionType::A::@getter::it
+              getter2: #F3
           constructors
-            new
-              reference: <testLibraryFragment>::@extensionType::A::@constructor::new
+            #F4 new
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 37
               formalParameters
-                this.it @43
-                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
+                #F5 this.it @43
+                  element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            synthetic get it
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
+            #F3 synthetic it
+              element: <testLibrary>::@extensionType::A::@getter::it
+              returnType: int
+              variable: #F2
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
-      firstFragment: <testLibraryFragment>::@extensionType::A
+      firstFragment: #F1
       representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
         final it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
+          reference: <testLibrary>::@extensionType::A::@field::it
+          firstFragment: #F2
           type: int
-          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
+          getter: <testLibrary>::@extensionType::A::@getter::it
       constructors
         new
-          firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
+          reference: <testLibrary>::@extensionType::A::@constructor::new
+          firstFragment: #F4
           formalParameters
             requiredPositional final hasImplicitType it
+              firstFragment: #F5
               type: int
       getters
-        synthetic get it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+        synthetic it
+          reference: <testLibrary>::@extensionType::A::@getter::it
+          firstFragment: #F3
           returnType: int
+          variable: <testLibrary>::@extensionType::A::@field::it
 ''');
   }
 
@@ -1478,50 +1551,52 @@ extension type A(int it) {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       extensionTypes
-        extension type A @15
-          reference: <testLibraryFragment>::@extensionType::A
+        #F1 extension type A @15
           element: <testLibrary>::@extensionType::A
           fields
-            it @21
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
+            #F2 it @21
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: <testLibraryFragment>::@extensionType::A::@getter::it
+              getter2: #F3
           getters
-            synthetic get it
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
+            #F3 synthetic it
+              element: <testLibrary>::@extensionType::A::@getter::it
+              returnType: int
+              variable: #F2
           methods
-            foo @34
-              reference: <testLibraryFragment>::@extensionType::A::@method::foo
+            #F4 foo @34
               element: <testLibrary>::@extensionType::A::@method::foo
               formalParameters
-                a @42
-                  element: <testLibraryFragment>::@extensionType::A::@method::foo::@parameter::a#element
+                #F5 a @42
+                  element: <testLibrary>::@extensionType::A::@method::foo::@formalParameter::a
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
-      firstFragment: <testLibraryFragment>::@extensionType::A
+      firstFragment: #F1
       representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
         final it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
+          reference: <testLibrary>::@extensionType::A::@field::it
+          firstFragment: #F2
           type: int
-          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
+          getter: <testLibrary>::@extensionType::A::@getter::it
       getters
-        synthetic get it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+        synthetic it
+          reference: <testLibrary>::@extensionType::A::@getter::it
+          firstFragment: #F3
           returnType: int
+          variable: <testLibrary>::@extensionType::A::@field::it
       methods
         foo
           reference: <testLibrary>::@extensionType::A::@method::foo
-          firstFragment: <testLibraryFragment>::@extensionType::A::@method::foo
+          firstFragment: #F4
           formalParameters
             requiredPositional a
+              firstFragment: #F5
               type: int
           returnType: void
 ''');
@@ -1539,29 +1614,26 @@ extension type A(int it) {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       extensionTypes
-        extension type A @15
-          reference: <testLibraryFragment>::@extensionType::A
+        #F1 extension type A @15
           element: <testLibrary>::@extensionType::A
           fields
-            it @21
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
+            #F2 it @21
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: <testLibraryFragment>::@extensionType::A::@getter::it
+              getter2: #F3
           getters
-            synthetic get it
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
+            #F3 synthetic it
+              element: <testLibrary>::@extensionType::A::@getter::it
+              returnType: int
+              variable: #F2
           methods
-            foo @34
-              reference: <testLibraryFragment>::@extensionType::A::@method::foo
+            #F4 foo @34
               element: <testLibrary>::@extensionType::A::@method::foo
               formalParameters
-                default a @43
-                  reference: <testLibraryFragment>::@extensionType::A::@method::foo::@parameter::a
-                  element: <testLibraryFragment>::@extensionType::A::@method::foo::@parameter::a#element
+                #F5 default a @43
+                  element: <testLibrary>::@extensionType::A::@method::foo::@formalParameter::a
                   initializer: expression_0
                     IntegerLiteral
                       literal: 0 @47
@@ -1569,29 +1641,32 @@ library
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
-      firstFragment: <testLibraryFragment>::@extensionType::A
+      firstFragment: #F1
       representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
         final it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
+          reference: <testLibrary>::@extensionType::A::@field::it
+          firstFragment: #F2
           type: int
-          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
+          getter: <testLibrary>::@extensionType::A::@getter::it
       getters
-        synthetic get it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+        synthetic it
+          reference: <testLibrary>::@extensionType::A::@getter::it
+          firstFragment: #F3
           returnType: int
+          variable: <testLibrary>::@extensionType::A::@field::it
       methods
         foo
           reference: <testLibrary>::@extensionType::A::@method::foo
-          firstFragment: <testLibraryFragment>::@extensionType::A::@method::foo
+          firstFragment: #F4
           formalParameters
             optionalNamed a
-              firstFragment: <testLibraryFragment>::@extensionType::A::@method::foo::@parameter::a
+              firstFragment: #F5
               type: int
               constantInitializer
-                fragment: <testLibraryFragment>::@extensionType::A::@method::foo::@parameter::a
+                fragment: #F5
                 expression: expression_0
           returnType: void
 ''');
@@ -1607,37 +1682,39 @@ extension type (int it) {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       extensionTypes
-        extension type <null-name> (offset=15)
-          reference: <testLibraryFragment>::@extensionType::0
+        #F1 extension type <null-name> (offset=15)
           element: <testLibrary>::@extensionType::0
           fields
-            it @20
-              reference: <testLibraryFragment>::@extensionType::0::@field::it
+            #F2 it @20
               element: <testLibrary>::@extensionType::0::@field::it
-              getter2: <testLibraryFragment>::@extensionType::0::@getter::it
+              getter2: #F3
           getters
-            synthetic get it
-              reference: <testLibraryFragment>::@extensionType::0::@getter::it
-              element: <testLibraryFragment>::@extensionType::0::@getter::it#element
+            #F3 synthetic it
+              element: <testLibrary>::@extensionType::0::@getter::it
+              returnType: int
+              variable: #F2
   extensionTypes
     extension type <null-name>
       reference: <testLibrary>::@extensionType::0
-      firstFragment: <testLibraryFragment>::@extensionType::0
+      firstFragment: #F1
       representation: <testLibrary>::@extensionType::0::@field::it
       primaryConstructor: <testLibrary>::@extensionType::0::@constructor::new
       typeErasure: int
       fields
         final it
-          firstFragment: <testLibraryFragment>::@extensionType::0::@field::it
+          reference: <testLibrary>::@extensionType::0::@field::it
+          firstFragment: #F2
           type: int
-          getter: <testLibraryFragment>::@extensionType::0::@getter::it#element
+          getter: <testLibrary>::@extensionType::0::@getter::it
       getters
-        synthetic get it
-          firstFragment: <testLibraryFragment>::@extensionType::0::@getter::it
+        synthetic it
+          reference: <testLibrary>::@extensionType::0::@getter::it
+          firstFragment: #F3
           returnType: int
+          variable: <testLibrary>::@extensionType::0::@field::it
 ''');
   }
 
@@ -1651,54 +1728,57 @@ extension type A() {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       extensionTypes
-        extension type A @15
-          reference: <testLibraryFragment>::@extensionType::A
+        #F1 extension type A @15
           element: <testLibrary>::@extensionType::A
           fields
-            <null-name> (offset=17)
-              reference: <testLibraryFragment>::@extensionType::A::@field::<empty>
+            #F2 <null-name> (offset=17)
               element: <testLibrary>::@extensionType::A::@field::<empty>
-              getter2: <testLibraryFragment>::@extensionType::A::@getter::<empty>
+              getter2: #F3
           constructors
-            new
-              reference: <testLibraryFragment>::@extensionType::A::@constructor::new
+            #F4 new
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 16
               codeLength: 2
               typeName: A
               typeNameOffset: 15
               formalParameters
-                this.<null-name> (offset=17)
-                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::#element
+                #F5 this.<null-name> (offset=17)
+                  element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::<null-name>
           getters
-            synthetic get <null-name>
-              reference: <testLibraryFragment>::@extensionType::A::@getter::<empty>
-              element: <testLibraryFragment>::@extensionType::A::@getter::<empty>#element
+            #F3 synthetic <null-name>
+              element: <testLibrary>::@extensionType::A::@getter::<empty>
+              returnType: InvalidType
+              variable: #F2
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
-      firstFragment: <testLibraryFragment>::@extensionType::A
+      firstFragment: #F1
       representation: <testLibrary>::@extensionType::A::@field::<empty>
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: InvalidType
       fields
         final <null-name>
-          firstFragment: <testLibraryFragment>::@extensionType::A::@field::<empty>
+          reference: <testLibrary>::@extensionType::A::@field::<empty>
+          firstFragment: #F2
           type: InvalidType
-          getter: <testLibraryFragment>::@extensionType::A::@getter::<empty>#element
+          getter: <testLibrary>::@extensionType::A::@getter::<empty>
       constructors
         new
-          firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
+          reference: <testLibrary>::@extensionType::A::@constructor::new
+          firstFragment: #F4
           formalParameters
             requiredPositional final hasImplicitType <null-name>
+              firstFragment: #F5
               type: InvalidType
       getters
-        synthetic get <null-name>
-          firstFragment: <testLibraryFragment>::@extensionType::A::@getter::<empty>
+        synthetic <null-name>
+          reference: <testLibrary>::@extensionType::A::@getter::<empty>
+          firstFragment: #F3
           returnType: InvalidType
+          variable: <testLibrary>::@extensionType::A::@field::<empty>
 ''');
   }
 
@@ -1712,43 +1792,46 @@ extension type A<T extends A>(int it) {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       extensionTypes
-        extension type A @15
-          reference: <testLibraryFragment>::@extensionType::A
+        #F1 extension type A @15
           element: <testLibrary>::@extensionType::A
           typeParameters
-            T @17
-              element: T@17
+            #F2 T @17
+              element: #E0 T
           fields
-            it @34
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
+            #F3 it @34
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: <testLibraryFragment>::@extensionType::A::@getter::it
+              getter2: #F4
           getters
-            synthetic get it
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
+            #F4 synthetic it
+              element: <testLibrary>::@extensionType::A::@getter::it
+              returnType: int
+              variable: #F3
   extensionTypes
     notSimplyBounded extension type A
       reference: <testLibrary>::@extensionType::A
-      firstFragment: <testLibraryFragment>::@extensionType::A
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
           bound: A<dynamic>
       representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
         final it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
+          reference: <testLibrary>::@extensionType::A::@field::it
+          firstFragment: #F3
           type: int
-          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
+          getter: <testLibrary>::@extensionType::A::@getter::it
       getters
-        synthetic get it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+        synthetic it
+          reference: <testLibrary>::@extensionType::A::@getter::it
+          firstFragment: #F4
           returnType: int
+          variable: <testLibrary>::@extensionType::A::@field::it
 ''');
   }
 
@@ -1764,57 +1847,60 @@ extension type A(int it) {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       extensionTypes
-        extension type A @15
-          reference: <testLibraryFragment>::@extensionType::A
+        #F1 extension type A @15
           element: <testLibrary>::@extensionType::A
           fields
-            it @21
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
+            #F2 it @21
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: <testLibraryFragment>::@extensionType::A::@getter::it
-            synthetic foo
-              reference: <testLibraryFragment>::@extensionType::A::@field::foo
+              getter2: #F3
+            #F4 synthetic foo
               element: <testLibrary>::@extensionType::A::@field::foo
-              setter2: <testLibraryFragment>::@extensionType::A::@setter::foo
+              setter2: #F5
           getters
-            synthetic get it
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
+            #F3 synthetic it
+              element: <testLibrary>::@extensionType::A::@getter::it
+              returnType: int
+              variable: #F2
           setters
-            set foo @33
-              reference: <testLibraryFragment>::@extensionType::A::@setter::foo
-              element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
+            #F5 foo @33
+              element: <testLibrary>::@extensionType::A::@setter::foo
               formalParameters
-                _ @44
-                  element: <testLibraryFragment>::@extensionType::A::@setter::foo::@parameter::_#element
+                #F6 _ @44
+                  element: <testLibrary>::@extensionType::A::@setter::foo::@formalParameter::_
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
-      firstFragment: <testLibraryFragment>::@extensionType::A
+      firstFragment: #F1
       representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
         final it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
+          reference: <testLibrary>::@extensionType::A::@field::it
+          firstFragment: #F2
           type: int
-          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
+          getter: <testLibrary>::@extensionType::A::@getter::it
         synthetic foo
-          firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
+          reference: <testLibrary>::@extensionType::A::@field::foo
+          firstFragment: #F4
           type: double
-          setter: <testLibraryFragment>::@extensionType::A::@setter::foo#element
+          setter: <testLibrary>::@extensionType::A::@setter::foo
       getters
-        synthetic get it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+        synthetic it
+          reference: <testLibrary>::@extensionType::A::@getter::it
+          firstFragment: #F3
           returnType: int
+          variable: <testLibrary>::@extensionType::A::@field::it
       setters
-        set foo
-          firstFragment: <testLibraryFragment>::@extensionType::A::@setter::foo
+        foo
+          reference: <testLibrary>::@extensionType::A::@setter::foo
+          firstFragment: #F5
           formalParameters
             requiredPositional _
+              firstFragment: #F6
               type: double
           returnType: void
 ''');
@@ -1832,64 +1918,68 @@ extension type B(A it) {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       extensionTypes
-        extension type A @15
-          reference: <testLibraryFragment>::@extensionType::A
+        #F1 extension type A @15
           element: <testLibrary>::@extensionType::A
           fields
-            it @19
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
+            #F2 it @19
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: <testLibraryFragment>::@extensionType::A::@getter::it
+              getter2: #F3
           getters
-            synthetic get it
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
-        extension type B @42
-          reference: <testLibraryFragment>::@extensionType::B
+            #F3 synthetic it
+              element: <testLibrary>::@extensionType::A::@getter::it
+              returnType: InvalidType
+              variable: #F2
+        #F4 extension type B @42
           element: <testLibrary>::@extensionType::B
           fields
-            it @46
-              reference: <testLibraryFragment>::@extensionType::B::@field::it
+            #F5 it @46
               element: <testLibrary>::@extensionType::B::@field::it
-              getter2: <testLibraryFragment>::@extensionType::B::@getter::it
+              getter2: #F6
           getters
-            synthetic get it
-              reference: <testLibraryFragment>::@extensionType::B::@getter::it
-              element: <testLibraryFragment>::@extensionType::B::@getter::it#element
+            #F6 synthetic it
+              element: <testLibrary>::@extensionType::B::@getter::it
+              returnType: InvalidType
+              variable: #F5
   extensionTypes
     hasRepresentationSelfReference extension type A
       reference: <testLibrary>::@extensionType::A
-      firstFragment: <testLibraryFragment>::@extensionType::A
+      firstFragment: #F1
       representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: InvalidType
       fields
         final it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
+          reference: <testLibrary>::@extensionType::A::@field::it
+          firstFragment: #F2
           type: InvalidType
-          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
+          getter: <testLibrary>::@extensionType::A::@getter::it
       getters
-        synthetic get it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+        synthetic it
+          reference: <testLibrary>::@extensionType::A::@getter::it
+          firstFragment: #F3
           returnType: InvalidType
+          variable: <testLibrary>::@extensionType::A::@field::it
     hasRepresentationSelfReference extension type B
       reference: <testLibrary>::@extensionType::B
-      firstFragment: <testLibraryFragment>::@extensionType::B
+      firstFragment: #F4
       representation: <testLibrary>::@extensionType::B::@field::it
       primaryConstructor: <testLibrary>::@extensionType::B::@constructor::new
       typeErasure: InvalidType
       fields
         final it
-          firstFragment: <testLibraryFragment>::@extensionType::B::@field::it
+          reference: <testLibrary>::@extensionType::B::@field::it
+          firstFragment: #F5
           type: InvalidType
-          getter: <testLibraryFragment>::@extensionType::B::@getter::it#element
+          getter: <testLibrary>::@extensionType::B::@getter::it
       getters
-        synthetic get it
-          firstFragment: <testLibraryFragment>::@extensionType::B::@getter::it
+        synthetic it
+          reference: <testLibrary>::@extensionType::B::@getter::it
+          firstFragment: #F6
           returnType: InvalidType
+          variable: <testLibrary>::@extensionType::B::@field::it
 ''');
   }
 
@@ -1905,64 +1995,68 @@ extension type B(List<B> it) {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       extensionTypes
-        extension type A @15
-          reference: <testLibraryFragment>::@extensionType::A
+        #F1 extension type A @15
           element: <testLibrary>::@extensionType::A
           fields
-            it @19
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
+            #F2 it @19
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: <testLibraryFragment>::@extensionType::A::@getter::it
+              getter2: #F3
           getters
-            synthetic get it
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
-        extension type B @42
-          reference: <testLibraryFragment>::@extensionType::B
+            #F3 synthetic it
+              element: <testLibrary>::@extensionType::A::@getter::it
+              returnType: B
+              variable: #F2
+        #F4 extension type B @42
           element: <testLibrary>::@extensionType::B
           fields
-            it @52
-              reference: <testLibraryFragment>::@extensionType::B::@field::it
+            #F5 it @52
               element: <testLibrary>::@extensionType::B::@field::it
-              getter2: <testLibraryFragment>::@extensionType::B::@getter::it
+              getter2: #F6
           getters
-            synthetic get it
-              reference: <testLibraryFragment>::@extensionType::B::@getter::it
-              element: <testLibraryFragment>::@extensionType::B::@getter::it#element
+            #F6 synthetic it
+              element: <testLibrary>::@extensionType::B::@getter::it
+              returnType: InvalidType
+              variable: #F5
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
-      firstFragment: <testLibraryFragment>::@extensionType::A
+      firstFragment: #F1
       representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: InvalidType
       fields
         final it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
+          reference: <testLibrary>::@extensionType::A::@field::it
+          firstFragment: #F2
           type: B
-          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
+          getter: <testLibrary>::@extensionType::A::@getter::it
       getters
-        synthetic get it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+        synthetic it
+          reference: <testLibrary>::@extensionType::A::@getter::it
+          firstFragment: #F3
           returnType: B
+          variable: <testLibrary>::@extensionType::A::@field::it
     hasRepresentationSelfReference extension type B
       reference: <testLibrary>::@extensionType::B
-      firstFragment: <testLibraryFragment>::@extensionType::B
+      firstFragment: #F4
       representation: <testLibrary>::@extensionType::B::@field::it
       primaryConstructor: <testLibrary>::@extensionType::B::@constructor::new
       typeErasure: InvalidType
       fields
         final it
-          firstFragment: <testLibraryFragment>::@extensionType::B::@field::it
+          reference: <testLibrary>::@extensionType::B::@field::it
+          firstFragment: #F5
           type: InvalidType
-          getter: <testLibraryFragment>::@extensionType::B::@getter::it#element
+          getter: <testLibrary>::@extensionType::B::@getter::it
       getters
-        synthetic get it
-          firstFragment: <testLibraryFragment>::@extensionType::B::@getter::it
+        synthetic it
+          reference: <testLibrary>::@extensionType::B::@getter::it
+          firstFragment: #F6
           returnType: InvalidType
+          variable: <testLibrary>::@extensionType::B::@field::it
 ''');
   }
 
@@ -1976,37 +2070,39 @@ extension type A(A it) {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       extensionTypes
-        extension type A @15
-          reference: <testLibraryFragment>::@extensionType::A
+        #F1 extension type A @15
           element: <testLibrary>::@extensionType::A
           fields
-            it @19
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
+            #F2 it @19
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: <testLibraryFragment>::@extensionType::A::@getter::it
+              getter2: #F3
           getters
-            synthetic get it
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
+            #F3 synthetic it
+              element: <testLibrary>::@extensionType::A::@getter::it
+              returnType: InvalidType
+              variable: #F2
   extensionTypes
     hasRepresentationSelfReference extension type A
       reference: <testLibrary>::@extensionType::A
-      firstFragment: <testLibraryFragment>::@extensionType::A
+      firstFragment: #F1
       representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: InvalidType
       fields
         final it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
+          reference: <testLibrary>::@extensionType::A::@field::it
+          firstFragment: #F2
           type: InvalidType
-          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
+          getter: <testLibrary>::@extensionType::A::@getter::it
       getters
-        synthetic get it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+        synthetic it
+          reference: <testLibrary>::@extensionType::A::@getter::it
+          firstFragment: #F3
           returnType: InvalidType
+          variable: <testLibrary>::@extensionType::A::@field::it
 ''');
   }
 
@@ -2022,64 +2118,68 @@ extension type B(A Function(A a) it) {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       extensionTypes
-        extension type A @15
-          reference: <testLibraryFragment>::@extensionType::A
+        #F1 extension type A @15
           element: <testLibrary>::@extensionType::A
           fields
-            it @21
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
+            #F2 it @21
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: <testLibraryFragment>::@extensionType::A::@getter::it
+              getter2: #F3
           getters
-            synthetic get it
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
-        extension type B @44
-          reference: <testLibraryFragment>::@extensionType::B
+            #F3 synthetic it
+              element: <testLibrary>::@extensionType::A::@getter::it
+              returnType: int
+              variable: #F2
+        #F4 extension type B @44
           element: <testLibrary>::@extensionType::B
           fields
-            it @62
-              reference: <testLibraryFragment>::@extensionType::B::@field::it
+            #F5 it @62
               element: <testLibrary>::@extensionType::B::@field::it
-              getter2: <testLibraryFragment>::@extensionType::B::@getter::it
+              getter2: #F6
           getters
-            synthetic get it
-              reference: <testLibraryFragment>::@extensionType::B::@getter::it
-              element: <testLibraryFragment>::@extensionType::B::@getter::it#element
+            #F6 synthetic it
+              element: <testLibrary>::@extensionType::B::@getter::it
+              returnType: A Function(A)
+              variable: #F5
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
-      firstFragment: <testLibraryFragment>::@extensionType::A
+      firstFragment: #F1
       representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
         final it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
+          reference: <testLibrary>::@extensionType::A::@field::it
+          firstFragment: #F2
           type: int
-          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
+          getter: <testLibrary>::@extensionType::A::@getter::it
       getters
-        synthetic get it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+        synthetic it
+          reference: <testLibrary>::@extensionType::A::@getter::it
+          firstFragment: #F3
           returnType: int
+          variable: <testLibrary>::@extensionType::A::@field::it
     extension type B
       reference: <testLibrary>::@extensionType::B
-      firstFragment: <testLibraryFragment>::@extensionType::B
+      firstFragment: #F4
       representation: <testLibrary>::@extensionType::B::@field::it
       primaryConstructor: <testLibrary>::@extensionType::B::@constructor::new
       typeErasure: int Function(int)
       fields
         final it
-          firstFragment: <testLibraryFragment>::@extensionType::B::@field::it
+          reference: <testLibrary>::@extensionType::B::@field::it
+          firstFragment: #F5
           type: A Function(A)
-          getter: <testLibraryFragment>::@extensionType::B::@getter::it#element
+          getter: <testLibrary>::@extensionType::B::@getter::it
       getters
-        synthetic get it
-          firstFragment: <testLibraryFragment>::@extensionType::B::@getter::it
+        synthetic it
+          reference: <testLibrary>::@extensionType::B::@getter::it
+          firstFragment: #F6
           returnType: A Function(A)
+          variable: <testLibrary>::@extensionType::B::@field::it
 ''');
   }
 
@@ -2095,71 +2195,76 @@ extension type B(A<double> it) {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       extensionTypes
-        extension type A @15
-          reference: <testLibraryFragment>::@extensionType::A
+        #F1 extension type A @15
           element: <testLibrary>::@extensionType::A
           typeParameters
-            T @17
-              element: T@17
+            #F2 T @17
+              element: #E0 T
           fields
-            it @22
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
+            #F3 it @22
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: <testLibraryFragment>::@extensionType::A::@getter::it
+              getter2: #F4
           getters
-            synthetic get it
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
-        extension type B @45
-          reference: <testLibraryFragment>::@extensionType::B
+            #F4 synthetic it
+              element: <testLibrary>::@extensionType::A::@getter::it
+              returnType: T
+              variable: #F3
+        #F5 extension type B @45
           element: <testLibrary>::@extensionType::B
           fields
-            it @57
-              reference: <testLibraryFragment>::@extensionType::B::@field::it
+            #F6 it @57
               element: <testLibrary>::@extensionType::B::@field::it
-              getter2: <testLibraryFragment>::@extensionType::B::@getter::it
+              getter2: #F7
           getters
-            synthetic get it
-              reference: <testLibraryFragment>::@extensionType::B::@getter::it
-              element: <testLibraryFragment>::@extensionType::B::@getter::it#element
+            #F7 synthetic it
+              element: <testLibrary>::@extensionType::B::@getter::it
+              returnType: A<double>
+              variable: #F6
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
-      firstFragment: <testLibraryFragment>::@extensionType::A
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: T
       fields
         final it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
+          reference: <testLibrary>::@extensionType::A::@field::it
+          firstFragment: #F3
           hasEnclosingTypeParameterReference: true
           type: T
-          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
+          getter: <testLibrary>::@extensionType::A::@getter::it
       getters
-        synthetic get it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+        synthetic it
+          reference: <testLibrary>::@extensionType::A::@getter::it
+          firstFragment: #F4
           hasEnclosingTypeParameterReference: true
           returnType: T
+          variable: <testLibrary>::@extensionType::A::@field::it
     extension type B
       reference: <testLibrary>::@extensionType::B
-      firstFragment: <testLibraryFragment>::@extensionType::B
+      firstFragment: #F5
       representation: <testLibrary>::@extensionType::B::@field::it
       primaryConstructor: <testLibrary>::@extensionType::B::@constructor::new
       typeErasure: double
       fields
         final it
-          firstFragment: <testLibraryFragment>::@extensionType::B::@field::it
+          reference: <testLibrary>::@extensionType::B::@field::it
+          firstFragment: #F6
           type: A<double>
-          getter: <testLibraryFragment>::@extensionType::B::@getter::it#element
+          getter: <testLibrary>::@extensionType::B::@getter::it
       getters
-        synthetic get it
-          firstFragment: <testLibraryFragment>::@extensionType::B::@getter::it
+        synthetic it
+          reference: <testLibrary>::@extensionType::B::@getter::it
+          firstFragment: #F7
           returnType: A<double>
+          variable: <testLibrary>::@extensionType::B::@field::it
 ''');
   }
 
@@ -2175,64 +2280,68 @@ extension type B(List<A> it) {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       extensionTypes
-        extension type A @15
-          reference: <testLibraryFragment>::@extensionType::A
+        #F1 extension type A @15
           element: <testLibrary>::@extensionType::A
           fields
-            it @21
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
+            #F2 it @21
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: <testLibraryFragment>::@extensionType::A::@getter::it
+              getter2: #F3
           getters
-            synthetic get it
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
-        extension type B @44
-          reference: <testLibraryFragment>::@extensionType::B
+            #F3 synthetic it
+              element: <testLibrary>::@extensionType::A::@getter::it
+              returnType: int
+              variable: #F2
+        #F4 extension type B @44
           element: <testLibrary>::@extensionType::B
           fields
-            it @54
-              reference: <testLibraryFragment>::@extensionType::B::@field::it
+            #F5 it @54
               element: <testLibrary>::@extensionType::B::@field::it
-              getter2: <testLibraryFragment>::@extensionType::B::@getter::it
+              getter2: #F6
           getters
-            synthetic get it
-              reference: <testLibraryFragment>::@extensionType::B::@getter::it
-              element: <testLibraryFragment>::@extensionType::B::@getter::it#element
+            #F6 synthetic it
+              element: <testLibrary>::@extensionType::B::@getter::it
+              returnType: List<A>
+              variable: #F5
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
-      firstFragment: <testLibraryFragment>::@extensionType::A
+      firstFragment: #F1
       representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
         final it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
+          reference: <testLibrary>::@extensionType::A::@field::it
+          firstFragment: #F2
           type: int
-          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
+          getter: <testLibrary>::@extensionType::A::@getter::it
       getters
-        synthetic get it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+        synthetic it
+          reference: <testLibrary>::@extensionType::A::@getter::it
+          firstFragment: #F3
           returnType: int
+          variable: <testLibrary>::@extensionType::A::@field::it
     extension type B
       reference: <testLibrary>::@extensionType::B
-      firstFragment: <testLibraryFragment>::@extensionType::B
+      firstFragment: #F4
       representation: <testLibrary>::@extensionType::B::@field::it
       primaryConstructor: <testLibrary>::@extensionType::B::@constructor::new
       typeErasure: List<int>
       fields
         final it
-          firstFragment: <testLibraryFragment>::@extensionType::B::@field::it
+          reference: <testLibrary>::@extensionType::B::@field::it
+          firstFragment: #F5
           type: List<A>
-          getter: <testLibraryFragment>::@extensionType::B::@getter::it#element
+          getter: <testLibrary>::@extensionType::B::@getter::it
       getters
-        synthetic get it
-          firstFragment: <testLibraryFragment>::@extensionType::B::@getter::it
+        synthetic it
+          reference: <testLibrary>::@extensionType::B::@getter::it
+          firstFragment: #F6
           returnType: List<A>
+          variable: <testLibrary>::@extensionType::B::@field::it
 ''');
   }
 
@@ -2246,37 +2355,39 @@ extension type A(int it) {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       extensionTypes
-        extension type A @15
-          reference: <testLibraryFragment>::@extensionType::A
+        #F1 extension type A @15
           element: <testLibrary>::@extensionType::A
           fields
-            it @21
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
+            #F2 it @21
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: <testLibraryFragment>::@extensionType::A::@getter::it
+              getter2: #F3
           getters
-            synthetic get it
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
+            #F3 synthetic it
+              element: <testLibrary>::@extensionType::A::@getter::it
+              returnType: int
+              variable: #F2
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
-      firstFragment: <testLibraryFragment>::@extensionType::A
+      firstFragment: #F1
       representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
         final it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
+          reference: <testLibrary>::@extensionType::A::@field::it
+          firstFragment: #F2
           type: int
-          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
+          getter: <testLibrary>::@extensionType::A::@getter::it
       getters
-        synthetic get it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+        synthetic it
+          reference: <testLibrary>::@extensionType::A::@getter::it
+          firstFragment: #F3
           returnType: int
+          variable: <testLibrary>::@extensionType::A::@field::it
 ''');
   }
 
@@ -2289,63 +2400,68 @@ extension type A<T extends num, U>(Map<T, U> it) {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       extensionTypes
-        extension type A @15
-          reference: <testLibraryFragment>::@extensionType::A
+        #F1 extension type A @15
           element: <testLibrary>::@extensionType::A
           typeParameters
-            T @17
-              element: T@17
-            U @32
-              element: U@32
+            #F2 T @17
+              element: #E0 T
+            #F3 U @32
+              element: #E1 U
           fields
-            it @45
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
+            #F4 it @45
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: <testLibraryFragment>::@extensionType::A::@getter::it
+              getter2: #F5
           constructors
-            new
-              reference: <testLibraryFragment>::@extensionType::A::@constructor::new
+            #F6 new
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
-                this.it @45
-                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
+                #F7 this.it @45
+                  element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            synthetic get it
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
+            #F5 synthetic it
+              element: <testLibrary>::@extensionType::A::@getter::it
+              returnType: Map<T, U>
+              variable: #F4
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
-      firstFragment: <testLibraryFragment>::@extensionType::A
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
           bound: num
-        U
+        #E1 U
+          firstFragment: #F3
       representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: Map<T, U>
       fields
         final it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
+          reference: <testLibrary>::@extensionType::A::@field::it
+          firstFragment: #F4
           hasEnclosingTypeParameterReference: true
           type: Map<T, U>
-          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
+          getter: <testLibrary>::@extensionType::A::@getter::it
       constructors
         new
-          firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
+          reference: <testLibrary>::@extensionType::A::@constructor::new
+          firstFragment: #F6
           formalParameters
             requiredPositional final hasImplicitType it
+              firstFragment: #F7
               type: Map<T, U>
       getters
-        synthetic get it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+        synthetic it
+          reference: <testLibrary>::@extensionType::A::@getter::it
+          firstFragment: #F5
           hasEnclosingTypeParameterReference: true
           returnType: Map<T, U>
+          variable: <testLibrary>::@extensionType::A::@field::it
 ''');
   }
 }

@@ -12,8 +12,8 @@ import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:path/path.dart';
 import 'package:test/test.dart';
 
-import '../../lsp/request_helpers_mixin.dart';
-import '../../lsp/server_abstract.dart';
+import '../../test/lsp/request_helpers_mixin.dart';
+import '../../test/lsp/server_abstract.dart';
 import '../support/integration_tests.dart';
 
 abstract class AbstractLspOverLegacyTest

@@ -229,7 +229,7 @@ MethodInvocation
       IntegerLiteral
         literal: 0
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@function::f::@parameter::x#element
+          baseElement: <testLibrary>::@function::f::@formalParameter::x
           substitution: {T: int}
         staticType: int
     rightParenthesis: )

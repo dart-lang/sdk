@@ -261,7 +261,7 @@ NamedType
         element2: dart:core::@class::int
         type: int
     rightBracket: >
-  element2: T@8
+  element2: #E0 T
   type: T
 ''');
   }
@@ -738,7 +738,7 @@ NamedType
   importPrefix: ImportPrefixReference
     name: T
     period: .
-    element2: T@7
+    element2: #E0 T
   name: name
   typeArguments: TypeArgumentList
     leftBracket: <

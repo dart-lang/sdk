@@ -18,21 +18,21 @@ class DynamicForwarders {
   final Translator translator;
   final w.ModuleBuilder callingModule;
 
-  final Map<String, CallTarget> _getterForwarderOfName = {};
-  final Map<String, CallTarget> _setterForwarderOfName = {};
-  final Map<String, CallTarget> _methodForwarderOfName = {};
+  final Map<Name, CallTarget> _getterForwarderOfName = {};
+  final Map<Name, CallTarget> _setterForwarderOfName = {};
+  final Map<Name, CallTarget> _methodForwarderOfName = {};
 
   DynamicForwarders(this.translator, this.callingModule);
 
-  CallTarget getDynamicGetForwarder(String memberName) =>
+  CallTarget getDynamicGetForwarder(Name memberName) =>
       _getterForwarderOfName[memberName] ??= _DynamicForwarderCallTarget(
           translator, _ForwarderKind.Getter, memberName, callingModule);
 
-  CallTarget getDynamicSetForwarder(String memberName) =>
+  CallTarget getDynamicSetForwarder(Name memberName) =>
       _setterForwarderOfName[memberName] ??= _DynamicForwarderCallTarget(
           translator, _ForwarderKind.Setter, memberName, callingModule);
 
-  CallTarget getDynamicInvocationForwarder(String memberName) {
+  CallTarget getDynamicInvocationForwarder(Name memberName) {
     // Add Wasm function to the map before generating the forwarder code, to
     // allow recursive calls in the "call" forwarder.
     var forwarder = _methodForwarderOfName[memberName];
@@ -48,13 +48,13 @@ class DynamicForwarders {
 class _DynamicForwarderCallTarget extends CallTarget {
   final Translator translator;
   final _ForwarderKind _kind;
-  final String memberName;
+  final Name memberName;
   final w.ModuleBuilder callingModule;
 
   _DynamicForwarderCallTarget(
       this.translator, this._kind, this.memberName, this.callingModule)
       : assert(!translator.isDynamicSubmodule ||
-            (memberName == 'call' && _kind == _ForwarderKind.Method)),
+            (memberName.text == 'call' && _kind == _ForwarderKind.Method)),
         super(_kind.functionType(translator));
 
   @override
@@ -95,7 +95,7 @@ class _DynamicForwarderCallTarget extends CallTarget {
 class _DynamicForwarderCodeGenerator extends CodeGenerator {
   final Translator translator;
   final _ForwarderKind _kind;
-  final String memberName;
+  final Name memberName;
   final w.FunctionBuilder function;
 
   _DynamicForwarderCodeGenerator(
@@ -409,7 +409,7 @@ class _DynamicForwarderCodeGenerator extends CodeGenerator {
             b.local_get(namedArgsLocal);
             translator.constants.instantiateConstant(
                 b,
-                SymbolConstant(name, null),
+                translator.symbols.symbolForNamedParameter(name),
                 translator.classInfo[translator.symbolClass]!.nonNullableType);
 
             translator.callReference(
@@ -558,7 +558,7 @@ class _DynamicForwarderCodeGenerator extends CodeGenerator {
           // Value is not a closure
           final callForwarder = translator
               .getDynamicForwardersForModule(b.module)
-              .getDynamicInvocationForwarder("call")
+              .getDynamicInvocationForwarder(Name('call'))
               .function;
           b.local_get(receiverLocal);
           b.local_get(typeArgsLocal);
@@ -728,11 +728,13 @@ void generateDynamicFunctionCall(
 void createInvocationObject(
     Translator translator,
     w.InstructionsBuilder b,
-    String memberName,
+    Name memberName,
     w.Local typeArgsLocal,
     w.Local positionalArgsLocal,
     w.Local namedArgsLocal) {
-  translator.constants.instantiateConstant(b, SymbolConstant(memberName, null),
+  translator.constants.instantiateConstant(
+      b,
+      translator.symbols.methodSymbolFromName(memberName),
       translator.classInfo[translator.symbolClass]!.nonNullableType);
 
   b.local_get(typeArgsLocal);
@@ -748,9 +750,11 @@ void createInvocationObject(
 void createGetterInvocationObject(
   Translator translator,
   w.InstructionsBuilder b,
-  String memberName,
+  Name memberName,
 ) {
-  translator.constants.instantiateConstant(b, SymbolConstant(memberName, null),
+  translator.constants.instantiateConstant(
+      b,
+      translator.symbols.getterSymbolFromName(memberName),
       translator.classInfo[translator.symbolClass]!.nonNullableType);
 
   translator.callReference(translator.invocationGetterFactory.reference, b);
@@ -759,12 +763,12 @@ void createGetterInvocationObject(
 void createSetterInvocationObject(
   Translator translator,
   w.InstructionsBuilder b,
-  String memberName,
+  Name memberName,
   w.Local positionalArgLocal,
 ) {
-  memberName = '$memberName=';
-
-  translator.constants.instantiateConstant(b, SymbolConstant(memberName, null),
+  translator.constants.instantiateConstant(
+      b,
+      translator.symbols.setterSymbolFromName(memberName),
       translator.classInfo[translator.symbolClass]!.nonNullableType);
 
   b.local_get(positionalArgLocal);

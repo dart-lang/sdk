@@ -25,7 +25,7 @@ class ReplaceVarWithDynamic extends ResolvedCorrectionProducer {
     var diagnostic = this.diagnostic;
     if (diagnostic is Diagnostic) {
       await builder.addDartFileEdit(file, (builder) {
-        builder.addSimpleReplacement(range.error(diagnostic), 'dynamic');
+        builder.addSimpleReplacement(range.diagnostic(diagnostic), 'dynamic');
       });
     }
   }

@@ -29,16 +29,15 @@ f() {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        f @0
-          reference: <testLibraryFragment>::@function::f
+        #F1 f @0
           element: <testLibrary>::@function::f
   functions
     f
       reference: <testLibrary>::@function::f
-      firstFragment: <testLibraryFragment>::@function::f
+      firstFragment: #F1
       returnType: dynamic
 ''');
   }
@@ -55,25 +54,24 @@ class C {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
+        #F1 class C @6
           element: <testLibrary>::@class::C
           constructors
-            new
-              reference: <testLibraryFragment>::@class::C::@constructor::new
+            #F2 new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 12
   classes
     class C
       reference: <testLibrary>::@class::C
-      firstFragment: <testLibraryFragment>::@class::C
+      firstFragment: #F1
       constructors
         new
-          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F2
 ''');
   }
 
@@ -89,32 +87,30 @@ class C {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
+        #F1 class C @6
           element: <testLibrary>::@class::C
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::C::@constructor::new
+            #F2 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            m @12
-              reference: <testLibraryFragment>::@class::C::@method::m
+            #F3 m @12
               element: <testLibrary>::@class::C::@method::m
   classes
     class C
       reference: <testLibrary>::@class::C
-      firstFragment: <testLibraryFragment>::@class::C
+      firstFragment: #F1
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F2
       methods
         m
           reference: <testLibrary>::@class::C::@method::m
-          firstFragment: <testLibraryFragment>::@class::C::@method::m
+          firstFragment: #F3
           returnType: dynamic
 ''');
   }
@@ -129,27 +125,29 @@ get g {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        synthetic g (offset=-1)
-          reference: <testLibraryFragment>::@topLevelVariable::g
+        #F1 synthetic g (offset=-1)
           element: <testLibrary>::@topLevelVariable::g
-          getter2: <testLibraryFragment>::@getter::g
+          getter: #F2
       getters
-        get g @4
-          reference: <testLibraryFragment>::@getter::g
-          element: <testLibraryFragment>::@getter::g#element
+        #F2 g @4
+          element: <testLibrary>::@getter::g
+          returnType: dynamic
+          variable: #F1
   topLevelVariables
     synthetic g
       reference: <testLibrary>::@topLevelVariable::g
-      firstFragment: <testLibraryFragment>::@topLevelVariable::g
+      firstFragment: #F1
       type: dynamic
-      getter: <testLibraryFragment>::@getter::g#element
+      getter: <testLibrary>::@getter::g
   getters
-    static get g
-      firstFragment: <testLibraryFragment>::@getter::g
+    static g
+      reference: <testLibrary>::@getter::g
+      firstFragment: #F2
       returnType: dynamic
+      variable: <testLibrary>::@topLevelVariable::g
 ''');
   }
 
@@ -169,25 +167,24 @@ class C {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
+        #F1 class C @6
           element: <testLibrary>::@class::C
           constructors
-            new
-              reference: <testLibraryFragment>::@class::C::@constructor::new
+            #F2 new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 12
   classes
     class C
       reference: <testLibrary>::@class::C
-      firstFragment: <testLibraryFragment>::@class::C
+      firstFragment: #F1
       constructors
         new
-          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F2
 ''');
   }
 
@@ -207,32 +204,30 @@ class C {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
+        #F1 class C @6
           element: <testLibrary>::@class::C
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::C::@constructor::new
+            #F2 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            m @12
-              reference: <testLibraryFragment>::@class::C::@method::m
+            #F3 m @12
               element: <testLibrary>::@class::C::@method::m
   classes
     class C
       reference: <testLibrary>::@class::C
-      firstFragment: <testLibraryFragment>::@class::C
+      firstFragment: #F1
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F2
       methods
         m
           reference: <testLibrary>::@class::C::@method::m
-          firstFragment: <testLibraryFragment>::@class::C::@method::m
+          firstFragment: #F3
           returnType: dynamic
 ''');
   }
@@ -251,16 +246,15 @@ main() {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        main @0
-          reference: <testLibraryFragment>::@function::main
+        #F1 main @0
           element: <testLibrary>::@function::main
   functions
     main
       reference: <testLibrary>::@function::main
-      firstFragment: <testLibraryFragment>::@function::main
+      firstFragment: #F1
       returnType: dynamic
 ''');
   }

@@ -113,7 +113,7 @@ InstanceCreationExpression
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
+        correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
         staticType: int
     rightParenthesis: )
   staticType: A
@@ -149,7 +149,7 @@ InstanceCreationExpression
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
+        correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
         staticType: int
     rightParenthesis: )
   staticType: A
