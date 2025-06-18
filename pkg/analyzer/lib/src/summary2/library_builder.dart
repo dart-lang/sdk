@@ -63,7 +63,7 @@ class LibraryBuilder {
       Map.identity();
 
   /// Top fragments, in the same order as in AST.
-  final List<FragmentImpl> _topFragments = [];
+  final Map<LibraryFragmentImpl, List<FragmentImpl>> _topFragments = {};
 
   /// Key: a parent fragment, e.g. [ClassFragmentImpl].
   /// Value: fragments of its direct children.
@@ -142,8 +142,9 @@ class LibraryBuilder {
     (_parentChildFragments[parent] ??= []).add(child);
   }
 
-  void addTopFragment(FragmentImpl fragment) {
-    _topFragments.add(fragment);
+  void addTopFragment(LibraryFragmentImpl parent, FragmentImpl fragment) {
+    fragment.enclosingElement3 = parent;
+    (_topFragments[parent] ??= []).add(fragment);
   }
 
   void buildClassSyntheticConstructors() {

@@ -27,7 +27,7 @@ class ElementBuilder {
   LibraryElementImpl get libraryElement => libraryBuilder.element;
 
   void buildElements({
-    required List<FragmentImpl> topFragments,
+    required Map<LibraryFragmentImpl, List<FragmentImpl>> topFragments,
     required Map<FragmentImpl, List<FragmentImpl>> parentChildFragments,
   }) {
     _buildTopFragments(topFragments);
@@ -118,35 +118,60 @@ class ElementBuilder {
     }
   }
 
-  void _buildTopFragments(List<FragmentImpl> topFragments) {
+  void _buildTopFragments(
+    Map<LibraryFragmentImpl, List<FragmentImpl>> topFragments,
+  ) {
     var lastFragments = <String?, FragmentImpl>{};
-    for (var fragment in topFragments) {
-      var lastFragment = lastFragments[fragment.name2];
-      switch (fragment) {
-        case ClassFragmentImpl():
-          _handleClassFragment(lastFragment, fragment);
-        case EnumFragmentImpl():
-          _handleEnumFragment(lastFragment, fragment);
-        case ExtensionFragmentImpl():
-          _handleExtensionFragment(lastFragment, fragment);
-        case ExtensionTypeFragmentImpl():
-          _handleExtensionTypeFragment(lastFragment, fragment);
-        case GetterFragmentImpl():
-          _handleTopLevelGetterFragment(lastFragment, fragment);
-        case MixinFragmentImpl():
-          _handleMixinFragment(lastFragment, fragment);
-        case SetterFragmentImpl():
-          _handleTopLevelSetterFragment(lastFragment, fragment);
-        case TopLevelFunctionFragmentImpl():
-          _handleTopLevelFunctionFragment(lastFragment, fragment);
-        case TopLevelVariableFragmentImpl():
-          _handleTopLevelVariableFragment(lastFragment, fragment);
-        case TypeAliasFragmentImpl():
-          _handleTypeAliasFragment(lastFragment, fragment);
-        default:
-          throw UnimplementedError('${fragment.runtimeType}');
+    for (var libraryFragmentEntry in topFragments.entries) {
+      var libraryFragment = libraryFragmentEntry.key;
+      for (var fragment in libraryFragmentEntry.value) {
+        var lastFragment = lastFragments[fragment.name2];
+        switch (fragment) {
+          case ClassFragmentImpl():
+            _handleClassFragment(libraryFragment, lastFragment, fragment);
+          case EnumFragmentImpl():
+            _handleEnumFragment(libraryFragment, lastFragment, fragment);
+          case ExtensionFragmentImpl():
+            _handleExtensionFragment(libraryFragment, lastFragment, fragment);
+          case ExtensionTypeFragmentImpl():
+            _handleExtensionTypeFragment(
+              libraryFragment,
+              lastFragment,
+              fragment,
+            );
+          case GetterFragmentImpl():
+            _handleTopLevelGetterFragment(
+              libraryFragment,
+              lastFragment,
+              fragment,
+            );
+          case MixinFragmentImpl():
+            _handleMixinFragment(libraryFragment, lastFragment, fragment);
+          case SetterFragmentImpl():
+            _handleTopLevelSetterFragment(
+              libraryFragment,
+              lastFragment,
+              fragment,
+            );
+          case TopLevelFunctionFragmentImpl():
+            _handleTopLevelFunctionFragment(
+              libraryFragment,
+              lastFragment,
+              fragment,
+            );
+          case TopLevelVariableFragmentImpl():
+            _handleTopLevelVariableFragment(
+              libraryFragment,
+              lastFragment,
+              fragment,
+            );
+          case TypeAliasFragmentImpl():
+            _handleTypeAliasFragment(libraryFragment, lastFragment, fragment);
+          default:
+            throw UnimplementedError('${fragment.runtimeType}');
+        }
+        lastFragments[fragment.name2] = fragment;
       }
-      lastFragments[fragment.name2] = fragment;
     }
   }
 
@@ -163,10 +188,12 @@ class ElementBuilder {
   }
 
   void _handleClassFragment(
+    LibraryFragmentImpl libraryFragment,
     FragmentImpl? lastFragment,
     ClassFragmentImpl fragment,
   ) {
     assert(!fragment.isSynthetic);
+    libraryFragment.addClass(fragment);
 
     if (fragment.isAugmentation && lastFragment is ClassFragmentImpl) {
       lastFragment.addFragment(fragment);
@@ -182,10 +209,12 @@ class ElementBuilder {
   }
 
   void _handleEnumFragment(
+    LibraryFragmentImpl libraryFragment,
     FragmentImpl? lastFragment,
     EnumFragmentImpl fragment,
   ) {
     assert(!fragment.isSynthetic);
+    libraryFragment.addEnum(fragment);
 
     if (fragment.isAugmentation && lastFragment is EnumFragmentImpl) {
       lastFragment.addFragment(fragment);
@@ -201,10 +230,12 @@ class ElementBuilder {
   }
 
   void _handleExtensionFragment(
+    LibraryFragmentImpl libraryFragment,
     FragmentImpl? lastFragment,
     ExtensionFragmentImpl fragment,
   ) {
     assert(!fragment.isSynthetic);
+    libraryFragment.addExtension(fragment);
 
     if (fragment.isAugmentation && lastFragment is ExtensionFragmentImpl) {
       lastFragment.addFragment(fragment);
@@ -220,10 +251,12 @@ class ElementBuilder {
   }
 
   void _handleExtensionTypeFragment(
+    LibraryFragmentImpl libraryFragment,
     FragmentImpl? lastFragment,
     ExtensionTypeFragmentImpl fragment,
   ) {
     assert(!fragment.isSynthetic);
+    libraryFragment.addExtensionType(fragment);
 
     if (fragment.isAugmentation && lastFragment is ExtensionTypeFragmentImpl) {
       lastFragment.addFragment(fragment);
@@ -474,10 +507,12 @@ class ElementBuilder {
   }
 
   void _handleMixinFragment(
+    LibraryFragmentImpl libraryFragment,
     FragmentImpl? lastFragment,
     MixinFragmentImpl fragment,
   ) {
     assert(!fragment.isSynthetic);
+    libraryFragment.addMixin(fragment);
 
     if (fragment.isAugmentation && lastFragment is MixinFragmentImpl) {
       lastFragment.addFragment(fragment);
@@ -493,10 +528,10 @@ class ElementBuilder {
   }
 
   void _handleTopLevelFunctionFragment(
+    LibraryFragmentImpl libraryFragment,
     FragmentImpl? lastFragment,
     TopLevelFunctionFragmentImpl fragment,
   ) {
-    var libraryFragment = fragment.enclosingFragment as LibraryFragmentImpl;
     libraryFragment.addFunction(fragment);
 
     if (lastFragment is TopLevelFunctionFragmentImpl &&
@@ -514,13 +549,11 @@ class ElementBuilder {
   }
 
   void _handleTopLevelGetterFragment(
+    LibraryFragmentImpl libraryFragment,
     FragmentImpl? lastFragment,
     GetterFragmentImpl getterFragment,
   ) {
     assert(!getterFragment.isSynthetic);
-
-    var libraryFragment =
-        getterFragment.enclosingFragment as LibraryFragmentImpl;
     libraryFragment.addGetter(getterFragment);
 
     var lastVariableElement = _topLevelVariableElement(lastFragment);
@@ -566,13 +599,11 @@ class ElementBuilder {
   }
 
   void _handleTopLevelSetterFragment(
+    LibraryFragmentImpl libraryFragment,
     FragmentImpl? lastFragment,
     SetterFragmentImpl setterFragment,
   ) {
     assert(!setterFragment.isSynthetic);
-
-    var libraryFragment =
-        setterFragment.enclosingFragment as LibraryFragmentImpl;
     libraryFragment.addSetter(setterFragment);
 
     var lastVariableElement = _topLevelVariableElement(lastFragment);
@@ -619,13 +650,11 @@ class ElementBuilder {
   }
 
   void _handleTopLevelVariableFragment(
+    LibraryFragmentImpl libraryFragment,
     FragmentImpl? lastVariableFragment,
     TopLevelVariableFragmentImpl variableFragment,
   ) {
     assert(!variableFragment.isSynthetic);
-
-    var libraryFragment =
-        variableFragment.enclosingFragment as LibraryFragmentImpl;
     libraryFragment.addTopLevelVariable(variableFragment);
 
     if (variableFragment.isAugmentation &&
@@ -695,10 +724,10 @@ class ElementBuilder {
   }
 
   void _handleTypeAliasFragment(
+    LibraryFragmentImpl libraryFragment,
     FragmentImpl? lastFragment,
     TypeAliasFragmentImpl fragment,
   ) {
-    var libraryFragment = fragment.enclosingFragment as LibraryFragmentImpl;
     libraryFragment.addTypeAlias(fragment);
 
     if (lastFragment is TypeAliasFragmentImpl && fragment.isAugmentation) {
@@ -834,8 +863,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     node.declaredFragment = fragment;
     _linker.elementNodes[fragment] = node;
 
-    _unitElement.addClass(fragment);
-    _libraryBuilder.addTopFragment(fragment);
+    _libraryBuilder.addTopFragment(_unitElement, fragment);
 
     var holder = _EnclosingContext(
       instanceElementBuilder: null,
@@ -880,8 +908,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     node.declaredFragment = fragment;
     _linker.elementNodes[fragment] = node;
 
-    _unitElement.addClass(fragment);
-    _libraryBuilder.addTopFragment(fragment);
+    _libraryBuilder.addTopFragment(_unitElement, fragment);
 
     var holder = _EnclosingContext(
       instanceElementBuilder: null,
@@ -979,8 +1006,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     node.declaredFragment = fragment;
     _linker.elementNodes[fragment] = node;
 
-    _unitElement.addEnum(fragment);
-    _libraryBuilder.addTopFragment(fragment);
+    _libraryBuilder.addTopFragment(_unitElement, fragment);
 
     var holder = _EnclosingContext(
       instanceElementBuilder: null,
@@ -1181,8 +1207,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     node.declaredFragment = fragment;
     _linker.elementNodes[fragment] = node;
 
-    _unitElement.addExtension(fragment);
-    _libraryBuilder.addTopFragment(fragment);
+    _libraryBuilder.addTopFragment(_unitElement, fragment);
 
     var holder = _EnclosingContext(
       instanceElementBuilder: null,
@@ -1222,8 +1247,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     node.declaredFragment = fragment;
     _linker.elementNodes[fragment] = node;
 
-    _unitElement.addExtensionType(fragment);
-    _libraryBuilder.addTopFragment(fragment);
+    _libraryBuilder.addTopFragment(_unitElement, fragment);
 
     var holder = _EnclosingContext(
       instanceElementBuilder: null,
@@ -1387,8 +1411,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       getterFragment.enclosingElement3 = _unitElement;
       executableFragment = getterFragment;
 
-      getterFragment.enclosingElement3 = _unitElement;
-      _libraryBuilder.addTopFragment(getterFragment);
+      _libraryBuilder.addTopFragment(_unitElement, getterFragment);
     } else if (node.isSetter) {
       var setterFragment = SetterFragmentImpl(
         name2: name2,
@@ -1401,8 +1424,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       setterFragment.enclosingElement3 = _unitElement;
       executableFragment = setterFragment;
 
-      setterFragment.enclosingElement3 = _unitElement;
-      _libraryBuilder.addTopFragment(setterFragment);
+      _libraryBuilder.addTopFragment(_unitElement, setterFragment);
     } else {
       var fragment = TopLevelFunctionFragmentImpl(
         name2: name2,
@@ -1415,8 +1437,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
       _enclosingContext.addFunction(name, fragment);
 
-      fragment.enclosingElement3 = _unitElement;
-      _libraryBuilder.addTopFragment(fragment);
+      _libraryBuilder.addTopFragment(_unitElement, fragment);
     }
 
     executableFragment.hasImplicitReturnType = node.returnType == null;
@@ -1458,8 +1479,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     node.declaredFragment = fragment;
     _linker.elementNodes[fragment] = node;
 
-    fragment.enclosingElement3 = _unitElement;
-    _libraryBuilder.addTopFragment(fragment);
+    _libraryBuilder.addTopFragment(_unitElement, fragment);
 
     var holder = _EnclosingContext(
       instanceElementBuilder: null,
@@ -1582,8 +1602,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     node.declaredFragment = fragment;
     _linker.elementNodes[fragment] = node;
 
-    fragment.enclosingElement3 = _unitElement;
-    _libraryBuilder.addTopFragment(fragment);
+    _libraryBuilder.addTopFragment(_unitElement, fragment);
 
     var holder = _EnclosingContext(
       instanceElementBuilder: null,
@@ -1735,8 +1754,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     node.declaredFragment = fragment;
     _linker.elementNodes[fragment] = node;
 
-    _unitElement.addMixin(fragment);
-    _libraryBuilder.addTopFragment(fragment);
+    _libraryBuilder.addTopFragment(_unitElement, fragment);
 
     var holder = _EnclosingContext(
       instanceElementBuilder: null,
@@ -1938,8 +1956,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       var refName = fragment.name2 ?? '${_nextUnnamedId++}';
       _enclosingContext.addTopLevelVariable(refName, fragment);
 
-      fragment.enclosingElement3 = _unitElement;
-      _libraryBuilder.addTopFragment(fragment);
+      _libraryBuilder.addTopFragment(_unitElement, fragment);
 
       _linker.elementNodes[fragment] = variable;
       variable.declaredFragment = fragment;
