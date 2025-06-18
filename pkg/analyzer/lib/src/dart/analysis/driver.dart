@@ -574,9 +574,7 @@ class AnalysisDriver {
     addFile(file.path);
   }
 
-  void afterPerformWork() {
-    _fsState.clearParsedFileStateCache();
-  }
+  void afterPerformWork() {}
 
   /// Return a [Future] that completes after pending file changes are applied,
   /// so that [currentSession] can be used to compute results.
