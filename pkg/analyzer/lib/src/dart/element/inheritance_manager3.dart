@@ -1145,7 +1145,7 @@ class InheritanceManager3 {
       var elementReference = class_.element.reference!
           .getChild('@method')
           .getChild(fragmentName);
-      if (elementReference.element2 case MethodElementImpl result) {
+      if (elementReference.element case MethodElementImpl result) {
         return result.firstFragment;
       }
 
@@ -1171,7 +1171,7 @@ class InheritanceManager3 {
       var setterReference = class_.element.reference!
           .getChild('@setter')
           .getChild(fragmentName);
-      if (setterReference.element2 case SetterElementImpl result) {
+      if (setterReference.element case SetterElementImpl result) {
         return result.firstFragment;
       }
 
@@ -1191,7 +1191,7 @@ class InheritanceManager3 {
       var fieldReference = class_.element.reference!
           .getChild('@field')
           .getChild(elementName);
-      assert(fieldReference.element2 == null);
+      assert(fieldReference.element == null);
       FieldElementImpl(reference: fieldReference, firstFragment: resultField);
 
       resultField.type = executable.parameters[0].type;
@@ -1237,7 +1237,7 @@ class InheritanceManager3 {
       var elementReference = targetClass.element.reference!
           .getChild('@method')
           .getChild(fragmentName);
-      if (elementReference.element2 case SetterElementImpl result) {
+      if (elementReference.element case SetterElementImpl result) {
         return result.firstFragment;
       }
 
@@ -1269,7 +1269,7 @@ class InheritanceManager3 {
         var elementReference = targetClass.element.reference!
             .getChild('@getter')
             .getChild(fragmentName);
-        if (elementReference.element2 case GetterElementImpl result) {
+        if (elementReference.element case GetterElementImpl result) {
           return result.firstFragment;
         }
 
@@ -1282,7 +1282,7 @@ class InheritanceManager3 {
         var elementReference = targetClass.element.reference!
             .getChild('@setter')
             .getChild(fragmentName);
-        if (elementReference.element2 case SetterElementImpl result) {
+        if (elementReference.element case SetterElementImpl result) {
           return result.firstFragment;
         }
 
@@ -1305,7 +1305,7 @@ class InheritanceManager3 {
       var elementReference = targetClass.element.reference!
           .getChild('@field')
           .getChild(elementName);
-      assert(elementReference.element2 == null);
+      assert(elementReference.element == null);
       var fieldElement = FieldElementImpl(
         reference: elementReference,
         firstFragment: field,

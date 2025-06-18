@@ -35,7 +35,7 @@ class Reference {
   String name;
 
   /// The corresponding [ElementImpl], or `null` if a named container.
-  ElementImpl? element2;
+  ElementImpl? element;
 
   /// Temporary index used during serialization and linking.
   int? index;

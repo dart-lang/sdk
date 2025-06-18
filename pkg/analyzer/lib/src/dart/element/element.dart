@@ -160,7 +160,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
   final ClassFragmentImpl _firstFragment;
 
   ClassElementImpl(this.reference, this._firstFragment) {
-    reference.element2 = this;
+    reference.element = this;
     firstFragment.augmentedInternal = this;
   }
 
@@ -791,7 +791,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
     required this.reference,
     required this.firstFragment,
   }) {
-    reference.element2 = this;
+    reference.element = this;
     firstFragment.element = this;
   }
 
@@ -2187,7 +2187,7 @@ class EnumElementImpl extends InterfaceElementImpl implements EnumElement {
   final EnumFragmentImpl firstFragment;
 
   EnumElementImpl(this.reference, this.firstFragment) {
-    reference.element2 = this;
+    reference.element = this;
     firstFragment.augmentedInternal = this;
   }
 
@@ -2643,7 +2643,7 @@ class ExtensionElementImpl extends InstanceElementImpl
   TypeImpl _extendedType = InvalidTypeImpl.instance;
 
   ExtensionElementImpl(this.reference, this.firstFragment) {
-    reference.element2 = this;
+    reference.element = this;
     firstFragment.augmentedInternal = this;
   }
 
@@ -2759,7 +2759,7 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   final ExtensionTypeFragmentImpl firstFragment;
 
   ExtensionTypeElementImpl(this.reference, this.firstFragment) {
-    reference.element2 = this;
+    reference.element = this;
     firstFragment.augmentedInternal = this;
   }
 
@@ -2898,7 +2898,7 @@ class FieldElementImpl extends PropertyInducingElementImpl
   final FieldFragmentImpl firstFragment;
 
   FieldElementImpl({required this.reference, required this.firstFragment}) {
-    reference.element2 = this;
+    reference.element = this;
     firstFragment.element = this;
   }
 
@@ -4471,7 +4471,7 @@ class GetterElementImpl extends PropertyAccessorElementImpl
   final GetterFragmentImpl firstFragment;
 
   GetterElementImpl(this.reference, this.firstFragment) {
-    reference.element2 = this;
+    reference.element = this;
     GetterFragmentImpl? fragment = firstFragment;
     while (fragment != null) {
       fragment.element = this;
@@ -7746,7 +7746,7 @@ class MethodElementImpl extends ExecutableElementImpl
     required this.reference,
     required this.firstFragment,
   }) {
-    reference.element2 = this;
+    reference.element = this;
     firstFragment.element = this;
   }
 
@@ -7919,7 +7919,7 @@ class MixinElementImpl extends InterfaceElementImpl implements MixinElement {
   final MixinFragmentImpl firstFragment;
 
   MixinElementImpl(this.reference, this.firstFragment) {
-    reference.element2 = this;
+    reference.element = this;
     firstFragment.augmentedInternal = this;
   }
 
@@ -8715,7 +8715,7 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
 
   PrefixElementImpl({required this.reference, required this.firstFragment})
     : lastFragment = firstFragment {
-    reference.element2 = this;
+    reference.element = this;
   }
 
   @override
@@ -9441,7 +9441,7 @@ class SetterElementImpl extends PropertyAccessorElementImpl
   final SetterFragmentImpl firstFragment;
 
   SetterElementImpl(this.reference, this.firstFragment) {
-    reference.element2 = this;
+    reference.element = this;
     SetterFragmentImpl? fragment = firstFragment;
     while (fragment != null) {
       fragment.element = this;
@@ -9726,7 +9726,7 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl
   final TopLevelFunctionFragmentImpl firstFragment;
 
   TopLevelFunctionElementImpl(this.reference, this.firstFragment) {
-    reference.element2 = this;
+    reference.element = this;
     firstFragment.element = this;
   }
 
@@ -9831,7 +9831,7 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
   final TopLevelVariableFragmentImpl firstFragment;
 
   TopLevelVariableElementImpl(this.reference, this.firstFragment) {
-    reference.element2 = this;
+    reference.element = this;
     firstFragment.element = this;
   }
 
@@ -9971,7 +9971,7 @@ class TypeAliasElementImpl extends TypeDefiningElementImpl
   final TypeAliasFragmentImpl firstFragment;
 
   TypeAliasElementImpl(this.reference, this.firstFragment) {
-    reference.element2 = this;
+    reference.element = this;
     firstFragment.element = this;
   }
 

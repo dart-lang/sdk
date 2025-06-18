@@ -892,7 +892,7 @@ class AnalysisDriver {
     if (_pendingFileChanges.isEmpty) {
       var rootReference = libraryContext.elementFactory.rootReference;
       var reference = rootReference.getChild('$uriObj');
-      var element = reference.element2;
+      var element = reference.element;
       if (element is LibraryElementImpl) {
         return LibraryElementResultImpl(element);
       }

@@ -150,7 +150,7 @@ class LibraryReader {
       0,
       featureSet,
     );
-    _reference.element2 = _libraryElement;
+    _reference.element = _libraryElement;
     _libraryElement.reference = _reference;
 
     // Read the rest of non-resolution data for the library.
@@ -251,8 +251,8 @@ class LibraryReader {
   /// These elements are implicitly declared in `dart:core`.
   void _declareDartCoreDynamicNever() {
     if (_reference.name == 'dart:core') {
-      _reference.getChild('dynamic').element2 = DynamicElementImpl.instance;
-      _reference.getChild('Never').element2 = NeverElementImpl.instance;
+      _reference.getChild('dynamic').element = DynamicElementImpl.instance;
+      _reference.getChild('Never').element = NeverElementImpl.instance;
     }
   }
 
@@ -896,7 +896,7 @@ class LibraryReader {
         isDeferred: isDeferred,
       );
 
-      var element = reference.element2 as PrefixElementImpl?;
+      var element = reference.element as PrefixElementImpl?;
       if (element == null) {
         element = PrefixElementImpl(
           reference: reference,
@@ -1492,16 +1492,16 @@ class LibraryReader {
 
   void _readVariableGetterSetterLinking() {
     _reader.readTypedList(() {
-      var variable = _readReference().element2 as PropertyInducingElementImpl;
+      var variable = _readReference().element as PropertyInducingElementImpl;
 
-      var optionalGetter = _readOptionalReference()?.element2;
+      var optionalGetter = _readOptionalReference()?.element;
       if (optionalGetter != null) {
         var getter = optionalGetter as GetterElementImpl;
         variable.getter2 = getter;
         getter.variable3 = variable;
       }
 
-      var optionalSetter = _readOptionalReference()?.element2;
+      var optionalSetter = _readOptionalReference()?.element;
       if (optionalSetter != null) {
         var setter = optionalSetter as SetterElementImpl;
         variable.setter2 = setter;
@@ -1613,7 +1613,6 @@ class ResolutionReader {
   T readEnum<T extends Enum>(List<T> values) {
     return _reader.readEnum(values);
   }
-
 
   Map<K, V> readMap<K, V>({
     required K Function() readKey,

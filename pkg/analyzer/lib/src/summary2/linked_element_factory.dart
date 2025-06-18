@@ -62,7 +62,7 @@ class LinkedElementFactory {
   @visibleForTesting
   List<Uri> get uriListWithLibraryElements {
     return rootReference.children
-        .map((reference) => reference.element2)
+        .map((reference) => reference.element)
         .whereType<LibraryElementImpl>()
         .map((e) => e.uri)
         .toList();
@@ -145,7 +145,7 @@ class LinkedElementFactory {
     // During linking we create libraries when typeProvider is not ready.
     // Update these libraries now, when typeProvider is ready.
     for (var reference in rootReference.children) {
-      var libraryElement = reference.element2 as LibraryElementImpl?;
+      var libraryElement = reference.element as LibraryElementImpl?;
       if (libraryElement != null && !libraryElement.hasTypeProviderSystemSet) {
         setLibraryTypeSystem(libraryElement);
       }
@@ -154,12 +154,12 @@ class LinkedElementFactory {
 
   void dispose() {
     for (var libraryReference in rootReference.children) {
-      _disposeLibrary(libraryReference.element2);
+      _disposeLibrary(libraryReference.element);
     }
   }
 
   Element elementOfReference3(Reference reference) {
-    if (reference.element2 case var element?) {
+    if (reference.element case var element?) {
       return element;
     }
 
@@ -179,7 +179,7 @@ class LinkedElementFactory {
       parentElement.constructors;
     }
 
-    var element = reference.element2;
+    var element = reference.element;
     if (element == null) {
       throw StateError('Expected existing element: $reference');
     }
@@ -188,7 +188,7 @@ class LinkedElementFactory {
 
   LibraryElementImpl? libraryOfUri(Uri uri) {
     var reference = rootReference.getChild('$uri');
-    if (reference.element2 case LibraryElementImpl element) {
+    if (reference.element case LibraryElementImpl element) {
       return element;
     }
     return createLibraryElementForReading(uri);
@@ -217,7 +217,7 @@ class LinkedElementFactory {
       _libraryReaders.remove(uri);
       libraryManifests.remove(uri);
       var libraryReference = rootReference.removeChild('$uri');
-      _disposeLibrary(libraryReference?.element2);
+      _disposeLibrary(libraryReference?.element);
     }
 
     analysisSession.classHierarchy.removeOfLibraries(uriSet);
@@ -249,7 +249,7 @@ class LinkedElementFactory {
   void replaceAnalysisSession(AnalysisSessionImpl newSession) {
     analysisSession = newSession;
     for (var libraryReference in rootReference.children) {
-      var libraryElement = libraryReference.element2;
+      var libraryElement = libraryReference.element;
       if (libraryElement is LibraryElementImpl) {
         libraryElement.session = newSession;
       }

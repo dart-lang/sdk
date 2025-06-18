@@ -630,7 +630,7 @@ class LibraryBuilder {
         .getChild('${libraryFragment.source.uri}')
         .getChild('@prefix2')
         .getChild(refName);
-    var element = reference.element2 as PrefixElementImpl?;
+    var element = reference.element as PrefixElementImpl?;
 
     if (element == null) {
       element = PrefixElementImpl(
@@ -729,11 +729,11 @@ class LibraryBuilder {
   void _declareDartCoreDynamicNever() {
     if (reference.name == 'dart:core') {
       var dynamicRef = reference.getChild('dynamic');
-      dynamicRef.element2 = DynamicElementImpl.instance;
+      dynamicRef.element = DynamicElementImpl.instance;
       declare(DynamicElementImpl.instance, dynamicRef);
 
       var neverRef = reference.getChild('Never');
-      neverRef.element2 = NeverElementImpl.instance;
+      neverRef.element = NeverElementImpl.instance;
       declare(NeverElementImpl.instance, neverRef);
     }
   }
@@ -780,7 +780,7 @@ class LibraryBuilder {
     libraryElement.isSynthetic = !libraryFile.exists;
     libraryElement.languageVersion = libraryUnitNode.languageVersion;
     libraryElement.reference = libraryReference;
-    libraryReference.element2 = libraryElement;
+    libraryReference.element = libraryElement;
 
     var linkingUnits = <LinkingUnit>[];
     {
