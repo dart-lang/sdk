@@ -12,8 +12,6 @@ class A extends core::_Enum /*isEnum*/  {
     ;
   method core::_enumToString() → core::String
     return "A.${this.{core::_Enum::_name}{core::String}}";
-  static synthetic method _#new#tearOff(core::int #index, core::String #name, self::B value) → self::A
-    return new self::A::•(#index, #name, value);
 }
 class B extends core::Object /*hasConstConstructor*/  {
   final field core::int value;
@@ -65,7 +63,7 @@ Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///
 Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///enum_from_environment.dart:21:28 -> InstanceConstant(const B{B.value: 0.0})
 Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///enum_from_environment.dart:26:12 -> InstanceConstant(const A{A.value: const B{B.value: 0.0}, _Enum.index: 0.0, _Enum._name: "a"})
 Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///enum_from_environment.dart:28:12 -> InstanceConstant(const A{A.value: const B{B.value: 0.0}, _Enum.index: 1.0, _Enum._name: "b"})
-Extra constant evaluation: evaluated: 21, effectively constant: 7
+Extra constant evaluation: evaluated: 17, effectively constant: 7
 
 
 Constructor coverage from constants:

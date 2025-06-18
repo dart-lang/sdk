@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/source/source_loader.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
@@ -37,75 +39,6 @@ import 'source_class_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 import 'source_member_builder.dart';
 import 'source_property_builder.dart';
-
-class ExtensionTypeInitializerToStatementConverter
-    implements InitializerVisitor<void> {
-  VariableDeclaration thisVariable;
-  final List<Statement> statements;
-
-  ExtensionTypeInitializerToStatementConverter(
-      this.statements, this.thisVariable);
-
-  @override
-  void visitAssertInitializer(AssertInitializer node) {
-    statements.add(node.statement);
-  }
-
-  @override
-  void visitAuxiliaryInitializer(AuxiliaryInitializer node) {
-    if (node is ExtensionTypeRedirectingInitializer) {
-      statements.add(new ExpressionStatement(
-          new VariableSet(
-              thisVariable,
-              new StaticInvocation(node.target, node.arguments)
-                ..fileOffset = node.fileOffset)
-            ..fileOffset = node.fileOffset)
-        ..fileOffset = node.fileOffset);
-      return;
-    } else if (node is ExtensionTypeRepresentationFieldInitializer) {
-      thisVariable
-        ..initializer = (node.value..parent = thisVariable)
-        ..fileOffset = node.fileOffset;
-      return;
-    }
-    // Coverage-ignore-block(suite): Not run.
-    throw new UnsupportedError(
-        "Unexpected initializer $node (${node.runtimeType})");
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void visitFieldInitializer(FieldInitializer node) {
-    thisVariable
-      ..initializer = (node.value..parent = thisVariable)
-      ..fileOffset = node.fileOffset;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void visitInvalidInitializer(InvalidInitializer node) {
-    statements.add(new ExpressionStatement(
-        new InvalidExpression(null)..fileOffset = node.fileOffset)
-      ..fileOffset);
-  }
-
-  @override
-  void visitLocalInitializer(LocalInitializer node) {
-    statements.add(node.variable);
-  }
-
-  @override
-  void visitRedirectingInitializer(RedirectingInitializer node) {
-    throw new UnsupportedError(
-        "Unexpected initializer $node (${node.runtimeType})");
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void visitSuperInitializer(SuperInitializer node) {
-    // TODO(johnniwinther): Report error for this case.
-  }
-}
 
 class InferableConstructor implements InferableMember {
   @override
@@ -179,11 +112,6 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
 
   Set<SourcePropertyBuilder>? _initializedFields;
 
-  late final Reference _invokeTargetReference;
-  late final Member _invokeTarget;
-  late final Reference _readTargetReference;
-  late final Member _readTarget;
-
   late final Substitution _fieldTypeSubstitution =
       _introductory.computeFieldTypeSubstitution(declarationBuilder);
 
@@ -204,6 +132,9 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
 
   final bool isExternal;
 
+  final ConstructorReferences _constructorReferences;
+  final NameScheme _nameScheme;
+
   SourceConstructorBuilder({
     required this.name,
     required this.libraryBuilder,
@@ -211,14 +142,15 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
     required this.fileOffset,
     required this.fileUri,
     this.nativeMethodName,
-    required Reference? constructorReference,
-    required Reference? tearOffReference,
+    required ConstructorReferences constructorReferences,
     required NameScheme nameScheme,
     required ConstructorDeclaration introductory,
     List<ConstructorDeclaration> augmentations = const [],
     required this.isConst,
     required this.isExternal,
-  })  : _introductory = introductory,
+  })  : _constructorReferences = constructorReferences,
+        _nameScheme = nameScheme,
+        _introductory = introductory,
         _augmentations = augmentations,
         _memberName = nameScheme.getDeclaredName(name) {
     if (augmentations.isEmpty) {
@@ -228,24 +160,6 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
       _augmentedDeclarations = [_introductory, ..._augmentations];
       _lastDeclaration = _augmentedDeclarations.removeLast();
     }
-    for (ConstructorDeclaration declaration in _augmentedDeclarations) {
-      declaration.createNode(
-          name: name,
-          libraryBuilder: libraryBuilder,
-          nameScheme: nameScheme,
-          constructorReference: null,
-          tearOffReference: null);
-    }
-    _lastDeclaration.createNode(
-        name: name,
-        libraryBuilder: libraryBuilder,
-        nameScheme: nameScheme,
-        constructorReference: constructorReference,
-        tearOffReference: tearOffReference);
-    _invokeTargetReference = _lastDeclaration.invokeTargetReference;
-    _invokeTarget = _lastDeclaration.invokeTarget;
-    _readTargetReference = _lastDeclaration.readTargetReference;
-    _readTarget = _lastDeclaration.readTarget;
 
     _introductory.registerInferable(this);
     for (ConstructorDeclaration augmentation in _augmentations) {
@@ -277,11 +191,11 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
   bool get hasParameters => _introductory.hasParameters;
 
   @override
-  Member get invokeTarget => _invokeTarget;
+  Member get invokeTarget => invokeTargetReference.asMember;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  Reference get invokeTargetReference => _invokeTargetReference;
+  Reference get invokeTargetReference =>
+      _constructorReferences.constructorReference;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -370,11 +284,10 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
   Builder get parent => declarationBuilder;
 
   @override
-  Member get readTarget => _readTarget;
+  Member get readTarget => readTargetReference.asMember;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  Reference get readTargetReference => _readTargetReference;
+  Reference get readTargetReference => _constructorReferences.tearOffReference;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -578,13 +491,15 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
     _lastDeclaration.buildOutlineNodes(f,
         constructorBuilder: this,
         libraryBuilder: libraryBuilder,
-        declarationConstructor: invokeTarget,
+        nameScheme: _nameScheme,
+        constructorReferences: _constructorReferences,
         delayedDefaultValueCloners: _delayedDefaultValueCloners);
     for (ConstructorDeclaration declaration in _augmentedDeclarations) {
       declaration.buildOutlineNodes(noAddBuildNodesCallback,
           constructorBuilder: this,
           libraryBuilder: libraryBuilder,
-          declarationConstructor: invokeTarget,
+          nameScheme: _nameScheme,
+          constructorReferences: null,
           delayedDefaultValueCloners: _delayedDefaultValueCloners);
     }
   }
@@ -692,10 +607,65 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
   /// members and to avoid reporting cascading errors.
   void markAsErroneous() {
     _introductory.markAsErroneous();
-    for (ConstructorDeclaration augmentation in _augmentations)
-    // Coverage-ignore(suite): Not run.
-    {
+    for (ConstructorDeclaration augmentation in _augmentations) {
+      // Coverage-ignore-block(suite): Not run.
       augmentation.markAsErroneous();
     }
   }
+}
+
+class ConstructorReferences {
+  Reference? _constructorReference;
+  Reference? _tearOffReference;
+  final bool _hasTearOff;
+
+  ConstructorReferences._(
+      this._constructorReference, this._tearOffReference, this._hasTearOff)
+      : assert(!(_tearOffReference != null && !_hasTearOff),
+            "Unexpected tear off reference $_tearOffReference.");
+
+  factory ConstructorReferences({
+    required String name,
+    required NameScheme nameScheme,
+    required IndexedContainer? indexedContainer,
+    required SourceLoader loader,
+    required DeclarationBuilder declarationBuilder,
+  }) {
+    bool hasTearOff = switch (declarationBuilder) {
+      ClassBuilder() =>
+        !(declarationBuilder.isAbstract || declarationBuilder.isEnum) &&
+            loader.target.backendTarget.isConstructorTearOffLoweringEnabled,
+      ExtensionBuilder() => true,
+      ExtensionTypeDeclarationBuilder() => true,
+    };
+
+    Reference? constructorReference;
+    Reference? tearOffReference;
+
+    if (indexedContainer != null) {
+      constructorReference = indexedContainer.lookupConstructorReference(
+          nameScheme.getConstructorMemberName(name, isTearOff: false).name);
+      tearOffReference = indexedContainer.lookupGetterReference(
+          nameScheme.getConstructorMemberName(name, isTearOff: true).name);
+    }
+
+    return new ConstructorReferences._(
+        constructorReference, tearOffReference, hasTearOff);
+  }
+
+  void registerReference(
+      SourceLoader loader, SourceConstructorBuilder builder) {
+    if (_constructorReference != null) {
+      loader.buildersCreatedWithReferences[_constructorReference!] = builder;
+    }
+    if (_tearOffReference != null) {
+      loader.buildersCreatedWithReferences[_tearOffReference!] = builder;
+    }
+  }
+
+  Reference get constructorReference =>
+      _constructorReference ??= new Reference();
+
+  Reference get tearOffReference => _tearOffReference ??=
+      _hasTearOff ? new Reference() : constructorReference;
 }

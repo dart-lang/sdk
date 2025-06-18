@@ -900,42 +900,19 @@ class KernelTarget {
           if (memberBuilder.invokeTarget is Constructor) {
             substitutionMap ??=
                 builder.getSubstitutionMap(superclassBuilder.cls);
-            Reference? constructorReference;
-            Reference? tearOffReference;
             if (indexedClass != null) {
               constructorReference = indexedClass
-                  // We use the name of the member builder here since it refers
-                  // to the library of the original declaration when private.
-                  // For instance:
-                  //
-                  //     // lib1:
-                  //     class Super { Super._() }
-                  //     class Subclass extends Class {
-                  //       Subclass() : super._();
-                  //     }
-                  //     // lib2:
-                  //     class Mixin {}
-                  //     class Class = Super with Mixin;
-                  //
-                  // Here `super._()` in `Subclass` targets the forwarding stub
-                  // added to `Class` whose name is `_` private to `lib1`.
                   .lookupConstructorReference(memberBuilder.invokeTarget!.name);
               tearOffReference = indexedClass.lookupGetterReference(
                   new Name(constructorTearOffName(name), indexedClass.library));
             }
             builder.addSyntheticConstructor(_makeMixinApplicationConstructor(
-                builder,
-                builder.cls.mixin,
-                memberBuilder as MemberBuilderImpl,
-                substitutionMap,
-                constructorReference,
-                tearOffReference));
+                builder, builder.cls.mixin, memberBuilder, substitutionMap));
             isConstructorAdded = true;
           }
         }
 
         if (!isConstructorAdded) {
-          // Coverage-ignore-block(suite): Not run.
           builder.addSyntheticConstructor(_makeDefaultConstructor(
               builder, constructorReference, tearOffReference));
         }
@@ -953,12 +930,53 @@ class KernelTarget {
   }
 
   SourceConstructorBuilder _makeMixinApplicationConstructor(
-      SourceClassBuilder classBuilder,
-      Class mixin,
-      MemberBuilder superConstructorBuilder,
-      Map<TypeParameter, DartType> substitutionMap,
-      Reference? constructorReference,
-      Reference? tearOffReference) {
+    SourceClassBuilder classBuilder,
+    Class mixin,
+    MemberBuilder superConstructorBuilder,
+    Map<TypeParameter, DartType> substitutionMap,
+  ) {
+    SourceLibraryBuilder libraryBuilder = classBuilder.libraryBuilder;
+    Constructor superConstructor =
+        superConstructorBuilder.invokeTarget as Constructor;
+    Name name = superConstructor.name;
+
+    IndexedClass? indexedClass = classBuilder.indexedClass;
+
+    // If the name of the super constructor is private, we use the library name
+    // of its enclosing library to ensure that both constructor and tear-off
+    // are private wrt to the original library. Otherwise we use the library
+    // name of the [libraryBuilder], since only the tear-off should be private.
+    //
+    // For instance:
+    //
+    //     // lib1:
+    //     class Super { Super._() }
+    //     class Subclass extends Class {
+    //       Subclass() : super._();
+    //     }
+    //     // lib2:
+    //     class Mixin {}
+    //     class Class = Super with Mixin;
+    //
+    // Here `super._()` in `Subclass` targets the forwarding stub
+    // added to `Class` whose name is `_` private to `lib1`.
+    LibraryName libraryName = name.isPrivate
+        ? superConstructorBuilder.libraryBuilder.libraryName
+        : libraryBuilder.libraryName;
+
+    NameScheme nameScheme = new NameScheme(
+        isInstanceMember: false,
+        containerName: new ClassName(classBuilder.name),
+        containerType: ContainerType.Class,
+        libraryName: libraryName);
+
+    ConstructorReferences constructorReferences = new ConstructorReferences(
+        name: superConstructorBuilder.name,
+        nameScheme: nameScheme,
+        indexedContainer: indexedClass,
+        loader: loader,
+        declarationBuilder: classBuilder);
+
     bool hasTypeDependency = false;
     Substitution substitution = Substitution.fromMap(substitutionMap);
 
@@ -977,10 +995,7 @@ class KernelTarget {
       return copy;
     }
 
-    SourceLibraryBuilder libraryBuilder = classBuilder.libraryBuilder;
     Class cls = classBuilder.cls;
-    Constructor superConstructor =
-        superConstructorBuilder.invokeTarget as Constructor;
     bool isConst = superConstructor.isConst;
     if (isConst && mixin.fields.isNotEmpty) {
       for (Field field in mixin.fields) {
@@ -1016,11 +1031,11 @@ class KernelTarget {
     SuperInitializer initializer = new SuperInitializer(
         superConstructor, new Arguments(positional, named: named));
     Constructor constructor = new Constructor(function,
-            name: superConstructor.name,
+            name: name,
             initializers: <Initializer>[initializer],
             isSynthetic: true,
             isConst: isConst,
-            reference: constructorReference,
+            reference: constructorReferences.constructorReference,
             fileUri: cls.fileUri)
           ..fileOffset = cls.fileOffset
         // TODO(johnniwinther): Should we add file end offset to synthesized
@@ -1039,15 +1054,11 @@ class KernelTarget {
     }
 
     Procedure? constructorTearOff = createConstructorTearOffProcedure(
-        new MemberName(
-            superConstructor.name.isPrivate
-                ? new LibraryName(superConstructor.name.libraryReference!)
-                : libraryBuilder.libraryName,
-            constructorTearOffName(superConstructor.name.text)),
+        new MemberName(libraryName, constructorTearOffName(name.text)),
         libraryBuilder,
         cls.fileUri,
         cls.fileOffset,
-        tearOffReference,
+        constructorReferences.tearOffReference,
         forAbstractClassOrEnumOrMixin: classBuilder.isAbstract);
 
     if (constructorTearOff != null) {
@@ -1074,25 +1085,13 @@ class KernelTarget {
         delayedDefaultValueCloner: delayedDefaultValueCloner,
         typeDependency: typeDependency);
 
-    IndexedClass? indexedClass = classBuilder.indexedClass;
-    LibraryName libraryName = indexedClass != null
-        ? new LibraryName(indexedClass.library.reference)
-        : libraryBuilder.libraryName;
-
-    NameScheme nameScheme = new NameScheme(
-        isInstanceMember: false,
-        containerName: new ClassName(classBuilder.name),
-        containerType: ContainerType.Class,
-        libraryName: libraryName);
-
     SourceConstructorBuilder constructorBuilder = new SourceConstructorBuilder(
         name: superConstructorBuilder.name,
         libraryBuilder: libraryBuilder,
         declarationBuilder: classBuilder,
         fileOffset: classBuilder.fileOffset,
         fileUri: classBuilder.fileUri,
-        constructorReference: constructorReference,
-        tearOffReference: tearOffReference,
+        constructorReferences: constructorReferences,
         nameScheme: nameScheme,
         introductory: declaration,
         isConst: isConst,
@@ -1138,13 +1137,34 @@ class KernelTarget {
       Reference? constructorReference,
       Reference? tearOffReference) {
     SourceLibraryBuilder libraryBuilder = classBuilder.libraryBuilder;
+
+    IndexedClass? indexedClass = classBuilder.indexedClass;
+    LibraryName libraryName = indexedClass != null
+        ? new LibraryName(indexedClass.library.reference)
+        : libraryBuilder.libraryName;
+
+    Name name = new Name('');
+
+    NameScheme nameScheme = new NameScheme(
+        isInstanceMember: false,
+        containerName: new ClassName(classBuilder.name),
+        containerType: ContainerType.Class,
+        libraryName: libraryName);
+
+    ConstructorReferences constructorReferences = new ConstructorReferences(
+        name: name.text,
+        nameScheme: nameScheme,
+        indexedContainer: indexedClass,
+        loader: loader,
+        declarationBuilder: classBuilder);
+
     Class enclosingClass = classBuilder.cls;
     Constructor constructor = new Constructor(
             new FunctionNode(new EmptyStatement(),
                 returnType: makeConstructorReturnType(enclosingClass)),
-            name: new Name(""),
+            name: name,
             isSynthetic: true,
-            reference: constructorReference,
+            reference: constructorReferences.constructorReference,
             fileUri: enclosingClass.fileUri)
           ..fileOffset = enclosingClass.fileOffset
         // TODO(johnniwinther): Should we add file end offsets to synthesized
@@ -1156,7 +1176,7 @@ class KernelTarget {
         libraryBuilder,
         enclosingClass.fileUri,
         enclosingClass.fileOffset,
-        tearOffReference,
+        constructorReferences.tearOffReference,
         forAbstractClassOrEnumOrMixin:
             enclosingClass.isAbstract || enclosingClass.isEnum);
     if (constructorTearOff != null) {
@@ -1173,25 +1193,13 @@ class KernelTarget {
     ConstructorDeclaration declaration = new DefaultConstructorDeclaration(
         constructor: constructor, constructorTearOff: constructorTearOff);
 
-    IndexedClass? indexedClass = classBuilder.indexedClass;
-    LibraryName libraryName = indexedClass != null
-        ? new LibraryName(indexedClass.library.reference)
-        : libraryBuilder.libraryName;
-
-    NameScheme nameScheme = new NameScheme(
-        isInstanceMember: false,
-        containerName: new ClassName(classBuilder.name),
-        containerType: ContainerType.Class,
-        libraryName: libraryName);
-
     return new SourceConstructorBuilder(
         name: '',
         libraryBuilder: libraryBuilder,
         declarationBuilder: classBuilder,
         fileOffset: classBuilder.fileOffset,
         fileUri: classBuilder.fileUri,
-        constructorReference: constructorReference,
-        tearOffReference: tearOffReference,
+        constructorReferences: constructorReferences,
         nameScheme: nameScheme,
         introductory: declaration,
         isExternal: false,

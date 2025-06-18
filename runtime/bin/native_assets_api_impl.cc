@@ -4,6 +4,7 @@
 
 #include "include/bin/native_assets_api.h"
 
+#include "bin/utils.h"
 #include "platform/globals.h"
 #include "platform/utils.h"
 
@@ -54,7 +55,7 @@ const int file_schema_length = 7;
 
 // Get a file uri with only forward slashes from the script path.
 // Returned string must be freed by caller.
-CStringUniquePtr CleanScriptUri(const char* script_uri) {
+CStringUniquePtr CleanScriptUri(const char* script_uri, char** error) {
   CStringUniquePtr script_path;
 
   if (strlen(script_uri) > file_schema_length &&
@@ -68,8 +69,15 @@ CStringUniquePtr CleanScriptUri(const char* script_uri) {
   }
 
   // Resolve symlinks.
-  char canon_path[PATH_MAX];
-  File::GetCanonicalPath(nullptr, script_path.get(), canon_path, PATH_MAX);
+  const char* canon_path = File::GetCanonicalPath(nullptr, script_path.get());
+  if (canon_path == nullptr) {
+    OSError os_error;
+    SET_ERROR_MSG(
+        error,
+        "Failed to canonicalize the script uri '%s'. OS error: '%s' (%i).",
+        script_path.get(), os_error.message(), os_error.code());
+    return CStringUniquePtr();
+  }
 
   // Convert path to Uri. Inspired by sdk/lib/core/uri.dart _makeFileUri.
   // Only has a single case, the path is always absolute and always a file.
@@ -141,7 +149,10 @@ void* NativeAssets::DlopenRelative(const char* path,
                                    const char* script_uri,
                                    char** error) {
   void* handle = nullptr;
-  CStringUniquePtr platform_script_cstr = CleanScriptUri(script_uri);
+  CStringUniquePtr platform_script_cstr = CleanScriptUri(script_uri, error);
+  if (*error != nullptr) {
+    return nullptr;
+  }
   const intptr_t len = strlen(path);
   char* path_copy = reinterpret_cast<char*>(malloc(len + 1));
   snprintf(path_copy, len + 1, "%s", path);
