@@ -116,9 +116,9 @@ class VirtualMemory {
   // Assumes
   //   * `this` has RX protection and is codesigned.
   //   * `target` has RW protection, and is at least as large as `this`.
-#if defined(DART_TARGET_OS_MACOS)
+#if defined(DART_HOST_OS_MACOS)
   bool DuplicateRX(VirtualMemory* target);
-#endif  // defined(DART_TARGET_OS_MACOS)
+#endif  // defined(DART_HOST_OS_MACOS)
 
   // Returns the cached page size. Use only if Init() has been called.
   static intptr_t PageSize() {
