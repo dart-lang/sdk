@@ -48,6 +48,9 @@ declare_args() {
   # verified at the operating system level.
   dart_use_fallback_root_certificates = false
 
+  # Whether to disable support for secure sockets in the Dart IO library.
+  dart_disable_secure_socket = false
+
   # Whether to link Crashpad library for crash handling. Only supported on
   # Windows for now.
   dart_use_crashpad = false
