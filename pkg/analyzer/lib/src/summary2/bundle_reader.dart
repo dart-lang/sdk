@@ -1535,39 +1535,14 @@ class ResolutionReader {
 
   late LibraryFragmentImpl currentLibraryFragment;
 
-  /// The stack of [TypeParameterElementImpl]s and [FormalParameterImpl] that
-  /// are available in the scope of [readFragmentOrMember] and [readType].
+  /// The stack of [TypeParameterElementImpl]s and [FormalParameterElementImpl]s
+  /// that are available in the scope of [readElement] and [readType].
   ///
   /// This stack is shared with the client of the reader, and update mostly
   /// by the client. However it is also updated during [_readFunctionType].
   final List<ElementImpl> _localElements = [];
 
   ResolutionReader(this._elementFactory, this._referenceReader, this._reader);
-
-  void applyToFormalParameterFragments(
-    List<FormalParameterFragmentImpl> parameters,
-  ) {
-    for (var parameter in parameters) {
-      parameter.metadata = _readMetadata(unitElement: currentLibraryFragment);
-      _readTypeParameters2(
-        currentLibraryFragment,
-        this,
-        parameter.typeParameters,
-      );
-      applyToFormalParameterFragments(parameter.parameters);
-      parameter.type = readRequiredType();
-      if (parameter is ConstVariableFragment) {
-        var defaultParameter = parameter as ConstVariableFragment;
-        var initializer = readOptionalExpression();
-        if (initializer != null) {
-          defaultParameter.constantInitializer = initializer;
-        }
-      }
-      if (parameter is FieldFormalParameterFragmentImpl) {
-        parameter.field = readFragmentOrMember() as FieldFragmentImpl?;
-      }
-    }
-  }
 
   LibraryElementImpl libraryOfUri(Uri uri) {
     return _elementFactory.libraryOfUri2(uri);
@@ -1639,44 +1614,6 @@ class ResolutionReader {
     return _reader.readEnum(values);
   }
 
-  FragmentOrMember? readFragmentOrMember() {
-    var memberFlags = _reader.readByte();
-    var fragment = _readFragmentImpl();
-
-    if (fragment == null) {
-      return null;
-    }
-
-    if (memberFlags == Tag.RawElement) {
-      return fragment;
-    }
-
-    if (memberFlags == Tag.MemberWithTypeArguments) {
-      var enclosing = fragment.enclosingElement3 as InstanceFragmentImpl;
-
-      var firstFragment = enclosing.element.firstFragment;
-      var declarationTypeParameters =
-          firstFragment.typeParameters.map((tp) => tp.asElement2).toList();
-
-      var substitution = Substitution.empty;
-      var typeArguments = _readTypeList();
-      if (typeArguments.isNotEmpty) {
-        substitution = Substitution.fromPairs2(
-          declarationTypeParameters,
-          typeArguments,
-        );
-      }
-
-      if (fragment is ExecutableFragmentImpl) {
-        return ExecutableMember.from2(fragment, substitution);
-      } else {
-        fragment as FieldFragmentImpl;
-        return FieldMember.from2(fragment, substitution);
-      }
-    }
-
-    throw UnimplementedError('memberFlags: $memberFlags');
-  }
 
   Map<K, V> readMap<K, V>({
     required K Function() readKey,
@@ -1960,20 +1897,6 @@ class ResolutionReader {
     });
   }
 
-  FragmentImpl? _readFragmentImpl() {
-    var index = _reader.readUInt30();
-
-    if ((index & 0x1) == 0x1) {
-      // TODO(scheglov): remove?
-      throw UnimplementedError();
-    }
-
-    var referenceIndex = index >> 1;
-    var reference = _referenceReader.referenceOfIndex(referenceIndex);
-
-    return _elementFactory.elementOfReference(reference);
-  }
-
   String? _readFragmentName() {
     return _reader.readOptionalStringReference();
   }
@@ -2089,19 +2012,6 @@ class ResolutionReader {
       }
     }
     return typeParameters;
-  }
-
-  void _readTypeParameters2(
-    LibraryFragmentImpl unitElement,
-    ResolutionReader reader,
-    List<TypeParameterFragmentImpl> typeParameters,
-  ) {
-    reader._addTypeParameters(typeParameters);
-    for (var typeParameter in typeParameters) {
-      typeParameter.metadata = reader._readMetadata(unitElement: unitElement);
-      typeParameter.bound = reader.readType();
-      typeParameter.defaultType = reader.readType();
-    }
   }
 
   static ParameterKind _formalParameterKind(int encoding) {

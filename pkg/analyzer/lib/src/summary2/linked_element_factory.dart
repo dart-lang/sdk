@@ -14,7 +14,6 @@ import 'package:analyzer/src/fine/library_manifest.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/reference.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:meta/meta.dart';
 
@@ -155,35 +154,8 @@ class LinkedElementFactory {
 
   void dispose() {
     for (var libraryReference in rootReference.children) {
-      _disposeLibrary(libraryReference.element);
+      _disposeLibrary(libraryReference.element2);
     }
-  }
-
-  // TODO(scheglov): Why would this method return `null`?
-  FragmentImpl? elementOfReference(Reference reference) {
-    if (reference.element case var element?) {
-      return element;
-    }
-    if (reference.parent == null) {
-      return null;
-    }
-
-    if (reference.isLibrary) {
-      var uri = uriCache.parse(reference.name);
-      createLibraryElementForReading(uri);
-      return null;
-    }
-
-    var element = reference.element;
-    if (element == null) {
-      throw StateError('Expected existing element: $reference');
-    }
-    return element;
-  }
-
-  // TODO(scheglov): Why would this method return `null`?
-  Element? elementOfReference2(Reference reference) {
-    return elementOfReference(reference)?.asElement2;
   }
 
   Element elementOfReference3(Reference reference) {
@@ -212,15 +184,6 @@ class LinkedElementFactory {
       throw StateError('Expected existing element: $reference');
     }
     return element;
-  }
-
-  bool hasLibrary(Uri uri) {
-    // We already have the element, linked or read.
-    if (rootReference['$uri']?.element is LibraryElementImpl) {
-      return true;
-    }
-    // No element yet, but we know how to read it.
-    return _libraryReaders[uri] != null;
   }
 
   LibraryElementImpl? libraryOfUri(Uri uri) {
@@ -254,7 +217,7 @@ class LinkedElementFactory {
       _libraryReaders.remove(uri);
       libraryManifests.remove(uri);
       var libraryReference = rootReference.removeChild('$uri');
-      _disposeLibrary(libraryReference?.element);
+      _disposeLibrary(libraryReference?.element2);
     }
 
     analysisSession.classHierarchy.removeOfLibraries(uriSet);
@@ -306,5 +269,5 @@ class LinkedElementFactory {
     libraryElement.hasTypeProviderSystemSet = true;
   }
 
-  void _disposeLibrary(FragmentImpl? libraryElement) {}
+  void _disposeLibrary(ElementImpl? libraryElement) {}
 }
