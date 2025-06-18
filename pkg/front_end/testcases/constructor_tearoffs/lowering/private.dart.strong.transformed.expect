@@ -1,0 +1,161 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/private.dart:11:7: Error: The superclass, 'B', has no unnamed constructor that takes no arguments.
+// class E = B with M; // TODO(johnniwinther): This should not be an error.
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+import "private_lib.dart" as pri;
+
+import "org-dartlang-testcase:///private_lib.dart";
+
+abstract class M extends core::Object /*isMixinDeclaration*/  {
+}
+class D extends pri::A implements self::M /*isEliminatedMixin*/  {
+  synthetic constructor pri::_() → self::D
+    : super pri::A::_()
+    ;
+  static synthetic method pri::_#_#tearOff() → self::D
+    return new self::D::_();
+}
+class E extends pri::B implements self::M /*isEliminatedMixin*/  {
+  synthetic constructor •() → self::E
+    : invalid-initializer
+    ;
+  static synthetic method _#new#tearOff() → self::E
+    return new self::E::•();
+}
+class F extends pri::C implements self::M /*isEliminatedMixin*/  {
+  synthetic constructor named() → self::F
+    : super pri::C::named()
+    ;
+  synthetic constructor pri::_() → self::F
+    : super pri::C::_()
+    ;
+  static synthetic method _#named#tearOff() → self::F
+    return new self::F::named();
+  static synthetic method pri::_#_#tearOff() → self::F
+    return new self::F::_();
+}
+
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/private_lib.dart:27:11: Error: Superclass has no constructor named 'B._'.
+//   H._() : super._(); // Error
+//           ^^^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/private_lib.dart:36:5: Error: Member not found: 'D._'.
+//   D._(); // Error
+//     ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/private_lib.dart:37:5: Error: Member not found: '_'.
+//   D._; // Error
+//     ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/private_lib.dart:38:5: Error: Member not found: 'E._'.
+//   E._(); // Error
+//     ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/private_lib.dart:39:5: Error: Member not found: '_'.
+//   E._; // Error
+//     ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/private_lib.dart:40:5: Error: Member not found: 'F._'.
+//   F._(); // Error
+//     ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/private_lib.dart:41:5: Error: Member not found: '_'.
+//   F._; // Error
+//     ^
+//
+import self as pri;
+import "dart:core" as core;
+import "private.dart" as self;
+
+import "org-dartlang-testcase:///private.dart";
+
+class A extends core::Object {
+  constructor _() → pri::A
+    : super core::Object::•()
+    ;
+  static synthetic method _#_#tearOff() → pri::A
+    return new pri::A::_();
+}
+class B extends core::Object {
+  static factory _() → pri::B /* redirection-target: pri::_B::• */
+    return new pri::_B::•();
+  static synthetic method _#_#tearOff() → pri::B
+    return new pri::_B::•();
+}
+class _B extends core::Object implements pri::B {
+  synthetic constructor •() → pri::_B
+    : super core::Object::•()
+    ;
+  static synthetic method _#new#tearOff() → pri::_B
+    return new pri::_B::•();
+}
+class C extends core::Object {
+  constructor named() → pri::C
+    : super core::Object::•()
+    ;
+  constructor _() → pri::C
+    : super core::Object::•()
+    ;
+  static synthetic method _#named#tearOff() → pri::C
+    return new pri::C::named();
+  static synthetic method _#_#tearOff() → pri::C
+    return new pri::C::_();
+}
+class G extends self::D {
+  constructor _() → pri::G
+    : super self::D::_()
+    ;
+  static synthetic method _#_#tearOff() → pri::G
+    return new pri::G::_();
+}
+class H extends self::E {
+  constructor _() → pri::H
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/private_lib.dart:27:11: Error: Superclass has no constructor named 'B._'.
+  H._() : super._(); // Error
+          ^^^^^"
+    ;
+  static synthetic method _#_#tearOff() → pri::H
+    return new pri::H::_();
+}
+class I extends self::F {
+  constructor named() → pri::I
+    : super self::F::named()
+    ;
+  constructor _() → pri::I
+    : super self::F::_()
+    ;
+  static synthetic method _#named#tearOff() → pri::I
+    return new pri::I::named();
+  static synthetic method _#_#tearOff() → pri::I
+    return new pri::I::_();
+}
+static method method() → dynamic {
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/private_lib.dart:36:5: Error: Member not found: 'D._'.
+  D._(); // Error
+    ^";
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/private_lib.dart:37:5: Error: Member not found: '_'.
+  D._; // Error
+    ^";
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/private_lib.dart:38:5: Error: Member not found: 'E._'.
+  E._(); // Error
+    ^";
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/private_lib.dart:39:5: Error: Member not found: '_'.
+  E._; // Error
+    ^";
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/private_lib.dart:40:5: Error: Member not found: 'F._'.
+  F._(); // Error
+    ^";
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/private_lib.dart:41:5: Error: Member not found: '_'.
+  F._; // Error
+    ^";
+}
