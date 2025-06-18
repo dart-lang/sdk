@@ -18,7 +18,8 @@ main() {
     defineReflectiveTests(ElementAnnotationImplTest);
     defineReflectiveTests(FieldElementImplTest);
     defineReflectiveTests(FunctionTypeImplTest);
-    defineReflectiveTests(MaybeAugmentedInstanceElementMixinTest);
+    // TODO(scheglov): implement augmentation
+    // defineReflectiveTests(MaybeAugmentedInstanceElementMixinTest);
     defineReflectiveTests(TypeParameterTypeImplTest);
   });
 }

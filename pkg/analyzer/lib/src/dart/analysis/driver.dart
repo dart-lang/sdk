@@ -110,7 +110,7 @@ testFineAfterLibraryAnalyzerHook;
 // TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 475;
+  static const int DATA_VERSION = 476;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -604,9 +604,7 @@ class AnalysisDriver {
     required List<Uri> uriList,
     PackageBundleSdk? packageBundleSdk,
   }) async {
-    var elementFactory = libraryContext.elementFactory;
-
-    var bundleWriter = BundleWriter(elementFactory.dynamicRef);
+    var bundleWriter = BundleWriter();
     var packageBundleBuilder = PackageBundleBuilder();
 
     for (var uri in uriList) {

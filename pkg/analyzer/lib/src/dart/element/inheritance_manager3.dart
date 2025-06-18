@@ -769,7 +769,13 @@ class InheritanceManager3 {
       return MapEntry(key, result);
     });
 
-    var implemented2 = implemented.mapValue((value) => value.asElement2);
+    var implemented2 = implemented.mapValue((value) {
+      try {
+        return value.asElement2;
+      } catch (e) {
+        rethrow;
+      }
+    });
 
     var namedCandidates2 = namedCandidates.map<Name, List<ExecutableElement>>(
       (key, value) => MapEntry(key, value.map((e) => e.asElement2).toList()),
@@ -1135,17 +1141,15 @@ class InheritanceManager3 {
 
     if (executable is MethodElementOrMember) {
       var fragmentName = executable.name2 ?? '';
-      var fragmentReference = class_.reference!
+
+      var elementReference = class_.element.reference!
           .getChild('@method')
           .getChild(fragmentName);
-
-      if (fragmentReference.element case MethodFragmentImpl result) {
-        return result;
+      if (elementReference.element2 case MethodElementImpl result) {
+        return result.firstFragment;
       }
 
       var result = MethodFragmentImpl(name2: executable.name2, nameOffset: -1);
-      result.reference = fragmentReference;
-      fragmentReference.element = result;
       result.enclosingElement3 = class_;
       result.isSynthetic = true;
       result.parameters = transformedParameters;
@@ -1153,10 +1157,6 @@ class InheritanceManager3 {
       result.typeParameters = executable.typeParameters;
 
       var elementName = executable.asElement2.name3!;
-      var elementReference = class_.element.reference!
-          .getChild('@method')
-          .getChild(elementName);
-      assert(elementReference.element2 == null);
       MethodElementImpl(
         name3: elementName,
         reference: elementReference,
@@ -1167,30 +1167,34 @@ class InheritanceManager3 {
     }
 
     if (executable is SetterFragmentImpl) {
+      var fragmentName = executable.name2 ?? '';
+      var setterReference = class_.element.reference!
+          .getChild('@setter')
+          .getChild(fragmentName);
+      if (setterReference.element2 case SetterElementImpl result) {
+        return result.firstFragment;
+      }
+
       var result = SetterFragmentImpl(name2: executable.name2, nameOffset: -1);
       result.enclosingElement3 = class_;
       result.isSynthetic = true;
       result.parameters = transformedParameters;
       result.returnType = executable.returnType;
 
+      SetterElementImpl(setterReference, result);
+
       var field = executable.variable2!;
       var resultField = FieldFragmentImpl(name2: field.name2, nameOffset: -1);
       resultField.enclosingElement3 = class_;
-      resultField.getter = field.getter;
-      resultField.setter = executable;
-      resultField.type = executable.parameters[0].type;
-      result.variable2 = resultField;
 
       var elementName = executable.asElement2.name3!;
-      var elementReference = class_.element.reference!
+      var fieldReference = class_.element.reference!
           .getChild('@field')
           .getChild(elementName);
-      assert(elementReference.element2 == null);
-      FieldElementImpl(
-        reference: elementReference,
-        firstFragment: resultField,
-      );
+      assert(fieldReference.element2 == null);
+      FieldElementImpl(reference: fieldReference, firstFragment: resultField);
 
+      resultField.type = executable.parameters[0].type;
       return result;
     }
 
@@ -1230,17 +1234,14 @@ class InheritanceManager3 {
       var firstElement = first.asElement2;
       var fragmentName = firstElement.firstFragment.name2!;
 
-      var fragmentReference = targetClass.reference!
+      var elementReference = targetClass.element.reference!
           .getChild('@method')
           .getChild(fragmentName);
-
-      if (fragmentReference.element case MethodFragmentImpl result) {
-        return result;
+      if (elementReference.element2 case SetterElementImpl result) {
+        return result.firstFragment;
       }
 
       var result = MethodFragmentImpl(name2: fragmentName, nameOffset: -1);
-      result.reference = fragmentReference;
-      fragmentReference.element = result;
       result.enclosingElement3 = targetClass;
       result.typeParameters = resultType.typeFormals;
       result.returnType = resultType.returnType;
@@ -1251,10 +1252,6 @@ class InheritanceManager3 {
               .toList();
 
       var elementName = first.asElement2.name3!;
-      var elementReference = targetClass.element.reference!
-          .getChild('@method')
-          .getChild(elementName);
-      assert(elementReference.element2 == null);
       MethodElementImpl(
         name3: elementName,
         reference: elementReference,
@@ -1269,31 +1266,30 @@ class InheritanceManager3 {
 
       PropertyAccessorFragmentImpl result;
       if (firstAccessor.isGetter) {
-        var fragmentReference = targetClass.reference!
+        var elementReference = targetClass.element.reference!
             .getChild('@getter')
             .getChild(fragmentName);
-        if (fragmentReference.element case GetterFragmentImpl result) {
-          return result;
+        if (elementReference.element2 case GetterElementImpl result) {
+          return result.firstFragment;
         }
 
         var fragment = GetterFragmentImpl(name2: fragmentName, nameOffset: -1);
-        fragment.reference = fragmentReference;
-        fragmentReference.element = fragment;
-        field.getter = fragment;
         result = fragment;
+
+        var element = GetterElementImpl(elementReference, fragment);
+        element.returnType = resultType.returnType;
       } else {
-        var fragmentReference = targetClass.reference!
+        var elementReference = targetClass.element.reference!
             .getChild('@setter')
             .getChild(fragmentName);
-        if (fragmentReference.element case SetterFragmentImpl result) {
-          return result;
+        if (elementReference.element2 case SetterElementImpl result) {
+          return result.firstFragment;
         }
 
         var fragment = SetterFragmentImpl(name2: fragmentName, nameOffset: -1);
-        fragment.reference = fragmentReference;
-        fragmentReference.element = fragment;
-        field.setter = fragment;
         result = fragment;
+
+        SetterElementImpl(elementReference, fragment);
       }
       result.enclosingElement3 = targetClass;
       result.returnType = resultType.returnType;
@@ -1304,19 +1300,23 @@ class InheritanceManager3 {
               .toList();
 
       field.enclosingElement3 = targetClass;
-      if (firstAccessor.isGetter) {
-        field.type = result.returnType;
-      } else {
-        field.type = result.parameters[0].type;
-      }
-      result.variable2 = field;
 
       var elementName = first.asElement2.name3!;
       var elementReference = targetClass.element.reference!
           .getChild('@field')
           .getChild(elementName);
       assert(elementReference.element2 == null);
-      FieldElementImpl(reference: elementReference, firstFragment: field);
+      var fieldElement = FieldElementImpl(
+        reference: elementReference,
+        firstFragment: field,
+      );
+      result.element.variable3 = fieldElement;
+
+      if (firstAccessor.isGetter) {
+        field.type = result.returnType;
+      } else {
+        field.type = result.parameters[0].type;
+      }
 
       return result;
     }

@@ -1945,7 +1945,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: root::@formalParameter::_
+        correspondingParameter: _@null
         staticType: int
     rightParenthesis: )
   element: <null>
@@ -3187,7 +3187,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: root::@formalParameter::p
+        correspondingParameter: p@null
         staticType: int
     rightParenthesis: )
   staticInvokeType: double Function(int)
@@ -3317,7 +3317,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: root::@formalParameter::<null-name>
+        correspondingParameter: <null-name>@null
         staticType: int
     rightParenthesis: )
   element: <null>
@@ -3593,7 +3593,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: root::@formalParameter::<null-name>
+        correspondingParameter: <null-name>@null
         staticType: int
     rightParenthesis: )
   element: <null>
@@ -3909,13 +3909,13 @@ FunctionExpressionInvocation
       IntegerLiteral
         literal: 1
         correspondingParameter: ParameterMember
-          baseElement: root::@formalParameter::a
+          baseElement: a@null
           substitution: {T: int}
         staticType: int
       IntegerLiteral
         literal: 2
         correspondingParameter: ParameterMember
-          baseElement: root::@formalParameter::b
+          baseElement: b@null
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -4025,7 +4025,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: root::@formalParameter::<null-name>
+        correspondingParameter: <null-name>@null
         staticType: int
     rightParenthesis: )
   element: <null>
@@ -4064,7 +4064,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: root::@formalParameter::<null-name>
+        correspondingParameter: <null-name>@null
         staticType: int
     rightParenthesis: )
   element: <null>
@@ -4409,7 +4409,7 @@ FunctionExpressionInvocation
     arguments
       SimpleIdentifier
         token: c
-        correspondingParameter: root::@formalParameter::<null-name>
+        correspondingParameter: <null-name>@null
         element: <testLibrary>::@function::f::@formalParameter::c
         staticType: C
     rightParenthesis: )
@@ -5386,7 +5386,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: root::@formalParameter::<null-name>
+        correspondingParameter: <null-name>@null
         staticType: int
     rightParenthesis: )
   element: <null>
@@ -5744,7 +5744,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: root::@formalParameter::<null-name>
+        correspondingParameter: <null-name>@null
         staticType: int
     rightParenthesis: )
   element: <null>
@@ -6517,7 +6517,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 1
-        correspondingParameter: g@20::@formalParameter::a
+        correspondingParameter: a@26
         staticType: int
       SimpleStringLiteral
         literal: '2'
@@ -6548,7 +6548,7 @@ MethodInvocation
       IntegerLiteral
         literal: 1
         correspondingParameter: ParameterMember
-          baseElement: g@15::@formalParameter::a
+          baseElement: a@25
           substitution: {T: int, U: String}
         staticType: int
       SimpleStringLiteral
@@ -6583,7 +6583,7 @@ MethodInvocation
       IntegerLiteral
         literal: 0
         correspondingParameter: ParameterMember
-          baseElement: g@15::@formalParameter::a
+          baseElement: a@24
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -6617,7 +6617,7 @@ MethodInvocation
           label: SimpleIdentifier
             token: a
             element: ParameterMember
-              baseElement: g@15::@formalParameter::a
+              baseElement: a@32
               substitution: {T: int}
             staticType: null
           colon: :
@@ -6625,7 +6625,7 @@ MethodInvocation
           literal: 0
           staticType: int
         correspondingParameter: ParameterMember
-          baseElement: g@15::@formalParameter::a
+          baseElement: a@32
           substitution: {T: int}
     rightParenthesis: )
   staticInvokeType: int Function({required int a})
@@ -6934,7 +6934,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: root::@formalParameter::<null-name>
+        correspondingParameter: <null-name>@null
         staticType: int
     rightParenthesis: )
   element: <null>
@@ -6966,7 +6966,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: root::@formalParameter::<null-name>
+        correspondingParameter: <null-name>@null
         staticType: int
     rightParenthesis: )
   element: <null>
@@ -7029,7 +7029,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: foo@16::@formalParameter::_
+        correspondingParameter: _@24
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -7091,7 +7091,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: @-1
+        correspondingParameter: <null-name>@null
         staticType: int
     rightParenthesis: )
   element: <null>
@@ -7183,7 +7183,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: root::@formalParameter::<null-name>
+        correspondingParameter: <null-name>@null
         staticType: int
     rightParenthesis: )
   element: <null>
@@ -7218,7 +7218,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 1
-        correspondingParameter: root::@formalParameter::<null-name>
+        correspondingParameter: <null-name>@null
         staticType: int
     rightParenthesis: )
   staticInvokeType: double Function(int)
@@ -7303,7 +7303,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: root::@formalParameter::<null-name>
+        correspondingParameter: <null-name>@null
         staticType: int
     rightParenthesis: )
   element: <null>
@@ -7333,7 +7333,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: root::@formalParameter::<null-name>
+        correspondingParameter: <null-name>@null
         staticType: int
     rightParenthesis: )
   element: <null>

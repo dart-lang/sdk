@@ -377,6 +377,7 @@ class PropertyAccessorElementFlags {
   static const int _isExternal = 1 << 9;
   static const int _isGenerator = 1 << 10;
   static const int _isStatic = 1 << 11;
+  static const int _isSynthetic = 1 << 12;
 
   static bool isGetter(int flags) => (flags & _isGetter) != 0;
 
@@ -403,6 +404,7 @@ class PropertyAccessorElementFlags {
     element.isExternal = (byte & _isExternal) != 0;
     element.isGenerator = (byte & _isGenerator) != 0;
     element.isStatic = (byte & _isStatic) != 0;
+    element.isSynthetic = (byte & _isSynthetic) != 0;
   }
 
   static void write(BufferedSink sink, PropertyAccessorFragmentImpl element) {
@@ -422,6 +424,7 @@ class PropertyAccessorElementFlags {
     result |= element.isExternal ? _isExternal : 0;
     result |= element.isGenerator ? _isGenerator : 0;
     result |= element.isStatic ? _isStatic : 0;
+    result |= element.isSynthetic ? _isSynthetic : 0;
     sink.writeUInt30(result);
   }
 }
@@ -434,6 +437,7 @@ class TopLevelVariableElementFlags {
   static const int _isFinal = 1 << 4;
   static const int _isLate = 1 << 5;
   static const int _shouldUseTypeForInitializerInference = 1 << 6;
+  static const int _isSynthetic = 1 << 7;
 
   static void read(
     SummaryDataReader reader,
@@ -448,6 +452,7 @@ class TopLevelVariableElementFlags {
     element.isLate = (byte & _isLate) != 0;
     element.shouldUseTypeForInitializerInference =
         (byte & _shouldUseTypeForInitializerInference) != 0;
+    element.isSynthetic = (byte & _isSynthetic) != 0;
   }
 
   static void write(BufferedSink sink, TopLevelVariableFragmentImpl element) {
@@ -462,6 +467,7 @@ class TopLevelVariableElementFlags {
         element.shouldUseTypeForInitializerInference
             ? _shouldUseTypeForInitializerInference
             : 0;
+    result |= element.isSynthetic ? _isSynthetic : 0;
     sink.writeByte(result);
   }
 }

@@ -228,6 +228,14 @@ class SummaryDataReader {
     return Uri.parse(uriStr);
   }
 
+  /// Temporary move to [offset] and run [operation].
+  void runAtOffset(int offset, void Function() operation) {
+    var oldOffset = this.offset;
+    this.offset = offset;
+    operation();
+    this.offset = oldOffset;
+  }
+
   String stringOfIndex(int index) {
     return _stringTable[index];
   }

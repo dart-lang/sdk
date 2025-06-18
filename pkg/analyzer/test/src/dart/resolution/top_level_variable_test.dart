@@ -66,7 +66,7 @@ VariableDeclaration
             expression: PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: z
-                element: @99::@formalParameter::z
+                element: z@100
                 staticType: Object?
               period: .
               identifier: SimpleIdentifier
@@ -131,7 +131,7 @@ VariableDeclaration
             expression: PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: z
-                element: @107::@formalParameter::z
+                element: z@108
                 staticType: String
               period: .
               identifier: SimpleIdentifier

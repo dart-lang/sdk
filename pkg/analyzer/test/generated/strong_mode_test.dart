@@ -2136,7 +2136,7 @@ MethodInvocation
           element2: dart:core::@class::num
           type: num
         correspondingParameter: ParameterMember
-          baseElement: root::@formalParameter::s
+          baseElement: s@null
           substitution: {S: num}
         staticType: num
       FunctionReference
@@ -2145,7 +2145,7 @@ MethodInvocation
           element: <testLibrary>::@function::max
           staticType: T Function<T extends num>(T, T)
         correspondingParameter: ParameterMember
-          baseElement: root::@formalParameter::f
+          baseElement: f@null
           substitution: {S: num}
         staticType: num Function(num, num)
         typeArgumentTypes
@@ -4241,12 +4241,12 @@ MethodInvocation
           functionDefinition: =>
           expression: SimpleIdentifier
             token: e
-            element: @92::@formalParameter::e
+            element: e@93
             staticType: dynamic
         declaredElement: <testLibraryFragment> null@null
           type: dynamic Function(dynamic)
         correspondingParameter: ParameterMember
-          baseElement: root::@formalParameter::f
+          baseElement: f@null
           substitution: {T: dynamic}
         staticType: dynamic Function(dynamic)
     rightParenthesis: )
@@ -4289,7 +4289,7 @@ MethodInvocation
         declaredElement: <testLibraryFragment> null@null
           type: int Function(dynamic)
         correspondingParameter: ParameterMember
-          baseElement: root::@formalParameter::f
+          baseElement: f@null
           substitution: {T: int}
         staticType: int Function(dynamic)
     rightParenthesis: )
@@ -4436,7 +4436,7 @@ MethodInvocation
       IntegerLiteral
         literal: 3
         correspondingParameter: ParameterMember
-          baseElement: root::@formalParameter::x
+          baseElement: x@null
           substitution: {S: int}
         staticType: int
     rightParenthesis: )
@@ -4510,7 +4510,7 @@ MethodInvocation
       IntegerLiteral
         literal: 3
         correspondingParameter: ParameterMember
-          baseElement: root::@formalParameter::x
+          baseElement: x@null
           substitution: {S: int}
         staticType: int
     rightParenthesis: )

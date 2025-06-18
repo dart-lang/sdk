@@ -12,7 +12,6 @@ import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/data_reader.dart';
 import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
@@ -67,7 +66,6 @@ class InformativeDataApplier {
       throw StateError('Unexpected recursion.');
     }
     _elementFactory.isApplyingInformativeData = true;
-    libraryElement.linkedData?.lock();
 
     var unitElements = libraryElement.units;
     for (var i = 0; i < unitElements.length; i++) {
@@ -80,7 +78,6 @@ class InformativeDataApplier {
       }
     }
 
-    libraryElement.linkedData?.unlock();
     _elementFactory.isApplyingInformativeData = false;
   }
 
@@ -99,16 +96,17 @@ class InformativeDataApplier {
     _applyToImports(unitElement.libraryImports_unresolved, unitInfo);
     _applyToExports(unitElement.libraryExports_unresolved, unitInfo);
 
-    var applyOffsets = ApplyConstantOffsets(unitInfo.libraryConstantOffsets, (
-      applier,
-    ) {
-      applier.applyToImports(unitElement.libraryImports);
-      applier.applyToExports(unitElement.libraryExports);
-      applier.applyToParts(unitElement.parts);
-    });
+    unitElement.applyConstantOffsets = ApplyConstantOffsets(
+      unitInfo.libraryConstantOffsets,
+      (applier) {
+        applier.applyToImports(unitElement.libraryImports);
+        applier.applyToExports(unitElement.libraryExports);
+        applier.applyToParts(unitElement.parts);
+      },
+    );
 
-    _applyToAccessors(unitElement.getters, unitInfo.getters);
-    _applyToAccessors(unitElement.setters, unitInfo.setters);
+    _applyToAccessors(unitElement.getters.notSynthetic, unitInfo.getters);
+    _applyToAccessors(unitElement.setters.notSynthetic, unitInfo.setters);
 
     forCorrespondingPairs(
       unitElement.classes
@@ -157,7 +155,7 @@ class InformativeDataApplier {
     );
 
     forCorrespondingPairs(
-      unitElement.topLevelVariables,
+      unitElement.topLevelVariables.notSynthetic,
       unitInfo.topLevelVariable,
       _applyToTopLevelVariable,
     );
@@ -179,13 +177,6 @@ class InformativeDataApplier {
       unitInfo.genericTypeAliases,
       _applyToGenericTypeAlias,
     );
-
-    var linkedData = unitElement.linkedData;
-    if (linkedData is CompilationUnitElementLinkedData) {
-      linkedData.applyConstantOffsets = applyOffsets;
-    } else {
-      applyOffsets.perform();
-    }
   }
 
   void _applyToAccessors(
@@ -199,18 +190,14 @@ class InformativeDataApplier {
       element.documentationComment = info.documentationComment;
       _applyToFormalParameters(element.parameters_unresolved, info.parameters);
 
-      var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
-        applier.applyToMetadata(element.metadata);
-        applier.applyToTypeParameters(element.typeParameters);
-        applier.applyToFormalParameters(element.parameters);
-      });
-
-      var linkedData = element.linkedData;
-      if (linkedData is PropertyAccessorElementLinkedData) {
-        linkedData.applyConstantOffsets = applyOffsets;
-      } else {
-        applyOffsets.perform();
-      }
+      element.applyConstantOffsets = ApplyConstantOffsets(
+        info.constantOffsets,
+        (applier) {
+          applier.applyToMetadata(element.metadata);
+          applier.applyToTypeParameters(element.typeParameters);
+          applier.applyToFormalParameters(element.parameters_unresolved);
+        },
+      );
     });
   }
 
@@ -227,27 +214,22 @@ class InformativeDataApplier {
       info.typeParameters,
     );
 
-    var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
+    element.applyConstantOffsets = ApplyConstantOffsets(info.constantOffsets, (
+      applier,
+    ) {
       applier.applyToMetadata(element.metadata);
       applier.applyToTypeParameters(element.typeParameters);
     });
 
-    void applyToMembers() {
-      _applyToConstructors(element.constructors, info.constructors);
-      _applyToFields(element.fields, info.fields);
-      _applyToAccessors(element.getters, info.getters);
-      _applyToAccessors(element.setters, info.setters);
-      _applyToMethods(element.methods, info.methods);
-    }
-
-    var linkedData = element.linkedData;
-    if (linkedData is ClassElementLinkedData) {
-      linkedData.applyConstantOffsets = applyOffsets;
-      linkedData.applyInformativeDataToMembers = applyToMembers;
-    } else {
-      applyOffsets.perform();
-      applyToMembers();
-    }
+    element.applyMembersConstantOffsets = () {
+      element.withoutLoadingResolution(() {
+        _applyToConstructors(element.constructors, info.constructors);
+        _applyToFields(element.fields, info.fields);
+        _applyToAccessors(element.getters, info.getters);
+        _applyToAccessors(element.setters, info.setters);
+        _applyToMethods(element.methods, info.methods);
+      });
+    };
   }
 
   void _applyToClassTypeAlias(
@@ -263,17 +245,12 @@ class InformativeDataApplier {
       info.typeParameters,
     );
 
-    var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
+    element.applyConstantOffsets = ApplyConstantOffsets(info.constantOffsets, (
+      applier,
+    ) {
       applier.applyToMetadata(element.metadata);
       applier.applyToTypeParameters(element.typeParameters);
     });
-
-    var linkedData = element.linkedData;
-    if (linkedData is ClassElementLinkedData) {
-      linkedData.applyConstantOffsets = applyOffsets;
-    } else {
-      applyOffsets.perform();
-    }
   }
 
   void _applyToCombinators(
@@ -311,18 +288,14 @@ class InformativeDataApplier {
 
       _applyToFormalParameters(element.parameters_unresolved, info.parameters);
 
-      var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
-        applier.applyToMetadata(element.metadata);
-        applier.applyToFormalParameters(element.parameters);
-        applier.applyToConstructorInitializers(element);
-      });
-
-      var linkedData = element.linkedData;
-      if (linkedData is ConstructorElementLinkedData) {
-        linkedData.applyConstantOffsets = applyOffsets;
-      } else {
-        applyOffsets.perform();
-      }
+      element.applyConstantOffsets = ApplyConstantOffsets(
+        info.constantOffsets,
+        (applier) {
+          applier.applyToMetadata(element.metadata);
+          applier.applyToFormalParameters(element.parameters);
+          applier.applyToConstructorInitializers(element);
+        },
+      );
     });
   }
 
@@ -335,27 +308,22 @@ class InformativeDataApplier {
     element.nameOffset2 = info.nameOffset2;
     element.documentationComment = info.documentationComment;
 
-    _applyToTypeParameters(
-      element.typeParameters_unresolved,
-      info.typeParameters,
-    );
-    _applyToConstructors(element.constructors, info.constructors);
-    _applyToFields(element.fields, info.fields);
-    _applyToAccessors(element.getters, info.getters);
-    _applyToAccessors(element.setters, info.setters);
-    _applyToMethods(element.methods, info.methods);
+    // TODO(scheglov): use it everywhere
+    element.withoutLoadingResolution(() {
+      _applyToTypeParameters(element.typeParameters, info.typeParameters);
+      _applyToConstructors(element.constructors, info.constructors);
+      _applyToFields(element.fields, info.fields);
+      _applyToAccessors(element.getters, info.getters);
+      _applyToAccessors(element.setters, info.setters);
+      _applyToMethods(element.methods, info.methods);
+    });
 
-    var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
+    element.applyConstantOffsets = ApplyConstantOffsets(info.constantOffsets, (
+      applier,
+    ) {
       applier.applyToMetadata(element.metadata);
       applier.applyToTypeParameters(element.typeParameters);
     });
-
-    var linkedData = element.linkedData;
-    if (linkedData is EnumElementLinkedData) {
-      linkedData.applyConstantOffsets = applyOffsets;
-    } else {
-      applyOffsets.perform();
-    }
   }
 
   void _applyToExports(List<LibraryExportImpl> exports, _InfoUnit info) {
@@ -382,17 +350,12 @@ class InformativeDataApplier {
     _applyToAccessors(element.setters, info.setters);
     _applyToMethods(element.methods, info.methods);
 
-    var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
+    element.applyConstantOffsets = ApplyConstantOffsets(info.constantOffsets, (
+      applier,
+    ) {
       applier.applyToMetadata(element.metadata);
       applier.applyToTypeParameters(element.typeParameters);
     });
-
-    var linkedData = element.linkedData;
-    if (linkedData is ExtensionElementLinkedData) {
-      linkedData.applyConstantOffsets = applyOffsets;
-    } else {
-      applyOffsets.perform();
-    }
   }
 
   void _applyToExtensionTypeDeclaration(
@@ -417,60 +380,52 @@ class InformativeDataApplier {
       infoRep.fieldCodeLength,
     );
 
-    var fieldApplyOffsets = ApplyConstantOffsets(infoRep.fieldConstantOffsets, (
-      applier,
-    ) {
-      applier.applyToMetadata(representationField.metadata);
+    representationField.applyConstantOffsets = ApplyConstantOffsets(
+      infoRep.fieldConstantOffsets,
+      (applier) {
+        _copyOffsetsIntoSyntheticGetterSetter(representationField);
+        applier.applyToMetadata(representationField.metadata);
+      },
+    );
+
+    element.withoutLoadingResolution(() {
+      var primaryConstructor = element.constructors.first;
+      primaryConstructor.setCodeRange(
+        infoRep.constructorCodeOffset,
+        infoRep.constructorCodeLength,
+      );
+      primaryConstructor.typeNameOffset = infoRep.typeNameOffset;
+      primaryConstructor.periodOffset = infoRep.constructorPeriodOffset;
+      primaryConstructor.nameOffset = infoRep.constructorNameOffset;
+      primaryConstructor.nameEnd = infoRep.constructorNameEnd;
+      primaryConstructor.nameOffset2 = infoRep.constructorNameOffset2;
+
+      var primaryConstructorParameter =
+          primaryConstructor.parameters_unresolved.first;
+      primaryConstructorParameter.nameOffset = infoRep.fieldNameOffset;
+      primaryConstructorParameter.nameOffset2 = infoRep.fieldNameOffset2;
+      primaryConstructorParameter.setCodeRange(
+        infoRep.fieldCodeOffset,
+        infoRep.fieldCodeLength,
+      );
+
+      var restFields = element.fields.skip(1).toList();
+      _applyToFields(restFields, info.fields);
+
+      var restConstructors = element.constructors.skip(1).toList();
+      _applyToConstructors(restConstructors, info.constructors);
+
+      _applyToAccessors(element.getters, info.getters);
+      _applyToAccessors(element.setters, info.setters);
+      _applyToMethods(element.methods, info.methods);
     });
 
-    var fieldLinkedData = representationField.linkedData;
-    if (fieldLinkedData is FieldElementLinkedData) {
-      fieldLinkedData.applyConstantOffsets = fieldApplyOffsets;
-    } else {
-      fieldApplyOffsets.perform();
-    }
-
-    var primaryConstructor = element.constructors.first;
-    primaryConstructor.setCodeRange(
-      infoRep.constructorCodeOffset,
-      infoRep.constructorCodeLength,
-    );
-    primaryConstructor.typeNameOffset = infoRep.typeNameOffset;
-    primaryConstructor.periodOffset = infoRep.constructorPeriodOffset;
-    primaryConstructor.nameOffset = infoRep.constructorNameOffset;
-    primaryConstructor.nameEnd = infoRep.constructorNameEnd;
-    primaryConstructor.nameOffset2 = infoRep.constructorNameOffset2;
-
-    var primaryConstructorParameter =
-        primaryConstructor.parameters_unresolved.first;
-    primaryConstructorParameter.nameOffset = infoRep.fieldNameOffset;
-    primaryConstructorParameter.nameOffset2 = infoRep.fieldNameOffset2;
-    primaryConstructorParameter.setCodeRange(
-      infoRep.fieldCodeOffset,
-      infoRep.fieldCodeLength,
-    );
-
-    var restFields = element.fields.skip(1).toList();
-    _applyToFields(restFields, info.fields);
-
-    var restConstructors = element.constructors.skip(1).toList();
-    _applyToConstructors(restConstructors, info.constructors);
-
-    _applyToAccessors(element.getters, info.getters);
-    _applyToAccessors(element.setters, info.setters);
-    _applyToMethods(element.methods, info.methods);
-
-    var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
+    element.applyConstantOffsets = ApplyConstantOffsets(info.constantOffsets, (
+      applier,
+    ) {
       applier.applyToMetadata(element.metadata);
       applier.applyToTypeParameters(element.typeParameters);
     });
-
-    var linkedData = element.linkedData;
-    if (linkedData is ExtensionTypeElementLinkedData) {
-      linkedData.applyConstantOffsets = applyOffsets;
-    } else {
-      applyOffsets.perform();
-    }
   }
 
   void _applyToFields(
@@ -483,17 +438,14 @@ class InformativeDataApplier {
       element.nameOffset2 = info.nameOffset2;
       element.documentationComment = info.documentationComment;
 
-      var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
-        applier.applyToMetadata(element.metadata);
-        applier.applyToConstantInitializer(element);
-      });
-
-      var linkedData = element.linkedData;
-      if (linkedData is FieldElementLinkedData) {
-        linkedData.applyConstantOffsets = applyOffsets;
-      } else {
-        applyOffsets.perform();
-      }
+      element.applyConstantOffsets = ApplyConstantOffsets(
+        info.constantOffsets,
+        (applier) {
+          _copyOffsetsIntoSyntheticGetterSetter(element);
+          applier.applyToMetadata(element.metadata);
+          applier.applyToConstantInitializer(element);
+        },
+      );
     });
   }
 
@@ -524,18 +476,13 @@ class InformativeDataApplier {
     );
     _applyToFormalParameters(element.parameters_unresolved, info.parameters);
 
-    var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
+    element.applyConstantOffsets = ApplyConstantOffsets(info.constantOffsets, (
+      applier,
+    ) {
       applier.applyToMetadata(element.metadata);
       applier.applyToTypeParameters(element.typeParameters);
       applier.applyToFormalParameters(element.parameters);
     });
-
-    var linkedData = element.linkedData;
-    if (linkedData is FunctionElementLinkedData) {
-      linkedData.applyConstantOffsets = applyOffsets;
-    } else {
-      applyOffsets.perform();
-    }
   }
 
   void _applyToFunctionTypeAlias(
@@ -598,18 +545,12 @@ class InformativeDataApplier {
       element.documentationComment = info.docComment;
     }
 
-    var applyOffsets = ApplyConstantOffsets(info.libraryConstantOffsets, (
-      applier,
-    ) {
-      applier.applyToMetadata(element.metadata);
-    });
-
-    var linkedData = element.linkedData;
-    if (linkedData is LibraryElementLinkedData) {
-      linkedData.applyConstantOffsets = applyOffsets;
-    } else {
-      applyOffsets.perform();
-    }
+    element.applyConstantOffsets = ApplyConstantOffsets(
+      info.libraryConstantOffsets,
+      (applier) {
+        applier.applyToMetadata(element.metadata);
+      },
+    );
   }
 
   void _applyToMethods(
@@ -627,18 +568,14 @@ class InformativeDataApplier {
       );
       _applyToFormalParameters(element.parameters_unresolved, info.parameters);
 
-      var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
-        applier.applyToMetadata(element.metadata);
-        applier.applyToTypeParameters(element.typeParameters);
-        applier.applyToFormalParameters(element.parameters);
-      });
-
-      var linkedData = element.linkedData;
-      if (linkedData is MethodElementLinkedData) {
-        linkedData.applyConstantOffsets = applyOffsets;
-      } else {
-        applyOffsets.perform();
-      }
+      element.applyConstantOffsets = ApplyConstantOffsets(
+        info.constantOffsets,
+        (applier) {
+          applier.applyToMetadata(element.metadata);
+          applier.applyToTypeParameters(element.typeParameters);
+          applier.applyToFormalParameters(element.parameters);
+        },
+      );
     });
   }
 
@@ -650,27 +587,23 @@ class InformativeDataApplier {
     element.nameOffset = info.nameOffset;
     element.nameOffset2 = info.nameOffset2;
     element.documentationComment = info.documentationComment;
-    _applyToTypeParameters(
-      element.typeParameters_unresolved,
-      info.typeParameters,
-    );
-    _applyToConstructors(element.constructors, info.constructors);
-    _applyToFields(element.fields, info.fields);
-    _applyToAccessors(element.getters, info.getters);
-    _applyToAccessors(element.setters, info.setters);
-    _applyToMethods(element.methods, info.methods);
 
-    var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
+    // TODO(scheglov): use it everywhere
+    element.withoutLoadingResolution(() {
+      _applyToTypeParameters(element.typeParameters, info.typeParameters);
+      _applyToConstructors(element.constructors, info.constructors);
+      _applyToFields(element.fields, info.fields);
+      _applyToAccessors(element.getters, info.getters);
+      _applyToAccessors(element.setters, info.setters);
+      _applyToMethods(element.methods, info.methods);
+    });
+
+    element.applyConstantOffsets = ApplyConstantOffsets(info.constantOffsets, (
+      applier,
+    ) {
       applier.applyToMetadata(element.metadata);
       applier.applyToTypeParameters(element.typeParameters);
     });
-
-    var linkedData = element.linkedData;
-    if (linkedData is MixinElementLinkedData) {
-      linkedData.applyConstantOffsets = applyOffsets;
-    } else {
-      applyOffsets.perform();
-    }
   }
 
   void _applyToTopLevelVariable(
@@ -682,17 +615,13 @@ class InformativeDataApplier {
     element.nameOffset2 = info.nameOffset2;
     element.documentationComment = info.documentationComment;
 
-    var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
+    element.applyConstantOffsets = ApplyConstantOffsets(info.constantOffsets, (
+      applier,
+    ) {
+      _copyOffsetsIntoSyntheticGetterSetter(element);
       applier.applyToMetadata(element.metadata);
       applier.applyToConstantInitializer(element);
     });
-
-    var linkedData = element.linkedData;
-    if (linkedData is TopLevelVariableElementLinkedData) {
-      linkedData.applyConstantOffsets = applyOffsets;
-    } else {
-      applyOffsets.perform();
-    }
   }
 
   void _applyToTypeParameters(
@@ -706,6 +635,24 @@ class InformativeDataApplier {
     });
   }
 
+  void _copyOffsetsIntoSyntheticGetterSetter(
+    PropertyInducingFragmentImpl element,
+  ) {
+    // TODO(scheglov): can we move this sooner than applying constants?
+    assert(!element.isSynthetic);
+
+    var getterFragment = element.element.getter2?.firstFragment;
+    if (getterFragment != null && getterFragment.isSynthetic) {
+      getterFragment.nameOffset = element.nameOffset;
+    }
+
+    var setterFragment = element.element.setter2?.firstFragment;
+    if (setterFragment != null && setterFragment.isSynthetic) {
+      setterFragment.nameOffset = element.nameOffset;
+      setterFragment.valueFormalParameter?.nameOffset = element.nameOffset;
+    }
+  }
+
   Uint8List? _getInfoUnitBytes(LibraryFragmentImpl element) {
     var uri = element.source.uri;
     return _unitsInformativeBytes2[uri];
@@ -717,7 +664,9 @@ class InformativeDataApplier {
     List<_InfoFormalParameter>? aliasedFormalParameters,
     List<_InfoTypeParameter>? aliasedTypeParameters,
   }) {
-    var applyOffsets = ApplyConstantOffsets(constantOffsets, (applier) {
+    element.applyConstantOffsets = ApplyConstantOffsets(constantOffsets, (
+      applier,
+    ) {
       applier.applyToMetadata(element.metadata);
       applier.applyToTypeParameters(element.typeParameters);
 
@@ -739,13 +688,6 @@ class InformativeDataApplier {
         }
       }
     });
-
-    var linkedData = element.linkedData;
-    if (linkedData is TypeAliasElementLinkedData) {
-      linkedData.applyConstantOffsets = applyOffsets;
-    } else {
-      applyOffsets.perform();
-    }
   }
 }
 
@@ -1991,7 +1933,7 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
   _OffsetsApplier(this._iterator);
 
   void applyToConstantInitializer(FragmentImpl element) {
-    if (element is ConstFieldFragmentImpl && element.isEnumConstant) {
+    if (element is FieldFragmentImpl && element.isEnumConstant) {
       _applyToEnumConstantInitializer(element);
     } else if (element is ConstVariableFragment) {
       element.constantInitializer?.accept(this);
@@ -2092,7 +2034,7 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
     super.visitSimpleIdentifier(node);
   }
 
-  void _applyToEnumConstantInitializer(ConstFieldFragmentImpl element) {
+  void _applyToEnumConstantInitializer(FieldFragmentImpl element) {
     var initializer = element.constantInitializer;
     if (initializer is InstanceCreationExpressionImpl) {
       initializer.constructorName.type.typeArguments?.accept(this);

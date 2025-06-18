@@ -14,7 +14,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/field_name_non_promotability_info.dart'
     as element_model;
 import 'package:analyzer/src/dart/resolver/scope.dart';
-import 'package:analyzer/src/summary2/augmentation.dart';
 import 'package:analyzer/src/summary2/combinator.dart';
 import 'package:analyzer/src/summary2/constructor_initializer_resolver.dart';
 import 'package:analyzer/src/summary2/default_value_resolver.dart';
@@ -42,7 +41,7 @@ class ImplicitEnumNodes {
   final EnumFragmentImpl element;
   final ast.NamedTypeImpl valuesTypeNode;
   final ast.VariableDeclarationImpl valuesNode;
-  final ConstFieldFragmentImpl valuesElement;
+  final FieldFragmentImpl valuesElement;
   final Set<String> valuesNames;
   ast.ListLiteralImpl valuesInitializer;
 
@@ -67,9 +66,15 @@ class LibraryBuilder {
   final Map<EnumFragmentImpl, ImplicitEnumNodes> implicitEnumNodes =
       Map.identity();
 
-  final Map<String, FragmentedElementBuilder> elementBuilderGetters = {};
-  final Map<String, FragmentedElementBuilder> elementBuilderSetters = {};
-  final Map<String, FragmentedElementBuilder> elementBuilderVariables = {};
+  /// Top fragments, in the same order as in AST.
+  final List<FragmentImpl> _topFragments = [];
+
+  /// Key: a parent fragment, e.g. [ClassFragmentImpl].
+  /// Value: fragments of its direct children.
+  ///
+  /// For example `class A { void foo() {} }` has `foo` as child of `A`.
+  final Map<FragmentImpl, List<FragmentImpl>> _parentChildFragments =
+      Map.identity();
 
   /// Local declarations.
   final Map<String, Reference> _declaredReferences = {};
@@ -83,11 +88,11 @@ class LibraryBuilder {
   /// The identifier of the reference used for unnamed fragments.
   int _nextUnnamedId = 0;
 
-  /// The fields that were speculatively created as [ConstFieldFragmentImpl],
+  /// The fields that were speculatively created as [FieldFragmentImpl],
   /// but we want to clear [ConstVariableFragment.constantInitializer] for it
   /// if the class will not end up with a `const` constructor. We don't know
   /// at the time when we create them, because of future augmentations.
-  final Set<ConstFieldFragmentImpl> finalInstanceFields = Set.identity();
+  final Set<FieldFragmentImpl> finalInstanceFields = Set.identity();
 
   LibraryBuilder._({
     required this.linker,
@@ -137,6 +142,14 @@ class LibraryBuilder {
     }
   }
 
+  void addFragmentChild(FragmentImpl parent, FragmentImpl child) {
+    (_parentChildFragments[parent] ??= []).add(child);
+  }
+
+  void addTopFragment(FragmentImpl fragment) {
+    _topFragments.add(fragment);
+  }
+
   void buildClassSyntheticConstructors() {
     for (var classFragment in element.topLevelElements) {
       if (classFragment is! ClassFragmentImpl) continue;
@@ -145,19 +158,18 @@ class LibraryBuilder {
 
       var fragment = ConstructorFragmentImpl(name2: 'new', nameOffset: -1)
         ..isSynthetic = true;
-      var containerRef = classFragment.reference!.getChild('@constructor');
-      var reference = containerRef.getChild('new');
-      reference.element = fragment;
-      fragment.reference = reference;
       fragment.typeName = classFragment.name2;
 
-      ConstructorElementImpl(
-        name3: fragment.name2,
-        reference: classFragment.element.reference
-            .getChild('@constructor')
-            .addChild('new'),
-        firstFragment: fragment,
-      );
+      var classElement = classFragment.element;
+      classElement.constructors = [
+        ConstructorElementImpl(
+          name3: fragment.name2,
+          reference: classElement.reference
+              .getChild('@constructor')
+              .addChild('new'),
+          firstFragment: fragment,
+        ),
+      ];
 
       classFragment.constructors = [fragment].toFixedList();
     }
@@ -172,16 +184,21 @@ class LibraryBuilder {
     );
 
     for (var linkingUnit in units) {
-      var elementBuilder = ElementBuilder(
+      var elementBuilder = FragmentBuilder(
         libraryBuilder: this,
         unitElement: linkingUnit.element,
       );
-      elementBuilder.buildDirectiveElements(linkingUnit.node);
-      elementBuilder.buildDeclarationElements(linkingUnit.node);
+      elementBuilder.buildDirectives(linkingUnit.node);
+      elementBuilder.buildDeclarationFragments(linkingUnit.node);
       if (linkingUnit is DefiningLinkingUnit) {
         elementBuilder.buildLibraryMetadata(linkingUnit.node);
       }
     }
+
+    ElementBuilder(libraryBuilder: this).buildElements(
+      topFragments: _topFragments,
+      parentChildFragments: _parentChildFragments,
+    );
 
     _declareDartCoreDynamicNever();
   }
@@ -199,6 +216,10 @@ class LibraryBuilder {
       );
       enum_.valuesTypeNode.type = valuesType;
       enum_.valuesElement.type = valuesType;
+      // TODO(scheglov): We repeat this code.
+      enum_.valuesElement.element.getter2!.returnType = valuesType;
+      enum_.valuesElement.element.getter2!.firstFragment.returnType =
+          valuesType;
     }
   }
 
@@ -220,19 +241,16 @@ class LibraryBuilder {
           ConstructorFragmentImpl(name2: 'new', nameOffset: -1)
             ..isConst = true
             ..isSynthetic = true;
-      var containerRef = enumFragment.reference!.getChild('@constructor');
-      var reference = containerRef.getChild('new');
-      reference.element = fragment;
-      fragment.reference = reference;
       fragment.typeName = enumFragment.name2;
 
-      ConstructorElementImpl(
+      var element = ConstructorElementImpl(
         name3: fragment.name2,
         reference: enumFragment.element.reference
             .getChild('@constructor')
             .addChild('new'),
         firstFragment: fragment,
       );
+      enumFragment.element.addConstructor(element);
 
       enumFragment.constructors =
           [...enumFragment.constructors, fragment].toFixedList();
@@ -274,11 +292,14 @@ class LibraryBuilder {
     ).perform();
   }
 
-  void declare(String name, Reference reference) {
-    // If the element name is missing, don't attempt adding it.
-    assert(name.isNotEmpty);
+  void declare(Element element, Reference reference) {
+    if (element.lookupName case var lookupName?) {
+      _declaredReferences[lookupName] = reference;
+    }
+  }
 
-    _declaredReferences[name] = reference;
+  String getReferenceName(String? name) {
+    return name ?? '${_nextUnnamedId++}';
   }
 
   void replaceConstFieldsIfNoConstConstructor() {
@@ -383,10 +404,8 @@ class LibraryBuilder {
     var definedNames = <String, Element>{};
     for (var entry in exportScope.map.entries) {
       var reference = entry.value.reference;
-      var element = linker.elementFactory.elementOfReference(reference);
-      if (element != null) {
-        definedNames[entry.key] = element.asElement2!;
-      }
+      var element = linker.elementFactory.elementOfReference3(reference);
+      definedNames[entry.key] = element;
     }
 
     var namespace = Namespace(definedNames);
@@ -609,7 +628,7 @@ class LibraryBuilder {
     )..offset = offset;
 
     var containerRef = libraryFragment.reference!;
-    var refName = unlinkedName?.name ?? '${_nextUnnamedId++}';
+    var refName = getReferenceName(unlinkedName?.name);
     var reference = containerRef.getChild('@prefix2').getChild(refName);
     var element = reference.element2 as PrefixElementImpl?;
 
@@ -725,12 +744,12 @@ class LibraryBuilder {
   void _declareDartCoreDynamicNever() {
     if (reference.name == 'dart:core') {
       var dynamicRef = reference.getChild('dynamic');
-      dynamicRef.element = DynamicFragmentImpl.instance;
-      declare('dynamic', dynamicRef);
+      dynamicRef.element2 = DynamicElementImpl.instance;
+      declare(DynamicElementImpl.instance, dynamicRef);
 
       var neverRef = reference.getChild('Never');
-      neverRef.element = NeverFragmentImpl.instance;
-      declare('Never', neverRef);
+      neverRef.element2 = NeverElementImpl.instance;
+      declare(NeverElementImpl.instance, neverRef);
     }
   }
 

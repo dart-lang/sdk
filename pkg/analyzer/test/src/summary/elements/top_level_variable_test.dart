@@ -22,6 +22,150 @@ main() {
 }
 
 abstract class TopLevelVariableElementTest extends ElementsBaseTest {
+  test_fragmentOrder_g1_s2_s1() async {
+    var library = await buildLibrary(r'''
+int get a => 0;
+set b(int _) {}
+set a(int _) {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 synthetic a (offset=-1)
+          element: <testLibrary>::@topLevelVariable::a
+          getter: #F2
+          setter: #F3
+        #F4 synthetic b (offset=-1)
+          element: <testLibrary>::@topLevelVariable::b
+          setter: #F5
+      getters
+        #F2 a @8
+          element: <testLibrary>::@getter::a
+          returnType: int
+          variable: #F1
+      setters
+        #F5 b @20
+          element: <testLibrary>::@setter::b
+          formalParameters
+            #F6 _ @26
+              element: <testLibrary>::@setter::b::@formalParameter::_
+        #F3 a @36
+          element: <testLibrary>::@setter::a
+          formalParameters
+            #F7 _ @42
+              element: <testLibrary>::@setter::a::@formalParameter::_
+  topLevelVariables
+    synthetic a
+      reference: <testLibrary>::@topLevelVariable::a
+      firstFragment: #F1
+      type: int
+      getter: <testLibrary>::@getter::a
+      setter: <testLibrary>::@setter::a
+    synthetic b
+      reference: <testLibrary>::@topLevelVariable::b
+      firstFragment: #F4
+      type: int
+      setter: <testLibrary>::@setter::b
+  getters
+    static a
+      reference: <testLibrary>::@getter::a
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::a
+  setters
+    static b
+      reference: <testLibrary>::@setter::b
+      firstFragment: #F5
+      formalParameters
+        requiredPositional _
+          firstFragment: #F6
+          type: int
+      returnType: void
+    static a
+      reference: <testLibrary>::@setter::a
+      firstFragment: #F3
+      formalParameters
+        requiredPositional _
+          firstFragment: #F7
+          type: int
+      returnType: void
+''');
+  }
+
+  test_fragmentOrder_s1_g2_g1() async {
+    var library = await buildLibrary(r'''
+set a(int _) {}
+int get b => 0;
+int get a => 0;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 synthetic a (offset=-1)
+          element: <testLibrary>::@topLevelVariable::a
+          getter: #F2
+          setter: #F3
+        #F4 synthetic b (offset=-1)
+          element: <testLibrary>::@topLevelVariable::b
+          getter: #F5
+      getters
+        #F5 b @24
+          element: <testLibrary>::@getter::b
+          returnType: int
+          variable: #F4
+        #F2 a @40
+          element: <testLibrary>::@getter::a
+          returnType: int
+          variable: #F1
+      setters
+        #F3 a @4
+          element: <testLibrary>::@setter::a
+          formalParameters
+            #F6 _ @10
+              element: <testLibrary>::@setter::a::@formalParameter::_
+  topLevelVariables
+    synthetic a
+      reference: <testLibrary>::@topLevelVariable::a
+      firstFragment: #F1
+      type: int
+      getter: <testLibrary>::@getter::a
+      setter: <testLibrary>::@setter::a
+    synthetic b
+      reference: <testLibrary>::@topLevelVariable::b
+      firstFragment: #F4
+      type: int
+      getter: <testLibrary>::@getter::b
+  getters
+    static b
+      reference: <testLibrary>::@getter::b
+      firstFragment: #F5
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::b
+    static a
+      reference: <testLibrary>::@getter::a
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::a
+  setters
+    static a
+      reference: <testLibrary>::@setter::a
+      firstFragment: #F3
+      formalParameters
+        requiredPositional _
+          firstFragment: #F6
+          type: int
+      returnType: void
+''');
+  }
+
   test_getter_async() async {
     var library = await buildLibrary(r'''
 Future<int> get foo async => 0;
@@ -764,6 +908,91 @@ library
 ''');
   }
 
+  test_unit_variable_duplicate() async {
+    var library = await buildLibrary('''
+int foo = 0;
+int foo = 1;
+''');
+    configuration.withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasInitializer foo @4
+          element: <testLibrary>::@topLevelVariable::foo::@def::0
+          getter: #F2
+          setter: #F3
+        #F4 hasInitializer foo @17
+          element: <testLibrary>::@topLevelVariable::foo::@def::1
+          getter: #F5
+          setter: #F6
+      getters
+        #F2 synthetic foo
+          element: <testLibrary>::@getter::foo::@def::0
+          returnType: int
+          variable: #F1
+        #F5 synthetic foo
+          element: <testLibrary>::@getter::foo::@def::1
+          returnType: int
+          variable: #F4
+      setters
+        #F3 synthetic foo
+          element: <testLibrary>::@setter::foo::@def::0
+          formalParameters
+            #F7 _foo
+              element: <testLibrary>::@setter::foo::@def::0::@formalParameter::_foo
+        #F6 synthetic foo
+          element: <testLibrary>::@setter::foo::@def::1
+          formalParameters
+            #F8 _foo
+              element: <testLibrary>::@setter::foo::@def::1::@formalParameter::_foo
+  topLevelVariables
+    hasInitializer foo
+      reference: <testLibrary>::@topLevelVariable::foo::@def::0
+      firstFragment: #F1
+      type: int
+      getter: <testLibrary>::@getter::foo::@def::0
+      setter: <testLibrary>::@setter::foo::@def::0
+    hasInitializer foo
+      reference: <testLibrary>::@topLevelVariable::foo::@def::1
+      firstFragment: #F4
+      type: int
+      getter: <testLibrary>::@getter::foo::@def::1
+      setter: <testLibrary>::@setter::foo::@def::1
+  getters
+    synthetic static foo
+      reference: <testLibrary>::@getter::foo::@def::0
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo::@def::0
+    synthetic static foo
+      reference: <testLibrary>::@getter::foo::@def::1
+      firstFragment: #F5
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo::@def::1
+  setters
+    synthetic static foo
+      reference: <testLibrary>::@setter::foo::@def::0
+      firstFragment: #F3
+      formalParameters
+        requiredPositional _foo
+          firstFragment: #F7
+          type: int
+      returnType: void
+    synthetic static foo
+      reference: <testLibrary>::@setter::foo::@def::1
+      firstFragment: #F6
+      formalParameters
+        requiredPositional _foo
+          firstFragment: #F8
+          type: int
+      returnType: void
+''');
+  }
+
   test_unit_variable_duplicate_getter() async {
     var library = await buildLibrary('''
 int foo = 0;
@@ -1233,8 +1462,9 @@ library
           unit: #F1
       topLevelVariables
         #F2 synthetic x (offset=-1)
-          element: <testLibrary>::@topLevelVariable::x::@def::0
+          element: <testLibrary>::@topLevelVariable::x
           getter: #F3
+          setter: #F4
       getters
         #F3 x @39
           element: <testLibrary>::@getter::x
@@ -1244,40 +1474,32 @@ library
       element: <testLibrary>
       enclosingFragment: #F0
       previousFragment: #F0
-      topLevelVariables
-        #F4 synthetic x (offset=-1)
-          element: <testLibrary>::@topLevelVariable::x::@def::1
-          setter: #F5
       setters
-        #F5 x @25
+        #F4 x @25
           element: <testLibrary>::@setter::x
           formalParameters
-            #F6 _ @31
+            #F5 _ @31
               element: <testLibrary>::@setter::x::@formalParameter::_
   topLevelVariables
     synthetic x
-      reference: <testLibrary>::@topLevelVariable::x::@def::0
+      reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F2
       type: int
       getter: <testLibrary>::@getter::x
-    synthetic x
-      reference: <testLibrary>::@topLevelVariable::x::@def::1
-      firstFragment: #F4
-      type: int
       setter: <testLibrary>::@setter::x
   getters
     static x
       reference: <testLibrary>::@getter::x
       firstFragment: #F3
       returnType: int
-      variable: <testLibrary>::@topLevelVariable::x::@def::0
+      variable: <testLibrary>::@topLevelVariable::x
   setters
     static x
       reference: <testLibrary>::@setter::x
-      firstFragment: #F5
+      firstFragment: #F4
       formalParameters
         requiredPositional _
-          firstFragment: #F6
+          firstFragment: #F5
           type: int
       returnType: void
 ''');
@@ -1307,51 +1529,44 @@ library
           unit: #F1
       topLevelVariables
         #F2 synthetic x (offset=-1)
-          element: <testLibrary>::@topLevelVariable::x::@def::0
-          setter: #F3
+          element: <testLibrary>::@topLevelVariable::x
+          getter: #F3
+          setter: #F4
       setters
-        #F3 x @40
+        #F4 x @40
           element: <testLibrary>::@setter::x
           formalParameters
-            #F4 _ @46
+            #F5 _ @46
               element: <testLibrary>::@setter::x::@formalParameter::_
     #F1 package:test/a.dart
       element: <testLibrary>
       enclosingFragment: #F0
       previousFragment: #F0
-      topLevelVariables
-        #F5 synthetic x (offset=-1)
-          element: <testLibrary>::@topLevelVariable::x::@def::1
-          getter: #F6
       getters
-        #F6 x @24
+        #F3 x @24
           element: <testLibrary>::@getter::x
           returnType: int
-          variable: #F5
+          variable: #F2
   topLevelVariables
     synthetic x
-      reference: <testLibrary>::@topLevelVariable::x::@def::0
+      reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F2
       type: int
-      setter: <testLibrary>::@setter::x
-    synthetic x
-      reference: <testLibrary>::@topLevelVariable::x::@def::1
-      firstFragment: #F5
-      type: int
       getter: <testLibrary>::@getter::x
+      setter: <testLibrary>::@setter::x
   getters
     static x
       reference: <testLibrary>::@getter::x
-      firstFragment: #F6
+      firstFragment: #F3
       returnType: int
-      variable: <testLibrary>::@topLevelVariable::x::@def::1
+      variable: <testLibrary>::@topLevelVariable::x
   setters
     static x
       reference: <testLibrary>::@setter::x
-      firstFragment: #F3
+      firstFragment: #F4
       formalParameters
         requiredPositional _
-          firstFragment: #F4
+          firstFragment: #F5
           type: int
       returnType: void
 ''');
@@ -1388,8 +1603,9 @@ library
       nextFragment: #F2
       topLevelVariables
         #F3 synthetic x (offset=-1)
-          element: <testLibrary>::@topLevelVariable::x::@def::0
+          element: <testLibrary>::@topLevelVariable::x
           getter: #F4
+          setter: #F5
       getters
         #F4 x @24
           element: <testLibrary>::@getter::x
@@ -1399,40 +1615,32 @@ library
       element: <testLibrary>
       enclosingFragment: #F0
       previousFragment: #F1
-      topLevelVariables
-        #F5 synthetic x (offset=-1)
-          element: <testLibrary>::@topLevelVariable::x::@def::1
-          setter: #F6
       setters
-        #F6 x @25
+        #F5 x @25
           element: <testLibrary>::@setter::x
           formalParameters
-            #F7 _ @31
+            #F6 _ @31
               element: <testLibrary>::@setter::x::@formalParameter::_
   topLevelVariables
     synthetic x
-      reference: <testLibrary>::@topLevelVariable::x::@def::0
+      reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F3
       type: int
       getter: <testLibrary>::@getter::x
-    synthetic x
-      reference: <testLibrary>::@topLevelVariable::x::@def::1
-      firstFragment: #F5
-      type: int
       setter: <testLibrary>::@setter::x
   getters
     static x
       reference: <testLibrary>::@getter::x
       firstFragment: #F4
       returnType: int
-      variable: <testLibrary>::@topLevelVariable::x::@def::0
+      variable: <testLibrary>::@topLevelVariable::x
   setters
     static x
       reference: <testLibrary>::@setter::x
-      firstFragment: #F6
+      firstFragment: #F5
       formalParameters
         requiredPositional _
-          firstFragment: #F7
+          firstFragment: #F6
           type: int
       returnType: void
 ''');
@@ -1953,7 +2161,7 @@ library
           returnType: Object?
           variable: #F1
         #F5 synthetic <null-name>
-          element: <testLibrary>::@getter::0
+          element: <testLibrary>::@getter::1
           returnType: Object?
           variable: #F4
       setters
@@ -1963,10 +2171,10 @@ library
             #F7 _a
               element: <testLibrary>::@setter::a::@formalParameter::_a
         #F6 synthetic <null-name>
-          element: <testLibrary>::@setter::0
+          element: <testLibrary>::@setter::2
           formalParameters
-            #F8 <null-name>
-              element: <testLibrary>::@setter::0::@formalParameter::<null-name>
+            #F8 _
+              element: <testLibrary>::@setter::2::@formalParameter::_
   topLevelVariables
     a
       reference: <testLibrary>::@topLevelVariable::a
@@ -1978,8 +2186,8 @@ library
       reference: <testLibrary>::@topLevelVariable::0
       firstFragment: #F4
       type: Object?
-      getter: <testLibrary>::@getter::0
-      setter: <testLibrary>::@setter::0
+      getter: <testLibrary>::@getter::1
+      setter: <testLibrary>::@setter::2
   getters
     synthetic static a
       reference: <testLibrary>::@getter::a
@@ -1987,7 +2195,7 @@ library
       returnType: Object?
       variable: <testLibrary>::@topLevelVariable::a
     synthetic static <null-name>
-      reference: <testLibrary>::@getter::0
+      reference: <testLibrary>::@getter::1
       firstFragment: #F5
       returnType: Object?
       variable: <testLibrary>::@topLevelVariable::0
@@ -2001,10 +2209,10 @@ library
           type: Object?
       returnType: void
     synthetic static <null-name>
-      reference: <testLibrary>::@setter::0
+      reference: <testLibrary>::@setter::2
       firstFragment: #F6
       formalParameters
-        requiredPositional <null-name>
+        requiredPositional _
           firstFragment: #F8
           type: Object?
       returnType: void
@@ -2249,51 +2457,44 @@ library
       nextFragment: #F2
       topLevelVariables
         #F3 synthetic x (offset=-1)
-          element: <testLibrary>::@topLevelVariable::x::@def::0
-          setter: #F4
+          element: <testLibrary>::@topLevelVariable::x
+          getter: #F4
+          setter: #F5
       setters
-        #F4 x @25
+        #F5 x @25
           element: <testLibrary>::@setter::x
           formalParameters
-            #F5 _ @31
+            #F6 _ @31
               element: <testLibrary>::@setter::x::@formalParameter::_
     #F2 package:test/b.dart
       element: <testLibrary>
       enclosingFragment: #F0
       previousFragment: #F1
-      topLevelVariables
-        #F6 synthetic x (offset=-1)
-          element: <testLibrary>::@topLevelVariable::x::@def::1
-          getter: #F7
       getters
-        #F7 x @24
+        #F4 x @24
           element: <testLibrary>::@getter::x
           returnType: int
-          variable: #F6
+          variable: #F3
   topLevelVariables
     synthetic x
-      reference: <testLibrary>::@topLevelVariable::x::@def::0
+      reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F3
       type: int
-      setter: <testLibrary>::@setter::x
-    synthetic x
-      reference: <testLibrary>::@topLevelVariable::x::@def::1
-      firstFragment: #F6
-      type: int
       getter: <testLibrary>::@getter::x
+      setter: <testLibrary>::@setter::x
   getters
     static x
       reference: <testLibrary>::@getter::x
-      firstFragment: #F7
+      firstFragment: #F4
       returnType: int
-      variable: <testLibrary>::@topLevelVariable::x::@def::1
+      variable: <testLibrary>::@topLevelVariable::x
   setters
     static x
       reference: <testLibrary>::@setter::x
-      firstFragment: #F4
+      firstFragment: #F5
       formalParameters
         requiredPositional _
-          firstFragment: #F5
+          firstFragment: #F6
           type: int
       returnType: void
 ''');

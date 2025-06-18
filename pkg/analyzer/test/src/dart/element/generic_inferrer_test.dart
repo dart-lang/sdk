@@ -69,6 +69,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
       ],
     );
     C.firstFragment.methods = [m];
+    C.methods = [m.element];
     // }
 
     // C<Object> cOfObject;
@@ -121,6 +122,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
       ],
     );
     C.firstFragment.methods = [m];
+    C.methods = [m.element];
     // }
 
     // C<Object> cOfObject;

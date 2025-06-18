@@ -4916,7 +4916,7 @@ library
               returnType: E
               variable: #F2
             #F5 synthetic <null-name>
-              element: <testLibrary>::@enum::E::@getter::0
+              element: <testLibrary>::@enum::E::@getter::1
               returnType: E
               variable: #F4
             #F7 synthetic values
@@ -4944,7 +4944,7 @@ library
           constantInitializer
             fragment: #F4
             expression: expression_1
-          getter: <testLibrary>::@enum::E::@getter::0
+          getter: <testLibrary>::@enum::E::@getter::1
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F6
@@ -4964,7 +4964,7 @@ library
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
         synthetic static <null-name>
-          reference: <testLibrary>::@enum::E::@getter::0
+          reference: <testLibrary>::@enum::E::@getter::1
           firstFragment: #F5
           returnType: E
           variable: <testLibrary>::@enum::E::@field::0

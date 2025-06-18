@@ -337,7 +337,6 @@ void f(int a, int b) {
     );
   }
 
-  @FailingTest() // TODO(scheglov): implement augmentation
   Future<void> test_augmentation_method() async {
     var content = '''
 part 'a.dart';

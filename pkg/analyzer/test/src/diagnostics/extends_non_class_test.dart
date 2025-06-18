@@ -224,7 +224,7 @@ ExtendsClause
     importPrefix: ImportPrefixReference
       name: p
       period: .
-      element2: package:test/a.dart::@prefix2::p
+      element2: package:test/a.dart::<fragment>::@prefix2::p
     name: A
     element2: <null>
     type: InvalidType
@@ -253,7 +253,7 @@ ExtendsClause
     importPrefix: ImportPrefixReference
       name: p
       period: .
-      element2: package:test/a.dart::@prefix2::p
+      element2: package:test/a.dart::@fragment::package:test/test.dart::@prefix2::p
     name: A
     element2: <null>
     type: InvalidType

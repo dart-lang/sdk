@@ -15,6 +15,8 @@ import 'package:collection/collection.dart';
 
 /// An object used to infer the type of instance fields and the return types of
 /// instance methods within a single compilation unit.
+///
+/// https://github.com/dart-lang/language/blob/main/resources/type-system/inference.md
 class InstanceMemberInferrer {
   final InheritanceManager3 inheritance;
   final Set<InterfaceFragmentImpl> elementsBeingInferred = {};
@@ -176,7 +178,12 @@ class InstanceMemberInferrer {
       // and a getter is inferred to be the return type of the combined member
       // signature of said getter in the direct superinterfaces.
       if (overriddenGetters.isNotEmpty) {
-        accessor.returnType = combinedGetterType();
+        var returnType = combinedGetterType();
+        accessor.returnType = returnType;
+        accessor.element.returnType = returnType;
+        // TODO(scheglov): store type in FieldElementImpl itself
+        (accessor.element.variable3 as FieldElementImpl).firstFragment.type =
+            returnType;
         return;
       }
 
@@ -185,7 +192,12 @@ class InstanceMemberInferrer {
       // to be the parameter type of the combined member signature of said
       // setter in the direct superinterfaces.
       if (overriddenGetters.isEmpty && overriddenSetters.isNotEmpty) {
-        accessor.returnType = combinedSetterType();
+        var returnType = combinedSetterType();
+        accessor.returnType = returnType;
+        accessor.element.returnType = returnType;
+        // TODO(scheglov): store type in FieldElementImpl itself
+        (accessor.element.variable3 as FieldElementImpl).firstFragment.type =
+            returnType;
         return;
       }
 
@@ -233,11 +245,12 @@ class InstanceMemberInferrer {
     }
 
     if (field != null) {
-      if (field.setter != null) {
+      var setter = field.element.setter2?.firstFragment;
+      if (setter != null) {
         if (overriddenSetters.any(
           (s) => _isCovariantSetter(s.declarationImpl),
         )) {
-          var parameter = field.setter!.parameters[0];
+          var parameter = setter.parameters[0];
           parameter.inheritsCovariant = true;
         }
       }
@@ -459,8 +472,12 @@ class InstanceMemberInferrer {
     if (element.hasImplicitReturnType && element.displayName != '[]=') {
       if (combinedSignatureType != null) {
         element.returnType = combinedSignatureType.returnType;
+        // TODO(scheglov): leave only element
+        element.element.returnType = combinedSignatureType.returnType;
       } else {
         element.returnType = DynamicTypeImpl.instance;
+        // TODO(scheglov): leave only element
+        element.element.returnType = DynamicTypeImpl.instance;
       }
     }
 
@@ -759,6 +776,17 @@ class InstanceMemberInferrer {
 
   static void _setFieldType(FieldFragmentImpl field, TypeImpl type) {
     field.type = type;
+    // TODO(scheglov): We repeat this code.
+    field.element.getter2?.returnType = type;
+    field.element.getter2?.firstFragment.returnType = type;
+
+    var setterElement = field.element.setter2;
+    if (setterElement != null) {
+      setterElement.returnType = VoidTypeImpl.instance;
+      setterElement.firstFragment.returnType = VoidTypeImpl.instance;
+      setterElement.valueFormalParameter.type = type;
+      setterElement.valueFormalParameter.firstFragment.type = type;
+    }
   }
 }
 

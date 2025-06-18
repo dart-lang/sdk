@@ -1735,7 +1735,7 @@ library
           element: <testLibrary>::@extensionType::A
           fields
             #F2 <null-name> (offset=17)
-              element: <testLibrary>::@extensionType::A::@field::<empty>
+              element: <testLibrary>::@extensionType::A::@field::0
               getter2: #F3
           constructors
             #F4 new
@@ -1749,22 +1749,22 @@ library
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::<null-name>
           getters
             #F3 synthetic <null-name>
-              element: <testLibrary>::@extensionType::A::@getter::<empty>
+              element: <testLibrary>::@extensionType::A::@getter::1
               returnType: InvalidType
               variable: #F2
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: #F1
-      representation: <testLibrary>::@extensionType::A::@field::<empty>
+      representation: <testLibrary>::@extensionType::A::@field::0
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: InvalidType
       fields
         final <null-name>
-          reference: <testLibrary>::@extensionType::A::@field::<empty>
+          reference: <testLibrary>::@extensionType::A::@field::0
           firstFragment: #F2
           type: InvalidType
-          getter: <testLibrary>::@extensionType::A::@getter::<empty>
+          getter: <testLibrary>::@extensionType::A::@getter::1
       constructors
         new
           reference: <testLibrary>::@extensionType::A::@constructor::new
@@ -1775,10 +1775,10 @@ library
               type: InvalidType
       getters
         synthetic <null-name>
-          reference: <testLibrary>::@extensionType::A::@getter::<empty>
+          reference: <testLibrary>::@extensionType::A::@getter::1
           firstFragment: #F3
           returnType: InvalidType
-          variable: <testLibrary>::@extensionType::A::@field::<empty>
+          variable: <testLibrary>::@extensionType::A::@field::0
 ''');
   }
 

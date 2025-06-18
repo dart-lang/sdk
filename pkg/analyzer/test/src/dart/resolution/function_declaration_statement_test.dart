@@ -71,7 +71,7 @@ FunctionDeclarationStatement
         functionDefinition: =>
         expression: SimpleIdentifier
           token: a
-          element: g@15::@formalParameter::a
+          element: a@25
           staticType: T
         semicolon: ;
       declaredElement: <testLibraryFragment> g@15

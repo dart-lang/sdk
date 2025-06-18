@@ -415,7 +415,7 @@ library
                           element2: dart:core::@class::String
                           type: String
                         name: a @52
-                        declaredElement: a@52
+                        declaredElement: <testLibraryFragment> a@52
                           type: String
                       rightParenthesis: ) @53
                     declaredElement: GenericFunctionTypeElement
@@ -485,7 +485,7 @@ library
                       element2: dart:core::@class::String
                       type: String
                     name: a @52
-                    declaredElement: a@52
+                    declaredElement: <testLibraryFragment> a@52
                       type: String
                   rightParenthesis: ) @53
                 declaredElement: GenericFunctionTypeElement
@@ -577,9 +577,9 @@ library
                                 element2: dart:core::@class::int
                                 type: int?
                               name: a @63
-                              declaredElement: a@63
+                              declaredElement: <testLibraryFragment> a@63
                                 type: int?
-                            declaredElement: a@63
+                            declaredElement: <testLibraryFragment> a@63
                               type: int?
                           rightDelimiter: } @64
                           rightParenthesis: ) @65
@@ -689,9 +689,9 @@ library
                                 element2: dart:core::@class::int
                                 type: int?
                               name: a @63
-                              declaredElement: a@63
+                              declaredElement: <testLibraryFragment> a@63
                                 type: int?
-                            declaredElement: a@63
+                            declaredElement: <testLibraryFragment> a@63
                               type: int?
                           rightDelimiter: ] @64
                           rightParenthesis: ) @65
@@ -801,9 +801,9 @@ library
                                 element2: dart:core::@class::int
                                 type: int
                               name: a @71
-                              declaredElement: a@71
+                              declaredElement: <testLibraryFragment> a@71
                                 type: int
-                            declaredElement: a@71
+                            declaredElement: <testLibraryFragment> a@71
                               type: int
                           rightDelimiter: } @72
                           rightParenthesis: ) @73
@@ -910,7 +910,7 @@ library
                               element2: dart:core::@class::int
                               type: int
                             name: a @61
-                            declaredElement: a@61
+                            declaredElement: <testLibraryFragment> a@61
                               type: int
                           rightParenthesis: ) @62
                         declaredElement: GenericFunctionTypeElement

@@ -296,7 +296,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: root::@formalParameter::<null-name>
+        correspondingParameter: <null-name>@null
         staticType: int
     rightParenthesis: )
   element: <null>

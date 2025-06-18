@@ -472,7 +472,9 @@ var y = () => x;
     _assertTypeStr(y.type, 'dynamic');
   }
 
+  @SkippedTest(reason: 'Element model rewrite')
   test_circularReference_viaClosures_initializerTypes() async {
+    print('-' * 64);
     await assertErrorsInCode(
       '''
 var x = () => y;

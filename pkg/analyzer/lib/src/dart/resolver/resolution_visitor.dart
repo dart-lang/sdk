@@ -498,7 +498,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitEnumConstantDeclaration(
     covariant EnumConstantDeclarationImpl node,
   ) {
-    var element = _elementWalker!.getVariable() as ConstFieldFragmentImpl;
+    var element = _elementWalker!.getVariable() as FieldFragmentImpl;
     node.declaredFragment = element;
 
     _setOrCreateMetadataElements(element, node.metadata);
@@ -1051,6 +1051,15 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       fragment = _elementWalker!.getSetter();
     } else {
       fragment = _elementWalker!.getFunction();
+      assert(() {
+        if (node.name.lexeme != fragment.name2) {
+          throw StateError(
+            'Method name mismatch:'
+            '\nNode: |$node|\nFragment: |$fragment|',
+          );
+        }
+        return true;
+      }());
     }
     node.declaredFragment = fragment;
 

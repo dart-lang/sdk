@@ -405,11 +405,7 @@ class _Element2Writer extends _AbstractElementWriter {
   }
 
   void _writeConstructorFragment(ConstructorFragment f) {
-    // Check that the reference exists, and filled with the element.
-    var reference = (f as ConstructorFragmentImpl).reference;
-    if (reference == null) {
-      fail('Every constructor must have a reference.');
-    }
+    f as ConstructorFragmentImpl;
 
     _sink.writeIndentedLine(() {
       _writeObjectId(f);
@@ -673,6 +669,8 @@ class _Element2Writer extends _AbstractElementWriter {
     // }
 
     _sink.writeIndentedLine(() {
+      // TODO(scheglov): restore after merging element model rewrite
+      // _writeObjectId(e);
       if (e.isRequiredPositional) {
         _sink.write('requiredPositional ');
       } else if (e.isOptionalPositional) {
@@ -822,36 +820,39 @@ class _Element2Writer extends _AbstractElementWriter {
       case FormalParameterFragment():
         if (f.enclosingFragment case SetterFragment setter) {
           if (setter.isSynthetic) {
-            var variable = setter.variable3!;
+            var variable = setter.element.variable3!;
             if (!variable.isSynthetic) {
-              expect(f.offset, variable.offset);
+              expect(f.offset, variable.firstFragment.offset);
               return;
             }
           }
         }
       case GetterFragment():
         expect(f.isSynthetic, isTrue);
-        var variable = f.variable3!;
+
+        var variable = f.element.variable3!;
         if (!variable.isSynthetic) {
-          expect(f.offset, variable.offset);
+          expect(f.offset, variable.firstFragment.offset);
           return;
         }
+
         // Special case enum fields/getters: index, _name, values.
-        if (variable is FieldFragmentImpl && variable.isSyntheticEnumField) {
+        if (variable is FieldElementImpl &&
+            variable.firstFragment.isSyntheticEnumField) {
           var enumElement = f.enclosingFragment as EnumFragmentImpl;
           expect(f.offset, enumElement.offset);
-          expect(variable.offset, enumElement.offset);
+          expect(variable.firstFragment.offset, enumElement.offset);
           return;
         }
       case SetterFragment():
         expect(f.isSynthetic, isTrue);
-        var variable = f.variable3!;
+
+        var variable = f.element.variable3!;
         if (!variable.isSynthetic) {
-          var variableOffset = variable.offset;
-          expect(f.offset, variableOffset);
-          expect(f.formalParameters.single.offset, variableOffset);
+          expect(f.offset, variable.firstFragment.offset);
           return;
         }
+
       case LibraryFragment():
         if (f.element.firstFragment != f) {
           expect(f.offset, 0);
@@ -969,13 +970,7 @@ class _Element2Writer extends _AbstractElementWriter {
     // }
 
     _sink.withIndent(() {
-      // TODO(scheglov): should have actual reference.
-      // _writeReference(e);
-      // ..but in this branch it does not
-      _sink.writelnWithIndent(
-        'reference: ${_elementPrinter.elementToReferenceString2(e.firstFragment)}',
-      );
-
+      _writeReference(e);
       _writeFragmentReference('firstFragment', e.firstFragment);
       if (e.hasEnclosingTypeParameterReference) {
         _sink.writelnWithIndent('hasEnclosingTypeParameterReference: true');
@@ -999,19 +994,6 @@ class _Element2Writer extends _AbstractElementWriter {
   }
 
   void _writeGetterFragment(GetterFragmentImpl f) {
-    var variable = f.variable3;
-    if (f.isAugmentation) {
-      expect(variable, isNull);
-    } else {
-      var enclosing = variable!.enclosingFragment;
-      switch (enclosing) {
-        case LibraryFragment():
-          expect(enclosing.topLevelVariables2, contains(variable));
-        case InterfaceFragment():
-          expect(enclosing.fields, contains(variable));
-      }
-    }
-
     // if (f.isSynthetic) {
     //   expect(f.nameOffset, -1);
     // } else {
@@ -1195,12 +1177,11 @@ class _Element2Writer extends _AbstractElementWriter {
     _assertNonSyntheticElementSelf(e);
   }
 
-  void _writeInstanceFragment(InstanceFragment f) {
-    f as InstanceFragmentImpl;
+  void _writeInstanceFragment(InstanceFragmentImpl f) {
     _sink.writeIndentedLine(() {
       _writeObjectId(f);
       switch (f) {
-        case ClassFragment():
+        case ClassFragmentImpl():
           // TODO(brianwilkerson): Figure out why we can't ask the fragments
           //  these questions.
           // _sink.writeIf(f.isAbstract, 'abstract ');
@@ -1591,13 +1572,7 @@ class _Element2Writer extends _AbstractElementWriter {
     // }
 
     _sink.withIndent(() {
-      // TODO(scheglov): should have actual reference.
-      // _writeReference(e);
-      // ..but in this branch it does not
-      _sink.writelnWithIndent(
-        'reference: ${_elementPrinter.elementToReferenceString2(e.firstFragment)}',
-      );
-
+      _writeReference(e);
       _writeFragmentReference('firstFragment', e.firstFragment);
       if (e.hasEnclosingTypeParameterReference) {
         _sink.writelnWithIndent('hasEnclosingTypeParameterReference: true');
@@ -1620,19 +1595,6 @@ class _Element2Writer extends _AbstractElementWriter {
   }
 
   void _writeSetterFragment(SetterFragment f) {
-    var variable = f.variable3;
-    if (f.isAugmentation) {
-      expect(variable, isNull);
-    } else {
-      var enclosing = variable!.enclosingFragment;
-      switch (enclosing) {
-        case LibraryFragment():
-          expect(enclosing.topLevelVariables2, contains(variable));
-        case InterfaceFragment():
-          expect(enclosing.fields, contains(variable));
-      }
-    }
-
     // if (f.isSynthetic) {
     //   expect(f.nameOffset, -1);
     // } else {
@@ -1815,7 +1777,7 @@ class _Element2Writer extends _AbstractElementWriter {
     });
   }
 
-  void _writeTopLevelVariableFragment(TopLevelVariableFragment f) {
+  void _writeTopLevelVariableFragment(TopLevelVariableFragmentImpl f) {
     // DartType type = f.type;
     // expect(type, isNotNull);
 
@@ -1868,8 +1830,8 @@ class _Element2Writer extends _AbstractElementWriter {
       // writeLinking();
       _writeFragmentReference('previousFragment', f.previousFragment);
       _writeFragmentReference('nextFragment', f.nextFragment);
-      _writeFragmentReference('getter', f.getter2);
-      _writeFragmentReference('setter', f.setter2);
+      _writeFragmentReference('getter', f.getter);
+      _writeFragmentReference('setter', f.setter);
     });
   }
 

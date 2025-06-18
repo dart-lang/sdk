@@ -472,7 +472,6 @@ class B extends A {}
     assertHasImplementedMember('m()');
   }
 
-  @FailingTest() // TODO(scheglov): implement augmentation
   Future<void> test_ofClass_byClass_method_inAugmented() async {
     newFile('$testPackageLibPath/b.dart', '''
 part 'test.dart';

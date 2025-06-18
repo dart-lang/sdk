@@ -79,7 +79,7 @@ TypeParameter
         staticType: null
       element2: <testLibrary>::@getter::a
   name: T
-  declaredElement: T@27
+  declaredElement: <testLibraryFragment> T@27
     defaultType: null
 ''');
   }

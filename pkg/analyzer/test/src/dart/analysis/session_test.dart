@@ -791,7 +791,7 @@ unitElementResult
   path: /home/test/lib/test.dart
   uri: package:test/test.dart
   element
-    reference: root::package:test/test.dart::@fragment::package:test/test.dart
+    reference: null
     library: root::package:test/test.dart
     classes: A, B
 ''');

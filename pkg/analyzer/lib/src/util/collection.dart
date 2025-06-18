@@ -6,8 +6,8 @@
 ///
 /// If one of the lists has less elements than other, the remainder is ignored.
 void forCorrespondingPairs<T1, T2>(
-  List<T1> list1,
-  List<T2> list2,
+  Iterable<T1> list1,
+  Iterable<T2> list2,
   void Function(T1, T2) f,
 ) {
   var i1 = list1.iterator;
