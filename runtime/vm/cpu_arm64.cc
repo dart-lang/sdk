@@ -10,7 +10,6 @@
 
 #include "vm/cpuinfo.h"
 
-#if !defined(USING_SIMULATOR)
 #if defined(DART_HOST_OS_FUCHSIA)
 #include <zircon/syscalls.h>
 #elif defined(DART_HOST_OS_MACOS) || defined(DART_HOST_OS_IOS)
@@ -18,14 +17,19 @@
 #elif defined(DART_HOST_OS_WINDOWS)
 #include <processthreadsapi.h>
 #endif
-#endif
 
 namespace dart {
 
 void CPU::FlushICache(uword start, uword size) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   UNREACHABLE();
-#elif !defined(USING_SIMULATOR)
+#else
+#if defined(USING_SIMULATOR)
+  if (FLAG_use_simulator) {
+    return;
+  }
+#endif
+
   // Nothing to do. Flushing no instructions.
   if (size == 0) {
     return;

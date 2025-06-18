@@ -104,15 +104,20 @@ static ObjectPtr InvokeDartCode(uword entry_point,
 
   const uword stub = StubCode::InvokeDartCode().EntryPoint();
 #if defined(USING_SIMULATOR)
-  auto invoke = [&](uword entry_point, uword arguments_descriptor,
-                    uword arguments, Thread* thread) -> uword {
-    return Simulator::Current()->Call(stub, entry_point, arguments_descriptor,
-                                      arguments,
-                                      reinterpret_cast<int64_t>(thread));
-  };
-#else
-  auto invoke = reinterpret_cast<invokestub>(stub);
+  if (FLAG_use_simulator) {
+    auto invoke = [&](uword entry_point, uword arguments_descriptor,
+                      uword arguments, Thread* thread) -> uword {
+      return Simulator::Current()->Call(stub, entry_point, arguments_descriptor,
+                                        arguments,
+                                        reinterpret_cast<int64_t>(thread));
+    };
+    uword result =
+        invoke(entry_point, static_cast<uword>(arguments_descriptor.ptr()),
+               static_cast<uword>(arguments.ptr()), thread);
+    return static_cast<ObjectPtr>(result);
+  }
 #endif
+  auto invoke = reinterpret_cast<invokestub>(stub);
   uword result =
       invoke(entry_point, static_cast<uword>(arguments_descriptor.ptr()),
              static_cast<uword>(arguments.ptr()), thread);

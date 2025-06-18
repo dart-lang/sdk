@@ -1429,8 +1429,10 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ mov(CSP, SP);
 
 #if defined(SIMULATOR_FFI)
-    __ Emit(Instr::kSimulatorFfiRedirectInstruction);
-    ASSERT(branch == R9);
+    if (FLAG_use_simulator) {
+      __ Emit(Instr::kSimulatorFfiRedirectInstruction);
+      ASSERT(branch == R9);
+    }
 #endif
     __ blr(branch);
 

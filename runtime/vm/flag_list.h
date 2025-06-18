@@ -249,6 +249,7 @@ constexpr bool FLAG_support_il_printer = false;
     "Throw API error on invalid member access through native API. See "        \
     "entry_point_pragma.md")                                                   \
   C(branch_coverage, false, false, bool, false, "Enable branch coverage")      \
-  C(coverage, false, false, bool, true, "Enable coverage")
+  C(coverage, false, false, bool, true, "Enable coverage")                     \
+  P(use_simulator, bool, true, "Use simulator if available")
 
 #endif  // RUNTIME_VM_FLAG_LIST_H_

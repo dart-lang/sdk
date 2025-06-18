@@ -533,7 +533,11 @@ void Thread::EnterIsolateGroupAsMutator(IsolateGroup* isolate_group,
 
   ResumeThreadInternal(thread);
 #if defined(USING_SIMULATOR)
-  thread->SetStackLimit(Simulator::Current()->overflow_stack_limit());
+  if (FLAG_use_simulator) {
+    thread->SetStackLimit(Simulator::Current()->overflow_stack_limit());
+  } else {
+    thread->SetStackLimit(OSThread::Current()->overflow_stack_limit());
+  }
 #else
   thread->SetStackLimit(OSThread::Current()->overflow_stack_limit());
 #endif
@@ -583,7 +587,11 @@ void Thread::ResumeDartMutatorThreadInternal(Thread* thread) {
   if (Dart::vm_isolate() != nullptr &&
       thread->isolate() != Dart::vm_isolate()) {
 #if defined(USING_SIMULATOR)
-    thread->SetStackLimit(Simulator::Current()->overflow_stack_limit());
+    if (FLAG_use_simulator) {
+      thread->SetStackLimit(Simulator::Current()->overflow_stack_limit());
+    } else {
+      thread->SetStackLimit(OSThread::Current()->overflow_stack_limit());
+    }
 #else
     thread->SetStackLimit(OSThread::Current()->overflow_stack_limit());
 #endif
