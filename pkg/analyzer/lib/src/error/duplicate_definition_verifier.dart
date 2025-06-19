@@ -393,10 +393,8 @@ class MemberDuplicateDefinitionVerifier {
 
     var elementContext = _getElementContext(firstFragment);
     var constructorNames = elementContext.constructorNames;
-    var instanceGetters = elementContext.instanceGetters;
-    var instanceSetters = elementContext.instanceSetters;
-    var staticGetters = elementContext.staticGetters;
-    var staticSetters = elementContext.staticSetters;
+    var instanceScope = elementContext.instanceScope;
+    var staticScope = elementContext.staticScope;
 
     for (var member in members) {
       switch (member) {
@@ -427,10 +425,9 @@ class MemberDuplicateDefinitionVerifier {
         case FieldDeclarationImpl():
           for (var field in member.fields.variables) {
             _checkDuplicateIdentifier(
-              member.isStatic ? staticGetters : instanceGetters,
+              member.isStatic ? staticScope : instanceScope,
               field.name,
-              element: field.declaredFragment!,
-              setterScope: member.isStatic ? staticSetters : instanceSetters,
+              fragment: field.declaredFragment!,
             );
             if (fragment is EnumFragmentImpl) {
               _checkValuesDeclarationInEnum(field.name);
@@ -438,10 +435,9 @@ class MemberDuplicateDefinitionVerifier {
           }
         case MethodDeclarationImpl():
           _checkDuplicateIdentifier(
-            member.isStatic ? staticGetters : instanceGetters,
+            member.isStatic ? staticScope : instanceScope,
             member.name,
-            element: member.declaredFragment!,
-            setterScope: member.isStatic ? staticSetters : instanceSetters,
+            fragment: member.declaredFragment!,
           );
           if (fragment is EnumFragmentImpl) {
             if (!(member.isStatic && member.isSetter)) {
@@ -454,8 +450,7 @@ class MemberDuplicateDefinitionVerifier {
     if (firstFragment is InterfaceFragmentImpl) {
       _checkConflictingConstructorAndStatic(
         interfaceElement: firstFragment,
-        staticGetters: staticGetters,
-        staticSetters: staticSetters,
+        staticScope: staticScope,
       );
     }
   }
@@ -467,8 +462,7 @@ class MemberDuplicateDefinitionVerifier {
     var firstFragment = fragment.element.firstFragment;
 
     var elementContext = _getElementContext(firstFragment);
-    var instanceGetters = elementContext.instanceGetters;
-    var instanceSetters = elementContext.instanceSetters;
+    var instanceScope = elementContext.instanceScope;
 
     // Check for local static members conflicting with local instance members.
     // TODO(scheglov): This code is duplicated for enums. But for classes it is
@@ -479,8 +473,7 @@ class MemberDuplicateDefinitionVerifier {
           for (VariableDeclaration field in member.fields.variables) {
             var identifier = field.name;
             String name = identifier.lexeme;
-            if (instanceGetters.containsKey(name) ||
-                instanceSetters.containsKey(name)) {
+            if (instanceScope.containsKey(name)) {
               if (firstFragment is InterfaceFragmentImpl) {
                 String className = firstFragment.name2 ?? '';
                 _diagnosticReporter.atToken(
@@ -496,8 +489,7 @@ class MemberDuplicateDefinitionVerifier {
         if (member.isStatic) {
           var identifier = member.name;
           String name = identifier.lexeme;
-          if (instanceGetters.containsKey(name) ||
-              instanceSetters.containsKey(name)) {
+          if (instanceScope.containsKey(name)) {
             if (firstFragment is InterfaceFragmentImpl) {
               String className = firstFragment.name2 ?? '';
               _diagnosticReporter.atToken(
@@ -514,8 +506,7 @@ class MemberDuplicateDefinitionVerifier {
 
   void _checkConflictingConstructorAndStatic({
     required InterfaceFragmentImpl interfaceElement,
-    required Map<String, FragmentImpl> staticGetters,
-    required Map<String, FragmentImpl> staticSetters,
+    required Map<String, _ScopeEntry> staticScope,
   }) {
     for (var constructor in interfaceElement.constructors) {
       var name = constructor.name2;
@@ -525,122 +516,124 @@ class MemberDuplicateDefinitionVerifier {
         continue;
       }
 
-      var staticMember = staticGetters[name] ?? staticSetters[name];
-      if (staticMember is PropertyAccessorFragmentImpl) {
-        CompileTimeErrorCode errorCode;
-        if (staticMember.isSynthetic) {
-          errorCode =
-              CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD;
-        } else if (staticMember.isGetter) {
-          errorCode =
-              CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER;
-        } else {
-          errorCode =
-              CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_SETTER;
-        }
-        _diagnosticReporter.atElement2(
-          constructor.asElement2,
-          errorCode,
-          arguments: [name],
-        );
-      } else if (staticMember is MethodFragmentImpl) {
-        _diagnosticReporter.atElement2(
-          constructor.asElement2,
-          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD,
-          arguments: [name],
-        );
+      var state = staticScope[name];
+      switch (state) {
+        case null:
+          // ok
+          break;
+        case _ScopeEntryFragment(
+          fragment: PropertyAccessorFragmentImpl staticMember,
+        ):
+          CompileTimeErrorCode errorCode;
+          if (staticMember.isSynthetic) {
+            errorCode =
+                CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD;
+          } else if (staticMember.isGetter) {
+            errorCode =
+                CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER;
+          } else {
+            errorCode =
+                CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_SETTER;
+          }
+          _diagnosticReporter.atElement2(
+            constructor.asElement2,
+            errorCode,
+            arguments: [name],
+          );
+        case _ScopeEntryFragment(fragment: FieldFragmentImpl()):
+          _diagnosticReporter.atElement2(
+            constructor.asElement2,
+            CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD,
+            arguments: [name],
+          );
+        case _ScopeEntryFragment(fragment: MethodFragmentImpl()):
+          _diagnosticReporter.atElement2(
+            constructor.asElement2,
+            CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD,
+            arguments: [name],
+          );
+        case _ScopeEntryGetterSetterPair():
+          _diagnosticReporter.atElement2(
+            constructor.asElement2,
+            CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER,
+            arguments: [name],
+          );
+        case _ScopeEntryFragment(:var fragment):
+          throw StateError(
+            'Unexpected type in duplicate map: ${fragment.runtimeType}',
+          );
       }
     }
   }
 
-  /// Check whether the given [element] defined by the [identifier] is already
-  /// in one of the scopes - [getterScope] or [setterScope], and produce an
-  /// error if it is.
+  /// Checks whether the given [fragment] defined by the [identifier] conflicts
+  /// with a [fragment] already in [scope], and produces an error if it is.
   void _checkDuplicateIdentifier(
-    Map<String, FragmentImpl> getterScope,
+    Map<String, _ScopeEntry> scope,
     Token identifier, {
-    required FragmentImpl element,
-    Map<String, FragmentImpl>? setterScope,
+    required FragmentImpl fragment,
   }) {
-    if (identifier.isSynthetic || element.asElement2.isWildcardVariable) {
+    if (identifier.isSynthetic || fragment.asElement2.isWildcardVariable) {
       return;
     }
 
-    switch (element) {
+    switch (fragment) {
       case ExecutableFragmentImpl _:
-        if (element.isAugmentation) return;
+        if (fragment.isAugmentation) return;
       case FieldFragmentImpl _:
-        if (element.isAugmentation) return;
+        if (fragment.isAugmentation) return;
       case InstanceFragmentImpl _:
-        if (element.isAugmentation) return;
+        if (fragment.isAugmentation) return;
       case TypeAliasFragmentImpl _:
-        if (element.isAugmentation) return;
+        if (fragment.isAugmentation) return;
       case TopLevelVariableFragmentImpl _:
-        if (element.isAugmentation) return;
+        if (fragment.isAugmentation) return;
     }
 
-    // Fields define getters and setters, so check them separately.
-    if (element is PropertyInducingFragmentImpl) {
-      _checkDuplicateIdentifier(
-        getterScope,
-        identifier,
-        element: element.element.getter2!.firstFragment,
-        setterScope: setterScope,
-      );
-      var setter = element.element.setter2?.firstFragment;
-      if (setter != null && setter.isSynthetic) {
-        _checkDuplicateIdentifier(
-          getterScope,
-          identifier,
-          element: setter,
-          setterScope: setterScope,
-        );
+    if (fragment is PropertyInducingFragmentImpl) {
+      var definesSetter =
+          (!fragment.isFinal && !fragment.isConst) ||
+          (fragment.isLate && !fragment.hasInitializer);
+      if (!definesSetter) {
+        // The field just defines a getter, so treat it as a getter for
+        // duplicate checking purposes.
+        fragment = fragment.getter!;
       }
-      return;
     }
 
-    var name = switch (element) {
-      MethodFragmentImpl() => element.element.lookupName ?? '',
+    var name = switch (fragment) {
+      MethodFragmentImpl() => fragment.element.lookupName ?? '',
       _ => identifier.lexeme,
     };
 
-    var previous = getterScope[name];
-    if (previous != null) {
-      if (!_isGetterSetterPair(element, previous)) {
+    var scopeEntry = scope[name];
+    switch (scopeEntry) {
+      case null:
+        scope[name] = _ScopeEntryFragment(fragment);
+      case _ScopeEntryFragment(fragment: GetterFragmentImpl previous)
+          when fragment is SetterFragmentImpl:
+        scope[name] = _ScopeEntryGetterSetterPair(
+          getter: previous,
+          setter: fragment,
+        );
+      case _ScopeEntryFragment(fragment: SetterFragmentImpl previous)
+          when fragment is GetterFragmentImpl:
+        scope[name] = _ScopeEntryGetterSetterPair(
+          getter: fragment,
+          setter: previous,
+        );
+      case _ScopeEntryGetterSetterPair(setter: FragmentImpl duplicateFragment)
+          when fragment is SetterFragment:
+      case _ScopeEntryGetterSetterPair(getter: FragmentImpl duplicateFragment):
+      case _ScopeEntryFragment(fragment: FragmentImpl duplicateFragment):
         _diagnosticReporter.reportError(
           _diagnosticFactory.duplicateDefinition(
             CompileTimeErrorCode.DUPLICATE_DEFINITION,
-            element.asElement2!,
-            previous.asElement2!,
+            fragment.asElement2!,
+            duplicateFragment.asElement2!,
             [name],
           ),
         );
-      } else {
-        // Getter setter pair. Make sure the *getter* is in the getter map.
-        if (element is PropertyAccessorFragmentImpl && element.isGetter) {
-          getterScope[name] = element;
-        }
-      }
-    } else {
-      getterScope[name] = element;
-    }
-
-    if (setterScope != null) {
-      if (element is PropertyAccessorFragmentImpl && element.isSetter) {
-        previous = setterScope[name];
-        if (previous != null) {
-          _diagnosticReporter.reportError(
-            _diagnosticFactory.duplicateDefinition(
-              CompileTimeErrorCode.DUPLICATE_DEFINITION,
-              element.asElement2,
-              previous.asElement2!,
-              [name],
-            ),
-          );
-        } else {
-          setterScope[name] = element;
-        }
-      }
     }
   }
 
@@ -651,7 +644,7 @@ class MemberDuplicateDefinitionVerifier {
     var declarationName = firstFragment.name2;
 
     var elementContext = _getElementContext(firstFragment);
-    var staticGetters = elementContext.staticGetters;
+    var staticScope = elementContext.staticScope;
 
     for (var constant in node.constants) {
       if (constant.name.lexeme == declarationName) {
@@ -661,9 +654,9 @@ class MemberDuplicateDefinitionVerifier {
         );
       }
       _checkDuplicateIdentifier(
-        staticGetters,
+        staticScope,
         constant.name,
-        element: constant.declaredFragment!,
+        fragment: constant.declaredFragment!,
       );
       _checkValuesDeclarationInEnum(constant.name);
     }
@@ -776,8 +769,7 @@ class MemberDuplicateDefinitionVerifier {
     var firstFragment = fragment.element.firstFragment;
 
     var elementContext = _getElementContext(firstFragment);
-    var instanceGetters = elementContext.instanceGetters;
-    var instanceSetters = elementContext.instanceSetters;
+    var instanceScope = elementContext.instanceScope;
 
     for (var member in node.members) {
       if (member is FieldDeclarationImpl) {
@@ -785,8 +777,7 @@ class MemberDuplicateDefinitionVerifier {
           for (var field in member.fields.variables) {
             var identifier = field.name;
             var name = identifier.lexeme;
-            if (instanceGetters.containsKey(name) ||
-                instanceSetters.containsKey(name)) {
+            if (instanceScope.containsKey(name)) {
               _diagnosticReporter.atToken(
                 identifier,
                 CompileTimeErrorCode.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE,
@@ -799,8 +790,7 @@ class MemberDuplicateDefinitionVerifier {
         if (member.isStatic) {
           var identifier = member.name;
           var name = identifier.lexeme;
-          if (instanceGetters.containsKey(name) ||
-              instanceSetters.containsKey(name)) {
+          if (instanceScope.containsKey(name)) {
             _diagnosticReporter.atToken(
               identifier,
               CompileTimeErrorCode.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE,
@@ -821,7 +811,9 @@ class MemberDuplicateDefinitionVerifier {
     var elementContext = _getElementContext(firstFragment);
     elementContext.constructorNames.add(primaryConstructorName);
     if (representationGetter.name2 case var getterName?) {
-      elementContext.instanceGetters[getterName] = representationGetter;
+      elementContext.instanceScope[getterName] = _ScopeEntryFragment(
+        representationGetter,
+      );
     }
 
     _checkClassMembers(firstFragment, node.members);
@@ -952,21 +944,26 @@ class MemberDuplicateDefinitionVerifier {
       forUnit(fileAnalysis)._checkUnitStatic(fileAnalysis.unit);
     }
   }
-
-  static bool _isGetterSetterPair(FragmentImpl a, FragmentImpl b) {
-    if (a is PropertyAccessorFragmentImpl &&
-        b is PropertyAccessorFragmentImpl) {
-      return a.isGetter && b.isSetter || a.isSetter && b.isGetter;
-    }
-    return false;
-  }
 }
 
 /// Information accumulated for a single declaration and its augmentations.
 class _InstanceElementContext {
   final Set<String> constructorNames = {};
-  final Map<String, FragmentImpl> instanceGetters = {};
-  final Map<String, FragmentImpl> instanceSetters = {};
-  final Map<String, FragmentImpl> staticGetters = {};
-  final Map<String, FragmentImpl> staticSetters = {};
+  final Map<String, _ScopeEntry> instanceScope = {};
+  final Map<String, _ScopeEntry> staticScope = {};
+}
+
+sealed class _ScopeEntry {}
+
+class _ScopeEntryFragment extends _ScopeEntry {
+  final FragmentImpl fragment;
+
+  _ScopeEntryFragment(this.fragment);
+}
+
+class _ScopeEntryGetterSetterPair extends _ScopeEntry {
+  final GetterFragmentImpl getter;
+  final SetterFragmentImpl setter;
+
+  _ScopeEntryGetterSetterPair({required this.getter, required this.setter});
 }

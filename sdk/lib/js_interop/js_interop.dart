@@ -22,13 +22,14 @@
 /// and previous JavaScript interop.
 ///
 /// > [!NOTE]
-/// > The types defined in this library only provide static guarantees.
-/// > The runtime types differ based on the backend, so it is important to rely
-/// > on static functionality like the conversion functions, for example `toJS`
-/// > and not runtime mechanisms like type checks (`is`) and casts (`as`).
-/// > Similarly, `identical` may return different results for the same JS value
-/// > depending on the compiler. Use `==` to check for equality of two JS types
-/// > instead.
+/// > The types defined in this library only provide static guarantees. The
+/// > runtime types differ based on the backend, so it is important to rely on
+/// > static functionality like the conversion functions. Similarly, don't rely
+/// > on `is` checks that involve JS types or JS-typed values. Furthermore,
+/// > `identical` may also return different results for the same JS value
+/// > depending on the compiler. Use `==` to check for equality of two JS-typed
+/// > values instead, but do not check for equality between a Dart value and a
+/// > JS-typed value.
 ///
 /// {@category Web}
 library;
