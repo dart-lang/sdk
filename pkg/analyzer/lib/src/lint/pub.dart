@@ -188,7 +188,11 @@ abstract class Pubspec {
 
   PubspecEntry? get repository;
 
+  PubspecEntry? get resolution;
+
   PubspecEntry? get version;
+
+  PubspecNodeList? get workspace;
 
   void accept(PubspecVisitor visitor);
 }
@@ -227,6 +231,9 @@ class _Pubspec implements Pubspec {
   final PubspecNodeList? authors;
 
   @override
+  final PubspecNodeList? workspace;
+
+  @override
   final PubspecEntry? description;
 
   @override
@@ -248,6 +255,9 @@ class _Pubspec implements Pubspec {
   final PubspecEntry? repository;
 
   @override
+  final PubspecEntry? resolution;
+
+  @override
   final PubspecEntry? version;
 
   @override
@@ -266,6 +276,7 @@ class _Pubspec implements Pubspec {
 
     PubspecEntry? author;
     PubspecNodeList? authors;
+    PubspecNodeList? workspace;
     PubspecEntry? description;
     PubspecEntry? documentation;
     PubspecEnvironment? environment;
@@ -273,6 +284,7 @@ class _Pubspec implements Pubspec {
     PubspecEntry? issueTracker;
     PubspecEntry? name;
     PubspecEntry? repository;
+    PubspecEntry? resolution;
     PubspecEntry? version;
     PubspecDependencyList? dependencies;
     PubspecDependencyList? devDependencies;
@@ -310,6 +322,10 @@ class _Pubspec implements Pubspec {
           environment = _processEnvironment(key, v, resourceProvider);
         case 'version':
           version = _processScalar(key, v, resourceProvider);
+        case 'resolution':
+          resolution = _processScalar(key, v, resourceProvider);
+        case 'workspace':
+          workspace = _processScalarList(key, v, resourceProvider);
       }
     });
 
@@ -327,12 +343,15 @@ class _Pubspec implements Pubspec {
       dependencies: dependencies,
       devDependencies: devDependencies,
       dependencyOverrides: dependencyOverrides,
+      resolution: resolution,
+      workspace: workspace,
     );
   }
 
   _Pubspec._({
     this.author,
     this.authors,
+    this.workspace,
     this.description,
     this.documentation,
     this.environment,
@@ -344,6 +363,7 @@ class _Pubspec implements Pubspec {
     this.dependencies,
     this.devDependencies,
     this.dependencyOverrides,
+    this.resolution,
   });
 
   @override
