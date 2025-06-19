@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:front_end/src/fragment/constructor/encoding.dart';
+import 'package:front_end/src/fragment/factory/encoding.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/src/bounds_checks.dart' show VarianceCalculationValue;
@@ -20,8 +21,6 @@ import '../builder/declaration_builders.dart';
 import '../builder/factory_builder.dart';
 import '../builder/function_builder.dart';
 import '../builder/member_builder.dart';
-import '../builder/named_type_builder.dart';
-import '../builder/nullability_builder.dart';
 import '../builder/prefix_builder.dart';
 import '../builder/type_builder.dart';
 import '../fragment/constructor/declaration.dart';
@@ -32,7 +31,6 @@ import '../fragment/getter/declaration.dart';
 import '../fragment/method/declaration.dart';
 import '../fragment/method/encoding.dart';
 import '../fragment/setter/declaration.dart';
-import 'builder_factory.dart';
 import 'name_scheme.dart';
 import 'source_class_builder.dart';
 import 'source_constructor_builder.dart';
@@ -2916,65 +2914,8 @@ _AddBuilder _createFactoryBuilder(
   String name = fragment.name;
   Modifiers modifiers = fragment.modifiers;
 
-  FactoryDeclaration createFactoryDeclaration(FactoryFragment fragment) {
-    NominalParameterCopy? nominalParameterCopy =
-        NominalParameterCopy.copyTypeParameters(
-            unboundNominalParameters: unboundNominalParameters,
-            oldParameterBuilders: declarationBuilder!.typeParameters,
-            oldParameterFragments: fragment.enclosingDeclaration.typeParameters,
-            kind: TypeParameterKind.function,
-            instanceTypeParameterAccess:
-                InstanceTypeParameterAccessState.Allowed);
-    List<SourceNominalParameterBuilder>? typeParameters =
-        nominalParameterCopy?.newParameterBuilders;
-    TypeBuilder returnType;
-    switch (declarationBuilder) {
-      case ExtensionBuilder():
-        // Make the synthesized return type invalid for extensions.
-        returnType = new NamedTypeBuilderImpl.forInvalidType(
-            fragment.constructorName.fullName,
-            const NullabilityBuilder.omitted(),
-            messageExtensionDeclaresConstructor.withLocation(
-                fragment.fileUri,
-                fragment.constructorName.fullNameOffset,
-                fragment.constructorName.fullNameLength));
-      case ClassBuilder():
-      case ExtensionTypeDeclarationBuilder():
-        returnType = new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
-            declarationBuilder, const NullabilityBuilder.omitted(),
-            arguments: nominalParameterCopy?.newTypeArguments,
-            fileUri: fragment.fileUri,
-            charOffset: fragment.constructorName.fullNameOffset,
-            instanceTypeParameterAccess:
-                InstanceTypeParameterAccessState.Allowed);
-    }
-
-    fragment.typeParameterNameSpace.addTypeParameters(
-        problemReporting, typeParameters,
-        ownerName: fragment.name, allowNameConflict: true);
-    return new FactoryDeclarationImpl(fragment,
-        returnType: returnType, typeParameters: typeParameters);
-  }
-
-  FactoryDeclaration introductoryDeclaration =
-      createFactoryDeclaration(fragment);
-
-  bool isRedirectingFactory = fragment.redirectionTarget != null;
-  List<FactoryDeclaration> augmentationDeclarations = [];
-  if (augmentations != null) {
-    for (Fragment augmentation in augmentations) {
-      // Promote [augmentation] to [FactoryFragment].
-      augmentation as FactoryFragment;
-
-      augmentationDeclarations.add(createFactoryDeclaration(augmentation));
-
-      isRedirectingFactory |= augmentation.redirectionTarget != null;
-
-      if (!augmentation.modifiers.isExternal) {
-        modifiers -= Modifiers.External;
-      }
-    }
-  }
+  FactoryEncodingStrategy encodingStrategy =
+      new FactoryEncodingStrategy(declarationBuilder!);
 
   NameScheme nameScheme = new NameScheme(
       containerName: containerName,
@@ -2984,31 +2925,42 @@ _AddBuilder _createFactoryBuilder(
           ? new LibraryName(indexedLibrary.library.reference)
           : enclosingLibraryBuilder.libraryName);
 
-  Reference? procedureReference;
-  Reference? tearOffReference;
-  if (indexedContainer != null) {
-    procedureReference = indexedContainer.lookupConstructorReference(
-        nameScheme.getConstructorMemberName(name, isTearOff: false).name);
-    tearOffReference = indexedContainer.lookupGetterReference(
-        nameScheme.getConstructorMemberName(name, isTearOff: true).name);
-  }
-  // Coverage-ignore(suite): Not run.
-  else if (indexedLibrary != null) {
-    procedureReference = indexedLibrary.lookupGetterReference(
-        nameScheme.getConstructorMemberName(name, isTearOff: false).name);
-    tearOffReference = indexedLibrary.lookupGetterReference(
-        nameScheme.getConstructorMemberName(name, isTearOff: true).name);
+  FactoryReferences factoryReferences = new FactoryReferences(
+      name: name,
+      nameScheme: nameScheme,
+      indexedContainer: indexedContainer,
+      loader: loader,
+      declarationBuilder: declarationBuilder);
+
+  FactoryDeclaration introductoryDeclaration =
+      new FactoryDeclarationImpl(fragment);
+
+  bool isRedirectingFactory = fragment.redirectionTarget != null;
+  List<FactoryDeclaration> augmentationDeclarations = [];
+  if (augmentations != null) {
+    for (Fragment augmentation in augmentations) {
+      // Promote [augmentation] to [FactoryFragment].
+      augmentation as FactoryFragment;
+
+      augmentationDeclarations.add(new FactoryDeclarationImpl(augmentation));
+
+      isRedirectingFactory |= augmentation.redirectionTarget != null;
+
+      if (!augmentation.modifiers.isExternal) {
+        modifiers -= Modifiers.External;
+      }
+    }
+    augmentations.clear();
   }
 
   SourceFactoryBuilder factoryBuilder = new SourceFactoryBuilder(
       modifiers: modifiers,
       name: name,
       libraryBuilder: enclosingLibraryBuilder,
-      declarationBuilder: declarationBuilder!,
+      declarationBuilder: declarationBuilder,
       fileUri: fragment.fileUri,
       fileOffset: fragment.fullNameOffset,
-      procedureReference: procedureReference,
-      tearOffReference: tearOffReference,
+      factoryReferences: factoryReferences,
       nameScheme: nameScheme,
       introductory: introductoryDeclaration,
       augmentations: augmentationDeclarations);
@@ -3016,21 +2968,22 @@ _AddBuilder _createFactoryBuilder(
     (enclosingLibraryBuilder.redirectingFactoryBuilders ??= [])
         .add(factoryBuilder);
   }
-  fragment.builder = factoryBuilder;
-  if (augmentations != null) {
-    for (Fragment augmentation in augmentations) {
-      // Promote [augmentation] to [FactoryFragment].
-      augmentation as FactoryFragment;
+  introductoryDeclaration.createEncoding(
+      problemReporting: problemReporting,
+      declarationBuilder: declarationBuilder,
+      factoryBuilder: factoryBuilder,
+      unboundNominalParameters: unboundNominalParameters,
+      encodingStrategy: encodingStrategy);
+  for (FactoryDeclaration augmentationDeclaration in augmentationDeclarations) {
+    augmentationDeclaration.createEncoding(
+        problemReporting: problemReporting,
+        declarationBuilder: declarationBuilder,
+        factoryBuilder: factoryBuilder,
+        unboundNominalParameters: unboundNominalParameters,
+        encodingStrategy: encodingStrategy);
+  }
 
-      augmentation.builder = factoryBuilder;
-    }
-    augmentations.clear();
-  }
-  // TODO(johnniwinther): There is no way to pass the tear off reference
-  //  here.
-  if (procedureReference != null) {
-    loader.buildersCreatedWithReferences[procedureReference] = factoryBuilder;
-  }
+  factoryReferences.registerReference(loader, factoryBuilder);
   return new _AddBuilder(fragment.name, factoryBuilder, fragment.uriOffset,
       inPatch: fragment.enclosingDeclaration.isPatch);
 }

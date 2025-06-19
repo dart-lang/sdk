@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/source/source_loader.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../base/modifiers.dart';
@@ -48,6 +50,10 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   @override
   final int fileOffset;
 
+  final NameScheme _nameScheme;
+
+  final FactoryReferences _factoryReferences;
+
   final FactoryDeclaration _introductory;
 
   final List<FactoryDeclaration> _augmentations;
@@ -63,12 +69,13 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
       required this.declarationBuilder,
       required this.fileUri,
       required this.fileOffset,
-      required Reference? procedureReference,
-      required Reference? tearOffReference,
+      required FactoryReferences factoryReferences,
       required NameScheme nameScheme,
       required FactoryDeclaration introductory,
       required List<FactoryDeclaration> augmentations})
-      : _memberName = nameScheme.getDeclaredName(name),
+      : _nameScheme = nameScheme,
+        _factoryReferences = factoryReferences,
+        _memberName = nameScheme.getDeclaredName(name),
         _introductory = introductory,
         _augmentations = augmentations {
     if (augmentations.isEmpty) {
@@ -78,21 +85,6 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
       _augmentedDeclarations = [introductory, ...augmentations];
       _lastDeclaration = _augmentedDeclarations.removeLast();
     }
-
-    for (FactoryDeclaration augmentedDeclaration in _augmentedDeclarations) {
-      augmentedDeclaration.createNode(
-          name: name,
-          libraryBuilder: libraryBuilder,
-          nameScheme: nameScheme,
-          procedureReference: null,
-          tearOffReference: null);
-    }
-    _lastDeclaration.createNode(
-        name: name,
-        libraryBuilder: libraryBuilder,
-        nameScheme: nameScheme,
-        procedureReference: procedureReference,
-        tearOffReference: tearOffReference);
   }
 
   @override
@@ -137,17 +129,14 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
 
   Procedure get _procedure => _lastDeclaration.procedure;
 
-  Procedure? get _tearOff => _lastDeclaration.tearOff;
-
   @override
   FunctionNode get function => _lastDeclaration.function;
 
   @override
-  Member get readTarget => _tearOff ?? _procedure;
+  Member get readTarget => readTargetReference.asMember;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  Reference get readTargetReference => readTarget.reference;
+  Reference get readTargetReference => _factoryReferences.tearOffReference;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -158,11 +147,10 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   Reference? get writeTargetReference => null;
 
   @override
-  Member get invokeTarget => _procedure;
+  Member get invokeTarget => invokeTargetReference.asMember;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  Reference? get invokeTargetReference => _procedure.reference;
+  Reference get invokeTargetReference => _factoryReferences.factoryReference;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -249,12 +237,16 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
       augmentedDeclaration.buildOutlineNodes(
           libraryBuilder: libraryBuilder,
           factoryBuilder: this,
+          nameScheme: _nameScheme,
+          factoryReferences: null,
           isConst: isConst,
           f: noAddBuildNodesCallback);
     }
     _lastDeclaration.buildOutlineNodes(
         libraryBuilder: libraryBuilder,
         factoryBuilder: this,
+        nameScheme: _nameScheme,
+        factoryReferences: _factoryReferences,
         f: f,
         isConst: isConst);
   }
@@ -351,4 +343,57 @@ class InferableRedirectingFactory implements InferableMember {
         name.length,
         _builder.fileUri);
   }
+}
+
+class FactoryReferences {
+  Reference? _factoryReference;
+  Reference? _tearOffReference;
+  final bool _hasTearOff;
+
+  FactoryReferences._(
+      this._factoryReference, this._tearOffReference, this._hasTearOff)
+      : assert(!(_tearOffReference != null && !_hasTearOff),
+            "Unexpected tear off reference $_tearOffReference.");
+
+  factory FactoryReferences({
+    required String name,
+    required NameScheme nameScheme,
+    required IndexedContainer? indexedContainer,
+    required SourceLoader loader,
+    required DeclarationBuilder declarationBuilder,
+  }) {
+    bool hasTearOff = switch (declarationBuilder) {
+      ClassBuilder() =>
+        loader.target.backendTarget.isFactoryTearOffLoweringEnabled,
+      ExtensionBuilder() => false,
+      ExtensionTypeDeclarationBuilder() => true,
+    };
+
+    Reference? constructorReference;
+    Reference? tearOffReference;
+
+    if (indexedContainer != null) {
+      constructorReference = indexedContainer.lookupConstructorReference(
+          nameScheme.getConstructorMemberName(name, isTearOff: false).name);
+      tearOffReference = indexedContainer.lookupGetterReference(
+          nameScheme.getConstructorMemberName(name, isTearOff: true).name);
+    }
+
+    return new FactoryReferences._(
+        constructorReference, tearOffReference, hasTearOff);
+  }
+
+  void registerReference(SourceLoader loader, SourceFactoryBuilder builder) {
+    if (_factoryReference != null) {
+      loader.buildersCreatedWithReferences[_factoryReference!] = builder;
+    }
+    if (_tearOffReference != null) {
+      loader.buildersCreatedWithReferences[_tearOffReference!] = builder;
+    }
+  }
+
+  Reference get factoryReference => _factoryReference ??= new Reference();
+
+  Reference get tearOffReference =>
+      _tearOffReference ??= _hasTearOff ? new Reference() : factoryReference;
 }

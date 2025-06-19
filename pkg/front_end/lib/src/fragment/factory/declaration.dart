@@ -7,8 +7,10 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../../base/identifiers.dart';
+import '../../base/messages.dart';
 import '../../base/name_space.dart';
 import '../../builder/constructor_reference_builder.dart';
+import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/metadata_builder.dart';
 import '../../builder/type_builder.dart';
@@ -41,7 +43,12 @@ abstract class FactoryDeclaration {
 
   ConstructorReferenceBuilder? get redirectionTarget;
 
-  Procedure? get tearOff;
+  void createEncoding(
+      {required ProblemReporting problemReporting,
+      required DeclarationBuilder declarationBuilder,
+      required SourceFactoryBuilder factoryBuilder,
+      required List<NominalParameterBuilder> unboundNominalParameters,
+      required FactoryEncodingStrategy encodingStrategy});
 
   void buildOutlineExpressions(
       {required Iterable<Annotatable> annotatables,
@@ -55,6 +62,8 @@ abstract class FactoryDeclaration {
       {required SourceLibraryBuilder libraryBuilder,
       required SourceFactoryBuilder factoryBuilder,
       required BuildNodesCallback f,
+      required NameScheme nameScheme,
+      required FactoryReferences? factoryReferences,
       required bool isConst});
 
   /// Checks this factory builder if it is for a redirecting factory.
@@ -69,14 +78,6 @@ abstract class FactoryDeclaration {
   int computeDefaultTypes(ComputeDefaultTypeContext context,
       {required bool inErrorRecovery});
 
-  void createNode({
-    required String name,
-    required SourceLibraryBuilder libraryBuilder,
-    required NameScheme nameScheme,
-    required Reference? procedureReference,
-    required Reference? tearOffReference,
-  });
-
   void inferRedirectionTarget(
       {required SourceLibraryBuilder libraryBuilder,
       required SourceFactoryBuilder factoryBuilder,
@@ -90,19 +91,45 @@ abstract class FactoryDeclaration {
 class FactoryDeclarationImpl
     implements FactoryDeclaration, FactoryFragmentDeclaration {
   final FactoryFragment _fragment;
-  final List<SourceNominalParameterBuilder>? typeParameters;
-  @override
-  final TypeBuilder returnType;
-  final FactoryEncoding _encoding;
+  late final List<SourceNominalParameterBuilder>? _typeParameters;
+  late final TypeBuilder _returnType;
+  late final FactoryEncoding _encoding;
 
-  FactoryDeclarationImpl(this._fragment,
-      {required this.typeParameters, required this.returnType})
-      : _encoding = new FactoryEncoding(_fragment,
-            typeParameters: typeParameters,
-            returnType: returnType,
-            redirectionTarget: _fragment.redirectionTarget) {
+  FactoryDeclarationImpl(this._fragment) {
     _fragment.declaration = this;
   }
+
+  @override
+  void createEncoding(
+      {required ProblemReporting problemReporting,
+      required DeclarationBuilder declarationBuilder,
+      required SourceFactoryBuilder factoryBuilder,
+      required List<NominalParameterBuilder> unboundNominalParameters,
+      required FactoryEncodingStrategy encodingStrategy}) {
+    _fragment.builder = factoryBuilder;
+    var (typeParameters, returnType) =
+        encodingStrategy.createTypeParametersAndReturnType(
+            declarationBuilder: declarationBuilder,
+            declarationTypeParameterFragments:
+                _fragment.enclosingDeclaration.typeParameters,
+            unboundNominalParameters: unboundNominalParameters,
+            fullName: _fragment.constructorName.fullName,
+            fileUri: _fragment.fileUri,
+            fullNameOffset: _fragment.constructorName.fullNameOffset,
+            fullNameLength: _fragment.constructorName.fullNameLength);
+    _typeParameters = typeParameters;
+    _returnType = returnType;
+    _fragment.typeParameterNameSpace.addTypeParameters(
+        problemReporting, typeParameters,
+        ownerName: _fragment.name, allowNameConflict: true);
+    _encoding = new FactoryEncoding(_fragment,
+        typeParameters: typeParameters,
+        returnType: returnType,
+        redirectionTarget: _fragment.redirectionTarget);
+  }
+
+  @override
+  TypeBuilder get returnType => _returnType;
 
   @override
   int get fileOffset => _fragment.fullNameOffset;
@@ -137,9 +164,6 @@ class FactoryDeclarationImpl
   }
 
   @override
-  Procedure? get tearOff => _encoding.tearOff;
-
-  @override
   void becomeNative(SourceLoader loader) {
     loader.addNativeAnnotation(procedure, _fragment.nativeMethodName!);
     _encoding.becomeNative(loader);
@@ -167,9 +191,9 @@ class FactoryDeclarationImpl
           libraryBuilder: libraryBuilder,
           scope: _fragment.enclosingScope);
     }
-    if (typeParameters != null) {
-      for (int i = 0; i < typeParameters!.length; i++) {
-        typeParameters![i].buildOutlineExpressions(
+    if (_typeParameters != null) {
+      for (int i = 0; i < _typeParameters.length; i++) {
+        _typeParameters[i].buildOutlineExpressions(
             libraryBuilder, bodyBuilderContext, classHierarchy);
       }
     }
@@ -197,11 +221,16 @@ class FactoryDeclarationImpl
       {required SourceLibraryBuilder libraryBuilder,
       required SourceFactoryBuilder factoryBuilder,
       required BuildNodesCallback f,
+      required NameScheme nameScheme,
+      required FactoryReferences? factoryReferences,
       required bool isConst}) {
     _encoding.buildOutlineNodes(
         libraryBuilder: libraryBuilder,
         factoryBuilder: factoryBuilder,
         f: f,
+        name: _fragment.name,
+        nameScheme: nameScheme,
+        factoryReferences: factoryReferences,
         isConst: isConst);
   }
 
@@ -232,7 +261,7 @@ class FactoryDeclarationImpl
   @override
   int computeDefaultTypes(ComputeDefaultTypeContext context,
       {required bool inErrorRecovery}) {
-    int count = context.computeDefaultTypesForVariables(typeParameters,
+    int count = context.computeDefaultTypesForVariables(_typeParameters,
         // Type parameters are inherited from the enclosing declaration, so if
         // it has issues, so do the constructors.
         inErrorRecovery: inErrorRecovery);
@@ -245,22 +274,6 @@ class FactoryDeclarationImpl
       SourceFactoryBuilder factoryBuilder) {
     return new FactoryBodyBuilderContext(
         factoryBuilder, this, _encoding.procedure);
-  }
-
-  @override
-  void createNode({
-    required String name,
-    required SourceLibraryBuilder libraryBuilder,
-    required NameScheme nameScheme,
-    required Reference? procedureReference,
-    required Reference? tearOffReference,
-  }) {
-    _encoding.createNode(
-        name: name,
-        libraryBuilder: libraryBuilder,
-        nameScheme: nameScheme,
-        procedureReference: procedureReference,
-        tearOffReference: tearOffReference);
   }
 
   @override

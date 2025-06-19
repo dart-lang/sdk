@@ -17,6 +17,8 @@ import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/function_builder.dart';
 import '../../builder/member_builder.dart';
+import '../../builder/named_type_builder.dart';
+import '../../builder/nullability_builder.dart';
 import '../../builder/omitted_type_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../codes/cfe_codes.dart';
@@ -26,6 +28,7 @@ import '../../fragment/fragment.dart';
 import '../../kernel/body_builder_context.dart';
 import '../../kernel/constructor_tearoff_lowering.dart';
 import '../../kernel/kernel_helper.dart';
+import '../../source/builder_factory.dart';
 import '../../source/name_scheme.dart';
 import '../../source/redirecting_factory_body.dart';
 import '../../source/source_factory_builder.dart';
@@ -69,44 +72,7 @@ class FactoryEncoding implements InferredTypeListener {
             ? AsyncMarker.Sync
             : _fragment.asyncModifier;
 
-  void createNode({
-    required String name,
-    required SourceLibraryBuilder libraryBuilder,
-    required NameScheme nameScheme,
-    required Reference? procedureReference,
-    required Reference? tearOffReference,
-  }) {
-    _procedure = new Procedure(
-        dummyName,
-        nameScheme.isExtensionTypeMember
-            ? ProcedureKind.Method
-            : ProcedureKind.Factory,
-        new FunctionNode(null)
-          ..asyncMarker = _asyncModifier
-          ..dartAsyncMarker = _asyncModifier,
-        fileUri: _fragment.fileUri,
-        reference: procedureReference)
-      ..fileStartOffset = _fragment.startOffset
-      ..fileOffset = _fragment.fullNameOffset
-      ..fileEndOffset = _fragment.endOffset
-      ..isExtensionTypeMember = nameScheme.isExtensionTypeMember;
-    nameScheme
-        .getConstructorMemberName(name, isTearOff: false)
-        .attachMember(_procedure);
-    _tearOff = createFactoryTearOffProcedure(
-        nameScheme.getConstructorMemberName(name, isTearOff: true),
-        libraryBuilder,
-        _fragment.fileUri,
-        _fragment.fullNameOffset,
-        tearOffReference,
-        forceCreateLowering: nameScheme.isExtensionTypeMember)
-      ?..isExtensionTypeMember = nameScheme.isExtensionTypeMember;
-    returnType.registerInferredTypeListener(this);
-  }
-
   Procedure get procedure => _procedure;
-
-  Procedure? get tearOff => _tearOff;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -134,7 +100,37 @@ class FactoryEncoding implements InferredTypeListener {
       {required SourceLibraryBuilder libraryBuilder,
       required SourceFactoryBuilder factoryBuilder,
       required BuildNodesCallback f,
+      required String name,
+      required NameScheme nameScheme,
+      required FactoryReferences? factoryReferences,
       required bool isConst}) {
+    _procedure = new Procedure(
+        dummyName,
+        nameScheme.isExtensionTypeMember
+            ? ProcedureKind.Method
+            : ProcedureKind.Factory,
+        new FunctionNode(null)
+          ..asyncMarker = _asyncModifier
+          ..dartAsyncMarker = _asyncModifier,
+        fileUri: _fragment.fileUri,
+        reference: factoryReferences?.factoryReference)
+      ..fileStartOffset = _fragment.startOffset
+      ..fileOffset = _fragment.fullNameOffset
+      ..fileEndOffset = _fragment.endOffset
+      ..isExtensionTypeMember = nameScheme.isExtensionTypeMember;
+    nameScheme
+        .getConstructorMemberName(name, isTearOff: false)
+        .attachMember(_procedure);
+    _tearOff = createFactoryTearOffProcedure(
+        nameScheme.getConstructorMemberName(name, isTearOff: true),
+        libraryBuilder,
+        _fragment.fileUri,
+        _fragment.fullNameOffset,
+        factoryReferences?.tearOffReference,
+        forceCreateLowering: nameScheme.isExtensionTypeMember)
+      ?..isExtensionTypeMember = nameScheme.isExtensionTypeMember;
+    returnType.registerInferredTypeListener(this);
+
     _procedure.function.asyncMarker = _asyncModifier;
     if (_redirectionTarget == null &&
         !_fragment.modifiers.isAbstract &&
@@ -749,5 +745,97 @@ class FactoryEncoding implements InferredTypeListener {
       }
     }
     return null;
+  }
+}
+
+abstract class FactoryEncodingStrategy {
+  factory FactoryEncodingStrategy(DeclarationBuilder declarationBuilder) {
+    switch (declarationBuilder) {
+      case ClassBuilder():
+      case ExtensionTypeDeclarationBuilder():
+        return const RegularFactoryEncodingStrategy();
+      case ExtensionBuilder():
+        return const ExtensionFactoryEncodingStrategy();
+    }
+  }
+
+  (List<SourceNominalParameterBuilder>?, TypeBuilder)
+      createTypeParametersAndReturnType({
+    required DeclarationBuilder declarationBuilder,
+    required List<TypeParameterFragment>? declarationTypeParameterFragments,
+    required List<NominalParameterBuilder> unboundNominalParameters,
+    required String fullName,
+    required Uri fileUri,
+    required int fullNameOffset,
+    required int fullNameLength,
+  });
+}
+
+class RegularFactoryEncodingStrategy implements FactoryEncodingStrategy {
+  const RegularFactoryEncodingStrategy();
+
+  @override
+  (List<SourceNominalParameterBuilder>?, TypeBuilder)
+      createTypeParametersAndReturnType({
+    required DeclarationBuilder declarationBuilder,
+    required List<TypeParameterFragment>? declarationTypeParameterFragments,
+    required List<NominalParameterBuilder> unboundNominalParameters,
+    required String fullName,
+    required Uri fileUri,
+    required int fullNameOffset,
+    required int fullNameLength,
+  }) {
+    NominalParameterCopy? nominalParameterCopy =
+        NominalParameterCopy.copyTypeParameters(
+            unboundNominalParameters: unboundNominalParameters,
+            oldParameterBuilders: declarationBuilder.typeParameters,
+            oldParameterFragments: declarationTypeParameterFragments,
+            kind: TypeParameterKind.function,
+            instanceTypeParameterAccess:
+                InstanceTypeParameterAccessState.Allowed);
+    List<SourceNominalParameterBuilder>? typeParameters =
+        nominalParameterCopy?.newParameterBuilders;
+    TypeBuilder returnType =
+        new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
+            declarationBuilder, const NullabilityBuilder.omitted(),
+            arguments: nominalParameterCopy?.newTypeArguments,
+            fileUri: fileUri,
+            charOffset: fullNameOffset,
+            instanceTypeParameterAccess:
+                InstanceTypeParameterAccessState.Allowed);
+    return (typeParameters, returnType);
+  }
+}
+
+class ExtensionFactoryEncodingStrategy implements FactoryEncodingStrategy {
+  const ExtensionFactoryEncodingStrategy();
+
+  @override
+  (List<SourceNominalParameterBuilder>?, TypeBuilder)
+      createTypeParametersAndReturnType({
+    required DeclarationBuilder declarationBuilder,
+    required List<TypeParameterFragment>? declarationTypeParameterFragments,
+    required List<NominalParameterBuilder> unboundNominalParameters,
+    required String fullName,
+    required Uri fileUri,
+    required int fullNameOffset,
+    required int fullNameLength,
+  }) {
+    NominalParameterCopy? nominalParameterCopy =
+        NominalParameterCopy.copyTypeParameters(
+            unboundNominalParameters: unboundNominalParameters,
+            oldParameterBuilders: declarationBuilder.typeParameters,
+            oldParameterFragments: declarationTypeParameterFragments,
+            kind: TypeParameterKind.function,
+            instanceTypeParameterAccess:
+                InstanceTypeParameterAccessState.Allowed);
+    List<SourceNominalParameterBuilder>? typeParameters =
+        nominalParameterCopy?.newParameterBuilders;
+    TypeBuilder returnType = new NamedTypeBuilderImpl.forInvalidType(
+        fullName,
+        const NullabilityBuilder.omitted(),
+        messageExtensionDeclaresConstructor.withLocation(
+            fileUri, fullNameOffset, fullNameLength));
+    return (typeParameters, returnType);
   }
 }
