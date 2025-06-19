@@ -115,8 +115,6 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
   late final Substitution _fieldTypeSubstitution =
       _introductory.computeFieldTypeSubstitution(declarationBuilder);
 
-  final String? nativeMethodName;
-
   SuperInitializer? superInitializer;
 
   RedirectingInitializer? redirectingInitializer;
@@ -130,8 +128,6 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
   @override
   final bool isConst;
 
-  final bool isExternal;
-
   final ConstructorReferences _constructorReferences;
   final NameScheme _nameScheme;
 
@@ -141,13 +137,11 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
     required this.declarationBuilder,
     required this.fileOffset,
     required this.fileUri,
-    this.nativeMethodName,
     required ConstructorReferences constructorReferences,
     required NameScheme nameScheme,
     required ConstructorDeclaration introductory,
     List<ConstructorDeclaration> augmentations = const [],
     required this.isConst,
-    required this.isExternal,
   })  : _constructorReferences = constructorReferences,
         _nameScheme = nameScheme,
         _introductory = introductory,
@@ -206,7 +200,7 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
   /// An augmented constructor is considered external if all of the origin
   /// and augmentation constructors are external.
   bool get isEffectivelyExternal {
-    bool isExternal = this.isExternal;
+    bool isExternal = _introductory.isExternal;
     if (isExternal) {
       for (ConstructorDeclaration augmentation in _augmentations) {
         isExternal &= augmentation.isExternal;
@@ -236,19 +230,9 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
   // Coverage-ignore(suite): Not run.
   bool get isFinal => false;
 
-  // Coverage-ignore(suite): Not run.
-  bool get isNative => nativeMethodName != null;
-
   @override
   // Coverage-ignore(suite): Not run.
   bool get isProperty => false;
-
-  /// Returns `true` if this constructor is an redirecting generative
-  /// constructor.
-  ///
-  /// It is considered redirecting if it has at least one redirecting
-  /// initializer.
-  bool get isRedirecting => _lastDeclaration.isRedirecting;
 
   @override
   bool get isStatic => false;
@@ -609,16 +593,36 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
   }
 }
 
+/// [Reference]s used for the [Member] nodes created for a generative
+/// constructor.
 class ConstructorReferences {
   Reference? _constructorReference;
   Reference? _tearOffReference;
-  final bool _hasTearOff;
 
+  /// If `true`, the generative constructor has a tear-off lowering and should
+  /// therefore have distinct [constructorReference] and [tearOffReference]
+  /// values.
+  final bool _hasTearOffLowering;
+
+  /// Creates a [ConstructorReferences] object preloaded with the
+  /// [preExistingConstructorReference] and [preExistingTearOffReference].
+  ///
+  /// For initial/one-off compilations these are `null`, but for subsequent
+  /// compilations during an incremental compilation, these are the references
+  /// used for the same generative constructor and tear-off in the previous
+  /// compilation.
   ConstructorReferences._(
-      this._constructorReference, this._tearOffReference, this._hasTearOff)
-      : assert(!(_tearOffReference != null && !_hasTearOff),
-            "Unexpected tear off reference $_tearOffReference.");
+      {required Reference? preExistingConstructorReference,
+      required Reference? preExistingTearOffReference,
+      required bool hasTearOffLowering})
+      : _constructorReference = preExistingConstructorReference,
+        _tearOffReference = preExistingTearOffReference,
+        _hasTearOffLowering = hasTearOffLowering,
+        assert(!(preExistingTearOffReference != null && !hasTearOffLowering),
+            "Unexpected tear off reference $preExistingTearOffReference.");
 
+  /// Creates a [ConstructorReferences] object preloaded with the pre-existing
+  /// references from [indexedContainer], if available.
   factory ConstructorReferences({
     required String name,
     required NameScheme nameScheme,
@@ -626,7 +630,7 @@ class ConstructorReferences {
     required SourceLoader loader,
     required DeclarationBuilder declarationBuilder,
   }) {
-    bool hasTearOff = switch (declarationBuilder) {
+    bool hasTearOffLowering = switch (declarationBuilder) {
       ClassBuilder() =>
         !(declarationBuilder.isAbstract || declarationBuilder.isEnum) &&
             loader.target.backendTarget.isConstructorTearOffLoweringEnabled,
@@ -634,20 +638,28 @@ class ConstructorReferences {
       ExtensionTypeDeclarationBuilder() => true,
     };
 
-    Reference? constructorReference;
-    Reference? tearOffReference;
+    Reference? preExistingConstructorReference;
+    Reference? preExistingTearOffReference;
 
     if (indexedContainer != null) {
-      constructorReference = indexedContainer.lookupConstructorReference(
-          nameScheme.getConstructorMemberName(name, isTearOff: false).name);
-      tearOffReference = indexedContainer.lookupGetterReference(
+      preExistingConstructorReference =
+          indexedContainer.lookupConstructorReference(
+              nameScheme.getConstructorMemberName(name, isTearOff: false).name);
+      preExistingTearOffReference = indexedContainer.lookupGetterReference(
           nameScheme.getConstructorMemberName(name, isTearOff: true).name);
     }
 
     return new ConstructorReferences._(
-        constructorReference, tearOffReference, hasTearOff);
+        preExistingConstructorReference: preExistingConstructorReference,
+        preExistingTearOffReference: preExistingTearOffReference,
+        hasTearOffLowering: hasTearOffLowering);
   }
 
+  /// Registers that [builder] is created for the pre-existing references
+  /// provided in [ConstructorReferences._].
+  ///
+  /// This must be called before [constructorReference] and [tearOffReference]
+  /// are accessed.
   void registerReference(
       SourceLoader loader, SourceConstructorBuilder builder) {
     if (_constructorReference != null) {
@@ -658,9 +670,17 @@ class ConstructorReferences {
     }
   }
 
+  /// The [Reference] used to refer to the [Member] node created for the
+  /// generative constructor.
   Reference get constructorReference =>
       _constructorReference ??= new Reference();
 
+  /// The [Reference] used to refer to the [Member] node created for the
+  /// tear-off of the generative constructor.
+  ///
+  /// If a tear-off lowering is created for the generative constructor, this is
+  /// distinct from [constructorReference], otherwise it is the same [Reference]
+  /// as [constructorReference].
   Reference get tearOffReference => _tearOffReference ??=
-      _hasTearOff ? new Reference() : constructorReference;
+      _hasTearOffLowering ? new Reference() : constructorReference;
 }

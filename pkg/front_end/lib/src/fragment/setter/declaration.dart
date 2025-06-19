@@ -255,7 +255,7 @@ class RegularSetterDeclaration
   @override
   Iterable<Reference> getExportedSetterReferences(
           PropertyReferences references) =>
-      [references.setterReference!];
+      [references.setterReference];
 
   @override
   VariableDeclaration getFormalParameter(int index) {

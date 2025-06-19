@@ -693,13 +693,13 @@ class RegularFieldDeclaration
   @override
   Iterable<Reference> getExportedGetterReferences(
       PropertyReferences references) {
-    return [references.getterReference!];
+    return [references.getterReference];
   }
 
   @override
   Iterable<Reference> getExportedSetterReferences(
       PropertyReferences references) {
-    return hasSetter ? [references.setterReference!] : const [];
+    return hasSetter ? [references.setterReference] : const [];
   }
 }
 

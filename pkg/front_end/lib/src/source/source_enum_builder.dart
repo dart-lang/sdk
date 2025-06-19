@@ -345,8 +345,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
               constructorReferences: constructorReferences,
               nameScheme: nameScheme,
               introductory: constructorDeclaration,
-              isConst: true,
-              isExternal: false);
+              isConst: true);
       constructorDeclaration.createEncoding(
           problemReporting: libraryBuilder,
           loader: libraryBuilder.loader,
@@ -862,7 +861,7 @@ class _EnumValuesFieldDeclaration
   // Coverage-ignore(suite): Not run.
   Iterable<Reference> getExportedGetterReferences(
       PropertyReferences references) {
-    return [references.getterReference!];
+    return [references.getterReference];
   }
 }
 

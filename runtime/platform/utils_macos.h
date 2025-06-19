@@ -30,10 +30,9 @@ int32_t DarwinVersion();
 // Run-time OS version checks.
 #define DEFINE_IS_OS_FUNCS(VERSION_NAME, VALUE)                                \
   inline bool IsAtLeastIOS##VERSION_NAME() {                                   \
-    return (internal::DarwinVersion() >= 180400);                              \
+    return (internal::DarwinVersion() >= VALUE);                               \
   }
 
-DEFINE_IS_OS_FUNCS(18_4, 180400)
 DEFINE_IS_OS_FUNCS(26_0, 260000)
 
 #else

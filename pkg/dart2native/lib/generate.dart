@@ -228,7 +228,7 @@ class _Generator {
       extraGenKernelOptions: [
         '--invocation-modes=compile',
         '--verbosity=$_verbosity',
-        if (_depFile != null) '--depfile-target=$_outputPath',
+        if (_depFile != null) '--depfile-target=${_outputFile ?? _outputPath}',
         ...?extraOptions,
       ],
       recordedUsagesFile: recordedUsagesFile,

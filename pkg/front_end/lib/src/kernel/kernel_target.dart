@@ -1094,8 +1094,7 @@ class KernelTarget {
         constructorReferences: constructorReferences,
         nameScheme: nameScheme,
         introductory: declaration,
-        isConst: isConst,
-        isExternal: false);
+        isConst: isConst);
 
     loader.registerConstructorToBeInferred(
         new InferableConstructor(constructor, constructorBuilder));
@@ -1202,7 +1201,6 @@ class KernelTarget {
         constructorReferences: constructorReferences,
         nameScheme: nameScheme,
         introductory: declaration,
-        isExternal: false,
         isConst: false);
   }
 
