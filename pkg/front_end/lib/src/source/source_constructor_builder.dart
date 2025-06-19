@@ -115,8 +115,6 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
   late final Substitution _fieldTypeSubstitution =
       _introductory.computeFieldTypeSubstitution(declarationBuilder);
 
-  final String? nativeMethodName;
-
   SuperInitializer? superInitializer;
 
   RedirectingInitializer? redirectingInitializer;
@@ -130,8 +128,6 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
   @override
   final bool isConst;
 
-  final bool isExternal;
-
   final ConstructorReferences _constructorReferences;
   final NameScheme _nameScheme;
 
@@ -141,13 +137,11 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
     required this.declarationBuilder,
     required this.fileOffset,
     required this.fileUri,
-    this.nativeMethodName,
     required ConstructorReferences constructorReferences,
     required NameScheme nameScheme,
     required ConstructorDeclaration introductory,
     List<ConstructorDeclaration> augmentations = const [],
     required this.isConst,
-    required this.isExternal,
   })  : _constructorReferences = constructorReferences,
         _nameScheme = nameScheme,
         _introductory = introductory,
@@ -206,7 +200,7 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
   /// An augmented constructor is considered external if all of the origin
   /// and augmentation constructors are external.
   bool get isEffectivelyExternal {
-    bool isExternal = this.isExternal;
+    bool isExternal = _introductory.isExternal;
     if (isExternal) {
       for (ConstructorDeclaration augmentation in _augmentations) {
         isExternal &= augmentation.isExternal;
@@ -236,19 +230,9 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
   // Coverage-ignore(suite): Not run.
   bool get isFinal => false;
 
-  // Coverage-ignore(suite): Not run.
-  bool get isNative => nativeMethodName != null;
-
   @override
   // Coverage-ignore(suite): Not run.
   bool get isProperty => false;
-
-  /// Returns `true` if this constructor is an redirecting generative
-  /// constructor.
-  ///
-  /// It is considered redirecting if it has at least one redirecting
-  /// initializer.
-  bool get isRedirecting => _lastDeclaration.isRedirecting;
 
   @override
   bool get isStatic => false;

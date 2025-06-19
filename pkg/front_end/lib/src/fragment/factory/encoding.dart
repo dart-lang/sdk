@@ -153,7 +153,7 @@ class FactoryEncoding implements InferredTypeListener {
     // patch a const constructor with a non-const patch. Remove this and enforce
     // equal constness on origin and patch.
     _procedure.isConst = isConst;
-    _procedure.isStatic = _fragment.modifiers.isStatic;
+    _procedure.isStatic = true;
 
     if (_redirectionTarget != null) {
       if (_redirectionTarget.typeArguments != null) {

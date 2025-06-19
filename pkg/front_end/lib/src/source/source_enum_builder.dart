@@ -345,8 +345,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
               constructorReferences: constructorReferences,
               nameScheme: nameScheme,
               introductory: constructorDeclaration,
-              isConst: true,
-              isExternal: false);
+              isConst: true);
       constructorDeclaration.createEncoding(
           problemReporting: libraryBuilder,
           loader: libraryBuilder.loader,

@@ -775,6 +775,10 @@ class RegularConstructorDeclaration
   String? get _nativeMethodName => _fragment.nativeMethodName;
 
   @override
+  // Coverage-ignore(suite): Not run.
+  bool get isNative => _fragment.nativeMethodName != null;
+
+  @override
   LookupScope get _typeParameterScope => _fragment.typeParameterScope;
 
   @override
@@ -952,6 +956,10 @@ class DefaultEnumConstructorDeclaration
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
+  bool get isNative => false;
+
+  @override
   LookupScope get _typeParameterScope => _lookupScope;
 
   @override
@@ -1053,6 +1061,10 @@ class PrimaryConstructorDeclaration
   @override
   // Coverage-ignore(suite): Not run.
   String? get _nativeMethodName => null;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isNative => false;
 
   @override
   void createEncoding({
@@ -1259,6 +1271,8 @@ abstract class ConstructorFragmentDeclaration {
   bool get isConst;
 
   bool get isExternal;
+
+  bool get isNative;
 }
 
 mixin _SyntheticConstructorDeclarationMixin implements ConstructorDeclaration {
@@ -1280,7 +1294,6 @@ mixin _SyntheticConstructorDeclarationMixin implements ConstructorDeclaration {
       _constructor.function.namedParameters.isNotEmpty;
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get isExternal => false;
 
   @override

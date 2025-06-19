@@ -2755,7 +2755,6 @@ _AddBuilder _createConstructorBuilder(
     required ContainerName? containerName}) {
   String name = fragment.name;
   bool isConst = fragment.modifiers.isConst;
-  bool isExternal = fragment.modifiers.isExternal;
 
   ConstructorDeclaration constructorDeclaration =
       new RegularConstructorDeclaration(fragment);
@@ -2768,10 +2767,6 @@ _AddBuilder _createConstructorBuilder(
 
       augmentationDeclarations
           .add(new RegularConstructorDeclaration(augmentation));
-
-      if (!augmentation.modifiers.isExternal) {
-        isExternal = false;
-      }
     }
     augmentations.clear();
   }
@@ -2789,9 +2784,7 @@ _AddBuilder _createConstructorBuilder(
       containerType: containerType,
       indexedContainer: indexedContainer,
       containerName: containerName,
-      nativeMethodName: fragment.nativeMethodName,
       isConst: isConst,
-      isExternal: isExternal,
       inPatch: fragment.enclosingDeclaration.isPatch);
 }
 
@@ -2809,9 +2802,7 @@ _AddBuilder _createConstructorBuilderFromDeclarations(
     required ContainerType containerType,
     required IndexedContainer? indexedContainer,
     required ContainerName? containerName,
-    required String? nativeMethodName,
     required bool isConst,
-    required bool isExternal,
     required bool inPatch}) {
   NameScheme nameScheme = new NameScheme(
       isInstanceMember: false,
@@ -2839,11 +2830,9 @@ _AddBuilder _createConstructorBuilderFromDeclarations(
       fileOffset: uriOffset.fileOffset,
       constructorReferences: constructorReferences,
       nameScheme: nameScheme,
-      nativeMethodName: nativeMethodName,
       introductory: constructorDeclaration,
       augmentations: augmentationDeclarations,
-      isConst: isConst,
-      isExternal: isExternal);
+      isConst: isConst);
   constructorReferences.registerReference(loader, constructorBuilder);
 
   constructorDeclaration.createEncoding(
@@ -2894,9 +2883,7 @@ _AddBuilder _createPrimaryConstructorBuilder(
       containerType: containerType,
       indexedContainer: indexedContainer,
       containerName: containerName,
-      nativeMethodName: null,
       isConst: fragment.modifiers.isConst,
-      isExternal: fragment.modifiers.isExternal,
       inPatch: fragment.enclosingDeclaration.isPatch);
 }
 
@@ -2912,7 +2899,7 @@ _AddBuilder _createFactoryBuilder(
     required IndexedContainer? indexedContainer,
     required ContainerName? containerName}) {
   String name = fragment.name;
-  Modifiers modifiers = fragment.modifiers;
+  bool isConst = fragment.modifiers.isConst;
 
   FactoryEncodingStrategy encodingStrategy =
       new FactoryEncodingStrategy(declarationBuilder!);
@@ -2945,16 +2932,11 @@ _AddBuilder _createFactoryBuilder(
       augmentationDeclarations.add(new FactoryDeclarationImpl(augmentation));
 
       isRedirectingFactory |= augmentation.redirectionTarget != null;
-
-      if (!augmentation.modifiers.isExternal) {
-        modifiers -= Modifiers.External;
-      }
     }
     augmentations.clear();
   }
 
   SourceFactoryBuilder factoryBuilder = new SourceFactoryBuilder(
-      modifiers: modifiers,
       name: name,
       libraryBuilder: enclosingLibraryBuilder,
       declarationBuilder: declarationBuilder,
@@ -2963,7 +2945,8 @@ _AddBuilder _createFactoryBuilder(
       factoryReferences: factoryReferences,
       nameScheme: nameScheme,
       introductory: introductoryDeclaration,
-      augmentations: augmentationDeclarations);
+      augmentations: augmentationDeclarations,
+      isConst: isConst);
   if (isRedirectingFactory) {
     (enclosingLibraryBuilder.redirectingFactoryBuilders ??= [])
         .add(factoryBuilder);

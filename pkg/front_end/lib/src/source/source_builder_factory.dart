@@ -1389,7 +1389,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       startOffset: startOffset,
       formalsOffset: formalsOffset,
       endOffset: endOffset,
-      modifiers: modifiers | Modifiers.Static,
+      modifiers: modifiers,
       metadata: metadata,
       typeParameterNameSpace: typeParameterNameSpace,
       enclosingScope: _declarationFragments.current.bodyScope,

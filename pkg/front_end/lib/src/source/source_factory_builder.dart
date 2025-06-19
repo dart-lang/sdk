@@ -8,7 +8,6 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/type_environment.dart';
 
-import '../base/modifiers.dart';
 import '../base/name_space.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
@@ -28,8 +27,6 @@ import 'source_member_builder.dart';
 
 class SourceFactoryBuilder extends SourceMemberBuilderImpl
     implements FactoryBuilder {
-  final Modifiers modifiers;
-
   @override
   final String name;
 
@@ -62,9 +59,11 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
 
   late final List<FactoryDeclaration> _augmentedDeclarations;
 
+  @override
+  final bool isConst;
+
   SourceFactoryBuilder(
-      {required this.modifiers,
-      required this.name,
+      {required this.name,
       required this.libraryBuilder,
       required this.declarationBuilder,
       required this.fileUri,
@@ -72,7 +71,8 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
       required FactoryReferences factoryReferences,
       required NameScheme nameScheme,
       required FactoryDeclaration introductory,
-      required List<FactoryDeclaration> augmentations})
+      required List<FactoryDeclaration> augmentations,
+      required this.isConst})
       : _nameScheme = nameScheme,
         _factoryReferences = factoryReferences,
         _memberName = nameScheme.getDeclaredName(name),
@@ -95,10 +95,7 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
       _lastDeclaration.redirectionTarget;
 
   @override
-  bool get isConst => modifiers.isConst;
-
-  @override
-  bool get isStatic => modifiers.isStatic;
+  bool get isStatic => true;
 
   @override
   // Coverage-ignore(suite): Not run.
