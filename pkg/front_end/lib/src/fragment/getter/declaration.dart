@@ -253,7 +253,7 @@ class RegularGetterDeclaration
   @override
   Iterable<Reference> getExportedGetterReferences(
           PropertyReferences references) =>
-      [references.getterReference!];
+      [references.getterReference];
 
   @override
   VariableDeclaration getFormalParameter(int index) {

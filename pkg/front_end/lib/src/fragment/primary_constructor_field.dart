@@ -340,7 +340,7 @@ class PrimaryConstructorFieldDeclaration
   // Coverage-ignore(suite): Not run.
   Iterable<Reference> getExportedGetterReferences(
       PropertyReferences references) {
-    return [references.getterReference!];
+    return [references.getterReference];
   }
 
   @override

@@ -342,16 +342,35 @@ class InferableRedirectingFactory implements InferableMember {
   }
 }
 
+/// [Reference]s used for the [Member] nodes created for a factory constructor.
 class FactoryReferences {
   Reference? _factoryReference;
   Reference? _tearOffReference;
-  final bool _hasTearOff;
 
+  /// If `true`, the factory constructor has a tear-off lowering and should
+  /// therefore have distinct [factoryReference] and [tearOffReference]
+  /// values.
+  final bool _hasTearOffLowering;
+
+  /// Creates a [FactoryReferences] object preloaded with the
+  /// [preExistingFactoryReference] and [preExistingTearOffReference].
+  ///
+  /// For initial/one-off compilations these are `null`, but for subsequent
+  /// compilations during an incremental compilation, these are the references
+  /// used for the same factory constructor and tear-off in the previous
+  /// compilation.
   FactoryReferences._(
-      this._factoryReference, this._tearOffReference, this._hasTearOff)
-      : assert(!(_tearOffReference != null && !_hasTearOff),
-            "Unexpected tear off reference $_tearOffReference.");
+      {required Reference? preExistingFactoryReference,
+      required Reference? preExistingTearOffReference,
+      required bool hasTearOffLowering})
+      : _factoryReference = preExistingFactoryReference,
+        _tearOffReference = preExistingTearOffReference,
+        _hasTearOffLowering = hasTearOffLowering,
+        assert(!(preExistingTearOffReference != null && !hasTearOffLowering),
+            "Unexpected tear off reference $preExistingTearOffReference.");
 
+  /// Creates a [FactoryReferences] object preloaded with the pre-existing
+  /// references from [indexedContainer], if available.
   factory FactoryReferences({
     required String name,
     required NameScheme nameScheme,
@@ -359,27 +378,34 @@ class FactoryReferences {
     required SourceLoader loader,
     required DeclarationBuilder declarationBuilder,
   }) {
-    bool hasTearOff = switch (declarationBuilder) {
+    bool hasTearOffLowering = switch (declarationBuilder) {
       ClassBuilder() =>
         loader.target.backendTarget.isFactoryTearOffLoweringEnabled,
       ExtensionBuilder() => false,
       ExtensionTypeDeclarationBuilder() => true,
     };
 
-    Reference? constructorReference;
-    Reference? tearOffReference;
+    Reference? preExistingFactoryReference;
+    Reference? preExistingTearOffReference;
 
     if (indexedContainer != null) {
-      constructorReference = indexedContainer.lookupConstructorReference(
+      preExistingFactoryReference = indexedContainer.lookupConstructorReference(
           nameScheme.getConstructorMemberName(name, isTearOff: false).name);
-      tearOffReference = indexedContainer.lookupGetterReference(
+      preExistingTearOffReference = indexedContainer.lookupGetterReference(
           nameScheme.getConstructorMemberName(name, isTearOff: true).name);
     }
 
     return new FactoryReferences._(
-        constructorReference, tearOffReference, hasTearOff);
+        preExistingFactoryReference: preExistingFactoryReference,
+        preExistingTearOffReference: preExistingTearOffReference,
+        hasTearOffLowering: hasTearOffLowering);
   }
 
+  /// Registers that [builder] is created for the pre-existing references
+  /// provided in [FactoryReferences._].
+  ///
+  /// This must be called before [factoryReference] and [tearOffReference] are
+  /// accessed.
   void registerReference(SourceLoader loader, SourceFactoryBuilder builder) {
     if (_factoryReference != null) {
       loader.buildersCreatedWithReferences[_factoryReference!] = builder;
@@ -389,8 +415,16 @@ class FactoryReferences {
     }
   }
 
+  /// The [Reference] used to refer to the [Member] node created for the factory
+  /// constructor.
   Reference get factoryReference => _factoryReference ??= new Reference();
 
-  Reference get tearOffReference =>
-      _tearOffReference ??= _hasTearOff ? new Reference() : factoryReference;
+  /// The [Reference] used to refer to the [Member] node created for the
+  /// tear-off of the factory constructor.
+  ///
+  /// If a tear-off lowering is created for the factory constructor, this is
+  /// distinct from [factoryReference], otherwise it is the same [Reference] as
+  /// [factoryReference].
+  Reference get tearOffReference => _tearOffReference ??=
+      _hasTearOffLowering ? new Reference() : factoryReference;
 }
