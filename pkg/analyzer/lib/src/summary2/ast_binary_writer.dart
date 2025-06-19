@@ -94,7 +94,8 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   @override
   void visitAugmentedExpression(covariant AugmentedExpressionImpl node) {
     _writeByte(Tag.AugmentedExpression);
-    _sink.writeFragmentOrMember(node.fragment);
+    // TODO(scheglov): restore when the feature is fully specified
+    // _sink.writeFragmentOrMember(node.fragment);
     _storeExpression(node);
   }
 
@@ -103,7 +104,8 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeByte(Tag.AugmentedInvocation);
     _writeOptionalNode(node.typeArguments);
     _writeNode(node.arguments);
-    _sink.writeFragmentOrMember(node.fragment);
+    // TODO(scheglov): restore when the feature is fully specified
+    // _sink.writeFragmentOrMember(node.fragment);
     _storeExpression(node);
   }
 

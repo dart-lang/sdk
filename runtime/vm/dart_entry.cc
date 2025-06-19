@@ -103,7 +103,7 @@ static ObjectPtr InvokeDartCode(uword entry_point,
   DartEntryScope dart_entry_scope(thread);
 
   const uword stub = StubCode::InvokeDartCode().EntryPoint();
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
   if (FLAG_use_simulator) {
     auto invoke = [&](uword entry_point, uword arguments_descriptor,
                       uword arguments, Thread* thread) -> uword {

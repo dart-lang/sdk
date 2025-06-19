@@ -119,7 +119,7 @@ extern "C" void DRT_BootstrapNativeCall(Dart_NativeArguments args,
 
 uword NativeEntry::BootstrapNativeCallWrapperEntry() {
   uword entry = reinterpret_cast<uword>(DRT_BootstrapNativeCall);
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
   if (FLAG_use_simulator) {
     entry = Simulator::RedirectExternalReference(
         entry, Simulator::kNativeCallWrapper,
@@ -165,7 +165,7 @@ extern "C" void DRT_NoScopeNativeCall(Dart_NativeArguments args,
 
 uword NativeEntry::NoScopeNativeCallWrapperEntry() {
   uword entry = reinterpret_cast<uword>(DRT_NoScopeNativeCall);
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
   if (FLAG_use_simulator) {
     entry = Simulator::RedirectExternalReference(
         entry, Simulator::kNativeCallWrapper,
@@ -198,7 +198,7 @@ extern "C" void DRT_AutoScopeNativeCall(Dart_NativeArguments args,
 
 uword NativeEntry::AutoScopeNativeCallWrapperEntry() {
   uword entry = reinterpret_cast<uword>(DRT_AutoScopeNativeCall);
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
   if (FLAG_use_simulator) {
     entry = Simulator::RedirectExternalReference(
         entry, Simulator::kNativeCallWrapper,

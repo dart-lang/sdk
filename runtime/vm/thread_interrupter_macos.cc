@@ -114,7 +114,7 @@ class ThreadInterrupterMacOS {
     its.lr = state.__lr;
 #endif  // HOST_ARCH_...
 
-#if defined(TARGET_ARCH_ARM64) && !defined(USING_SIMULATOR)
+#if defined(TARGET_ARCH_ARM64) && !defined(DART_INCLUDE_SIMULATOR)
     its.dsp = state.__x[SPREG];
 #endif
     return its;

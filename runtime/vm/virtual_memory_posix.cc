@@ -552,14 +552,22 @@ void VirtualMemory::Init() {
   page_size_ = CalculatePageSize();
 
 #if defined(DART_ENABLE_RX_WORKAROUNDS)
+  bool can_jit = true;
   if (IsAtLeastIOS26_0()) {
     should_dual_map_executable_pages_ = true;
-    if (!CheckIfRXWorks()) {
-      FATAL(
-          "Unable to JIT: failed to create executable machine code dynamically "
-          "due to OS restrictions");
-    }
+    can_jit = CheckIfRXWorks();
   }
+#if defined(DART_INCLUDE_SIMULATOR)
+  FLAG_use_simulator = !can_jit;
+  Syslog::PrintErr("Dart execution mode: %s\n",
+                   FLAG_use_simulator ? "simulator" : "JIT");
+#else
+  if (!can_jit) {
+    FATAL(
+        "Unable to JIT: failed to create executable machine code dynamically "
+        "due to OS restrictions");
+  }
+#endif
 #endif
 
 #if defined(DART_COMPRESSED_POINTERS)

@@ -368,30 +368,30 @@ struct simd128_value_t {
 // Determine whether we will be using the simulator.
 #if defined(TARGET_ARCH_IA32)
 #if !defined(HOST_ARCH_IA32)
-#define USING_SIMULATOR 1
+#define DART_INCLUDE_SIMULATOR 1
 #endif
 #elif defined(TARGET_ARCH_X64)
 #if !defined(HOST_ARCH_X64)
-#define USING_SIMULATOR 1
+#define DART_INCLUDE_SIMULATOR 1
 #endif
 #elif defined(TARGET_ARCH_ARM)
 #if !defined(HOST_ARCH_ARM)
 #define TARGET_HOST_MISMATCH 1
 #if !defined(IS_SIMARM_HOST64)
-#define USING_SIMULATOR 1
+#define DART_INCLUDE_SIMULATOR 1
 #endif
 #endif
 #elif defined(TARGET_ARCH_ARM64)
 #if !defined(HOST_ARCH_ARM64)
-#define USING_SIMULATOR 1
+#define DART_INCLUDE_SIMULATOR 1
 #endif
 #elif defined(TARGET_ARCH_RISCV32)
 #if !defined(HOST_ARCH_RISCV32)
-#define USING_SIMULATOR 1
+#define DART_INCLUDE_SIMULATOR 1
 #endif
 #elif defined(TARGET_ARCH_RISCV64)
 #if !defined(HOST_ARCH_RISCV64)
-#define USING_SIMULATOR 1
+#define DART_INCLUDE_SIMULATOR 1
 #endif
 #else
 #error Unknown architecture.

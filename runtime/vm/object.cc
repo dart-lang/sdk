@@ -27010,7 +27010,7 @@ const char* StackTrace::ToCString() const {
 #else
     const char kCompressedPointers[] = "no";
 #endif
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
     const char kUsingSimulator[] = "yes";
 #else
     const char kUsingSimulator[] = "no";

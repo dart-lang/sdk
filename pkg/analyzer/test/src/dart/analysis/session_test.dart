@@ -791,7 +791,6 @@ unitElementResult
   path: /home/test/lib/test.dart
   uri: package:test/test.dart
   element
-    reference: null
     library: root::package:test/test.dart
     classes: A, B
 ''');
@@ -813,7 +812,6 @@ unitElementResult
   path: /home/test/lib/a.dart
   uri: package:test/a.dart
   element
-    reference: root::package:test/test.dart::@fragment::package:test/a.dart
     library: root::package:test/test.dart
     classes: A, B
 ''');
@@ -831,7 +829,6 @@ unitElementResult
   path: /home/test/lib/a.dart
   uri: package:test/a.dart
   element
-    reference: root::package:test/a.dart::@fragment::package:test/a.dart
     library: root::package:test/a.dart
     classes: A, B
 ''');
@@ -854,7 +851,6 @@ unitElementResult
   path: /home/test/lib/a.dart
   uri: package:test/a.dart
   element
-    reference: root::package:test/test.dart::@fragment::package:test/a.dart
     library: root::package:test/test.dart
     classes: A, B
 ''');
@@ -872,7 +868,6 @@ unitElementResult
   path: /home/test/lib/a.dart
   uri: package:test/a.dart
   element
-    reference: root::package:test/a.dart::@fragment::package:test/a.dart
     library: root::package:test/a.dart
     classes: A, B
 ''');
@@ -890,7 +885,6 @@ unitElementResult
   path: /home/test/lib/a.dart
   uri: package:test/a.dart
   element
-    reference: root::package:test/a.dart::@fragment::package:test/a.dart
     library: root::package:test/a.dart
     classes: A, B
 ''');
@@ -937,7 +931,6 @@ unitElementResult
       sink.writelnWithIndent('element');
       sink.withIndent(() {
         var element = result.fragment as LibraryFragmentImpl;
-        sink.writelnWithIndent('reference: ${element.reference}');
 
         var library =
             (element as LibraryFragment).element as LibraryElementImpl;

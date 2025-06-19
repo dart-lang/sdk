@@ -150,7 +150,7 @@ class LibraryReader {
       0,
       featureSet,
     );
-    _reference.element2 = _libraryElement;
+    _reference.element = _libraryElement;
     _libraryElement.reference = _reference;
 
     // Read the rest of non-resolution data for the library.
@@ -166,7 +166,6 @@ class LibraryReader {
     _libraryElement.manifest = manifest;
 
     _libraryElement.loadLibraryProvider = LoadLibraryFunctionProvider(
-      fragmentReference: _readReference(),
       elementReference: _readReference(),
     );
 
@@ -252,8 +251,8 @@ class LibraryReader {
   /// These elements are implicitly declared in `dart:core`.
   void _declareDartCoreDynamicNever() {
     if (_reference.name == 'dart:core') {
-      _reference.getChild('dynamic').element2 = DynamicElementImpl.instance;
-      _reference.getChild('Never').element2 = NeverElementImpl.instance;
+      _reference.getChild('dynamic').element = DynamicElementImpl.instance;
+      _reference.getChild('Never').element = NeverElementImpl.instance;
     }
   }
 
@@ -897,7 +896,7 @@ class LibraryReader {
         isDeferred: isDeferred,
       );
 
-      var element = reference.element2 as PrefixElementImpl?;
+      var element = reference.element as PrefixElementImpl?;
       if (element == null) {
         element = PrefixElementImpl(
           reference: reference,
@@ -1073,7 +1072,6 @@ class LibraryReader {
       var isDefault = _reader.readBool();
       var isInitializingFormal = _reader.readBool();
       var isSuperFormal = _reader.readBool();
-      var reference = _readOptionalReference();
 
       var kindIndex = _reader.readByte();
       var kind = ResolutionReader._formalParameterKind(kindIndex);
@@ -1124,10 +1122,6 @@ class LibraryReader {
             nameOffset2: null,
             parameterKind: kind,
           );
-        }
-        if (reference != null) {
-          element.reference = reference;
-          reference.element = element;
         }
       }
       idFragmentMap[id] = element;
@@ -1498,16 +1492,16 @@ class LibraryReader {
 
   void _readVariableGetterSetterLinking() {
     _reader.readTypedList(() {
-      var variable = _readReference().element2 as PropertyInducingElementImpl;
+      var variable = _readReference().element as PropertyInducingElementImpl;
 
-      var optionalGetter = _readOptionalReference()?.element2;
+      var optionalGetter = _readOptionalReference()?.element;
       if (optionalGetter != null) {
         var getter = optionalGetter as GetterElementImpl;
         variable.getter2 = getter;
         getter.variable3 = variable;
       }
 
-      var optionalSetter = _readOptionalReference()?.element2;
+      var optionalSetter = _readOptionalReference()?.element;
       if (optionalSetter != null) {
         var setter = optionalSetter as SetterElementImpl;
         variable.setter2 = setter;
@@ -1541,39 +1535,14 @@ class ResolutionReader {
 
   late LibraryFragmentImpl currentLibraryFragment;
 
-  /// The stack of [TypeParameterElementImpl]s and [FormalParameterImpl] that
-  /// are available in the scope of [readFragmentOrMember] and [readType].
+  /// The stack of [TypeParameterElementImpl]s and [FormalParameterElementImpl]s
+  /// that are available in the scope of [readElement] and [readType].
   ///
   /// This stack is shared with the client of the reader, and update mostly
   /// by the client. However it is also updated during [_readFunctionType].
   final List<ElementImpl> _localElements = [];
 
   ResolutionReader(this._elementFactory, this._referenceReader, this._reader);
-
-  void applyToFormalParameterFragments(
-    List<FormalParameterFragmentImpl> parameters,
-  ) {
-    for (var parameter in parameters) {
-      parameter.metadata = _readMetadata(unitElement: currentLibraryFragment);
-      _readTypeParameters2(
-        currentLibraryFragment,
-        this,
-        parameter.typeParameters,
-      );
-      applyToFormalParameterFragments(parameter.parameters);
-      parameter.type = readRequiredType();
-      if (parameter is ConstVariableFragment) {
-        var defaultParameter = parameter as ConstVariableFragment;
-        var initializer = readOptionalExpression();
-        if (initializer != null) {
-          defaultParameter.constantInitializer = initializer;
-        }
-      }
-      if (parameter is FieldFormalParameterFragmentImpl) {
-        parameter.field = readFragmentOrMember() as FieldFragmentImpl?;
-      }
-    }
-  }
 
   LibraryElementImpl libraryOfUri(Uri uri) {
     return _elementFactory.libraryOfUri2(uri);
@@ -1643,45 +1612,6 @@ class ResolutionReader {
 
   T readEnum<T extends Enum>(List<T> values) {
     return _reader.readEnum(values);
-  }
-
-  FragmentOrMember? readFragmentOrMember() {
-    var memberFlags = _reader.readByte();
-    var fragment = _readFragmentImpl();
-
-    if (fragment == null) {
-      return null;
-    }
-
-    if (memberFlags == Tag.RawElement) {
-      return fragment;
-    }
-
-    if (memberFlags == Tag.MemberWithTypeArguments) {
-      var enclosing = fragment.enclosingElement3 as InstanceFragmentImpl;
-
-      var firstFragment = enclosing.element.firstFragment;
-      var declarationTypeParameters =
-          firstFragment.typeParameters.map((tp) => tp.asElement2).toList();
-
-      var substitution = Substitution.empty;
-      var typeArguments = _readTypeList();
-      if (typeArguments.isNotEmpty) {
-        substitution = Substitution.fromPairs2(
-          declarationTypeParameters,
-          typeArguments,
-        );
-      }
-
-      if (fragment is ExecutableFragmentImpl) {
-        return ExecutableMember.from2(fragment, substitution);
-      } else {
-        fragment as FieldFragmentImpl;
-        return FieldMember.from2(fragment, substitution);
-      }
-    }
-
-    throw UnimplementedError('memberFlags: $memberFlags');
   }
 
   Map<K, V> readMap<K, V>({
@@ -1966,20 +1896,6 @@ class ResolutionReader {
     });
   }
 
-  FragmentImpl? _readFragmentImpl() {
-    var index = _reader.readUInt30();
-
-    if ((index & 0x1) == 0x1) {
-      // TODO(scheglov): remove?
-      throw UnimplementedError();
-    }
-
-    var referenceIndex = index >> 1;
-    var reference = _referenceReader.referenceOfIndex(referenceIndex);
-
-    return _elementFactory.elementOfReference(reference);
-  }
-
   String? _readFragmentName() {
     return _reader.readOptionalStringReference();
   }
@@ -2095,19 +2011,6 @@ class ResolutionReader {
       }
     }
     return typeParameters;
-  }
-
-  void _readTypeParameters2(
-    LibraryFragmentImpl unitElement,
-    ResolutionReader reader,
-    List<TypeParameterFragmentImpl> typeParameters,
-  ) {
-    reader._addTypeParameters(typeParameters);
-    for (var typeParameter in typeParameters) {
-      typeParameter.metadata = reader._readMetadata(unitElement: unitElement);
-      typeParameter.bound = reader.readType();
-      typeParameter.defaultType = reader.readType();
-    }
   }
 
   static ParameterKind _formalParameterKind(int encoding) {

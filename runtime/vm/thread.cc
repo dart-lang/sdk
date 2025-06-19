@@ -532,7 +532,7 @@ void Thread::EnterIsolateGroupAsMutator(IsolateGroup* isolate_group,
   thread->SetupDartMutatorStateDependingOnSnapshot(isolate_group);
 
   ResumeThreadInternal(thread);
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
   if (FLAG_use_simulator) {
     thread->SetStackLimit(Simulator::Current()->overflow_stack_limit());
   } else {
@@ -586,7 +586,7 @@ void Thread::ResumeDartMutatorThreadInternal(Thread* thread) {
   ResumeThreadInternal(thread);
   if (Dart::vm_isolate() != nullptr &&
       thread->isolate() != Dart::vm_isolate()) {
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
     if (FLAG_use_simulator) {
       thread->SetStackLimit(Simulator::Current()->overflow_stack_limit());
     } else {
@@ -1328,7 +1328,7 @@ intptr_t Thread::OffsetFromThread(const RuntimeEntry* runtime_entry) {
 bool Thread::TopErrorHandlerIsSetJump() const {
   if (long_jump_base() == nullptr) return false;
   if (top_exit_frame_info_ == 0) return true;
-#if defined(USING_SIMULATOR) || defined(USING_SAFE_STACK)
+#if defined(DART_INCLUDE_SIMULATOR) || defined(USING_SAFE_STACK)
   // False positives: simulator stack and native stack are unordered.
   return true;
 #else
@@ -1344,7 +1344,7 @@ bool Thread::TopErrorHandlerIsSetJump() const {
 bool Thread::TopErrorHandlerIsExitFrame() const {
   if (top_exit_frame_info_ == 0) return false;
   if (long_jump_base() == nullptr) return true;
-#if defined(USING_SIMULATOR) || defined(USING_SAFE_STACK)
+#if defined(DART_INCLUDE_SIMULATOR) || defined(USING_SAFE_STACK)
   // False positives: simulator stack and native stack are unordered.
   return true;
 #else

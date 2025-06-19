@@ -29,15 +29,15 @@ int f(Object p01) {
 suggestions
   p01
     kind: parameter
-  const
-    kind: keyword
   false
     kind: keyword
   null
     kind: keyword
-  switch
-    kind: keyword
   true
+    kind: keyword
+  const
+    kind: keyword
+  switch
     kind: keyword
 ''');
   }

@@ -583,7 +583,7 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
   {
     InterpreterSetjmpBuffer buffer(this);
     if (!DART_SETJMP(buffer.buffer_)) {
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
       // We need to beware that bouncing between the interpreter and the
       // simulator may exhaust the C stack before exhausting either the
       // interpreter or simulator stacks.

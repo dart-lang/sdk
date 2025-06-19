@@ -20,9 +20,9 @@ void CPU::FlushICache(uword start, uword size) {
 
 const char* CPU::Id() {
   return
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
       "sim"
-#endif  // !defined(USING_SIMULATOR)
+#endif  // !defined(DART_INCLUDE_SIMULATOR)
       "x64";
 }
 
@@ -36,7 +36,7 @@ bool HostCPUFeatures::abm_supported_ = false;
 bool HostCPUFeatures::initialized_ = false;
 #endif
 
-#if !defined(USING_SIMULATOR)
+#if !defined(DART_INCLUDE_SIMULATOR)
 void HostCPUFeatures::Init() {
   CpuInfo::Init();
   hardware_ = CpuInfo::GetCpuModel();
@@ -60,7 +60,7 @@ void HostCPUFeatures::Cleanup() {
   CpuInfo::Cleanup();
 }
 
-#else  // !defined(USING_SIMULATOR)
+#else  // !defined(DART_INCLUDE_SIMULATOR)
 
 void HostCPUFeatures::Init() {
   CpuInfo::Init();
@@ -83,7 +83,7 @@ void HostCPUFeatures::Cleanup() {
   hardware_ = nullptr;
   CpuInfo::Cleanup();
 }
-#endif  // !defined(USING_SIMULATOR)
+#endif  // !defined(DART_INCLUDE_SIMULATOR)
 
 }  // namespace dart
 

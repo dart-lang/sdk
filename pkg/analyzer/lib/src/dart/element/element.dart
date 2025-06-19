@@ -160,7 +160,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
   final ClassFragmentImpl _firstFragment;
 
   ClassElementImpl(this.reference, this._firstFragment) {
-    reference.element2 = this;
+    reference.element = this;
     firstFragment.augmentedInternal = this;
   }
 
@@ -791,7 +791,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
     required this.reference,
     required this.firstFragment,
   }) {
-    reference.element2 = this;
+    reference.element = this;
     firstFragment.element = this;
   }
 
@@ -1206,8 +1206,7 @@ mixin ConstVariableFragment implements FragmentImpl, ConstantEvaluationTarget {
       if (library == null) {
         throw StateError(
           '[library: null][this: ($runtimeType) $this]'
-          '[enclosingElement: $enclosingElement3]'
-          '[reference: $reference]',
+          '[enclosingElement: $enclosingElement3]',
         );
       }
       computeConstants(
@@ -2188,7 +2187,7 @@ class EnumElementImpl extends InterfaceElementImpl implements EnumElement {
   final EnumFragmentImpl firstFragment;
 
   EnumElementImpl(this.reference, this.firstFragment) {
-    reference.element2 = this;
+    reference.element = this;
     firstFragment.augmentedInternal = this;
   }
 
@@ -2445,7 +2444,7 @@ abstract class ExecutableFragmentImpl extends _ExistingFragmentImpl
 
   /// Initialize a newly created executable element to have the given [name] and
   /// [offset].
-  ExecutableFragmentImpl({required super.nameOffset, super.reference});
+  ExecutableFragmentImpl({required super.nameOffset});
 
   @override
   List<Fragment> get children3 => [...typeParameters, ...parameters];
@@ -2644,7 +2643,7 @@ class ExtensionElementImpl extends InstanceElementImpl
   TypeImpl _extendedType = InvalidTypeImpl.instance;
 
   ExtensionElementImpl(this.reference, this.firstFragment) {
-    reference.element2 = this;
+    reference.element = this;
     firstFragment.augmentedInternal = this;
   }
 
@@ -2711,14 +2710,6 @@ class ExtensionFragmentImpl extends InstanceFragmentImpl
   }
 
   @override
-  String get identifier {
-    if (reference != null) {
-      return reference!.name;
-    }
-    return super.identifier;
-  }
-
-  @override
   bool get isPrivate {
     var name = name2;
     return name == null || Identifier.isPrivateName(name);
@@ -2768,7 +2759,7 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   final ExtensionTypeFragmentImpl firstFragment;
 
   ExtensionTypeElementImpl(this.reference, this.firstFragment) {
-    reference.element2 = this;
+    reference.element = this;
     firstFragment.augmentedInternal = this;
   }
 
@@ -2907,7 +2898,7 @@ class FieldElementImpl extends PropertyInducingElementImpl
   final FieldFragmentImpl firstFragment;
 
   FieldElementImpl({required this.reference, required this.firstFragment}) {
-    reference.element2 = this;
+    reference.element = this;
     firstFragment.element = this;
   }
 
@@ -3868,8 +3859,6 @@ abstract class FragmentImpl implements FragmentOrMember {
   /// is the defining unit of the library.
   FragmentImpl? enclosingElement3;
 
-  Reference? reference;
-
   /// The offset of the name of this element in the file that contains the
   /// declaration of this element.
   int _nameOffset = 0;
@@ -3889,10 +3878,7 @@ abstract class FragmentImpl implements FragmentOrMember {
 
   /// Initialize a newly created element to have the given [name] at the given
   /// [_nameOffset].
-  FragmentImpl({required int nameOffset, this.reference})
-    : _nameOffset = nameOffset {
-    reference?.element = this;
-  }
+  FragmentImpl({required int nameOffset}) : _nameOffset = nameOffset;
 
   /// The length of the element's code, or `null` if the element is synthetic.
   int? get codeLength => _codeLength;
@@ -4485,7 +4471,7 @@ class GetterElementImpl extends PropertyAccessorElementImpl
   final GetterFragmentImpl firstFragment;
 
   GetterElementImpl(this.reference, this.firstFragment) {
-    reference.element2 = this;
+    reference.element = this;
     GetterFragmentImpl? fragment = firstFragment;
     while (fragment != null) {
       fragment.element = this;
@@ -4558,8 +4544,7 @@ class GetterFragmentImpl extends PropertyAccessorFragmentImpl
 
   GetterFragmentImpl({required super.name2, required super.nameOffset});
 
-  GetterFragmentImpl.forVariable(super.variable, {super.reference})
-    : super.forVariable();
+  GetterFragmentImpl.forVariable(super.variable) : super.forVariable();
 
   @override
   PropertyAccessorFragmentImpl? get correspondingGetter => null;
@@ -7054,14 +7039,10 @@ class LibraryImportImpl extends ElementDirectiveImpl implements LibraryImport {
 
 /// The provider for the lazily created `loadLibrary` function.
 final class LoadLibraryFunctionProvider {
-  final Reference fragmentReference;
   final Reference elementReference;
   TopLevelFunctionElementImpl? _element;
 
-  LoadLibraryFunctionProvider({
-    required this.fragmentReference,
-    required this.elementReference,
-  });
+  LoadLibraryFunctionProvider({required this.elementReference});
 
   TopLevelFunctionElementImpl getElement(LibraryElementImpl library) {
     return _element ??= _create(library);
@@ -7075,9 +7056,6 @@ final class LoadLibraryFunctionProvider {
     fragment.isStatic = true;
     fragment.returnType = library.typeProvider.futureDynamicType;
     fragment.enclosingElement3 = library.definingCompilationUnit;
-
-    fragment.reference = fragmentReference;
-    fragmentReference.element = fragment;
 
     return TopLevelFunctionElementImpl(elementReference, fragment)
       ..returnType = library.typeProvider.futureDynamicType;
@@ -7768,7 +7746,7 @@ class MethodElementImpl extends ExecutableElementImpl
     required this.reference,
     required this.firstFragment,
   }) {
-    reference.element2 = this;
+    reference.element = this;
     firstFragment.element = this;
   }
 
@@ -7941,7 +7919,7 @@ class MixinElementImpl extends InterfaceElementImpl implements MixinElement {
   final MixinFragmentImpl firstFragment;
 
   MixinElementImpl(this.reference, this.firstFragment) {
-    reference.element2 = this;
+    reference.element = this;
     firstFragment.augmentedInternal = this;
   }
 
@@ -8737,7 +8715,7 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
 
   PrefixElementImpl({required this.reference, required this.firstFragment})
     : lastFragment = firstFragment {
-    reference.element2 = this;
+    reference.element = this;
   }
 
   @override
@@ -8967,10 +8945,9 @@ sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
   /// Initialize a newly created synthetic property accessor element to be
   /// associated with the given [variable].
   PropertyAccessorFragmentImpl.forVariable(
-    PropertyInducingFragmentImpl variable, {
-    super.reference,
-  }) : name2 = variable.name2,
-       super(nameOffset: -1) {
+    PropertyInducingFragmentImpl variable,
+  ) : name2 = variable.name2,
+      super(nameOffset: -1) {
     isAbstract = variable is FieldFragmentImpl && variable.isAbstract;
     isStatic = variable.isStatic;
     isSynthetic = true;
@@ -9057,12 +9034,8 @@ sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
 /// Implicit getter for a [PropertyInducingFragmentImpl].
 class PropertyAccessorFragmentImplImplicitGetter extends GetterFragmentImpl {
   /// Create the implicit getter and bind it to the [property].
-  PropertyAccessorFragmentImplImplicitGetter(
-    super.property, {
-    Reference? reference,
-  }) : super.forVariable(reference: reference) {
-    reference?.element = this;
-  }
+  PropertyAccessorFragmentImplImplicitGetter(super.property)
+    : super.forVariable();
 
   @override
   FragmentImpl get enclosingElement3 {
@@ -9123,7 +9096,7 @@ class PropertyAccessorFragmentImplImplicitGetter extends GetterFragmentImpl {
 /// Implicit setter for a [PropertyInducingFragmentImpl].
 class PropertyAccessorFragmentImplImplicitSetter extends SetterFragmentImpl {
   /// Create the implicit setter and bind it to the [property].
-  PropertyAccessorFragmentImplImplicitSetter(super.property, {super.reference})
+  PropertyAccessorFragmentImplImplicitSetter(super.property)
     : super.forVariable();
 
   @override
@@ -9442,11 +9415,6 @@ abstract class PropertyInducingFragmentImpl
       }
     }
   }
-
-  void bindReference(Reference reference) {
-    this.reference = reference;
-    reference.element = this;
-  }
 }
 
 /// Common base class for all analyzer-internal classes that implement
@@ -9473,7 +9441,7 @@ class SetterElementImpl extends PropertyAccessorElementImpl
   final SetterFragmentImpl firstFragment;
 
   SetterElementImpl(this.reference, this.firstFragment) {
-    reference.element2 = this;
+    reference.element = this;
     SetterFragmentImpl? fragment = firstFragment;
     while (fragment != null) {
       fragment.element = this;
@@ -9565,8 +9533,7 @@ class SetterFragmentImpl extends PropertyAccessorFragmentImpl
 
   SetterFragmentImpl({required super.name2, required super.nameOffset});
 
-  SetterFragmentImpl.forVariable(super.variable, {super.reference})
-    : super.forVariable();
+  SetterFragmentImpl.forVariable(super.variable) : super.forVariable();
 
   @override
   PropertyAccessorFragmentImpl? get correspondingGetter => variable2?.getter;
@@ -9759,7 +9726,7 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl
   final TopLevelFunctionFragmentImpl firstFragment;
 
   TopLevelFunctionElementImpl(this.reference, this.firstFragment) {
-    reference.element2 = this;
+    reference.element = this;
     firstFragment.element = this;
   }
 
@@ -9864,7 +9831,7 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
   final TopLevelVariableFragmentImpl firstFragment;
 
   TopLevelVariableElementImpl(this.reference, this.firstFragment) {
-    reference.element2 = this;
+    reference.element = this;
     firstFragment.element = this;
   }
 
@@ -10004,7 +9971,7 @@ class TypeAliasElementImpl extends TypeDefiningElementImpl
   final TypeAliasFragmentImpl firstFragment;
 
   TypeAliasElementImpl(this.reference, this.firstFragment) {
-    reference.element2 = this;
+    reference.element = this;
     firstFragment.element = this;
   }
 
@@ -10899,7 +10866,7 @@ mixin WrappedElementMixin implements ElementImpl {
 
 abstract class _ExistingFragmentImpl extends FragmentImpl
     with _HasLibraryMixin {
-  _ExistingFragmentImpl({required super.nameOffset, super.reference});
+  _ExistingFragmentImpl({required super.nameOffset});
 }
 
 /// An element that can be declared in multiple fragments.

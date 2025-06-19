@@ -10,7 +10,7 @@
 
 #include "vm/cpuinfo.h"
 
-#if !defined(USING_SIMULATOR)
+#if !defined(DART_INCLUDE_SIMULATOR)
 #if !defined(DART_HOST_OS_FUCHSIA)
 #include <sys/syscall.h>
 #else
@@ -28,7 +28,7 @@ namespace dart {
 void CPU::FlushICache(uword start, uword size) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   UNREACHABLE();
-#elif !defined(USING_SIMULATOR)
+#elif !defined(DART_INCLUDE_SIMULATOR)
   // Nothing to do. Flushing no instructions.
   if (size == 0) {
     return;
@@ -53,9 +53,9 @@ void CPU::FlushICache(uword start, uword size) {
 
 const char* CPU::Id() {
   return
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
       "sim"
-#endif  // !defined(USING_SIMULATOR)
+#endif  // !defined(DART_INCLUDE_SIMULATOR)
 #if defined(TARGET_ARCH_RISCV32)
       "riscv32";
 #elif defined(TARGET_ARCH_RISCV64)
@@ -70,7 +70,7 @@ const char* HostCPUFeatures::hardware_ = nullptr;
 bool HostCPUFeatures::initialized_ = false;
 #endif
 
-#if !defined(USING_SIMULATOR)
+#if !defined(DART_INCLUDE_SIMULATOR)
 void HostCPUFeatures::Init() {
   CpuInfo::Init();
   hardware_ = CpuInfo::GetCpuModel();
@@ -90,7 +90,7 @@ void HostCPUFeatures::Cleanup() {
   CpuInfo::Cleanup();
 }
 
-#else  // !defined(USING_SIMULATOR)
+#else  // !defined(DART_INCLUDE_SIMULATOR)
 
 void HostCPUFeatures::Init() {
   CpuInfo::Init();
@@ -110,7 +110,7 @@ void HostCPUFeatures::Cleanup() {
   hardware_ = nullptr;
   CpuInfo::Cleanup();
 }
-#endif  // !defined(USING_SIMULATOR)
+#endif  // !defined(DART_INCLUDE_SIMULATOR)
 
 }  // namespace dart
 

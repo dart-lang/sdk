@@ -79,7 +79,7 @@ void StubCodeCompiler::EnsureIsNewOrRemembered() {
 // [Thread::tsan_utils_->setjmp_buffer_]).
 static void WithExceptionCatchingTrampoline(Assembler* assembler,
                                             std::function<void()> fun) {
-#if !defined(USING_SIMULATOR)
+#if !defined(DART_INCLUDE_SIMULATOR)
   const Register kTsanUtilsReg = RAX;
 
   // Reserve space for arguments and align frame before entering C++ world.
@@ -149,11 +149,11 @@ static void WithExceptionCatchingTrampoline(Assembler* assembler,
     __ Bind(&do_native_call);
     __ MoveRegister(kSavedRspReg, RSP);
   }
-#endif  // !defined(USING_SIMULATOR)
+#endif  // !defined(DART_INCLUDE_SIMULATOR)
 
   fun();
 
-#if !defined(USING_SIMULATOR)
+#if !defined(DART_INCLUDE_SIMULATOR)
   if (FLAG_target_thread_sanitizer) {
     __ MoveRegister(RSP, kSavedRspReg);
     __ AddImmediate(RSP, Immediate(kJumpBufferSize));
@@ -161,7 +161,7 @@ static void WithExceptionCatchingTrampoline(Assembler* assembler,
     __ movq(kTsanUtilsReg2, Address(THR, target::Thread::tsan_utils_offset()));
     __ popq(Address(kTsanUtilsReg2, target::TsanUtils::setjmp_buffer_offset()));
   }
-#endif  // !defined(USING_SIMULATOR)
+#endif  // !defined(DART_INCLUDE_SIMULATOR)
 }
 
 // Input parameters:

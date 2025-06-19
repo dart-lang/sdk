@@ -283,7 +283,8 @@ class AstBinaryReader {
 
   AugmentedExpression _readAugmentedExpression() {
     var node = AugmentedExpressionImpl(augmentedKeyword: Tokens.augmented());
-    node.fragment = _reader.readFragmentOrMember() as FragmentImpl?;
+    // TODO(scheglov): restore when the feature is fully specified
+    // node.fragment = _reader.readFragmentOrMember() as FragmentImpl?;
     _readExpressionResolution(node);
     return node;
   }
@@ -297,7 +298,8 @@ class AstBinaryReader {
       typeArguments: typeArguments,
       arguments: arguments,
     );
-    node.fragment = _reader.readFragmentOrMember() as ExecutableFragmentImpl?;
+    // TODO(scheglov): restore when the feature is fully specified
+    // node.fragment = _reader.readFragmentOrMember() as ExecutableFragmentImpl?;
     _readExpressionResolution(node);
     return node;
   }

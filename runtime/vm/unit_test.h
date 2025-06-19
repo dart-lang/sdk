@@ -524,7 +524,7 @@ class AssemblerTest {
 // using the ABI calling convention.
 // ResultType is the return type of the assembler test function.
 // ArgNType is the type of the Nth argument.
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
 
   // Since Simulator::Call always return a int64_t, bit_cast does not work
   // on 32-bit platforms when returning an int32_t. Use static cast on the
@@ -611,7 +611,7 @@ class AssemblerTest {
     typedef ResultType (*FunctionType)(Arg1Type, Arg2Type, Arg3Type);
     return reinterpret_cast<FunctionType>(entry())(arg1, arg2, arg3);
   }
-#endif  // defined(USING_SIMULATOR)
+#endif  // defined(DART_INCLUDE_SIMULATOR)
 
   // Assemble test and set code_.
   void Assemble();

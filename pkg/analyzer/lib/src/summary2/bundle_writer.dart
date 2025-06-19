@@ -546,7 +546,6 @@ class BundleWriter {
 
   void _writeLoadLibraryFunctionReferences(LibraryElementImpl library) {
     var element = library.loadLibraryFunction2;
-    _writeReference2(element.firstFragment.reference);
     _writeReference2(element.reference);
   }
 
@@ -653,7 +652,6 @@ class BundleWriter {
     _sink.writeBool(element is ConstVariableFragment);
     _sink.writeBool(element.isInitializingFormal);
     _sink.writeBool(element.isSuperFormal);
-    _writeOptionalReference(element.reference);
     _sink._writeFormalParameterKind(element);
     ParameterElementFlags.write(_sink, element);
 
@@ -999,29 +997,6 @@ class ResolutionSink extends _SummaryDataWriter {
     }
   }
 
-  // TODO(scheglov): Triage places where we write elements.
-  // Some of then cannot be members, e.g. type names.
-  void writeFragmentOrMember(FragmentOrMember? element) {
-    if (element == null) {
-      writeByte(Tag.RawElement);
-      writeUInt30(0);
-    } else if (element is Member) {
-      var declaration = element.declaration;
-
-      var typeArguments = _enclosingClassTypeArguments(
-        declaration.asElement2!,
-        element.substitution.map,
-      );
-
-      writeByte(Tag.MemberWithTypeArguments);
-      _writeFragmentImpl(declaration);
-      _writeTypeList(typeArguments);
-    } else {
-      writeByte(Tag.RawElement);
-      _writeFragmentImpl(element as FragmentImpl);
-    }
-  }
-
   void writeOptionalTypeList(List<DartType>? types) {
     if (types != null) {
       writeBool(true);
@@ -1128,13 +1103,6 @@ class ResolutionSink extends _SummaryDataWriter {
         _writeMetadata(parameter.metadata);
       }
     }
-  }
-
-  void _writeFragmentImpl(FragmentImpl element) {
-    // TODO(scheglov): remove?
-    throw UnimplementedError();
-    // var elementIndex = _indexOfElement(element);
-    // writeUInt30(elementIndex);
   }
 
   void _writeFragmentName(Fragment fragment) {

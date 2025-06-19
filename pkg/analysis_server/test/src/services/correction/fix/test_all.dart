@@ -132,6 +132,7 @@ import 'create_method_test.dart' as create_method;
 import 'create_missing_overrides_test.dart' as create_missing_overrides;
 import 'create_mixin_test.dart' as create_mixin;
 import 'create_no_such_method_test.dart' as create_no_such_method;
+import 'create_operator_test.dart' as create_operator;
 import 'create_parameter_test.dart' as create_parameter;
 import 'create_setter_test.dart' as create_setter;
 import 'data_driven/test_all.dart' as data_driven;
@@ -432,6 +433,7 @@ void main() {
     create_missing_overrides.main();
     create_mixin.main();
     create_no_such_method.main();
+    create_operator.main();
     create_setter.main();
     data_driven.main();
     deduplicating_still_offers_several_all_in_file_options.main();

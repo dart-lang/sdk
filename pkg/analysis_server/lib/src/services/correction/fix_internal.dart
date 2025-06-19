@@ -101,6 +101,7 @@ import 'package:analysis_server/src/services/correction/dart/create_method_or_fu
 import 'package:analysis_server/src/services/correction/dart/create_missing_overrides.dart';
 import 'package:analysis_server/src/services/correction/dart/create_mixin.dart';
 import 'package:analysis_server/src/services/correction/dart/create_no_such_method.dart';
+import 'package:analysis_server/src/services/correction/dart/create_operator.dart';
 import 'package:analysis_server/src/services/correction/dart/create_parameter.dart';
 import 'package:analysis_server/src/services/correction/dart/create_setter.dart';
 import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
@@ -918,6 +919,7 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE: [
     AddNullCheck.new,
     CreateExtensionOperator.new,
+    CreateOperator.new,
   ],
   CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE: [
     AddNullCheck.new,
@@ -1002,7 +1004,10 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     ConvertFlutterChild.new,
     ConvertFlutterChildren.new,
   ],
-  CompileTimeErrorCode.UNDEFINED_OPERATOR: [CreateExtensionOperator.new],
+  CompileTimeErrorCode.UNDEFINED_OPERATOR: [
+    CreateExtensionOperator.new,
+    CreateOperator.new,
+  ],
   CompileTimeErrorCode.UNDEFINED_SETTER: [
     ChangeTo.getterOrSetter,
     CreateExtensionSetter.new,

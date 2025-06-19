@@ -855,6 +855,11 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard - 1,
     "Create 'noSuchMethod' method",
   );
+  static const CREATE_OPERATOR = FixKind(
+    'dart.fix.create.operator',
+    DartFixKindPriority.standard,
+    "Create operator '{0}'",
+  );
   static const CREATE_PARAMETER = FixKind(
     'dart.fix.create.parameter',
     DartFixKindPriority.standard,

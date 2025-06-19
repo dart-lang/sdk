@@ -322,7 +322,7 @@ void StubCodeCompiler::GenerateLoadFfiCallbackMetadataRuntimeFunction(
 }
 
 void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
-#if defined(USING_SIMULATOR) && !defined(DART_PRECOMPILER)
+#if defined(DART_INCLUDE_SIMULATOR) && !defined(DART_PRECOMPILER)
   // TODO(37299): FFI is not supported in SIMRISCV32/64.
   __ ebreak();
 #else

@@ -9,7 +9,7 @@
 #if defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
 
 // Only build the simulator if not compiling for real RISCV hardware.
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
 
 #include "vm/simulator.h"
 
@@ -3451,6 +3451,6 @@ void Simulator::CSRClear(uint16_t csr, intx_t mask) {
 
 }  // namespace dart
 
-#endif  // !defined(USING_SIMULATOR)
+#endif  // !defined(DART_INCLUDE_SIMULATOR)
 
 #endif  // defined TARGET_ARCH_RISCV
