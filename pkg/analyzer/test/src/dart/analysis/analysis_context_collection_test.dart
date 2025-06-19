@@ -1086,7 +1086,7 @@ workspaces
     var collection = AnalysisContextCollectionImpl(
       resourceProvider: resourceProvider,
       sdkPath: sdkRoot.path,
-      includedPaths: [pubWorkspace.workspaceRootPath],
+      includedPaths: [getFolder(pubWorkspace.workspaceRootPath).path],
     );
 
     // We expect only 1 context.
@@ -1128,9 +1128,9 @@ workspaces
       resourceProvider: resourceProvider,
       sdkPath: sdkRoot.path,
       includedPaths: [
-        pubWorkspace.package1,
-        pubWorkspace.workspaceRootPath,
-        pubWorkspace.package2,
+        getFolder(pubWorkspace.package1).path,
+        getFolder(pubWorkspace.workspaceRootPath).path,
+        getFolder(pubWorkspace.package2).path,
       ],
     );
 
@@ -1198,7 +1198,10 @@ workspaces
     var collection = AnalysisContextCollectionImpl(
       resourceProvider: resourceProvider,
       sdkPath: sdkRoot.path,
-      includedPaths: [pubWorkspace.package1, pubWorkspace.package2],
+      includedPaths: [
+        getFolder(pubWorkspace.package1).path,
+        getFolder(pubWorkspace.package2).path,
+      ],
     );
 
     // We expect only 1 context.
