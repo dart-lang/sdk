@@ -71,6 +71,10 @@ abstract class TestSuite {
           if (configuration.firefoxPath != null)
             'FIREFOX_PATH':
                 Uri.base.resolve(configuration.firefoxPath!).toFilePath(),
+          if (configuration.useQemu)
+            'QEMU_LD_PREFIX':
+                QemuConfig.all[configuration.architecture]!
+                .elfInterpreterPrefix,
         };
 
   Map<String, String> get environmentOverrides => _environmentOverrides;
@@ -291,9 +295,9 @@ class VMTestSuite extends TestSuite {
     if (configuration.useQemu) {
       final config = QemuConfig.all[configuration.architecture]!;
       initialHostArguments.insert(0, hostRunnerPath);
-      initialHostArguments.insertAll(0, config.arguments);
+      initialHostArguments.insertAll(0, ['-L', config.elfInterpreterPrefix]);
       initialTargetArguments.insert(0, targetRunnerPath);
-      initialTargetArguments.insertAll(0, config.arguments);
+      initialTargetArguments.insertAll(0, ['-L', config.elfInterpreterPrefix]);
       hostRunnerPath = config.executable;
       targetRunnerPath = config.executable;
     }

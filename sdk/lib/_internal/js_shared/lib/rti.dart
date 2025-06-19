@@ -1337,6 +1337,8 @@ Object? _specializedAsCheck(Rti testRti) {
       asFn = RAW_DART_FUNCTION_REF(_asNumQ);
     } else if (_Utils.isIdentical(testRti, TYPE_REF<double?>())) {
       asFn = RAW_DART_FUNCTION_REF(_asDoubleQ);
+    } else if (_Utils.isIdentical(testRti, TYPE_REF<JSObject?>())) {
+      asFn = RAW_DART_FUNCTION_REF(_asJSObjectQ);
     }
   } else {
     if (_Utils.isIdentical(testRti, TYPE_REF<int>())) {
@@ -1349,6 +1351,8 @@ Object? _specializedAsCheck(Rti testRti) {
       asFn = RAW_DART_FUNCTION_REF(_asNum);
     } else if (_Utils.isIdentical(testRti, TYPE_REF<double>())) {
       asFn = RAW_DART_FUNCTION_REF(_asDouble);
+    } else if (_Utils.isIdentical(testRti, TYPE_REF<JSObject>())) {
+      asFn = RAW_DART_FUNCTION_REF(_asJSObject);
     }
   }
   return asFn;
@@ -1454,6 +1458,27 @@ bool _isJSObject(Object? object) {
       var signatureName = JS_GET_NAME(JsGetName.SIGNATURE_NAME);
       var signature = JS('', '#[#]', object, signatureName);
       return signature == null;
+    }
+    return true;
+  }
+  return false;
+}
+
+/// A version of _isJSObject that does not need to be attached to an Rti `_is`
+/// method. The Rti is needed on the uncommon slow path (Dart mocks and fakes of
+/// interp objects), so this method falls back to using a full `is JSObject`
+/// expression, with some duplicated work on the uncommon paths.
+bool _isJSObjectStandalone(Object? object) {
+  // Keep the control flow here matching `_isJSObject`.
+  if (JS('bool', 'typeof # == "object"', object)) {
+    if (_isDartObject(object)) {
+      return object is JSObject;
+    }
+    return true;
+  }
+  if (JS('bool', 'typeof # == "function"', object)) {
+    if (JS_GET_FLAG('DEV_COMPILER')) {
+      return object is JSObject;
     }
     return true;
   }
@@ -1699,6 +1724,23 @@ String? _asStringQ(dynamic object) {
   if (_isString(object)) return _Utils.asString(object);
   if (object == null) return _Utils.asNull(object);
   throw _TypeError.forType(object, 'String?');
+}
+
+/// Specialization for 'as JSObject'.
+/// Called from generated code.
+@pragma('dart2js:stack-starts-at-throw')
+JSObject _asJSObject(Object? object) {
+  if (_isJSObjectStandalone(object)) return _Utils.asJSObject(object);
+  throw _TypeError.forType(object, 'JSObject');
+}
+
+/// Specialization for 'as JSObject?'.
+/// Called from generated code.
+@pragma('dart2js:stack-starts-at-throw')
+JSObject? _asJSObjectQ(Object? object) {
+  if (object == null) return _Utils.asNull(object);
+  if (_isJSObjectStandalone(object)) return _Utils.asJSObject(object);
+  throw _TypeError.forType(object, 'JSObject?');
 }
 
 String _rtiArrayToString(Object? array, List<String>? genericContext) {
@@ -3920,6 +3962,7 @@ class _Utils {
   static Rti asRti(Object? s) => JS('Rti', '#', s);
   static Rti? asRtiOrNull(Object? s) => JS('Rti|Null', '#', s);
   static _Type as_Type(Object? o) => JS('_Type', '#', o);
+  static JSObject asJSObject(Object? o) => JS('', '#', o);
 
   static bool isString(Object? o) => JS('bool', 'typeof # == "string"', o);
   static bool isNum(Object? o) => JS('bool', 'typeof # == "number"', o);

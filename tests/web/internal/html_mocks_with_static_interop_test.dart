@@ -23,11 +23,14 @@ class MockDocument implements HtmlDocument {
 }
 
 void main() {
-  test(MockWindow(), true);
-  test(window, false);
+  testIs(MockWindow(), true);
+  testIs(window, false);
+
+  testAs(MockWindow(), true);
+  testAs(window, false);
 }
 
-void test(Window w, bool isMock) {
+void testIs(Window w, bool isMock) {
   Expect.type<Window>(w);
   Expect.type<dartJsInterop.JSObject>(w);
 
@@ -46,3 +49,31 @@ void test(Window w, bool isMock) {
     Expect.isFalse(doc is MockDocument);
   }
 }
+
+void testAs(Window w, bool isMock) {
+  asCheck<Window>(w);
+  asCheck<dartJsInterop.JSObject>(w);
+
+  final doc = w.document;
+
+  asCheck<HtmlDocument>(doc);
+  asCheck<dartJsInterop.JSObject>(doc);
+
+  if (isMock) {
+    asCheck<MockWindow>(w);
+    asCheck<MockDocument>(doc);
+    w as MockWindow;
+    doc as MockDocument;
+  } else {
+    Expect.throws(() => asCheck<MockWindow>(w));
+    Expect.throws(() => asCheck<MockDocument>(doc));
+    Expect.throws(() => w as MockWindow);
+    Expect.throws(() => doc as MockDocument);
+  }
+
+  asCheck<String>('hello');
+  Expect.throws(() => asCheck<String>(w));
+}
+
+@pragma('dart2js:never-inline')
+void asCheck<T>(Object? o) => o as T;
