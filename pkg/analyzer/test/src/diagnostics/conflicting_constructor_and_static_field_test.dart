@@ -61,6 +61,25 @@ class C {
     );
   }
 
+  test_class_static_getter_setter_pair() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  C.foo();
+  static int get foo => 0;
+  static set foo(_) {}
+}
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER,
+          14,
+          3,
+        ),
+      ],
+    );
+  }
+
   test_class_static_notSameClass() async {
     await assertNoErrorsInCode(r'''
 class A {
