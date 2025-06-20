@@ -922,28 +922,13 @@ mixin ConstructorElementMixin
 
   /// Whether the constructor can be used as a default constructor - unnamed,
   /// and has no required parameters.
-  bool get isDefaultConstructor {
-    // unnamed
-    if (name2 != 'new') {
-      return false;
-    }
-    // no required parameters
-    for (var parameter in parameters) {
-      if (parameter.isRequired) {
-        return false;
-      }
-    }
-    // OK, can be used as default constructor
-    return true;
-  }
+  bool get isDefaultConstructor;
 
   /// Whether the constructor represents a factory constructor.
   bool get isFactory;
 
   /// Whether the constructor represents a generative constructor.
-  bool get isGenerative {
-    return !isFactory;
-  }
+  bool get isGenerative;
 
   @override
   LibraryElementImpl get library2;
@@ -1067,6 +1052,22 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
   }
 
   @override
+  bool get isDefaultConstructor {
+    // unnamed
+    if (name2 != 'new') {
+      return false;
+    }
+    // no required parameters
+    for (var parameter in parameters) {
+      if (parameter.isRequired) {
+        return false;
+      }
+    }
+    // OK, can be used as default constructor
+    return true;
+  }
+
+  @override
   bool get isFactory {
     return hasModifier(Modifier.FACTORY);
   }
@@ -1074,6 +1075,11 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
   /// Set whether this constructor represents a factory method.
   set isFactory(bool isFactory) {
     setModifier(Modifier.FACTORY, isFactory);
+  }
+
+  @override
+  bool get isGenerative {
+    return !isFactory;
   }
 
   @override

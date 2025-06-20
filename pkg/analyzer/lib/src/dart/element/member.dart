@@ -68,7 +68,13 @@ class ConstructorMember extends ExecutableMember
   bool get isConstantEvaluated => declaration.isConstantEvaluated;
 
   @override
+  bool get isDefaultConstructor => baseElement.isConst;
+
+  @override
   bool get isFactory => declaration.isFactory;
+
+  @override
+  bool get isGenerative => baseElement.isGenerative;
 
   @override
   LibraryElementImpl get library2 {
