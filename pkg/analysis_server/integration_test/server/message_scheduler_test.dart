@@ -341,24 +341,28 @@ Entering process messages loop
   Complete LspMessage: lsp:initialized
 Exit process messages loop
 Incoming RequestMessage: lsp:textDocument/hover
+Incoming RequestMessage: lsp:textDocument/hover
 Entering process messages loop
   Start LspMessage: lsp:textDocument/hover
   Complete LspMessage: lsp:textDocument/hover
-Exit process messages loop
-Incoming RequestMessage: lsp:textDocument/hover
-Entering process messages loop
   Start LspMessage: lsp:textDocument/hover
   Complete LspMessage: lsp:textDocument/hover
 Exit process messages loop
 Pause requested - there are now 1 pauses
 Incoming RequestMessage: lsp:textDocument/hover
 Incoming RequestMessage: lsp:textDocument/hover
+Entering process messages loop
+Exit process messages loop
 Pause requested - there are now 2 pauses
 Incoming RequestMessage: lsp:textDocument/hover
 Incoming RequestMessage: lsp:textDocument/hover
+Entering process messages loop
+Exit process messages loop
 Resume requested - there are now 1 pauses
 Incoming RequestMessage: lsp:textDocument/hover
 Incoming RequestMessage: lsp:textDocument/hover
+Entering process messages loop
+Exit process messages loop
 Resume requested - there are now 0 pauses
 Entering process messages loop
   Start LspMessage: lsp:textDocument/hover

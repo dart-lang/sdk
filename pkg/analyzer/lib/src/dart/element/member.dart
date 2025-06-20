@@ -68,7 +68,13 @@ class ConstructorMember extends ExecutableMember
   bool get isConstantEvaluated => declaration.isConstantEvaluated;
 
   @override
+  bool get isDefaultConstructor => baseElement.isConst;
+
+  @override
   bool get isFactory => declaration.isFactory;
+
+  @override
+  bool get isGenerative => baseElement.isGenerative;
 
   @override
   LibraryElementImpl get library2 {
@@ -291,7 +297,11 @@ abstract class ExecutableMember extends Member
   int get nameOffset => declaration.nameOffset;
 
   @override
-  Element get nonSynthetic2 => _element2;
+  Element get nonSynthetic => _element2;
+
+  @Deprecated('Use nonSynthetic instead')
+  @override
+  Element get nonSynthetic2 => nonSynthetic;
 
   @override
   List<ParameterElementMixin> get parameters {
@@ -568,7 +578,11 @@ class FieldMember extends VariableMember
   String? get name3 => _element2.name3;
 
   @override
-  Element get nonSynthetic2 => _element2.nonSynthetic2;
+  Element get nonSynthetic => _element2.nonSynthetic;
+
+  @Deprecated('Use nonSynthetic instead')
+  @override
+  Element get nonSynthetic2 => nonSynthetic;
 
   @override
   SetterElement2OrMember? get setter2 {
@@ -688,11 +702,11 @@ class GetterMember extends PropertyAccessorMember
   String? get lookupName => _element2.lookupName;
 
   @override
-  Element get nonSynthetic2 {
+  Element get nonSynthetic {
     if (!isSynthetic) {
       return this;
     } else if (variable3 case var variable?) {
-      return variable.nonSynthetic2;
+      return variable.nonSynthetic;
     }
     throw StateError('Synthetic getter has no variable');
   }
@@ -707,19 +721,14 @@ class GetterMember extends PropertyAccessorMember
     return visitor.visitGetterElement(this);
   }
 
-  static GetterElement2OrMember from(
-    GetterElementImpl element,
-    InterfaceType definingType,
+  static GetterElement2OrMember forTargetType(
+    GetterElement2OrMember element,
+    InterfaceType targetType,
   ) {
-    if (definingType.typeArguments.isEmpty) {
-      return element;
-    }
-
-    return GetterMember._(
-      declaration: element.asElement,
-      substitution: Substitution.fromInterfaceType(definingType),
-      typeParameters: const [],
-    );
+    var substitution = Substitution.fromInterfaceType(targetType);
+    // TODO(scheglov): avoid type cast
+    return ExecutableMember.from(element, substitution)
+        as GetterElement2OrMember;
   }
 }
 
@@ -920,20 +929,14 @@ class MethodMember extends ExecutableMember
     return visitor.visitMethodElement(this);
   }
 
-  /// If [definingType] has type parameters, returns [MethodMember] with
-  /// type substitutions. Otherwise returns [element] as is.
-  static MethodElement2OrMember from2(
-    MethodElementImpl element,
-    InterfaceType definingType,
+  static MethodElement2OrMember forTargetType(
+    MethodElement2OrMember element,
+    InterfaceType targetType,
   ) {
-    if (definingType.typeArguments.isEmpty) {
-      return element;
-    }
-
-    return MethodMember(
-      declaration: element.asElement,
-      substitution: Substitution.fromInterfaceType(definingType),
-    );
+    var substitution = Substitution.fromInterfaceType(targetType);
+    // TODO(scheglov): avoid type cast
+    return ExecutableMember.from(element, substitution)
+        as MethodElement2OrMember;
   }
 }
 
@@ -1048,7 +1051,11 @@ class ParameterMember extends VariableMember
   String get nameShared => name3!;
 
   @override
-  Element get nonSynthetic2 => _element2;
+  Element get nonSynthetic => _element2;
+
+  @Deprecated('Use nonSynthetic instead')
+  @override
+  Element get nonSynthetic2 => nonSynthetic;
 
   @deprecated
   @override
@@ -1351,11 +1358,11 @@ class SetterMember extends PropertyAccessorMember
   String? get lookupName => _element2.lookupName;
 
   @override
-  Element get nonSynthetic2 {
+  Element get nonSynthetic {
     if (!isSynthetic) {
       return this;
     } else if (variable3 case var variable?) {
-      return variable.nonSynthetic2;
+      return variable.nonSynthetic;
     }
     throw StateError('Synthetic setter has no variable');
   }
@@ -1370,19 +1377,14 @@ class SetterMember extends PropertyAccessorMember
     return visitor.visitSetterElement(this);
   }
 
-  static SetterElement2OrMember from(
-    SetterElementImpl element,
-    InterfaceType definingType,
+  static SetterElement2OrMember forTargetType(
+    SetterElement2OrMember element,
+    InterfaceType targetType,
   ) {
-    if (definingType.typeArguments.isEmpty) {
-      return element;
-    }
-
-    return SetterMember._(
-      declaration: element.asElement,
-      substitution: Substitution.fromInterfaceType(definingType),
-      typeParameters: const [],
-    );
+    var substitution = Substitution.fromInterfaceType(targetType);
+    // TODO(scheglov): avoid type cast
+    return ExecutableMember.from(element, substitution)
+        as SetterElement2OrMember;
   }
 }
 

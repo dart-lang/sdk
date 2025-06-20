@@ -1881,7 +1881,7 @@ var b = a;
     await resolveTestFile();
     {
       var element = findNode.simple('a;').element!;
-      expect(element.nonSynthetic2.firstFragment.nameOffset2, 4);
+      expect(element.nonSynthetic.firstFragment.nameOffset2, 4);
     }
 
     // New resolver.
@@ -1890,7 +1890,7 @@ var b = a;
     await resolveTestFile();
     {
       var element = findNode.simple('a;').element!;
-      expect(element.nonSynthetic2.firstFragment.nameOffset2, 4);
+      expect(element.nonSynthetic.firstFragment.nameOffset2, 4);
     }
   }
 

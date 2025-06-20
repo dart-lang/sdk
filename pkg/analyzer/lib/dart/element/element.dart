@@ -673,6 +673,17 @@ abstract class Element {
   /// element is returned. For example, for a synthetic getter of a
   /// non-synthetic field the field is returned; for a synthetic constructor
   /// the enclosing class is returned.
+  Element get nonSynthetic;
+
+  /// The non-synthetic element that caused this element to be created.
+  ///
+  /// If this element is not synthetic, then the element itself is returned.
+  ///
+  /// If this element is synthetic, then the corresponding non-synthetic
+  /// element is returned. For example, for a synthetic getter of a
+  /// non-synthetic field the field is returned; for a synthetic constructor
+  /// the enclosing class is returned.
+  @Deprecated('Use nonSynthetic instead')
   Element get nonSynthetic2;
 
   /// The analysis session in which this element is defined.

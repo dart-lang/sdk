@@ -47,6 +47,7 @@
 * Deprecate `InterfaceFragment.constructors2`, use `constructors` instead.
 * Deprecate `JoinPatternVariableElement.variables2`, use `variables` instead.
 * Deprecate `Annotatable.metadata2`, use `metadata` instead.
+* Deprecate `Element.nonSynthetic2`, use `nonSynthetic` instead.
 
 ## 7.4.1
 * Restore `InstanceElement.augmented` getter.

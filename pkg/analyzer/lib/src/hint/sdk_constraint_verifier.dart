@@ -165,7 +165,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
     AstNode target, {
     SyntacticEntity? errorEntity,
   }) {
-    element = element?.nonSynthetic2;
+    element = element?.nonSynthetic;
     if (element case HasSinceSdkVersion hasSince) {
       var sinceSdkVersion = hasSince.sinceSdkVersion;
       if (sinceSdkVersion != null) {

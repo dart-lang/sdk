@@ -121,18 +121,13 @@ class BundleWriter {
     _writeTypeAliasElements(libraryElement.typeAliases);
 
     _sink.writeList(libraryElement.topLevelVariables, (element) {
-      _writeReference2(element.reference);
+      _writeReference(element.reference);
       _sink.writeList(element.fragments, _writeFragmentId);
     });
 
     _writeGetterElements(libraryElement.getters);
     _writeSetterElements(libraryElement.setters);
-
-    _sink.writeList(libraryElement.topLevelVariables, (variableElement) {
-      _writeReference2(variableElement.reference);
-      _writeOptionalReference(variableElement.getter2?.reference);
-      _writeOptionalReference(variableElement.setter2?.reference);
-    });
+    _writeVariableGetterSetterLinking(libraryElement.topLevelVariables);
 
     // Write resolution data for the library.
     _writeResolutionOffset();
@@ -149,7 +144,7 @@ class BundleWriter {
 
   void _writeClassElements(List<ClassElementImpl> elements) {
     _sink.writeList(elements, (element) {
-      _writeReference2(element.reference);
+      _writeReference(element.reference);
       _sink.writeList(element.fragments, (fragment) {
         _writeFragmentId(fragment);
       });
@@ -200,7 +195,7 @@ class BundleWriter {
 
   void _writeConstructorElements(List<ConstructorElementImpl> elements) {
     _sink.writeList(elements, (element) {
-      _writeReference2(element.reference);
+      _writeReference(element.reference);
       _sink.writeList(element.fragments, _writeFragmentId);
     });
   }
@@ -264,7 +259,7 @@ class BundleWriter {
 
   void _writeEnumElements(List<EnumElementImpl> elements) {
     _sink.writeList(elements, (element) {
-      _writeReference2(element.reference);
+      _writeReference(element.reference);
       _sink.writeList(element.fragments, (fragment) {
         _writeFragmentId(fragment);
       });
@@ -329,7 +324,7 @@ class BundleWriter {
 
   void _writeExtensionElements(List<ExtensionElementImpl> elements) {
     _sink.writeList(elements, (element) {
-      _writeReference2(element.reference);
+      _writeReference(element.reference);
       _sink.writeList(element.fragments, (fragment) {
         _writeFragmentId(fragment);
       });
@@ -368,7 +363,7 @@ class BundleWriter {
 
   void _writeExtensionTypeElements(List<ExtensionTypeElementImpl> elements) {
     _sink.writeList(elements, (element) {
-      _writeReference2(element.reference);
+      _writeReference(element.reference);
       _sink.writeList(element.fragments, (fragment) {
         _writeFragmentId(fragment);
       });
@@ -417,7 +412,7 @@ class BundleWriter {
 
   void _writeFieldElements(List<FieldElementImpl> elements) {
     _sink.writeList(elements, (element) {
-      _writeReference2(element.reference);
+      _writeReference(element.reference);
       _sink.writeList(element.fragments, _writeFragmentId);
     });
   }
@@ -480,7 +475,7 @@ class BundleWriter {
 
   void _writeGetterElements(List<GetterElementImpl> elements) {
     _sink.writeList(elements, (element) {
-      _writeReference2(element.reference);
+      _writeReference(element.reference);
       _sink.writeList(element.fragments, _writeFragmentId);
 
       _writeElementResolution(() {
@@ -532,7 +527,7 @@ class BundleWriter {
   void _writeLibraryImportPrefixFragment(PrefixFragmentImpl? fragment) {
     _sink.writeOptionalObject(fragment, (fragment) {
       _writeFragmentName(fragment);
-      _writeReference2(fragment.element.reference);
+      _writeReference(fragment.element.reference);
       _sink.writeBool(fragment.isDeferred);
     });
   }
@@ -546,12 +541,12 @@ class BundleWriter {
 
   void _writeLoadLibraryFunctionReferences(LibraryElementImpl library) {
     var element = library.loadLibraryFunction2;
-    _writeReference2(element.reference);
+    _writeReference(element.reference);
   }
 
   void _writeMethodElements(List<MethodElementImpl> elements) {
     _sink.writeList(elements, (element) {
-      _writeReference2(element.reference);
+      _writeReference(element.reference);
       _sink.writeList(element.fragments, _writeFragmentId);
 
       _writeElementResolution(() {
@@ -579,7 +574,7 @@ class BundleWriter {
 
   void _writeMixinElements(List<MixinElementImpl> elements) {
     _sink.writeList(elements, (element) {
-      _writeReference2(element.reference);
+      _writeReference(element.reference);
       _sink.writeList(element.fragments, (fragment) {
         _writeFragmentId(fragment);
       });
@@ -639,10 +634,7 @@ class BundleWriter {
   }
 
   void _writeOptionalReference(Reference? reference) {
-    _sink.writeOptionalObject(reference, (reference) {
-      var index = _references._indexOfReference(reference);
-      _sink.writeUInt30(index);
-    });
+    _sink.writeOptionalObject(reference, _writeReference);
   }
 
   // TODO(scheglov): Deduplicate parameter writing implementation.
@@ -687,7 +679,7 @@ class BundleWriter {
     _writeDirectiveUri(element.uri);
   }
 
-  void _writeReference2(Reference? reference) {
+  void _writeReference(Reference reference) {
     var index = _references._indexOfReference(reference);
     _sink.writeUInt30(index);
   }
@@ -700,7 +692,7 @@ class BundleWriter {
 
   void _writeSetterElements(List<SetterElementImpl> elements) {
     _sink.writeList(elements, (element) {
-      _writeReference2(element.reference);
+      _writeReference(element.reference);
       _sink.writeList(element.fragments, _writeFragmentId);
 
       _writeElementResolution(() {
@@ -726,7 +718,7 @@ class BundleWriter {
     List<TopLevelFunctionElementImpl> elements,
   ) {
     _sink.writeList(elements, (element) {
-      _writeReference2(element.reference);
+      _writeReference(element.reference);
       _sink.writeList(element.fragments, _writeFragmentId);
 
       _writeElementResolution(() {
@@ -761,7 +753,7 @@ class BundleWriter {
 
   void _writeTypeAliasElements(List<TypeAliasElementImpl> elements) {
     _sink.writeList(elements, (element) {
-      _writeReference2(element.reference);
+      _writeReference(element.reference);
       _sink.writeList(element.fragments, _writeFragmentId);
       // TODO(scheglov): resolution too?
     });
@@ -835,7 +827,7 @@ class BundleWriter {
     List<PropertyInducingElementImpl> variables,
   ) {
     _sink.writeList(variables, (variable) {
-      _writeReference2(variable.reference);
+      _writeReference(variable.reference);
       _writeOptionalReference(variable.getter2?.reference);
       _writeOptionalReference(variable.setter2?.reference);
     });
@@ -1338,21 +1330,22 @@ class _BundleWriterReferences {
     }
   }
 
-  int _indexOfReference(Reference? reference) {
-    if (reference == null) return 0;
-    if (reference.parent == null) return 0;
-
+  int _indexOfReference(Reference reference) {
     var index = reference.index;
     if (index != null) return index;
 
-    var parentIndex = _indexOfReference(reference.parent);
-    _referenceParents.add(parentIndex);
-    _referenceNames.add(reference.name);
+    if (reference.parent case var parent?) {
+      var parentIndex = _indexOfReference(parent);
+      _referenceParents.add(parentIndex);
+      _referenceNames.add(reference.name);
 
-    index = _references.length;
-    reference.index = index;
-    _references.add(reference);
-    return index;
+      index = _references.length;
+      reference.index = index;
+      _references.add(reference);
+      return index;
+    } else {
+      return 0;
+    }
   }
 }
 

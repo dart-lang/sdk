@@ -143,7 +143,7 @@ class CallHierarchyItem {
   }
 
   static Element _nonSynthetic(Element element) {
-    element = element.nonSynthetic2;
+    element = element.nonSynthetic;
     if (element.isSynthetic) {
       element = element.enclosingElement ?? element;
     }

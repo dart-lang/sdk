@@ -396,16 +396,8 @@ abstract class FlowAnalysis<
   /// A function parameter is always initialized, so [initialized] is `true`.
   ///
   /// In debug builds, an assertion will normally verify that no variable gets
-  /// declared more than once. This assertion may be disabled by passing `true`
-  /// to [skipDuplicateCheck].
-  ///
-  /// TODO(paulberry): try to remove all uses of skipDuplicateCheck
-  void declare(
-    Variable variable,
-    Type staticType, {
-    required bool initialized,
-    bool skipDuplicateCheck = false,
-  });
+  /// declared more than once.
+  void declare(Variable variable, Type staticType, {required bool initialized});
 
   /// Call this method after visiting a variable pattern in a non-assignment
   /// context (or a wildcard pattern).
@@ -1598,17 +1590,10 @@ class FlowAnalysisDebug<
     Variable variable,
     Type staticType, {
     required bool initialized,
-    bool skipDuplicateCheck = false,
   }) {
     _wrap(
-      'declare($variable, $staticType, '
-      'initialized: $initialized, skipDuplicateCheck: $skipDuplicateCheck)',
-      () => _wrapped.declare(
-        variable,
-        staticType,
-        initialized: initialized,
-        skipDuplicateCheck: skipDuplicateCheck,
-      ),
+      'declare($variable, $staticType, initialized: $initialized)',
+      () => _wrapped.declare(variable, staticType, initialized: initialized),
     );
   }
 
@@ -5493,11 +5478,10 @@ class _FlowAnalysisImpl<
     Variable variable,
     Type staticType, {
     required bool initialized,
-    bool skipDuplicateCheck = false,
   }) {
     assert(staticType == operations.variableType(variable));
     assert(
-      _debugDeclaredVariables.add(variable) || skipDuplicateCheck,
+      _debugDeclaredVariables.add(variable),
       'Variable $variable already declared',
     );
     _current = _current.declare(

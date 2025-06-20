@@ -116,7 +116,7 @@ class DiagnosticReporter {
     List<DiagnosticMessage>? contextMessages,
     Object? data,
   }) {
-    var nonSynthetic = element.nonSynthetic2;
+    var nonSynthetic = element.nonSynthetic;
     atOffset(
       diagnosticCode: diagnosticCode,
       offset: nonSynthetic.firstFragment.nameOffset2 ?? -1,

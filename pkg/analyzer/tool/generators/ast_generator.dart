@@ -96,7 +96,7 @@ class _Generator {
               var type = entity.getField('type')!.toTypeValue();
 
               if (type == null) {
-                var member = inheritanceManager.getMember4(
+                var member = inheritanceManager.getMember(
                   interfaceElement,
                   Name(null, propertyName),
                 );
@@ -801,7 +801,7 @@ class _ImplClass {
   @deprecated
   bool get hasNotAbstractVisitChildren {
     var element = node.declaredFragment!.element;
-    return element.inheritanceManager.getMember4(
+    return element.inheritanceManager.getMember(
           element,
           Name(null, 'visitChildren'),
           forSuper: true,

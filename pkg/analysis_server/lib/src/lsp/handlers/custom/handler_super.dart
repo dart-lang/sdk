@@ -117,7 +117,7 @@ class _SuperComputer {
       return null;
     }
 
-    var member = inheritanceManager.getInherited4(interfaceElement, name);
+    var member = inheritanceManager.getInherited(interfaceElement, name);
     return _lastFragment(member);
   }
 

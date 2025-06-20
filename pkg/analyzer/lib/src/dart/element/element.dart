@@ -863,7 +863,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  Element get nonSynthetic2 {
+  Element get nonSynthetic {
     if (isSynthetic) {
       return enclosingElement;
     } else {
@@ -922,28 +922,13 @@ mixin ConstructorElementMixin
 
   /// Whether the constructor can be used as a default constructor - unnamed,
   /// and has no required parameters.
-  bool get isDefaultConstructor {
-    // unnamed
-    if (name2 != 'new') {
-      return false;
-    }
-    // no required parameters
-    for (var parameter in parameters) {
-      if (parameter.isRequired) {
-        return false;
-      }
-    }
-    // OK, can be used as default constructor
-    return true;
-  }
+  bool get isDefaultConstructor;
 
   /// Whether the constructor represents a factory constructor.
   bool get isFactory;
 
   /// Whether the constructor represents a generative constructor.
-  bool get isGenerative {
-    return !isFactory;
-  }
+  bool get isGenerative;
 
   @override
   LibraryElementImpl get library2;
@@ -1067,6 +1052,22 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
   }
 
   @override
+  bool get isDefaultConstructor {
+    // unnamed
+    if (name2 != 'new') {
+      return false;
+    }
+    // no required parameters
+    for (var parameter in parameters) {
+      if (parameter.isRequired) {
+        return false;
+      }
+    }
+    // OK, can be used as default constructor
+    return true;
+  }
+
+  @override
   bool get isFactory {
     return hasModifier(Modifier.FACTORY);
   }
@@ -1074,6 +1075,11 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
   /// Set whether this constructor represents a factory method.
   set isFactory(bool isFactory) {
     setModifier(Modifier.FACTORY, isFactory);
+  }
+
+  @override
+  bool get isGenerative {
+    return !isFactory;
   }
 
   @override
@@ -2083,7 +2089,11 @@ abstract class ElementImpl implements Element {
   }
 
   @override
-  Element get nonSynthetic2 => this;
+  Element get nonSynthetic => this;
+
+  @Deprecated('Use nonSynthetic instead')
+  @override
+  Element get nonSynthetic2 => nonSynthetic;
 
   /// The reference of this element, used during reading summaries.
   ///
@@ -4508,11 +4518,11 @@ class GetterElementImpl extends PropertyAccessorElementImpl
   }
 
   @override
-  Element get nonSynthetic2 {
+  Element get nonSynthetic {
     if (!isSynthetic) {
       return this;
     } else if (variable3 case var variable?) {
-      return variable.nonSynthetic2;
+      return variable.nonSynthetic;
     }
     throw StateError('Synthetic getter has no variable');
   }
@@ -4705,7 +4715,7 @@ abstract class InstanceElementImpl extends ElementImpl
   String? get name3 => firstFragment.name2;
 
   @override
-  Element get nonSynthetic2 => isSynthetic ? enclosingElement : this as Element;
+  Element get nonSynthetic => isSynthetic ? enclosingElement : this as Element;
 
   @override
   AnalysisSession? get session => firstFragment.session;
@@ -5313,14 +5323,14 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
 
   @override
   ExecutableElement? getInheritedMember(Name name) =>
-      (session as AnalysisSessionImpl).inheritanceManager.getInherited4(
+      (session as AnalysisSessionImpl).inheritanceManager.getInherited(
         this,
         name,
       );
 
   @override
   ExecutableElement? getInterfaceMember(Name name) =>
-      (session as AnalysisSessionImpl).inheritanceManager.getMember4(
+      (session as AnalysisSessionImpl).inheritanceManager.getMember(
         this,
         name,
       );
@@ -5462,7 +5472,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     required LibraryElement library,
   }) {
     return inheritanceManager
-        .getInherited4(this, Name.forLibrary(library, methodName))
+        .getInherited(this, Name.forLibrary(library, methodName))
         .ifTypeOrNull();
   }
 
@@ -6205,7 +6215,7 @@ class LibraryElementImpl extends ElementImpl
   String? get name3 => name;
 
   @override
-  LibraryElementImpl get nonSynthetic2 => this;
+  LibraryElementImpl get nonSynthetic => this;
 
   @override
   Namespace get publicNamespace {
@@ -8142,7 +8152,6 @@ enum Modifier {
   /// enclosing element. This includes not only explicitly specified type
   /// annotations, but also inferred types.
   NO_ENCLOSING_TYPE_PARAMETER_REFERENCE,
-
   PROMOTABLE,
 
   /// Indicates whether the type of a [PropertyInducingFragmentImpl] should be
@@ -8230,7 +8239,7 @@ class MultiplyDefinedElementImpl extends ElementImpl
   LibraryElement get library2 => libraryFragment.element;
 
   @override
-  Element get nonSynthetic2 => this;
+  Element get nonSynthetic => this;
 
   @override
   AnalysisSession get session => libraryFragment.session;
@@ -9202,7 +9211,7 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
   }
 
   @override
-  Element get nonSynthetic2 {
+  Element get nonSynthetic {
     if (isSynthetic) {
       if (enclosingElement case EnumElementImpl enclosingElement) {
         // TODO(scheglov): remove 'index'?
@@ -9215,6 +9224,9 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
       return this;
     }
   }
+
+  @override
+  Reference get reference;
 
   bool get shouldUseTypeForInitializerInference {
     return firstFragment.shouldUseTypeForInitializerInference;
@@ -9493,11 +9505,11 @@ class SetterElementImpl extends PropertyAccessorElementImpl
   }
 
   @override
-  Element get nonSynthetic2 {
+  Element get nonSynthetic {
     if (!isSynthetic) {
       return this;
     } else if (variable3 case var variable?) {
-      return variable.nonSynthetic2;
+      return variable.nonSynthetic;
     }
     throw StateError('Synthetic setter has no variable');
   }

@@ -705,11 +705,11 @@ class _ClassVerifier {
 
   void _checkIllegalEnumValuesInheritance() {
     if (implementsDartCoreEnum) {
-      var getter = inheritance.getInherited4(
+      var getter = inheritance.getInherited(
         classElement.asElement2,
         Name(libraryUri, 'values'),
       );
-      var setter = inheritance.getInherited4(
+      var setter = inheritance.getInherited(
         classElement.asElement2,
         Name(libraryUri, 'values='),
       );

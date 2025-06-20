@@ -23,6 +23,11 @@ class CandidatesConflict extends Conflict {
 
   CandidatesConflict({required super.name, required this.candidates});
 
+  CandidatesConflict.v2({
+    required super.name,
+    required List<ExecutableElement2OrMember> candidates2,
+  }) : candidates = candidates2.map((e) => e.asElement).toList();
+
   List<ExecutableElement> get candidates2 =>
       candidates.map((e) => e.asElement2).toList();
 }
@@ -82,7 +87,7 @@ class InheritanceManager3 {
 
   /// Tracks signatures from superinterfaces that were combined.
   /// It is used to track dependencies in manifests.
-  final Map<InterfaceFragmentImpl, Map<Name, List<ExecutableElement2OrMember>>>
+  final Map<InterfaceElementImpl, Map<Name, List<ExecutableElement2OrMember>>>
   _combinedSignatures = {};
 
   /// The set of classes that are currently being processed, used to detect
@@ -130,36 +135,6 @@ class InheritanceManager3 {
     );
   }
 
-  /// Return the most specific signature of the member with the given [name]
-  /// that [element] inherits from the mixins, superclasses, or interfaces;
-  /// or `null` if no member is inherited because the member is not declared
-  /// at all, or because there is no the most specific signature.
-  ///
-  /// This is equivalent to `getInheritedMap2(element)[name]`.
-  ExecutableElementOrMember? getInherited2(
-    InterfaceFragmentImpl element,
-    Name name,
-  ) {
-    return getInheritedMap2(element)[name];
-  }
-
-  /// Returns the result of [getInherited2] with [type] substitution.
-  @experimental
-  ExecutableElement? getInherited3(InterfaceType type, Name name) {
-    type as InterfaceTypeImpl;
-    var rawElement = getInherited2(type.element3.asElement, name);
-    if (rawElement == null) {
-      return null;
-    }
-
-    var element = ExecutableMember.from2(
-      rawElement,
-      Substitution.fromInterfaceType(type),
-    );
-
-    return element.asElement2;
-  }
-
   /// Returns the most specific signature of the member with the given [name]
   /// that [element] inherits from the mixins, superclasses, or interfaces.
   ///
@@ -167,15 +142,12 @@ class InheritanceManager3 {
   /// declared at all, or because there is no the most specific signature.
   ///
   /// This is equivalent to `getInheritedMap(type)[name]`.
-  // This is a replacement for `getInherited2`.
-  @experimental
-  ExecutableElement2OrMember? getInherited4(
+  ExecutableElement2OrMember? getInherited(
     InterfaceElement element,
     Name name,
   ) {
     element as InterfaceElementImpl; // TODO(scheglov): remove cast
-    var oldElement = getInherited2(element.asElement, name);
-    return oldElement?.asElement2;
+    return getInheritedMap(element)[name];
   }
 
   /// Returns signatures of all concrete members that the given [element]
@@ -208,29 +180,21 @@ class InheritanceManager3 {
   /// If there is no most specific signature for a name, the corresponding name
   /// will not be included.
   @experimental
-  Map<Name, ExecutableElement> getInheritedMap(InterfaceElement element) {
-    element as InterfaceElementImpl; // TODO(scheglov): remove cast
-    var map = getInheritedMap2(element.asElement);
-    return map.mapValue((element) => element.asElement2);
-  }
-
-  /// Return the mapping from names to most specific signatures of members
-  /// inherited from the super-interfaces (superclasses, mixins, and
-  /// interfaces).  If there is no most specific signature for a name, the
-  /// corresponding name will not be included.
-  Map<Name, ExecutableElementOrMember> getInheritedMap2(
-    InterfaceFragmentImpl element,
+  Map<Name, ExecutableElement2OrMember> getInheritedMap(
+    InterfaceElement element,
   ) {
-    var interface = getInterface(element);
-    var inheritedMap = interface.inheritedMap;
+    element as InterfaceElementImpl; // TODO(scheglov): remove cast
+
+    var interface = getInterface2(element);
+    var inheritedMap = interface.inheritedMap2;
     if (inheritedMap == null) {
-      inheritedMap = interface.inheritedMap = {};
-      _findMostSpecificFromNamedCandidates(
+      inheritedMap = interface.inheritedMap2 = {};
+      _findMostSpecificFromNamedCandidates2(
         element,
         inheritedMap,
-        element is ExtensionTypeFragmentImpl
-            ? interface.redeclared
-            : interface.overridden,
+        element is ExtensionTypeElementImpl
+            ? interface.redeclared2
+            : interface.overridden2,
       );
     }
     return inheritedMap;
@@ -273,98 +237,7 @@ class InheritanceManager3 {
   Interface getInterface2(InterfaceElement element) {
     element as InterfaceElementImpl; // TODO(scheglov): remove cast
     globalResultRequirements?.record_interface_all(element: element);
-    return getInterface(element.asElement);
-  }
-
-  /// Return the result of [getMember2] with [type] substitution.
-  ExecutableElementOrMember? getMember(
-    InterfaceType type,
-    Name name, {
-    bool concrete = false,
-    int forMixinIndex = -1,
-    bool forSuper = false,
-  }) {
-    type as InterfaceTypeImpl; // TODO(scheglov): remove cast
-    var rawElement = getMember2(
-      type.element3.asElement,
-      name,
-      concrete: concrete,
-      forMixinIndex: forMixinIndex,
-      forSuper: forSuper,
-    );
-    if (rawElement == null) {
-      return null;
-    }
-
-    var substitution = Substitution.fromInterfaceType(type);
-    return ExecutableMember.from2(rawElement, substitution);
-  }
-
-  /// Return the member with the given [name].
-  ///
-  /// If [concrete] is `true`, the concrete implementation is returned,
-  /// from the given [element], or its superclass.
-  ///
-  /// If [forSuper] is `true`, then [concrete] is implied, and only concrete
-  /// members from the superclass are considered.
-  ///
-  /// If [forMixinIndex] is specified, only the nominal superclass, and the
-  /// given number of mixins after it are considered.  For example for `1` in
-  /// `class C extends S with M1, M2, M3`, only `S` and `M1` are considered.
-  ExecutableElementOrMember? getMember2(
-    InterfaceFragmentImpl element,
-    Name name, {
-    bool concrete = false,
-    int forMixinIndex = -1,
-    bool forSuper = false,
-  }) {
-    var interface = getInterface(element);
-    if (forSuper) {
-      if (element is ExtensionTypeFragmentImpl) {
-        return null;
-      }
-      var superImplemented = interface.superImplemented;
-      if (forMixinIndex >= 0) {
-        return superImplemented[forMixinIndex][name];
-      }
-      if (superImplemented.isNotEmpty) {
-        return superImplemented.last[name];
-      } else {
-        assert(element.name2 == 'Object');
-        return null;
-      }
-    }
-    if (concrete) {
-      return interface.implemented[name];
-    }
-
-    var result = interface.map[name];
-    globalResultRequirements?.record_interface_getMember(
-      element: element.asElement2,
-      nameObj: name,
-      methodElement: result?.asElement2,
-    );
-    return result;
-  }
-
-  /// Returns the result of [getMember4] with [type] substitution.
-  // This is a replacement for `getMember`.
-  @experimental
-  ExecutableElement? getMember3(
-    InterfaceType type,
-    Name name, {
-    bool concrete = false,
-    int forMixinIndex = -1,
-    bool forSuper = false,
-  }) {
-    var element = getMember(
-      type,
-      name,
-      concrete: concrete,
-      forMixinIndex: forMixinIndex,
-      forSuper: forSuper,
-    );
-    return element?.asElement2;
+    return _getInterface(element);
   }
 
   /// Returns the member with the given [name].
@@ -378,9 +251,8 @@ class InheritanceManager3 {
   /// If [forMixinIndex] is specified, only the nominal superclass, and the
   /// given number of mixins after it are considered. For example for `1` in
   /// `class C extends S with M1, M2, M3`, only `S` and `M1` are considered.
-  // This is a replacement for `getMember2`.
   @experimental
-  ExecutableElement2OrMember? getMember4(
+  ExecutableElement2OrMember? getMember(
     InterfaceElement element,
     Name name, {
     bool concrete = false,
@@ -388,14 +260,58 @@ class InheritanceManager3 {
     bool forSuper = false,
   }) {
     element as InterfaceElementImpl; // TODO(scheglov): remove cast
-    var oldElement = getMember2(
-      element.asElement,
+
+    var interface = _getInterface(element);
+    if (forSuper) {
+      if (element is ExtensionTypeFragmentImpl) {
+        return null;
+      }
+      var superImplemented = interface.superImplemented2;
+      if (forMixinIndex >= 0) {
+        return superImplemented[forMixinIndex][name];
+      }
+      if (superImplemented.isNotEmpty) {
+        return superImplemented.last[name];
+      } else {
+        assert(element.name3 == 'Object');
+        return null;
+      }
+    }
+    if (concrete) {
+      return interface.implemented2[name];
+    }
+
+    var result = interface.map2[name];
+    globalResultRequirements?.record_interface_getMember(
+      element: element,
+      nameObj: name,
+      methodElement: result,
+    );
+    return result;
+  }
+
+  /// Returns the result of [getMember] with [type] substitution.
+  ExecutableElement2OrMember? getMember3(
+    InterfaceType type,
+    Name name, {
+    bool concrete = false,
+    int forMixinIndex = -1,
+    bool forSuper = false,
+  }) {
+    type as InterfaceTypeImpl; // TODO(scheglov): remove cast
+    var rawElement = getMember(
+      type.element3,
       name,
       concrete: concrete,
       forMixinIndex: forMixinIndex,
       forSuper: forSuper,
     );
-    return oldElement?.asElement2;
+    if (rawElement == null) {
+      return null;
+    }
+
+    var substitution = Substitution.fromInterfaceType(type);
+    return ExecutableMember.from(rawElement, substitution);
   }
 
   /// Return all members of mixins, superclasses, and interfaces that a member
@@ -519,6 +435,38 @@ class InheritanceManager3 {
     }
   }
 
+  /// Check that all [candidates] for the given [name] have the same kind, all
+  /// getters, all methods, or all setter.  If a conflict found, return the
+  /// new [Conflict] instance that describes it.
+  Conflict? _checkForGetterMethodConflict2(
+    Name name,
+    List<ExecutableElement2OrMember> candidates,
+  ) {
+    assert(candidates.length > 1);
+
+    ExecutableElement2OrMember? getter;
+    ExecutableElement2OrMember? method;
+    for (var candidate in candidates) {
+      var kind = candidate.kind;
+      if (kind == ElementKind.GETTER) {
+        getter ??= candidate;
+      }
+      if (kind == ElementKind.METHOD) {
+        method ??= candidate;
+      }
+    }
+
+    if (getter == null || method == null) {
+      return null;
+    } else {
+      return GetterMethodConflict(
+        name: name,
+        getter: getter.asElement,
+        method: method.asElement,
+      );
+    }
+  }
+
   /// Combine [candidates] into a single signature in the [targetClass].
   ///
   /// If such signature does not exist, return `null`, and if [conflicts] is
@@ -547,10 +495,45 @@ class InheritanceManager3 {
       return null;
     }
 
-    (_combinedSignatures[targetClass] ??= {})[name] =
+    (_combinedSignatures[targetClass.element] ??= {})[name] =
         candidates.map((e) => e.asElement2).toList();
 
     return _topMerge(typeSystem, targetClass, validOverrides);
+  }
+
+  /// Combine [candidates] into a single signature in the [targetClass].
+  ///
+  /// If such signature does not exist, return `null`, and if [conflicts] is
+  /// not `null`, add a new [Conflict] to it.
+  ExecutableElement2OrMember? _combineSignatures2({
+    required InterfaceElementImpl targetClass,
+    required List<ExecutableElement2OrMember> candidates,
+    required Name name,
+    List<Conflict>? conflicts,
+  }) {
+    // If just one candidate, it is always valid.
+    if (candidates.length == 1) {
+      return candidates[0];
+    }
+
+    var targetLibrary = targetClass.library2;
+    var typeSystem = targetLibrary.typeSystem;
+
+    var validOverrides = _getValidOverrides2(
+      candidates: candidates,
+      typeSystem: typeSystem,
+    );
+
+    if (validOverrides.isEmpty) {
+      conflicts?.add(
+        CandidatesConflict.v2(name: name, candidates2: candidates),
+      );
+      return null;
+    }
+
+    (_combinedSignatures[targetClass] ??= {})[name] = candidates;
+
+    return _topMerge2(typeSystem, targetClass, validOverrides);
   }
 
   /// The given [namedCandidates] maps names to candidates from direct
@@ -596,6 +579,57 @@ class InheritanceManager3 {
     }
 
     return conflicts;
+  }
+
+  /// The given [namedCandidates] maps names to candidates from direct
+  /// superinterfaces.  Find the most specific signature, and put it into the
+  /// [map], if there is no one yet (from the class itself).  If there is no
+  /// such single most specific signature (i.e. no valid override), then add a
+  /// new conflict description.
+  List<Conflict> _findMostSpecificFromNamedCandidates2(
+    InterfaceElementImpl targetClass,
+    Map<Name, ExecutableElement2OrMember> map,
+    Map<Name, List<ExecutableElement2OrMember>> namedCandidates,
+  ) {
+    var conflicts = <Conflict>[];
+
+    for (var entry in namedCandidates.entries) {
+      var name = entry.key;
+      var candidates = entry.value;
+
+      // There is no way to resolve the getter / method conflict.
+      if (candidates.length > 1) {
+        var conflict = _checkForGetterMethodConflict2(name, candidates);
+        if (conflict != null) {
+          conflicts.add(conflict);
+          continue;
+        }
+      }
+
+      if (map.containsKey(name)) {
+        continue;
+      }
+
+      var combinedSignature = _combineSignatures2(
+        targetClass: targetClass,
+        candidates: candidates,
+        name: name,
+        conflicts: conflicts,
+      );
+
+      if (combinedSignature != null) {
+        map[name] = combinedSignature;
+        continue;
+      }
+    }
+
+    return conflicts;
+  }
+
+  /// Implementation of [getInterface2], without dependency tracking.
+  Interface _getInterface(InterfaceElement element) {
+    element as InterfaceElementImpl; // TODO(scheglov): remove cast
+    return getInterface(element.asElement);
   }
 
   Interface _getInterfaceClass(InterfaceFragmentImpl fragment) {
@@ -777,14 +811,15 @@ class InheritanceManager3 {
       }
     });
 
-    var namedCandidates2 = namedCandidates.map<Name, List<ExecutableElement>>(
-      (key, value) => MapEntry(key, value.map((e) => e.asElement2).toList()),
-    );
+    var namedCandidates2 = namedCandidates.map<
+      Name,
+      List<ExecutableElement2OrMember>
+    >((key, value) => MapEntry(key, value.map((e) => e.asElement2).toList()));
 
     var superImplemented2 =
         superImplemented
             .map(
-              (e) => e.map<Name, ExecutableElement>(
+              (e) => e.map<Name, ExecutableElement2OrMember>(
                 (key, value) => MapEntry(key, value.asElement2),
               ),
             )
@@ -803,7 +838,7 @@ class InheritanceManager3 {
       superImplemented: superImplemented,
       superImplemented2: superImplemented2,
       conflicts: conflicts.toFixedList(),
-      combinedSignatures: _combinedSignatures.remove(fragment) ?? {},
+      combinedSignatures: _combinedSignatures.remove(fragment.element) ?? {},
     );
   }
 
@@ -972,14 +1007,14 @@ class InheritanceManager3 {
       }
     }
 
-    var uniqueRedeclared2 = <Name, List<ExecutableElement>>{};
+    var uniqueRedeclared2 = <Name, List<ExecutableElement2OrMember>>{};
     for (var entry in redeclared.entries) {
       var name = entry.key;
       var fragments = entry.value.map((fragment) => fragment.asElement2);
       if (fragments.length == 1) {
         uniqueRedeclared2[name] = fragments.toFixedList();
       } else {
-        var uniqueElements = <ExecutableElement>{};
+        var uniqueElements = <ExecutableElement2OrMember>{};
         for (var fragment in fragments) {
           uniqueElements.add(fragment);
         }
@@ -1002,7 +1037,7 @@ class InheritanceManager3 {
       superImplemented: const [],
       superImplemented2: const [],
       conflicts: conflicts.toFixedList(),
-      combinedSignatures: _combinedSignatures.remove(fragment) ?? {},
+      combinedSignatures: _combinedSignatures.remove(fragment.element) ?? {},
     );
   }
 
@@ -1054,7 +1089,7 @@ class InheritanceManager3 {
 
     var interfaceCandidates2 = interfaceCandidates.map<
       Name,
-      List<ExecutableElement>
+      List<ExecutableElement2OrMember>
     >((key, value) => MapEntry(key, value.map((e) => e.asElement2).toList()));
 
     var superInterface2 = superInterface.mapValue((value) => value.asElement2);
@@ -1073,7 +1108,7 @@ class InheritanceManager3 {
       superImplemented2: [superInterface2],
       conflicts:
           <Conflict>[...superConflicts, ...interfaceConflicts].toFixedList(),
-      combinedSignatures: _combinedSignatures.remove(fragment) ?? {},
+      combinedSignatures: _combinedSignatures.remove(fragment.element) ?? {},
     );
   }
 
@@ -1322,6 +1357,132 @@ class InheritanceManager3 {
     }
   }
 
+  /// Given one or more [validOverrides], merge them into a single resulting
+  /// signature. This signature always exists.
+  ExecutableElement2OrMember _topMerge2(
+    TypeSystemImpl typeSystem,
+    InterfaceElementImpl targetClass,
+    List<ExecutableElement2OrMember> validOverrides,
+  ) {
+    var first = validOverrides[0];
+
+    if (validOverrides.length == 1) {
+      return first;
+    }
+
+    var firstType = first.type;
+    if (validOverrides.every((e) => e.type == firstType)) {
+      return first;
+    }
+
+    var resultType = _topMergeSignatureTypes2(
+      typeSystem: typeSystem,
+      validOverrides: validOverrides,
+    );
+
+    for (var executable in validOverrides) {
+      if (executable.type == resultType) {
+        return executable;
+      }
+    }
+
+    if (first is MethodElement2OrMember) {
+      var firstElement = first;
+      var fragmentName = firstElement.firstFragment.name2!;
+
+      var elementReference = targetClass.reference!
+          .getChild('@method')
+          .getChild(fragmentName);
+      if (elementReference.element case SetterElementImpl result) {
+        return result;
+      }
+
+      var resultFragment = MethodFragmentImpl(
+        name2: fragmentName,
+        nameOffset: -1,
+      );
+      resultFragment.enclosingElement3 = targetClass.firstFragment;
+      resultFragment.typeParameters = resultType.typeFormals;
+      resultFragment.returnType = resultType.returnType;
+      // TODO(scheglov): check if can type cast instead
+      resultFragment.parameters =
+          resultType.parameters
+              .map((e) => e.firstFragment as FormalParameterFragmentImpl)
+              .toList();
+
+      var elementName = firstElement.name3!;
+      var resultElement = MethodElementImpl(
+        name3: elementName,
+        reference: elementReference,
+        firstFragment: resultFragment,
+      );
+
+      return resultElement;
+    } else {
+      var firstElement = first as PropertyAccessorElement2OrMember;
+      var fragmentName = first.name3!;
+      var field = FieldFragmentImpl(name2: fragmentName, nameOffset: -1);
+
+      PropertyAccessorFragmentImpl resultFragment;
+      PropertyAccessorElementImpl resultElement;
+      if (firstElement is GetterElement2OrMember) {
+        var elementReference = targetClass.reference!
+            .getChild('@getter')
+            .getChild(fragmentName);
+        if (elementReference.element case GetterElementImpl result) {
+          return result;
+        }
+
+        var fragment = GetterFragmentImpl(name2: fragmentName, nameOffset: -1);
+        resultFragment = fragment;
+
+        var element = GetterElementImpl(elementReference, fragment);
+        element.returnType = resultType.returnType;
+        resultElement = element;
+      } else {
+        var elementReference = targetClass.reference!
+            .getChild('@setter')
+            .getChild(fragmentName);
+        if (elementReference.element case SetterElementImpl result) {
+          return result;
+        }
+
+        var fragment = SetterFragmentImpl(name2: fragmentName, nameOffset: -1);
+        resultFragment = fragment;
+
+        resultElement = SetterElementImpl(elementReference, fragment);
+      }
+      resultFragment.enclosingElement3 = targetClass.firstFragment;
+      resultFragment.returnType = resultType.returnType;
+      // TODO(scheglov): check if can type cast instead
+      resultFragment.parameters =
+          resultType.parameters
+              .map((e) => e.firstFragment as FormalParameterFragmentImpl)
+              .toList();
+
+      field.enclosingElement3 = targetClass.firstFragment;
+
+      var elementName = first.name3!;
+      var elementReference = targetClass.reference!
+          .getChild('@field')
+          .getChild(elementName);
+      assert(elementReference.element == null);
+      var fieldElement = FieldElementImpl(
+        reference: elementReference,
+        firstFragment: field,
+      );
+      resultFragment.element.variable3 = fieldElement;
+
+      if (firstElement is GetterElement) {
+        field.type = resultFragment.returnType;
+      } else {
+        field.type = resultFragment.parameters[0].type;
+      }
+
+      return resultElement;
+    }
+  }
+
   static Map<Name, ExecutableElementOrMember> _getTypeMembers(
     InterfaceFragmentImpl fragment,
     InterfaceElementImpl element,
@@ -1367,6 +1528,27 @@ class InheritanceManager3 {
     return validOverrides;
   }
 
+  /// Returns executables that are valid overrides of [candidates].
+  static List<ExecutableElement2OrMember> _getValidOverrides2({
+    required TypeSystemImpl typeSystem,
+    required List<ExecutableElement2OrMember> candidates,
+  }) {
+    var validOverrides = <ExecutableElement2OrMember>[];
+    outer:
+    for (var i = 0; i < candidates.length; i++) {
+      var validOverride = candidates[i];
+      var validOverrideType = validOverride.type;
+      for (var j = 0; j < candidates.length; j++) {
+        var candidate = candidates[j];
+        if (!typeSystem.isSubtypeOf(validOverrideType, candidate.type)) {
+          continue outer;
+        }
+      }
+      validOverrides.add(validOverride);
+    }
+    return validOverrides;
+  }
+
   static bool _isDeclaredInObject(ExecutableElementOrMember element) {
     var enclosing = element.asElement2.enclosingElement;
     return enclosing is ClassElement && enclosing.isDartCoreObject;
@@ -1375,6 +1557,17 @@ class InheritanceManager3 {
   static FunctionTypeImpl _topMergeSignatureTypes({
     required TypeSystemImpl typeSystem,
     required List<ExecutableElementOrMember> validOverrides,
+  }) {
+    return validOverrides
+        .map((e) => typeSystem.normalizeFunctionType(e.type))
+        .reduce((previous, next) {
+          return typeSystem.topMerge(previous, next) as FunctionTypeImpl;
+        });
+  }
+
+  static FunctionTypeImpl _topMergeSignatureTypes2({
+    required TypeSystemImpl typeSystem,
+    required List<ExecutableElement2OrMember> validOverrides,
   }) {
     return validOverrides
         .map((e) => typeSystem.normalizeFunctionType(e.type))
@@ -1423,7 +1616,7 @@ class Interface {
 
   /// The map of names to their signatures from the mixins, superclasses,
   /// or interfaces.
-  final Map<Name, List<ExecutableElement>> overridden2;
+  final Map<Name, List<ExecutableElement2OrMember>> overridden2;
 
   /// The map of names to the signatures from superinterfaces that a member
   /// declaration in this extension type redeclares.
@@ -1431,7 +1624,7 @@ class Interface {
 
   /// The map of names to the signatures from superinterfaces that a member
   /// declaration in this extension type redeclares.
-  final Map<Name, List<ExecutableElement>> redeclared2;
+  final Map<Name, List<ExecutableElement2OrMember>> redeclared2;
 
   /// Each item of this list maps names to their concrete implementations.
   /// The first item of the list is the nominal superclass, next the nominal
@@ -1443,7 +1636,7 @@ class Interface {
   /// The first item of the list is the nominal superclass, next the nominal
   /// superclass plus the first mixin, etc. So, for the class like
   /// `class C extends S with M1, M2`, we get `[S, S&M1, S&M1&M2]`.
-  final List<Map<Name, ExecutableElement>> superImplemented2;
+  final List<Map<Name, ExecutableElement2OrMember>> superImplemented2;
 
   /// The list of conflicts between superinterfaces - the nominal superclass,
   /// mixins, and interfaces.  Does not include conflicts with the declared
@@ -1457,6 +1650,10 @@ class Interface {
   /// The map of names to the most specific signatures from the mixins,
   /// superclasses, or interfaces.
   Map<Name, ExecutableElementOrMember>? inheritedMap;
+
+  /// The map of names to the most specific signatures from the mixins,
+  /// superclasses, or interfaces.
+  Map<Name, ExecutableElement2OrMember>? inheritedMap2;
 
   Interface._({
     required this.map,
@@ -1478,19 +1675,6 @@ class Interface {
   @experimental
   Map<Name, ExecutableElement> get declared2 {
     return declared.mapValue((element) => element.asElement2);
-  }
-
-  /// The map of names to the most specific signatures from the mixins,
-  /// superclasses, or interfaces.
-  Map<Name, ExecutableElement>? get inheritedMap2 {
-    if (inheritedMap == null) {
-      return null;
-    }
-    var inheritedMap2 = <Name, ExecutableElement>{};
-    for (var entry in inheritedMap!.entries) {
-      inheritedMap2[entry.key] = entry.value.asElement2;
-    }
-    return inheritedMap2;
   }
 
   /// The map of names to their signature in the interface.

@@ -43,7 +43,7 @@ final class MessageScheduler {
       ListQueue<ScheduledMessage>();
 
   /// Whether the [MessageScheduler] is currently processing messages.
-  bool _isProcessing = false;
+  bool _processingIsScheduled = false;
 
   /// The number of times [pause] has been called without matching [resume]s.
   ///
@@ -180,8 +180,9 @@ final class MessageScheduler {
       }
     }
     _pendingMessages.addLast(message);
-    if (!_isProcessing) {
-      processMessages();
+    if (!_processingIsScheduled) {
+      _processingIsScheduled = true;
+      Future.delayed(Duration.zero, processMessages);
     }
   }
 
@@ -199,14 +200,12 @@ final class MessageScheduler {
 
   /// Dispatch the first message in the queue to be executed.
   void processMessages() async {
-    if (isPaused) {
-      return;
-    }
-
-    _isProcessing = true;
     listener?.startProcessingMessages();
     try {
-      while (_pendingMessages.isNotEmpty && !isPaused) {
+      while (_pendingMessages.isNotEmpty) {
+        if (isPaused) {
+          break;
+        }
         var currentMessage = _pendingMessages.removeFirst();
         _activeMessages.addLast(currentMessage);
         listener?.addActiveMessage(currentMessage);
@@ -269,7 +268,7 @@ final class MessageScheduler {
         server.crashReportingAttachmentsBuilder.forException(error),
       );
     }
-    _isProcessing = false;
+    _processingIsScheduled = false;
     listener?.endProcessingMessages();
   }
 
@@ -280,10 +279,11 @@ final class MessageScheduler {
     }
     _pauseCount--;
     listener?.resumeProcessingMessages(_pauseCount);
-    if (!isPaused && !_isProcessing) {
+    if (!isPaused && !_processingIsScheduled) {
       // Process on the next tick so that the caller to resume() doesn't get
       // messages in the queue attributed to their time (or run before they
       // complete).
+      _processingIsScheduled = true;
       Future.delayed(Duration.zero, processMessages);
     }
   }

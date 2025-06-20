@@ -51,7 +51,7 @@ class ReferencesHandler
   }
 
   List<Location> _getDeclarations(Element element) {
-    return element.nonSynthetic2.fragments
+    return element.nonSynthetic.fragments
         .map((fragment) => fragmentToLocation(uriConverter, fragment))
         .nonNulls
         .toList();

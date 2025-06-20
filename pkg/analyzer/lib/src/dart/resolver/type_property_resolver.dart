@@ -18,7 +18,6 @@ import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Helper for resolving properties (getters, setters, or methods).
 class TypePropertyResolver {
@@ -272,10 +271,11 @@ class TypePropertyResolver {
 
     if (_hasRead) {
       var getterName = Name(_definingLibrary.source.uri, _name);
-      _getterRequested =
-          _resolver.inheritance
-              .getMember(type, getterName, forSuper: isSuper)
-              ?.asElement2;
+      _getterRequested = _resolver.inheritance.getMember3(
+        type,
+        getterName,
+        forSuper: isSuper,
+      );
       _needsGetterError = _getterRequested == null;
 
       if (_getterRequested == null && recoverWithStatic) {
@@ -289,10 +289,11 @@ class TypePropertyResolver {
 
     if (_hasWrite) {
       var setterName = Name(_definingLibrary.source.uri, '$_name=');
-      _setterRequested =
-          _resolver.inheritance
-              .getMember(type, setterName, forSuper: isSuper)
-              ?.asElement2;
+      _setterRequested = _resolver.inheritance.getMember3(
+        type,
+        setterName,
+        forSuper: isSuper,
+      );
       _needsSetterError = _setterRequested == null;
 
       if (_setterRequested == null && recoverWithStatic) {
@@ -310,18 +311,20 @@ class TypePropertyResolver {
     // should not check extensions.
     if (_hasRead && _getterRequested == null) {
       var setterName = Name(_definingLibrary.source.uri, '$_name=');
-      _setterRequested =
-          _resolver.inheritance
-              .getMember(type, setterName, forSuper: isSuper)
-              ?.asElement2;
+      _setterRequested = _resolver.inheritance.getMember3(
+        type,
+        setterName,
+        forSuper: isSuper,
+      );
     }
 
     if (_hasWrite && _setterRequested == null) {
       var getterName = Name(_definingLibrary.source.uri, _name);
-      _getterRequested =
-          _resolver.inheritance
-              .getMember(type, getterName, forSuper: isSuper)
-              ?.asElement2;
+      _getterRequested = _resolver.inheritance.getMember3(
+        type,
+        getterName,
+        forSuper: isSuper,
+      );
     }
   }
 

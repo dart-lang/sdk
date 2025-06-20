@@ -926,7 +926,7 @@ class PropertyElementResolver with ScopeHelpers {
     if (targetType is InterfaceTypeImpl) {
       if (hasRead) {
         var name = Name(_definingLibrary.source.uri, propertyName.name);
-        readElement = _resolver.inheritance.getMember4(
+        readElement = _resolver.inheritance.getMember(
           targetType.element3,
           name,
           forSuper: true,
@@ -938,7 +938,7 @@ class PropertyElementResolver with ScopeHelpers {
           // We were not able to find the concrete dispatch target.
           // But we would like to give the user at least some resolution.
           // So, we retry simply looking for an inherited member.
-          readElement = _resolver.inheritance.getInherited4(
+          readElement = _resolver.inheritance.getInherited(
             targetType.element3,
             name,
           );

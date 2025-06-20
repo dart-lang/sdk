@@ -1745,7 +1745,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     var validTarget = false;
 
     var referencedElement = switch (argument) {
-      IdentifierImpl() => argument.element?.nonSynthetic2,
+      IdentifierImpl() => argument.element?.nonSynthetic,
       _ => null,
     };
 
