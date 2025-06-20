@@ -81,4 +81,24 @@ void f() {
       [lint(13, 22)],
     );
   }
+
+  test_messageFormatting() async {
+    await assertDiagnostics(
+      r'''
+void f() {
+  bool.fromEnvironment('DEBUG');
+}
+''',
+      [lint(13, 27, messageContains: 'bool.fromEnvironment')],
+    );
+  }
+
+  test_constContext() async {
+    await assertDiagnostics(
+      r'''
+const bool usingAppEngine = bool.hasEnvironment('APPENGINE_RUNTIME');
+''',
+      [lint(28, 19)],
+    );
+  }
 }

@@ -623,8 +623,9 @@ class LinterLintCode extends LintCode {
 
   static const LintCode do_not_use_environment = LinterLintCode(
     LintNames.do_not_use_environment,
-    "Invalid use of an environment declaration.",
-    correctionMessage: "Try removing the environment declaration usage.",
+    "Avoid using environment values like '{0}' which create hidden global state.",
+    correctionMessage:
+        "Try using 'Platform.environment' for runtime access or remove environment-dependent code.",
   );
 
   static const LintCode document_ignores = LinterLintCode(
