@@ -80,6 +80,15 @@ class VirtualMemory {
 #endif
   }
 
+  // Write protect a chunk of machine code which is currently writable.
+  DART_FORCE_INLINE static void WriteProtectCode(void* address, intptr_t size) {
+    Protect(address, size,
+            ShouldDualMapExecutablePages() ? kReadOnly : kReadExecute);
+  }
+  DART_FORCE_INLINE void WriteProtectCode() const {
+    WriteProtectCode(address(), size());
+  }
+
   bool Contains(uword addr) const { return region_.Contains(addr); }
 
   // Changes the protection of the virtual memory area.

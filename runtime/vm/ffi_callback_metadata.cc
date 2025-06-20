@@ -187,16 +187,12 @@ VirtualMemory* FfiCallbackMetadata::AllocateTrampolinePage() {
     memcpy(new_page->address(), stub_page_->address(),  // NOLINT
            stub_page_->size());
 
+    VirtualMemory::WriteProtectCode(new_page->address(), aligned_size);
     if (VirtualMemory::ShouldDualMapExecutablePages()) {
       ASSERT(new_page->OffsetToExecutableAlias() != 0);
-      VirtualMemory::Protect(new_page->address(), aligned_size,
-                             VirtualMemory::kReadOnly);
       VirtualMemory::Protect(
           reinterpret_cast<void*>(RXAreaStart(new_page) + RXMappingSize()),
           RWMappingSize(), VirtualMemory::kReadWrite);
-    } else {
-      VirtualMemory::Protect(new_page->address(), aligned_size,
-                             VirtualMemory::kReadExecute);
     }
   }
 

@@ -293,19 +293,13 @@ void Page::ResetProgressBar() {
 
 void Page::WriteProtect(bool read_only) {
   ASSERT(!is_image());
-  VirtualMemory::Protection prot;
-  if (read_only) {
-    // When dual mapping code pages we don't change protection on RX page, but
-    // flip RW to R and back.
-    if (is_executable() && !VirtualMemory::ShouldDualMapExecutablePages()) {
-      prot = VirtualMemory::kReadExecute;
-    } else {
-      prot = VirtualMemory::kReadOnly;
-    }
+  if (is_executable() && read_only) {
+    // Handle making code executable in a special way.
+    memory_->WriteProtectCode();
   } else {
-    prot = VirtualMemory::kReadWrite;
+    memory_->Protect(read_only ? VirtualMemory::kReadOnly
+                               : VirtualMemory::kReadWrite);
   }
-  memory_->Protect(prot);
 }
 
 }  // namespace dart

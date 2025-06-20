@@ -263,8 +263,7 @@ struct RelocatorTestHelper {
         ASSERT(!VirtualMemory::ShouldDualMapExecutablePages());
         const uword address = UntaggedObject::ToAddr(instructions.ptr());
         const auto size = instructions.ptr()->untag()->HeapSize();
-        VirtualMemory::Protect(reinterpret_cast<void*>(address), size,
-                               VirtualMemory::kReadExecute);
+        VirtualMemory::WriteProtectCode(reinterpret_cast<void*>(address), size);
       }
       CPU::FlushICache(instructions.PayloadStart(), instructions.Size());
     }
