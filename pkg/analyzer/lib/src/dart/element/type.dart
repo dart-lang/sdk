@@ -668,7 +668,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   List<GetterElement2OrMember> get getters {
     return _getters ??=
         element3.getters.map((e) {
-          return GetterMember.from(e, this);
+          return GetterMember.forTargetType(e, this);
         }).toFixedList();
   }
 
@@ -772,7 +772,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   List<MethodElement2OrMember> get methods2 {
     return _methods ??=
         element3.methods.map((e) {
-          return MethodMember.from2(e, this);
+          return MethodMember.forTargetType(e, this);
         }).toFixedList();
   }
 
@@ -799,7 +799,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   List<SetterElement2OrMember> get setters {
     return _setters ??=
         element3.setters.map((e) {
-          return SetterMember.from(e, this);
+          return SetterMember.forTargetType(e, this);
         }).toFixedList();
   }
 
@@ -883,19 +883,19 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   GetterElement2OrMember? getGetter2(String getterName) {
     var element = element3.getGetter(getterName);
-    return element != null ? GetterMember.from(element, this) : null;
+    return element != null ? GetterMember.forTargetType(element, this) : null;
   }
 
   @override
   MethodElement2OrMember? getMethod2(String methodName) {
     var element = element3.getMethod(methodName);
-    return element != null ? MethodMember.from2(element, this) : null;
+    return element != null ? MethodMember.forTargetType(element, this) : null;
   }
 
   @override
   SetterElement2OrMember? getSetter2(String setterName) {
     var element = element3.getSetter(setterName);
-    return element != null ? SetterMember.from(element, this) : null;
+    return element != null ? SetterMember.forTargetType(element, this) : null;
   }
 
   @override
@@ -937,9 +937,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
           return result;
         }
       } else {
-        var result = inheritance.getInherited3(this, nameObj);
-        if (result is GetterElement2OrMember) {
-          return result;
+        var rawElement = inheritance.getInherited(element3, nameObj);
+        if (rawElement is GetterElement2OrMember) {
+          return GetterMember.forTargetType(rawElement, this);
         }
       }
       return null;
@@ -975,9 +975,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
           return result;
         }
       } else {
-        var result = inheritance.getInherited3(this, nameObj);
-        if (result is MethodElement2OrMember) {
-          return result;
+        var rawElement = inheritance.getInherited(element3, nameObj);
+        if (rawElement is MethodElement2OrMember) {
+          return MethodMember.forTargetType(rawElement, this);
         }
       }
       return null;
@@ -1013,9 +1013,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
           return result;
         }
       } else {
-        var result = inheritance.getInherited3(this, nameObj);
-        if (result is SetterElement2OrMember) {
-          return result;
+        var rawElement = inheritance.getInherited(element3, nameObj);
+        if (rawElement is SetterElement2OrMember) {
+          return SetterMember.forTargetType(rawElement, this);
         }
       }
       return null;

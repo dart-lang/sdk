@@ -678,15 +678,15 @@ class MemberDuplicateDefinitionVerifier {
         continue;
       }
       var baseName = accessor.displayName;
-      var inherited = _getInheritedMember(firstFragment, baseName);
-      if (inherited is MethodFragmentImpl) {
+      var inherited = _getInheritedMember(fragment.element, baseName);
+      if (inherited is MethodElement2OrMember) {
         _diagnosticReporter.atElement2(
           accessor.asElement2,
           CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD,
           arguments: [
             firstFragment.displayName,
             baseName,
-            inherited.enclosingElement3.displayName,
+            inherited.enclosingElement!.name3!,
           ],
         );
       }
@@ -700,15 +700,15 @@ class MemberDuplicateDefinitionVerifier {
         continue;
       }
       var baseName = method.displayName;
-      var inherited = _getInheritedMember(firstFragment, baseName);
-      if (inherited is PropertyAccessorFragmentImpl) {
+      var inherited = _getInheritedMember(fragment.element, baseName);
+      if (inherited is PropertyAccessorElement2OrMember) {
         _diagnosticReporter.atElement2(
           method.asElement2,
           CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD,
           arguments: [
             firstFragment.displayName,
             baseName,
-            inherited.enclosingElement3.displayName,
+            inherited.enclosingElement.name3!,
           ],
         );
       }
@@ -729,7 +729,7 @@ class MemberDuplicateDefinitionVerifier {
       }
       var baseName = accessor.displayName;
       if (accessor.isStatic) {
-        var instance = _getInterfaceMember(firstFragment, baseName);
+        var instance = _getInterfaceMember(fragment.element, baseName);
         if (instance != null && baseName != 'values') {
           _diagnosticReporter.atElement2(
             accessor.asElement2,
@@ -746,7 +746,7 @@ class MemberDuplicateDefinitionVerifier {
       }
       var baseName = method.displayName;
       if (method.isStatic) {
-        var instance = _getInterfaceMember(firstFragment, baseName);
+        var instance = _getInterfaceMember(fragment.element, baseName);
         if (instance != null) {
           _diagnosticReporter.atElement2(
             method.asElement2,
@@ -886,36 +886,36 @@ class MemberDuplicateDefinitionVerifier {
         _InstanceElementContext();
   }
 
-  ExecutableElementOrMember? _getInheritedMember(
-    InterfaceFragmentImpl element,
+  ExecutableElement2OrMember? _getInheritedMember(
+    InterfaceElementImpl element,
     String baseName,
   ) {
     var libraryUri = _currentLibrary.source.uri;
 
     var getterName = Name(libraryUri, baseName);
-    var getter = _inheritanceManager.getInherited2(element, getterName);
+    var getter = _inheritanceManager.getInherited(element, getterName);
     if (getter != null) {
       return getter;
     }
 
     var setterName = Name(libraryUri, '$baseName=');
-    return _inheritanceManager.getInherited2(element, setterName);
+    return _inheritanceManager.getInherited(element, setterName);
   }
 
-  ExecutableElementOrMember? _getInterfaceMember(
-    InterfaceFragmentImpl element,
+  ExecutableElement2OrMember? _getInterfaceMember(
+    InterfaceElementImpl element,
     String baseName,
   ) {
     var libraryUri = _currentLibrary.source.uri;
 
     var getterName = Name(libraryUri, baseName);
-    var getter = _inheritanceManager.getMember2(element, getterName);
+    var getter = _inheritanceManager.getMember(element, getterName);
     if (getter != null) {
       return getter;
     }
 
     var setterName = Name(libraryUri, '$baseName=');
-    return _inheritanceManager.getMember2(element, setterName);
+    return _inheritanceManager.getMember(element, setterName);
   }
 
   static void checkLibrary({

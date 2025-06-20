@@ -196,7 +196,7 @@ extension on InterfaceElement {
 
     var library = element.library2 as LibraryElementImpl;
     var inheritanceManager = library.session.inheritanceManager;
-    return inheritanceManager.getMember4(this, nameObj, forSuper: true);
+    return inheritanceManager.getMember(this, nameObj, forSuper: true);
   }
 }
 
@@ -209,7 +209,7 @@ extension on InterfaceType? {
     var library = element.library2 as LibraryElementImpl;
     var inheritanceManager = library.session.inheritanceManager;
 
-    var concrete = inheritanceManager.getMember4(
+    var concrete = inheritanceManager.getMember(
       element,
       Name.forLibrary(library, name),
       concrete: true,

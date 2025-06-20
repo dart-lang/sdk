@@ -213,7 +213,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
   MethodElement lookupToString(DartType? type) {
     var class_ =
         type is InterfaceType ? type.element3 : typeProvider.objectElement2;
-    return inheritanceManager.getMember4(
+    return inheritanceManager.getMember(
           class_,
           Name.forLibrary(coreLibrary, 'toString'),
         )

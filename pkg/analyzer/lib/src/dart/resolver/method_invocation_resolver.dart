@@ -982,16 +982,16 @@ class MethodInvocationResolver with ScopeHelpers {
       return null;
     }
 
-    var target = _inheritance.getMember2(
-      enclosingClass.firstFragment,
+    var target = _inheritance.getMember(
+      enclosingClass,
       _currentName!,
       forSuper: true,
     );
 
     // If there is that concrete dispatch target, then we are done.
     if (target != null) {
-      nameNode.element = target.asElement2;
-      if (target is PropertyAccessorElementOrMember) {
+      nameNode.element = target;
+      if (target is PropertyAccessorElement2OrMember) {
         return _rewriteAsFunctionExpressionInvocation(
           node,
           node.target,
@@ -1016,12 +1016,9 @@ class MethodInvocationResolver with ScopeHelpers {
     // Otherwise, this is an error.
     // But we would like to give the user at least some resolution.
     // So, we try to find the interface target.
-    target = _inheritance.getInherited2(
-      enclosingClass.firstFragment,
-      _currentName!,
-    );
+    target = _inheritance.getInherited(enclosingClass, _currentName!);
     if (target != null) {
-      nameNode.element = target.asElement2;
+      nameNode.element = target;
       _setResolution(
         node,
         target.type,
@@ -1290,8 +1287,7 @@ class MethodInvocationResolver with ScopeHelpers {
 
     // The dot shorthand is a constructor invocation so we rewrite to a
     // [DotShorthandConstructorInvocation].
-    if (receiver.getNamedConstructor2(name)
-        case ConstructorElementImpl element?
+    if (receiver.getNamedConstructor2(name) case ConstructorElementImpl element?
         when element.isAccessibleIn2(_resolver.definingLibrary)) {
       var replacement = DotShorthandConstructorInvocationImpl(
         constKeyword: null,

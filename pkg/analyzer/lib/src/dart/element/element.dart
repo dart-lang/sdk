@@ -5323,14 +5323,14 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
 
   @override
   ExecutableElement? getInheritedMember(Name name) =>
-      (session as AnalysisSessionImpl).inheritanceManager.getInherited4(
+      (session as AnalysisSessionImpl).inheritanceManager.getInherited(
         this,
         name,
       );
 
   @override
   ExecutableElement? getInterfaceMember(Name name) =>
-      (session as AnalysisSessionImpl).inheritanceManager.getMember4(
+      (session as AnalysisSessionImpl).inheritanceManager.getMember(
         this,
         name,
       );
@@ -5472,7 +5472,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     required LibraryElement library,
   }) {
     return inheritanceManager
-        .getInherited4(this, Name.forLibrary(library, methodName))
+        .getInherited(this, Name.forLibrary(library, methodName))
         .ifTypeOrNull();
   }
 

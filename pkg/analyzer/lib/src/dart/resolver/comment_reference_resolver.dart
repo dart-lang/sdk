@@ -81,7 +81,7 @@ class CommentReferenceResolver {
     if (!hasNewKeyword) {
       if (prefixElement is InterfaceElement) {
         name.element =
-            _resolver.inheritance.getMember4(
+            _resolver.inheritance.getMember(
               prefixElement,
               Name(prefixElement.library2.uri, name.name),
             ) ??

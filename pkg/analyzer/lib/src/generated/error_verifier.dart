@@ -2254,11 +2254,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       // find inherited property accessors
       var getter =
           _inheritanceManager
-              .getInherited4(enclosingClass, Name(libraryUri, name))
+              .getInherited(enclosingClass, Name(libraryUri, name))
               ?.asElement;
       var setter =
           _inheritanceManager
-              .getInherited4(enclosingClass, Name(libraryUri, '$name='))
+              .getInherited(enclosingClass, Name(libraryUri, '$name='))
               ?.asElement;
 
       if (method.isStatic) {
@@ -2320,11 +2320,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       // find inherited method or property accessor
       var inherited =
           _inheritanceManager
-              .getInherited4(enclosingClass, Name(libraryUri, name))
+              .getInherited(enclosingClass, Name(libraryUri, name))
               ?.asElement;
       inherited ??=
           _inheritanceManager
-              .getInherited4(enclosingClass, Name(libraryUri, '$name='))
+              .getInherited(enclosingClass, Name(libraryUri, '$name='))
               ?.asElement;
 
       if (accessor.isStatic && inherited != null) {
@@ -2357,19 +2357,17 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     // Inherited method and setter with the same name.
-    var inherited = _inheritanceManager.getInheritedMap2(
-      enclosingClass.asElement,
-    );
+    var inherited = _inheritanceManager.getInheritedMap(enclosingClass);
     for (var entry in inherited.entries) {
       var method = entry.value;
-      if (method is MethodElementOrMember) {
+      if (method is MethodElement2OrMember) {
         var methodName = entry.key;
         if (conflictingDeclaredNames.contains(methodName.name)) {
           continue;
         }
         var setterName = methodName.forSetter;
         var setter = inherited[setterName];
-        if (setter is PropertyAccessorElementOrMember) {
+        if (setter is PropertyAccessorElement2OrMember) {
           diagnosticReporter.atElement2(
             enclosingClass,
             CompileTimeErrorCode.CONFLICTING_INHERITED_METHOD_AND_SETTER,
@@ -2380,25 +2378,25 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             ],
             contextMessages: [
               DiagnosticMessageImpl(
-                filePath: method.source.fullName,
+                filePath: method.firstFragment.libraryFragment.source.fullName,
                 message:
                     formatList("The method is inherited from the {0} '{1}'.", [
-                      method.asElement2.enclosingElement!.kind.displayName,
-                      method.asElement2.enclosingElement!.name3,
+                      method.enclosingElement!.kind.displayName,
+                      method.enclosingElement!.name3,
                     ]),
-                offset: method.nameOffset,
-                length: method.nameLength,
+                offset: method.firstFragment.nameOffset2!,
+                length: method.firstFragment.name2!.length,
                 url: null,
               ),
               DiagnosticMessageImpl(
-                filePath: setter.source.fullName,
+                filePath: setter.firstFragment.libraryFragment.source.fullName,
                 message:
                     formatList("The setter is inherited from the {0} '{1}'.", [
-                      setter.asElement2.enclosingElement.kind.displayName,
-                      setter.asElement2.enclosingElement.name3,
+                      setter.enclosingElement.kind.displayName,
+                      setter.enclosingElement.name3,
                     ]),
-                offset: setter.nameOffset,
-                length: setter.nameLength,
+                offset: setter.firstFragment.nameOffset2!,
+                length: setter.firstFragment.name2!.length,
                 url: null,
               ),
             ],
@@ -4395,8 +4393,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     for (var name in mixinElementImpl.superInvokedNames) {
       var nameObject = Name(mixinLibraryUri, name);
 
-      var superMember = _inheritanceManager.getMember2(
-        _enclosingClass!.asElement,
+      var superMember = _inheritanceManager.getMember(
+        _enclosingClass!,
         nameObject,
         forMixinIndex: mixinIndex,
         concrete: true,
@@ -4430,7 +4428,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (mixinMember != null) {
         var isCorrect = CorrectOverrideHelper(
           typeSystem: typeSystem,
-          thisMember: superMember.asElement2,
+          thisMember: superMember,
         ).isCorrectOverrideOf(superMember: mixinMember);
         if (!isCorrect) {
           diagnosticReporter.atNode(
@@ -4485,7 +4483,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           return true;
         }
         names[name] = namedType.name.lexeme;
-        var inheritedMember = _inheritanceManager.getMember4(
+        var inheritedMember = _inheritanceManager.getMember(
           declaredSupertype.element3,
           Name(library.uri, name),
           concrete: true,

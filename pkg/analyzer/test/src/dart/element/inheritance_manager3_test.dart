@@ -962,7 +962,7 @@ abstract class B<E> {
 }
 ''');
     var B = findElement2.classOrMixin('B');
-    var foo = manager.getMember4(B, Name(null, 'foo'))!;
+    var foo = manager.getMember(B, Name(null, 'foo'))!;
     var T = foo.typeParameters2.single;
     var returnType = foo.returnType;
     expect(returnType.element3, same(T));
@@ -990,7 +990,7 @@ abstract class B<XB> extends A<XB> {}
       nullabilitySuffix: NullabilitySuffix.none,
     );
     var foo = manager.getMember3(typeB, Name(null, 'foo'))!;
-    var foo2 = manager.getMember4(B, Name(null, 'foo'))!;
+    var foo2 = manager.getMember(B, Name(null, 'foo'))!;
     checkTextendsFooT(foo.type.typeParameters.single);
     checkTextendsFooT(foo2.type.typeParameters.single);
     checkTextendsFooT(foo2.typeParameters2.single);
@@ -1021,7 +1021,7 @@ abstract class D<XD> extends C<XD> {}
       nullabilitySuffix: NullabilitySuffix.none,
     );
     var foo = manager.getMember3(typeD, Name(null, 'foo'))!;
-    var foo2 = manager.getMember4(D, Name(null, 'foo'))!;
+    var foo2 = manager.getMember(D, Name(null, 'foo'))!;
     checkTextendsFooT(foo.type.typeParameters.single);
     checkTextendsFooT(foo2.type.typeParameters.single);
     checkTextendsFooT(foo2.typeParameters2.single);
@@ -1037,7 +1037,7 @@ abstract class A<E> {
 abstract class B<E> extends A<E> {}
 ''');
     var B = findElement2.classOrMixin('B');
-    var foo = manager.getMember4(B, Name(null, 'foo'))!;
+    var foo = manager.getMember(B, Name(null, 'foo'))!;
     var T = foo.typeParameters2.single;
     var returnType = foo.returnType;
     // Check that the return type uses the same `T` as `<T>`.
@@ -1053,7 +1053,7 @@ abstract class A {
 abstract class B extends A {}
 ''');
     var B = findElement2.classOrMixin('B');
-    var foo = manager.getMember4(B, Name(null, 'foo'))!;
+    var foo = manager.getMember(B, Name(null, 'foo'))!;
     var T = foo.typeParameters2.single;
     var returnType = foo.returnType;
     expect(returnType.element3, same(T));
@@ -1072,7 +1072,7 @@ class C {
 }
 ''');
     var member =
-        manager.getMember4(
+        manager.getMember(
           findElement2.classOrMixin('B'),
           Name(null, 'foo'),
           concrete: true,
@@ -1093,7 +1093,7 @@ abstract class B extends A {
 }
 ''');
     var member =
-        manager.getMember4(findElement2.classOrMixin('B'), Name(null, 'foo'))!;
+        manager.getMember(findElement2.classOrMixin('B'), Name(null, 'foo'))!;
     // TODO(scheglov): It would be nice to use `_assertGetMember`.
     // But we need a way to check covariance.
     // Maybe check the element display string, not the type.
@@ -1118,7 +1118,7 @@ class B {
 class C extends B implements A {}
 ''');
     var member =
-        manager.getMember4(
+        manager.getMember(
           findElement2.classOrMixin('C'),
           Name(null, 'foo'),
           concrete: true,
@@ -1359,7 +1359,7 @@ abstract class B extends A {
 }
 ''');
     var member =
-        manager.getMember4(findElement2.classOrMixin('B'), Name(null, 'foo='))!;
+        manager.getMember(findElement2.classOrMixin('B'), Name(null, 'foo='))!;
     // TODO(scheglov): It would be nice to use `_assertGetMember`.
     // But we need a way to check covariance.
     // Maybe check the element display string, not the type.
@@ -1384,7 +1384,7 @@ class B {
 class C extends B implements A {}
 ''');
     var member =
-        manager.getMember4(
+        manager.getMember(
           findElement2.classOrMixin('C'),
           Name(null, 'foo='),
           concrete: true,
@@ -1438,7 +1438,7 @@ mixin M on A {}
     await resolveTestCode('''
 class A {}
 ''');
-    var member = manager.getMember4(
+    var member = manager.getMember(
       typeProvider.objectType.element3,
       Name(null, 'hashCode'),
       forSuper: true,
@@ -2968,7 +2968,7 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
     required String name,
     String? expected,
   }) {
-    var member = manager.getInherited4(
+    var member = manager.getInherited(
       findElement2.classOrMixin(className),
       Name(null, name),
     );
@@ -2983,7 +2983,7 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
     bool concrete = false,
     bool forSuper = false,
   }) {
-    var member = manager.getMember4(
+    var member = manager.getMember(
       findElement2.classOrMixin(className),
       Name(null, name),
       concrete: concrete,
@@ -3084,7 +3084,7 @@ class _InheritanceManager3Base2 extends ElementsBaseTest {
     inheritance.getInheritedConcreteMap(element.asElement2);
 
     // Ensure that `inheritedMap` field is initialized.
-    inheritance.getInheritedMap2(element);
+    inheritance.getInheritedMap(element.element);
 
     var buffer = StringBuffer();
     var sink = TreeStringSink(sink: buffer, indent: '');
