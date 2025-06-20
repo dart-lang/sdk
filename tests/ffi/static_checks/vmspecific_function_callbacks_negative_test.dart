@@ -13,11 +13,26 @@ final testLibrary = DynamicLibrary.process();
 
 // Correct type of exceptionalReturn argument to Pointer.fromFunction.
 double testExceptionalReturn() {
-  Pointer.fromFunction<Double Function()>(returnVoid, null); //# 59: compile-time error
-  Pointer.fromFunction<Void Function()>(returnVoid, 0); //# 60: compile-time error
-  Pointer.fromFunction<Double Function()>(testExceptionalReturn, "abc"); //# 61: compile-time error
-  Pointer.fromFunction<Double Function()>(testExceptionalReturn, 0); //# 62: compile-time error
-  Pointer.fromFunction<Double Function()>(testExceptionalReturn); //# 63: compile-time error
+  Pointer.fromFunction<Double Function()>(returnVoid, null);
+//                                         ^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+// [cfe] The argument type 'void Function()' can't be assigned to the parameter type 'double Function()'.
+  Pointer.fromFunction<Void Function()>(returnVoid, 0);
+//                                                   ^
+// [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+// [cfe] The argument type 'int' can't be assigned to the parameter type 'void'.
+  Pointer.fromFunction<Double Function()>(testExceptionalReturn, "abc");
+//                                                               ^^^^^
+// [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+// [cfe] The argument type 'String' can't be assigned to the parameter type 'double'.
+  Pointer.fromFunction<Double Function()>(testExceptionalReturn, 0);
+//                                                               ^
+// [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+// [cfe] The argument type 'int' can't be assigned to the parameter type 'double'.
+  Pointer.fromFunction<Double Function()>(testExceptionalReturn);
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.MISSING_REQUIRED_ARGUMENT
+// [cfe] Required argument 'exceptionalReturn' must be provided.
 
   return 0.0; // not used
 }

@@ -10,11 +10,17 @@ import "dart:ffi";
 final class MyStruct extends Struct {
   external Pointer<Int8> notEmpty;
 
-  @Array.multi([]) //# 01: compile-time error
-  external Array<Int16> a0; //# 01: compile-time error
+  @Array.multi([])
+  external Array<Int16> a0;
+//                      ^^
+// [analyzer] COMPILE_TIME_ERROR.EMPTY_ARRAY_ANNOTATION
+// [cfe] Array dimensions cannot be empty.
 
-  @Array.multi([1]) //# 02: compile-time error
-  external Array<Array<Int16>> a1; //# 02: compile-time error
+  @Array.multi([1])
+  external Array<Array<Int16>> a1;
+//               ^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.NESTED_ARRAY_UNSUPPORTED
+// [cfe] Nested arrays are not supported.
 }
 
 void main() {

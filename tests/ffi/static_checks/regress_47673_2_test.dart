@@ -14,8 +14,11 @@ final class A extends Struct {
   external Array<Int8> a;
 
   // This should not crash the FFI transform.
-  @Array.multi([16]) //# 1: compile-time error
-  external Array<Unknown> b; //# 1: compile-time error
+  @Array.multi([16])
+  external Array<Unknown> b;
+//               ^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
+// [cfe] Type 'Unknown' not found.
 }
 
 main() {}
