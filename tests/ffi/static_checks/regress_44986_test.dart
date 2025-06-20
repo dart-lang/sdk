@@ -14,6 +14,7 @@ final class S2 extends Struct {
 //              ^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_FIELD_TYPE_IN_STRUCT
 // [cfe] Field 's' contains type 'Null', which is not a valid type in a struct.
+}
 
 void main() {
   S2? s2;
