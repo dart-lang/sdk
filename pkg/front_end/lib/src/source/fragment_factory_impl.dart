@@ -36,7 +36,7 @@ import '../builder/type_builder.dart';
 import '../builder/void_type_builder.dart';
 import '../fragment/fragment.dart';
 import '../util/local_stack.dart';
-import 'builder_factory.dart';
+import 'fragment_factory.dart';
 import 'offset_map.dart';
 import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_library_builder.dart';
@@ -44,7 +44,7 @@ import 'source_loader.dart' show SourceLoader;
 import 'source_type_parameter_builder.dart';
 import 'type_parameter_scope_builder.dart';
 
-class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
+class FragmentFactoryImpl implements FragmentFactory, FragmentFactoryResult {
   final SourceCompilationUnit _compilationUnit;
 
   final ProblemReporting _problemReporting;
@@ -113,7 +113,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   final LocalStack<DeclarationFragmentImpl> _declarationFragments =
       new LocalStack([]);
 
-  BuilderFactoryImpl(
+  FragmentFactoryImpl(
       {required SourceCompilationUnit compilationUnit,
       required SourceCompilationUnit augmentationRoot,
       required LibraryNameSpaceBuilder libraryNameSpaceBuilder,

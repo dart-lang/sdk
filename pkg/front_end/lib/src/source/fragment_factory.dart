@@ -30,7 +30,7 @@ import 'source_library_builder.dart';
 import 'source_type_parameter_builder.dart';
 import 'type_parameter_scope_builder.dart';
 
-abstract class BuilderFactoryResult {
+abstract class FragmentFactoryResult {
   String? get name;
 
   bool get isPart;
@@ -67,7 +67,7 @@ abstract class BuilderFactoryResult {
   List<LibraryPart> get libraryParts;
 }
 
-abstract class BuilderFactory {
+abstract class FragmentFactory {
   void beginClassOrNamedMixinApplicationHeader();
 
   /// Registers that this builder is preparing for a class declaration with the

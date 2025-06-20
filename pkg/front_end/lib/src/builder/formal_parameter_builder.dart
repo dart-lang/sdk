@@ -22,7 +22,7 @@ import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/body_builder_context.dart';
 import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
 import '../kernel/wildcard_lowering.dart';
-import '../source/builder_factory.dart';
+import '../source/fragment_factory.dart';
 import '../source/source_constructor_builder.dart';
 import '../source/source_factory_builder.dart';
 import '../source/source_library_builder.dart';
@@ -192,7 +192,7 @@ class FormalParameterBuilder extends NamedBuilderImpl
     }
   }
 
-  FormalParameterBuilder forPrimaryConstructor(BuilderFactory builderFactory) {
+  FormalParameterBuilder forPrimaryConstructor(FragmentFactory builderFactory) {
     return new FormalParameterBuilder(
         kind,
         modifiers | Modifiers.InitializingFormal,

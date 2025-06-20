@@ -493,9 +493,7 @@ bool CheckIfRXWorks() {
       0xd65f03c0   // ret
   };
   memmove(mem->address(), kSquareFunctionCode, sizeof(kSquareFunctionCode));
-  mem->Protect(VirtualMemory::ShouldDualMapExecutablePages()
-                   ? VirtualMemory::kReadOnly
-                   : VirtualMemory::kReadExecute);
+  VirtualMemory::WriteProtectCode(mem->address(), mem->size());
 
   // Get executable entry point and check that write have succeeded.
   const uword entry_point = mem->start() + mem->OffsetToExecutableAlias();

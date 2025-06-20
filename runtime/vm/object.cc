@@ -18746,11 +18746,8 @@ CodePtr Code::FinalizeCode(FlowGraphCompiler* compiler,
       // RX mapping never changes protection while RW mapping flips between
       // R and RW.
       uword address = UntaggedObject::ToAddr(instrs.ptr());
-      VirtualMemory::Protect(reinterpret_cast<void*>(address),
-                             instrs.ptr()->untag()->HeapSize(),
-                             VirtualMemory::ShouldDualMapExecutablePages()
-                                 ? VirtualMemory::kReadOnly
-                                 : VirtualMemory::kReadExecute);
+      VirtualMemory::WriteProtectCode(reinterpret_cast<void*>(address),
+                                      instrs.ptr()->untag()->HeapSize());
     }
 
     // Hook up Code and Instructions objects.

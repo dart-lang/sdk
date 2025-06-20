@@ -47,7 +47,7 @@ import '../kernel/hierarchy/hierarchy_node.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/type_algorithms.dart';
 import '../kernel/utils.dart' show compareProcedures;
-import 'builder_factory.dart';
+import 'fragment_factory.dart';
 import 'class_declaration.dart';
 import 'name_scheme.dart';
 import 'source_builder_mixins.dart';

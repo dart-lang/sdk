@@ -16,7 +16,7 @@ import '../../builder/type_builder.dart';
 import '../../builder/variable_builder.dart';
 import '../../kernel/body_builder_context.dart';
 import '../../kernel/type_algorithms.dart';
-import '../../source/builder_factory.dart';
+import '../../source/fragment_factory.dart';
 import '../../source/name_scheme.dart';
 import '../../source/source_class_builder.dart';
 import '../../source/source_function_builder.dart';

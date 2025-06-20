@@ -29,7 +29,7 @@ import '../builder/omitted_type_builder.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../fragment/fragment.dart';
-import '../source/builder_factory.dart';
+import '../source/fragment_factory.dart';
 import '../source/source_type_parameter_builder.dart';
 import 'body_builder.dart';
 

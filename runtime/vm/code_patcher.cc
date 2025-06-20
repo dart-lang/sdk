@@ -37,8 +37,7 @@ WritableInstructionsScope::WritableInstructionsScope(uword address,
 
 WritableInstructionsScope::~WritableInstructionsScope() {
   if (FLAG_write_protect_code) {
-    VirtualMemory::Protect(reinterpret_cast<void*>(address_), size_,
-                           VirtualMemory::kReadExecute);
+    VirtualMemory::WriteProtectCode(reinterpret_cast<void*>(address_), size_);
   }
 }
 #endif  // defined(TARGET_ARCH_IA32)
