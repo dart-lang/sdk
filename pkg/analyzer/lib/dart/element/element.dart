@@ -1306,9 +1306,17 @@ abstract class ExtensionTypeElement implements InterfaceElement {
   List<ExtensionTypeFragment> get fragments;
 
   /// The primary constructor of this extension.
+  ConstructorElement get primaryConstructor;
+
+  /// The primary constructor of this extension.
+  @Deprecated('Use primaryConstructor instead')
   ConstructorElement get primaryConstructor2;
 
   /// The representation of this extension.
+  FieldElement get representation;
+
+  /// The representation of this extension.
+  @Deprecated('Use representation instead')
   FieldElement get representation2;
 
   /// The extension type erasure, obtained by recursively replacing every
@@ -1331,9 +1339,18 @@ abstract class ExtensionTypeFragment implements InterfaceFragment {
   @override
   ExtensionTypeFragment? get previousFragment;
 
+  /// The primary constructor of this extension.
+  ConstructorFragment get primaryConstructor;
+
+  /// The primary constructor of this extension.
+  @Deprecated('Use primaryConstructor instead')
   ConstructorFragment get primaryConstructor2;
 
   /// The representation of this extension.
+  FieldFragment get representation;
+
+  /// The representation of this extension.
+  @Deprecated('Use representation instead')
   FieldFragment get representation2;
 }
 

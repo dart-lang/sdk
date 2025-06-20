@@ -48,6 +48,10 @@
 * Deprecate `JoinPatternVariableElement.variables2`, use `variables` instead.
 * Deprecate `Annotatable.metadata2`, use `metadata` instead.
 * Deprecate `Element.nonSynthetic2`, use `nonSynthetic` instead.
+* Deprecate `ExtensionTypeElement.primaryConstructor2`, use `primaryConstructor` instead.
+* Deprecate `ExtensionTypeElement.representation2`, use `representation` instead.
+* Deprecate `ExtensionTypeFragment.primaryConstructor2`, use `primaryConstructor` instead.
+* Deprecate `ExtensionTypeFragment.representation2`, use `representation` instead.
 
 ## 7.4.1
 * Restore `InstanceElement.augmented` getter.

@@ -1419,7 +1419,7 @@ class DeclarationHelper {
         if (element != null) {
           if (!mustBeType) {
             _addMembersOfEnclosingInstance(element);
-            var fieldElement = element.representation2;
+            var fieldElement = element.representation;
             _suggestField(field: fieldElement);
           }
           _suggestTypeParameters(element.typeParameters2);

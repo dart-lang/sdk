@@ -891,7 +891,7 @@ class _FieldPromotability
     // Private representation fields of extension types are always promotable.
     // They also don't affect promotability of any other fields.
     for (var extensionType in element.extensionTypes) {
-      var representation = extensionType.representation2;
+      var representation = extensionType.representation;
       var representationName = representation.name3;
       if (representationName != null) {
         if (representationName.startsWith('_')) {

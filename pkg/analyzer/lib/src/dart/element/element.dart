@@ -2810,13 +2810,25 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   }
 
   @override
-  ConstructorElement get primaryConstructor2 {
+  ConstructorElement get primaryConstructor {
     return firstFragment.primaryConstructor.element;
   }
 
+  @Deprecated('Use primaryConstructor instead')
+  @override
+  ConstructorElement get primaryConstructor2 {
+    return primaryConstructor;
+  }
+
+  @override
+  FieldElementImpl get representation {
+    return firstFragment.representation.element;
+  }
+
+  @Deprecated('Use representation instead')
   @override
   FieldElementImpl get representation2 {
-    return firstFragment.representation.element;
+    return representation;
   }
 
   @override
@@ -2863,20 +2875,23 @@ class ExtensionTypeFragmentImpl extends InterfaceFragmentImpl
   ExtensionTypeFragmentImpl? get previousFragment =>
       super.previousFragment as ExtensionTypeFragmentImpl?;
 
+  @override
   ConstructorFragmentImpl get primaryConstructor {
     return constructors.first;
   }
 
+  @Deprecated('Use primaryConstructor instead')
   @override
-  ConstructorFragment get primaryConstructor2 =>
-      primaryConstructor as ConstructorFragment;
+  ConstructorFragmentImpl get primaryConstructor2 => primaryConstructor;
 
+  @override
   FieldFragmentImpl get representation {
     return fields.first;
   }
 
+  @Deprecated('Use representation instead')
   @override
-  FieldFragment get representation2 => representation as FieldFragment;
+  FieldFragmentImpl get representation2 => representation;
 
   void addFragment(ExtensionTypeFragmentImpl fragment) {
     fragment.augmentedInternal = element;
