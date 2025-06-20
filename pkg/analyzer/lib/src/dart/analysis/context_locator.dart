@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart'
@@ -840,7 +838,7 @@ class ContextLocatorImpl {
   /// Return a list of paths that contains all of the unique elements from the
   /// given list of [paths], sorted such that shorter paths are first.
   List<String> _uniqueSortedPaths(List<String> paths) {
-    Set<String> uniquePaths = HashSet<String>.from(paths);
+    Set<String> uniquePaths = Set<String>.from(paths);
     List<String> sortedPaths = uniquePaths.toList();
     sortedPaths.sort((a, b) => a.length - b.length);
     return sortedPaths;
