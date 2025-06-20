@@ -126,7 +126,7 @@ class _DartNavigationCollector {
   }
 
   void _addRegionForElement(SyntacticEntity? nodeOrToken, Element? element) {
-    _addRegionForFragment(nodeOrToken, element?.nonSynthetic2.firstFragment);
+    _addRegionForFragment(nodeOrToken, element?.nonSynthetic.firstFragment);
   }
 
   void _addRegionForFragment(SyntacticEntity? nodeOrToken, Fragment? fragment) {
@@ -145,7 +145,7 @@ class _DartNavigationCollector {
     // If this fragment is for a synthetic element, use the first fragment for
     // the non-synthetic element.
     if (fragment.element.isSynthetic) {
-      fragment = fragment.element.nonSynthetic2.firstFragment;
+      fragment = fragment.element.nonSynthetic.firstFragment;
     }
 
     if (fragment.element == DynamicElementImpl.instance) {

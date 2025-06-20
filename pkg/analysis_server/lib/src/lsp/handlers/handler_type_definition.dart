@@ -116,7 +116,7 @@ class TypeDefinitionHandler
 
         // TODO(dantup): Consider returning all fragments for the type instead
         //  of only the first.
-        var targetFragment = element.nonSynthetic2.firstFragment;
+        var targetFragment = element.nonSynthetic.firstFragment;
         var targetUnit = targetFragment.libraryFragment;
         if (targetUnit == null) {
           return success(_emptyResult);

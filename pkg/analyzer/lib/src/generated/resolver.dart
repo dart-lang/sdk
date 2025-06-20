@@ -5972,7 +5972,7 @@ class _WhyNotPromotedVisitor
         DiagnosticMessageImpl(
           filePath: property.firstFragment.libraryFragment.source.fullName,
           message: message,
-          offset: property.nonSynthetic2.firstFragment.nameOffset2!,
+          offset: property.nonSynthetic.firstFragment.nameOffset2!,
           length: property.name3!.length,
           url: reason.documentationLink.url,
         ),
@@ -6011,7 +6011,7 @@ class _WhyNotPromotedVisitor
         var message =
             "'$propertyName' couldn't be promoted because there is a "
             "conflicting $kind in $enclosingKindName '$enclosingName'";
-        var nonSyntheticElement = conflictingElement.nonSynthetic2;
+        var nonSyntheticElement = conflictingElement.nonSynthetic;
         var nonSyntheticFragment = nonSyntheticElement.firstFragment;
         var source = nonSyntheticFragment.libraryFragment?.source;
         messages.add(
@@ -6110,7 +6110,7 @@ class _WhyNotPromotedVisitor
           "'$propertyName' couldn't be promoted "
           "because field promotion is only available in Dart 3.2 and "
           "above.",
-      offset: property.nonSynthetic2.firstFragment.nameOffset2!,
+      offset: property.nonSynthetic.firstFragment.nameOffset2!,
       length: property.name3!.length,
       url: NonPromotionDocumentationLink.fieldPromotionUnavailable.url,
     );

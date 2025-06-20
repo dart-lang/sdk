@@ -329,7 +329,7 @@ class _Element2Writer extends _AbstractElementWriter {
 
   void _assertNonSyntheticElementSelf(Element element) {
     expect(element.isSynthetic, isFalse);
-    expect(element.nonSynthetic2, same(element));
+    expect(element.nonSynthetic, same(element));
   }
 
   void _writeConstantInitializerExpression(String name, Expression expression) {

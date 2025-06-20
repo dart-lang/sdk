@@ -68,7 +68,7 @@ class TypeHierarchyComputer {
       }
       // create a subclass item
       var subMemberElement = helper.findMemberElement(subElement);
-      var subMemberElementDeclared = subMemberElement?.nonSynthetic2;
+      var subMemberElementDeclared = subMemberElement?.nonSynthetic;
       subItem = TypeHierarchyItem(
         convertElement(subElement),
         memberElement:
@@ -120,7 +120,7 @@ class TypeHierarchyComputer {
         displayName = '${classElement.displayName}<$typeArgumentsStr>';
       }
       var memberElement = helper.findMemberElement(classElement);
-      var memberElementDeclared = memberElement?.nonSynthetic2;
+      var memberElementDeclared = memberElement?.nonSynthetic;
       item = TypeHierarchyItem(
         convertElement(classElement),
         displayName: displayName,

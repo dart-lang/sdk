@@ -291,7 +291,11 @@ abstract class ExecutableMember extends Member
   int get nameOffset => declaration.nameOffset;
 
   @override
-  Element get nonSynthetic2 => _element2;
+  Element get nonSynthetic => _element2;
+
+  @Deprecated('Use nonSynthetic instead')
+  @override
+  Element get nonSynthetic2 => nonSynthetic;
 
   @override
   List<ParameterElementMixin> get parameters {
@@ -568,7 +572,11 @@ class FieldMember extends VariableMember
   String? get name3 => _element2.name3;
 
   @override
-  Element get nonSynthetic2 => _element2.nonSynthetic2;
+  Element get nonSynthetic => _element2.nonSynthetic;
+
+  @Deprecated('Use nonSynthetic instead')
+  @override
+  Element get nonSynthetic2 => nonSynthetic;
 
   @override
   SetterElement2OrMember? get setter2 {
@@ -688,11 +696,11 @@ class GetterMember extends PropertyAccessorMember
   String? get lookupName => _element2.lookupName;
 
   @override
-  Element get nonSynthetic2 {
+  Element get nonSynthetic {
     if (!isSynthetic) {
       return this;
     } else if (variable3 case var variable?) {
-      return variable.nonSynthetic2;
+      return variable.nonSynthetic;
     }
     throw StateError('Synthetic getter has no variable');
   }
@@ -1048,7 +1056,11 @@ class ParameterMember extends VariableMember
   String get nameShared => name3!;
 
   @override
-  Element get nonSynthetic2 => _element2;
+  Element get nonSynthetic => _element2;
+
+  @Deprecated('Use nonSynthetic instead')
+  @override
+  Element get nonSynthetic2 => nonSynthetic;
 
   @deprecated
   @override
@@ -1351,11 +1363,11 @@ class SetterMember extends PropertyAccessorMember
   String? get lookupName => _element2.lookupName;
 
   @override
-  Element get nonSynthetic2 {
+  Element get nonSynthetic {
     if (!isSynthetic) {
       return this;
     } else if (variable3 case var variable?) {
-      return variable.nonSynthetic2;
+      return variable.nonSynthetic;
     }
     throw StateError('Synthetic setter has no variable');
   }

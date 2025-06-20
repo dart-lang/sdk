@@ -3375,7 +3375,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     void report(String memberName, List<ExecutableElement> candidates) {
       var contextMessages =
           candidates.map<DiagnosticMessage>((executable) {
-            var nonSynthetic = executable.nonSynthetic2;
+            var nonSynthetic = executable.nonSynthetic;
             var container = executable.enclosingElement as InterfaceElement;
             return DiagnosticMessageImpl(
               filePath:

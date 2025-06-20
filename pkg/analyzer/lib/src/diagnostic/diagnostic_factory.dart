@@ -52,9 +52,9 @@ class DiagnosticFactory {
     Element originalElement,
     List<Object> arguments,
   ) {
-    var duplicate = duplicateElement.nonSynthetic2;
+    var duplicate = duplicateElement.nonSynthetic;
     var duplicateFragment = duplicate.firstFragment;
-    var original = originalElement.nonSynthetic2;
+    var original = originalElement.nonSynthetic;
     var originalFragment = original.firstFragment;
     return Diagnostic.tmp(
       source: duplicateFragment.libraryFragment!.source,
@@ -324,7 +324,7 @@ class DiagnosticFactory {
     // Elements enclosing members that can participate in overrides are always
     // named, so we can safely assume `_thisMember.enclosingElement3.name` and
     // `superMember.enclosingElement3.name` are non-`null`.
-    var superFragment = superMember.nonSynthetic2.firstFragment;
+    var superFragment = superMember.nonSynthetic.firstFragment;
     return Diagnostic.tmp(
       source: source,
       offset: errorNode.offset,

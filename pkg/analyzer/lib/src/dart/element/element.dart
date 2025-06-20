@@ -863,7 +863,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  Element get nonSynthetic2 {
+  Element get nonSynthetic {
     if (isSynthetic) {
       return enclosingElement;
     } else {
@@ -2083,7 +2083,11 @@ abstract class ElementImpl implements Element {
   }
 
   @override
-  Element get nonSynthetic2 => this;
+  Element get nonSynthetic => this;
+
+  @Deprecated('Use nonSynthetic instead')
+  @override
+  Element get nonSynthetic2 => nonSynthetic;
 
   /// The reference of this element, used during reading summaries.
   ///
@@ -4508,11 +4512,11 @@ class GetterElementImpl extends PropertyAccessorElementImpl
   }
 
   @override
-  Element get nonSynthetic2 {
+  Element get nonSynthetic {
     if (!isSynthetic) {
       return this;
     } else if (variable3 case var variable?) {
-      return variable.nonSynthetic2;
+      return variable.nonSynthetic;
     }
     throw StateError('Synthetic getter has no variable');
   }
@@ -4705,7 +4709,7 @@ abstract class InstanceElementImpl extends ElementImpl
   String? get name3 => firstFragment.name2;
 
   @override
-  Element get nonSynthetic2 => isSynthetic ? enclosingElement : this as Element;
+  Element get nonSynthetic => isSynthetic ? enclosingElement : this as Element;
 
   @override
   AnalysisSession? get session => firstFragment.session;
@@ -6205,7 +6209,7 @@ class LibraryElementImpl extends ElementImpl
   String? get name3 => name;
 
   @override
-  LibraryElementImpl get nonSynthetic2 => this;
+  LibraryElementImpl get nonSynthetic => this;
 
   @override
   Namespace get publicNamespace {
@@ -8142,7 +8146,6 @@ enum Modifier {
   /// enclosing element. This includes not only explicitly specified type
   /// annotations, but also inferred types.
   NO_ENCLOSING_TYPE_PARAMETER_REFERENCE,
-
   PROMOTABLE,
 
   /// Indicates whether the type of a [PropertyInducingFragmentImpl] should be
@@ -8230,7 +8233,7 @@ class MultiplyDefinedElementImpl extends ElementImpl
   LibraryElement get library2 => libraryFragment.element;
 
   @override
-  Element get nonSynthetic2 => this;
+  Element get nonSynthetic => this;
 
   @override
   AnalysisSession get session => libraryFragment.session;
@@ -9202,7 +9205,7 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
   }
 
   @override
-  Element get nonSynthetic2 {
+  Element get nonSynthetic {
     if (isSynthetic) {
       if (enclosingElement case EnumElementImpl enclosingElement) {
         // TODO(scheglov): remove 'index'?
@@ -9493,11 +9496,11 @@ class SetterElementImpl extends PropertyAccessorElementImpl
   }
 
   @override
-  Element get nonSynthetic2 {
+  Element get nonSynthetic {
     if (!isSynthetic) {
       return this;
     } else if (variable3 case var variable?) {
-      return variable.nonSynthetic2;
+      return variable.nonSynthetic;
     }
     throw StateError('Synthetic setter has no variable');
   }
