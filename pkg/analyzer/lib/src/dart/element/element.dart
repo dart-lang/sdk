@@ -9225,6 +9225,9 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
     }
   }
 
+  @override
+  Reference get reference;
+
   bool get shouldUseTypeForInitializerInference {
     return firstFragment.shouldUseTypeForInitializerInference;
   }
