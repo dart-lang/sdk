@@ -28,7 +28,7 @@ import '../../fragment/fragment.dart';
 import '../../kernel/body_builder_context.dart';
 import '../../kernel/constructor_tearoff_lowering.dart';
 import '../../kernel/kernel_helper.dart';
-import '../../source/builder_factory.dart';
+import '../../source/fragment_factory.dart';
 import '../../source/name_scheme.dart';
 import '../../source/redirecting_factory_body.dart';
 import '../../source/source_factory_builder.dart';

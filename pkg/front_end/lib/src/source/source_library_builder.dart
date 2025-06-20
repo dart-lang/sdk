@@ -58,12 +58,12 @@ import '../kernel/utils.dart'
         exportNeverSentinel,
         toCombinators,
         unserializableExportName;
-import 'builder_factory.dart';
 import 'class_declaration.dart';
+import 'fragment_factory.dart';
+import 'fragment_factory_impl.dart';
 import 'name_scheme.dart';
 import 'offset_map.dart';
 import 'outline_builder.dart';
-import 'source_builder_factory.dart';
 import 'source_builder_mixins.dart';
 import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_extension_builder.dart';

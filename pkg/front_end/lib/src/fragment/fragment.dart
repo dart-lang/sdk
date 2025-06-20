@@ -42,7 +42,7 @@ import '../kernel/internal_ast.dart';
 import '../kernel/late_lowering.dart' as late_lowering;
 import '../kernel/member_covariance.dart';
 import '../kernel/type_algorithms.dart';
-import '../source/builder_factory.dart';
+import '../source/fragment_factory.dart';
 import '../source/name_scheme.dart';
 import '../source/source_class_builder.dart';
 import '../source/source_constructor_builder.dart';
