@@ -2610,17 +2610,30 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     var noRequired = node.requiredKeyword == null;
     bool suggestCovariant = true;
     bool suggestThis = true;
+    bool suggestVoid = true;
+    bool suggestDynamic = true;
+    bool suggestFinal = true;
+    bool suggestRequired = true;
     if (name != null && node.isSingleIdentifier) {
       collector.completionLocation = 'FormalParameterList_parameter';
       keywordHelper.addFormalParameterKeywords(
         node.parentFormalParameterList,
-        suggestRequired: name.keyword != Keyword.REQUIRED,
-        suggestCovariant: name.keyword != Keyword.COVARIANT,
+        suggestRequired: suggestRequired && name.keyword != Keyword.REQUIRED,
+        suggestCovariant: suggestCovariant && name.keyword != Keyword.COVARIANT,
         suggestVariableName: true,
       );
       suggestCovariant = false;
       suggestThis = false;
-      _forTypeAnnotation(node);
+      suggestFinal = false;
+      suggestRequired = false;
+      _forTypeAnnotation(
+        node,
+        suggestDynamic: suggestDynamic,
+        suggestVoid: suggestVoid,
+      );
+      suggestDynamic = false;
+      suggestVoid = false;
+
       if (name.isKeyword) {
         return;
       }
@@ -2643,7 +2656,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       if (type.beginToken.coversOffset(offset)) {
         keywordHelper.addFormalParameterKeywords(
           node.parentFormalParameterList,
-          suggestRequired: noRequired,
+          suggestRequired: noRequired && suggestRequired,
           suggestVariableName:
               node.name == null || type.beginToken.offset == offset,
         );
@@ -2663,13 +2676,18 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
                 DefaultFormalParameter(parent: FormalParameterList list)) {
           keywordHelper.addFormalParameterKeywords(
             list,
-            suggestRequired: noRequired,
+            suggestRequired: noRequired && suggestRequired,
             suggestVariableName: name.coversOffset(offset),
             suggestCovariant: suggestCovariant,
             suggestThis: suggestThis,
+            suggestFinal: suggestFinal,
           );
         }
-        _forTypeAnnotation(node);
+        _forTypeAnnotation(
+          node,
+          suggestVoid: suggestVoid,
+          suggestDynamic: suggestDynamic,
+        );
       }
     }
   }
@@ -3820,13 +3838,16 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     bool excludeTypeNames = false,
     Set<AstNode> excludedNodes = const {},
     bool isInDeclaration = false,
+    bool suggestVoid = true,
+    bool suggestDynamic = true,
   }) {
-    if (!(mustBeExtensible ||
-        mustBeImplementable ||
-        mustBeMixable ||
-        isInDeclaration)) {
+    if (suggestDynamic &&
+        !(mustBeExtensible ||
+            mustBeImplementable ||
+            mustBeMixable ||
+            isInDeclaration)) {
       keywordHelper.addKeyword(Keyword.DYNAMIC);
-      if (!mustBeNonVoid) {
+      if (suggestVoid && !mustBeNonVoid) {
         keywordHelper.addKeyword(Keyword.VOID);
       }
     }
