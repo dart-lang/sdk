@@ -42,7 +42,22 @@ class _Visitor extends SimpleAstVisitor<void> {
                 staticType.isDartCoreString) &&
             constructorName == 'fromEnvironment') ||
         (staticType.isDartCoreBool && constructorName == 'hasEnvironment')) {
-      rule.reportAtNode(node);
+      String typeName;
+      if (staticType.isDartCoreBool) {
+        typeName = 'bool';
+      } else if (staticType.isDartCoreInt) {
+        typeName = 'int';
+      } else if (staticType.isDartCoreString) {
+        typeName = 'String';
+      } else {
+        typeName = 'unknown';
+      }
+      String fullMethodName = '$typeName.$constructorName';
+      rule.reportAtNode(
+        node,
+        arguments: [fullMethodName],
+        diagnosticCode: rule.diagnosticCode,
+      );
     }
   }
 
