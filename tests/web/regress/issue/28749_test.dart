@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// dart2jsOptions=--strong
-
 // Regression test for http://dartbug.com/28749.
 //
 // This would crash at compile time because inner typedefs remain after calling
