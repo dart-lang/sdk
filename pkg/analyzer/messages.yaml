@@ -24144,18 +24144,124 @@ WarningCode:
     problemMessage: "Doc imports can't be deferred."
     correctionMessage: Try removing the 'deferred' keyword.
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a documentation import uses the
+      `deferred` keyword.
+
+      Documentation imports can't be deferred because deferring them wouldn't
+      impact the size of the compiled code.
+
+      #### Example
+
+      The following code produces this diagnostic because the documentation
+      import has a `deferred` keyword:
+
+      ```dart
+      // ignore:missing_prefix_in_deferred_import
+      /// @docImport 'package:meta/meta.dart' [!deferred!];
+      library;
+      ```
+
+      #### Common fixes
+
+      Remove the `deferred` keyword:
+
+      ```dart
+      /// @docImport 'package:meta/meta.dart';
+      library;
+      ```
   DOC_IMPORT_CANNOT_HAVE_COMBINATORS:
     problemMessage: "Doc imports can't have show or hide combinators."
     correctionMessage: Try removing the combinator.
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a documentation import has one
+      or more `hide` or `show` combinators.
+
+      Using combinators isn't supported for documentation imports.
+
+      #### Example
+
+      The following code produces this diagnostic because the documentation
+      import has a `show` combinator:
+
+      ```dart
+      /// @docImport 'package:meta/meta.dart' [!show max!];
+      library;
+      ```
+
+      #### Common fixes
+
+      Remove the `hide` and `show` combinators:
+
+      ```dart
+      /// @docImport 'package:meta/meta.dart';
+      library;
+      ```
   DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS:
     problemMessage: "Doc imports can't have configurations."
     correctionMessage: Try removing the configurations.
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a documentation import has one
+      or more `if` clauses.
+
+      Documentation imports aren't configurable.
+
+      #### Example
+
+      The following code produces this diagnostic because the documentation
+      import has an `if` clause:
+
+      ```dart
+      /// @docImport 'package:meta/meta.dart' [!if (dart.library.io) 'dart:io'!];
+      library;
+      ```
+
+      #### Common fixes
+
+      Remove the `if` clauses:
+
+      ```dart
+      /// @docImport 'package:meta/meta.dart';
+      library;
+      ```
   DOC_IMPORT_CANNOT_HAVE_PREFIX:
     problemMessage: "Doc imports can't have prefixes."
     correctionMessage: Try removing the prefix.
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a documentation import has a
+      prefix.
+
+      Using prefixes isn't supported for documentation imports.
+
+      #### Example
+
+      The following code produces this diagnostic because the documentation
+      import declares a prefix:
+
+      ```dart
+      /// @docImport 'package:meta/meta.dart' as [!a!];
+      library;
+      ```
+
+      #### Common fixes
+
+      Remove the prefix:
+
+      ```dart
+      /// @docImport 'package:meta/meta.dart';
+      library;
+      ```
   DUPLICATE_EXPORT:
     problemMessage: Duplicate export.
     correctionMessage: Try removing all but one export of the library.
@@ -25240,6 +25346,47 @@ WarningCode:
       Parameters:
       0: the name of the member
       1: the name of the defining class
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a getter, setter, field, or
+      method that has been annotated with `@protected` is referenced anywhere
+      other than in the library in which it is declared or in a subclass of the
+      class in which it is declared.
+
+      #### Example
+
+      Given a file `a.dart` that contains
+
+      ```dart
+      %uri="lib/a.dart"
+      import 'package:meta/meta.dart';
+
+      class A {
+        @protected
+        void a() {}
+      }
+      ```
+
+      The following code produces this diagnostic because the method `a` is
+      being invoked in code that isn't in a subclass of `A`:
+
+      ```dart
+      import 'a.dart';
+
+      void b(A a) {
+        a.[!a!]();
+      }
+      ```
+
+      #### Common fixes
+
+      If it's reasonable for the member to be marked as `@protected`, then
+      remove the reference to the protected member, replacing it with some
+      equivalent code.
+
+      If it isn't reasonable for the member to be marked as `@protected`, and
+      you have the ability to do so, remove the annotation.
   INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER:
     problemMessage: "The member '{0}' can only be used for overriding."
     hasPublishedDocs: true
@@ -25578,6 +25725,49 @@ WarningCode:
       did not reopen any type.
 
       No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a `@reopen` annotation has been
+      placed on a class or mixin that does not remove restrictions placed on the
+      superclass.
+
+      #### Example
+
+      The following code produces this diagnostic because the class `B` is
+      annotated with `@reopen` even though it doesn't expand the ability of `A`
+      to be subclassed:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      sealed class A {}
+
+      @[!reopen!]
+      class B extends A {}
+      ```
+
+      #### Common fixes
+
+      If the superclass should be restricted in a way that the subclass would
+      change, then modify the superclass to reflect those restrictions:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      interface class A {}
+
+      @reopen
+      class B extends A {}
+      ```
+
+      If the superclass is correct, then remove the annotation:
+
+      ```dart
+      sealed class A {}
+
+      class B extends A {}
+      ```
   INVALID_SEALED_ANNOTATION:
     removedIn: "3.5"
     problemMessage: "The annotation '@sealed' can only be applied to classes."
@@ -26228,6 +26418,36 @@ WarningCode:
     correctionMessage: Try using a non-nullable type.
     hasPublishedDocs: false
     comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an override of the operator
+      `==` has a parameter whose type is nullable. The language spec makes it
+      impossible for the argument of the method to be `null`, and the
+      parameter's type should reflect that.
+
+      #### Example
+
+      The following code produces this diagnostic because the implementation of
+      the operator `==` in `C` :
+
+      ```dart
+      class C {
+        @override
+        bool operator [!==!](Object? other) => false;
+      }
+      ```
+
+      #### Common fixes
+
+      Make the parameter type be non-nullable:
+
+      ```dart
+      class C {
+        @override
+        bool operator ==(Object other) => false;
+      }
+      ```
   NULLABLE_TYPE_IN_CATCH_CLAUSE:
     problemMessage: "A potentially nullable type can't be used in an 'on' clause because it isn't valid to throw a nullable expression."
     correctionMessage: Try using a non-nullable type.
@@ -27939,6 +28159,32 @@ WarningCode:
     correctionMessage: Try removing the wildcard pattern.
     hasPublishedDocs: false
     comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a wildcard pattern is used in
+      either an and (`&&`) pattern or an or (`||`) pattern.
+
+      #### Example
+
+      The following code produces this diagnostic because the wildcard pattern
+      (`_`) will always succeed, making it's use in an and pattern unnecessary:
+
+      ```dart
+      void f(Object? x) {
+        if (x case [!_!] && 0) {}
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the use of the wildcard pattern:
+
+      ```dart
+      void f(Object? x) {
+        if (x case 0) {}
+      }
+      ```
   UNREACHABLE_SWITCH_CASE:
     problemMessage: "This case is covered by the previous cases."
     correctionMessage: Try removing the case clause, or restructuring the preceding patterns.
