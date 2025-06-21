@@ -7,7 +7,7 @@ import 'package:expect/expect.dart';
 
 import 'dart:async';
 
-import 'deferred_class_library.dart' deferred as lib;
+import '../../deferred/deferred_class_library.dart' deferred as lib;
 
 bool isError(e) => e is Error;
 

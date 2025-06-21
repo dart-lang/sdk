@@ -5,8 +5,6 @@
 // Formatting can break multitests, so don't format them.
 // dart format off
 
-// dart2jsOptions=--strong
-
 import 'package:expect/expect.dart';
 
 class C {

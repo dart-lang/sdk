@@ -42,8 +42,9 @@ const Iterable<String> _allowedDartSchemePaths = [
 List<Pattern> _allowedNativeTestPatterns = [
   RegExp(r'(?<!generated_)tests/web/native'),
   RegExp(r'(?<!generated_)tests/web/internal'),
+  RegExp(r'(?<!generated_)tests/web/dart2js'),
   'generated_tests/web/native/native_test',
-  'generated_tests/web/internal/deferred_url_test',
+  'generated_tests/web/dart2js/deferred_url_test',
   'pkg/front_end/testcases/dart2js/native',
 ];
 

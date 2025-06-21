@@ -8,7 +8,7 @@ import 'dart:_rti' as rti;
 import 'package:expect/expect.dart';
 import 'package:expect/variations.dart';
 
-import 'subtype_utils.dart';
+import '../internal/rti/subtype_utils.dart';
 
 final String objectName = JS_GET_NAME(JsGetName.OBJECT_CLASS_TYPE_NAME);
 final String futureName = JS_GET_NAME(JsGetName.FUTURE_CLASS_TYPE_NAME);

@@ -5,6 +5,7 @@
 // dart2jsOptions=--no-minify
 
 import "package:expect/expect.dart";
+import "package:expect/variations.dart";
 
 // Test for correct order of exceptions in code with checks that could be moved
 // merged from successors into a dominator.
@@ -45,7 +46,11 @@ test1() {
 
   gA = null;
   gB = 2;
-  Expect.throws(call1, (e) => e is ArgumentError, 'foo1($gA, $gB) AE');
+  Expect.throws(
+    call1,
+    (e) => rtiOptimizationsDisabled ? e is TypeError : e is ArgumentError,
+    'foo1($gA, $gB) AE',
+  );
 }
 
 foo2a(a, b) {
@@ -101,8 +106,16 @@ test2() {
 
   gA = 1;
   gB = null;
-  Expect.throws(call2a, (e) => e is ArgumentError, 'foo2($gA, $gB) AE');
-  Expect.throws(call2b, (e) => e is ArgumentError, 'foo2($gA, $gB) AE');
+  Expect.throws(
+    call2a,
+    (e) => rtiOptimizationsDisabled ? e is TypeError : e is ArgumentError,
+    'foo2($gA, $gB) AE',
+  );
+  Expect.throws(
+    call2b,
+    (e) => rtiOptimizationsDisabled ? e is TypeError : e is ArgumentError,
+    'foo2($gA, $gB) AE',
+  );
 
   gA = null;
   gB = 2;

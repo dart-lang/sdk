@@ -130,6 +130,15 @@ bool get checkedParameters =>
 bool get checkedImplicitDowncasts =>
     !const bool.fromEnvironment('dart.tool.dart2js.types:trust');
 
+/// Whether RTI optimizations are disabled at compile time.
+///
+/// This can cause some type errors to present differently than they otherwise
+/// would. For example, when these optimizations are disabled ArgumentErrors may
+/// present as TypeErrors instead.
+bool get rtiOptimizationsDisabled =>
+    const bool.fromEnvironment('dart.tool.dart2js.disable_rti_optimization',
+        defaultValue: true);
+
 /// Whether explicit casts are type checked at runtime.
 ///
 /// An expression like `e as String` should perform a runtime check that the

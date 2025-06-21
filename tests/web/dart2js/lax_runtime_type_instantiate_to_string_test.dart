@@ -2,9 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// dart2jsOptions=--strong --omit-implicit-checks --lax-runtime-type-to-string
+// dart2jsOptions=--omit-implicit-checks --lax-runtime-type-to-string
 
 import 'package:expect/expect.dart';
+import 'package:expect/variations.dart';
 
 main() {
   T id<T>(T t) => t;
@@ -16,7 +17,9 @@ main() {
     // The type parameter is present since it is required because `==`
     // distinguishes instantiations of the same generic function with different
     // types.
-    Expect.equals("Instantiation1<int>", toString);
+    if (!rtiOptimizationsDisabled) {
+      Expect.equals("Instantiation1<int>", toString);
+    }
   }
   print(toString);
 }

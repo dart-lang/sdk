@@ -3,8 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler != dart2js ]
-internal/array_flags_errors_test: SkipByDesign # test specific for the dart2js runtime
-internal/deferred_url_test: SkipByDesign # test specific for the dart2js runtime
+dart2js/*: SkipByDesign # tests specific to dart2js
 
 [ $compiler == dart2wasm ]
 (?!wasm)*: SkipByDesign
@@ -19,6 +18,9 @@ native/*: Skip # dart2js tests for native keyword
 wasm_js_shared/weak_reference_polyfill_test: SkipByDesign # Test specific for the dart2js/dart2wasm runtime
 
 [ $runtime == d8 ]
+dart2js/deferred_with_cross_origin_test: SkipByDesign # Requires dom
+dart2js/deferred_with_csp_nonce2_test: SkipByDesign # Requires dom
+dart2js/deferred_with_csp_nonce_test: SkipByDesign # Requires dom
 internal/html_mocks_with_static_interop_test: SkipByDesign # Browser test
 internal/object_members_test: SkipByDesign # Browser test
 
@@ -41,21 +43,27 @@ deferred_split_test: Slow, Pass # Issue 25940
 consistent_index_error_string_test: Slow, Pass # Issue 25940
 
 [ $compiler == dart2js && $csp ]
-deferred_fail_and_retry_test: SkipByDesign # Uses eval to simulate failed loading.
+dart2js/deferred_fail_and_retry_test: SkipByDesign # Uses eval to simulate failed loading.
+internal/40296_test: SkipByDesign # Uses eval
+internal/deferred/deferred_custom_loader: SkipByDesign # Uses eval
+internal/deferred/load_in_correct_order_test: SkipByDesign # Uses eval
+internal/deferred/load_multiple_in_correct_order_test: SkipByDesign # Uses eval
+internal/deferred/load_with_priority_test: SkipByDesign # Uses eval
 internal/object_members_test: SkipByDesign # Uses eval for interop
+internal/rti/js_interop_subtype_test: SkipByDesign # Uses eval
 js_interop_generic_cast_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js_interop_non_null_asserts_disabled_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js_interop_non_null_asserts_enabled_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
+js_interop_optional_arg_test: SkipByDesign # Uses eval
+js_interop_test: SkipByDesign # Uses eval
+regress/issue/40152a_test: SkipByDesign # Uses eval
 regress/issue/49129_test: SkipByDesign # Uses eval for interop
 
 [ $compiler == dart2js && !$host_asserts ]
 deferred/many_parts/many_parts_test: Slow, Pass # Large stress test by design
 
-[ $compiler == dart2js && $minified ]
-code_motion_exception_test: Skip # Requires unminified operator names.
-
 [ $compiler == dart2js && ($runtime == ff || $runtime == jsshell || $runtime == safari) ]
-code_motion_exception_test: Skip # Required V8 specific format of JavaScript errors.
+dart2js/code_motion_exception_test: Skip # Required V8 specific format of JavaScript errors.
 
 [ $compiler == dart2wasm && $runtime != d8 ]
 wasm/source_map_simple_optimized_test: SkipByDesign # Reads source map file using d8's readbuffer
