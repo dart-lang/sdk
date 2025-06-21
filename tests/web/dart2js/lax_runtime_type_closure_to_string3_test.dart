@@ -5,6 +5,7 @@
 // dart2jsOptions=--omit-implicit-checks --lax-runtime-type-to-string
 
 import 'package:expect/expect.dart';
+import 'package:expect/variations.dart';
 
 class Class1<T> {
   Class1();
@@ -18,6 +19,8 @@ class Class2<T> {
 
 main() {
   Class1<int> cls1 = Class1<int>();
-  Expect.equals("() => erased", cls1.method.runtimeType.toString());
+  if (!rtiOptimizationsDisabled) {
+    Expect.equals("() => erased", cls1.method.runtimeType.toString());
+  }
   Class2<int>();
 }

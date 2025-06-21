@@ -8,7 +8,7 @@
 import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 
-import 'deferred_function_library.dart' deferred as lib;
+import '../../deferred/deferred_function_library.dart' deferred as lib;
 
 bool isError(e) => e is Error;
 
