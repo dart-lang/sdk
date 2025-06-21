@@ -9066,7 +9066,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitSymbolConstant(SymbolConstant node) =>
-      _emitDartSymbol(node.name);
+      _emitDartSymbol(node.name, library: node.libraryReference?.asLibrary);
 
   @override
   js_ast.Expression visitMapConstant(MapConstant node) {
@@ -9562,15 +9562,17 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// Emits a Dart Symbol with the given member [symbolName].
   ///
   /// If the symbol refers to a private name, its library will be set to the
-  /// [currentLibrary], so the Symbol is scoped properly.
-  js_ast.Expression _emitDartSymbol(String symbolName) {
+  /// [currentLibrary] by default, so the Symbol is scoped properly. Symbol
+  /// constants should pass the symbol's [library] if the referenced symbol was
+  /// declared outside the current library.
+  js_ast.Expression _emitDartSymbol(String symbolName, {Library? library}) {
     // TODO(vsm): Handle qualified symbols correctly.
     var last = symbolName.split('.').last;
     var name = js.escapedString(symbolName, "'");
     js_ast.Expression result;
     if (last.startsWith('_')) {
       var nativeSymbolAccessor = _getSymbol(
-        _emitPrivateNameSymbol(_currentLibrary!, last),
+        _emitPrivateNameSymbol(library ?? _currentLibrary!, last),
       );
       result = js.call('new #.new(#, #)', [
         _emitConstructorAccess(_privateSymbolType),

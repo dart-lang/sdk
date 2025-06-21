@@ -1130,11 +1130,11 @@ class _Element2Writer extends _AbstractElementWriter {
           expect(e.supertype, isNull);
           _elementPrinter.writeNamedElement2(
             'representation',
-            e.representation2,
+            e.representation,
           );
           _elementPrinter.writeNamedElement2(
             'primaryConstructor',
-            e.primaryConstructor2,
+            e.primaryConstructor,
           );
           _elementPrinter.writeNamedType('typeErasure', e.typeErasure);
           _elementPrinter.writeTypeList('interfaces', e.interfaces);

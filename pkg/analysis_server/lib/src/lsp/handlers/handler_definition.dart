@@ -227,7 +227,7 @@ class DefinitionHandler
     // which is not what the user expects.
     if (codeFragment.element.enclosingElement
         case ExtensionTypeElement enclosingElement
-        when enclosingElement.primaryConstructor2 == codeFragment.element) {
+        when enclosingElement.primaryConstructor == codeFragment.element) {
       codeFragment = codeFragment.enclosingFragment;
     }
 

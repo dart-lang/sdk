@@ -52,7 +52,7 @@ bool _isJsInteropType(DartType type, _InteropTypeKind kind) {
       if (dartJsInteropTypeKind && element.isFromLibrary(_dartJsInteropUri)) {
         return true;
       } else if (userJsInteropTypeKind) {
-        var representationType = element.representation2.type;
+        var representationType = element.representation.type;
         return _isJsInteropType(
               representationType,
               _InteropTypeKind.dartJsInteropType,

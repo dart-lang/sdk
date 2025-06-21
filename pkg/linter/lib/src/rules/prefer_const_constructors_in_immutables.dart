@@ -101,7 +101,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     if (clazz is ExtensionTypeElement) {
-      return clazz.primaryConstructor2.isConst;
+      return clazz.primaryConstructor.isConst;
     }
 
     // Constructor with implicit `super()` call.

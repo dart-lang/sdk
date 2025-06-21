@@ -789,7 +789,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   TypeImpl? get representationType {
     if (element3 case ExtensionTypeElement element) {
       var substitution = Substitution.fromInterfaceType(this);
-      var representationType = element.representation2.type;
+      var representationType = element.representation.type;
       return substitution.substituteType(representationType);
     }
     return null;

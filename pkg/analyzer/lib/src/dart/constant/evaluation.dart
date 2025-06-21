@@ -2990,7 +2990,7 @@ class _InstanceCreationEvaluator {
 
     var definingType = this.definingType;
     if (definingType.element3 case ExtensionTypeElement element) {
-      var representation = _fieldMap[element.representation2.name3];
+      var representation = _fieldMap[element.representation.name3];
       if (representation != null) {
         return representation;
       }

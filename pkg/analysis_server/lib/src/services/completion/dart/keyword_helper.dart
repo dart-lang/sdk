@@ -430,11 +430,14 @@ class KeywordHelper {
     required bool suggestVariableName,
     bool suggestCovariant = true,
     bool suggestThis = true,
+    bool suggestFinal = true,
   }) {
     if (suggestCovariant) {
       addKeyword(Keyword.COVARIANT);
     }
-    addKeyword(Keyword.FINAL);
+    if (suggestFinal) {
+      addKeyword(Keyword.FINAL);
+    }
     if (suggestRequired && parameterList.inNamedGroup(offset)) {
       addKeyword(Keyword.REQUIRED);
     }
