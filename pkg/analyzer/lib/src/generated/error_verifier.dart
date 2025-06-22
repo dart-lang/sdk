@@ -877,11 +877,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForExtensionTypeRepresentationTypeBottom(node, declaredFragment);
       _checkForExtensionTypeImplementsDeferred(node);
       _checkForExtensionTypeImplementsItself(node, declaredFragment);
-      _checkForExtensionTypeMemberConflicts(node: node, element: firstFragment);
+      _checkForExtensionTypeMemberConflicts(
+        node: node,
+        element: declaredElement,
+      );
       _checkForExtensionTypeWithAbstractMember(node);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
 
-      var interface = _inheritanceManager.getInterface(firstFragment);
+      var interface = _inheritanceManager.getInterface(declaredElement);
       GetterSetterTypesVerifier(
         library: _currentLibrary,
         diagnosticReporter: diagnosticReporter,
@@ -3368,7 +3371,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   void _checkForExtensionTypeMemberConflicts({
     required ExtensionTypeDeclaration node,
-    required ExtensionTypeFragmentImpl element,
+    required ExtensionTypeElementImpl element,
   }) {
     void report(String memberName, List<ExecutableElement> candidates) {
       var contextMessages =
@@ -3396,11 +3399,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     for (var conflict in interface.conflicts) {
       switch (conflict) {
         case CandidatesConflict _:
-          report(conflict.name.name, conflict.candidates2);
+          report(conflict.name.name, conflict.candidates);
         case HasNonExtensionAndExtensionMemberConflict _:
           report(conflict.name.name, [
-            ...conflict.nonExtension2,
-            ...conflict.extension2,
+            ...conflict.nonExtension,
+            ...conflict.extension,
           ]);
         case NotUniqueExtensionMemberConflict _:
           report(conflict.name.name, conflict.candidates2);

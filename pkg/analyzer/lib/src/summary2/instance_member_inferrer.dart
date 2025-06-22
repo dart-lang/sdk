@@ -117,22 +117,20 @@ class InstanceMemberInferrer {
     }
 
     var getterName = Name(elementLibraryUri, elementName);
-    var overriddenGetters = inheritance.getOverridden2(
-      currentInterfaceElement,
+    var overriddenGetters = inheritance.getOverridden4(
+      currentInterfaceElement.element,
       getterName,
     );
     if (overriddenGetters != null) {
       overriddenGetters =
-          overriddenGetters.where((e) {
-            return e is PropertyAccessorElementOrMember && e.isGetter;
-          }).toList();
+          overriddenGetters.whereType<GetterElement2OrMember>().toList();
     } else {
       overriddenGetters = const [];
     }
 
     var setterName = Name(elementLibraryUri, '$elementName=');
-    var overriddenSetters = inheritance.getOverridden2(
-      currentInterfaceElement,
+    var overriddenSetters = inheritance.getOverridden4(
+      currentInterfaceElement.element,
       setterName,
     );
     overriddenSetters ??= const [];
@@ -415,8 +413,8 @@ class InstanceMemberInferrer {
     }
 
     var name = Name(element.library.source.uri, element.name2 ?? '');
-    var overriddenElements = inheritance.getOverridden2(
-      currentInterfaceElement,
+    var overriddenElements = inheritance.getOverridden4(
+      currentInterfaceElement.element,
       name,
     );
     if (overriddenElements == null ||
@@ -451,7 +449,7 @@ class InstanceMemberInferrer {
           if (conflict is CandidatesConflict) {
             conflictExplanation = conflict.candidates
                 .map((candidate) {
-                  var className = candidate.enclosingElementImpl.name2 ?? '';
+                  var className = candidate.enclosingElement!.name3 ?? '';
                   var typeStr = candidate.type.getDisplayString();
                   return '$className.${name.name} ($typeStr)';
                 })
@@ -557,13 +555,13 @@ class InstanceMemberInferrer {
   void _inferParameterCovariance(
     FormalParameterFragmentImpl parameter,
     int index,
-    Iterable<ExecutableElementOrMember> overridden,
+    Iterable<ExecutableElement2OrMember> overridden,
   ) {
     parameter.inheritsCovariant = overridden.any((f) {
       var param = _getCorrespondingParameter(
         parameter,
         index,
-        f.parameters.map((f) => f.asElement2).toList(),
+        f.formalParameters,
       );
       return param != null && param.isCovariant;
     });

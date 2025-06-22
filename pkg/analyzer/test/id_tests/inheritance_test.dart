@@ -106,7 +106,7 @@ class _InheritanceDataExtractor extends AstDataExtractor<String> {
         registerValue(uri, offset, id, type.getDisplayString(), object);
       }
 
-      var interface = inheritance.getInterface2(element);
+      var interface = inheritance.getInterface(element);
       for (var name in interface.map2.keys) {
         var executable = interface.map2[name]!;
 

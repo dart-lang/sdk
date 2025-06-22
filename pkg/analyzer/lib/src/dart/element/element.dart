@@ -3260,7 +3260,7 @@ class FormalParameterElementImpl extends PromotableElementImpl
   }
 
   @override
-  FormalParameterElement get baseElement => this;
+  FormalParameterElementImpl get baseElement => this;
 
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
@@ -3410,6 +3410,9 @@ mixin FormalParameterElementMixin
         FormalParameterElement,
         SharedNamedFunctionParameter,
         VariableElement2OrMember {
+  @override
+  FormalParameterElementImpl get baseElement;
+
   ParameterKind get parameterKind;
 
   @override
@@ -5280,7 +5283,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   @override
   Map<Name, ExecutableElement> get interfaceMembers =>
       (session as AnalysisSessionImpl).inheritanceManager
-          .getInterface2(this)
+          .getInterface(this)
           .map2;
 
   @override
@@ -5345,10 +5348,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
 
   @override
   ExecutableElement? getInterfaceMember(Name name) =>
-      (session as AnalysisSessionImpl).inheritanceManager.getMember(
-        this,
-        name,
-      );
+      (session as AnalysisSessionImpl).inheritanceManager.getMember(this, name);
 
   @override
   ConstructorElementImpl? getNamedConstructor2(String name) {
@@ -6376,7 +6376,7 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @override
-  ExtensionTypeElement? getExtensionType(String name) {
+  ExtensionTypeElementImpl? getExtensionType(String name) {
     return _getElementByName(extensionTypes, name);
   }
 

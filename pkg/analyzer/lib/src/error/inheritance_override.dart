@@ -213,7 +213,7 @@ class _ClassVerifier {
     }
 
     // Compute the interface of the class.
-    var interface = inheritance.getInterface(firstFragment);
+    var interface = inheritance.getInterface(element);
 
     // Report conflicts between direct superinterfaces of the class.
     for (var conflict in interface.conflicts) {
@@ -776,7 +776,7 @@ class _ClassVerifier {
   bool _isNotImplementedInConcreteSuperClass(Name name) {
     var superElement = classElement.supertype?.element3;
     if (superElement is ClassElementImpl && !superElement.isAbstract) {
-      var superInterface = inheritance.getInterface2(superElement);
+      var superInterface = inheritance.getInterface(superElement);
       return superInterface.map.containsKey(name);
     }
     return false;
@@ -840,12 +840,12 @@ class _ClassVerifier {
         CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
         arguments: [
           name.name,
-          conflict.getter2.enclosingElement!.name3!,
-          conflict.method2.enclosingElement!.name3!,
+          conflict.getter.enclosingElement!.name3!,
+          conflict.method.enclosingElement!.name3!,
         ],
       );
     } else if (conflict is CandidatesConflict) {
-      var candidatesStr = conflict.candidates2
+      var candidatesStr = conflict.candidates
           .map((candidate) {
             var className = candidate.enclosingElement!.name3;
             var typeStr = candidate.type.getDisplayString();
