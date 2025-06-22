@@ -228,6 +228,11 @@ extension ExecutableElement2Extension on ExecutableElement {
   }
 }
 
+extension ExecutableElement2OrMemberExtension on ExecutableElement2OrMember {
+  ExecutableFragmentImpl get declarationImpl =>
+      baseElement.firstFragment as ExecutableFragmentImpl;
+}
+
 extension ExecutableElementImpl2Extension on ExecutableElementImpl {
   ExecutableFragmentImpl get asElement {
     return lastFragment;

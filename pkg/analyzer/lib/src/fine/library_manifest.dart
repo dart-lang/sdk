@@ -833,7 +833,7 @@ class LibraryManifestBuilder {
     var item = declaredItems[element] as InterfaceItem;
     item.interface.beforeUpdating();
 
-    var interface = element.inheritanceManager.getInterface2(element);
+    var interface = element.inheritanceManager.getInterface(element);
     for (var entry in interface.map2.entries) {
       var executable = entry.value.baseElement;
 
