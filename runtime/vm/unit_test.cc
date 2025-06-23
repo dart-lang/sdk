@@ -299,7 +299,6 @@ char* TestCase::CompileTestScriptWithDFE(const char* url,
                                          const uint8_t** kernel_buffer,
                                          intptr_t* kernel_buffer_size,
                                          bool incrementally,
-                                         bool allow_compile_errors,
                                          const char* multiroot_filepaths,
                                          const char* multiroot_scheme) {
   // clang-format off
@@ -313,8 +312,8 @@ char* TestCase::CompileTestScriptWithDFE(const char* url,
   // clang-format on
   return CompileTestScriptWithDFE(
       url, sizeof(sourcefiles) / sizeof(Dart_SourceFile), sourcefiles,
-      kernel_buffer, kernel_buffer_size, incrementally, allow_compile_errors,
-      multiroot_filepaths, multiroot_scheme);
+      kernel_buffer, kernel_buffer_size, incrementally, multiroot_filepaths,
+      multiroot_scheme);
 }
 
 char* TestCase::CompileTestScriptWithDFE(const char* url,
@@ -323,7 +322,6 @@ char* TestCase::CompileTestScriptWithDFE(const char* url,
                                          const uint8_t** kernel_buffer,
                                          intptr_t* kernel_buffer_size,
                                          bool incrementally,
-                                         bool allow_compile_errors,
                                          const char* multiroot_filepaths,
                                          const char* multiroot_scheme) {
   Zone* zone = Thread::Current()->zone();
@@ -340,32 +338,26 @@ char* TestCase::CompileTestScriptWithDFE(const char* url,
     }
   }
   return ValidateCompilationResult(zone, result, kernel_buffer,
-                                   kernel_buffer_size, allow_compile_errors);
+                                   kernel_buffer_size);
 }
 
 char* TestCase::ValidateCompilationResult(
     Zone* zone,
     Dart_KernelCompilationResult compilation_result,
     const uint8_t** kernel_buffer,
-    intptr_t* kernel_buffer_size,
-    bool allow_compile_errors) {
-  if (!allow_compile_errors &&
-      (compilation_result.status != Dart_KernelCompilationStatus_Ok)) {
+    intptr_t* kernel_buffer_size) {
+  if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
+    ASSERT(compilation_result.kernel == nullptr);
     char* result =
         OS::SCreate(zone, "Compilation failed %s", compilation_result.error);
     free(compilation_result.error);
-    if (compilation_result.kernel != nullptr) {
-      free(const_cast<uint8_t*>(compilation_result.kernel));
-    }
     *kernel_buffer = nullptr;
     *kernel_buffer_size = 0;
     return result;
   }
+  ASSERT(compilation_result.error == nullptr);
   *kernel_buffer = compilation_result.kernel;
   *kernel_buffer_size = compilation_result.kernel_size;
-  if (compilation_result.error != nullptr) {
-    free(compilation_result.error);
-  }
   if (kernel_buffer == nullptr) {
     return OS::SCreate(zone, "front end generated a nullptr kernel file");
   }
@@ -425,25 +417,15 @@ static intptr_t BuildSourceFilesArray(
   return num_test_libs + 1;
 }
 
-Dart_Handle TestCase::LoadTestScriptWithErrors(
-    const char* script,
-    Dart_NativeEntryResolver resolver,
-    const char* lib_url,
-    bool finalize_classes) {
-  return LoadTestScript(script, resolver, lib_url, finalize_classes, true);
-}
-
 Dart_Handle TestCase::LoadTestScript(const char* script,
                                      Dart_NativeEntryResolver resolver,
                                      const char* lib_url,
-                                     bool finalize_classes,
-                                     bool allow_compile_errors) {
+                                     bool finalize_classes) {
   LoadIsolateReloadTestLibIfNeeded(script);
   Dart_SourceFile* sourcefiles = nullptr;
   intptr_t num_sources = BuildSourceFilesArray(&sourcefiles, script, lib_url);
-  Dart_Handle result =
-      LoadTestScriptWithDFE(num_sources, sourcefiles, resolver,
-                            finalize_classes, true, allow_compile_errors);
+  Dart_Handle result = LoadTestScriptWithDFE(num_sources, sourcefiles, resolver,
+                                             finalize_classes, true);
   delete[] sourcefiles;
   return result;
 }
@@ -465,7 +447,7 @@ Dart_Handle TestCase::LoadTestLibrary(const char* lib_uri,
   char* error = TestCase::CompileTestScriptWithDFE(
       sourcefiles[0].uri, sourcefiles_count, sourcefiles, &kernel_buffer,
       &kernel_buffer_size, true);
-  if ((kernel_buffer == nullptr) && (error != nullptr)) {
+  if (error != nullptr) {
     return Dart_NewApiError(error);
   }
 
@@ -492,7 +474,6 @@ Dart_Handle TestCase::LoadTestScriptWithDFE(int sourcefiles_count,
                                             Dart_NativeEntryResolver resolver,
                                             bool finalize,
                                             bool incrementally,
-                                            bool allow_compile_errors,
                                             const char* entry_script_uri,
                                             const char* multiroot_filepaths,
                                             const char* multiroot_scheme) {
@@ -504,9 +485,8 @@ Dart_Handle TestCase::LoadTestScriptWithDFE(int sourcefiles_count,
   char* error = TestCase::CompileTestScriptWithDFE(
       entry_script_uri != nullptr ? entry_script_uri : sourcefiles[0].uri,
       sourcefiles_count, sourcefiles, &kernel_buffer, &kernel_buffer_size,
-      incrementally, allow_compile_errors, multiroot_filepaths,
-      multiroot_scheme);
-  if ((kernel_buffer == nullptr) && error != nullptr) {
+      incrementally, multiroot_filepaths, multiroot_scheme);
+  if (error != nullptr) {
     return Dart_NewApiError(error);
   }
 
@@ -620,9 +600,6 @@ Dart_Handle TestCase::ReloadTestScript(const char* script) {
   if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
     Dart_Handle result = Dart_NewApiError(compilation_result.error);
     free(compilation_result.error);
-    if (compilation_result.kernel != nullptr) {
-      free(const_cast<uint8_t*>(compilation_result.kernel));
-    }
     return result;
   }
 

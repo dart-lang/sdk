@@ -169,11 +169,10 @@ Future<kernel_service.Status> singleShotCompile(
     }
     return kernel_service.Status.ok;
   } else if (status == kernel_service.Status.error.index) {
-    expectLength(m, 3);
+    expectLength(m, 2);
     final String errors = m[1];
-    final List<int> bytes = m[2];
     if (verbose) {
-      print("Compiled with errors --- $errors and ${bytes.length} bytes dill");
+      print("Compiled with errors --- $errors");
     }
     return kernel_service.Status.error;
   } else if (status == kernel_service.Status.crash.index) {
