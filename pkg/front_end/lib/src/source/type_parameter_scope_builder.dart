@@ -304,11 +304,11 @@ class _ConstructorFragmentDeclaration extends _ConstructorDeclaration
 class _BuilderFactory {
   final ProblemReporting problemReporting;
   final SourceLoader loader;
+  final _BuilderRegistry builderRegistry;
   final SourceLibraryBuilder enclosingLibraryBuilder;
   final DeclarationBuilder? declarationBuilder;
   final List<NominalParameterBuilder> unboundNominalParameters;
   final Map<SourceClassBuilder, TypeBuilder> mixinApplications;
-  final List<_AddBuilder> builders;
   final IndexedLibrary? indexedLibrary;
   final ContainerType containerType;
   final IndexedContainer? indexedContainer;
@@ -318,11 +318,11 @@ class _BuilderFactory {
   _BuilderFactory(
       {required this.problemReporting,
       required this.loader,
+      required this.builderRegistry,
       required this.enclosingLibraryBuilder,
       this.declarationBuilder,
       required this.unboundNominalParameters,
       required this.mixinApplications,
-      required this.builders,
       required this.indexedLibrary,
       required this.containerType,
       this.indexedContainer,
@@ -356,99 +356,110 @@ class _BuilderFactory {
   void createBuilder(Fragment fragment, {List<Fragment>? augmentations}) {
     switch (fragment) {
       case TypedefFragment():
-        builders.add(_createTypedefBuilder(fragment,
+        _createTypedefBuilder(fragment,
             problemReporting: problemReporting,
             loader: loader,
+            builderRegistry: builderRegistry,
             enclosingLibraryBuilder: enclosingLibraryBuilder,
             unboundNominalParameters: unboundNominalParameters,
-            indexedLibrary: indexedLibrary));
+            indexedLibrary: indexedLibrary);
       case ClassFragment():
-        builders.add(_createClassBuilder(fragment, augmentations,
+        _createClassBuilder(fragment, augmentations,
             problemReporting: problemReporting,
             loader: loader,
+            builderRegistry: builderRegistry,
             enclosingLibraryBuilder: enclosingLibraryBuilder,
             unboundNominalParameters: unboundNominalParameters,
-            indexedLibrary: indexedLibrary));
+            indexedLibrary: indexedLibrary);
       case MixinFragment():
-        builders.add(_createMixinBuilder(fragment,
+        _createMixinBuilder(fragment,
             problemReporting: problemReporting,
             loader: loader,
+            builderRegistry: builderRegistry,
             enclosingLibraryBuilder: enclosingLibraryBuilder,
             unboundNominalParameters: unboundNominalParameters,
-            indexedLibrary: indexedLibrary));
+            indexedLibrary: indexedLibrary);
       case NamedMixinApplicationFragment():
-        builders.add(_createNamedMixinApplicationBuilder(fragment,
+        _createNamedMixinApplicationBuilder(fragment,
             problemReporting: problemReporting,
             loader: loader,
+            builderRegistry: builderRegistry,
             enclosingLibraryBuilder: enclosingLibraryBuilder,
             unboundNominalParameters: unboundNominalParameters,
             mixinApplications: mixinApplications,
-            indexedLibrary: indexedLibrary));
+            indexedLibrary: indexedLibrary);
       case EnumFragment():
-        builders.add(_createEnumBuilder(fragment,
+        _createEnumBuilder(fragment,
             problemReporting: problemReporting,
             loader: loader,
+            builderRegistry: builderRegistry,
             enclosingLibraryBuilder: enclosingLibraryBuilder,
             unboundNominalParameters: unboundNominalParameters,
-            indexedLibrary: indexedLibrary));
+            indexedLibrary: indexedLibrary);
       case ExtensionFragment():
-        builders.add(_createExtensionBuilder(fragment, augmentations,
+        _createExtensionBuilder(fragment, augmentations,
             problemReporting: problemReporting,
             loader: loader,
+            builderRegistry: builderRegistry,
             enclosingLibraryBuilder: enclosingLibraryBuilder,
             unboundNominalParameters: unboundNominalParameters,
-            indexedLibrary: indexedLibrary));
+            indexedLibrary: indexedLibrary);
       case ExtensionTypeFragment():
-        builders.add(_createExtensionTypeBuilder(fragment,
+        _createExtensionTypeBuilder(fragment,
             problemReporting: problemReporting,
             loader: loader,
+            builderRegistry: builderRegistry,
             enclosingLibraryBuilder: enclosingLibraryBuilder,
             unboundNominalParameters: unboundNominalParameters,
-            indexedLibrary: indexedLibrary));
+            indexedLibrary: indexedLibrary);
       case MethodFragment():
-        builders.add(_createMethodBuilder(fragment, augmentations,
+        _createMethodBuilder(fragment, augmentations,
             problemReporting: problemReporting,
             loader: loader,
+            builderRegistry: builderRegistry,
             enclosingLibraryBuilder: enclosingLibraryBuilder,
             declarationBuilder: declarationBuilder,
             unboundNominalParameters: unboundNominalParameters,
             indexedLibrary: indexedLibrary,
             containerType: containerType,
             indexedContainer: indexedContainer,
-            containerName: containerName));
+            containerName: containerName);
       case ConstructorFragment():
-        builders.add(_createConstructorBuilder(fragment, augmentations,
+        _createConstructorBuilder(fragment, augmentations,
             problemReporting: problemReporting,
             loader: loader,
+            builderRegistry: builderRegistry,
             enclosingLibraryBuilder: enclosingLibraryBuilder,
             declarationBuilder: declarationBuilder,
             unboundNominalParameters: unboundNominalParameters,
             indexedLibrary: indexedLibrary,
             containerType: containerType,
             indexedContainer: indexedContainer,
-            containerName: containerName));
+            containerName: containerName);
       case PrimaryConstructorFragment():
-        builders.add(_createPrimaryConstructorBuilder(fragment,
+        _createPrimaryConstructorBuilder(fragment,
             problemReporting: problemReporting,
             loader: loader,
+            builderRegistry: builderRegistry,
             enclosingLibraryBuilder: enclosingLibraryBuilder,
             declarationBuilder: declarationBuilder,
             unboundNominalParameters: unboundNominalParameters,
             indexedLibrary: indexedLibrary,
             containerType: containerType,
             indexedContainer: indexedContainer,
-            containerName: containerName));
+            containerName: containerName);
       case FactoryFragment():
-        builders.add(_createFactoryBuilder(fragment, augmentations,
+        _createFactoryBuilder(fragment, augmentations,
             problemReporting: problemReporting,
             loader: loader,
+            builderRegistry: builderRegistry,
             enclosingLibraryBuilder: enclosingLibraryBuilder,
             declarationBuilder: declarationBuilder,
             unboundNominalParameters: unboundNominalParameters,
             indexedLibrary: indexedLibrary,
             containerType: containerType,
             indexedContainer: indexedContainer,
-            containerName: containerName));
+            containerName: containerName);
       // Coverage-ignore(suite): Not run.
       case FieldFragment():
       case PrimaryConstructorFieldFragment():
@@ -647,9 +658,10 @@ class _BuilderFactory {
       List<SetterDeclaration>? setterAugmentationDeclarations,
       required bool isStatic,
       required bool inPatch}) {
-    builders.add(_createPropertyBuilder(
+    _createPropertyBuilder(
         problemReporting: problemReporting,
         loader: loader,
+        builderRegistry: builderRegistry,
         name: name,
         uriOffset: uriOffset,
         enclosingLibraryBuilder: enclosingLibraryBuilder,
@@ -665,7 +677,7 @@ class _BuilderFactory {
         indexedLibrary: indexedLibrary,
         indexedContainer: indexedContainer,
         isStatic: isStatic,
-        inPatch: inPatch));
+        inPatch: inPatch);
   }
 }
 
@@ -1657,12 +1669,6 @@ class LibraryNameSpaceBuilder {
     _fragments.addAll(other._fragments);
   }
 
-  bool _allowInjectedPublicMember(
-      SourceLibraryBuilder enclosingLibraryBuilder, Builder newBuilder) {
-    return enclosingLibraryBuilder.importUri.isScheme("dart") &&
-        enclosingLibraryBuilder.importUri.path.startsWith("_");
-  }
-
   MutableNameSpace toNameSpace({
     required SourceLibraryBuilder enclosingLibraryBuilder,
     required IndexedLibrary? indexedLibrary,
@@ -1671,102 +1677,129 @@ class LibraryNameSpaceBuilder {
     required Map<SourceClassBuilder, TypeBuilder> mixinApplications,
     required List<NamedBuilder> memberBuilders,
   }) {
-    Map<String, LookupResult> content = {};
-    Set<ExtensionBuilder> extensions = {};
-
-    void _addBuilder(_AddBuilder addBuilder) {
-      String name = addBuilder.name;
-      NamedBuilder declaration = addBuilder.declaration;
-      UriOffsetLength uriOffset = addBuilder.uriOffset;
-
-      assert(declaration.next == null,
-          "Unexpected declaration.next ${declaration.next} on $declaration");
-
-      memberBuilders.add(declaration);
-
-      if (declaration is SourceExtensionBuilder &&
-          declaration.isUnnamedExtension) {
-        extensions.add(declaration);
-        return;
-      }
-
-      if (declaration is MemberBuilder ||
-          declaration is TypeDeclarationBuilder) {
-        // Expected.
-      } else {
-        // Coverage-ignore-block(suite): Not run.
-        // Prefix builders are added when computing the import scope.
-        assert(declaration is! PrefixBuilder,
-            "Unexpected prefix builder $declaration.");
-        unhandled("${declaration.runtimeType}", "addBuilder",
-            uriOffset.fileOffset, uriOffset.fileUri);
-      }
-
-      assert(
-          !(declaration is FunctionBuilder &&
-              // Coverage-ignore(suite): Not run.
-              (declaration is ConstructorBuilder ||
-                  declaration is FactoryBuilder)),
-          "Unexpected constructor in library: $declaration.");
-
-      if (addBuilder.inPatch &&
-          !name.startsWith('_') &&
-          !_allowInjectedPublicMember(enclosingLibraryBuilder, declaration)) {
-        problemReporting.addProblem2(
-            templatePatchInjectionFailed.withArguments(
-                name, enclosingLibraryBuilder.importUri),
-            uriOffset);
-      }
-
-      LookupResult? existingResult = content[name];
-      NamedBuilder? existing =
-          existingResult?.getable ?? existingResult?.setable;
-
-      assert(
-          existing != declaration, "Unexpected existing declaration $existing");
-
-      if (declaration.next != null &&
-          // Coverage-ignore(suite): Not run.
-          declaration.next != existing) {
-        unexpected(
-            "${declaration.next!.fileUri}@${declaration.next!.fileOffset}",
-            "${existing?.fileUri}@${existing?.fileOffset}",
-            declaration.fileOffset,
-            declaration.fileUri);
-      }
-      declaration.next = existing;
-      if (declaration is SourceExtensionBuilder && !declaration.isDuplicate) {
-        // We add the extension declaration to the extension scope only if its
-        // name is unique. Only the first of duplicate extensions is accessible
-        // by name or by resolution and the remaining are dropped for the
-        // output.
-        extensions.add(declaration);
-      }
-      content[name] = declaration as LookupResult;
-    }
+    _LibraryBuilderRegistry builderRegistry = new _LibraryBuilderRegistry(
+        problemReporting: problemReporting,
+        enclosingLibraryBuilder: enclosingLibraryBuilder,
+        memberBuilders: memberBuilders);
 
     Map<String, List<Fragment>> fragmentsByName = {};
     for (Fragment fragment in _fragments) {
       (fragmentsByName[fragment.name] ??= []).add(fragment);
     }
 
+    _BuilderFactory builderFactory = new _BuilderFactory(
+        loader: enclosingLibraryBuilder.loader,
+        builderRegistry: builderRegistry,
+        problemReporting: problemReporting,
+        enclosingLibraryBuilder: enclosingLibraryBuilder,
+        unboundNominalParameters: unboundNominalParameters,
+        mixinApplications: mixinApplications,
+        indexedLibrary: indexedLibrary,
+        containerType: ContainerType.Library);
+
     for (MapEntry<String, List<Fragment>> entry in fragmentsByName.entries) {
-      List<_AddBuilder> addBuilders = [];
-      _BuilderFactory builderFactory = new _BuilderFactory(
-          loader: enclosingLibraryBuilder.loader,
-          problemReporting: problemReporting,
-          enclosingLibraryBuilder: enclosingLibraryBuilder,
-          unboundNominalParameters: unboundNominalParameters,
-          mixinApplications: mixinApplications,
-          builders: addBuilders,
-          indexedLibrary: indexedLibrary,
-          containerType: ContainerType.Library);
       builderFactory.computeBuildersFromFragments(entry.key, entry.value);
-      for (_AddBuilder addBuilder in addBuilders) {
-        _addBuilder(addBuilder);
-      }
     }
-    return new SourceLibraryNameSpace(content: content, extensions: extensions);
+    return new SourceLibraryNameSpace(
+        content: builderRegistry.content,
+        extensions: builderRegistry.extensions);
+  }
+}
+
+abstract class _BuilderRegistry {
+  void registerBuilder(
+      {required NamedBuilder declaration,
+      required UriOffsetLength uriOffset,
+      required bool inPatch});
+}
+
+class _LibraryBuilderRegistry implements _BuilderRegistry {
+  final Map<String, LookupResult> content = {};
+  final Set<ExtensionBuilder> extensions = {};
+  final ProblemReporting problemReporting;
+  final SourceLibraryBuilder enclosingLibraryBuilder;
+  final List<NamedBuilder> memberBuilders;
+
+  _LibraryBuilderRegistry(
+      {required this.problemReporting,
+      required this.enclosingLibraryBuilder,
+      required this.memberBuilders});
+
+  bool _allowInjectedPublicMember(
+      SourceLibraryBuilder enclosingLibraryBuilder, Builder newBuilder) {
+    return enclosingLibraryBuilder.importUri.isScheme("dart") &&
+        enclosingLibraryBuilder.importUri.path.startsWith("_");
+  }
+
+  @override
+  void registerBuilder(
+      {required NamedBuilder declaration,
+      required UriOffsetLength uriOffset,
+      required bool inPatch}) {
+    String name = declaration.name;
+
+    assert(declaration.next == null,
+        "Unexpected declaration.next ${declaration.next} on $declaration");
+
+    memberBuilders.add(declaration);
+
+    if (declaration is SourceExtensionBuilder &&
+        declaration.isUnnamedExtension) {
+      extensions.add(declaration);
+      return;
+    }
+
+    if (declaration is MemberBuilder || declaration is TypeDeclarationBuilder) {
+      // Expected.
+    } else {
+      // Coverage-ignore-block(suite): Not run.
+      // Prefix builders are added when computing the import scope.
+      assert(declaration is! PrefixBuilder,
+          "Unexpected prefix builder $declaration.");
+      unhandled("${declaration.runtimeType}", "addBuilder",
+          uriOffset.fileOffset, uriOffset.fileUri);
+    }
+
+    assert(
+        !(declaration is FunctionBuilder &&
+            // Coverage-ignore(suite): Not run.
+            (declaration is ConstructorBuilder ||
+                declaration is FactoryBuilder)),
+        "Unexpected constructor in library: $declaration.");
+
+    if (inPatch &&
+        !name.startsWith('_') &&
+        !_allowInjectedPublicMember(enclosingLibraryBuilder, declaration)) {
+      problemReporting.addProblem2(
+          templatePatchInjectionFailed.withArguments(
+              name, enclosingLibraryBuilder.importUri),
+          uriOffset);
+    }
+
+    LookupResult? existingResult = content[name];
+    NamedBuilder? existing = existingResult?.getable ?? existingResult?.setable;
+
+    assert(
+        existing != declaration, "Unexpected existing declaration $existing");
+
+    if (declaration.next != null &&
+        // Coverage-ignore(suite): Not run.
+        declaration.next != existing) {
+      unexpected(
+          "${declaration.next!.fileUri}@${declaration.next!.fileOffset}",
+          "${existing?.fileUri}@${existing?.fileOffset}",
+          declaration.fileOffset,
+          declaration.fileUri);
+    }
+    declaration.next = existing;
+    if (declaration is SourceExtensionBuilder && !declaration.isDuplicate) {
+      // We add the extension declaration to the extension scope only if its
+      // name is unique. Only the first of duplicate extensions is accessible
+      // by name or by resolution and the remaining are dropped for the
+      // output.
+      extensions.add(declaration);
+    }
+    content[name] = declaration as LookupResult;
   }
 }
 
@@ -1891,16 +1924,6 @@ abstract class DeclarationFragmentImpl implements DeclarationFragment {
   }
 }
 
-class _AddBuilder {
-  final String name;
-  final NamedBuilder declaration;
-  final UriOffsetLength uriOffset;
-  final bool inPatch;
-
-  _AddBuilder(this.name, this.declaration, this.uriOffset,
-      {required this.inPatch});
-}
-
 class DeclarationNameSpaceBuilder {
   final String _name;
   final NominalParameterNameSpace? _nominalParameterNameSpace;
@@ -1917,19 +1940,6 @@ class DeclarationNameSpaceBuilder {
   void includeBuilders(DeclarationNameSpaceBuilder other) {
     _fragments.addAll(other._fragments);
     other._fragments.clear();
-  }
-
-  bool _allowInjectedPublicMember(
-      SourceLibraryBuilder enclosingLibraryBuilder, Builder newBuilder) {
-    if (enclosingLibraryBuilder.importUri.isScheme("dart") &&
-        enclosingLibraryBuilder.importUri.path.startsWith("_")) {
-      return true;
-    }
-    if (newBuilder.isStatic) {
-      return _name.startsWith('_');
-    }
-    // TODO(johnniwinther): Restrict the use of injected public class members.
-    return true;
   }
 
   void checkTypeParameterConflict(ProblemReporting _problemReporting,
@@ -1963,103 +1973,35 @@ class DeclarationNameSpaceBuilder {
       required List<SourceMemberBuilder> constructorBuilders,
       required List<SourceMemberBuilder> memberBuilders}) {
     List<NominalParameterBuilder> unboundNominalParameters = [];
-    Map<String, LookupResult> content = {};
-    Map<String, MemberBuilder> constructors = {};
+
+    _DeclarationBuilderRegistry builderRegistry =
+        new _DeclarationBuilderRegistry(
+            problemReporting: problemReporting,
+            enclosingLibraryBuilder: enclosingLibraryBuilder,
+            declarationName: _name,
+            constructorBuilders: constructorBuilders,
+            memberBuilders: memberBuilders);
 
     Map<String, List<Fragment>> fragmentsByName = {};
     for (Fragment fragment in _fragments) {
       (fragmentsByName[fragment.name] ??= []).add(fragment);
     }
 
-    void _addBuilder(_AddBuilder addBuilder) {
-      String name = addBuilder.name;
-      NamedBuilder declaration = addBuilder.declaration;
-      UriOffsetLength uriOffset = addBuilder.uriOffset;
-
-      assert(declaration.next == null,
-          "Unexpected declaration.next ${declaration.next} on $declaration");
-
-      bool isConstructor =
-          declaration is ConstructorBuilder || declaration is FactoryBuilder;
-      if (!isConstructor && name == _name) {
-        problemReporting.addProblem2(
-            messageMemberWithSameNameAsClass, uriOffset);
-      }
-      if (isConstructor) {
-        constructorBuilders.add(declaration as SourceMemberBuilder);
-      } else {
-        memberBuilders.add(declaration as SourceMemberBuilder);
-      }
-
-      if (addBuilder.inPatch &&
-          !name.startsWith('_') &&
-          !_allowInjectedPublicMember(enclosingLibraryBuilder, declaration)) {
-        // TODO(johnniwinther): Test adding a no-name constructor in the
-        //  patch, either as an injected or duplicated constructor.
-        problemReporting.addProblem2(
-            templatePatchInjectionFailed.withArguments(
-                name, enclosingLibraryBuilder.importUri),
-            uriOffset);
-      }
-
-      if (isConstructor) {
-        NamedBuilder? existing = constructors[name];
-
-        assert(existing != declaration,
-            "Unexpected existing declaration $existing");
-
-        if (declaration.next != null &&
-            // Coverage-ignore(suite): Not run.
-            declaration.next != existing) {
-          unexpected(
-              "${declaration.next!.fileUri}@${declaration.next!.fileOffset}",
-              "${existing?.fileUri}@${existing?.fileOffset}",
-              declaration.fileOffset,
-              declaration.fileUri);
-        }
-        declaration.next = existing;
-        constructors[name] = declaration as MemberBuilder;
-      } else {
-        LookupResult? existingResult = content[name];
-        NamedBuilder? existing =
-            existingResult?.getable ?? existingResult?.setable;
-
-        assert(existing != declaration,
-            "Unexpected existing declaration $existing");
-
-        if (declaration.next != null &&
-            // Coverage-ignore(suite): Not run.
-            declaration.next != existing) {
-          unexpected(
-              "${declaration.next!.fileUri}@${declaration.next!.fileOffset}",
-              "${existing?.fileUri}@${existing?.fileOffset}",
-              declaration.fileOffset,
-              declaration.fileUri);
-        }
-        declaration.next = existing;
-        content[name] = declaration as LookupResult;
-      }
-    }
-
+    _BuilderFactory builderFactory = new _BuilderFactory(
+        loader: loader,
+        problemReporting: problemReporting,
+        enclosingLibraryBuilder: enclosingLibraryBuilder,
+        builderRegistry: builderRegistry,
+        declarationBuilder: declarationBuilder,
+        unboundNominalParameters: unboundNominalParameters,
+        // TODO(johnniwinther): Avoid passing this:
+        mixinApplications: const {},
+        indexedLibrary: indexedLibrary,
+        indexedContainer: indexedContainer,
+        containerType: containerType,
+        containerName: containerName);
     for (MapEntry<String, List<Fragment>> entry in fragmentsByName.entries) {
-      List<_AddBuilder> addBuilders = [];
-      _BuilderFactory builderFactory = new _BuilderFactory(
-          loader: loader,
-          problemReporting: problemReporting,
-          enclosingLibraryBuilder: enclosingLibraryBuilder,
-          declarationBuilder: declarationBuilder,
-          builders: addBuilders,
-          unboundNominalParameters: unboundNominalParameters,
-          // TODO(johnniwinther): Avoid passing this:
-          mixinApplications: const {},
-          indexedLibrary: indexedLibrary,
-          indexedContainer: indexedContainer,
-          containerType: containerType,
-          containerName: containerName);
       builderFactory.computeBuildersFromFragments(entry.key, entry.value);
-      for (_AddBuilder addBuilder in addBuilders) {
-        _addBuilder(addBuilder);
-      }
     }
 
     void checkConflicts(String name, Builder member) {
@@ -2067,18 +2009,120 @@ class DeclarationNameSpaceBuilder {
           problemReporting, name, member, member.fileUri!);
     }
 
-    content.forEach((String name, LookupResult lookupResult) {
+    builderRegistry.content.forEach((String name, LookupResult lookupResult) {
       NamedBuilder member = (lookupResult.getable ?? lookupResult.setable)!;
       checkTypeParameterConflict(
           problemReporting, name, member, member.fileUri!);
     });
-    constructors.forEach(checkConflicts);
+    builderRegistry.constructors.forEach(checkConflicts);
 
     enclosingLibraryBuilder
         .registerUnboundNominalParameters(unboundNominalParameters);
 
     return new SourceDeclarationNameSpace(
-        content: content, constructors: constructors);
+        content: builderRegistry.content,
+        constructors: builderRegistry.constructors);
+  }
+}
+
+class _DeclarationBuilderRegistry implements _BuilderRegistry {
+  final Map<String, LookupResult> content = {};
+  final Map<String, MemberBuilder> constructors = {};
+  final ProblemReporting problemReporting;
+  final SourceLibraryBuilder enclosingLibraryBuilder;
+  final String declarationName;
+  final List<SourceMemberBuilder> constructorBuilders;
+  final List<SourceMemberBuilder> memberBuilders;
+
+  _DeclarationBuilderRegistry(
+      {required this.problemReporting,
+      required this.enclosingLibraryBuilder,
+      required this.declarationName,
+      required this.constructorBuilders,
+      required this.memberBuilders});
+
+  bool _allowInjectedPublicMember(
+      SourceLibraryBuilder enclosingLibraryBuilder, Builder newBuilder) {
+    if (enclosingLibraryBuilder.importUri.isScheme("dart") &&
+        enclosingLibraryBuilder.importUri.path.startsWith("_")) {
+      return true;
+    }
+    if (newBuilder.isStatic) {
+      return declarationName.startsWith('_');
+    }
+    // TODO(johnniwinther): Restrict the use of injected public class members.
+    return true;
+  }
+
+  @override
+  void registerBuilder(
+      {required NamedBuilder declaration,
+      required UriOffsetLength uriOffset,
+      required bool inPatch}) {
+    String name = declaration.name;
+
+    assert(declaration.next == null,
+        "Unexpected declaration.next ${declaration.next} on $declaration");
+
+    bool isConstructor =
+        declaration is ConstructorBuilder || declaration is FactoryBuilder;
+    if (!isConstructor && name == declarationName) {
+      problemReporting.addProblem2(messageMemberWithSameNameAsClass, uriOffset);
+    }
+    if (isConstructor) {
+      constructorBuilders.add(declaration as SourceMemberBuilder);
+    } else {
+      memberBuilders.add(declaration as SourceMemberBuilder);
+    }
+
+    if (inPatch &&
+        !name.startsWith('_') &&
+        !_allowInjectedPublicMember(enclosingLibraryBuilder, declaration)) {
+      // TODO(johnniwinther): Test adding a no-name constructor in the
+      //  patch, either as an injected or duplicated constructor.
+      problemReporting.addProblem2(
+          templatePatchInjectionFailed.withArguments(
+              name, enclosingLibraryBuilder.importUri),
+          uriOffset);
+    }
+
+    if (isConstructor) {
+      NamedBuilder? existing = constructors[name];
+
+      assert(
+          existing != declaration, "Unexpected existing declaration $existing");
+
+      if (declaration.next != null &&
+          // Coverage-ignore(suite): Not run.
+          declaration.next != existing) {
+        unexpected(
+            "${declaration.next!.fileUri}@${declaration.next!.fileOffset}",
+            "${existing?.fileUri}@${existing?.fileOffset}",
+            declaration.fileOffset,
+            declaration.fileUri);
+      }
+      declaration.next = existing;
+      constructors[name] = declaration as MemberBuilder;
+    } else {
+      LookupResult? existingResult = content[name];
+      NamedBuilder? existing =
+          existingResult?.getable ?? existingResult?.setable;
+
+      assert(
+          existing != declaration, "Unexpected existing declaration $existing");
+
+      if (declaration.next != null &&
+          // Coverage-ignore(suite): Not run.
+          declaration.next != existing) {
+        unexpected(
+            "${declaration.next!.fileUri}@${declaration.next!.fileOffset}",
+            "${existing?.fileUri}@${existing?.fileOffset}",
+            declaration.fileOffset,
+            declaration.fileUri);
+      }
+      declaration.next = existing;
+      content[name] = declaration as LookupResult;
+    }
   }
 }
 
@@ -2158,9 +2202,10 @@ SourceNominalParameterBuilder createNominalParameterBuilder(
   return builder;
 }
 
-_AddBuilder _createTypedefBuilder(TypedefFragment fragment,
+void _createTypedefBuilder(TypedefFragment fragment,
     {required ProblemReporting problemReporting,
     required SourceLoader loader,
+    required _BuilderRegistry builderRegistry,
     required SourceLibraryBuilder enclosingLibraryBuilder,
     required List<NominalParameterBuilder> unboundNominalParameters,
     required IndexedLibrary? indexedLibrary}) {
@@ -2187,14 +2232,16 @@ _AddBuilder _createTypedefBuilder(TypedefFragment fragment,
   if (reference != null) {
     loader.buildersCreatedWithReferences[reference] = typedefBuilder;
   }
-  return new _AddBuilder(fragment.name, typedefBuilder, fragment.uriOffset,
+  builderRegistry.registerBuilder(
+      declaration: typedefBuilder,
+      uriOffset: fragment.uriOffset,
       inPatch: fragment.enclosingCompilationUnit.isPatch);
 }
 
-_AddBuilder _createClassBuilder(
-    ClassFragment fragment, List<Fragment>? augmentations,
+void _createClassBuilder(ClassFragment fragment, List<Fragment>? augmentations,
     {required ProblemReporting problemReporting,
     required SourceLoader loader,
+    required _BuilderRegistry builderRegistry,
     required SourceLibraryBuilder enclosingLibraryBuilder,
     required List<NominalParameterBuilder> unboundNominalParameters,
     required IndexedLibrary? indexedLibrary}) {
@@ -2286,13 +2333,16 @@ _AddBuilder _createClassBuilder(
   if (indexedClass != null) {
     loader.buildersCreatedWithReferences[indexedClass.reference] = classBuilder;
   }
-  return new _AddBuilder(fragment.name, classBuilder, fragment.uriOffset,
+  builderRegistry.registerBuilder(
+      declaration: classBuilder,
+      uriOffset: fragment.uriOffset,
       inPatch: fragment.enclosingCompilationUnit.isPatch);
 }
 
-_AddBuilder _createMixinBuilder(MixinFragment fragment,
+void _createMixinBuilder(MixinFragment fragment,
     {required ProblemReporting problemReporting,
     required SourceLoader loader,
+    required _BuilderRegistry builderRegistry,
     required SourceLibraryBuilder enclosingLibraryBuilder,
     required List<NominalParameterBuilder> unboundNominalParameters,
     required IndexedLibrary? indexedLibrary}) {
@@ -2321,14 +2371,16 @@ _AddBuilder _createMixinBuilder(MixinFragment fragment,
   if (indexedClass != null) {
     loader.buildersCreatedWithReferences[indexedClass.reference] = mixinBuilder;
   }
-  return new _AddBuilder(fragment.name, mixinBuilder, fragment.uriOffset,
+  builderRegistry.registerBuilder(
+      declaration: mixinBuilder,
+      uriOffset: fragment.uriOffset,
       inPatch: fragment.enclosingCompilationUnit.isPatch);
 }
 
-_AddBuilder _createNamedMixinApplicationBuilder(
-    NamedMixinApplicationFragment fragment,
+void _createNamedMixinApplicationBuilder(NamedMixinApplicationFragment fragment,
     {required ProblemReporting problemReporting,
     required SourceLoader loader,
+    required _BuilderRegistry builderRegistry,
     required SourceLibraryBuilder enclosingLibraryBuilder,
     required List<NominalParameterBuilder> unboundNominalParameters,
     required Map<SourceClassBuilder, TypeBuilder> mixinApplications,
@@ -2372,13 +2424,16 @@ _AddBuilder _createNamedMixinApplicationBuilder(
     loader.buildersCreatedWithReferences[referencesFromIndexedClass.reference] =
         classBuilder;
   }
-  return new _AddBuilder(fragment.name, classBuilder, fragment.uriOffset,
+  builderRegistry.registerBuilder(
+      declaration: classBuilder,
+      uriOffset: fragment.uriOffset,
       inPatch: fragment.enclosingCompilationUnit.isPatch);
 }
 
-_AddBuilder _createEnumBuilder(EnumFragment fragment,
+void _createEnumBuilder(EnumFragment fragment,
     {required ProblemReporting problemReporting,
     required SourceLoader loader,
+    required _BuilderRegistry builderRegistry,
     required SourceLibraryBuilder enclosingLibraryBuilder,
     required List<NominalParameterBuilder> unboundNominalParameters,
     required IndexedLibrary? indexedLibrary}) {
@@ -2412,14 +2467,17 @@ _AddBuilder _createEnumBuilder(EnumFragment fragment,
   if (indexedClass != null) {
     loader.buildersCreatedWithReferences[indexedClass.reference] = enumBuilder;
   }
-  return new _AddBuilder(fragment.name, enumBuilder, fragment.uriOffset,
+  builderRegistry.registerBuilder(
+      declaration: enumBuilder,
+      uriOffset: fragment.uriOffset,
       inPatch: fragment.enclosingCompilationUnit.isPatch);
 }
 
-_AddBuilder _createExtensionBuilder(
+void _createExtensionBuilder(
     ExtensionFragment fragment, List<Fragment>? augmentations,
     {required ProblemReporting problemReporting,
     required SourceLoader loader,
+    required _BuilderRegistry builderRegistry,
     required SourceLibraryBuilder enclosingLibraryBuilder,
     required List<NominalParameterBuilder> unboundNominalParameters,
     required IndexedLibrary? indexedLibrary}) {
@@ -2500,13 +2558,16 @@ _AddBuilder _createExtensionBuilder(
   if (reference != null) {
     loader.buildersCreatedWithReferences[reference] = extensionBuilder;
   }
-  return new _AddBuilder(fragment.name, extensionBuilder, fragment.uriOffset,
+  builderRegistry.registerBuilder(
+      declaration: extensionBuilder,
+      uriOffset: fragment.uriOffset,
       inPatch: fragment.enclosingCompilationUnit.isPatch);
 }
 
-_AddBuilder _createExtensionTypeBuilder(ExtensionTypeFragment fragment,
+void _createExtensionTypeBuilder(ExtensionTypeFragment fragment,
     {required ProblemReporting problemReporting,
     required SourceLoader loader,
+    required _BuilderRegistry builderRegistry,
     required SourceLibraryBuilder enclosingLibraryBuilder,
     required List<NominalParameterBuilder> unboundNominalParameters,
     required IndexedLibrary? indexedLibrary}) {
@@ -2539,14 +2600,16 @@ _AddBuilder _createExtensionTypeBuilder(ExtensionTypeFragment fragment,
     loader.buildersCreatedWithReferences[indexedContainer!.reference] =
         extensionTypeDeclarationBuilder;
   }
-  return new _AddBuilder(
-      fragment.name, extensionTypeDeclarationBuilder, fragment.uriOffset,
+  builderRegistry.registerBuilder(
+      declaration: extensionTypeDeclarationBuilder,
+      uriOffset: fragment.uriOffset,
       inPatch: fragment.enclosingCompilationUnit.isPatch);
 }
 
-_AddBuilder _createPropertyBuilder({
+void _createPropertyBuilder({
   required ProblemReporting problemReporting,
   required SourceLoader loader,
+  required _BuilderRegistry builderRegistry,
   required String name,
   required UriOffsetLength uriOffset,
   required SourceLibraryBuilder enclosingLibraryBuilder,
@@ -2627,13 +2690,15 @@ _AddBuilder _createPropertyBuilder({
 
   references.registerReference(loader, propertyBuilder);
 
-  return new _AddBuilder(name, propertyBuilder, uriOffset, inPatch: inPatch);
+  builderRegistry.registerBuilder(
+      declaration: propertyBuilder, uriOffset: uriOffset, inPatch: inPatch);
 }
 
-_AddBuilder _createMethodBuilder(
+void _createMethodBuilder(
     MethodFragment fragment, List<Fragment>? augmentations,
     {required ProblemReporting problemReporting,
     required SourceLoader loader,
+    required _BuilderRegistry builderRegistry,
     required SourceLibraryBuilder enclosingLibraryBuilder,
     required DeclarationBuilder? declarationBuilder,
     required List<NominalParameterBuilder> unboundNominalParameters,
@@ -2737,15 +2802,18 @@ _AddBuilder _createMethodBuilder(
   if (procedureReference != null) {
     loader.buildersCreatedWithReferences[procedureReference] = methodBuilder;
   }
-  return new _AddBuilder(fragment.name, methodBuilder, fragment.uriOffset,
+  builderRegistry.registerBuilder(
+      declaration: methodBuilder,
+      uriOffset: fragment.uriOffset,
       inPatch: fragment.enclosingDeclaration?.isPatch ??
           fragment.enclosingCompilationUnit.isPatch);
 }
 
-_AddBuilder _createConstructorBuilder(
+void _createConstructorBuilder(
     ConstructorFragment fragment, List<Fragment>? augmentations,
     {required ProblemReporting problemReporting,
     required SourceLoader loader,
+    required _BuilderRegistry builderRegistry,
     required SourceLibraryBuilder enclosingLibraryBuilder,
     required DeclarationBuilder? declarationBuilder,
     required List<NominalParameterBuilder> unboundNominalParameters,
@@ -2775,6 +2843,7 @@ _AddBuilder _createConstructorBuilder(
       constructorDeclaration, augmentationDeclarations,
       problemReporting: problemReporting,
       loader: loader,
+      builderRegistry: builderRegistry,
       name: name,
       uriOffset: fragment.uriOffset,
       enclosingLibraryBuilder: enclosingLibraryBuilder,
@@ -2788,11 +2857,12 @@ _AddBuilder _createConstructorBuilder(
       inPatch: fragment.enclosingDeclaration.isPatch);
 }
 
-_AddBuilder _createConstructorBuilderFromDeclarations(
+void _createConstructorBuilderFromDeclarations(
     ConstructorDeclaration constructorDeclaration,
     List<ConstructorDeclaration> augmentationDeclarations,
     {required ProblemReporting problemReporting,
     required SourceLoader loader,
+    required _BuilderRegistry builderRegistry,
     required String name,
     required UriOffsetLength uriOffset,
     required SourceLibraryBuilder enclosingLibraryBuilder,
@@ -2851,12 +2921,13 @@ _AddBuilder _createConstructorBuilderFromDeclarations(
         unboundNominalParameters: unboundNominalParameters,
         encodingStrategy: encodingStrategy);
   }
-  return new _AddBuilder(name, constructorBuilder, uriOffset, inPatch: inPatch);
+  builderRegistry.registerBuilder(
+      declaration: constructorBuilder, uriOffset: uriOffset, inPatch: inPatch);
 }
 
-_AddBuilder _createPrimaryConstructorBuilder(
-    PrimaryConstructorFragment fragment,
+void _createPrimaryConstructorBuilder(PrimaryConstructorFragment fragment,
     {required ProblemReporting problemReporting,
+    required _BuilderRegistry builderRegistry,
     required SourceLoader loader,
     required SourceLibraryBuilder enclosingLibraryBuilder,
     required DeclarationBuilder? declarationBuilder,
@@ -2874,6 +2945,7 @@ _AddBuilder _createPrimaryConstructorBuilder(
       constructorDeclaration, const [],
       problemReporting: problemReporting,
       loader: loader,
+      builderRegistry: builderRegistry,
       name: name,
       uriOffset: fragment.uriOffset,
       enclosingLibraryBuilder: enclosingLibraryBuilder,
@@ -2887,10 +2959,11 @@ _AddBuilder _createPrimaryConstructorBuilder(
       inPatch: fragment.enclosingDeclaration.isPatch);
 }
 
-_AddBuilder _createFactoryBuilder(
+void _createFactoryBuilder(
     FactoryFragment fragment, List<Fragment>? augmentations,
     {required ProblemReporting problemReporting,
     required SourceLoader loader,
+    required _BuilderRegistry builderRegistry,
     required SourceLibraryBuilder enclosingLibraryBuilder,
     required DeclarationBuilder? declarationBuilder,
     required List<NominalParameterBuilder> unboundNominalParameters,
@@ -2967,7 +3040,9 @@ _AddBuilder _createFactoryBuilder(
   }
 
   factoryReferences.registerReference(loader, factoryBuilder);
-  return new _AddBuilder(fragment.name, factoryBuilder, fragment.uriOffset,
+  builderRegistry.registerBuilder(
+      declaration: factoryBuilder,
+      uriOffset: fragment.uriOffset,
       inPatch: fragment.enclosingDeclaration.isPatch);
 }
 
