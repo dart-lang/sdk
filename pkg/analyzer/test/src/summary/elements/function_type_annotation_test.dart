@@ -29,13 +29,10 @@ library
       topLevelVariables
         #F1 f @16
           element: <testLibrary>::@topLevelVariable::f
-          getter: #F2
-          setter: #F3
       getters
         #F2 synthetic f
           element: <testLibrary>::@getter::f
           returnType: void Function()
-          variable: #F1
       setters
         #F3 synthetic f
           element: <testLibrary>::@setter::f
@@ -80,13 +77,10 @@ library
       topLevelVariables
         #F1 f @17
           element: <testLibrary>::@topLevelVariable::f
-          getter: #F2
-          setter: #F3
       getters
         #F2 synthetic f
           element: <testLibrary>::@getter::f
           returnType: void Function()?
-          variable: #F1
       setters
         #F3 synthetic f
           element: <testLibrary>::@setter::f
@@ -271,13 +265,10 @@ library
       topLevelVariables
         #F1 v @30
           element: <testLibrary>::@topLevelVariable::v
-          getter: #F2
-          setter: #F3
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
           returnType: int Function(int, String)
-          variable: #F1
       setters
         #F3 synthetic v
           element: <testLibrary>::@setter::v
@@ -433,13 +424,10 @@ library
               element2: ConstructorMember
                 baseElement: <testLibrary>::@class::A::@constructor::new
                 substitution: {T: int Function(String)}
-          getter: #F5
-          setter: #F6
       getters
         #F5 synthetic v
           element: <testLibrary>::@getter::v
           returnType: int
-          variable: #F4
       setters
         #F6 synthetic v
           element: <testLibrary>::@setter::v
@@ -601,12 +589,10 @@ library
                 leftParenthesis: ( @67
                 rightParenthesis: ) @68
               staticType: A<String Function({int? a})>
-          getter: #F5
       getters
         #F5 synthetic v
           element: <testLibrary>::@getter::v
           returnType: A<String Function({int? a})>
-          variable: #F4
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -713,12 +699,10 @@ library
                 leftParenthesis: ( @67
                 rightParenthesis: ) @68
               staticType: A<String Function([int?])>
-          getter: #F5
       getters
         #F5 synthetic v
           element: <testLibrary>::@getter::v
           returnType: A<String Function([int?])>
-          variable: #F4
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -825,12 +809,10 @@ library
                 leftParenthesis: ( @75
                 rightParenthesis: ) @76
               staticType: A<String Function({required int a})>
-          getter: #F5
       getters
         #F5 synthetic v
           element: <testLibrary>::@getter::v
           returnType: A<String Function({required int a})>
-          variable: #F4
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -931,12 +913,10 @@ library
                 leftParenthesis: ( @64
                 rightParenthesis: ) @65
               staticType: A<String Function(int)>
-          getter: #F5
       getters
         #F5 synthetic v
           element: <testLibrary>::@getter::v
           returnType: A<String Function(int)>
-          variable: #F4
   classes
     class A
       reference: <testLibrary>::@class::A

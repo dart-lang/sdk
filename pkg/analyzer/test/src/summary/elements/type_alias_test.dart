@@ -1757,22 +1757,19 @@ library
           fields
             #F2 f @58
               element: <testLibrary>::@class::A::@field::f
-              getter2: #F3
-              setter2: #F4
           constructors
-            #F5 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F3 synthetic f
+            #F4 synthetic f
               element: <testLibrary>::@class::A::@getter::f
               returnType: int Function<T>(T)
                 alias: <testLibrary>::@typeAlias::Foo
                   typeArguments
                     int
-              variable: #F2
           setters
-            #F4 synthetic f
+            #F5 synthetic f
               element: <testLibrary>::@class::A::@setter::f
               formalParameters
                 #F6 _f
@@ -1800,11 +1797,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F3
       getters
         synthetic f
           reference: <testLibrary>::@class::A::@getter::f
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int Function<T>(T)
             alias: <testLibrary>::@typeAlias::Foo
               typeArguments
@@ -1813,7 +1810,7 @@ library
       setters
         synthetic f
           reference: <testLibrary>::@class::A::@setter::f
-          firstFragment: #F4
+          firstFragment: #F5
           formalParameters
             requiredPositional _f
               firstFragment: #F6

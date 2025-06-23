@@ -104,13 +104,10 @@ library
           fields
             #F2 hasInitializer foo @57
               element: dart:foo::@class::A::@field::foo
-              getter2: #F3
-              setter2: #F4
           getters
             #F3 synthetic foo
               element: dart:foo::@class::A::@getter::foo
               returnType: int
-              variable: #F2
           setters
             #F4 synthetic foo
               element: dart:foo::@class::A::@setter::foo
@@ -172,12 +169,10 @@ library
           fields
             #F2 synthetic foo
               element: dart:foo::@class::A::@field::foo
-              getter2: #F3
           getters
             #F3 foo @61
               element: dart:foo::@class::A::@getter::foo
               returnType: int
-              variable: #F2
   classes
     class A
       reference: dart:foo::@class::A
@@ -332,7 +327,6 @@ library
           fields
             #F2 synthetic foo
               element: dart:foo::@class::A::@field::foo
-              setter2: #F3
           setters
             #F3 foo @57
               element: dart:foo::@class::A::@setter::foo
@@ -399,8 +393,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F3
-            #F4 hasInitializer v2 @60
+            #F3 hasInitializer v2 @60
               element: dart:foo::@enum::E::@field::v2
               initializer: expression_1
                 InstanceCreationExpression
@@ -414,8 +407,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F5
-            #F6 synthetic values
+            #F4 synthetic values
               element: dart:foo::@enum::E::@field::values
               initializer: expression_2
                 ListLiteral
@@ -431,20 +423,16 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-              getter2: #F7
           getters
-            #F3 synthetic v1
+            #F5 synthetic v1
               element: dart:foo::@enum::E::@getter::v1
               returnType: E
-              variable: #F2
-            #F5 synthetic v2
+            #F6 synthetic v2
               element: dart:foo::@enum::E::@getter::v2
               returnType: E
-              variable: #F4
             #F7 synthetic values
               element: dart:foo::@enum::E::@getter::values
               returnType: List<E>
-              variable: #F6
   enums
     enum E
       reference: dart:foo::@enum::E
@@ -461,30 +449,30 @@ library
           getter: dart:foo::@enum::E::@getter::v1
         static const enumConstant hasInitializer v2
           reference: dart:foo::@enum::E::@field::v2
-          firstFragment: #F4
+          firstFragment: #F3
           sinceSdkVersion: 2.15.0
           type: E
           constantInitializer
-            fragment: #F4
+            fragment: #F3
             expression: expression_1
           getter: dart:foo::@enum::E::@getter::v2
         synthetic static const values
           reference: dart:foo::@enum::E::@field::values
-          firstFragment: #F6
+          firstFragment: #F4
           type: List<E>
           constantInitializer
-            fragment: #F6
+            fragment: #F4
             expression: expression_2
           getter: dart:foo::@enum::E::@getter::values
       getters
         synthetic static v1
           reference: dart:foo::@enum::E::@getter::v1
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: E
           variable: dart:foo::@enum::E::@field::v1
         synthetic static v2
           reference: dart:foo::@enum::E::@getter::v2
-          firstFragment: #F5
+          firstFragment: #F6
           sinceSdkVersion: 2.15.0
           returnType: E
           variable: dart:foo::@enum::E::@field::v2
@@ -531,8 +519,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F3
-            #F4 synthetic values
+            #F3 synthetic values
               element: dart:foo::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -544,16 +531,13 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-              getter2: #F5
           getters
-            #F3 synthetic v
+            #F4 synthetic v
               element: dart:foo::@enum::E::@getter::v
               returnType: E
-              variable: #F2
             #F5 synthetic values
               element: dart:foo::@enum::E::@getter::values
               returnType: List<E>
-              variable: #F4
           methods
             #F6 foo @62
               element: dart:foo::@enum::E::@method::foo
@@ -575,17 +559,17 @@ library
           getter: dart:foo::@enum::E::@getter::v
         synthetic static const values
           reference: dart:foo::@enum::E::@field::values
-          firstFragment: #F4
+          firstFragment: #F3
           sinceSdkVersion: 2.15.0
           type: List<E>
           constantInitializer
-            fragment: #F4
+            fragment: #F3
             expression: expression_1
           getter: dart:foo::@enum::E::@getter::values
       getters
         synthetic static v
           reference: dart:foo::@enum::E::@getter::v
-          firstFragment: #F3
+          firstFragment: #F4
           sinceSdkVersion: 2.15.0
           returnType: E
           variable: dart:foo::@enum::E::@field::v
@@ -942,12 +926,10 @@ library
       topLevelVariables
         #F1 hasInitializer foo @47
           element: dart:foo::@topLevelVariable::foo
-          getter: #F2
       getters
         #F2 synthetic foo
           element: dart:foo::@getter::foo
           returnType: int
-          variable: #F1
   topLevelVariables
     final hasInitializer foo
       reference: dart:foo::@topLevelVariable::foo

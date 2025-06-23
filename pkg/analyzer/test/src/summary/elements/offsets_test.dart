@@ -898,71 +898,56 @@ library
           fields
             #F2 hasInitializer withInit @16
               element: <testLibrary>::@class::C::@field::withInit
-              getter2: #F3
-              setter2: #F4
-            #F5 withoutInit @37
+            #F3 withoutInit @37
               element: <testLibrary>::@class::C::@field::withoutInit
-              getter2: #F6
-              setter2: #F7
-            #F8 hasInitializer multiWithInit @57
+            #F4 hasInitializer multiWithInit @57
               element: <testLibrary>::@class::C::@field::multiWithInit
-              getter2: #F9
-              setter2: #F10
-            #F11 multiWithoutInit @76
+            #F5 multiWithoutInit @76
               element: <testLibrary>::@class::C::@field::multiWithoutInit
-              getter2: #F12
-              setter2: #F13
-            #F14 hasInitializer multiWithInit2 @94
+            #F6 hasInitializer multiWithInit2 @94
               element: <testLibrary>::@class::C::@field::multiWithInit2
-              getter2: #F15
-              setter2: #F16
           constructors
-            #F17 synthetic new
+            #F7 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 synthetic withInit
+            #F8 synthetic withInit
               element: <testLibrary>::@class::C::@getter::withInit
               returnType: int
-              variable: #F2
-            #F6 synthetic withoutInit
+            #F9 synthetic withoutInit
               element: <testLibrary>::@class::C::@getter::withoutInit
               returnType: int
-              variable: #F5
-            #F9 synthetic multiWithInit
+            #F10 synthetic multiWithInit
               element: <testLibrary>::@class::C::@getter::multiWithInit
               returnType: int
-              variable: #F8
-            #F12 synthetic multiWithoutInit
+            #F11 synthetic multiWithoutInit
               element: <testLibrary>::@class::C::@getter::multiWithoutInit
               returnType: int
-              variable: #F11
-            #F15 synthetic multiWithInit2
+            #F12 synthetic multiWithInit2
               element: <testLibrary>::@class::C::@getter::multiWithInit2
               returnType: int
-              variable: #F14
           setters
-            #F4 synthetic withInit
+            #F13 synthetic withInit
               element: <testLibrary>::@class::C::@setter::withInit
               formalParameters
-                #F18 _withInit
+                #F14 _withInit
                   element: <testLibrary>::@class::C::@setter::withInit::@formalParameter::_withInit
-            #F7 synthetic withoutInit
+            #F15 synthetic withoutInit
               element: <testLibrary>::@class::C::@setter::withoutInit
               formalParameters
-                #F19 _withoutInit
+                #F16 _withoutInit
                   element: <testLibrary>::@class::C::@setter::withoutInit::@formalParameter::_withoutInit
-            #F10 synthetic multiWithInit
+            #F17 synthetic multiWithInit
               element: <testLibrary>::@class::C::@setter::multiWithInit
               formalParameters
-                #F20 _multiWithInit
+                #F18 _multiWithInit
                   element: <testLibrary>::@class::C::@setter::multiWithInit::@formalParameter::_multiWithInit
-            #F13 synthetic multiWithoutInit
+            #F19 synthetic multiWithoutInit
               element: <testLibrary>::@class::C::@setter::multiWithoutInit
               formalParameters
-                #F21 _multiWithoutInit
+                #F20 _multiWithoutInit
                   element: <testLibrary>::@class::C::@setter::multiWithoutInit::@formalParameter::_multiWithoutInit
-            #F16 synthetic multiWithInit2
+            #F21 synthetic multiWithInit2
               element: <testLibrary>::@class::C::@setter::multiWithInit2
               formalParameters
                 #F22 _multiWithInit2
@@ -980,94 +965,94 @@ library
           setter: <testLibrary>::@class::C::@setter::withInit
         withoutInit
           reference: <testLibrary>::@class::C::@field::withoutInit
-          firstFragment: #F5
+          firstFragment: #F3
           type: int
           getter: <testLibrary>::@class::C::@getter::withoutInit
           setter: <testLibrary>::@class::C::@setter::withoutInit
         hasInitializer multiWithInit
           reference: <testLibrary>::@class::C::@field::multiWithInit
-          firstFragment: #F8
+          firstFragment: #F4
           type: int
           getter: <testLibrary>::@class::C::@getter::multiWithInit
           setter: <testLibrary>::@class::C::@setter::multiWithInit
         multiWithoutInit
           reference: <testLibrary>::@class::C::@field::multiWithoutInit
-          firstFragment: #F11
+          firstFragment: #F5
           type: int
           getter: <testLibrary>::@class::C::@getter::multiWithoutInit
           setter: <testLibrary>::@class::C::@setter::multiWithoutInit
         hasInitializer multiWithInit2
           reference: <testLibrary>::@class::C::@field::multiWithInit2
-          firstFragment: #F14
+          firstFragment: #F6
           type: int
           getter: <testLibrary>::@class::C::@getter::multiWithInit2
           setter: <testLibrary>::@class::C::@setter::multiWithInit2
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F17
+          firstFragment: #F7
       getters
         synthetic withInit
           reference: <testLibrary>::@class::C::@getter::withInit
-          firstFragment: #F3
+          firstFragment: #F8
           returnType: int
           variable: <testLibrary>::@class::C::@field::withInit
         synthetic withoutInit
           reference: <testLibrary>::@class::C::@getter::withoutInit
-          firstFragment: #F6
+          firstFragment: #F9
           returnType: int
           variable: <testLibrary>::@class::C::@field::withoutInit
         synthetic multiWithInit
           reference: <testLibrary>::@class::C::@getter::multiWithInit
-          firstFragment: #F9
+          firstFragment: #F10
           returnType: int
           variable: <testLibrary>::@class::C::@field::multiWithInit
         synthetic multiWithoutInit
           reference: <testLibrary>::@class::C::@getter::multiWithoutInit
-          firstFragment: #F12
+          firstFragment: #F11
           returnType: int
           variable: <testLibrary>::@class::C::@field::multiWithoutInit
         synthetic multiWithInit2
           reference: <testLibrary>::@class::C::@getter::multiWithInit2
-          firstFragment: #F15
+          firstFragment: #F12
           returnType: int
           variable: <testLibrary>::@class::C::@field::multiWithInit2
       setters
         synthetic withInit
           reference: <testLibrary>::@class::C::@setter::withInit
-          firstFragment: #F4
+          firstFragment: #F13
           formalParameters
             requiredPositional _withInit
-              firstFragment: #F18
+              firstFragment: #F14
               type: int
           returnType: void
         synthetic withoutInit
           reference: <testLibrary>::@class::C::@setter::withoutInit
-          firstFragment: #F7
+          firstFragment: #F15
           formalParameters
             requiredPositional _withoutInit
-              firstFragment: #F19
+              firstFragment: #F16
               type: int
           returnType: void
         synthetic multiWithInit
           reference: <testLibrary>::@class::C::@setter::multiWithInit
-          firstFragment: #F10
+          firstFragment: #F17
           formalParameters
             requiredPositional _multiWithInit
-              firstFragment: #F20
+              firstFragment: #F18
               type: int
           returnType: void
         synthetic multiWithoutInit
           reference: <testLibrary>::@class::C::@setter::multiWithoutInit
-          firstFragment: #F13
+          firstFragment: #F19
           formalParameters
             requiredPositional _multiWithoutInit
-              firstFragment: #F21
+              firstFragment: #F20
               type: int
           returnType: void
         synthetic multiWithInit2
           reference: <testLibrary>::@class::C::@setter::multiWithInit2
-          firstFragment: #F16
+          firstFragment: #F21
           formalParameters
             requiredPositional _multiWithInit2
               firstFragment: #F22
@@ -1115,136 +1100,106 @@ library
           fields
             #F2 hasDocComment @50
               element: <testLibrary>::@class::C::@field::hasDocComment
-              getter2: #F3
-              setter2: #F4
-            #F5 hasDocComment2 @65
+            #F3 hasDocComment2 @65
               element: <testLibrary>::@class::C::@field::hasDocComment2
-              getter2: #F6
-              setter2: #F7
-            #F8 hasAnnotation @100
+            #F4 hasAnnotation @100
               element: <testLibrary>::@class::C::@field::hasAnnotation
-              getter2: #F9
-              setter2: #F10
-            #F11 hasAnnotation2 @115
+            #F5 hasAnnotation2 @115
               element: <testLibrary>::@class::C::@field::hasAnnotation2
-              getter2: #F12
-              setter2: #F13
-            #F14 annotationThenComment @184
+            #F6 annotationThenComment @184
               element: <testLibrary>::@class::C::@field::annotationThenComment
-              getter2: #F15
-              setter2: #F16
-            #F17 annotationThenComment2 @207
+            #F7 annotationThenComment2 @207
               element: <testLibrary>::@class::C::@field::annotationThenComment2
-              getter2: #F18
-              setter2: #F19
-            #F20 commentThenAnnotation @284
+            #F8 commentThenAnnotation @284
               element: <testLibrary>::@class::C::@field::commentThenAnnotation
-              getter2: #F21
-              setter2: #F22
-            #F23 commentThenAnnotation2 @307
+            #F9 commentThenAnnotation2 @307
               element: <testLibrary>::@class::C::@field::commentThenAnnotation2
-              getter2: #F24
-              setter2: #F25
-            #F26 commentAroundAnnotation @384
+            #F10 commentAroundAnnotation @384
               element: <testLibrary>::@class::C::@field::commentAroundAnnotation
-              getter2: #F27
-              setter2: #F28
-            #F29 commentAroundAnnotation2 @409
+            #F11 commentAroundAnnotation2 @409
               element: <testLibrary>::@class::C::@field::commentAroundAnnotation2
-              getter2: #F30
-              setter2: #F31
           constructors
-            #F32 synthetic new
+            #F12 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 synthetic hasDocComment
+            #F13 synthetic hasDocComment
               element: <testLibrary>::@class::C::@getter::hasDocComment
               returnType: int
-              variable: #F2
-            #F6 synthetic hasDocComment2
+            #F14 synthetic hasDocComment2
               element: <testLibrary>::@class::C::@getter::hasDocComment2
               returnType: int
-              variable: #F5
-            #F9 synthetic hasAnnotation
+            #F15 synthetic hasAnnotation
               element: <testLibrary>::@class::C::@getter::hasAnnotation
               returnType: int
-              variable: #F8
-            #F12 synthetic hasAnnotation2
+            #F16 synthetic hasAnnotation2
               element: <testLibrary>::@class::C::@getter::hasAnnotation2
               returnType: int
-              variable: #F11
-            #F15 synthetic annotationThenComment
+            #F17 synthetic annotationThenComment
               element: <testLibrary>::@class::C::@getter::annotationThenComment
               returnType: int
-              variable: #F14
             #F18 synthetic annotationThenComment2
               element: <testLibrary>::@class::C::@getter::annotationThenComment2
               returnType: int
-              variable: #F17
-            #F21 synthetic commentThenAnnotation
+            #F19 synthetic commentThenAnnotation
               element: <testLibrary>::@class::C::@getter::commentThenAnnotation
               returnType: int
-              variable: #F20
-            #F24 synthetic commentThenAnnotation2
+            #F20 synthetic commentThenAnnotation2
               element: <testLibrary>::@class::C::@getter::commentThenAnnotation2
               returnType: int
-              variable: #F23
-            #F27 synthetic commentAroundAnnotation
+            #F21 synthetic commentAroundAnnotation
               element: <testLibrary>::@class::C::@getter::commentAroundAnnotation
               returnType: int
-              variable: #F26
-            #F30 synthetic commentAroundAnnotation2
+            #F22 synthetic commentAroundAnnotation2
               element: <testLibrary>::@class::C::@getter::commentAroundAnnotation2
               returnType: int
-              variable: #F29
           setters
-            #F4 synthetic hasDocComment
+            #F23 synthetic hasDocComment
               element: <testLibrary>::@class::C::@setter::hasDocComment
               formalParameters
-                #F33 _hasDocComment
+                #F24 _hasDocComment
                   element: <testLibrary>::@class::C::@setter::hasDocComment::@formalParameter::_hasDocComment
-            #F7 synthetic hasDocComment2
+            #F25 synthetic hasDocComment2
               element: <testLibrary>::@class::C::@setter::hasDocComment2
               formalParameters
-                #F34 _hasDocComment2
+                #F26 _hasDocComment2
                   element: <testLibrary>::@class::C::@setter::hasDocComment2::@formalParameter::_hasDocComment2
-            #F10 synthetic hasAnnotation
+            #F27 synthetic hasAnnotation
               element: <testLibrary>::@class::C::@setter::hasAnnotation
               formalParameters
-                #F35 _hasAnnotation
+                #F28 _hasAnnotation
                   element: <testLibrary>::@class::C::@setter::hasAnnotation::@formalParameter::_hasAnnotation
-            #F13 synthetic hasAnnotation2
+            #F29 synthetic hasAnnotation2
               element: <testLibrary>::@class::C::@setter::hasAnnotation2
               formalParameters
-                #F36 _hasAnnotation2
+                #F30 _hasAnnotation2
                   element: <testLibrary>::@class::C::@setter::hasAnnotation2::@formalParameter::_hasAnnotation2
-            #F16 synthetic annotationThenComment
+            #F31 synthetic annotationThenComment
               element: <testLibrary>::@class::C::@setter::annotationThenComment
               formalParameters
-                #F37 _annotationThenComment
+                #F32 _annotationThenComment
                   element: <testLibrary>::@class::C::@setter::annotationThenComment::@formalParameter::_annotationThenComment
-            #F19 synthetic annotationThenComment2
+            #F33 synthetic annotationThenComment2
               element: <testLibrary>::@class::C::@setter::annotationThenComment2
               formalParameters
-                #F38 _annotationThenComment2
+                #F34 _annotationThenComment2
                   element: <testLibrary>::@class::C::@setter::annotationThenComment2::@formalParameter::_annotationThenComment2
-            #F22 synthetic commentThenAnnotation
+            #F35 synthetic commentThenAnnotation
               element: <testLibrary>::@class::C::@setter::commentThenAnnotation
               formalParameters
-                #F39 _commentThenAnnotation
+                #F36 _commentThenAnnotation
                   element: <testLibrary>::@class::C::@setter::commentThenAnnotation::@formalParameter::_commentThenAnnotation
-            #F25 synthetic commentThenAnnotation2
+            #F37 synthetic commentThenAnnotation2
               element: <testLibrary>::@class::C::@setter::commentThenAnnotation2
               formalParameters
-                #F40 _commentThenAnnotation2
+                #F38 _commentThenAnnotation2
                   element: <testLibrary>::@class::C::@setter::commentThenAnnotation2::@formalParameter::_commentThenAnnotation2
-            #F28 synthetic commentAroundAnnotation
+            #F39 synthetic commentAroundAnnotation
               element: <testLibrary>::@class::C::@setter::commentAroundAnnotation
               formalParameters
-                #F41 _commentAroundAnnotation
+                #F40 _commentAroundAnnotation
                   element: <testLibrary>::@class::C::@setter::commentAroundAnnotation::@formalParameter::_commentAroundAnnotation
-            #F31 synthetic commentAroundAnnotation2
+            #F41 synthetic commentAroundAnnotation2
               element: <testLibrary>::@class::C::@setter::commentAroundAnnotation2
               formalParameters
                 #F42 _commentAroundAnnotation2
@@ -1262,86 +1217,86 @@ library
           setter: <testLibrary>::@class::C::@setter::hasDocComment
         hasDocComment2
           reference: <testLibrary>::@class::C::@field::hasDocComment2
-          firstFragment: #F5
+          firstFragment: #F3
           type: int
           getter: <testLibrary>::@class::C::@getter::hasDocComment2
           setter: <testLibrary>::@class::C::@setter::hasDocComment2
         hasAnnotation
           reference: <testLibrary>::@class::C::@field::hasAnnotation
-          firstFragment: #F8
+          firstFragment: #F4
           type: int
           getter: <testLibrary>::@class::C::@getter::hasAnnotation
           setter: <testLibrary>::@class::C::@setter::hasAnnotation
         hasAnnotation2
           reference: <testLibrary>::@class::C::@field::hasAnnotation2
-          firstFragment: #F11
+          firstFragment: #F5
           type: int
           getter: <testLibrary>::@class::C::@getter::hasAnnotation2
           setter: <testLibrary>::@class::C::@setter::hasAnnotation2
         annotationThenComment
           reference: <testLibrary>::@class::C::@field::annotationThenComment
-          firstFragment: #F14
+          firstFragment: #F6
           type: int
           getter: <testLibrary>::@class::C::@getter::annotationThenComment
           setter: <testLibrary>::@class::C::@setter::annotationThenComment
         annotationThenComment2
           reference: <testLibrary>::@class::C::@field::annotationThenComment2
-          firstFragment: #F17
+          firstFragment: #F7
           type: int
           getter: <testLibrary>::@class::C::@getter::annotationThenComment2
           setter: <testLibrary>::@class::C::@setter::annotationThenComment2
         commentThenAnnotation
           reference: <testLibrary>::@class::C::@field::commentThenAnnotation
-          firstFragment: #F20
+          firstFragment: #F8
           type: int
           getter: <testLibrary>::@class::C::@getter::commentThenAnnotation
           setter: <testLibrary>::@class::C::@setter::commentThenAnnotation
         commentThenAnnotation2
           reference: <testLibrary>::@class::C::@field::commentThenAnnotation2
-          firstFragment: #F23
+          firstFragment: #F9
           type: int
           getter: <testLibrary>::@class::C::@getter::commentThenAnnotation2
           setter: <testLibrary>::@class::C::@setter::commentThenAnnotation2
         commentAroundAnnotation
           reference: <testLibrary>::@class::C::@field::commentAroundAnnotation
-          firstFragment: #F26
+          firstFragment: #F10
           type: int
           getter: <testLibrary>::@class::C::@getter::commentAroundAnnotation
           setter: <testLibrary>::@class::C::@setter::commentAroundAnnotation
         commentAroundAnnotation2
           reference: <testLibrary>::@class::C::@field::commentAroundAnnotation2
-          firstFragment: #F29
+          firstFragment: #F11
           type: int
           getter: <testLibrary>::@class::C::@getter::commentAroundAnnotation2
           setter: <testLibrary>::@class::C::@setter::commentAroundAnnotation2
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F32
+          firstFragment: #F12
       getters
         synthetic hasDocComment
           reference: <testLibrary>::@class::C::@getter::hasDocComment
-          firstFragment: #F3
+          firstFragment: #F13
           returnType: int
           variable: <testLibrary>::@class::C::@field::hasDocComment
         synthetic hasDocComment2
           reference: <testLibrary>::@class::C::@getter::hasDocComment2
-          firstFragment: #F6
+          firstFragment: #F14
           returnType: int
           variable: <testLibrary>::@class::C::@field::hasDocComment2
         synthetic hasAnnotation
           reference: <testLibrary>::@class::C::@getter::hasAnnotation
-          firstFragment: #F9
+          firstFragment: #F15
           returnType: int
           variable: <testLibrary>::@class::C::@field::hasAnnotation
         synthetic hasAnnotation2
           reference: <testLibrary>::@class::C::@getter::hasAnnotation2
-          firstFragment: #F12
+          firstFragment: #F16
           returnType: int
           variable: <testLibrary>::@class::C::@field::hasAnnotation2
         synthetic annotationThenComment
           reference: <testLibrary>::@class::C::@getter::annotationThenComment
-          firstFragment: #F15
+          firstFragment: #F17
           returnType: int
           variable: <testLibrary>::@class::C::@field::annotationThenComment
         synthetic annotationThenComment2
@@ -1351,100 +1306,100 @@ library
           variable: <testLibrary>::@class::C::@field::annotationThenComment2
         synthetic commentThenAnnotation
           reference: <testLibrary>::@class::C::@getter::commentThenAnnotation
-          firstFragment: #F21
+          firstFragment: #F19
           returnType: int
           variable: <testLibrary>::@class::C::@field::commentThenAnnotation
         synthetic commentThenAnnotation2
           reference: <testLibrary>::@class::C::@getter::commentThenAnnotation2
-          firstFragment: #F24
+          firstFragment: #F20
           returnType: int
           variable: <testLibrary>::@class::C::@field::commentThenAnnotation2
         synthetic commentAroundAnnotation
           reference: <testLibrary>::@class::C::@getter::commentAroundAnnotation
-          firstFragment: #F27
+          firstFragment: #F21
           returnType: int
           variable: <testLibrary>::@class::C::@field::commentAroundAnnotation
         synthetic commentAroundAnnotation2
           reference: <testLibrary>::@class::C::@getter::commentAroundAnnotation2
-          firstFragment: #F30
+          firstFragment: #F22
           returnType: int
           variable: <testLibrary>::@class::C::@field::commentAroundAnnotation2
       setters
         synthetic hasDocComment
           reference: <testLibrary>::@class::C::@setter::hasDocComment
-          firstFragment: #F4
+          firstFragment: #F23
           formalParameters
             requiredPositional _hasDocComment
-              firstFragment: #F33
+              firstFragment: #F24
               type: int
           returnType: void
         synthetic hasDocComment2
           reference: <testLibrary>::@class::C::@setter::hasDocComment2
-          firstFragment: #F7
+          firstFragment: #F25
           formalParameters
             requiredPositional _hasDocComment2
-              firstFragment: #F34
+              firstFragment: #F26
               type: int
           returnType: void
         synthetic hasAnnotation
           reference: <testLibrary>::@class::C::@setter::hasAnnotation
-          firstFragment: #F10
+          firstFragment: #F27
           formalParameters
             requiredPositional _hasAnnotation
-              firstFragment: #F35
+              firstFragment: #F28
               type: int
           returnType: void
         synthetic hasAnnotation2
           reference: <testLibrary>::@class::C::@setter::hasAnnotation2
-          firstFragment: #F13
+          firstFragment: #F29
           formalParameters
             requiredPositional _hasAnnotation2
-              firstFragment: #F36
+              firstFragment: #F30
               type: int
           returnType: void
         synthetic annotationThenComment
           reference: <testLibrary>::@class::C::@setter::annotationThenComment
-          firstFragment: #F16
+          firstFragment: #F31
           formalParameters
             requiredPositional _annotationThenComment
-              firstFragment: #F37
+              firstFragment: #F32
               type: int
           returnType: void
         synthetic annotationThenComment2
           reference: <testLibrary>::@class::C::@setter::annotationThenComment2
-          firstFragment: #F19
+          firstFragment: #F33
           formalParameters
             requiredPositional _annotationThenComment2
-              firstFragment: #F38
+              firstFragment: #F34
               type: int
           returnType: void
         synthetic commentThenAnnotation
           reference: <testLibrary>::@class::C::@setter::commentThenAnnotation
-          firstFragment: #F22
+          firstFragment: #F35
           formalParameters
             requiredPositional _commentThenAnnotation
-              firstFragment: #F39
+              firstFragment: #F36
               type: int
           returnType: void
         synthetic commentThenAnnotation2
           reference: <testLibrary>::@class::C::@setter::commentThenAnnotation2
-          firstFragment: #F25
+          firstFragment: #F37
           formalParameters
             requiredPositional _commentThenAnnotation2
-              firstFragment: #F40
+              firstFragment: #F38
               type: int
           returnType: void
         synthetic commentAroundAnnotation
           reference: <testLibrary>::@class::C::@setter::commentAroundAnnotation
-          firstFragment: #F28
+          firstFragment: #F39
           formalParameters
             requiredPositional _commentAroundAnnotation
-              firstFragment: #F41
+              firstFragment: #F40
               type: int
           returnType: void
         synthetic commentAroundAnnotation2
           reference: <testLibrary>::@class::C::@setter::commentAroundAnnotation2
-          firstFragment: #F31
+          firstFragment: #F41
           formalParameters
             requiredPositional _commentAroundAnnotation2
               firstFragment: #F42
@@ -1976,67 +1931,52 @@ library
       topLevelVariables
         #F1 hasInitializer withInit @4
           element: <testLibrary>::@topLevelVariable::withInit
-          getter: #F2
-          setter: #F3
-        #F4 withoutInit @31
+        #F2 withoutInit @31
           element: <testLibrary>::@topLevelVariable::withoutInit
-          getter: #F5
-          setter: #F6
-        #F7 hasInitializer multiWithInit @49
+        #F3 hasInitializer multiWithInit @49
           element: <testLibrary>::@topLevelVariable::multiWithInit
-          getter: #F8
-          setter: #F9
-        #F10 multiWithoutInit @68
+        #F4 multiWithoutInit @68
           element: <testLibrary>::@topLevelVariable::multiWithoutInit
-          getter: #F11
-          setter: #F12
-        #F13 hasInitializer multiWithInit2 @86
+        #F5 hasInitializer multiWithInit2 @86
           element: <testLibrary>::@topLevelVariable::multiWithInit2
-          getter: #F14
-          setter: #F15
       getters
-        #F2 synthetic withInit
+        #F6 synthetic withInit
           element: <testLibrary>::@getter::withInit
           returnType: int
-          variable: #F1
-        #F5 synthetic withoutInit
+        #F7 synthetic withoutInit
           element: <testLibrary>::@getter::withoutInit
           returnType: int
-          variable: #F4
         #F8 synthetic multiWithInit
           element: <testLibrary>::@getter::multiWithInit
           returnType: int
-          variable: #F7
-        #F11 synthetic multiWithoutInit
+        #F9 synthetic multiWithoutInit
           element: <testLibrary>::@getter::multiWithoutInit
           returnType: int
-          variable: #F10
-        #F14 synthetic multiWithInit2
+        #F10 synthetic multiWithInit2
           element: <testLibrary>::@getter::multiWithInit2
           returnType: int
-          variable: #F13
       setters
-        #F3 synthetic withInit
+        #F11 synthetic withInit
           element: <testLibrary>::@setter::withInit
           formalParameters
-            #F16 _withInit
+            #F12 _withInit
               element: <testLibrary>::@setter::withInit::@formalParameter::_withInit
-        #F6 synthetic withoutInit
+        #F13 synthetic withoutInit
           element: <testLibrary>::@setter::withoutInit
           formalParameters
-            #F17 _withoutInit
+            #F14 _withoutInit
               element: <testLibrary>::@setter::withoutInit::@formalParameter::_withoutInit
-        #F9 synthetic multiWithInit
+        #F15 synthetic multiWithInit
           element: <testLibrary>::@setter::multiWithInit
           formalParameters
-            #F18 _multiWithInit
+            #F16 _multiWithInit
               element: <testLibrary>::@setter::multiWithInit::@formalParameter::_multiWithInit
-        #F12 synthetic multiWithoutInit
+        #F17 synthetic multiWithoutInit
           element: <testLibrary>::@setter::multiWithoutInit
           formalParameters
-            #F19 _multiWithoutInit
+            #F18 _multiWithoutInit
               element: <testLibrary>::@setter::multiWithoutInit::@formalParameter::_multiWithoutInit
-        #F15 synthetic multiWithInit2
+        #F19 synthetic multiWithInit2
           element: <testLibrary>::@setter::multiWithInit2
           formalParameters
             #F20 _multiWithInit2
@@ -2050,37 +1990,37 @@ library
       setter: <testLibrary>::@setter::withInit
     withoutInit
       reference: <testLibrary>::@topLevelVariable::withoutInit
-      firstFragment: #F4
+      firstFragment: #F2
       type: int
       getter: <testLibrary>::@getter::withoutInit
       setter: <testLibrary>::@setter::withoutInit
     hasInitializer multiWithInit
       reference: <testLibrary>::@topLevelVariable::multiWithInit
-      firstFragment: #F7
+      firstFragment: #F3
       type: int
       getter: <testLibrary>::@getter::multiWithInit
       setter: <testLibrary>::@setter::multiWithInit
     multiWithoutInit
       reference: <testLibrary>::@topLevelVariable::multiWithoutInit
-      firstFragment: #F10
+      firstFragment: #F4
       type: int
       getter: <testLibrary>::@getter::multiWithoutInit
       setter: <testLibrary>::@setter::multiWithoutInit
     hasInitializer multiWithInit2
       reference: <testLibrary>::@topLevelVariable::multiWithInit2
-      firstFragment: #F13
+      firstFragment: #F5
       type: int
       getter: <testLibrary>::@getter::multiWithInit2
       setter: <testLibrary>::@setter::multiWithInit2
   getters
     synthetic static withInit
       reference: <testLibrary>::@getter::withInit
-      firstFragment: #F2
+      firstFragment: #F6
       returnType: int
       variable: <testLibrary>::@topLevelVariable::withInit
     synthetic static withoutInit
       reference: <testLibrary>::@getter::withoutInit
-      firstFragment: #F5
+      firstFragment: #F7
       returnType: int
       variable: <testLibrary>::@topLevelVariable::withoutInit
     synthetic static multiWithInit
@@ -2090,50 +2030,50 @@ library
       variable: <testLibrary>::@topLevelVariable::multiWithInit
     synthetic static multiWithoutInit
       reference: <testLibrary>::@getter::multiWithoutInit
-      firstFragment: #F11
+      firstFragment: #F9
       returnType: int
       variable: <testLibrary>::@topLevelVariable::multiWithoutInit
     synthetic static multiWithInit2
       reference: <testLibrary>::@getter::multiWithInit2
-      firstFragment: #F14
+      firstFragment: #F10
       returnType: int
       variable: <testLibrary>::@topLevelVariable::multiWithInit2
   setters
     synthetic static withInit
       reference: <testLibrary>::@setter::withInit
-      firstFragment: #F3
+      firstFragment: #F11
       formalParameters
         requiredPositional _withInit
-          firstFragment: #F16
+          firstFragment: #F12
           type: int
       returnType: void
     synthetic static withoutInit
       reference: <testLibrary>::@setter::withoutInit
-      firstFragment: #F6
+      firstFragment: #F13
       formalParameters
         requiredPositional _withoutInit
-          firstFragment: #F17
+          firstFragment: #F14
           type: int
       returnType: void
     synthetic static multiWithInit
       reference: <testLibrary>::@setter::multiWithInit
-      firstFragment: #F9
+      firstFragment: #F15
       formalParameters
         requiredPositional _multiWithInit
-          firstFragment: #F18
+          firstFragment: #F16
           type: int
       returnType: void
     synthetic static multiWithoutInit
       reference: <testLibrary>::@setter::multiWithoutInit
-      firstFragment: #F12
+      firstFragment: #F17
       formalParameters
         requiredPositional _multiWithoutInit
-          firstFragment: #F19
+          firstFragment: #F18
           type: int
       returnType: void
     synthetic static multiWithInit2
       reference: <testLibrary>::@setter::multiWithInit2
-      firstFragment: #F15
+      firstFragment: #F19
       formalParameters
         requiredPositional _multiWithInit2
           firstFragment: #F20
@@ -2177,14 +2117,10 @@ library
         #F1 hasDocComment @34
           element: <testLibrary>::@topLevelVariable::hasDocComment
           documentationComment: /// Comment 1.\n/// Comment 2.
-          getter: #F2
-          setter: #F3
-        #F4 hasDocComment2 @49
+        #F2 hasDocComment2 @49
           element: <testLibrary>::@topLevelVariable::hasDocComment2
           documentationComment: /// Comment 1.\n/// Comment 2.
-          getter: #F5
-          setter: #F6
-        #F7 hasAnnotation @80
+        #F3 hasAnnotation @80
           element: <testLibrary>::@topLevelVariable::hasAnnotation
           metadata
             Annotation
@@ -2197,9 +2133,7 @@ library
                 leftParenthesis: ( @73
                 rightParenthesis: ) @74
               element2: dart:core::@class::Object::@constructor::new
-          getter: #F8
-          setter: #F9
-        #F10 hasAnnotation2 @95
+        #F4 hasAnnotation2 @95
           element: <testLibrary>::@topLevelVariable::hasAnnotation2
           metadata
             Annotation
@@ -2212,9 +2146,7 @@ library
                 leftParenthesis: ( @73
                 rightParenthesis: ) @74
               element2: dart:core::@class::Object::@constructor::new
-          getter: #F11
-          setter: #F12
-        #F13 annotationThenComment @156
+        #F5 annotationThenComment @156
           element: <testLibrary>::@topLevelVariable::annotationThenComment
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
@@ -2228,9 +2160,7 @@ library
                 leftParenthesis: ( @119
                 rightParenthesis: ) @120
               element2: dart:core::@class::Object::@constructor::new
-          getter: #F14
-          setter: #F15
-        #F16 annotationThenComment2 @179
+        #F6 annotationThenComment2 @179
           element: <testLibrary>::@topLevelVariable::annotationThenComment2
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
@@ -2244,9 +2174,7 @@ library
                 leftParenthesis: ( @119
                 rightParenthesis: ) @120
               element2: dart:core::@class::Object::@constructor::new
-          getter: #F17
-          setter: #F18
-        #F19 commentThenAnnotation @248
+        #F7 commentThenAnnotation @248
           element: <testLibrary>::@topLevelVariable::commentThenAnnotation
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
@@ -2260,9 +2188,7 @@ library
                 leftParenthesis: ( @241
                 rightParenthesis: ) @242
               element2: dart:core::@class::Object::@constructor::new
-          getter: #F20
-          setter: #F21
-        #F22 commentThenAnnotation2 @271
+        #F8 commentThenAnnotation2 @271
           element: <testLibrary>::@topLevelVariable::commentThenAnnotation2
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
@@ -2276,9 +2202,7 @@ library
                 leftParenthesis: ( @241
                 rightParenthesis: ) @242
               element2: dart:core::@class::Object::@constructor::new
-          getter: #F23
-          setter: #F24
-        #F25 commentAroundAnnotation @340
+        #F9 commentAroundAnnotation @340
           element: <testLibrary>::@topLevelVariable::commentAroundAnnotation
           documentationComment: /// Comment 2.
           metadata
@@ -2292,9 +2216,7 @@ library
                 leftParenthesis: ( @318
                 rightParenthesis: ) @319
               element2: dart:core::@class::Object::@constructor::new
-          getter: #F26
-          setter: #F27
-        #F28 commentAroundAnnotation2 @365
+        #F10 commentAroundAnnotation2 @365
           element: <testLibrary>::@topLevelVariable::commentAroundAnnotation2
           documentationComment: /// Comment 2.
           metadata
@@ -2308,96 +2230,84 @@ library
                 leftParenthesis: ( @318
                 rightParenthesis: ) @319
               element2: dart:core::@class::Object::@constructor::new
-          getter: #F29
-          setter: #F30
       getters
-        #F2 synthetic hasDocComment
+        #F11 synthetic hasDocComment
           element: <testLibrary>::@getter::hasDocComment
           returnType: int
-          variable: #F1
-        #F5 synthetic hasDocComment2
+        #F12 synthetic hasDocComment2
           element: <testLibrary>::@getter::hasDocComment2
           returnType: int
-          variable: #F4
-        #F8 synthetic hasAnnotation
+        #F13 synthetic hasAnnotation
           element: <testLibrary>::@getter::hasAnnotation
           returnType: int
-          variable: #F7
-        #F11 synthetic hasAnnotation2
+        #F14 synthetic hasAnnotation2
           element: <testLibrary>::@getter::hasAnnotation2
           returnType: int
-          variable: #F10
-        #F14 synthetic annotationThenComment
+        #F15 synthetic annotationThenComment
           element: <testLibrary>::@getter::annotationThenComment
           returnType: int
-          variable: #F13
-        #F17 synthetic annotationThenComment2
+        #F16 synthetic annotationThenComment2
           element: <testLibrary>::@getter::annotationThenComment2
           returnType: int
-          variable: #F16
-        #F20 synthetic commentThenAnnotation
+        #F17 synthetic commentThenAnnotation
           element: <testLibrary>::@getter::commentThenAnnotation
           returnType: int
-          variable: #F19
-        #F23 synthetic commentThenAnnotation2
+        #F18 synthetic commentThenAnnotation2
           element: <testLibrary>::@getter::commentThenAnnotation2
           returnType: int
-          variable: #F22
-        #F26 synthetic commentAroundAnnotation
+        #F19 synthetic commentAroundAnnotation
           element: <testLibrary>::@getter::commentAroundAnnotation
           returnType: int
-          variable: #F25
-        #F29 synthetic commentAroundAnnotation2
+        #F20 synthetic commentAroundAnnotation2
           element: <testLibrary>::@getter::commentAroundAnnotation2
           returnType: int
-          variable: #F28
       setters
-        #F3 synthetic hasDocComment
+        #F21 synthetic hasDocComment
           element: <testLibrary>::@setter::hasDocComment
           formalParameters
-            #F31 _hasDocComment
+            #F22 _hasDocComment
               element: <testLibrary>::@setter::hasDocComment::@formalParameter::_hasDocComment
-        #F6 synthetic hasDocComment2
+        #F23 synthetic hasDocComment2
           element: <testLibrary>::@setter::hasDocComment2
           formalParameters
-            #F32 _hasDocComment2
+            #F24 _hasDocComment2
               element: <testLibrary>::@setter::hasDocComment2::@formalParameter::_hasDocComment2
-        #F9 synthetic hasAnnotation
+        #F25 synthetic hasAnnotation
           element: <testLibrary>::@setter::hasAnnotation
           formalParameters
-            #F33 _hasAnnotation
+            #F26 _hasAnnotation
               element: <testLibrary>::@setter::hasAnnotation::@formalParameter::_hasAnnotation
-        #F12 synthetic hasAnnotation2
+        #F27 synthetic hasAnnotation2
           element: <testLibrary>::@setter::hasAnnotation2
           formalParameters
-            #F34 _hasAnnotation2
+            #F28 _hasAnnotation2
               element: <testLibrary>::@setter::hasAnnotation2::@formalParameter::_hasAnnotation2
-        #F15 synthetic annotationThenComment
+        #F29 synthetic annotationThenComment
           element: <testLibrary>::@setter::annotationThenComment
           formalParameters
-            #F35 _annotationThenComment
+            #F30 _annotationThenComment
               element: <testLibrary>::@setter::annotationThenComment::@formalParameter::_annotationThenComment
-        #F18 synthetic annotationThenComment2
+        #F31 synthetic annotationThenComment2
           element: <testLibrary>::@setter::annotationThenComment2
           formalParameters
-            #F36 _annotationThenComment2
+            #F32 _annotationThenComment2
               element: <testLibrary>::@setter::annotationThenComment2::@formalParameter::_annotationThenComment2
-        #F21 synthetic commentThenAnnotation
+        #F33 synthetic commentThenAnnotation
           element: <testLibrary>::@setter::commentThenAnnotation
           formalParameters
-            #F37 _commentThenAnnotation
+            #F34 _commentThenAnnotation
               element: <testLibrary>::@setter::commentThenAnnotation::@formalParameter::_commentThenAnnotation
-        #F24 synthetic commentThenAnnotation2
+        #F35 synthetic commentThenAnnotation2
           element: <testLibrary>::@setter::commentThenAnnotation2
           formalParameters
-            #F38 _commentThenAnnotation2
+            #F36 _commentThenAnnotation2
               element: <testLibrary>::@setter::commentThenAnnotation2::@formalParameter::_commentThenAnnotation2
-        #F27 synthetic commentAroundAnnotation
+        #F37 synthetic commentAroundAnnotation
           element: <testLibrary>::@setter::commentAroundAnnotation
           formalParameters
-            #F39 _commentAroundAnnotation
+            #F38 _commentAroundAnnotation
               element: <testLibrary>::@setter::commentAroundAnnotation::@formalParameter::_commentAroundAnnotation
-        #F30 synthetic commentAroundAnnotation2
+        #F39 synthetic commentAroundAnnotation2
           element: <testLibrary>::@setter::commentAroundAnnotation2
           formalParameters
             #F40 _commentAroundAnnotation2
@@ -2412,14 +2322,14 @@ library
       setter: <testLibrary>::@setter::hasDocComment
     hasDocComment2
       reference: <testLibrary>::@topLevelVariable::hasDocComment2
-      firstFragment: #F4
+      firstFragment: #F2
       documentationComment: /// Comment 1.\n/// Comment 2.
       type: int
       getter: <testLibrary>::@getter::hasDocComment2
       setter: <testLibrary>::@setter::hasDocComment2
     hasAnnotation
       reference: <testLibrary>::@topLevelVariable::hasAnnotation
-      firstFragment: #F7
+      firstFragment: #F3
       metadata
         Annotation
           atSign: @ @66
@@ -2436,7 +2346,7 @@ library
       setter: <testLibrary>::@setter::hasAnnotation
     hasAnnotation2
       reference: <testLibrary>::@topLevelVariable::hasAnnotation2
-      firstFragment: #F10
+      firstFragment: #F4
       metadata
         Annotation
           atSign: @ @66
@@ -2453,7 +2363,7 @@ library
       setter: <testLibrary>::@setter::hasAnnotation2
     annotationThenComment
       reference: <testLibrary>::@topLevelVariable::annotationThenComment
-      firstFragment: #F13
+      firstFragment: #F5
       documentationComment: /// Comment 1.\n/// Comment 2.
       metadata
         Annotation
@@ -2471,7 +2381,7 @@ library
       setter: <testLibrary>::@setter::annotationThenComment
     annotationThenComment2
       reference: <testLibrary>::@topLevelVariable::annotationThenComment2
-      firstFragment: #F16
+      firstFragment: #F6
       documentationComment: /// Comment 1.\n/// Comment 2.
       metadata
         Annotation
@@ -2489,7 +2399,7 @@ library
       setter: <testLibrary>::@setter::annotationThenComment2
     commentThenAnnotation
       reference: <testLibrary>::@topLevelVariable::commentThenAnnotation
-      firstFragment: #F19
+      firstFragment: #F7
       documentationComment: /// Comment 1.\n/// Comment 2.
       metadata
         Annotation
@@ -2507,7 +2417,7 @@ library
       setter: <testLibrary>::@setter::commentThenAnnotation
     commentThenAnnotation2
       reference: <testLibrary>::@topLevelVariable::commentThenAnnotation2
-      firstFragment: #F22
+      firstFragment: #F8
       documentationComment: /// Comment 1.\n/// Comment 2.
       metadata
         Annotation
@@ -2525,7 +2435,7 @@ library
       setter: <testLibrary>::@setter::commentThenAnnotation2
     commentAroundAnnotation
       reference: <testLibrary>::@topLevelVariable::commentAroundAnnotation
-      firstFragment: #F25
+      firstFragment: #F9
       documentationComment: /// Comment 2.
       metadata
         Annotation
@@ -2543,7 +2453,7 @@ library
       setter: <testLibrary>::@setter::commentAroundAnnotation
     commentAroundAnnotation2
       reference: <testLibrary>::@topLevelVariable::commentAroundAnnotation2
-      firstFragment: #F28
+      firstFragment: #F10
       documentationComment: /// Comment 2.
       metadata
         Annotation
@@ -2562,130 +2472,130 @@ library
   getters
     synthetic static hasDocComment
       reference: <testLibrary>::@getter::hasDocComment
-      firstFragment: #F2
+      firstFragment: #F11
       returnType: int
       variable: <testLibrary>::@topLevelVariable::hasDocComment
     synthetic static hasDocComment2
       reference: <testLibrary>::@getter::hasDocComment2
-      firstFragment: #F5
+      firstFragment: #F12
       returnType: int
       variable: <testLibrary>::@topLevelVariable::hasDocComment2
     synthetic static hasAnnotation
       reference: <testLibrary>::@getter::hasAnnotation
-      firstFragment: #F8
+      firstFragment: #F13
       returnType: int
       variable: <testLibrary>::@topLevelVariable::hasAnnotation
     synthetic static hasAnnotation2
       reference: <testLibrary>::@getter::hasAnnotation2
-      firstFragment: #F11
+      firstFragment: #F14
       returnType: int
       variable: <testLibrary>::@topLevelVariable::hasAnnotation2
     synthetic static annotationThenComment
       reference: <testLibrary>::@getter::annotationThenComment
-      firstFragment: #F14
+      firstFragment: #F15
       returnType: int
       variable: <testLibrary>::@topLevelVariable::annotationThenComment
     synthetic static annotationThenComment2
       reference: <testLibrary>::@getter::annotationThenComment2
-      firstFragment: #F17
+      firstFragment: #F16
       returnType: int
       variable: <testLibrary>::@topLevelVariable::annotationThenComment2
     synthetic static commentThenAnnotation
       reference: <testLibrary>::@getter::commentThenAnnotation
-      firstFragment: #F20
+      firstFragment: #F17
       returnType: int
       variable: <testLibrary>::@topLevelVariable::commentThenAnnotation
     synthetic static commentThenAnnotation2
       reference: <testLibrary>::@getter::commentThenAnnotation2
-      firstFragment: #F23
+      firstFragment: #F18
       returnType: int
       variable: <testLibrary>::@topLevelVariable::commentThenAnnotation2
     synthetic static commentAroundAnnotation
       reference: <testLibrary>::@getter::commentAroundAnnotation
-      firstFragment: #F26
+      firstFragment: #F19
       returnType: int
       variable: <testLibrary>::@topLevelVariable::commentAroundAnnotation
     synthetic static commentAroundAnnotation2
       reference: <testLibrary>::@getter::commentAroundAnnotation2
-      firstFragment: #F29
+      firstFragment: #F20
       returnType: int
       variable: <testLibrary>::@topLevelVariable::commentAroundAnnotation2
   setters
     synthetic static hasDocComment
       reference: <testLibrary>::@setter::hasDocComment
-      firstFragment: #F3
+      firstFragment: #F21
       formalParameters
         requiredPositional _hasDocComment
-          firstFragment: #F31
+          firstFragment: #F22
           type: int
       returnType: void
     synthetic static hasDocComment2
       reference: <testLibrary>::@setter::hasDocComment2
-      firstFragment: #F6
+      firstFragment: #F23
       formalParameters
         requiredPositional _hasDocComment2
-          firstFragment: #F32
+          firstFragment: #F24
           type: int
       returnType: void
     synthetic static hasAnnotation
       reference: <testLibrary>::@setter::hasAnnotation
-      firstFragment: #F9
+      firstFragment: #F25
       formalParameters
         requiredPositional _hasAnnotation
-          firstFragment: #F33
+          firstFragment: #F26
           type: int
       returnType: void
     synthetic static hasAnnotation2
       reference: <testLibrary>::@setter::hasAnnotation2
-      firstFragment: #F12
+      firstFragment: #F27
       formalParameters
         requiredPositional _hasAnnotation2
-          firstFragment: #F34
+          firstFragment: #F28
           type: int
       returnType: void
     synthetic static annotationThenComment
       reference: <testLibrary>::@setter::annotationThenComment
-      firstFragment: #F15
+      firstFragment: #F29
       formalParameters
         requiredPositional _annotationThenComment
-          firstFragment: #F35
+          firstFragment: #F30
           type: int
       returnType: void
     synthetic static annotationThenComment2
       reference: <testLibrary>::@setter::annotationThenComment2
-      firstFragment: #F18
+      firstFragment: #F31
       formalParameters
         requiredPositional _annotationThenComment2
-          firstFragment: #F36
+          firstFragment: #F32
           type: int
       returnType: void
     synthetic static commentThenAnnotation
       reference: <testLibrary>::@setter::commentThenAnnotation
-      firstFragment: #F21
+      firstFragment: #F33
       formalParameters
         requiredPositional _commentThenAnnotation
-          firstFragment: #F37
+          firstFragment: #F34
           type: int
       returnType: void
     synthetic static commentThenAnnotation2
       reference: <testLibrary>::@setter::commentThenAnnotation2
-      firstFragment: #F24
+      firstFragment: #F35
       formalParameters
         requiredPositional _commentThenAnnotation2
-          firstFragment: #F38
+          firstFragment: #F36
           type: int
       returnType: void
     synthetic static commentAroundAnnotation
       reference: <testLibrary>::@setter::commentAroundAnnotation
-      firstFragment: #F27
+      firstFragment: #F37
       formalParameters
         requiredPositional _commentAroundAnnotation
-          firstFragment: #F39
+          firstFragment: #F38
           type: int
       returnType: void
     synthetic static commentAroundAnnotation2
       reference: <testLibrary>::@setter::commentAroundAnnotation2
-      firstFragment: #F30
+      firstFragment: #F39
       formalParameters
         requiredPositional _commentAroundAnnotation2
           firstFragment: #F40
@@ -2841,19 +2751,16 @@ library
           fields
             #F2 hasInitializer foo @16
               element: <testLibrary>::@class::A::@field::foo
-              getter2: #F3
-              setter2: #F4
           constructors
-            #F5 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F3 synthetic foo
+            #F4 synthetic foo
               element: <testLibrary>::@class::A::@getter::foo
               returnType: int
-              variable: #F2
           setters
-            #F4 synthetic foo
+            #F5 synthetic foo
               element: <testLibrary>::@class::A::@setter::foo
               formalParameters
                 #F6 _foo
@@ -2872,17 +2779,17 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F3
       getters
         synthetic foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
       setters
         synthetic foo
           reference: <testLibrary>::@class::A::@setter::foo
-          firstFragment: #F4
+          firstFragment: #F5
           formalParameters
             requiredPositional _foo
               firstFragment: #F6
@@ -2909,16 +2816,14 @@ library
           fields
             #F2 synthetic foo
               element: <testLibrary>::@class::A::@field::foo
-              getter2: #F3
           constructors
-            #F4 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F3 foo @20
+            #F4 foo @20
               element: <testLibrary>::@class::A::@getter::foo
               returnType: int
-              variable: #F2
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -2932,11 +2837,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       getters
         foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
 ''');
@@ -3011,13 +2916,12 @@ library
           fields
             #F2 synthetic foo
               element: <testLibrary>::@class::A::@field::foo
-              setter2: #F3
           constructors
-            #F4 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           setters
-            #F3 foo @16
+            #F4 foo @16
               element: <testLibrary>::@class::A::@setter::foo
               formalParameters
                 #F5 x @24
@@ -3035,11 +2939,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       setters
         foo
           reference: <testLibrary>::@class::A::@setter::foo
-          firstFragment: #F3
+          firstFragment: #F4
           formalParameters
             requiredPositional x
               firstFragment: #F5
@@ -3295,12 +3199,10 @@ library
       topLevelVariables
         #F1 synthetic foo (offset=-1)
           element: <testLibrary>::@topLevelVariable::foo
-          getter: #F2
       getters
         #F2 foo @8
           element: <testLibrary>::@getter::foo
           returnType: int
-          variable: #F1
   topLevelVariables
     synthetic foo
       reference: <testLibrary>::@topLevelVariable::foo

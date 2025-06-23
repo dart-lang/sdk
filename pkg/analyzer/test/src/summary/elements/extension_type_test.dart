@@ -40,23 +40,19 @@ library
           fields
             #F2 it @22
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: #F3
           getters
             #F3 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
               returnType: int?
-              variable: #F2
         #F4 extension type B @44
           element: <testLibrary>::@extensionType::B
           fields
             #F5 it @50
               element: <testLibrary>::@extensionType::B::@field::it
-              getter2: #F6
           getters
             #F6 synthetic it
               element: <testLibrary>::@extensionType::B::@getter::it
               returnType: int
-              variable: #F5
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -122,20 +118,18 @@ library
           fields
             #F2 it @27
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: #F3
           constructors
-            #F4 const new
+            #F3 const new
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 21
               formalParameters
-                #F5 this.it @27
+                #F4 this.it @27
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F3 synthetic it
+            #F5 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
               returnType: int
-              variable: #F2
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -152,15 +146,15 @@ library
       constructors
         const new
           reference: <testLibrary>::@extensionType::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
           formalParameters
             requiredPositional final hasImplicitType it
-              firstFragment: #F5
+              firstFragment: #F4
               type: int
       getters
         synthetic it
           reference: <testLibrary>::@extensionType::A::@getter::it
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
 ''');
@@ -184,9 +178,8 @@ library
           fields
             #F2 it @27
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: #F3
           constructors
-            #F4 named @17
+            #F3 named @17
               element: <testLibrary>::@extensionType::A::@constructor::named
               codeOffset: 16
               codeLength: 14
@@ -194,13 +187,12 @@ library
               typeNameOffset: 15
               periodOffset: 16
               formalParameters
-                #F5 this.it @27
+                #F4 this.it @27
                   element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
           getters
-            #F3 synthetic it
+            #F5 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
               returnType: int
-              variable: #F2
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -217,15 +209,15 @@ library
       constructors
         named
           reference: <testLibrary>::@extensionType::A::@constructor::named
-          firstFragment: #F4
+          firstFragment: #F3
           formalParameters
             requiredPositional final hasImplicitType it
-              firstFragment: #F5
+              firstFragment: #F4
               type: int
       getters
         synthetic it
           reference: <testLibrary>::@extensionType::A::@getter::it
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
 ''');
@@ -250,28 +242,26 @@ library
           fields
             #F2 it @21
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: #F3
           constructors
-            #F4 new
+            #F3 new
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
-                #F5 this.it @21
+                #F4 this.it @21
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-            #F6 named @31
+            #F5 named @31
               element: <testLibrary>::@extensionType::A::@constructor::named
               typeName: A
               typeNameOffset: 29
               periodOffset: 30
               formalParameters
-                #F7 this.it @42
+                #F6 this.it @42
                   element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
           getters
-            #F3 synthetic it
+            #F7 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
               returnType: num
-              variable: #F2
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -288,22 +278,22 @@ library
       constructors
         new
           reference: <testLibrary>::@extensionType::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
           formalParameters
             requiredPositional final hasImplicitType it
-              firstFragment: #F5
+              firstFragment: #F4
               type: num
         named
           reference: <testLibrary>::@extensionType::A::@constructor::named
-          firstFragment: #F6
+          firstFragment: #F5
           formalParameters
             requiredPositional final hasImplicitType it
-              firstFragment: #F7
+              firstFragment: #F6
               type: num
       getters
         synthetic it
           reference: <testLibrary>::@extensionType::A::@getter::it
-          firstFragment: #F3
+          firstFragment: #F7
           returnType: num
           variable: <testLibrary>::@extensionType::A::@field::it
 ''');
@@ -328,28 +318,26 @@ library
           fields
             #F2 it @21
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: #F3
           constructors
-            #F4 new
+            #F3 new
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
-                #F5 this.it @21
+                #F4 this.it @21
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-            #F6 named @31
+            #F5 named @31
               element: <testLibrary>::@extensionType::A::@constructor::named
               typeName: A
               typeNameOffset: 29
               periodOffset: 30
               formalParameters
-                #F7 this.it @46
+                #F6 this.it @46
                   element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
           getters
-            #F3 synthetic it
+            #F7 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
               returnType: num
-              variable: #F2
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -366,22 +354,22 @@ library
       constructors
         new
           reference: <testLibrary>::@extensionType::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
           formalParameters
             requiredPositional final hasImplicitType it
-              firstFragment: #F5
+              firstFragment: #F4
               type: num
         named
           reference: <testLibrary>::@extensionType::A::@constructor::named
-          firstFragment: #F6
+          firstFragment: #F5
           formalParameters
             requiredPositional final it
-              firstFragment: #F7
+              firstFragment: #F6
               type: int
       getters
         synthetic it
           reference: <testLibrary>::@extensionType::A::@getter::it
-          firstFragment: #F3
+          firstFragment: #F7
           returnType: num
           variable: <testLibrary>::@extensionType::A::@field::it
 ''');
@@ -406,28 +394,26 @@ library
           fields
             #F2 it @21
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: #F3
           constructors
-            #F4 new
+            #F3 new
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
-                #F5 this.it @21
+                #F4 this.it @21
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-            #F6 const named @37
+            #F5 const named @37
               element: <testLibrary>::@extensionType::A::@constructor::named
               typeName: A
               typeNameOffset: 35
               periodOffset: 36
               formalParameters
-                #F7 a @47
+                #F6 a @47
                   element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::a
           getters
-            #F3 synthetic it
+            #F7 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
               returnType: num
-              variable: #F2
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -444,17 +430,17 @@ library
       constructors
         new
           reference: <testLibrary>::@extensionType::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
           formalParameters
             requiredPositional final hasImplicitType it
-              firstFragment: #F5
+              firstFragment: #F4
               type: num
         const named
           reference: <testLibrary>::@extensionType::A::@constructor::named
-          firstFragment: #F6
+          firstFragment: #F5
           formalParameters
             requiredPositional a
-              firstFragment: #F7
+              firstFragment: #F6
               type: int
           constantInitializers
             ConstructorFieldInitializer
@@ -470,7 +456,7 @@ library
       getters
         synthetic it
           reference: <testLibrary>::@extensionType::A::@getter::it
-          firstFragment: #F3
+          firstFragment: #F7
           returnType: num
           variable: <testLibrary>::@extensionType::A::@field::it
 ''');
@@ -494,22 +480,20 @@ library
           fields
             #F2 it @21
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: #F3
           constructors
-            #F4 new
+            #F3 new
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 16
               codeLength: 8
               typeName: A
               typeNameOffset: 15
               formalParameters
-                #F5 this.it @21
+                #F4 this.it @21
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F3 synthetic it
+            #F5 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
               returnType: int
-              variable: #F2
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -526,15 +510,15 @@ library
       constructors
         new
           reference: <testLibrary>::@extensionType::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
           formalParameters
             requiredPositional final hasImplicitType it
-              firstFragment: #F5
+              firstFragment: #F4
               type: int
       getters
         synthetic it
           reference: <testLibrary>::@extensionType::A::@getter::it
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
 ''');
@@ -559,20 +543,18 @@ library
           fields
             #F2 it @30
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: #F3
           constructors
-            #F4 new
+            #F3 new
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 24
               formalParameters
-                #F5 this.it @30
+                #F4 this.it @30
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F3 synthetic it
+            #F5 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
               returnType: int
-              variable: #F2
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -590,15 +572,15 @@ library
       constructors
         new
           reference: <testLibrary>::@extensionType::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
           formalParameters
             requiredPositional final hasImplicitType it
-              firstFragment: #F5
+              firstFragment: #F4
               type: int
       getters
         synthetic it
           reference: <testLibrary>::@extensionType::A::@getter::it
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
 ''');
@@ -624,23 +606,19 @@ library
           fields
             #F2 it @21
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: #F3
-            #F4 hasInitializer foo @46
+            #F3 hasInitializer foo @46
               element: <testLibrary>::@extensionType::A::@field::foo
               initializer: expression_0
                 IntegerLiteral
                   literal: 0 @52
                   staticType: int
-              getter2: #F5
           getters
-            #F3 synthetic it
+            #F4 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
               returnType: int
-              variable: #F2
             #F5 synthetic foo
               element: <testLibrary>::@extensionType::A::@getter::foo
               returnType: int
-              variable: #F4
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -656,16 +634,16 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
         static const hasInitializer foo
           reference: <testLibrary>::@extensionType::A::@field::foo
-          firstFragment: #F4
+          firstFragment: #F3
           type: int
           constantInitializer
-            fragment: #F4
+            fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@extensionType::A::@getter::foo
       getters
         synthetic it
           reference: <testLibrary>::@extensionType::A::@getter::it
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
         synthetic static foo
@@ -696,23 +674,19 @@ library
           fields
             #F2 it @21
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: #F3
-            #F4 hasInitializer foo @42
+            #F3 hasInitializer foo @42
               element: <testLibrary>::@extensionType::A::@field::foo
               initializer: expression_0
                 IntegerLiteral
                   literal: 0 @48
                   staticType: int
-              getter2: #F5
           getters
-            #F3 synthetic it
+            #F4 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
               returnType: int
-              variable: #F2
             #F5 synthetic foo
               element: <testLibrary>::@extensionType::A::@getter::foo
               returnType: int
-              variable: #F4
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -728,16 +702,16 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
         static const hasInitializer foo
           reference: <testLibrary>::@extensionType::A::@field::foo
-          firstFragment: #F4
+          firstFragment: #F3
           type: int
           constantInitializer
-            fragment: #F4
+            fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@extensionType::A::@getter::foo
       getters
         synthetic it
           reference: <testLibrary>::@extensionType::A::@getter::it
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
         synthetic static foo
@@ -768,19 +742,15 @@ library
           fields
             #F2 it @21
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: #F3
-            #F4 hasInitializer foo @35
+            #F3 hasInitializer foo @35
               element: <testLibrary>::@extensionType::A::@field::foo
-              getter2: #F5
           getters
-            #F3 synthetic it
+            #F4 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
               returnType: int
-              variable: #F2
             #F5 synthetic foo
               element: <testLibrary>::@extensionType::A::@getter::foo
               returnType: int
-              variable: #F4
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -796,13 +766,13 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
         final hasInitializer foo
           reference: <testLibrary>::@extensionType::A::@field::foo
-          firstFragment: #F4
+          firstFragment: #F3
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::foo
       getters
         synthetic it
           reference: <testLibrary>::@extensionType::A::@getter::it
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
         synthetic foo
@@ -837,20 +807,18 @@ library
           fields
             #F2 it @43
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: #F3
           constructors
-            #F4 new
+            #F3 new
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 32
               formalParameters
-                #F5 this.it @43
+                #F4 this.it @43
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F3 synthetic it
+            #F5 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
               returnType: int
-              variable: #F2
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -867,15 +835,15 @@ library
       constructors
         new
           reference: <testLibrary>::@extensionType::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
           formalParameters
             requiredPositional final hasImplicitType it
-              firstFragment: #F5
+              firstFragment: #F4
               type: int
       getters
         synthetic it
           reference: <testLibrary>::@extensionType::A::@getter::it
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
 ''');
@@ -901,19 +869,15 @@ library
           fields
             #F2 it @21
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: #F3
-            #F4 synthetic foo
+            #F3 synthetic foo
               element: <testLibrary>::@extensionType::A::@field::foo
-              getter2: #F5
           getters
-            #F3 synthetic it
+            #F4 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
               returnType: int
-              variable: #F2
             #F5 foo @37
               element: <testLibrary>::@extensionType::A::@getter::foo
               returnType: int
-              variable: #F4
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -929,13 +893,13 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
         synthetic foo
           reference: <testLibrary>::@extensionType::A::@field::foo
-          firstFragment: #F4
+          firstFragment: #F3
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::foo
       getters
         synthetic it
           reference: <testLibrary>::@extensionType::A::@getter::it
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
         foo
@@ -974,12 +938,10 @@ library
           fields
             #F5 it @68
               element: <testLibrary>::@extensionType::X::@field::it
-              getter2: #F6
           getters
             #F6 synthetic it
               element: <testLibrary>::@extensionType::X::@getter::it
               returnType: C
-              variable: #F5
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -1037,23 +999,19 @@ library
           fields
             #F2 it @21
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: #F3
           getters
             #F3 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
               returnType: int
-              variable: #F2
         #F4 extension type B @56
           element: <testLibrary>::@extensionType::B
           fields
             #F5 it @62
               element: <testLibrary>::@extensionType::B::@field::it
-              getter2: #F6
           getters
             #F6 synthetic it
               element: <testLibrary>::@extensionType::B::@getter::it
               returnType: int
-              variable: #F5
   extensionTypes
     hasImplementsSelfReference extension type A
       reference: <testLibrary>::@extensionType::A
@@ -1116,12 +1074,10 @@ library
           fields
             #F2 it @21
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: #F3
           getters
             #F3 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
               returnType: int
-              variable: #F2
   extensionTypes
     hasImplementsSelfReference extension type A
       reference: <testLibrary>::@extensionType::A
@@ -1165,23 +1121,19 @@ library
           fields
             #F2 it @21
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: #F3
           getters
             #F3 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
               returnType: num
-              variable: #F2
         #F4 extension type B @43
           element: <testLibrary>::@extensionType::B
           fields
             #F5 it @49
               element: <testLibrary>::@extensionType::B::@field::it
-              getter2: #F6
           getters
             #F6 synthetic it
               element: <testLibrary>::@extensionType::B::@getter::it
               returnType: int
-              variable: #F5
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -1242,12 +1194,10 @@ library
           fields
             #F2 it @21
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: #F3
           getters
             #F3 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
               returnType: int
-              variable: #F2
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -1290,12 +1240,10 @@ library
           fields
             #F2 it @22
               element: <testLibrary>::@extensionType::X::@field::it
-              getter2: #F3
           getters
             #F3 synthetic it
               element: <testLibrary>::@extensionType::X::@getter::it
               returnType: int?
-              variable: #F2
   extensionTypes
     extension type X
       reference: <testLibrary>::@extensionType::X
@@ -1339,12 +1287,10 @@ library
           fields
             #F3 it @22
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: #F4
           getters
             #F4 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
               returnType: T
-              variable: #F3
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -1391,12 +1337,10 @@ library
           fields
             #F2 it @39
               element: <testLibrary>::@extensionType::X::@field::it
-              getter2: #F3
           getters
             #F3 synthetic it
               element: <testLibrary>::@extensionType::X::@getter::it
               returnType: int
-              variable: #F2
       typeAliases
         #F4 A @8
           element: <testLibrary>::@typeAlias::A
@@ -1495,20 +1439,18 @@ library
           fields
             #F2 it @43
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: #F3
           constructors
-            #F4 new
+            #F3 new
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 37
               formalParameters
-                #F5 this.it @43
+                #F4 this.it @43
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F3 synthetic it
+            #F5 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
               returnType: int
-              variable: #F2
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -1525,15 +1467,15 @@ library
       constructors
         new
           reference: <testLibrary>::@extensionType::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
           formalParameters
             requiredPositional final hasImplicitType it
-              firstFragment: #F5
+              firstFragment: #F4
               type: int
       getters
         synthetic it
           reference: <testLibrary>::@extensionType::A::@getter::it
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
 ''');
@@ -1559,12 +1501,10 @@ library
           fields
             #F2 it @21
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: #F3
           getters
             #F3 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
               returnType: int
-              variable: #F2
           methods
             #F4 foo @34
               element: <testLibrary>::@extensionType::A::@method::foo
@@ -1622,12 +1562,10 @@ library
           fields
             #F2 it @21
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: #F3
           getters
             #F3 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
               returnType: int
-              variable: #F2
           methods
             #F4 foo @34
               element: <testLibrary>::@extensionType::A::@method::foo
@@ -1690,12 +1628,10 @@ library
           fields
             #F2 it @20
               element: <testLibrary>::@extensionType::0::@field::it
-              getter2: #F3
           getters
             #F3 synthetic it
               element: <testLibrary>::@extensionType::0::@getter::it
               returnType: int
-              variable: #F2
   extensionTypes
     extension type <null-name>
       reference: <testLibrary>::@extensionType::0
@@ -1736,22 +1672,20 @@ library
           fields
             #F2 <null-name> (offset=17)
               element: <testLibrary>::@extensionType::A::@field::0
-              getter2: #F3
           constructors
-            #F4 new
+            #F3 new
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 16
               codeLength: 2
               typeName: A
               typeNameOffset: 15
               formalParameters
-                #F5 this.<null-name> (offset=17)
+                #F4 this.<null-name> (offset=17)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::<null-name>
           getters
-            #F3 synthetic <null-name>
+            #F5 synthetic <null-name>
               element: <testLibrary>::@extensionType::A::@getter::1
               returnType: InvalidType
-              variable: #F2
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -1768,15 +1702,15 @@ library
       constructors
         new
           reference: <testLibrary>::@extensionType::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
           formalParameters
             requiredPositional final hasImplicitType <null-name>
-              firstFragment: #F5
+              firstFragment: #F4
               type: InvalidType
       getters
         synthetic <null-name>
           reference: <testLibrary>::@extensionType::A::@getter::1
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: InvalidType
           variable: <testLibrary>::@extensionType::A::@field::0
 ''');
@@ -1803,12 +1737,10 @@ library
           fields
             #F3 it @34
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: #F4
           getters
             #F4 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
               returnType: int
-              variable: #F3
   extensionTypes
     notSimplyBounded extension type A
       reference: <testLibrary>::@extensionType::A
@@ -1855,15 +1787,12 @@ library
           fields
             #F2 it @21
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: #F3
-            #F4 synthetic foo
+            #F3 synthetic foo
               element: <testLibrary>::@extensionType::A::@field::foo
-              setter2: #F5
           getters
-            #F3 synthetic it
+            #F4 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
               returnType: int
-              variable: #F2
           setters
             #F5 foo @33
               element: <testLibrary>::@extensionType::A::@setter::foo
@@ -1885,13 +1814,13 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
         synthetic foo
           reference: <testLibrary>::@extensionType::A::@field::foo
-          firstFragment: #F4
+          firstFragment: #F3
           type: double
           setter: <testLibrary>::@extensionType::A::@setter::foo
       getters
         synthetic it
           reference: <testLibrary>::@extensionType::A::@getter::it
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
       setters
@@ -1926,23 +1855,19 @@ library
           fields
             #F2 it @19
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: #F3
           getters
             #F3 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
               returnType: InvalidType
-              variable: #F2
         #F4 extension type B @42
           element: <testLibrary>::@extensionType::B
           fields
             #F5 it @46
               element: <testLibrary>::@extensionType::B::@field::it
-              getter2: #F6
           getters
             #F6 synthetic it
               element: <testLibrary>::@extensionType::B::@getter::it
               returnType: InvalidType
-              variable: #F5
   extensionTypes
     hasRepresentationSelfReference extension type A
       reference: <testLibrary>::@extensionType::A
@@ -2003,23 +1928,19 @@ library
           fields
             #F2 it @19
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: #F3
           getters
             #F3 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
               returnType: B
-              variable: #F2
         #F4 extension type B @42
           element: <testLibrary>::@extensionType::B
           fields
             #F5 it @52
               element: <testLibrary>::@extensionType::B::@field::it
-              getter2: #F6
           getters
             #F6 synthetic it
               element: <testLibrary>::@extensionType::B::@getter::it
               returnType: InvalidType
-              variable: #F5
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -2078,12 +1999,10 @@ library
           fields
             #F2 it @19
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: #F3
           getters
             #F3 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
               returnType: InvalidType
-              variable: #F2
   extensionTypes
     hasRepresentationSelfReference extension type A
       reference: <testLibrary>::@extensionType::A
@@ -2126,23 +2045,19 @@ library
           fields
             #F2 it @21
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: #F3
           getters
             #F3 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
               returnType: int
-              variable: #F2
         #F4 extension type B @44
           element: <testLibrary>::@extensionType::B
           fields
             #F5 it @62
               element: <testLibrary>::@extensionType::B::@field::it
-              getter2: #F6
           getters
             #F6 synthetic it
               element: <testLibrary>::@extensionType::B::@getter::it
               returnType: A Function(A)
-              variable: #F5
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -2206,23 +2121,19 @@ library
           fields
             #F3 it @22
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: #F4
           getters
             #F4 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
               returnType: T
-              variable: #F3
         #F5 extension type B @45
           element: <testLibrary>::@extensionType::B
           fields
             #F6 it @57
               element: <testLibrary>::@extensionType::B::@field::it
-              getter2: #F7
           getters
             #F7 synthetic it
               element: <testLibrary>::@extensionType::B::@getter::it
               returnType: A<double>
-              variable: #F6
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -2288,23 +2199,19 @@ library
           fields
             #F2 it @21
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: #F3
           getters
             #F3 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
               returnType: int
-              variable: #F2
         #F4 extension type B @44
           element: <testLibrary>::@extensionType::B
           fields
             #F5 it @54
               element: <testLibrary>::@extensionType::B::@field::it
-              getter2: #F6
           getters
             #F6 synthetic it
               element: <testLibrary>::@extensionType::B::@getter::it
               returnType: List<A>
-              variable: #F5
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -2363,12 +2270,10 @@ library
           fields
             #F2 it @21
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: #F3
           getters
             #F3 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
               returnType: int
-              variable: #F2
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -2413,20 +2318,18 @@ library
           fields
             #F4 it @45
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: #F5
           constructors
-            #F6 new
+            #F5 new
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
-                #F7 this.it @45
+                #F6 this.it @45
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F5 synthetic it
+            #F7 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
               returnType: Map<T, U>
-              variable: #F4
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -2450,15 +2353,15 @@ library
       constructors
         new
           reference: <testLibrary>::@extensionType::A::@constructor::new
-          firstFragment: #F6
+          firstFragment: #F5
           formalParameters
             requiredPositional final hasImplicitType it
-              firstFragment: #F7
+              firstFragment: #F6
               type: Map<T, U>
       getters
         synthetic it
           reference: <testLibrary>::@extensionType::A::@getter::it
-          firstFragment: #F5
+          firstFragment: #F7
           hasEnclosingTypeParameterReference: true
           returnType: Map<T, U>
           variable: <testLibrary>::@extensionType::A::@field::it

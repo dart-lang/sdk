@@ -1304,13 +1304,10 @@ library
       topLevelVariables
         #F2 hasInitializer a @25
           element: <testLibrary>::@topLevelVariable::a
-          getter: #F3
-          setter: #F4
       getters
         #F3 synthetic a
           element: <testLibrary>::@getter::a
           returnType: int
-          variable: #F2
       setters
         #F4 synthetic a
           element: <testLibrary>::@setter::a
@@ -1381,12 +1378,10 @@ library
             IntegerLiteral
               literal: 0 @31
               staticType: int
-          getter: #F3
       getters
         #F3 synthetic a
           element: <testLibrary>::@getter::a
           returnType: int
-          variable: #F2
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a

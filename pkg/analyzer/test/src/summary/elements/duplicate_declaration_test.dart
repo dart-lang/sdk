@@ -50,28 +50,24 @@ library
                 IntegerLiteral
                   literal: 0 @31
                   staticType: int
-              getter2: #F3
-            #F4 hasInitializer f02 @49
+            #F3 hasInitializer f02 @49
               element: <testLibrary>::@class::A::@def::0::@field::f02
               initializer: expression_1
                 SimpleIdentifier
                   token: f01 @55
                   element: <testLibrary>::@class::A::@def::0::@getter::f01
                   staticType: int
-              getter2: #F5
           constructors
-            #F6 synthetic new
+            #F4 synthetic new
               element: <testLibrary>::@class::A::@def::0::@constructor::new
               typeName: A
           getters
-            #F3 synthetic f01
+            #F5 synthetic f01
               element: <testLibrary>::@class::A::@def::0::@getter::f01
               returnType: int
-              variable: #F2
-            #F5 synthetic f02
+            #F6 synthetic f02
               element: <testLibrary>::@class::A::@def::0::@getter::f02
               returnType: int
-              variable: #F4
         #F7 class A @69
           element: <testLibrary>::@class::A::@def::1
           fields
@@ -81,28 +77,24 @@ library
                 IntegerLiteral
                   literal: 0 @94
                   staticType: int
-              getter2: #F9
-            #F10 hasInitializer f12 @112
+            #F9 hasInitializer f12 @112
               element: <testLibrary>::@class::A::@def::1::@field::f12
               initializer: expression_3
                 SimpleIdentifier
                   token: f11 @118
                   element: <testLibrary>::@class::A::@def::1::@getter::f11
                   staticType: int
-              getter2: #F11
           constructors
-            #F12 synthetic new
+            #F10 synthetic new
               element: <testLibrary>::@class::A::@def::1::@constructor::new
               typeName: A
           getters
-            #F9 synthetic f11
+            #F11 synthetic f11
               element: <testLibrary>::@class::A::@def::1::@getter::f11
               returnType: int
-              variable: #F8
-            #F11 synthetic f12
+            #F12 synthetic f12
               element: <testLibrary>::@class::A::@def::1::@getter::f12
               returnType: int
-              variable: #F10
         #F13 class A @132
           element: <testLibrary>::@class::A::@def::2
           fields
@@ -112,28 +104,24 @@ library
                 IntegerLiteral
                   literal: 0 @157
                   staticType: int
-              getter2: #F15
-            #F16 hasInitializer f22 @175
+            #F15 hasInitializer f22 @175
               element: <testLibrary>::@class::A::@def::2::@field::f22
               initializer: expression_5
                 SimpleIdentifier
                   token: f21 @181
                   element: <testLibrary>::@class::A::@def::2::@getter::f21
                   staticType: int
-              getter2: #F17
           constructors
-            #F18 synthetic new
+            #F16 synthetic new
               element: <testLibrary>::@class::A::@def::2::@constructor::new
               typeName: A
           getters
-            #F15 synthetic f21
+            #F17 synthetic f21
               element: <testLibrary>::@class::A::@def::2::@getter::f21
               returnType: int
-              variable: #F14
-            #F17 synthetic f22
+            #F18 synthetic f22
               element: <testLibrary>::@class::A::@def::2::@getter::f22
               returnType: int
-              variable: #F16
   classes
     class A
       reference: <testLibrary>::@class::A::@def::0
@@ -149,25 +137,25 @@ library
           getter: <testLibrary>::@class::A::@def::0::@getter::f01
         static const hasInitializer f02
           reference: <testLibrary>::@class::A::@def::0::@field::f02
-          firstFragment: #F4
+          firstFragment: #F3
           type: int
           constantInitializer
-            fragment: #F4
+            fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@class::A::@def::0::@getter::f02
       constructors
         synthetic new
           reference: <testLibrary>::@class::A::@def::0::@constructor::new
-          firstFragment: #F6
+          firstFragment: #F4
       getters
         synthetic static f01
           reference: <testLibrary>::@class::A::@def::0::@getter::f01
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: int
           variable: <testLibrary>::@class::A::@def::0::@field::f01
         synthetic static f02
           reference: <testLibrary>::@class::A::@def::0::@getter::f02
-          firstFragment: #F5
+          firstFragment: #F6
           returnType: int
           variable: <testLibrary>::@class::A::@def::0::@field::f02
     class A
@@ -184,25 +172,25 @@ library
           getter: <testLibrary>::@class::A::@def::1::@getter::f11
         static const hasInitializer f12
           reference: <testLibrary>::@class::A::@def::1::@field::f12
-          firstFragment: #F10
+          firstFragment: #F9
           type: int
           constantInitializer
-            fragment: #F10
+            fragment: #F9
             expression: expression_3
           getter: <testLibrary>::@class::A::@def::1::@getter::f12
       constructors
         synthetic new
           reference: <testLibrary>::@class::A::@def::1::@constructor::new
-          firstFragment: #F12
+          firstFragment: #F10
       getters
         synthetic static f11
           reference: <testLibrary>::@class::A::@def::1::@getter::f11
-          firstFragment: #F9
+          firstFragment: #F11
           returnType: int
           variable: <testLibrary>::@class::A::@def::1::@field::f11
         synthetic static f12
           reference: <testLibrary>::@class::A::@def::1::@getter::f12
-          firstFragment: #F11
+          firstFragment: #F12
           returnType: int
           variable: <testLibrary>::@class::A::@def::1::@field::f12
     class A
@@ -219,25 +207,25 @@ library
           getter: <testLibrary>::@class::A::@def::2::@getter::f21
         static const hasInitializer f22
           reference: <testLibrary>::@class::A::@def::2::@field::f22
-          firstFragment: #F16
+          firstFragment: #F15
           type: int
           constantInitializer
-            fragment: #F16
+            fragment: #F15
             expression: expression_5
           getter: <testLibrary>::@class::A::@def::2::@getter::f22
       constructors
         synthetic new
           reference: <testLibrary>::@class::A::@def::2::@constructor::new
-          firstFragment: #F18
+          firstFragment: #F16
       getters
         synthetic static f21
           reference: <testLibrary>::@class::A::@def::2::@getter::f21
-          firstFragment: #F15
+          firstFragment: #F17
           returnType: int
           variable: <testLibrary>::@class::A::@def::2::@field::f21
         synthetic static f22
           reference: <testLibrary>::@class::A::@def::2::@getter::f22
-          firstFragment: #F17
+          firstFragment: #F18
           returnType: int
           variable: <testLibrary>::@class::A::@def::2::@field::f22
 ''');
@@ -305,32 +293,26 @@ library
           fields
             #F2 foo @16
               element: <testLibrary>::@class::A::@field::foo::@def::0
-              getter2: #F3
-              setter2: #F4
-            #F5 foo @30
+            #F3 foo @30
               element: <testLibrary>::@class::A::@field::foo::@def::1
-              getter2: #F6
-              setter2: #F7
           constructors
-            #F8 synthetic new
+            #F4 synthetic new
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F3 synthetic foo
+            #F5 synthetic foo
               element: <testLibrary>::@class::A::@getter::foo::@def::0
               returnType: int
-              variable: #F2
             #F6 synthetic foo
               element: <testLibrary>::@class::A::@getter::foo::@def::1
               returnType: double
-              variable: #F5
           setters
-            #F4 synthetic foo
+            #F7 synthetic foo
               element: <testLibrary>::@class::A::@setter::foo::@def::0
               formalParameters
-                #F9 _foo
+                #F8 _foo
                   element: <testLibrary>::@class::A::@setter::foo::@def::0::@formalParameter::_foo
-            #F7 synthetic foo
+            #F9 synthetic foo
               element: <testLibrary>::@class::A::@setter::foo::@def::1
               formalParameters
                 #F10 _foo
@@ -348,18 +330,18 @@ library
           setter: <testLibrary>::@class::A::@setter::foo::@def::0
         foo
           reference: <testLibrary>::@class::A::@field::foo::@def::1
-          firstFragment: #F5
+          firstFragment: #F3
           type: double
           getter: <testLibrary>::@class::A::@getter::foo::@def::1
           setter: <testLibrary>::@class::A::@setter::foo::@def::1
       constructors
         synthetic new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F8
+          firstFragment: #F4
       getters
         synthetic foo
           reference: <testLibrary>::@class::A::@getter::foo::@def::0
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo::@def::0
         synthetic foo
@@ -370,15 +352,15 @@ library
       setters
         synthetic foo
           reference: <testLibrary>::@class::A::@setter::foo::@def::0
-          firstFragment: #F4
+          firstFragment: #F7
           formalParameters
             requiredPositional _foo
-              firstFragment: #F9
+              firstFragment: #F8
               type: int
           returnType: void
         synthetic foo
           reference: <testLibrary>::@class::A::@setter::foo::@def::1
-          firstFragment: #F7
+          firstFragment: #F9
           formalParameters
             requiredPositional _foo
               firstFragment: #F10
@@ -565,8 +547,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F3
-            #F4 hasInitializer b @11
+            #F3 hasInitializer b @11
               element: <testLibrary>::@enum::E::@def::0::@field::b
               initializer: expression_1
                 InstanceCreationExpression
@@ -580,8 +561,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F5
-            #F6 synthetic values
+            #F4 synthetic values
               element: <testLibrary>::@enum::E::@def::0::@field::values
               initializer: expression_2
                 ListLiteral
@@ -597,24 +577,20 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-              getter2: #F7
           constructors
-            #F8 synthetic const new
+            #F5 synthetic const new
               element: <testLibrary>::@enum::E::@def::0::@constructor::new
               typeName: E
           getters
-            #F3 synthetic a
+            #F6 synthetic a
               element: <testLibrary>::@enum::E::@def::0::@getter::a
               returnType: E
-              variable: #F2
-            #F5 synthetic b
+            #F7 synthetic b
               element: <testLibrary>::@enum::E::@def::0::@getter::b
               returnType: E
-              variable: #F4
-            #F7 synthetic values
+            #F8 synthetic values
               element: <testLibrary>::@enum::E::@def::0::@getter::values
               returnType: List<E>
-              variable: #F6
         #F9 enum E @19
           element: <testLibrary>::@enum::E::@def::1
           fields
@@ -632,8 +608,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F11
-            #F12 hasInitializer d @25
+            #F11 hasInitializer d @25
               element: <testLibrary>::@enum::E::@def::1::@field::d
               initializer: expression_4
                 InstanceCreationExpression
@@ -647,8 +622,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F13
-            #F14 hasInitializer e @28
+            #F12 hasInitializer e @28
               element: <testLibrary>::@enum::E::@def::1::@field::e
               initializer: expression_5
                 InstanceCreationExpression
@@ -662,8 +636,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F15
-            #F16 synthetic values
+            #F13 synthetic values
               element: <testLibrary>::@enum::E::@def::1::@field::values
               initializer: expression_6
                 ListLiteral
@@ -683,28 +656,23 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-              getter2: #F17
           constructors
-            #F18 synthetic const new
+            #F14 synthetic const new
               element: <testLibrary>::@enum::E::@def::1::@constructor::new
               typeName: E
           getters
-            #F11 synthetic c
+            #F15 synthetic c
               element: <testLibrary>::@enum::E::@def::1::@getter::c
               returnType: E
-              variable: #F10
-            #F13 synthetic d
+            #F16 synthetic d
               element: <testLibrary>::@enum::E::@def::1::@getter::d
               returnType: E
-              variable: #F12
-            #F15 synthetic e
+            #F17 synthetic e
               element: <testLibrary>::@enum::E::@def::1::@getter::e
               returnType: E
-              variable: #F14
-            #F17 synthetic values
+            #F18 synthetic values
               element: <testLibrary>::@enum::E::@def::1::@getter::values
               returnType: List<E>
-              variable: #F16
   enums
     enum E
       reference: <testLibrary>::@enum::E::@def::0
@@ -721,38 +689,38 @@ library
           getter: <testLibrary>::@enum::E::@def::0::@getter::a
         static const enumConstant hasInitializer b
           reference: <testLibrary>::@enum::E::@def::0::@field::b
-          firstFragment: #F4
+          firstFragment: #F3
           type: E
           constantInitializer
-            fragment: #F4
+            fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@def::0::@getter::b
         synthetic static const values
           reference: <testLibrary>::@enum::E::@def::0::@field::values
-          firstFragment: #F6
+          firstFragment: #F4
           type: List<E>
           constantInitializer
-            fragment: #F6
+            fragment: #F4
             expression: expression_2
           getter: <testLibrary>::@enum::E::@def::0::@getter::values
       constructors
         synthetic const new
           reference: <testLibrary>::@enum::E::@def::0::@constructor::new
-          firstFragment: #F8
+          firstFragment: #F5
       getters
         synthetic static a
           reference: <testLibrary>::@enum::E::@def::0::@getter::a
-          firstFragment: #F3
+          firstFragment: #F6
           returnType: E
           variable: <testLibrary>::@enum::E::@def::0::@field::a
         synthetic static b
           reference: <testLibrary>::@enum::E::@def::0::@getter::b
-          firstFragment: #F5
+          firstFragment: #F7
           returnType: E
           variable: <testLibrary>::@enum::E::@def::0::@field::b
         synthetic static values
           reference: <testLibrary>::@enum::E::@def::0::@getter::values
-          firstFragment: #F7
+          firstFragment: #F8
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@def::0::@field::values
     enum E
@@ -770,51 +738,51 @@ library
           getter: <testLibrary>::@enum::E::@def::1::@getter::c
         static const enumConstant hasInitializer d
           reference: <testLibrary>::@enum::E::@def::1::@field::d
-          firstFragment: #F12
+          firstFragment: #F11
           type: E
           constantInitializer
-            fragment: #F12
+            fragment: #F11
             expression: expression_4
           getter: <testLibrary>::@enum::E::@def::1::@getter::d
         static const enumConstant hasInitializer e
           reference: <testLibrary>::@enum::E::@def::1::@field::e
-          firstFragment: #F14
+          firstFragment: #F12
           type: E
           constantInitializer
-            fragment: #F14
+            fragment: #F12
             expression: expression_5
           getter: <testLibrary>::@enum::E::@def::1::@getter::e
         synthetic static const values
           reference: <testLibrary>::@enum::E::@def::1::@field::values
-          firstFragment: #F16
+          firstFragment: #F13
           type: List<E>
           constantInitializer
-            fragment: #F16
+            fragment: #F13
             expression: expression_6
           getter: <testLibrary>::@enum::E::@def::1::@getter::values
       constructors
         synthetic const new
           reference: <testLibrary>::@enum::E::@def::1::@constructor::new
-          firstFragment: #F18
+          firstFragment: #F14
       getters
         synthetic static c
           reference: <testLibrary>::@enum::E::@def::1::@getter::c
-          firstFragment: #F11
+          firstFragment: #F15
           returnType: E
           variable: <testLibrary>::@enum::E::@def::1::@field::c
         synthetic static d
           reference: <testLibrary>::@enum::E::@def::1::@getter::d
-          firstFragment: #F13
+          firstFragment: #F16
           returnType: E
           variable: <testLibrary>::@enum::E::@def::1::@field::d
         synthetic static e
           reference: <testLibrary>::@enum::E::@def::1::@getter::e
-          firstFragment: #F15
+          firstFragment: #F17
           returnType: E
           variable: <testLibrary>::@enum::E::@def::1::@field::e
         synthetic static values
           reference: <testLibrary>::@enum::E::@def::1::@getter::values
-          firstFragment: #F17
+          firstFragment: #F18
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@def::1::@field::values
 ''');
@@ -845,13 +813,10 @@ library
           fields
             #F3 x @56
               element: <testLibrary>::@extension::E::@def::1::@field::x
-              getter2: #F4
-              setter2: #F5
           getters
             #F4 synthetic x
               element: <testLibrary>::@extension::E::@def::1::@getter::x
               returnType: dynamic
-              variable: #F3
           setters
             #F5 synthetic x
               element: <testLibrary>::@extension::E::@def::1::@setter::x
@@ -863,13 +828,10 @@ library
           fields
             #F8 hasInitializer y @95
               element: <testLibrary>::@extension::E::@def::2::@field::y
-              getter2: #F9
-              setter2: #F10
           getters
             #F9 synthetic y
               element: <testLibrary>::@extension::E::@def::2::@getter::y
               returnType: int
-              variable: #F8
           setters
             #F10 synthetic y
               element: <testLibrary>::@extension::E::@def::2::@setter::y
@@ -954,39 +916,35 @@ library
           fields
             #F2 it @21
               element: <testLibrary>::@extensionType::E::@def::0::@field::it
-              getter2: #F3
           constructors
-            #F4 new
+            #F3 new
               element: <testLibrary>::@extensionType::E::@def::0::@constructor::new
               typeName: E
               typeNameOffset: 15
               formalParameters
-                #F5 this.it @21
+                #F4 this.it @21
                   element: <testLibrary>::@extensionType::E::@def::0::@constructor::new::@formalParameter::it
           getters
-            #F3 synthetic it
+            #F5 synthetic it
               element: <testLibrary>::@extensionType::E::@def::0::@getter::it
               returnType: int
-              variable: #F2
         #F6 extension type E @43
           element: <testLibrary>::@extensionType::E::@def::1
           fields
             #F7 it @52
               element: <testLibrary>::@extensionType::E::@def::1::@field::it
-              getter2: #F8
           constructors
-            #F9 new
+            #F8 new
               element: <testLibrary>::@extensionType::E::@def::1::@constructor::new
               typeName: E
               typeNameOffset: 43
               formalParameters
-                #F10 this.it @52
+                #F9 this.it @52
                   element: <testLibrary>::@extensionType::E::@def::1::@constructor::new::@formalParameter::it
           getters
-            #F8 synthetic it
+            #F10 synthetic it
               element: <testLibrary>::@extensionType::E::@def::1::@getter::it
               returnType: double
-              variable: #F7
   extensionTypes
     extension type E
       reference: <testLibrary>::@extensionType::E::@def::0
@@ -1003,15 +961,15 @@ library
       constructors
         new
           reference: <testLibrary>::@extensionType::E::@def::0::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
           formalParameters
             requiredPositional final hasImplicitType it
-              firstFragment: #F5
+              firstFragment: #F4
               type: int
       getters
         synthetic it
           reference: <testLibrary>::@extensionType::E::@def::0::@getter::it
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: int
           variable: <testLibrary>::@extensionType::E::@def::0::@field::it
     extension type E
@@ -1029,15 +987,15 @@ library
       constructors
         new
           reference: <testLibrary>::@extensionType::E::@def::1::@constructor::new
-          firstFragment: #F9
+          firstFragment: #F8
           formalParameters
             requiredPositional final hasImplicitType it
-              firstFragment: #F10
+              firstFragment: #F9
               type: double
       getters
         synthetic it
           reference: <testLibrary>::@extensionType::E::@def::1::@getter::it
-          firstFragment: #F8
+          firstFragment: #F10
           returnType: double
           variable: <testLibrary>::@extensionType::E::@def::1::@field::it
 ''');
@@ -1193,13 +1151,10 @@ library
           fields
             #F3 x @27
               element: <testLibrary>::@mixin::A::@def::1::@field::x
-              getter2: #F4
-              setter2: #F5
           getters
             #F4 synthetic x
               element: <testLibrary>::@mixin::A::@def::1::@getter::x
               returnType: dynamic
-              variable: #F3
           setters
             #F5 synthetic x
               element: <testLibrary>::@mixin::A::@def::1::@setter::x
@@ -1211,13 +1166,10 @@ library
           fields
             #F8 hasInitializer y @48
               element: <testLibrary>::@mixin::A::@def::2::@field::y
-              getter2: #F9
-              setter2: #F10
           getters
             #F9 synthetic y
               element: <testLibrary>::@mixin::A::@def::2::@getter::y
               returnType: int
-              variable: #F8
           setters
             #F10 synthetic y
               element: <testLibrary>::@mixin::A::@def::2::@setter::y
@@ -1304,48 +1256,37 @@ library
       topLevelVariables
         #F1 x @5
           element: <testLibrary>::@topLevelVariable::x::@def::0
-          getter: #F2
-          setter: #F3
-        #F4 x @12
+        #F2 x @12
           element: <testLibrary>::@topLevelVariable::x::@def::1
-          getter: #F5
-          setter: #F6
-        #F7 hasInitializer x @21
+        #F3 hasInitializer x @21
           element: <testLibrary>::@topLevelVariable::x::@def::2
-          getter: #F8
-        #F9 hasInitializer x @32
+        #F4 hasInitializer x @32
           element: <testLibrary>::@topLevelVariable::x::@def::3
-          getter: #F10
-          setter: #F11
       getters
-        #F2 synthetic x
+        #F5 synthetic x
           element: <testLibrary>::@getter::x::@def::0
           returnType: bool
-          variable: #F1
-        #F5 synthetic x
+        #F6 synthetic x
           element: <testLibrary>::@getter::x::@def::1
           returnType: dynamic
-          variable: #F4
-        #F8 synthetic x
+        #F7 synthetic x
           element: <testLibrary>::@getter::x::@def::2
           returnType: int
-          variable: #F7
-        #F10 synthetic x
+        #F8 synthetic x
           element: <testLibrary>::@getter::x::@def::3
           returnType: double
-          variable: #F9
       setters
-        #F3 synthetic x
+        #F9 synthetic x
           element: <testLibrary>::@setter::x::@def::0
           formalParameters
-            #F12 _x
+            #F10 _x
               element: <testLibrary>::@setter::x::@def::0::@formalParameter::_x
-        #F6 synthetic x
+        #F11 synthetic x
           element: <testLibrary>::@setter::x::@def::1
           formalParameters
-            #F13 _x
+            #F12 _x
               element: <testLibrary>::@setter::x::@def::1::@formalParameter::_x
-        #F11 synthetic x
+        #F13 synthetic x
           element: <testLibrary>::@setter::x::@def::2
           formalParameters
             #F14 _x
@@ -1359,62 +1300,62 @@ library
       setter: <testLibrary>::@setter::x::@def::0
     x
       reference: <testLibrary>::@topLevelVariable::x::@def::1
-      firstFragment: #F4
+      firstFragment: #F2
       type: dynamic
       getter: <testLibrary>::@getter::x::@def::1
       setter: <testLibrary>::@setter::x::@def::1
     final hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x::@def::2
-      firstFragment: #F7
+      firstFragment: #F3
       type: int
       getter: <testLibrary>::@getter::x::@def::2
     hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x::@def::3
-      firstFragment: #F9
+      firstFragment: #F4
       type: double
       getter: <testLibrary>::@getter::x::@def::3
       setter: <testLibrary>::@setter::x::@def::2
   getters
     synthetic static x
       reference: <testLibrary>::@getter::x::@def::0
-      firstFragment: #F2
+      firstFragment: #F5
       returnType: bool
       variable: <testLibrary>::@topLevelVariable::x::@def::0
     synthetic static x
       reference: <testLibrary>::@getter::x::@def::1
-      firstFragment: #F5
+      firstFragment: #F6
       returnType: dynamic
       variable: <testLibrary>::@topLevelVariable::x::@def::1
     synthetic static x
       reference: <testLibrary>::@getter::x::@def::2
-      firstFragment: #F8
+      firstFragment: #F7
       returnType: int
       variable: <testLibrary>::@topLevelVariable::x::@def::2
     synthetic static x
       reference: <testLibrary>::@getter::x::@def::3
-      firstFragment: #F10
+      firstFragment: #F8
       returnType: double
       variable: <testLibrary>::@topLevelVariable::x::@def::3
   setters
     synthetic static x
       reference: <testLibrary>::@setter::x::@def::0
-      firstFragment: #F3
+      firstFragment: #F9
       formalParameters
         requiredPositional _x
-          firstFragment: #F12
+          firstFragment: #F10
           type: bool
       returnType: void
     synthetic static x
       reference: <testLibrary>::@setter::x::@def::1
-      firstFragment: #F6
+      firstFragment: #F11
       formalParameters
         requiredPositional _x
-          firstFragment: #F13
+          firstFragment: #F12
           type: dynamic
       returnType: void
     synthetic static x
       reference: <testLibrary>::@setter::x::@def::2
-      firstFragment: #F11
+      firstFragment: #F13
       formalParameters
         requiredPositional _x
           firstFragment: #F14
@@ -1438,19 +1379,15 @@ library
       topLevelVariables
         #F1 synthetic foo (offset=-1)
           element: <testLibrary>::@topLevelVariable::foo::@def::0
-          getter: #F2
-        #F3 synthetic foo (offset=-1)
+        #F2 synthetic foo (offset=-1)
           element: <testLibrary>::@topLevelVariable::foo::@def::1
-          getter: #F4
       getters
-        #F2 foo @8
+        #F3 foo @8
           element: <testLibrary>::@getter::foo::@def::0
           returnType: int
-          variable: #F1
         #F4 foo @26
           element: <testLibrary>::@getter::foo::@def::1
           returnType: double
-          variable: #F3
   topLevelVariables
     synthetic foo
       reference: <testLibrary>::@topLevelVariable::foo::@def::0
@@ -1459,13 +1396,13 @@ library
       getter: <testLibrary>::@getter::foo::@def::0
     synthetic foo
       reference: <testLibrary>::@topLevelVariable::foo::@def::1
-      firstFragment: #F3
+      firstFragment: #F2
       type: double
       getter: <testLibrary>::@getter::foo::@def::1
   getters
     static foo
       reference: <testLibrary>::@getter::foo::@def::0
-      firstFragment: #F2
+      firstFragment: #F3
       returnType: int
       variable: <testLibrary>::@topLevelVariable::foo::@def::0
     static foo
@@ -1491,17 +1428,15 @@ library
       topLevelVariables
         #F1 synthetic foo (offset=-1)
           element: <testLibrary>::@topLevelVariable::foo::@def::0
-          setter: #F2
-        #F3 synthetic foo (offset=-1)
+        #F2 synthetic foo (offset=-1)
           element: <testLibrary>::@topLevelVariable::foo::@def::1
-          setter: #F4
       setters
-        #F2 foo @4
+        #F3 foo @4
           element: <testLibrary>::@setter::foo::@def::0
           formalParameters
-            #F5 _ @12
+            #F4 _ @12
               element: <testLibrary>::@setter::foo::@def::0::@formalParameter::_
-        #F4 foo @22
+        #F5 foo @22
           element: <testLibrary>::@setter::foo::@def::1
           formalParameters
             #F6 _ @33
@@ -1514,21 +1449,21 @@ library
       setter: <testLibrary>::@setter::foo::@def::0
     synthetic foo
       reference: <testLibrary>::@topLevelVariable::foo::@def::1
-      firstFragment: #F3
+      firstFragment: #F2
       type: double
       setter: <testLibrary>::@setter::foo::@def::1
   setters
     static foo
       reference: <testLibrary>::@setter::foo::@def::0
-      firstFragment: #F2
+      firstFragment: #F3
       formalParameters
         requiredPositional _
-          firstFragment: #F5
+          firstFragment: #F4
           type: int
       returnType: void
     static foo
       reference: <testLibrary>::@setter::foo::@def::1
-      firstFragment: #F4
+      firstFragment: #F5
       formalParameters
         requiredPositional _
           firstFragment: #F6
