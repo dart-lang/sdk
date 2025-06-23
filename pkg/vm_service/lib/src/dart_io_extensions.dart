@@ -270,18 +270,18 @@ class SocketProfile extends Response {
   String get type => 'SocketProfile';
 
   /// List of socket statistics.
-  late final List<SocketStatistic> sockets;
+  final List<SocketStatistic> sockets;
 
   SocketProfile({required this.sockets});
 
-  SocketProfile._fromJson(Map<String, dynamic> json) {
-    // TODO(bkonyi): make this part of the vm_service.dart library so we can
-    // call super._fromJson.
-    sockets = List<SocketStatistic>.from(
-        createServiceObject(json['sockets'], const ['SocketStatistic'])
-                as List? ??
-            []);
-  }
+  SocketProfile._fromJson(Map<String, dynamic> json)
+      :
+        // TODO(bkonyi): make this part of the vm_service.dart library so we can
+        // call super._fromJson.
+        sockets = List<SocketStatistic>.from(
+            createServiceObject(json['sockets'], const ['SocketStatistic'])
+                    as List? ??
+                []);
 }
 
 /// A [Response] containing the enabled state of a service extension.
