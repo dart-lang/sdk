@@ -11,6 +11,7 @@ import 'package:smith/configuration.dart';
 import 'package:smith/smith.dart';
 
 import 'compiler_configuration.dart';
+import 'deflake_info.dart';
 import 'feature.dart';
 import 'path.dart';
 import 'repository.dart';
@@ -31,7 +32,8 @@ class TestConfiguration {
       this.selectors = const {},
       this.build = false,
       this.testList = const [],
-      this.repeat = 1,
+      this.deflakeInfoMap = const {},
+      int repeat = 1,
       this.batch = false,
       this.copyCoreDumps = false,
       this.rr = false,
@@ -74,7 +76,8 @@ class TestConfiguration {
       : packages = packages ??
             Repository.uri
                 .resolve('.dart_tool/package_config.json')
-                .toFilePath();
+                .toFilePath(),
+        _repeat = repeat;
 
   final Map<String, RegExp?> selectors;
   final Progress progress;
@@ -136,11 +139,12 @@ class TestConfiguration {
   final String? dartPrecompiledPath;
   final String? genSnapshotPath;
   final List<String>? testList;
+  final Map<String, DeflakeInfo> deflakeInfoMap;
 
   final int taskCount;
   final int shardCount;
   final int shard;
-  final int repeat;
+  final int _repeat;
 
   final int testServerPort;
   final int testServerCrossOriginPort;
@@ -221,15 +225,15 @@ class TestConfiguration {
   ///     build/ReleaseX64
   String get buildDirectory => system.outputDirectory + configurationDirectory;
 
-  int? _timeout;
+  int? _defaultTimeout;
 
   // TODO(whesse): Put non-default timeouts explicitly in configs, not this.
   /// Calculates a default timeout based on the compiler and runtime used,
   /// and the mode, architecture, etc.
-  int get timeout {
-    if (_timeout == null) {
+  int get defaultTimeout {
+    if (_defaultTimeout == null) {
       if (configuration.timeout > 0) {
-        _timeout = configuration.timeout;
+        _defaultTimeout = configuration.timeout;
       } else {
         var isReload = hotReload || hotReloadRollback;
 
@@ -241,12 +245,21 @@ class TestConfiguration {
             arch: architecture,
             system: system);
 
-        _timeout = 30 * compilerMultiplier * runtimeMultiplier;
+        _defaultTimeout = 30 * compilerMultiplier * runtimeMultiplier;
       }
     }
 
-    return _timeout!;
+    return _defaultTimeout!;
   }
+
+  /// Returns the timeout for the given test name.
+  int timeout(String name) {
+    final t = deflakeInfoMap[name]?.timeout ?? -1;
+    return t >= 0 ? t : defaultTimeout;
+  }
+
+  /// Returns the repeat count for the given test name.
+  int repeat(String name) => deflakeInfoMap[name]?.repeat ?? _repeat;
 
   List<String> get standardOptions {
     if (compiler != Compiler.dart2js) {
