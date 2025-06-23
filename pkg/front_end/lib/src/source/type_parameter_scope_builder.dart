@@ -70,14 +70,14 @@ enum _DeclarationKind {
 abstract class _Declaration {
   final _DeclarationKind kind;
   final Fragment _fragment;
-  final String name;
+  final String displayName;
   final bool isAugment;
   final bool inPatch;
   final bool inLibrary;
   final bool isStatic;
 
   _Declaration(this.kind, this._fragment,
-      {required this.name,
+      {required this.displayName,
       required this.isAugment,
       required this.inPatch,
       required this.inLibrary,
@@ -130,7 +130,7 @@ mixin _FragmentDeclarationMixin implements _Declaration {
 
 abstract class _NonConstructorDeclaration extends _Declaration {
   _NonConstructorDeclaration(super.kind, super.fragment,
-      {required super.name,
+      {required super.displayName,
       required super.isAugment,
       required super.inPatch,
       required super.inLibrary,
@@ -188,7 +188,7 @@ abstract class _PropertyDeclaration extends _NonConstructorDeclaration {
   final _PropertyKind propertyKind;
 
   _PropertyDeclaration(super.kind, super.fragment,
-      {required super.name,
+      {required super.displayName,
       required super.isAugment,
       required super.inPatch,
       required super.inLibrary,
@@ -201,7 +201,7 @@ abstract class _PropertyDeclaration extends _NonConstructorDeclaration {
 class _FieldDeclaration extends _PropertyDeclaration
     with _FragmentDeclarationMixin, _PropertyFragmentDeclarationMixin {
   _FieldDeclaration(super.kind, super.fragment,
-      {required super.name,
+      {required super.displayName,
       required super.isAugment,
       required super.inPatch,
       required super.inLibrary,
@@ -215,7 +215,7 @@ class _FieldDeclaration extends _PropertyDeclaration
 class _GetterDeclaration extends _PropertyDeclaration
     with _FragmentDeclarationMixin, _PropertyFragmentDeclarationMixin {
   _GetterDeclaration(super.kind, super.fragment,
-      {required super.name,
+      {required super.displayName,
       required super.isAugment,
       required super.inPatch,
       required super.inLibrary,
@@ -229,7 +229,7 @@ class _GetterDeclaration extends _PropertyDeclaration
 class _SetterDeclaration extends _PropertyDeclaration
     with _FragmentDeclarationMixin, _PropertyFragmentDeclarationMixin {
   _SetterDeclaration(super.kind, super.fragment,
-      {required super.name,
+      {required super.displayName,
       required super.isAugment,
       required super.inPatch,
       required super.inLibrary,
@@ -247,7 +247,7 @@ mixin _StandardFragmentDeclarationMixin implements _StandardDeclaration {
 
 abstract class _StandardDeclaration extends _NonConstructorDeclaration {
   _StandardDeclaration(super.kind, super.fragment,
-      {required super.name,
+      {required super.displayName,
       required super.isAugment,
       required super.inPatch,
       required super.inLibrary,
@@ -260,7 +260,7 @@ abstract class _StandardDeclaration extends _NonConstructorDeclaration {
 class _StandardFragmentDeclaration extends _StandardDeclaration
     with _FragmentDeclarationMixin, _StandardFragmentDeclarationMixin {
   _StandardFragmentDeclaration(super.kind, super.fragment,
-      {required super.name,
+      {required super.displayName,
       required super.isAugment,
       required super.inPatch,
       required super.inLibrary,
@@ -272,15 +272,15 @@ mixin _ConstructorFragmentDeclarationMixin implements _ConstructorDeclaration {
   Fragment get _fragment;
 }
 
-abstract class _ConstructorDeclaration extends _Declaration {
+sealed class _ConstructorDeclaration extends _Declaration {
+  final bool isConst;
+
   _ConstructorDeclaration(super.kind, super.fragment,
-      {required super.name,
+      {required super.displayName,
       required super.isAugment,
       required super.inPatch,
-      required super.inLibrary});
-
-  @override
-  _PreBuilder _createPreBuilder() => new _ConstructorPreBuilder(this);
+      required super.inLibrary,
+      required this.isConst});
 
   @override
   void registerPreBuilder(
@@ -292,13 +292,44 @@ abstract class _ConstructorDeclaration extends _Declaration {
   }
 }
 
-class _ConstructorFragmentDeclaration extends _ConstructorDeclaration
+class _GenerativeConstructorDeclaration extends _ConstructorDeclaration
     with _FragmentDeclarationMixin, _ConstructorFragmentDeclarationMixin {
-  _ConstructorFragmentDeclaration(super.kind, super.fragment,
-      {required super.name,
+  final String _name;
+  final ConstructorDeclaration _declaration;
+
+  _GenerativeConstructorDeclaration(this._declaration, Fragment fragment,
+      {required String name,
+      required super.displayName,
       required super.isAugment,
       required super.inPatch,
-      required super.inLibrary});
+      required super.inLibrary,
+      required super.isConst})
+      : _name = name,
+        super(_DeclarationKind.Constructor, fragment);
+
+  @override
+  _PreBuilder _createPreBuilder() =>
+      new _GenerativeConstructorPreBuilder(_name, this);
+}
+
+class _FactoryConstructorDeclaration extends _ConstructorDeclaration
+    with _FragmentDeclarationMixin, _ConstructorFragmentDeclarationMixin {
+  final String _name;
+  final FactoryDeclaration _declaration;
+
+  _FactoryConstructorDeclaration(this._declaration, Fragment fragment,
+      {required String name,
+      required super.displayName,
+      required super.isAugment,
+      required super.inPatch,
+      required super.inLibrary,
+      required super.isConst})
+      : _name = name,
+        super(_DeclarationKind.Factory, fragment);
+
+  @override
+  _PreBuilder _createPreBuilder() =>
+      new _FactoryConstructorPreBuilder(_name, this);
 }
 
 class _BuilderFactory {
@@ -382,13 +413,10 @@ class _BuilderFactory {
         _createExtensionTypeBuilder(fragment);
       case MethodFragment():
         _createMethodBuilder(fragment, augmentations);
-      case ConstructorFragment():
-        _createConstructorBuilder(fragment, augmentations);
-      case PrimaryConstructorFragment():
-        _createPrimaryConstructorBuilder(fragment);
-      case FactoryFragment():
-        _createFactoryBuilder(fragment, augmentations);
       // Coverage-ignore(suite): Not run.
+      case ConstructorFragment():
+      case PrimaryConstructorFragment():
+      case FactoryFragment():
       case FieldFragment():
       case PrimaryConstructorFieldFragment():
       case GetterFragment():
@@ -411,7 +439,7 @@ class _BuilderFactory {
         return new _StandardFragmentDeclaration(
           _DeclarationKind.Class,
           fragment,
-          name: fragment.name,
+          displayName: fragment.name,
           isAugment: fragment.modifiers.isAugment,
           inPatch: fragment.enclosingCompilationUnit.isPatch,
           inLibrary: true,
@@ -419,7 +447,7 @@ class _BuilderFactory {
       case EnumFragment():
         return new _StandardFragmentDeclaration(
           _DeclarationKind.Enum, fragment,
-          name: fragment.name,
+          displayName: fragment.name,
           // TODO(johnniwinther): Support enum augmentations.
           isAugment: false,
           inPatch: fragment.enclosingCompilationUnit.isPatch,
@@ -429,7 +457,7 @@ class _BuilderFactory {
         return new _StandardFragmentDeclaration(
           _DeclarationKind.ExtensionType,
           fragment,
-          name: fragment.name,
+          displayName: fragment.name,
           isAugment: fragment.modifiers.isAugment,
           inPatch: fragment.enclosingCompilationUnit.isPatch,
           inLibrary: true,
@@ -438,7 +466,7 @@ class _BuilderFactory {
         return new _StandardFragmentDeclaration(
           _DeclarationKind.Method,
           fragment,
-          name: fragment.name,
+          displayName: fragment.name,
           isAugment: fragment.modifiers.isAugment,
           isStatic: inLibrary || fragment.modifiers.isStatic,
           inPatch: fragment.enclosingDeclaration?.isPatch ??
@@ -449,7 +477,7 @@ class _BuilderFactory {
         return new _StandardFragmentDeclaration(
           _DeclarationKind.Mixin,
           fragment,
-          name: fragment.name,
+          displayName: fragment.name,
           isAugment: fragment.modifiers.isAugment,
           inPatch: fragment.enclosingCompilationUnit.isPatch,
           inLibrary: true,
@@ -458,7 +486,7 @@ class _BuilderFactory {
         return new _StandardFragmentDeclaration(
           _DeclarationKind.NamedMixinApplication,
           fragment,
-          name: fragment.name,
+          displayName: fragment.name,
           isAugment: fragment.modifiers.isAugment,
           inPatch: fragment.enclosingCompilationUnit.isPatch,
           inLibrary: true,
@@ -466,7 +494,7 @@ class _BuilderFactory {
       case TypedefFragment():
         return new _StandardFragmentDeclaration(
           _DeclarationKind.Typedef, fragment,
-          name: fragment.name,
+          displayName: fragment.name,
           // TODO(johnniwinther): Support typedef augmentations.
           isAugment: false,
           inPatch: fragment.enclosingCompilationUnit.isPatch,
@@ -477,7 +505,7 @@ class _BuilderFactory {
           return new _StandardFragmentDeclaration(
             _DeclarationKind.Extension,
             fragment,
-            name: fragment.name,
+            displayName: fragment.name,
             isAugment: fragment.modifiers.isAugment,
             inPatch: fragment.enclosingCompilationUnit.isPatch,
             inLibrary: true,
@@ -487,37 +515,43 @@ class _BuilderFactory {
           return null;
         }
       case FactoryFragment():
-        return new _ConstructorFragmentDeclaration(
-          _DeclarationKind.Factory,
+        return new _FactoryConstructorDeclaration(
+          new FactoryDeclarationImpl(fragment),
           fragment,
-          name: fragment.constructorName.fullName,
+          name: fragment.name,
+          displayName: fragment.constructorName.fullName,
           isAugment: fragment.modifiers.isAugment,
           inPatch: fragment.enclosingDeclaration.isPatch,
           inLibrary: inLibrary,
+          isConst: fragment.modifiers.isConst,
         );
       case ConstructorFragment():
-        return new _ConstructorFragmentDeclaration(
-          _DeclarationKind.Constructor,
+        return new _GenerativeConstructorDeclaration(
+          new RegularConstructorDeclaration(fragment),
           fragment,
-          name: fragment.constructorName.fullName,
+          name: fragment.name,
+          displayName: fragment.constructorName.fullName,
           isAugment: fragment.modifiers.isAugment,
           inPatch: fragment.enclosingDeclaration.isPatch,
           inLibrary: inLibrary,
+          isConst: fragment.modifiers.isConst,
         );
       case PrimaryConstructorFragment():
-        return new _ConstructorFragmentDeclaration(
-          _DeclarationKind.Constructor,
+        return new _GenerativeConstructorDeclaration(
+          new PrimaryConstructorDeclaration(fragment),
           fragment,
-          name: fragment.constructorName.fullName,
+          name: fragment.name,
+          displayName: fragment.constructorName.fullName,
           isAugment: fragment.modifiers.isAugment,
           inPatch: fragment.enclosingDeclaration.isPatch,
           inLibrary: inLibrary,
+          isConst: fragment.modifiers.isConst,
         );
       case FieldFragment():
         return new _FieldDeclaration(
           _DeclarationKind.Property,
           fragment,
-          name: fragment.name,
+          displayName: fragment.name,
           isAugment: fragment.modifiers.isAugment,
           propertyKind: fragment.hasSetter
               ? _PropertyKind.Field
@@ -531,7 +565,7 @@ class _BuilderFactory {
         return new _FieldDeclaration(
           _DeclarationKind.Property,
           fragment,
-          name: fragment.name,
+          displayName: fragment.name,
           isAugment: false,
           propertyKind: _PropertyKind.FinalField,
           isStatic: false,
@@ -542,7 +576,7 @@ class _BuilderFactory {
         return new _GetterDeclaration(
           _DeclarationKind.Property,
           fragment,
-          name: fragment.name,
+          displayName: fragment.name,
           isAugment: fragment.modifiers.isAugment,
           propertyKind: _PropertyKind.Getter,
           isStatic: inLibrary || fragment.modifiers.isStatic,
@@ -554,7 +588,7 @@ class _BuilderFactory {
         return new _SetterDeclaration(
           _DeclarationKind.Property,
           fragment,
-          name: fragment.name,
+          displayName: fragment.name,
           isAugment: fragment.modifiers.isAugment,
           propertyKind: _PropertyKind.Setter,
           isStatic: inLibrary || fragment.modifiers.isStatic,
@@ -566,7 +600,7 @@ class _BuilderFactory {
         return new _FieldDeclaration(
           _DeclarationKind.Property,
           fragment,
-          name: fragment.name,
+          displayName: fragment.name,
           isAugment: false,
           propertyKind: _PropertyKind.FinalField,
           isStatic: true,
@@ -1147,34 +1181,6 @@ class _BuilderFactory {
             fragment.enclosingCompilationUnit.isPatch);
   }
 
-  void _createConstructorBuilder(
-      ConstructorFragment fragment, List<Fragment>? augmentations) {
-    String name = fragment.name;
-    bool isConst = fragment.modifiers.isConst;
-
-    ConstructorDeclaration constructorDeclaration =
-        new RegularConstructorDeclaration(fragment);
-
-    List<ConstructorDeclaration> augmentationDeclarations = [];
-    if (augmentations != null) {
-      for (Fragment augmentation in augmentations) {
-        // Promote [augmentation] to [ConstructorFragment].
-        augmentation as ConstructorFragment;
-
-        augmentationDeclarations
-            .add(new RegularConstructorDeclaration(augmentation));
-      }
-      augmentations.clear();
-    }
-
-    return _createConstructorBuilderFromDeclarations(
-        constructorDeclaration, augmentationDeclarations,
-        name: name,
-        uriOffset: fragment.uriOffset,
-        isConst: isConst,
-        inPatch: fragment.enclosingDeclaration.isPatch);
-  }
-
   void _createConstructorBuilderFromDeclarations(
       ConstructorDeclaration constructorDeclaration,
       List<ConstructorDeclaration> augmentationDeclarations,
@@ -1235,25 +1241,12 @@ class _BuilderFactory {
         inPatch: inPatch);
   }
 
-  void _createPrimaryConstructorBuilder(PrimaryConstructorFragment fragment) {
-    String name = fragment.name;
-
-    ConstructorDeclaration constructorDeclaration =
-        new PrimaryConstructorDeclaration(fragment);
-
-    return _createConstructorBuilderFromDeclarations(
-        constructorDeclaration, const [],
-        name: name,
-        uriOffset: fragment.uriOffset,
-        isConst: fragment.modifiers.isConst,
-        inPatch: fragment.enclosingDeclaration.isPatch);
-  }
-
-  void _createFactoryBuilder(
-      FactoryFragment fragment, List<Fragment>? augmentations) {
-    String name = fragment.name;
-    bool isConst = fragment.modifiers.isConst;
-
+  void _createFactoryBuilderFromDeclarations(
+      FactoryDeclaration introductory, List<FactoryDeclaration> augmentations,
+      {required String name,
+      required bool isConst,
+      required UriOffsetLength uriOffset,
+      required bool inPatch}) {
     FactoryEncodingStrategy encodingStrategy =
         new FactoryEncodingStrategy(_declarationBuilder!);
 
@@ -1272,47 +1265,36 @@ class _BuilderFactory {
         loader: _loader,
         declarationBuilder: _declarationBuilder);
 
-    FactoryDeclaration introductoryDeclaration =
-        new FactoryDeclarationImpl(fragment);
-
-    bool isRedirectingFactory = fragment.redirectionTarget != null;
-    List<FactoryDeclaration> augmentationDeclarations = [];
-    if (augmentations != null) {
-      for (Fragment augmentation in augmentations) {
-        // Promote [augmentation] to [FactoryFragment].
-        augmentation as FactoryFragment;
-
-        augmentationDeclarations.add(new FactoryDeclarationImpl(augmentation));
-
-        isRedirectingFactory |= augmentation.redirectionTarget != null;
+    bool isRedirectingFactory = introductory.isRedirectingFactory;
+    for (FactoryDeclaration augmentation in augmentations) {
+      if (augmentation.isRedirectingFactory) {
+        isRedirectingFactory = true;
       }
-      augmentations.clear();
     }
 
     SourceFactoryBuilder factoryBuilder = new SourceFactoryBuilder(
         name: name,
         libraryBuilder: _enclosingLibraryBuilder,
         declarationBuilder: _declarationBuilder,
-        fileUri: fragment.fileUri,
-        fileOffset: fragment.fullNameOffset,
+        fileUri: uriOffset.fileUri,
+        fileOffset: uriOffset.fileOffset,
         factoryReferences: factoryReferences,
         nameScheme: nameScheme,
-        introductory: introductoryDeclaration,
-        augmentations: augmentationDeclarations,
+        introductory: introductory,
+        augmentations: augmentations,
         isConst: isConst);
     if (isRedirectingFactory) {
       (_enclosingLibraryBuilder.redirectingFactoryBuilders ??= [])
           .add(factoryBuilder);
     }
-    introductoryDeclaration.createEncoding(
+    introductory.createEncoding(
         problemReporting: _problemReporting,
         declarationBuilder: _declarationBuilder,
         factoryBuilder: factoryBuilder,
         unboundNominalParameters: _unboundNominalParameters,
         encodingStrategy: encodingStrategy);
-    for (FactoryDeclaration augmentationDeclaration
-        in augmentationDeclarations) {
-      augmentationDeclaration.createEncoding(
+    for (FactoryDeclaration augmentation in augmentations) {
+      augmentation.createEncoding(
           problemReporting: _problemReporting,
           declarationBuilder: _declarationBuilder,
           factoryBuilder: factoryBuilder,
@@ -1322,9 +1304,7 @@ class _BuilderFactory {
 
     factoryReferences.registerReference(_loader, factoryBuilder);
     _builderRegistry.registerBuilder(
-        declaration: factoryBuilder,
-        uriOffset: fragment.uriOffset,
-        inPatch: fragment.enclosingDeclaration.isPatch);
+        declaration: factoryBuilder, uriOffset: uriOffset, inPatch: inPatch);
   }
 }
 
@@ -1376,7 +1356,7 @@ class _PropertyPreBuilder extends _PreBuilder {
   _PropertyPreBuilder.forGetter(_PropertyDeclaration getter)
       : isStatic = getter.isStatic,
         inPatch = getter.inPatch,
-        name = getter.name,
+        name = getter.displayName,
         uriOffset = getter.uriOffset,
         _getterPropertyKind = getter.propertyKind {
     _PropertyDeclarations declarations = getter.createDeclarations();
@@ -1393,7 +1373,7 @@ class _PropertyPreBuilder extends _PreBuilder {
   _PropertyPreBuilder.forSetter(_PropertyDeclaration setter)
       : isStatic = setter.isStatic,
         inPatch = setter.inPatch,
-        name = setter.name,
+        name = setter.displayName,
         uriOffset = setter.uriOffset,
         _setterPropertyKind = setter.propertyKind {
     _PropertyDeclarations declarations = setter.createDeclarations();
@@ -1410,7 +1390,7 @@ class _PropertyPreBuilder extends _PreBuilder {
   _PropertyPreBuilder.forField(_PropertyDeclaration field)
       : isStatic = field.isStatic,
         inPatch = field.inPatch,
-        name = field.name,
+        name = field.displayName,
         uriOffset = field.uriOffset,
         _getterPropertyKind = field.propertyKind {
     _PropertyDeclarations declarations = field.createDeclarations();
@@ -2028,9 +2008,10 @@ class _PropertyPreBuilder extends _PreBuilder {
 }
 
 /// [_PreBuilder] for generative and factory constructors.
-class _ConstructorPreBuilder extends _PreBuilder {
-  final _ConstructorDeclaration _declaration;
-  final List<_ConstructorDeclaration> _augmentations = [];
+sealed class _ConstructorPreBuilder<T extends _ConstructorDeclaration>
+    extends _PreBuilder {
+  final T _declaration;
+  final List<T> _augmentations = [];
 
   // TODO(johnniwinther): Report error if [fragment] is augmenting.
   _ConstructorPreBuilder(this._declaration);
@@ -2039,8 +2020,7 @@ class _ConstructorPreBuilder extends _PreBuilder {
   bool absorbFragment(
       ProblemReporting problemReporting, _Declaration declaration) {
     if (declaration.isAugment) {
-      if (declaration is _ConstructorDeclaration &&
-          declaration.kind == _declaration.kind) {
+      if (declaration is T && declaration.kind == _declaration.kind) {
         // Example:
         //
         //    class A {
@@ -2070,11 +2050,11 @@ class _ConstructorPreBuilder extends _PreBuilder {
       //    }
       //
       problemReporting.addProblem2(
-          templateDuplicatedDeclaration.withArguments(declaration.name),
+          templateDuplicatedDeclaration.withArguments(declaration.displayName),
           declaration.uriOffset,
           context: <LocatedMessage>[
             templateDuplicatedDeclarationCause
-                .withArguments(_declaration.name)
+                .withArguments(_declaration.displayName)
                 .withLocation2(_declaration.uriOffset)
           ]);
       return false;
@@ -2097,11 +2077,11 @@ class _ConstructorPreBuilder extends _PreBuilder {
         //
         problemReporting.addProblem2(
             templateMemberConflictsWithConstructor
-                .withArguments(_declaration.name),
+                .withArguments(_declaration.displayName),
             nonConstructorDeclaration.uriOffset,
             context: [
               templateMemberConflictsWithConstructorCause
-                  .withArguments(_declaration.name)
+                  .withArguments(_declaration.displayName)
                   .withLocation2(_declaration.uriOffset)
             ]);
       } else {
@@ -2115,21 +2095,52 @@ class _ConstructorPreBuilder extends _PreBuilder {
         //    }
         //
         problemReporting.addProblem2(
-            templateMemberConflictsWithFactory.withArguments(_declaration.name),
+            templateMemberConflictsWithFactory
+                .withArguments(_declaration.displayName),
             nonConstructorDeclaration.uriOffset,
             context: [
               templateMemberConflictsWithFactoryCause
-                  .withArguments(_declaration.name)
+                  .withArguments(_declaration.displayName)
                   .withLocation2(_declaration.uriOffset)
             ]);
       }
     }
   }
+}
+
+class _GenerativeConstructorPreBuilder
+    extends _ConstructorPreBuilder<_GenerativeConstructorDeclaration> {
+  final String _name;
+
+  _GenerativeConstructorPreBuilder(this._name, super._declaration);
 
   @override
   void createBuilders(_BuilderFactory builderFactory) {
-    builderFactory.createBuilder(_declaration._fragment,
-        augmentations: _augmentations.map((f) => f._fragment).toList());
+    builderFactory._createConstructorBuilderFromDeclarations(
+        _declaration._declaration,
+        _augmentations.map((a) => a._declaration).toList(),
+        name: _name,
+        uriOffset: _declaration.uriOffset,
+        isConst: _declaration.isConst,
+        inPatch: _declaration.inPatch);
+  }
+}
+
+class _FactoryConstructorPreBuilder
+    extends _ConstructorPreBuilder<_FactoryConstructorDeclaration> {
+  final String _name;
+
+  _FactoryConstructorPreBuilder(this._name, super._declaration);
+
+  @override
+  void createBuilders(_BuilderFactory builderFactory) {
+    builderFactory._createFactoryBuilderFromDeclarations(
+        _declaration._declaration,
+        _augmentations.map((a) => a._declaration).toList(),
+        name: _name,
+        uriOffset: _declaration.uriOffset,
+        isConst: _declaration.isConst,
+        inPatch: _declaration.inPatch);
   }
 }
 
@@ -2172,11 +2183,11 @@ class _DeclarationPreBuilder extends _PreBuilder {
         //
         problemReporting.addProblem2(
             templateSetterConflictsWithDeclaration
-                .withArguments(_declaration.name),
+                .withArguments(_declaration.displayName),
             declaration.uriOffset,
             context: [
               templateSetterConflictsWithDeclarationCause
-                  .withArguments(_declaration.name)
+                  .withArguments(_declaration.displayName)
                   .withLocation2(_declaration.uriOffset)
             ]);
       } else {
@@ -2186,11 +2197,12 @@ class _DeclarationPreBuilder extends _PreBuilder {
         //    class Foo {}
         //
         problemReporting.addProblem2(
-            templateDuplicatedDeclaration.withArguments(declaration.name),
+            templateDuplicatedDeclaration
+                .withArguments(declaration.displayName),
             declaration.uriOffset,
             context: <LocatedMessage>[
               templateDuplicatedDeclarationCause
-                  .withArguments(_declaration.name)
+                  .withArguments(_declaration.displayName)
                   .withLocation2(_declaration.uriOffset)
             ]);
       }
@@ -2213,11 +2225,11 @@ class _DeclarationPreBuilder extends _PreBuilder {
         //
         problemReporting.addProblem2(
             templateConstructorConflictsWithMember
-                .withArguments(_declaration.name),
+                .withArguments(_declaration.displayName),
             constructorDeclaration.uriOffset,
             context: [
               templateConstructorConflictsWithMemberCause
-                  .withArguments(_declaration.name)
+                  .withArguments(_declaration.displayName)
                   .withLocation2(_declaration.uriOffset)
             ]);
       } else {
@@ -2231,11 +2243,12 @@ class _DeclarationPreBuilder extends _PreBuilder {
         //    }
         //
         problemReporting.addProblem2(
-            templateFactoryConflictsWithMember.withArguments(_declaration.name),
+            templateFactoryConflictsWithMember
+                .withArguments(_declaration.displayName),
             constructorDeclaration.uriOffset,
             context: [
               templateFactoryConflictsWithMemberCause
-                  .withArguments(_declaration.name)
+                  .withArguments(_declaration.displayName)
                   .withLocation2(_declaration.uriOffset)
             ]);
       }
@@ -2249,41 +2262,42 @@ class _DeclarationPreBuilder extends _PreBuilder {
   }
 }
 
-/// Reports an error if [fragmentName] is augmenting.
+/// Reports an error if [declaration] is augmenting.
 ///
 /// This is called when the first [_PreBuilder] is created, meaning that the
 /// augmentation didn't correspond to an introductory declaration.
 void _checkAugmentation(
-    ProblemReporting problemReporting, _Declaration fragmentName) {
-  if (fragmentName.isAugment) {
+    ProblemReporting problemReporting, _Declaration declaration) {
+  if (declaration.isAugment) {
     Message message;
-    switch (fragmentName.kind) {
+    switch (declaration.kind) {
       case _DeclarationKind.Class:
-        message = fragmentName.inPatch
-            ? templateUnmatchedPatchClass.withArguments(fragmentName.name)
+        message = declaration.inPatch
+            ? templateUnmatchedPatchClass.withArguments(declaration.displayName)
             :
             // Coverage-ignore(suite): Not run.
-            templateUnmatchedAugmentationClass.withArguments(fragmentName.name);
+            templateUnmatchedAugmentationClass
+                .withArguments(declaration.displayName);
       case _DeclarationKind.Constructor:
       case _DeclarationKind.Factory:
       case _DeclarationKind.Method:
       case _DeclarationKind.Property:
-        if (fragmentName.inLibrary) {
-          message = fragmentName.inPatch
+        if (declaration.inLibrary) {
+          message = declaration.inPatch
               ? templateUnmatchedPatchLibraryMember
-                  .withArguments(fragmentName.name)
+                  .withArguments(declaration.displayName)
               :
               // Coverage-ignore(suite): Not run.
               templateUnmatchedAugmentationLibraryMember
-                  .withArguments(fragmentName.name);
+                  .withArguments(declaration.displayName);
         } else {
-          message = fragmentName.inPatch
+          message = declaration.inPatch
               ? templateUnmatchedPatchClassMember
-                  .withArguments(fragmentName.name)
+                  .withArguments(declaration.displayName)
               :
               // Coverage-ignore(suite): Not run.
               templateUnmatchedAugmentationClassMember
-                  .withArguments(fragmentName.name);
+                  .withArguments(declaration.displayName);
         }
       case _DeclarationKind.Mixin:
       case _DeclarationKind.NamedMixinApplication:
@@ -2294,14 +2308,15 @@ void _checkAugmentation(
       // Coverage-ignore(suite): Not run.
       case _DeclarationKind.Typedef:
         // TODO(johnniwinther): Specialize more messages.
-        message = fragmentName.inPatch
-            ? templateUnmatchedPatchDeclaration.withArguments(fragmentName.name)
+        message = declaration.inPatch
+            ? templateUnmatchedPatchDeclaration
+                .withArguments(declaration.displayName)
             :
             // Coverage-ignore(suite): Not run.
             templateUnmatchedAugmentationDeclaration
-                .withArguments(fragmentName.name);
+                .withArguments(declaration.displayName);
     }
-    problemReporting.addProblem2(message, fragmentName.uriOffset);
+    problemReporting.addProblem2(message, declaration.uriOffset);
   }
 }
 
