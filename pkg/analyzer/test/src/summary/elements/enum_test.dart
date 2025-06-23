@@ -50,8 +50,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F3
-            #F4 hasInitializer bbb @16
+            #F3 hasInitializer bbb @16
               element: <testLibrary>::@enum::E::@field::bbb
               initializer: expression_1
                 InstanceCreationExpression
@@ -65,8 +64,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F5
-            #F6 hasInitializer ccc @21
+            #F4 hasInitializer ccc @21
               element: <testLibrary>::@enum::E::@field::ccc
               initializer: expression_2
                 InstanceCreationExpression
@@ -80,8 +78,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F7
-            #F8 synthetic values
+            #F5 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_3
                 ListLiteral
@@ -101,28 +98,23 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-              getter2: #F9
           constructors
-            #F10 synthetic const new
+            #F6 synthetic const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F3 synthetic aaa
+            #F7 synthetic aaa
               element: <testLibrary>::@enum::E::@getter::aaa
               returnType: E
-              variable: #F2
-            #F5 synthetic bbb
+            #F8 synthetic bbb
               element: <testLibrary>::@enum::E::@getter::bbb
               returnType: E
-              variable: #F4
-            #F7 synthetic ccc
+            #F9 synthetic ccc
               element: <testLibrary>::@enum::E::@getter::ccc
               returnType: E
-              variable: #F6
-            #F9 synthetic values
+            #F10 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E>
-              variable: #F8
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -139,51 +131,51 @@ library
           getter: <testLibrary>::@enum::E::@getter::aaa
         static const enumConstant hasInitializer bbb
           reference: <testLibrary>::@enum::E::@field::bbb
-          firstFragment: #F4
+          firstFragment: #F3
           type: E
           constantInitializer
-            fragment: #F4
+            fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::bbb
         static const enumConstant hasInitializer ccc
           reference: <testLibrary>::@enum::E::@field::ccc
-          firstFragment: #F6
+          firstFragment: #F4
           type: E
           constantInitializer
-            fragment: #F6
+            fragment: #F4
             expression: expression_2
           getter: <testLibrary>::@enum::E::@getter::ccc
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F8
+          firstFragment: #F5
           type: List<E>
           constantInitializer
-            fragment: #F8
+            fragment: #F5
             expression: expression_3
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         synthetic const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F10
+          firstFragment: #F6
       getters
         synthetic static aaa
           reference: <testLibrary>::@enum::E::@getter::aaa
-          firstFragment: #F3
+          firstFragment: #F7
           returnType: E
           variable: <testLibrary>::@enum::E::@field::aaa
         synthetic static bbb
           reference: <testLibrary>::@enum::E::@getter::bbb
-          firstFragment: #F5
+          firstFragment: #F8
           returnType: E
           variable: <testLibrary>::@enum::E::@field::bbb
         synthetic static ccc
           reference: <testLibrary>::@enum::E::@getter::ccc
-          firstFragment: #F7
+          firstFragment: #F9
           returnType: E
           variable: <testLibrary>::@enum::E::@field::ccc
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F9
+          firstFragment: #F10
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
 ''');
@@ -229,8 +221,7 @@ library
                         staticType: int
                     rightParenthesis: ) @19
                   staticType: E<int>
-              getter2: #F4
-            #F5 hasInitializer string @22
+            #F4 hasInitializer string @22
               element: <testLibrary>::@enum::E::@field::string
               initializer: expression_1
                 InstanceCreationExpression
@@ -249,8 +240,7 @@ library
                         literal: '2' @29
                     rightParenthesis: ) @32
                   staticType: E<String>
-              getter2: #F6
-            #F7 synthetic values
+            #F5 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_2
                 ListLiteral
@@ -266,28 +256,24 @@ library
                       staticType: E<String>
                   rightBracket: ] @0
                   staticType: List<E<dynamic>>
-              getter2: #F8
           constructors
-            #F9 const new
+            #F6 const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 43
               formalParameters
-                #F10 a @47
+                #F7 a @47
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::a
           getters
-            #F4 synthetic int
+            #F8 synthetic int
               element: <testLibrary>::@enum::E::@getter::int
               returnType: E<int>
-              variable: #F3
-            #F6 synthetic string
+            #F9 synthetic string
               element: <testLibrary>::@enum::E::@getter::string
               returnType: E<String>
-              variable: #F5
-            #F8 synthetic values
+            #F10 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E<dynamic>>
-              variable: #F7
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -307,42 +293,42 @@ library
           getter: <testLibrary>::@enum::E::@getter::int
         static const enumConstant hasInitializer string
           reference: <testLibrary>::@enum::E::@field::string
-          firstFragment: #F5
+          firstFragment: #F4
           type: E<String>
           constantInitializer
-            fragment: #F5
+            fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::string
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F7
+          firstFragment: #F5
           type: List<E<dynamic>>
           constantInitializer
-            fragment: #F7
+            fragment: #F5
             expression: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F9
+          firstFragment: #F6
           formalParameters
             requiredPositional a
-              firstFragment: #F10
+              firstFragment: #F7
               type: T
       getters
         synthetic static int
           reference: <testLibrary>::@enum::E::@getter::int
-          firstFragment: #F4
+          firstFragment: #F8
           returnType: E<int>
           variable: <testLibrary>::@enum::E::@field::int
         synthetic static string
           reference: <testLibrary>::@enum::E::@getter::string
-          firstFragment: #F6
+          firstFragment: #F9
           returnType: E<String>
           variable: <testLibrary>::@enum::E::@field::string
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F8
+          firstFragment: #F10
           returnType: List<E<dynamic>>
           variable: <testLibrary>::@enum::E::@field::values
 ''');
@@ -379,8 +365,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F3
-            #F4 synthetic values
+            #F3 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -392,20 +377,17 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-              getter2: #F5
           constructors
-            #F6 synthetic const new
+            #F4 synthetic const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F3 synthetic _name
+            #F5 synthetic _name
               element: <testLibrary>::@enum::E::@getter::_name
               returnType: E
-              variable: #F2
-            #F5 synthetic values
+            #F6 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E>
-              variable: #F4
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -422,25 +404,25 @@ library
           getter: <testLibrary>::@enum::E::@getter::_name
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F4
+          firstFragment: #F3
           type: List<E>
           constantInitializer
-            fragment: #F4
+            fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         synthetic const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F6
+          firstFragment: #F4
       getters
         synthetic static _name
           reference: <testLibrary>::@enum::E::@getter::_name
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: E
           variable: <testLibrary>::@enum::E::@field::_name
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F5
+          firstFragment: #F6
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
 ''');
@@ -494,8 +476,7 @@ library
                         staticType: double
                     rightParenthesis: ) @26
                   staticType: E<double>
-              getter2: #F4
-            #F5 synthetic values
+            #F4 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -507,24 +488,21 @@ library
                       staticType: E<double>
                   rightBracket: ] @0
                   staticType: List<E<dynamic>>
-              getter2: #F6
           constructors
-            #F7 const new
+            #F5 const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 37
               formalParameters
-                #F8 a @41
+                #F6 a @41
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::a
           getters
-            #F4 synthetic v
+            #F7 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
               returnType: E<double>
-              variable: #F3
-            #F6 synthetic values
+            #F8 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E<dynamic>>
-              variable: #F5
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -544,29 +522,29 @@ library
           getter: <testLibrary>::@enum::E::@getter::v
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F5
+          firstFragment: #F4
           type: List<E<dynamic>>
           constantInitializer
-            fragment: #F5
+            fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F7
+          firstFragment: #F5
           formalParameters
             requiredPositional a
-              firstFragment: #F8
+              firstFragment: #F6
               type: T
       getters
         synthetic static v
           reference: <testLibrary>::@enum::E::@getter::v
-          firstFragment: #F4
+          firstFragment: #F7
           returnType: E<double>
           variable: <testLibrary>::@enum::E::@field::v
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F6
+          firstFragment: #F8
           returnType: List<E<dynamic>>
           variable: <testLibrary>::@enum::E::@field::values
 ''');
@@ -602,8 +580,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F3
-            #F4 synthetic values
+            #F3 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -615,20 +592,17 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-              getter2: #F5
           constructors
-            #F6 synthetic const new
+            #F4 synthetic const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F3 synthetic _
+            #F5 synthetic _
               element: <testLibrary>::@enum::E::@getter::_
               returnType: E
-              variable: #F2
-            #F5 synthetic values
+            #F6 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E>
-              variable: #F4
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -645,25 +619,25 @@ library
           getter: <testLibrary>::@enum::E::@getter::_
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F4
+          firstFragment: #F3
           type: List<E>
           constantInitializer
-            fragment: #F4
+            fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         synthetic const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F6
+          firstFragment: #F4
       getters
         synthetic static _
           reference: <testLibrary>::@enum::E::@getter::_
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: E
           variable: <testLibrary>::@enum::E::@field::_
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F5
+          firstFragment: #F6
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
 ''');
@@ -700,8 +674,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F3
-            #F4 synthetic values
+            #F3 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -713,25 +686,22 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-              getter2: #F5
           constructors
-            #F6 factory named @26
+            #F4 factory named @26
               element: <testLibrary>::@enum::E::@constructor::named
               typeName: E
               typeNameOffset: 24
               periodOffset: 25
-            #F7 synthetic const new
+            #F5 synthetic const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F3 synthetic v
+            #F6 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
               returnType: E
-              variable: #F2
-            #F5 synthetic values
+            #F7 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E>
-              variable: #F4
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -748,28 +718,28 @@ library
           getter: <testLibrary>::@enum::E::@getter::v
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F4
+          firstFragment: #F3
           type: List<E>
           constantInitializer
-            fragment: #F4
+            fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         factory named
           reference: <testLibrary>::@enum::E::@constructor::named
-          firstFragment: #F6
+          firstFragment: #F4
         synthetic const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F7
+          firstFragment: #F5
       getters
         synthetic static v
           reference: <testLibrary>::@enum::E::@getter::v
-          firstFragment: #F3
+          firstFragment: #F6
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F5
+          firstFragment: #F7
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
 ''');
@@ -806,8 +776,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F3
-            #F4 synthetic values
+            #F3 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -819,21 +788,18 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-              getter2: #F5
           constructors
-            #F6 factory new
+            #F4 factory new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 24
           getters
-            #F3 synthetic v
+            #F5 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
               returnType: E
-              variable: #F2
-            #F5 synthetic values
+            #F6 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E>
-              variable: #F4
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -850,25 +816,25 @@ library
           getter: <testLibrary>::@enum::E::@getter::v
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F4
+          firstFragment: #F3
           type: List<E>
           constantInitializer
-            fragment: #F4
+            fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         factory new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F6
+          firstFragment: #F4
       getters
         synthetic static v
           reference: <testLibrary>::@enum::E::@getter::v
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F5
+          firstFragment: #F6
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
 ''');
@@ -906,8 +872,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F3
-            #F4 synthetic values
+            #F3 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -919,31 +884,26 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-              getter2: #F5
-            #F6 x @22
+            #F4 x @22
               element: <testLibrary>::@enum::E::@field::x
-              getter2: #F7
           constructors
-            #F8 const new
+            #F5 const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 33
               formalParameters
-                #F9 this.x @44
+                #F6 this.x @44
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
           getters
-            #F3 synthetic v
+            #F7 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
               returnType: E
-              variable: #F2
-            #F5 synthetic values
+            #F8 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E>
-              variable: #F4
-            #F7 synthetic x
+            #F9 synthetic x
               element: <testLibrary>::@enum::E::@getter::x
               returnType: dynamic
-              variable: #F6
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -960,24 +920,24 @@ library
           getter: <testLibrary>::@enum::E::@getter::v
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F4
+          firstFragment: #F3
           type: List<E>
           constantInitializer
-            fragment: #F4
+            fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
         final x
           reference: <testLibrary>::@enum::E::@field::x
-          firstFragment: #F6
+          firstFragment: #F4
           type: dynamic
           getter: <testLibrary>::@enum::E::@getter::x
       constructors
         const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F8
+          firstFragment: #F5
           formalParameters
             requiredPositional final x
-              firstFragment: #F9
+              firstFragment: #F6
               type: int Function(double)
               formalParameters
                 requiredPositional a
@@ -986,17 +946,17 @@ library
       getters
         synthetic static v
           reference: <testLibrary>::@enum::E::@getter::v
-          firstFragment: #F3
+          firstFragment: #F7
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F5
+          firstFragment: #F8
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
         synthetic x
           reference: <testLibrary>::@enum::E::@getter::x
-          firstFragment: #F7
+          firstFragment: #F9
           returnType: dynamic
           variable: <testLibrary>::@enum::E::@field::x
 ''');
@@ -1036,8 +996,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F3
-            #F4 synthetic values
+            #F3 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -1049,38 +1008,31 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-              getter2: #F5
-            #F6 x @26
+            #F4 x @26
               element: <testLibrary>::@enum::E::@field::x::@def::0
-              getter2: #F7
-            #F8 x @44
+            #F5 x @44
               element: <testLibrary>::@enum::E::@field::x::@def::1
-              getter2: #F9
           constructors
-            #F10 const new
+            #F6 const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 55
               formalParameters
-                #F11 this.x @62
+                #F7 this.x @62
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
           getters
-            #F3 synthetic v
+            #F8 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
               returnType: E
-              variable: #F2
-            #F5 synthetic values
+            #F9 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E>
-              variable: #F4
-            #F7 synthetic x
+            #F10 synthetic x
               element: <testLibrary>::@enum::E::@getter::x::@def::0
               returnType: int
-              variable: #F6
-            #F9 synthetic x
+            #F11 synthetic x
               element: <testLibrary>::@enum::E::@getter::x::@def::1
               returnType: String
-              variable: #F8
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -1097,49 +1049,49 @@ library
           getter: <testLibrary>::@enum::E::@getter::v
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F4
+          firstFragment: #F3
           type: List<E>
           constantInitializer
-            fragment: #F4
+            fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
         final x
           reference: <testLibrary>::@enum::E::@field::x::@def::0
-          firstFragment: #F6
+          firstFragment: #F4
           type: int
           getter: <testLibrary>::@enum::E::@getter::x::@def::0
         final x
           reference: <testLibrary>::@enum::E::@field::x::@def::1
-          firstFragment: #F8
+          firstFragment: #F5
           type: String
           getter: <testLibrary>::@enum::E::@getter::x::@def::1
       constructors
         const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F10
+          firstFragment: #F6
           formalParameters
             requiredPositional final hasImplicitType x
-              firstFragment: #F11
+              firstFragment: #F7
               type: int
       getters
         synthetic static v
           reference: <testLibrary>::@enum::E::@getter::v
-          firstFragment: #F3
+          firstFragment: #F8
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F5
+          firstFragment: #F9
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
         synthetic x
           reference: <testLibrary>::@enum::E::@getter::x::@def::0
-          firstFragment: #F7
+          firstFragment: #F10
           returnType: int
           variable: <testLibrary>::@enum::E::@field::x::@def::0
         synthetic x
           reference: <testLibrary>::@enum::E::@getter::x::@def::1
-          firstFragment: #F9
+          firstFragment: #F11
           returnType: String
           variable: <testLibrary>::@enum::E::@field::x::@def::1
 ''');
@@ -1176,8 +1128,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F3
-            #F4 synthetic values
+            #F3 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -1189,24 +1140,21 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-              getter2: #F5
           constructors
-            #F6 const new
+            #F4 const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 22
               formalParameters
-                #F7 this.x @29
+                #F5 this.x @29
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
           getters
-            #F3 synthetic v
+            #F6 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
               returnType: E
-              variable: #F2
-            #F5 synthetic values
+            #F7 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E>
-              variable: #F4
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -1223,29 +1171,29 @@ library
           getter: <testLibrary>::@enum::E::@getter::v
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F4
+          firstFragment: #F3
           type: List<E>
           constantInitializer
-            fragment: #F4
+            fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F6
+          firstFragment: #F4
           formalParameters
             requiredPositional final hasImplicitType x
-              firstFragment: #F7
+              firstFragment: #F5
               type: dynamic
       getters
         synthetic static v
           reference: <testLibrary>::@enum::E::@getter::v
-          firstFragment: #F3
+          firstFragment: #F6
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F5
+          firstFragment: #F7
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
 ''');
@@ -1283,8 +1231,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F3
-            #F4 synthetic values
+            #F3 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -1296,17 +1243,15 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-              getter2: #F5
-            #F6 x @26
+            #F4 x @26
               element: <testLibrary>::@enum::E::@field::x
-              getter2: #F7
           constructors
-            #F8 const new
+            #F5 const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 37
               formalParameters
-                #F9 default this.x @45
+                #F6 default this.x @45
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
                   initializer: expression_2
                     BinaryExpression
@@ -1321,18 +1266,15 @@ library
                       staticInvokeType: num Function(num)
                       staticType: int
           getters
-            #F3 synthetic v
+            #F7 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
               returnType: E
-              variable: #F2
-            #F5 synthetic values
+            #F8 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E>
-              variable: #F4
-            #F7 synthetic x
+            #F9 synthetic x
               element: <testLibrary>::@enum::E::@getter::x
               returnType: int
-              variable: #F6
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -1349,42 +1291,42 @@ library
           getter: <testLibrary>::@enum::E::@getter::v
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F4
+          firstFragment: #F3
           type: List<E>
           constantInitializer
-            fragment: #F4
+            fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
         final x
           reference: <testLibrary>::@enum::E::@field::x
-          firstFragment: #F6
+          firstFragment: #F4
           type: int
           getter: <testLibrary>::@enum::E::@getter::x
       constructors
         const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F8
+          firstFragment: #F5
           formalParameters
             optionalNamed final hasImplicitType x
-              firstFragment: #F9
+              firstFragment: #F6
               type: int
               constantInitializer
-                fragment: #F9
+                fragment: #F6
                 expression: expression_2
       getters
         synthetic static v
           reference: <testLibrary>::@enum::E::@getter::v
-          firstFragment: #F3
+          firstFragment: #F7
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F5
+          firstFragment: #F8
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
         synthetic x
           reference: <testLibrary>::@enum::E::@getter::x
-          firstFragment: #F7
+          firstFragment: #F9
           returnType: int
           variable: <testLibrary>::@enum::E::@field::x
 ''');
@@ -1422,8 +1364,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F3
-            #F4 synthetic values
+            #F3 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -1435,31 +1376,26 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-              getter2: #F5
-            #F6 x @26
+            #F4 x @26
               element: <testLibrary>::@enum::E::@field::x
-              getter2: #F7
           constructors
-            #F8 const new
+            #F5 const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 37
               formalParameters
-                #F9 this.x @48
+                #F6 this.x @48
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
           getters
-            #F3 synthetic v
+            #F7 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
               returnType: E
-              variable: #F2
-            #F5 synthetic values
+            #F8 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E>
-              variable: #F4
-            #F7 synthetic x
+            #F9 synthetic x
               element: <testLibrary>::@enum::E::@getter::x
               returnType: num
-              variable: #F6
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -1476,39 +1412,39 @@ library
           getter: <testLibrary>::@enum::E::@getter::v
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F4
+          firstFragment: #F3
           type: List<E>
           constantInitializer
-            fragment: #F4
+            fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
         final x
           reference: <testLibrary>::@enum::E::@field::x
-          firstFragment: #F6
+          firstFragment: #F4
           type: num
           getter: <testLibrary>::@enum::E::@getter::x
       constructors
         const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F8
+          firstFragment: #F5
           formalParameters
             requiredPositional final x
-              firstFragment: #F9
+              firstFragment: #F6
               type: int
       getters
         synthetic static v
           reference: <testLibrary>::@enum::E::@getter::v
-          firstFragment: #F3
+          firstFragment: #F7
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F5
+          firstFragment: #F8
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
         synthetic x
           reference: <testLibrary>::@enum::E::@getter::x
-          firstFragment: #F7
+          firstFragment: #F9
           returnType: num
           variable: <testLibrary>::@enum::E::@field::x
 ''');
@@ -1546,8 +1482,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F3
-            #F4 synthetic values
+            #F3 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -1559,31 +1494,26 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-              getter2: #F5
-            #F6 x @22
+            #F4 x @22
               element: <testLibrary>::@enum::E::@field::x
-              getter2: #F7
           constructors
-            #F8 new
+            #F5 new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 27
               formalParameters
-                #F9 this.x @38
+                #F6 this.x @38
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
           getters
-            #F3 synthetic v
+            #F7 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
               returnType: E
-              variable: #F2
-            #F5 synthetic values
+            #F8 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E>
-              variable: #F4
-            #F7 synthetic x
+            #F9 synthetic x
               element: <testLibrary>::@enum::E::@getter::x
               returnType: dynamic
-              variable: #F6
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -1600,39 +1530,39 @@ library
           getter: <testLibrary>::@enum::E::@getter::v
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F4
+          firstFragment: #F3
           type: List<E>
           constantInitializer
-            fragment: #F4
+            fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
         final x
           reference: <testLibrary>::@enum::E::@field::x
-          firstFragment: #F6
+          firstFragment: #F4
           type: dynamic
           getter: <testLibrary>::@enum::E::@getter::x
       constructors
         new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F8
+          firstFragment: #F5
           formalParameters
             requiredPositional final x
-              firstFragment: #F9
+              firstFragment: #F6
               type: int
       getters
         synthetic static v
           reference: <testLibrary>::@enum::E::@getter::v
-          firstFragment: #F3
+          firstFragment: #F7
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F5
+          firstFragment: #F8
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
         synthetic x
           reference: <testLibrary>::@enum::E::@getter::x
-          firstFragment: #F7
+          firstFragment: #F9
           returnType: dynamic
           variable: <testLibrary>::@enum::E::@field::x
 ''');
@@ -1670,8 +1600,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F3
-            #F4 synthetic values
+            #F3 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -1683,31 +1612,26 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-              getter2: #F5
-            #F6 x @22
+            #F4 x @22
               element: <testLibrary>::@enum::E::@field::x
-              getter2: #F7
           constructors
-            #F8 new
+            #F5 new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 27
               formalParameters
-                #F9 this.x @34
+                #F6 this.x @34
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
           getters
-            #F3 synthetic v
+            #F7 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
               returnType: E
-              variable: #F2
-            #F5 synthetic values
+            #F8 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E>
-              variable: #F4
-            #F7 synthetic x
+            #F9 synthetic x
               element: <testLibrary>::@enum::E::@getter::x
               returnType: dynamic
-              variable: #F6
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -1724,39 +1648,39 @@ library
           getter: <testLibrary>::@enum::E::@getter::v
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F4
+          firstFragment: #F3
           type: List<E>
           constantInitializer
-            fragment: #F4
+            fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
         final x
           reference: <testLibrary>::@enum::E::@field::x
-          firstFragment: #F6
+          firstFragment: #F4
           type: dynamic
           getter: <testLibrary>::@enum::E::@getter::x
       constructors
         new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F8
+          firstFragment: #F5
           formalParameters
             requiredPositional final hasImplicitType x
-              firstFragment: #F9
+              firstFragment: #F6
               type: dynamic
       getters
         synthetic static v
           reference: <testLibrary>::@enum::E::@getter::v
-          firstFragment: #F3
+          firstFragment: #F7
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F5
+          firstFragment: #F8
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
         synthetic x
           reference: <testLibrary>::@enum::E::@getter::x
-          firstFragment: #F7
+          firstFragment: #F9
           returnType: dynamic
           variable: <testLibrary>::@enum::E::@field::x
 ''');
@@ -1802,8 +1726,7 @@ library
                         staticType: int
                     rightParenthesis: ) @21
                   staticType: E
-              getter2: #F3
-            #F4 synthetic values
+            #F3 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -1815,25 +1738,22 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-              getter2: #F5
           constructors
-            #F6 const named @34
+            #F4 const named @34
               element: <testLibrary>::@enum::E::@constructor::named
               typeName: E
               typeNameOffset: 32
               periodOffset: 33
               formalParameters
-                #F7 a @44
+                #F5 a @44
                   element: <testLibrary>::@enum::E::@constructor::named::@formalParameter::a
           getters
-            #F3 synthetic v
+            #F6 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
               returnType: E
-              variable: #F2
-            #F5 synthetic values
+            #F7 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E>
-              variable: #F4
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -1850,29 +1770,29 @@ library
           getter: <testLibrary>::@enum::E::@getter::v
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F4
+          firstFragment: #F3
           type: List<E>
           constantInitializer
-            fragment: #F4
+            fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         const named
           reference: <testLibrary>::@enum::E::@constructor::named
-          firstFragment: #F6
+          firstFragment: #F4
           formalParameters
             requiredPositional a
-              firstFragment: #F7
+              firstFragment: #F5
               type: int
       getters
         synthetic static v
           reference: <testLibrary>::@enum::E::@getter::v
-          firstFragment: #F3
+          firstFragment: #F6
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F5
+          firstFragment: #F7
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
 ''');
@@ -1913,8 +1833,7 @@ library
                         staticType: int
                     rightParenthesis: ) @15
                   staticType: E
-              getter2: #F3
-            #F4 synthetic values
+            #F3 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -1926,24 +1845,21 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-              getter2: #F5
           constructors
-            #F6 const new
+            #F4 const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 26
               formalParameters
-                #F7 a @32
+                #F5 a @32
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::a
           getters
-            #F3 synthetic v
+            #F6 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
               returnType: E
-              variable: #F2
-            #F5 synthetic values
+            #F7 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E>
-              variable: #F4
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -1960,29 +1876,29 @@ library
           getter: <testLibrary>::@enum::E::@getter::v
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F4
+          firstFragment: #F3
           type: List<E>
           constantInitializer
-            fragment: #F4
+            fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F6
+          firstFragment: #F4
           formalParameters
             requiredPositional a
-              firstFragment: #F7
+              firstFragment: #F5
               type: int
       getters
         synthetic static v
           reference: <testLibrary>::@enum::E::@getter::v
-          firstFragment: #F3
+          firstFragment: #F6
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F5
+          firstFragment: #F7
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
 ''');
@@ -2025,8 +1941,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E<dynamic>
-              getter2: #F4
-            #F5 synthetic values
+            #F4 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -2038,31 +1953,26 @@ library
                       staticType: E<dynamic>
                   rightBracket: ] @0
                   staticType: List<E<dynamic>>
-              getter2: #F6
-            #F7 x @29
+            #F5 x @29
               element: <testLibrary>::@enum::E::@field::x
-              getter2: #F8
           constructors
-            #F9 const new
+            #F6 const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 40
               formalParameters
-                #F10 a @45
+                #F7 a @45
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::a
           getters
-            #F4 synthetic v
+            #F8 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
               returnType: E<dynamic>
-              variable: #F3
-            #F6 synthetic values
+            #F9 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E<dynamic>>
-              variable: #F5
-            #F8 synthetic x
+            #F10 synthetic x
               element: <testLibrary>::@enum::E::@getter::x
               returnType: int
-              variable: #F7
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -2082,24 +1992,24 @@ library
           getter: <testLibrary>::@enum::E::@getter::v
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F5
+          firstFragment: #F4
           type: List<E<dynamic>>
           constantInitializer
-            fragment: #F5
+            fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
         final x
           reference: <testLibrary>::@enum::E::@field::x
-          firstFragment: #F7
+          firstFragment: #F5
           type: int
           getter: <testLibrary>::@enum::E::@getter::x
       constructors
         const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F9
+          firstFragment: #F6
           formalParameters
             requiredPositional a
-              firstFragment: #F10
+              firstFragment: #F7
               type: T?
           constantInitializers
             AssertInitializer
@@ -2129,17 +2039,17 @@ library
       getters
         synthetic static v
           reference: <testLibrary>::@enum::E::@getter::v
-          firstFragment: #F4
+          firstFragment: #F8
           returnType: E<dynamic>
           variable: <testLibrary>::@enum::E::@field::v
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F6
+          firstFragment: #F9
           returnType: List<E<dynamic>>
           variable: <testLibrary>::@enum::E::@field::values
         synthetic x
           reference: <testLibrary>::@enum::E::@getter::x
-          firstFragment: #F8
+          firstFragment: #F10
           returnType: int
           variable: <testLibrary>::@enum::E::@field::x
 ''');
@@ -2176,8 +2086,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F3
-            #F4 synthetic values
+            #F3 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -2189,20 +2098,17 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-              getter2: #F5
           constructors
-            #F6 synthetic const new
+            #F4 synthetic const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F3 synthetic v
+            #F5 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
               returnType: E
-              variable: #F2
-            #F5 synthetic values
+            #F6 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E>
-              variable: #F4
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -2220,25 +2126,25 @@ library
           getter: <testLibrary>::@enum::E::@getter::v
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F4
+          firstFragment: #F3
           type: List<E>
           constantInitializer
-            fragment: #F4
+            fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         synthetic const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F6
+          firstFragment: #F4
       getters
         synthetic static v
           reference: <testLibrary>::@enum::E::@getter::v
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F5
+          firstFragment: #F6
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
 ''');
@@ -2275,8 +2181,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F3
-            #F4 synthetic values
+            #F3 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -2288,31 +2193,26 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-              getter2: #F5
-            #F6 hasInitializer foo @22
+            #F4 hasInitializer foo @22
               element: <testLibrary>::@enum::E::@field::foo
               initializer: expression_2
                 IntegerLiteral
                   literal: 42 @28
                   staticType: int
-              getter2: #F7
           constructors
-            #F8 synthetic const new
+            #F5 synthetic const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F3 synthetic v
+            #F6 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
               returnType: E
-              variable: #F2
-            #F5 synthetic values
+            #F7 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E>
-              variable: #F4
-            #F7 synthetic foo
+            #F8 synthetic foo
               element: <testLibrary>::@enum::E::@getter::foo
               returnType: int
-              variable: #F6
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -2329,38 +2229,38 @@ library
           getter: <testLibrary>::@enum::E::@getter::v
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F4
+          firstFragment: #F3
           type: List<E>
           constantInitializer
-            fragment: #F4
+            fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
         final hasInitializer foo
           reference: <testLibrary>::@enum::E::@field::foo
-          firstFragment: #F6
+          firstFragment: #F4
           type: int
           constantInitializer
-            fragment: #F6
+            fragment: #F4
             expression: expression_2
           getter: <testLibrary>::@enum::E::@getter::foo
       constructors
         synthetic const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F8
+          firstFragment: #F5
       getters
         synthetic static v
           reference: <testLibrary>::@enum::E::@getter::v
-          firstFragment: #F3
+          firstFragment: #F6
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F5
+          firstFragment: #F7
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
         synthetic foo
           reference: <testLibrary>::@enum::E::@getter::foo
-          firstFragment: #F7
+          firstFragment: #F8
           returnType: int
           variable: <testLibrary>::@enum::E::@field::foo
 ''');
@@ -2423,8 +2323,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F3
-            #F4 synthetic values
+            #F3 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -2436,27 +2335,22 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-              getter2: #F5
-            #F6 synthetic foo
+            #F4 synthetic foo
               element: <testLibrary>::@enum::E::@field::foo
-              getter2: #F7
           constructors
-            #F8 synthetic const new
+            #F5 synthetic const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F3 synthetic v
+            #F6 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
               returnType: E
-              variable: #F2
-            #F5 synthetic values
+            #F7 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E>
-              variable: #F4
-            #F7 foo @23
+            #F8 foo @23
               element: <testLibrary>::@enum::E::@getter::foo
               returnType: int
-              variable: #F6
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -2473,35 +2367,35 @@ library
           getter: <testLibrary>::@enum::E::@getter::v
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F4
+          firstFragment: #F3
           type: List<E>
           constantInitializer
-            fragment: #F4
+            fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
         synthetic foo
           reference: <testLibrary>::@enum::E::@field::foo
-          firstFragment: #F6
+          firstFragment: #F4
           type: int
           getter: <testLibrary>::@enum::E::@getter::foo
       constructors
         synthetic const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F8
+          firstFragment: #F5
       getters
         synthetic static v
           reference: <testLibrary>::@enum::E::@getter::v
-          firstFragment: #F3
+          firstFragment: #F6
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F5
+          firstFragment: #F7
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
         foo
           reference: <testLibrary>::@enum::E::@getter::foo
-          firstFragment: #F7
+          firstFragment: #F8
           returnType: int
           variable: <testLibrary>::@enum::E::@field::foo
 ''');
@@ -2545,8 +2439,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F5
-            #F6 synthetic values
+            #F5 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -2558,20 +2451,17 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-              getter2: #F7
           constructors
-            #F8 synthetic const new
+            #F6 synthetic const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 synthetic v
+            #F7 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
               returnType: E
-              variable: #F4
-            #F7 synthetic values
+            #F8 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E>
-              variable: #F6
   classes
     class I
       reference: <testLibrary>::@class::I
@@ -2598,25 +2488,25 @@ library
           getter: <testLibrary>::@enum::E::@getter::v
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F6
+          firstFragment: #F5
           type: List<E>
           constantInitializer
-            fragment: #F6
+            fragment: #F5
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         synthetic const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F8
+          firstFragment: #F6
       getters
         synthetic static v
           reference: <testLibrary>::@enum::E::@getter::v
-          firstFragment: #F5
+          firstFragment: #F7
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F7
+          firstFragment: #F8
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
 ''');
@@ -2661,8 +2551,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F5
-            #F6 synthetic values
+            #F5 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -2674,28 +2563,23 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-              getter2: #F7
           getters
-            #F5 synthetic v
+            #F6 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
               returnType: E
-              variable: #F4
             #F7 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E>
-              variable: #F6
       extensionTypes
         #F8 extension type B @26
           element: <testLibrary>::@extensionType::B
           fields
             #F9 it @32
               element: <testLibrary>::@extensionType::B::@field::it
-              getter2: #F10
           getters
             #F10 synthetic it
               element: <testLibrary>::@extensionType::B::@getter::it
               returnType: int
-              variable: #F9
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -2722,16 +2606,16 @@ library
           getter: <testLibrary>::@enum::E::@getter::v
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F6
+          firstFragment: #F5
           type: List<E>
           constantInitializer
-            fragment: #F6
+            fragment: #F5
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
       getters
         synthetic static v
           reference: <testLibrary>::@enum::E::@getter::v
-          firstFragment: #F5
+          firstFragment: #F6
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
         synthetic static values
@@ -2807,8 +2691,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E<dynamic>
-              getter2: #F7
-            #F8 synthetic values
+            #F7 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -2820,20 +2703,17 @@ library
                       staticType: E<dynamic>
                   rightBracket: ] @0
                   staticType: List<E<dynamic>>
-              getter2: #F9
           constructors
-            #F10 synthetic const new
+            #F8 synthetic const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F7 synthetic v
+            #F9 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
               returnType: E<dynamic>
-              variable: #F6
-            #F9 synthetic values
+            #F10 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E<dynamic>>
-              variable: #F8
   classes
     class I
       reference: <testLibrary>::@class::I
@@ -2866,25 +2746,25 @@ library
           getter: <testLibrary>::@enum::E::@getter::v
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F8
+          firstFragment: #F7
           type: List<E<dynamic>>
           constantInitializer
-            fragment: #F8
+            fragment: #F7
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         synthetic const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F10
+          firstFragment: #F8
       getters
         synthetic static v
           reference: <testLibrary>::@enum::E::@getter::v
-          firstFragment: #F7
+          firstFragment: #F9
           returnType: E<dynamic>
           variable: <testLibrary>::@enum::E::@field::v
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F9
+          firstFragment: #F10
           returnType: List<E<dynamic>>
           variable: <testLibrary>::@enum::E::@field::values
 ''');
@@ -2935,8 +2815,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F7
-            #F8 synthetic values
+            #F7 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -2948,20 +2827,17 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-              getter2: #F9
           constructors
-            #F10 synthetic const new
+            #F8 synthetic const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F7 synthetic v
+            #F9 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
               returnType: E
-              variable: #F6
-            #F9 synthetic values
+            #F10 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E>
-              variable: #F8
   classes
     class X
       reference: <testLibrary>::@class::X
@@ -2996,25 +2872,25 @@ library
           getter: <testLibrary>::@enum::E::@getter::v
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F8
+          firstFragment: #F7
           type: List<E>
           constantInitializer
-            fragment: #F8
+            fragment: #F7
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         synthetic const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F10
+          firstFragment: #F8
       getters
         synthetic static v
           reference: <testLibrary>::@enum::E::@getter::v
-          firstFragment: #F7
+          firstFragment: #F9
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F9
+          firstFragment: #F10
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
 ''');
@@ -3056,8 +2932,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E<dynamic>
-              getter2: #F4
-            #F5 synthetic values
+            #F4 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -3069,20 +2944,17 @@ library
                       staticType: E<dynamic>
                   rightBracket: ] @0
                   staticType: List<E<dynamic>>
-              getter2: #F6
           constructors
-            #F7 synthetic const new
+            #F5 synthetic const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F4 synthetic v
+            #F6 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
               returnType: E<dynamic>
-              variable: #F3
-            #F6 synthetic values
+            #F7 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E<dynamic>>
-              variable: #F5
           methods
             #F8 foo @23
               element: <testLibrary>::@enum::E::@method::foo
@@ -3113,25 +2985,25 @@ library
           getter: <testLibrary>::@enum::E::@getter::v
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F5
+          firstFragment: #F4
           type: List<E<dynamic>>
           constantInitializer
-            fragment: #F5
+            fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         synthetic const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F7
+          firstFragment: #F5
       getters
         synthetic static v
           reference: <testLibrary>::@enum::E::@getter::v
-          firstFragment: #F4
+          firstFragment: #F6
           returnType: E<dynamic>
           variable: <testLibrary>::@enum::E::@field::v
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F6
+          firstFragment: #F7
           returnType: List<E<dynamic>>
           variable: <testLibrary>::@enum::E::@field::values
       methods
@@ -3184,8 +3056,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F3
-            #F4 synthetic values
+            #F3 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -3197,20 +3068,17 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-              getter2: #F5
           constructors
-            #F6 synthetic const new
+            #F4 synthetic const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F3 synthetic v
+            #F5 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
               returnType: E
-              variable: #F2
-            #F5 synthetic values
+            #F6 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E>
-              variable: #F4
           methods
             #F7 toString @23
               element: <testLibrary>::@enum::E::@method::toString
@@ -3230,25 +3098,25 @@ library
           getter: <testLibrary>::@enum::E::@getter::v
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F4
+          firstFragment: #F3
           type: List<E>
           constantInitializer
-            fragment: #F4
+            fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         synthetic const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F6
+          firstFragment: #F4
       getters
         synthetic static v
           reference: <testLibrary>::@enum::E::@getter::v
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F5
+          firstFragment: #F6
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
       methods
@@ -3287,8 +3155,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: InvalidType
-              getter2: #F3
-            #F4 synthetic values
+            #F3 synthetic values
               element: <testLibrary>::@enum::0::@field::values
               initializer: expression_1
                 ListLiteral
@@ -3300,20 +3167,17 @@ library
                       staticType: InvalidType
                   rightBracket: ] @0
                   staticType: List<<null>>
-              getter2: #F5
           constructors
-            #F6 synthetic const new
+            #F4 synthetic const new
               element: <testLibrary>::@enum::0::@constructor::new
               typeName: null
           getters
-            #F3 synthetic v
+            #F5 synthetic v
               element: <testLibrary>::@enum::0::@getter::v
               returnType: InvalidType
-              variable: #F2
-            #F5 synthetic values
+            #F6 synthetic values
               element: <testLibrary>::@enum::0::@getter::values
               returnType: List<<null>>
-              variable: #F4
   enums
     enum <null-name>
       reference: <testLibrary>::@enum::0
@@ -3330,25 +3194,25 @@ library
           getter: <testLibrary>::@enum::0::@getter::v
         synthetic static const values
           reference: <testLibrary>::@enum::0::@field::values
-          firstFragment: #F4
+          firstFragment: #F3
           type: List<<null>>
           constantInitializer
-            fragment: #F4
+            fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::0::@getter::values
       constructors
         synthetic const new
           reference: <testLibrary>::@enum::0::@constructor::new
-          firstFragment: #F6
+          firstFragment: #F4
       getters
         synthetic static v
           reference: <testLibrary>::@enum::0::@getter::v
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: InvalidType
           variable: <testLibrary>::@enum::0::@field::v
         synthetic static values
           reference: <testLibrary>::@enum::0::@getter::values
-          firstFragment: #F5
+          firstFragment: #F6
           returnType: List<<null>>
           variable: <testLibrary>::@enum::0::@field::values
 ''');
@@ -3385,8 +3249,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F3
-            #F4 synthetic values
+            #F3 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -3398,20 +3261,17 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-              getter2: #F5
           constructors
-            #F6 synthetic const new
+            #F4 synthetic const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F3 synthetic v
+            #F5 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
               returnType: E
-              variable: #F2
-            #F5 synthetic values
+            #F6 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E>
-              variable: #F4
       mixins
         #F7 mixin M @6
           element: <testLibrary>::@mixin::M
@@ -3433,25 +3293,25 @@ library
           getter: <testLibrary>::@enum::E::@getter::v
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F4
+          firstFragment: #F3
           type: List<E>
           constantInitializer
-            fragment: #F4
+            fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         synthetic const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F6
+          firstFragment: #F4
       getters
         synthetic static v
           reference: <testLibrary>::@enum::E::@getter::v
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F5
+          firstFragment: #F6
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
   mixins
@@ -3502,8 +3362,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F5
-            #F6 synthetic values
+            #F5 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -3515,28 +3374,23 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-              getter2: #F7
           getters
-            #F5 synthetic v
+            #F6 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
               returnType: E
-              variable: #F4
             #F7 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E>
-              variable: #F6
       extensionTypes
         #F8 extension type B @26
           element: <testLibrary>::@extensionType::B
           fields
             #F9 it @32
               element: <testLibrary>::@extensionType::B::@field::it
-              getter2: #F10
           getters
             #F10 synthetic it
               element: <testLibrary>::@extensionType::B::@getter::it
               returnType: int
-              variable: #F9
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -3563,16 +3417,16 @@ library
           getter: <testLibrary>::@enum::E::@getter::v
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F6
+          firstFragment: #F5
           type: List<E>
           constantInitializer
-            fragment: #F6
+            fragment: #F5
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
       getters
         synthetic static v
           reference: <testLibrary>::@enum::E::@getter::v
-          firstFragment: #F5
+          firstFragment: #F6
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
         synthetic static values
@@ -3634,8 +3488,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F3
-            #F4 synthetic values
+            #F3 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -3647,20 +3500,17 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-              getter2: #F5
           constructors
-            #F6 synthetic const new
+            #F4 synthetic const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F3 synthetic v
+            #F5 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
               returnType: E
-              variable: #F2
-            #F5 synthetic values
+            #F6 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E>
-              variable: #F4
       mixins
         #F7 mixin M1 @6
           element: <testLibrary>::@mixin::M1
@@ -3691,25 +3541,25 @@ library
           getter: <testLibrary>::@enum::E::@getter::v
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F4
+          firstFragment: #F3
           type: List<E>
           constantInitializer
-            fragment: #F4
+            fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         synthetic const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F6
+          firstFragment: #F4
       getters
         synthetic static v
           reference: <testLibrary>::@enum::E::@getter::v
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F5
+          firstFragment: #F6
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
   mixins
@@ -3763,8 +3613,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F3
-            #F4 synthetic values
+            #F3 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -3776,25 +3625,21 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-              getter2: #F5
-            #F6 synthetic foo
+            #F4 synthetic foo
               element: <testLibrary>::@enum::E::@field::foo
-              setter2: #F7
           constructors
-            #F8 synthetic const new
+            #F5 synthetic const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F3 synthetic v
+            #F6 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
               returnType: E
-              variable: #F2
-            #F5 synthetic values
+            #F7 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E>
-              variable: #F4
           setters
-            #F7 foo @19
+            #F8 foo @19
               element: <testLibrary>::@enum::E::@setter::foo
               formalParameters
                 #F9 _ @27
@@ -3815,36 +3660,36 @@ library
           getter: <testLibrary>::@enum::E::@getter::v
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F4
+          firstFragment: #F3
           type: List<E>
           constantInitializer
-            fragment: #F4
+            fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
         synthetic foo
           reference: <testLibrary>::@enum::E::@field::foo
-          firstFragment: #F6
+          firstFragment: #F4
           type: int
           setter: <testLibrary>::@enum::E::@setter::foo
       constructors
         synthetic const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F8
+          firstFragment: #F5
       getters
         synthetic static v
           reference: <testLibrary>::@enum::E::@getter::v
-          firstFragment: #F3
+          firstFragment: #F6
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F5
+          firstFragment: #F7
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
       setters
         foo
           reference: <testLibrary>::@enum::E::@setter::foo
-          firstFragment: #F7
+          firstFragment: #F8
           formalParameters
             requiredPositional _
               firstFragment: #F9
@@ -3888,8 +3733,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E<dynamic>
-              getter2: #F4
-            #F5 synthetic values
+            #F4 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -3901,20 +3745,17 @@ library
                       staticType: E<dynamic>
                   rightBracket: ] @0
                   staticType: List<E<dynamic>>
-              getter2: #F6
           constructors
-            #F7 synthetic const new
+            #F5 synthetic const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F4 synthetic v
+            #F6 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
               returnType: E<dynamic>
-              variable: #F3
-            #F6 synthetic values
+            #F7 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E<dynamic>>
-              variable: #F5
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -3934,25 +3775,25 @@ library
           getter: <testLibrary>::@enum::E::@getter::v
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F5
+          firstFragment: #F4
           type: List<E<dynamic>>
           constantInitializer
-            fragment: #F5
+            fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         synthetic const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F7
+          firstFragment: #F5
       getters
         synthetic static v
           reference: <testLibrary>::@enum::E::@getter::v
-          firstFragment: #F4
+          firstFragment: #F6
           returnType: E<dynamic>
           variable: <testLibrary>::@enum::E::@field::v
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F6
+          firstFragment: #F7
           returnType: List<E<dynamic>>
           variable: <testLibrary>::@enum::E::@field::values
 ''');
@@ -3995,8 +3836,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E<num, num>
-              getter2: #F5
-            #F6 synthetic values
+            #F5 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -4008,20 +3848,17 @@ library
                       staticType: E<num, num>
                   rightBracket: ] @0
                   staticType: List<E<num, num>>
-              getter2: #F7
           constructors
-            #F8 synthetic const new
+            #F6 synthetic const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 synthetic v
+            #F7 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
               returnType: E<num, num>
-              variable: #F4
-            #F7 synthetic values
+            #F8 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E<num, num>>
-              variable: #F6
   enums
     notSimplyBounded enum E
       reference: <testLibrary>::@enum::E
@@ -4045,25 +3882,25 @@ library
           getter: <testLibrary>::@enum::E::@getter::v
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F6
+          firstFragment: #F5
           type: List<E<num, num>>
           constantInitializer
-            fragment: #F6
+            fragment: #F5
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         synthetic const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F8
+          firstFragment: #F6
       getters
         synthetic static v
           reference: <testLibrary>::@enum::E::@getter::v
-          firstFragment: #F5
+          firstFragment: #F7
           returnType: E<num, num>
           variable: <testLibrary>::@enum::E::@field::v
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F7
+          firstFragment: #F8
           returnType: List<E<num, num>>
           variable: <testLibrary>::@enum::E::@field::values
 ''');
@@ -4093,16 +3930,14 @@ library
                   leftBracket: [ @0
                   rightBracket: ] @0
                   staticType: List<E<dynamic>>
-              getter2: #F4
           constructors
-            #F5 synthetic const new
+            #F4 synthetic const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F4 synthetic values
+            #F5 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E<dynamic>>
-              variable: #F3
   enums
     notSimplyBounded enum E
       reference: <testLibrary>::@enum::E
@@ -4124,11 +3959,11 @@ library
       constructors
         synthetic const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F4
       getters
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F4
+          firstFragment: #F5
           returnType: List<E<dynamic>>
           variable: <testLibrary>::@enum::E::@field::values
 ''');
@@ -4162,16 +3997,14 @@ library
                   leftBracket: [ @0
                   rightBracket: ] @0
                   staticType: List<E<dynamic, num, dynamic>>
-              getter2: #F6
           constructors
-            #F7 synthetic const new
+            #F6 synthetic const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F6 synthetic values
+            #F7 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E<dynamic, num, dynamic>>
-              variable: #F5
   enums
     notSimplyBounded enum E
       reference: <testLibrary>::@enum::E
@@ -4199,11 +4032,11 @@ library
       constructors
         synthetic const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F7
+          firstFragment: #F6
       getters
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F6
+          firstFragment: #F7
           returnType: List<E<dynamic, num, dynamic>>
           variable: <testLibrary>::@enum::E::@field::values
 ''');
@@ -4233,16 +4066,14 @@ library
                   leftBracket: [ @0
                   rightBracket: ] @0
                   staticType: List<E<dynamic>>
-              getter2: #F4
           constructors
-            #F5 synthetic const new
+            #F4 synthetic const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F4 synthetic values
+            #F5 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E<dynamic>>
-              variable: #F3
   enums
     notSimplyBounded enum E
       reference: <testLibrary>::@enum::E
@@ -4264,11 +4095,11 @@ library
       constructors
         synthetic const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F4
       getters
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F4
+          firstFragment: #F5
           returnType: List<E<dynamic>>
           variable: <testLibrary>::@enum::E::@field::values
 ''');
@@ -4298,16 +4129,14 @@ library
                   leftBracket: [ @0
                   rightBracket: ] @0
                   staticType: List<E<dynamic>>
-              getter2: #F4
           constructors
-            #F5 synthetic const new
+            #F4 synthetic const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F4 synthetic values
+            #F5 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E<dynamic>>
-              variable: #F3
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -4328,11 +4157,11 @@ library
       constructors
         synthetic const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F4
       getters
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F4
+          firstFragment: #F5
           returnType: List<E<dynamic>>
           variable: <testLibrary>::@enum::E::@field::values
 ''');
@@ -4362,16 +4191,14 @@ library
                   leftBracket: [ @0
                   rightBracket: ] @0
                   staticType: List<E<dynamic>>
-              getter2: #F4
           constructors
-            #F5 synthetic const new
+            #F4 synthetic const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F4 synthetic values
+            #F5 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E<dynamic>>
-              variable: #F3
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -4392,11 +4219,11 @@ library
       constructors
         synthetic const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F4
       getters
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F4
+          firstFragment: #F5
           returnType: List<E<dynamic>>
           variable: <testLibrary>::@enum::E::@field::values
 ''');
@@ -4426,16 +4253,14 @@ library
                   leftBracket: [ @0
                   rightBracket: ] @0
                   staticType: List<E<dynamic>>
-              getter2: #F4
           constructors
-            #F5 synthetic const new
+            #F4 synthetic const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F4 synthetic values
+            #F5 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E<dynamic>>
-              variable: #F3
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -4456,11 +4281,11 @@ library
       constructors
         synthetic const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F4
       getters
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F4
+          firstFragment: #F5
           returnType: List<E<dynamic>>
           variable: <testLibrary>::@enum::E::@field::values
 ''');
@@ -4494,16 +4319,14 @@ library
                   leftBracket: [ @0
                   rightBracket: ] @0
                   staticType: List<E<dynamic, dynamic, dynamic>>
-              getter2: #F6
           constructors
-            #F7 synthetic const new
+            #F6 synthetic const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F6 synthetic values
+            #F7 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E<dynamic, dynamic, dynamic>>
-              variable: #F5
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -4528,11 +4351,11 @@ library
       constructors
         synthetic const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F7
+          firstFragment: #F6
       getters
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F6
+          firstFragment: #F7
           returnType: List<E<dynamic, dynamic, dynamic>>
           variable: <testLibrary>::@enum::E::@field::values
 ''');
@@ -4572,8 +4395,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F3
-            #F4 hasInitializer b @47
+            #F3 hasInitializer b @47
               element: <testLibrary>::@enum::E::@field::b
               initializer: expression_1
                 InstanceCreationExpression
@@ -4587,8 +4409,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F5
-            #F6 synthetic values
+            #F4 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_2
                 ListLiteral
@@ -4604,24 +4425,20 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-              getter2: #F7
           constructors
-            #F8 synthetic const new
+            #F5 synthetic const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F3 synthetic a
+            #F6 synthetic a
               element: <testLibrary>::@enum::E::@getter::a
               returnType: E
-              variable: #F2
-            #F5 synthetic b
+            #F7 synthetic b
               element: <testLibrary>::@enum::E::@getter::b
               returnType: E
-              variable: #F4
-            #F7 synthetic values
+            #F8 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E>
-              variable: #F6
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -4638,38 +4455,38 @@ library
           getter: <testLibrary>::@enum::E::@getter::a
         static const enumConstant hasInitializer b
           reference: <testLibrary>::@enum::E::@field::b
-          firstFragment: #F4
+          firstFragment: #F3
           type: E
           constantInitializer
-            fragment: #F4
+            fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::b
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F6
+          firstFragment: #F4
           type: List<E>
           constantInitializer
-            fragment: #F6
+            fragment: #F4
             expression: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         synthetic const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F8
+          firstFragment: #F5
       getters
         synthetic static a
           reference: <testLibrary>::@enum::E::@getter::a
-          firstFragment: #F3
+          firstFragment: #F6
           returnType: E
           variable: <testLibrary>::@enum::E::@field::a
         synthetic static b
           reference: <testLibrary>::@enum::E::@getter::b
-          firstFragment: #F5
+          firstFragment: #F7
           returnType: E
           variable: <testLibrary>::@enum::E::@field::b
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F7
+          firstFragment: #F8
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
 ''');
@@ -4714,8 +4531,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F3
-            #F4 hasInitializer b @75
+            #F3 hasInitializer b @75
               element: <testLibrary>::@enum::E::@field::b
               initializer: expression_1
                 InstanceCreationExpression
@@ -4729,8 +4545,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F5
-            #F6 synthetic values
+            #F4 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_2
                 ListLiteral
@@ -4746,24 +4561,20 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-              getter2: #F7
           constructors
-            #F8 synthetic const new
+            #F5 synthetic const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F3 synthetic a
+            #F6 synthetic a
               element: <testLibrary>::@enum::E::@getter::a
               returnType: E
-              variable: #F2
-            #F5 synthetic b
+            #F7 synthetic b
               element: <testLibrary>::@enum::E::@getter::b
               returnType: E
-              variable: #F4
-            #F7 synthetic values
+            #F8 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E>
-              variable: #F6
       topLevelVariables
         #F9 hasInitializer annotation @91
           element: <testLibrary>::@topLevelVariable::annotation
@@ -4771,12 +4582,10 @@ library
             IntegerLiteral
               literal: 0 @104
               staticType: int
-          getter: #F10
       getters
         #F10 synthetic annotation
           element: <testLibrary>::@getter::annotation
           returnType: int
-          variable: #F9
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -4793,38 +4602,38 @@ library
           getter: <testLibrary>::@enum::E::@getter::a
         static const enumConstant hasInitializer b
           reference: <testLibrary>::@enum::E::@field::b
-          firstFragment: #F4
+          firstFragment: #F3
           type: E
           constantInitializer
-            fragment: #F4
+            fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::b
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F6
+          firstFragment: #F4
           type: List<E>
           constantInitializer
-            fragment: #F6
+            fragment: #F4
             expression: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         synthetic const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F8
+          firstFragment: #F5
       getters
         synthetic static a
           reference: <testLibrary>::@enum::E::@getter::a
-          firstFragment: #F3
+          firstFragment: #F6
           returnType: E
           variable: <testLibrary>::@enum::E::@field::a
         synthetic static b
           reference: <testLibrary>::@enum::E::@getter::b
-          firstFragment: #F5
+          firstFragment: #F7
           returnType: E
           variable: <testLibrary>::@enum::E::@field::b
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F7
+          firstFragment: #F8
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
   topLevelVariables
@@ -4873,8 +4682,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F3
-            #F4 hasInitializer <null-name> (offset=10)
+            #F3 hasInitializer <null-name> (offset=10)
               element: <testLibrary>::@enum::E::@field::0
               initializer: expression_1
                 InstanceCreationExpression
@@ -4888,8 +4696,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F5
-            #F6 synthetic values
+            #F4 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_2
                 ListLiteral
@@ -4905,24 +4712,20 @@ library
                       staticType: InvalidType
                   rightBracket: ] @0
                   staticType: List<E>
-              getter2: #F7
           constructors
-            #F8 synthetic const new
+            #F5 synthetic const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F3 synthetic v
+            #F6 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
               returnType: E
-              variable: #F2
-            #F5 synthetic <null-name>
+            #F7 synthetic <null-name>
               element: <testLibrary>::@enum::E::@getter::1
               returnType: E
-              variable: #F4
-            #F7 synthetic values
+            #F8 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E>
-              variable: #F6
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -4939,38 +4742,38 @@ library
           getter: <testLibrary>::@enum::E::@getter::v
         static const enumConstant hasInitializer <null-name>
           reference: <testLibrary>::@enum::E::@field::0
-          firstFragment: #F4
+          firstFragment: #F3
           type: E
           constantInitializer
-            fragment: #F4
+            fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::1
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F6
+          firstFragment: #F4
           type: List<E>
           constantInitializer
-            fragment: #F6
+            fragment: #F4
             expression: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         synthetic const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F8
+          firstFragment: #F5
       getters
         synthetic static v
           reference: <testLibrary>::@enum::E::@getter::v
-          firstFragment: #F3
+          firstFragment: #F6
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
         synthetic static <null-name>
           reference: <testLibrary>::@enum::E::@getter::1
-          firstFragment: #F5
+          firstFragment: #F7
           returnType: E
           variable: <testLibrary>::@enum::E::@field::0
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F7
+          firstFragment: #F8
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
 ''');
@@ -5002,8 +4805,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F3
-            #F4 hasInitializer v2 @13
+            #F3 hasInitializer v2 @13
               element: <testLibrary>::@enum::E::@field::v2
               initializer: expression_1
                 InstanceCreationExpression
@@ -5017,8 +4819,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F5
-            #F6 synthetic values
+            #F4 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_2
                 ListLiteral
@@ -5034,24 +4835,20 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-              getter2: #F7
           constructors
-            #F8 synthetic const new
+            #F5 synthetic const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F3 synthetic v1
+            #F6 synthetic v1
               element: <testLibrary>::@enum::E::@getter::v1
               returnType: E
-              variable: #F2
-            #F5 synthetic v2
+            #F7 synthetic v2
               element: <testLibrary>::@enum::E::@getter::v2
               returnType: E
-              variable: #F4
-            #F7 synthetic values
+            #F8 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E>
-              variable: #F6
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -5068,38 +4865,38 @@ library
           getter: <testLibrary>::@enum::E::@getter::v1
         static const enumConstant hasInitializer v2
           reference: <testLibrary>::@enum::E::@field::v2
-          firstFragment: #F4
+          firstFragment: #F3
           type: E
           constantInitializer
-            fragment: #F4
+            fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::v2
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F6
+          firstFragment: #F4
           type: List<E>
           constantInitializer
-            fragment: #F6
+            fragment: #F4
             expression: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         synthetic const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F8
+          firstFragment: #F5
       getters
         synthetic static v1
           reference: <testLibrary>::@enum::E::@getter::v1
-          firstFragment: #F3
+          firstFragment: #F6
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v1
         synthetic static v2
           reference: <testLibrary>::@enum::E::@getter::v2
-          firstFragment: #F5
+          firstFragment: #F7
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v2
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F7
+          firstFragment: #F8
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
 ''');
@@ -5131,8 +4928,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E1
-              getter2: #F3
-            #F4 synthetic values
+            #F3 synthetic values
               element: <testLibrary>::@enum::E1::@field::values
               initializer: expression_1
                 ListLiteral
@@ -5144,20 +4940,17 @@ library
                       staticType: E1
                   rightBracket: ] @0
                   staticType: List<E1>
-              getter2: #F5
           constructors
-            #F6 synthetic const new
+            #F4 synthetic const new
               element: <testLibrary>::@enum::E1::@constructor::new
               typeName: E1
           getters
-            #F3 synthetic v1
+            #F5 synthetic v1
               element: <testLibrary>::@enum::E1::@getter::v1
               returnType: E1
-              variable: #F2
-            #F5 synthetic values
+            #F6 synthetic values
               element: <testLibrary>::@enum::E1::@getter::values
               returnType: List<E1>
-              variable: #F4
         #F7 enum E2 @20
           element: <testLibrary>::@enum::E2
           fields
@@ -5175,8 +4968,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E2
-              getter2: #F9
-            #F10 synthetic values
+            #F9 synthetic values
               element: <testLibrary>::@enum::E2::@field::values
               initializer: expression_3
                 ListLiteral
@@ -5188,20 +4980,17 @@ library
                       staticType: E2
                   rightBracket: ] @0
                   staticType: List<E2>
-              getter2: #F11
           constructors
-            #F12 synthetic const new
+            #F10 synthetic const new
               element: <testLibrary>::@enum::E2::@constructor::new
               typeName: E2
           getters
-            #F9 synthetic v2
+            #F11 synthetic v2
               element: <testLibrary>::@enum::E2::@getter::v2
               returnType: E2
-              variable: #F8
-            #F11 synthetic values
+            #F12 synthetic values
               element: <testLibrary>::@enum::E2::@getter::values
               returnType: List<E2>
-              variable: #F10
   enums
     enum E1
       reference: <testLibrary>::@enum::E1
@@ -5218,25 +5007,25 @@ library
           getter: <testLibrary>::@enum::E1::@getter::v1
         synthetic static const values
           reference: <testLibrary>::@enum::E1::@field::values
-          firstFragment: #F4
+          firstFragment: #F3
           type: List<E1>
           constantInitializer
-            fragment: #F4
+            fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E1::@getter::values
       constructors
         synthetic const new
           reference: <testLibrary>::@enum::E1::@constructor::new
-          firstFragment: #F6
+          firstFragment: #F4
       getters
         synthetic static v1
           reference: <testLibrary>::@enum::E1::@getter::v1
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: E1
           variable: <testLibrary>::@enum::E1::@field::v1
         synthetic static values
           reference: <testLibrary>::@enum::E1::@getter::values
-          firstFragment: #F5
+          firstFragment: #F6
           returnType: List<E1>
           variable: <testLibrary>::@enum::E1::@field::values
     enum E2
@@ -5254,25 +5043,25 @@ library
           getter: <testLibrary>::@enum::E2::@getter::v2
         synthetic static const values
           reference: <testLibrary>::@enum::E2::@field::values
-          firstFragment: #F10
+          firstFragment: #F9
           type: List<E2>
           constantInitializer
-            fragment: #F10
+            fragment: #F9
             expression: expression_3
           getter: <testLibrary>::@enum::E2::@getter::values
       constructors
         synthetic const new
           reference: <testLibrary>::@enum::E2::@constructor::new
-          firstFragment: #F12
+          firstFragment: #F10
       getters
         synthetic static v2
           reference: <testLibrary>::@enum::E2::@getter::v2
-          firstFragment: #F9
+          firstFragment: #F11
           returnType: E2
           variable: <testLibrary>::@enum::E2::@field::v2
         synthetic static values
           reference: <testLibrary>::@enum::E2::@getter::values
-          firstFragment: #F11
+          firstFragment: #F12
           returnType: List<E2>
           variable: <testLibrary>::@enum::E2::@field::values
 ''');
@@ -5362,8 +5151,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F16
-            #F17 hasInitializer b @11
+            #F16 hasInitializer b @11
               element: <testLibrary>::@enum::E::@field::b
               initializer: expression_1
                 InstanceCreationExpression
@@ -5377,8 +5165,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F18
-            #F19 hasInitializer c @14
+            #F17 hasInitializer c @14
               element: <testLibrary>::@enum::E::@field::c
               initializer: expression_2
                 InstanceCreationExpression
@@ -5392,8 +5179,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F20
-            #F21 synthetic values
+            #F18 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_3
                 ListLiteral
@@ -5413,28 +5199,23 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-              getter2: #F22
           constructors
-            #F23 synthetic const new
+            #F19 synthetic const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F16 synthetic a
+            #F20 synthetic a
               element: <testLibrary>::@enum::E::@getter::a
               returnType: E
-              variable: #F15
-            #F18 synthetic b
+            #F21 synthetic b
               element: <testLibrary>::@enum::E::@getter::b
               returnType: E
-              variable: #F17
-            #F20 synthetic c
+            #F22 synthetic c
               element: <testLibrary>::@enum::E::@getter::c
               returnType: E
-              variable: #F19
-            #F22 synthetic values
+            #F23 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E>
-              variable: #F21
   classes
     class M
       reference: <testLibrary>::@class::M
@@ -5517,51 +5298,51 @@ library
           getter: <testLibrary>::@enum::E::@getter::a
         static const enumConstant hasInitializer b
           reference: <testLibrary>::@enum::E::@field::b
-          firstFragment: #F17
+          firstFragment: #F16
           type: E
           constantInitializer
-            fragment: #F17
+            fragment: #F16
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::b
         static const enumConstant hasInitializer c
           reference: <testLibrary>::@enum::E::@field::c
-          firstFragment: #F19
+          firstFragment: #F17
           type: E
           constantInitializer
-            fragment: #F19
+            fragment: #F17
             expression: expression_2
           getter: <testLibrary>::@enum::E::@getter::c
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F21
+          firstFragment: #F18
           type: List<E>
           constantInitializer
-            fragment: #F21
+            fragment: #F18
             expression: expression_3
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         synthetic const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F23
+          firstFragment: #F19
       getters
         synthetic static a
           reference: <testLibrary>::@enum::E::@getter::a
-          firstFragment: #F16
+          firstFragment: #F20
           returnType: E
           variable: <testLibrary>::@enum::E::@field::a
         synthetic static b
           reference: <testLibrary>::@enum::E::@getter::b
-          firstFragment: #F18
+          firstFragment: #F21
           returnType: E
           variable: <testLibrary>::@enum::E::@field::b
         synthetic static c
           reference: <testLibrary>::@enum::E::@getter::c
-          firstFragment: #F20
+          firstFragment: #F22
           returnType: E
           variable: <testLibrary>::@enum::E::@field::c
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F22
+          firstFragment: #F23
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
 ''');
@@ -5593,8 +5374,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F3
-            #F4 synthetic values
+            #F3 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -5606,20 +5386,17 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-              getter2: #F5
           constructors
-            #F6 synthetic const new
+            #F4 synthetic const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F3 synthetic v
+            #F5 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
               returnType: E
-              variable: #F2
-            #F5 synthetic values
+            #F6 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E>
-              variable: #F4
       topLevelVariables
         #F7 hasInitializer a @6
           element: <testLibrary>::@topLevelVariable::a
@@ -5627,12 +5404,10 @@ library
             IntegerLiteral
               literal: 42 @10
               staticType: int
-          getter: #F8
       getters
         #F8 synthetic a
           element: <testLibrary>::@getter::a
           returnType: int
-          variable: #F7
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -5649,25 +5424,25 @@ library
           getter: <testLibrary>::@enum::E::@getter::v
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F4
+          firstFragment: #F3
           type: List<E>
           constantInitializer
-            fragment: #F4
+            fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         synthetic const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F6
+          firstFragment: #F4
       getters
         synthetic static v
           reference: <testLibrary>::@enum::E::@getter::v
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F5
+          firstFragment: #F6
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
   topLevelVariables
@@ -5713,20 +5488,18 @@ library
           fields
             #F2 value @26
               element: <testLibrary>::@class::A::@field::value
-              getter2: #F3
           constructors
-            #F4 const new
+            #F3 const new
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 41
               formalParameters
-                #F5 this.value @48
+                #F4 this.value @48
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::value
           getters
-            #F3 synthetic value
+            #F5 synthetic value
               element: <testLibrary>::@class::A::@getter::value
               returnType: dynamic
-              variable: #F2
       enums
         #F6 enum E @64
           element: <testLibrary>::@enum::E
@@ -5745,8 +5518,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F8
-            #F9 hasInitializer b @83
+            #F8 hasInitializer b @83
               element: <testLibrary>::@enum::E::@field::b
               initializer: expression_1
                 InstanceCreationExpression
@@ -5760,8 +5532,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F10
-            #F11 hasInitializer c @96
+            #F9 hasInitializer c @96
               element: <testLibrary>::@enum::E::@field::c
               initializer: expression_2
                 InstanceCreationExpression
@@ -5775,8 +5546,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F12
-            #F13 synthetic values
+            #F10 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_3
                 ListLiteral
@@ -5796,28 +5566,23 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-              getter2: #F14
           constructors
-            #F15 synthetic const new
+            #F11 synthetic const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F8 synthetic a
+            #F12 synthetic a
               element: <testLibrary>::@enum::E::@getter::a
               returnType: E
-              variable: #F7
-            #F10 synthetic b
+            #F13 synthetic b
               element: <testLibrary>::@enum::E::@getter::b
               returnType: E
-              variable: #F9
-            #F12 synthetic c
+            #F14 synthetic c
               element: <testLibrary>::@enum::E::@getter::c
               returnType: E
-              variable: #F11
-            #F14 synthetic values
+            #F15 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E>
-              variable: #F13
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -5831,15 +5596,15 @@ library
       constructors
         const new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
           formalParameters
             requiredPositional final hasImplicitType value
-              firstFragment: #F5
+              firstFragment: #F4
               type: dynamic
       getters
         synthetic value
           reference: <testLibrary>::@class::A::@getter::value
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: dynamic
           variable: <testLibrary>::@class::A::@field::value
   enums
@@ -5858,51 +5623,51 @@ library
           getter: <testLibrary>::@enum::E::@getter::a
         static const enumConstant hasInitializer b
           reference: <testLibrary>::@enum::E::@field::b
-          firstFragment: #F9
+          firstFragment: #F8
           type: E
           constantInitializer
-            fragment: #F9
+            fragment: #F8
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::b
         static const enumConstant hasInitializer c
           reference: <testLibrary>::@enum::E::@field::c
-          firstFragment: #F11
+          firstFragment: #F9
           type: E
           constantInitializer
-            fragment: #F11
+            fragment: #F9
             expression: expression_2
           getter: <testLibrary>::@enum::E::@getter::c
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F13
+          firstFragment: #F10
           type: List<E>
           constantInitializer
-            fragment: #F13
+            fragment: #F10
             expression: expression_3
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         synthetic const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F15
+          firstFragment: #F11
       getters
         synthetic static a
           reference: <testLibrary>::@enum::E::@getter::a
-          firstFragment: #F8
+          firstFragment: #F12
           returnType: E
           variable: <testLibrary>::@enum::E::@field::a
         synthetic static b
           reference: <testLibrary>::@enum::E::@getter::b
-          firstFragment: #F10
+          firstFragment: #F13
           returnType: E
           variable: <testLibrary>::@enum::E::@field::b
         synthetic static c
           reference: <testLibrary>::@enum::E::@getter::c
-          firstFragment: #F12
+          firstFragment: #F14
           returnType: E
           variable: <testLibrary>::@enum::E::@field::c
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F14
+          firstFragment: #F15
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
 ''');
@@ -5939,8 +5704,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F3
-            #F4 synthetic values
+            #F3 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -5952,20 +5716,17 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-              getter2: #F5
           constructors
-            #F6 synthetic const new
+            #F4 synthetic const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F3 synthetic v
+            #F5 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
               returnType: E
-              variable: #F2
-            #F5 synthetic values
+            #F6 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E>
-              variable: #F4
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -5982,25 +5743,25 @@ library
           getter: <testLibrary>::@enum::E::@getter::v
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F4
+          firstFragment: #F3
           type: List<E>
           constantInitializer
-            fragment: #F4
+            fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         synthetic const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F6
+          firstFragment: #F4
       getters
         synthetic static v
           reference: <testLibrary>::@enum::E::@getter::v
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F5
+          firstFragment: #F6
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
 ''');
@@ -6039,8 +5800,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F3
-            #F4 synthetic values
+            #F3 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -6052,9 +5812,8 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-              getter2: #F5
           constructors
-            #F6 const new
+            #F4 const new
               element: <testLibrary>::@enum::E::@constructor::new
               metadata
                 Annotation
@@ -6067,14 +5826,12 @@ library
               typeName: E
               typeNameOffset: 41
           getters
-            #F3 synthetic v
+            #F5 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
               returnType: E
-              variable: #F2
-            #F5 synthetic values
+            #F6 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E>
-              variable: #F4
       topLevelVariables
         #F7 hasInitializer a @6
           element: <testLibrary>::@topLevelVariable::a
@@ -6082,12 +5839,10 @@ library
             IntegerLiteral
               literal: 42 @10
               staticType: int
-          getter: #F8
       getters
         #F8 synthetic a
           element: <testLibrary>::@getter::a
           returnType: int
-          variable: #F7
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -6104,16 +5859,16 @@ library
           getter: <testLibrary>::@enum::E::@getter::v
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F4
+          firstFragment: #F3
           type: List<E>
           constantInitializer
-            fragment: #F4
+            fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F6
+          firstFragment: #F4
           metadata
             Annotation
               atSign: @ @30
@@ -6125,12 +5880,12 @@ library
       getters
         synthetic static v
           reference: <testLibrary>::@enum::E::@getter::v
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F5
+          firstFragment: #F6
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
   topLevelVariables
@@ -6184,8 +5939,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F3
-            #F4 synthetic values
+            #F3 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -6197,20 +5951,17 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-              getter2: #F5
           constructors
-            #F6 synthetic const new
+            #F4 synthetic const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F3 synthetic v
+            #F5 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
               returnType: E
-              variable: #F2
-            #F5 synthetic values
+            #F6 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E>
-              variable: #F4
           methods
             #F7 foo @40
               element: <testLibrary>::@enum::E::@method::foo
@@ -6229,12 +5980,10 @@ library
             IntegerLiteral
               literal: 42 @10
               staticType: int
-          getter: #F9
       getters
         #F9 synthetic a
           element: <testLibrary>::@getter::a
           returnType: int
-          variable: #F8
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -6251,25 +6000,25 @@ library
           getter: <testLibrary>::@enum::E::@getter::v
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F4
+          firstFragment: #F3
           type: List<E>
           constantInitializer
-            fragment: #F4
+            fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         synthetic const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F6
+          firstFragment: #F4
       getters
         synthetic static v
           reference: <testLibrary>::@enum::E::@getter::v
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F5
+          firstFragment: #F6
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
       methods
@@ -6352,8 +6101,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E<dynamic>
-              getter2: #F4
-            #F5 synthetic values
+            #F4 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -6365,31 +6113,26 @@ library
                       staticType: E<dynamic>
                   rightBracket: ] @0
                   staticType: List<E<dynamic>>
-              getter2: #F6
-            #F7 hasInitializer foo @58
+            #F5 hasInitializer foo @58
               element: <testLibrary>::@enum::E::@field::foo
               initializer: expression_2
                 IntegerLiteral
                   literal: 1 @64
                   staticType: int
-              getter2: #F8
           constructors
-            #F9 synthetic const new
+            #F6 synthetic const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F4 synthetic v
+            #F7 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
               returnType: E<dynamic>
-              variable: #F3
-            #F6 synthetic values
+            #F8 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E<dynamic>>
-              variable: #F5
-            #F8 synthetic foo
+            #F9 synthetic foo
               element: <testLibrary>::@enum::E::@getter::foo
               returnType: int
-              variable: #F7
           methods
             #F10 bar @81
               element: <testLibrary>::@enum::E::@method::bar
@@ -6408,12 +6151,10 @@ library
             IntegerLiteral
               literal: 0 @12
               staticType: int
-          getter: #F12
       getters
         #F12 synthetic foo
           element: <testLibrary>::@getter::foo
           returnType: int
-          variable: #F11
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -6441,38 +6182,38 @@ library
           getter: <testLibrary>::@enum::E::@getter::v
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F5
+          firstFragment: #F4
           type: List<E<dynamic>>
           constantInitializer
-            fragment: #F5
+            fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
         static const hasInitializer foo
           reference: <testLibrary>::@enum::E::@field::foo
-          firstFragment: #F7
+          firstFragment: #F5
           type: int
           constantInitializer
-            fragment: #F7
+            fragment: #F5
             expression: expression_2
           getter: <testLibrary>::@enum::E::@getter::foo
       constructors
         synthetic const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F9
+          firstFragment: #F6
       getters
         synthetic static v
           reference: <testLibrary>::@enum::E::@getter::v
-          firstFragment: #F4
+          firstFragment: #F7
           returnType: E<dynamic>
           variable: <testLibrary>::@enum::E::@field::v
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F6
+          firstFragment: #F8
           returnType: List<E<dynamic>>
           variable: <testLibrary>::@enum::E::@field::values
         synthetic static foo
           reference: <testLibrary>::@enum::E::@getter::foo
-          firstFragment: #F8
+          firstFragment: #F9
           returnType: int
           variable: <testLibrary>::@enum::E::@field::foo
       methods
@@ -6550,8 +6291,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E<dynamic>
-              getter2: #F4
-            #F5 synthetic values
+            #F4 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -6563,20 +6303,17 @@ library
                       staticType: E<dynamic>
                   rightBracket: ] @0
                   staticType: List<E<dynamic>>
-              getter2: #F6
           constructors
-            #F7 synthetic const new
+            #F5 synthetic const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F4 synthetic v
+            #F6 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
               returnType: E<dynamic>
-              variable: #F3
-            #F6 synthetic values
+            #F7 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E<dynamic>>
-              variable: #F5
       topLevelVariables
         #F8 hasInitializer a @6
           element: <testLibrary>::@topLevelVariable::a
@@ -6584,12 +6321,10 @@ library
             IntegerLiteral
               literal: 42 @10
               staticType: int
-          getter: #F9
       getters
         #F9 synthetic a
           element: <testLibrary>::@getter::a
           returnType: int
-          variable: #F8
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -6617,25 +6352,25 @@ library
           getter: <testLibrary>::@enum::E::@getter::v
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F5
+          firstFragment: #F4
           type: List<E<dynamic>>
           constantInitializer
-            fragment: #F5
+            fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         synthetic const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F7
+          firstFragment: #F5
       getters
         synthetic static v
           reference: <testLibrary>::@enum::E::@getter::v
-          firstFragment: #F4
+          firstFragment: #F6
           returnType: E<dynamic>
           variable: <testLibrary>::@enum::E::@field::v
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F6
+          firstFragment: #F7
           returnType: List<E<dynamic>>
           variable: <testLibrary>::@enum::E::@field::values
   topLevelVariables
@@ -6682,8 +6417,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F3
-            #F4 synthetic values
+            #F3 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -6695,20 +6429,17 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-              getter2: #F5
           constructors
-            #F6 synthetic const new
+            #F4 synthetic const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F3 synthetic v
+            #F5 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
               returnType: E
-              variable: #F2
-            #F5 synthetic values
+            #F6 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E>
-              variable: #F4
       topLevelVariables
         #F7 hasInitializer a @6
           element: <testLibrary>::@topLevelVariable::a
@@ -6716,12 +6447,10 @@ library
             IntegerLiteral
               literal: 42 @10
               staticType: int
-          getter: #F8
       getters
         #F8 synthetic a
           element: <testLibrary>::@getter::a
           returnType: int
-          variable: #F7
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -6738,25 +6467,25 @@ library
           getter: <testLibrary>::@enum::E::@getter::v
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F4
+          firstFragment: #F3
           type: List<E>
           constantInitializer
-            fragment: #F4
+            fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         synthetic const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F6
+          firstFragment: #F4
       getters
         synthetic static v
           reference: <testLibrary>::@enum::E::@getter::v
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F5
+          firstFragment: #F6
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
   topLevelVariables

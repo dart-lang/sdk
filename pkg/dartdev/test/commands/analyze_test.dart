@@ -826,6 +826,30 @@ warning - analysis_options.yaml:1:10 - The include file 'package:lints/recommend
       });
     });
   });
+
+  group('AOT snapshot', () {
+    test('--use-aot-snapshot', () async {
+      p = project(mainSrc: 'int get foo => 1;\n');
+
+      var result =
+          await p.runAnalyze(['--use-aot-snapshot'], workingDir: p.dirPath);
+
+      expect(result.exitCode, 0);
+      expect(result.stderr, isEmpty);
+      expect(result.stdout, contains('No issues found!'));
+    });
+
+    test('--no-use-aot-snapshot', () async {
+      p = project(mainSrc: 'int get foo => 1;\n');
+
+      var result =
+          await p.runAnalyze(['--no-use-aot-snapshot'], workingDir: p.dirPath);
+
+      expect(result.exitCode, 0);
+      expect(result.stderr, isEmpty);
+      expect(result.stdout, contains('No issues found!'));
+    });
+  });
 }
 
 class TestLogger implements Logger {

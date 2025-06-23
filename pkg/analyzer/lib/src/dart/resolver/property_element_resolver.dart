@@ -61,7 +61,7 @@ class PropertyElementResolver with ScopeHelpers {
     if (context is InterfaceTypeImpl) {
       var identifier = node.propertyName;
       // Find constructor tearoffs.
-      var element = context.lookUpConstructor2(
+      var element = context.lookUpConstructor(
         identifier.name,
         _definingLibrary,
       );
@@ -972,7 +972,7 @@ class PropertyElementResolver with ScopeHelpers {
       }
 
       if (hasWrite) {
-        writeElement = targetType.lookUpSetter3(
+        writeElement = targetType.lookUpSetter(
           propertyName.name,
           _definingLibrary,
           concrete: true,
@@ -985,7 +985,7 @@ class PropertyElementResolver with ScopeHelpers {
           // We were not able to find the concrete dispatch target.
           // But we would like to give the user at least some resolution.
           // So, we retry without the "concrete" requirement.
-          writeElement = targetType.lookUpSetter3(
+          writeElement = targetType.lookUpSetter(
             propertyName.name,
             _definingLibrary,
             inherited: true,

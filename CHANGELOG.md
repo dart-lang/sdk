@@ -16,10 +16,31 @@ constraint][language version] lower bound to 3.9 or greater (`sdk: '^3.9.0'`).
 
 #### Analyzer
 
+- The [dart command-line tool][] commands that use the analysis server now run
+  the AOT-compiled analysis server snapshot. These include `dart analyze`,
+  `dart fix`, and `dart language-server`.
+
+  There is no functional difference when using the AOT-compiled analysis server
+  snapshot. But various tests indicate that there is a significant speedup in
+  the time to analyze a project.
+
+  In case of an incompatibility with the AOT-compiled snapshot, a
+  `--no-use-aot-snapshot` flag may be passed to these commands. (Please file an
+  issue with the appropriate project if you find that you need to use this
+  flag! It will be removed in the future.) This flag directs the tool to revert
+  to the old behavior, using the JIT-compiled analysis server snapshot. To
+  direct the Dart Code plugin for VS Code to pass this flag, use the
+  [`dart.analyzerAdditionalArgs`][vs-code-args] setting. To direct the Dart
+  IntelliJ plugin to pass this flag, use the `dart.server.additional.arguments`
+  registry property, similar to [these steps][intellij-args].
+
 - Add the [`switch_on_type`][] lint rule.
 - Add the [`unnecessary_unawaited`][] lint rule.
 - Add an assist to convert a field formal parameter to a normal parameter.
 
+[dart command-line tool]: https://dart.dev/tools/dart-tool
+[vs-code-args]: https://dartcode.org/docs/settings/#dartanalyzeradditionalargs
+[intellij-args]: https://github.com/dart-lang/sdk/blob/main/pkg/analysis_server/doc/tutorial/instrumentation.md#intellij-idea-and-android-studio
 [`switch_on_type`]: http://dart.dev/lints/switch_on_type
 [`unnecessary_unawaited`]: http://dart.dev/lints/unnecessary_unawaited
 

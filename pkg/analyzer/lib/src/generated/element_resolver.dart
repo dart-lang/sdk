@@ -152,9 +152,9 @@ class ElementResolver {
       ConstructorElementMixin2? constructor;
       var name = node.name;
       if (name == null) {
-        constructor = type.lookUpConstructor2(null, _definingLibrary);
+        constructor = type.lookUpConstructor(null, _definingLibrary);
       } else {
-        constructor = type.lookUpConstructor2(name.name, _definingLibrary);
+        constructor = type.lookUpConstructor(name.name, _definingLibrary);
         name.element = constructor;
       }
       node.element = constructor;
@@ -390,7 +390,7 @@ class ElementResolver {
     }
     var name = node.constructorName;
     var superName = name?.name;
-    var element = superType.lookUpConstructor2(superName, _definingLibrary);
+    var element = superType.lookUpConstructor(superName, _definingLibrary);
     if (element == null || !element.isAccessibleIn2(_definingLibrary)) {
       if (name != null) {
         _diagnosticReporter.atNode(

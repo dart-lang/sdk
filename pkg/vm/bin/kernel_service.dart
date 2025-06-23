@@ -643,7 +643,7 @@ Future _processExpressionCompilationRequest(request) async {
             port.send(
               new CompilationResult.errors([
                 "No platform found to initialize incremental compiler.",
-              ], null).toResponse(),
+              ]).toResponse(),
             );
             return;
           }
@@ -687,7 +687,7 @@ Future _processExpressionCompilationRequest(request) async {
           new CompilationResult.errors([
             "Error when trying to create a compiler for expression compilation: "
                 "'$e'.",
-          ], null).toResponse(),
+          ]).toResponse(),
         );
         return;
       }
@@ -698,7 +698,7 @@ Future _processExpressionCompilationRequest(request) async {
     port.send(
       new CompilationResult.errors([
         "No incremental compiler available for this isolate.",
-      ], null).toResponse(),
+      ]).toResponse(),
     );
     return;
   }
@@ -724,9 +724,7 @@ Future _processExpressionCompilationRequest(request) async {
     );
 
     if (procedure == null) {
-      port.send(
-        new CompilationResult.errors(["Invalid scope."], null).toResponse(),
-      );
+      port.send(new CompilationResult.errors(["Invalid scope."]).toResponse());
       return;
     }
 
@@ -736,7 +734,7 @@ Future _processExpressionCompilationRequest(request) async {
     if (compiler.errorsPlain.isNotEmpty) {
       // TODO(sigmund): the compiler prints errors to the console, so we
       // shouldn't print those messages again here.
-      result = new CompilationResult.errors(compiler.errorsPlain, null);
+      result = new CompilationResult.errors(compiler.errorsPlain);
     } else {
       Component component = createExpressionEvaluationComponent(procedure);
       result = new CompilationResult.ok(serializeComponent(component));
@@ -899,7 +897,7 @@ Future _processLoadRequest(request) async {
       port.send(
         new CompilationResult.errors([
           "No incremental compiler available for this isolate.",
-        ], null).toResponse(),
+        ]).toResponse(),
       );
       return;
     }
@@ -1024,19 +1022,7 @@ Future _processLoadRequest(request) async {
         ...(enableColors) ? compiler.errorsColorized : compiler.errorsPlain,
         ...nativeAssetsErrors.map((e) => e.message),
       ];
-      final component = compilerResult.component;
-      if (component != null) {
-        result = new CompilationResult.errors(
-          errors,
-          serializeComponent(
-            component,
-            filter: (lib) => !loadedLibraries.contains(lib),
-            nativeAssetsComponent: nativeAssetsComponent,
-          ),
-        );
-      } else {
-        result = new CompilationResult.errors(errors, null);
-      }
+      result = new CompilationResult.errors(errors);
     } else {
       // We serialize the component excluding vm_platform.dill because the VM has
       // these sources built-in. Everything loaded as a summary in
@@ -1076,7 +1062,7 @@ Future _processLoadRequest(request) async {
       inputFileUri,
       inputFileUri,
       null,
-      new CompilationResult.errors(<String>["unknown tag"], null).payload,
+      new CompilationResult.errors(<String>["unknown tag"]).payload,
     ]);
   }
 }
@@ -1288,8 +1274,7 @@ abstract class CompilationResult {
 
   factory CompilationResult.ok(Uint8List? bytes) = _CompilationOk;
 
-  factory CompilationResult.errors(List<String> errors, Uint8List? bytes) =
-      _CompilationError;
+  factory CompilationResult.errors(List<String> errors) = _CompilationError;
 
   factory CompilationResult.crash(Object exception, StackTrace stack) =
       _CompilationCrash;
@@ -1332,10 +1317,9 @@ abstract class _CompilationFail extends CompilationResult {
 }
 
 class _CompilationError extends _CompilationFail {
-  final Uint8List? bytes;
   final List<String> errors;
 
-  _CompilationError(this.errors, this.bytes);
+  _CompilationError(this.errors);
 
   @override
   Status get status => Status.error;
@@ -1344,8 +1328,6 @@ class _CompilationError extends _CompilationFail {
   String get errorString => errors.join('\n');
 
   String toString() => "_CompilationError(${errorString})";
-
-  List toResponse() => [status.index, payload, bytes];
 }
 
 class _CompilationCrash extends _CompilationFail {

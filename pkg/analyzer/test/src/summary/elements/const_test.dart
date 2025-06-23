@@ -37,8 +37,7 @@ library
             IntegerLiteral
               literal: 0 @14
               staticType: int
-          getter: #F2
-        #F3 hasInitializer b @23
+        #F2 hasInitializer b @23
           element: <testLibrary>::@topLevelVariable::b
           initializer: expression_1
             AsExpression
@@ -52,16 +51,13 @@ library
                 element2: dart:core::@class::int
                 type: int
               staticType: int
-          getter: #F4
       getters
-        #F2 synthetic a
+        #F3 synthetic a
           element: <testLibrary>::@getter::a
           returnType: num
-          variable: #F1
         #F4 synthetic b
           element: <testLibrary>::@getter::b
           returnType: int
-          variable: #F3
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -73,16 +69,16 @@ library
       getter: <testLibrary>::@getter::a
     const hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
-      firstFragment: #F3
+      firstFragment: #F2
       type: int
       constantInitializer
-        fragment: #F3
+        fragment: #F2
         expression: expression_1
       getter: <testLibrary>::@getter::b
   getters
     synthetic static a
       reference: <testLibrary>::@getter::a
-      firstFragment: #F2
+      firstFragment: #F3
       returnType: num
       variable: <testLibrary>::@topLevelVariable::a
     synthetic static b
@@ -111,8 +107,7 @@ library
             IntegerLiteral
               literal: 0 @10
               staticType: int
-          getter: #F2
-        #F3 hasInitializer b @19
+        #F2 hasInitializer b @19
           element: <testLibrary>::@topLevelVariable::b
           initializer: expression_1
             ParenthesizedExpression
@@ -134,16 +129,13 @@ library
                 staticType: int
               rightParenthesis: ) @30
               staticType: int
-          getter: #F4
       getters
-        #F2 synthetic a
+        #F3 synthetic a
           element: <testLibrary>::@getter::a
           returnType: int
-          variable: #F1
         #F4 synthetic b
           element: <testLibrary>::@getter::b
           returnType: int
-          variable: #F3
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -155,16 +147,16 @@ library
       getter: <testLibrary>::@getter::a
     const hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
-      firstFragment: #F3
+      firstFragment: #F2
       type: int
       constantInitializer
-        fragment: #F3
+        fragment: #F2
         expression: expression_1
       getter: <testLibrary>::@getter::b
   getters
     synthetic static a
       reference: <testLibrary>::@getter::a
-      firstFragment: #F2
+      firstFragment: #F3
       returnType: int
       variable: <testLibrary>::@topLevelVariable::a
     synthetic static b
@@ -213,12 +205,10 @@ library
                   staticInvokeType: int Function()
                   staticType: int
               staticType: int
-          getter: #F2
       getters
         #F2 synthetic a
           element: <testLibrary>::@getter::a
           returnType: int
-          variable: #F1
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -260,8 +250,7 @@ library
                 IntegerLiteral
                   literal: 1 @34
                   staticType: int
-              getter2: #F3
-            #F4 hasInitializer f2 @56
+            #F3 hasInitializer f2 @56
               element: <testLibrary>::@class::C::@field::f2
               initializer: expression_1
                 PrefixedIdentifier
@@ -276,8 +265,7 @@ library
                     staticType: int
                   element: <testLibrary>::@class::C::@getter::f1
                   staticType: int
-              getter2: #F5
-            #F6 hasInitializer f3 @67
+            #F4 hasInitializer f3 @67
               element: <testLibrary>::@class::C::@field::f3
               initializer: expression_2
                 PrefixedIdentifier
@@ -292,24 +280,20 @@ library
                     staticType: int
                   element: <testLibrary>::@class::C::@getter::f2
                   staticType: int
-              getter2: #F7
           constructors
-            #F8 synthetic new
+            #F5 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 synthetic f1
+            #F6 synthetic f1
               element: <testLibrary>::@class::C::@getter::f1
               returnType: int
-              variable: #F2
-            #F5 synthetic f2
+            #F7 synthetic f2
               element: <testLibrary>::@class::C::@getter::f2
               returnType: int
-              variable: #F4
-            #F7 synthetic f3
+            #F8 synthetic f3
               element: <testLibrary>::@class::C::@getter::f3
               returnType: int
-              variable: #F6
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -325,38 +309,38 @@ library
           getter: <testLibrary>::@class::C::@getter::f1
         static const hasInitializer f2
           reference: <testLibrary>::@class::C::@field::f2
-          firstFragment: #F4
+          firstFragment: #F3
           type: int
           constantInitializer
-            fragment: #F4
+            fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@class::C::@getter::f2
         static const hasInitializer f3
           reference: <testLibrary>::@class::C::@field::f3
-          firstFragment: #F6
+          firstFragment: #F4
           type: int
           constantInitializer
-            fragment: #F6
+            fragment: #F4
             expression: expression_2
           getter: <testLibrary>::@class::C::@getter::f3
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F8
+          firstFragment: #F5
       getters
         synthetic static f1
           reference: <testLibrary>::@class::C::@getter::f1
-          firstFragment: #F3
+          firstFragment: #F6
           returnType: int
           variable: <testLibrary>::@class::C::@field::f1
         synthetic static f2
           reference: <testLibrary>::@class::C::@getter::f2
-          firstFragment: #F5
+          firstFragment: #F7
           returnType: int
           variable: <testLibrary>::@class::C::@field::f2
         synthetic static f3
           reference: <testLibrary>::@class::C::@getter::f3
-          firstFragment: #F7
+          firstFragment: #F8
           returnType: int
           variable: <testLibrary>::@class::C::@field::f3
 ''');
@@ -387,28 +371,26 @@ library
           fields
             #F3 t @23
               element: <testLibrary>::@class::C::@field::t
-              getter2: #F4
           constructors
-            #F5 const new
+            #F4 const new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 34
               formalParameters
-                #F6 this.t @41
+                #F5 this.t @41
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::t
-            #F7 const named @55
+            #F6 const named @55
               element: <testLibrary>::@class::C::@constructor::named
               typeName: C
               typeNameOffset: 53
               periodOffset: 54
               formalParameters
-                #F8 this.t @66
+                #F7 this.t @66
                   element: <testLibrary>::@class::C::@constructor::named::@formalParameter::t
           getters
-            #F4 synthetic t
+            #F8 synthetic t
               element: <testLibrary>::@class::C::@getter::t
               returnType: T
-              variable: #F3
       topLevelVariables
         #F9 hasInitializer x @85
           element: <testLibrary>::@topLevelVariable::x
@@ -431,8 +413,7 @@ library
                     staticType: int
                 rightParenthesis: ) @98
               staticType: C<int>
-          getter: #F10
-        #F11 hasInitializer y @114
+        #F10 hasInitializer y @114
           element: <testLibrary>::@topLevelVariable::y
           initializer: expression_1
             InstanceCreationExpression
@@ -460,16 +441,13 @@ library
                     staticType: int
                 rightParenthesis: ) @133
               staticType: C<int>
-          getter: #F12
       getters
-        #F10 synthetic x
+        #F11 synthetic x
           element: <testLibrary>::@getter::x
           returnType: Object
-          variable: #F9
         #F12 synthetic y
           element: <testLibrary>::@getter::y
           returnType: Object
-          variable: #F11
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -487,22 +465,22 @@ library
       constructors
         const new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F4
           formalParameters
             requiredPositional final hasImplicitType t
-              firstFragment: #F6
+              firstFragment: #F5
               type: T
         const named
           reference: <testLibrary>::@class::C::@constructor::named
-          firstFragment: #F7
+          firstFragment: #F6
           formalParameters
             requiredPositional final hasImplicitType t
-              firstFragment: #F8
+              firstFragment: #F7
               type: T
       getters
         synthetic t
           reference: <testLibrary>::@class::C::@getter::t
-          firstFragment: #F4
+          firstFragment: #F8
           hasEnclosingTypeParameterReference: true
           returnType: T
           variable: <testLibrary>::@class::C::@field::t
@@ -517,16 +495,16 @@ library
       getter: <testLibrary>::@getter::x
     const hasInitializer y
       reference: <testLibrary>::@topLevelVariable::y
-      firstFragment: #F11
+      firstFragment: #F10
       type: Object
       constantInitializer
-        fragment: #F11
+        fragment: #F10
         expression: expression_1
       getter: <testLibrary>::@getter::y
   getters
     synthetic static x
       reference: <testLibrary>::@getter::x
-      firstFragment: #F10
+      firstFragment: #F11
       returnType: Object
       variable: <testLibrary>::@topLevelVariable::x
     synthetic static y
@@ -584,12 +562,10 @@ library
                   staticType: null
                 element: <testLibrary>::@class::A::@constructor::named
               staticType: A Function()
-          getter: #F4
       getters
         #F4 synthetic v
           element: <testLibrary>::@getter::v
           returnType: A Function()
-          variable: #F3
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -653,12 +629,10 @@ library
                 leftParenthesis: ( @48
                 rightParenthesis: ) @49
               staticType: A
-          getter: #F4
       getters
         #F4 synthetic a
           element: <testLibrary>::@getter::a
           returnType: A
-          variable: #F3
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -721,12 +695,10 @@ library
                 leftParenthesis: ( @42
                 rightParenthesis: ) @43
               staticType: A
-          getter: #F4
       getters
         #F4 synthetic a
           element: <testLibrary>::@getter::a
           returnType: A
-          variable: #F3
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -786,17 +758,15 @@ library
                     leftParenthesis: ( @32
                     rightParenthesis: ) @33
                   staticType: A
-              getter2: #F3
           constructors
-            #F4 const new
+            #F3 const new
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 44
           getters
-            #F3 synthetic a
+            #F4 synthetic a
               element: <testLibrary>::@class::A::@getter::a
               returnType: A
-              variable: #F2
       topLevelVariables
         #F5 hasInitializer a @60
           element: <testLibrary>::@topLevelVariable::a
@@ -808,12 +778,10 @@ library
                 element: <testLibrary>::@class::A::@getter::a
                 staticType: A
               staticType: A
-          getter: #F6
       getters
         #F6 synthetic a
           element: <testLibrary>::@getter::a
           returnType: A
-          variable: #F5
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -830,11 +798,11 @@ library
       constructors
         const new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       getters
         synthetic static a
           reference: <testLibrary>::@class::A::@getter::a
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: A
           variable: <testLibrary>::@class::A::@field::a
   topLevelVariables
@@ -878,17 +846,15 @@ library
                 IntegerLiteral
                   literal: 42 @26
                   staticType: int
-              getter2: #F3
           constructors
-            #F4 const new
+            #F3 const new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 38
           getters
-            #F3 synthetic f
+            #F4 synthetic f
               element: <testLibrary>::@class::C::@getter::f
               returnType: int
-              variable: #F2
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -905,11 +871,11 @@ library
       constructors
         const new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       getters
         synthetic f
           reference: <testLibrary>::@class::C::@getter::f
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::C::@field::f
 ''');
@@ -939,12 +905,10 @@ library
               staticType: void Function(int)
               typeArgumentTypes
                 int
-          getter: #F2
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
           returnType: void Function(int)
-          variable: #F1
       functions
         #F3 f @5
           element: <testLibrary>::@function::f
@@ -1015,12 +979,10 @@ library
               staticType: void Function(int)
               typeArgumentTypes
                 int
-          getter: #F2
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
           returnType: void Function(int)
-          variable: #F1
       functions
         #F3 f @5
           element: <testLibrary>::@function::f
@@ -1084,15 +1046,13 @@ library
                   staticType: int
               rightBracket: ] @12
               staticType: List<int>
-          getter: #F2
-        #F3 hasInitializer b @21
+        #F2 hasInitializer b @21
           element: <testLibrary>::@topLevelVariable::b
           initializer: expression_1
             IntegerLiteral
               literal: 0 @25
               staticType: int
-          getter: #F4
-        #F5 hasInitializer c @34
+        #F3 hasInitializer c @34
           element: <testLibrary>::@topLevelVariable::c
           initializer: expression_2
             IndexExpression
@@ -1110,20 +1070,16 @@ library
                 baseElement: dart:core::@class::List::@method::[]
                 substitution: {E: int}
               staticType: int
-          getter: #F6
       getters
-        #F2 synthetic a
+        #F4 synthetic a
           element: <testLibrary>::@getter::a
           returnType: List<int>
-          variable: #F1
-        #F4 synthetic b
+        #F5 synthetic b
           element: <testLibrary>::@getter::b
           returnType: int
-          variable: #F3
         #F6 synthetic c
           element: <testLibrary>::@getter::c
           returnType: int
-          variable: #F5
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -1135,29 +1091,29 @@ library
       getter: <testLibrary>::@getter::a
     const hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
-      firstFragment: #F3
+      firstFragment: #F2
       type: int
       constantInitializer
-        fragment: #F3
+        fragment: #F2
         expression: expression_1
       getter: <testLibrary>::@getter::b
     const hasInitializer c
       reference: <testLibrary>::@topLevelVariable::c
-      firstFragment: #F5
+      firstFragment: #F3
       type: int
       constantInitializer
-        fragment: #F5
+        fragment: #F3
         expression: expression_2
       getter: <testLibrary>::@getter::c
   getters
     synthetic static a
       reference: <testLibrary>::@getter::a
-      firstFragment: #F2
+      firstFragment: #F4
       returnType: List<int>
       variable: <testLibrary>::@topLevelVariable::a
     synthetic static b
       reference: <testLibrary>::@getter::b
-      firstFragment: #F4
+      firstFragment: #F5
       returnType: int
       variable: <testLibrary>::@topLevelVariable::b
     synthetic static c
@@ -1267,12 +1223,10 @@ library
                   staticType: P2<int>
               rightBracket: ] @163
               staticType: List<P<dynamic>>
-          getter: #F11
       getters
         #F11 synthetic values
           element: <testLibrary>::@getter::values
           returnType: List<P<dynamic>>
-          variable: #F10
   classes
     class P
       reference: <testLibrary>::@class::P
@@ -1364,16 +1318,14 @@ library
                   element: dart:core::@class::num::@method::+
                   staticInvokeType: num Function(num)
                   staticType: int
-              getter2: #F3
           constructors
-            #F4 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 synthetic f
+            #F4 synthetic f
               element: <testLibrary>::@class::C::@getter::f
               returnType: int
-              variable: #F2
       functions
         #F5 foo @46
           element: <testLibrary>::@function::foo
@@ -1393,11 +1345,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       getters
         synthetic static f
           reference: <testLibrary>::@class::C::@getter::f
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::C::@field::f
   functions
@@ -1427,16 +1379,14 @@ library
           fields
             #F2 hasInitializer f @18
               element: <testLibrary>::@class::C::@field::f
-              getter2: #F3
           constructors
-            #F4 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 synthetic f
+            #F4 synthetic f
               element: <testLibrary>::@class::C::@getter::f
               returnType: int
-              variable: #F2
       functions
         #F5 foo @39
           element: <testLibrary>::@function::foo
@@ -1453,11 +1403,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       getters
         synthetic f
           reference: <testLibrary>::@class::C::@getter::f
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::C::@field::f
   functions
@@ -1486,12 +1436,10 @@ library
               token: _notSerializableExpression @-1
               element: <null>
               staticType: null
-          getter: #F2
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
           returnType: int Function()
-          variable: #F1
   topLevelVariables
     const hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
@@ -1614,17 +1562,15 @@ library
           fields
             #F2 foo @26
               element: <testLibrary>::@class::A::@field::foo
-              getter2: #F3
           constructors
-            #F4 const new
+            #F3 const new
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 39
           getters
-            #F3 synthetic foo
+            #F4 synthetic foo
               element: <testLibrary>::@class::A::@getter::foo
               returnType: Object?
-              variable: #F2
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -1638,7 +1584,7 @@ library
       constructors
         const new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
           constantInitializers
             ConstructorFieldInitializer
               fieldName: SimpleIdentifier
@@ -1653,7 +1599,7 @@ library
       getters
         synthetic foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: Object?
           variable: <testLibrary>::@class::A::@field::foo
 ''');
@@ -1677,12 +1623,10 @@ library
               token: _notSerializableExpression @-1
               element: <null>
               staticType: null
-          getter: #F2
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
           returnType: InvalidType
-          variable: #F1
   topLevelVariables
     const hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
@@ -1887,12 +1831,10 @@ library
                 rightParenthesis: ) @28
               staticInvokeType: int Function(int)
               staticType: int
-          getter: #F2
       getters
         #F2 synthetic a
           element: <testLibrary>::@getter::a
           returnType: int
-          variable: #F1
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -1929,12 +1871,10 @@ library
               token: _notSerializableExpression @-1
               element: <null>
               staticType: null
-          getter: #F2
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
           returnType: (int,)
-          variable: #F1
   topLevelVariables
     const hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
@@ -1986,12 +1926,10 @@ library
               element: dart:core::@class::num::@method::+
               staticInvokeType: num Function(num)
               staticType: int
-          getter: #F2
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
           returnType: int
-          variable: #F1
       functions
         #F3 foo @25
           element: <testLibrary>::@function::foo
@@ -2036,12 +1974,10 @@ library
               token: _notSerializableExpression @-1
               element: <null>
               staticType: null
-          getter: #F2
       getters
         #F2 synthetic a
           element: <testLibrary>::@getter::a
           returnType: int
-          variable: #F1
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -2078,8 +2014,7 @@ library
             IntegerLiteral
               literal: 0 @14
               staticType: int
-          getter: #F2
-        #F3 hasInitializer b @28
+        #F2 hasInitializer b @28
           element: <testLibrary>::@topLevelVariable::b
           initializer: expression_1
             BinaryExpression
@@ -2094,16 +2029,13 @@ library
               element: dart:core::@class::num::@method::+
               staticInvokeType: num Function(num)
               staticType: int
-          getter: #F4
       getters
-        #F2 synthetic a
+        #F3 synthetic a
           element: <testLibrary>::@getter::a
           returnType: int
-          variable: #F1
         #F4 synthetic b
           element: <testLibrary>::@getter::b
           returnType: bool
-          variable: #F3
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -2115,16 +2047,16 @@ library
       getter: <testLibrary>::@getter::a
     const hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
-      firstFragment: #F3
+      firstFragment: #F2
       type: bool
       constantInitializer
-        fragment: #F3
+        fragment: #F2
         expression: expression_1
       getter: <testLibrary>::@getter::b
   getters
     synthetic static a
       reference: <testLibrary>::@getter::a
-      firstFragment: #F2
+      firstFragment: #F3
       returnType: int
       variable: <testLibrary>::@topLevelVariable::a
     synthetic static b
@@ -2210,12 +2142,10 @@ library
                     literal: '222' @85
                 rightParenthesis: ) @90
               staticType: C<int, String>
-          getter: #F8
       getters
         #F8 synthetic V
           element: <testLibrary>::@getter::V
           returnType: C<int, String>
-          variable: #F7
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -2315,12 +2245,10 @@ library
                     literal: '222' @57
                 rightParenthesis: ) @62
               staticType: C<int, String>
-          getter: #F2
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
           returnType: C<int, String>
-          variable: #F1
   topLevelVariables
     const hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
@@ -2407,12 +2335,10 @@ library
                     literal: '222' @64
                 rightParenthesis: ) @69
               staticType: C<int, String>
-          getter: #F2
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
           returnType: C<int, String>
-          variable: #F1
   topLevelVariables
     const hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
@@ -2475,12 +2401,10 @@ library
                 leftParenthesis: ( @48
                 rightParenthesis: ) @49
               staticType: C<dynamic, dynamic>
-          getter: #F6
       getters
         #F6 synthetic V
           element: <testLibrary>::@getter::V
           returnType: C<dynamic, dynamic>
-          variable: #F5
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -2535,20 +2459,18 @@ library
           fields
             #F3 t @23
               element: <testLibrary>::@class::A::@field::t
-              getter2: #F4
           constructors
-            #F5 const new
+            #F4 const new
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 34
               formalParameters
-                #F6 this.t @41
+                #F5 this.t @41
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::t
           getters
-            #F4 synthetic t
+            #F6 synthetic t
               element: <testLibrary>::@class::A::@getter::t
               returnType: T
-              variable: #F3
       topLevelVariables
         #F7 hasInitializer a @60
           element: <testLibrary>::@topLevelVariable::a
@@ -2571,12 +2493,10 @@ library
                     staticType: int
                 rightParenthesis: ) @73
               staticType: A<int>
-          getter: #F8
       getters
         #F8 synthetic a
           element: <testLibrary>::@getter::a
           returnType: Object
-          variable: #F7
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -2594,15 +2514,15 @@ library
       constructors
         const new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F4
           formalParameters
             requiredPositional final hasImplicitType t
-              firstFragment: #F6
+              firstFragment: #F5
               type: T
       getters
         synthetic t
           reference: <testLibrary>::@class::A::@getter::t
-          firstFragment: #F4
+          firstFragment: #F6
           hasEnclosingTypeParameterReference: true
           returnType: T
           variable: <testLibrary>::@class::A::@field::t
@@ -2680,12 +2600,10 @@ library
                 leftParenthesis: ( @61
                 rightParenthesis: ) @62
               staticType: C<int, String>
-          getter: #F6
       getters
         #F6 synthetic V
           element: <testLibrary>::@getter::V
           returnType: C<int, String>
-          variable: #F5
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -2765,12 +2683,10 @@ library
                 leftParenthesis: ( @47
                 rightParenthesis: ) @48
               staticType: C<int, String>
-          getter: #F2
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
           returnType: C<int, String>
-          variable: #F1
   topLevelVariables
     const hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
@@ -2844,12 +2760,10 @@ library
                 leftParenthesis: ( @54
                 rightParenthesis: ) @55
               staticType: C<int, String>
-          getter: #F2
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
           returnType: C<int, String>
-          variable: #F1
   topLevelVariables
     const hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
@@ -2951,12 +2865,10 @@ library
                       staticType: double
                 rightParenthesis: ) @125
               staticType: C
-          getter: #F9
       getters
         #F9 synthetic V
           element: <testLibrary>::@getter::V
           returnType: C
-          variable: #F8
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -3038,12 +2950,10 @@ library
                 leftParenthesis: ( @40
                 rightParenthesis: ) @41
               staticType: C
-          getter: #F2
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
           returnType: C
-          variable: #F1
   topLevelVariables
     const hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
@@ -3108,12 +3018,10 @@ library
                 leftParenthesis: ( @47
                 rightParenthesis: ) @48
               staticType: C
-          getter: #F2
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
           returnType: C
-          variable: #F1
   topLevelVariables
     const hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
@@ -3171,12 +3079,10 @@ library
                 leftParenthesis: ( @34
                 rightParenthesis: ) @35
               staticType: C
-          getter: #F4
       getters
         #F4 synthetic V
           element: <testLibrary>::@getter::V
           returnType: C
-          variable: #F3
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -3233,12 +3139,10 @@ library
                 leftParenthesis: ( @23
                 rightParenthesis: ) @24
               staticType: InvalidType
-          getter: #F2
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
           returnType: InvalidType
-          variable: #F1
   topLevelVariables
     const hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
@@ -3302,12 +3206,10 @@ library
                 leftParenthesis: ( @47
                 rightParenthesis: ) @48
               staticType: C
-          getter: #F2
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
           returnType: C
-          variable: #F1
   topLevelVariables
     const hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
@@ -3368,12 +3270,10 @@ library
                 leftParenthesis: ( @47
                 rightParenthesis: ) @48
               staticType: InvalidType
-          getter: #F2
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
           returnType: InvalidType
-          variable: #F1
   topLevelVariables
     const hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
@@ -3427,12 +3327,10 @@ library
                 leftParenthesis: ( @25
                 rightParenthesis: ) @26
               staticType: InvalidType
-          getter: #F2
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
           returnType: InvalidType
-          variable: #F1
   topLevelVariables
     const hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
@@ -3493,12 +3391,10 @@ library
                 leftParenthesis: ( @37
                 rightParenthesis: ) @38
               staticType: C<dynamic>
-          getter: #F5
       getters
         #F5 synthetic V
           element: <testLibrary>::@getter::V
           returnType: C<dynamic>
-          variable: #F4
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -3565,12 +3461,10 @@ library
                 leftParenthesis: ( @42
                 rightParenthesis: ) @43
               staticType: C
-          getter: #F4
       getters
         #F4 synthetic V
           element: <testLibrary>::@getter::V
           returnType: C
-          variable: #F3
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -3631,12 +3525,10 @@ library
                 leftParenthesis: ( @34
                 rightParenthesis: ) @35
               staticType: C
-          getter: #F2
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
           returnType: C
-          variable: #F1
   topLevelVariables
     const hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
@@ -3696,12 +3588,10 @@ library
                 leftParenthesis: ( @41
                 rightParenthesis: ) @42
               staticType: C
-          getter: #F2
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
           returnType: C
-          variable: #F1
   topLevelVariables
     const hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
@@ -3746,12 +3636,10 @@ library
                 leftParenthesis: ( @17
                 rightParenthesis: ) @18
               staticType: InvalidType
-          getter: #F2
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
           returnType: InvalidType
-          variable: #F1
   topLevelVariables
     const hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
@@ -3807,12 +3695,10 @@ library
                 leftParenthesis: ( @41
                 rightParenthesis: ) @42
               staticType: InvalidType
-          getter: #F2
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
           returnType: InvalidType
-          variable: #F1
   topLevelVariables
     const hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
@@ -3861,12 +3747,10 @@ library
                 leftParenthesis: ( @19
                 rightParenthesis: ) @20
               staticType: InvalidType
-          getter: #F2
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
           returnType: InvalidType
-          variable: #F1
   topLevelVariables
     const hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
@@ -3903,8 +3787,7 @@ library
             IntegerLiteral
               literal: 0 @10
               staticType: int
-          getter: #F2
-        #F3 hasInitializer b @19
+        #F2 hasInitializer b @19
           element: <testLibrary>::@topLevelVariable::b
           initializer: expression_1
             IsExpression
@@ -3918,16 +3801,13 @@ library
                 element2: dart:core::@class::int
                 type: int
               staticType: bool
-          getter: #F4
       getters
-        #F2 synthetic a
+        #F3 synthetic a
           element: <testLibrary>::@getter::a
           returnType: int
-          variable: #F1
         #F4 synthetic b
           element: <testLibrary>::@getter::b
           returnType: bool
-          variable: #F3
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -3939,16 +3819,16 @@ library
       getter: <testLibrary>::@getter::a
     const hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
-      firstFragment: #F3
+      firstFragment: #F2
       type: bool
       constantInitializer
-        fragment: #F3
+        fragment: #F2
         expression: expression_1
       getter: <testLibrary>::@getter::b
   getters
     synthetic static a
       reference: <testLibrary>::@getter::a
-      firstFragment: #F2
+      firstFragment: #F3
       returnType: int
       variable: <testLibrary>::@topLevelVariable::a
     synthetic static b
@@ -3981,16 +3861,14 @@ library
               initializer: expression_0
                 SimpleStringLiteral
                   literal: '' @36
-              getter2: #F3
           constructors
-            #F4 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 synthetic F
+            #F4 synthetic F
               element: <testLibrary>::@class::C::@getter::F
               returnType: String
-              variable: #F2
       topLevelVariables
         #F5 hasInitializer v @52
           element: <testLibrary>::@topLevelVariable::v
@@ -4014,12 +3892,10 @@ library
                 element: dart:core::@class::String::@getter::length
                 staticType: int
               staticType: int
-          getter: #F6
       getters
         #F6 synthetic v
           element: <testLibrary>::@getter::v
           returnType: int
-          variable: #F5
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -4036,11 +3912,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       getters
         synthetic static F
           reference: <testLibrary>::@class::C::@getter::F
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: String
           variable: <testLibrary>::@class::C::@field::F
   topLevelVariables
@@ -4102,12 +3978,10 @@ library
                 element: dart:core::@class::String::@getter::length
                 staticType: int
               staticType: int
-          getter: #F2
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
           returnType: int
-          variable: #F1
   topLevelVariables
     const hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
@@ -4177,12 +4051,10 @@ library
                 element: dart:core::@class::String::@getter::length
                 staticType: int
               staticType: int
-          getter: #F2
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
           returnType: int
-          variable: #F1
   topLevelVariables
     const hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
@@ -4224,12 +4096,10 @@ library
                 element: dart:core::@class::String::@getter::length
                 staticType: int
               staticType: int
-          getter: #F2
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
           returnType: int
-          variable: #F1
   topLevelVariables
     const hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
@@ -4265,8 +4135,7 @@ library
           initializer: expression_0
             SimpleStringLiteral
               literal: 'abc' @17
-          getter: #F2
-        #F3 hasInitializer v @30
+        #F2 hasInitializer v @30
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_1
             PrefixedIdentifier
@@ -4281,16 +4150,13 @@ library
                 staticType: int
               element: dart:core::@class::String::@getter::length
               staticType: int
-          getter: #F4
       getters
-        #F2 synthetic S
+        #F3 synthetic S
           element: <testLibrary>::@getter::S
           returnType: String
-          variable: #F1
         #F4 synthetic v
           element: <testLibrary>::@getter::v
           returnType: int
-          variable: #F3
   topLevelVariables
     const hasInitializer S
       reference: <testLibrary>::@topLevelVariable::S
@@ -4302,16 +4168,16 @@ library
       getter: <testLibrary>::@getter::S
     const hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
-      firstFragment: #F3
+      firstFragment: #F2
       type: int
       constantInitializer
-        fragment: #F3
+        fragment: #F2
         expression: expression_1
       getter: <testLibrary>::@getter::v
   getters
     synthetic static S
       reference: <testLibrary>::@getter::S
-      firstFragment: #F2
+      firstFragment: #F3
       returnType: String
       variable: <testLibrary>::@topLevelVariable::S
     synthetic static v
@@ -4354,12 +4220,10 @@ library
                 staticType: int
               element: dart:core::@class::String::@getter::length
               staticType: int
-          getter: #F2
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
           returnType: int
-          variable: #F1
   topLevelVariables
     const hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
@@ -4420,12 +4284,10 @@ library
                 element: dart:core::@class::String::@getter::length
                 staticType: int
               staticType: int
-          getter: #F2
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
           returnType: int
-          variable: #F1
   topLevelVariables
     const hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
@@ -4483,12 +4345,10 @@ library
                 staticType: int Function()
               element: <testLibrary>::@class::C::@method::length
               staticType: int Function()
-          getter: #F5
       getters
         #F5 synthetic v
           element: <testLibrary>::@getter::v
           returnType: int Function()
-          variable: #F4
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -4558,12 +4418,10 @@ library
                     staticType: int
               rightBracket: ] @40
               staticType: List<int>
-          getter: #F2
       getters
         #F2 synthetic x
           element: <testLibrary>::@getter::x
           returnType: Object
-          variable: #F1
   topLevelVariables
     const hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -4624,12 +4482,10 @@ library
                     staticType: int
               rightBracket: ] @47
               staticType: List<int>
-          getter: #F2
       getters
         #F2 synthetic x
           element: <testLibrary>::@getter::x
           returnType: Object
-          variable: #F1
   topLevelVariables
     const hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -4674,12 +4530,10 @@ library
                   staticType: int
               rightBracket: ] @25
               staticType: List<int>
-          getter: #F2
       getters
         #F2 synthetic x
           element: <testLibrary>::@getter::x
           returnType: Object
-          variable: #F1
   topLevelVariables
     const hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -4744,12 +4598,10 @@ library
                     staticType: List<int>
               rightBracket: ] @40
               staticType: List<int>
-          getter: #F2
       getters
         #F2 synthetic x
           element: <testLibrary>::@getter::x
           returnType: Object
-          variable: #F1
   topLevelVariables
     const hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -4814,12 +4666,10 @@ library
                     staticType: List<int>
               rightBracket: ] @41
               staticType: List<int>
-          getter: #F2
       getters
         #F2 synthetic x
           element: <testLibrary>::@getter::x
           returnType: Object
-          variable: #F1
   topLevelVariables
     const hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -4886,12 +4736,10 @@ library
               rightBracket: } @48
               isMap: true
               staticType: Map<int, int>
-          getter: #F2
       getters
         #F2 synthetic x
           element: <testLibrary>::@getter::x
           returnType: Object
-          variable: #F1
   topLevelVariables
     const hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -4942,12 +4790,10 @@ library
               rightBracket: } @30
               isMap: true
               staticType: Map<int, double>
-          getter: #F2
       getters
         #F2 synthetic x
           element: <testLibrary>::@getter::x
           returnType: Object
-          variable: #F1
   topLevelVariables
     const hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -5027,12 +4873,10 @@ library
               rightBracket: } @53
               isMap: true
               staticType: Map<int, int>
-          getter: #F2
       getters
         #F2 synthetic x
           element: <testLibrary>::@getter::x
           returnType: Object
-          variable: #F1
   topLevelVariables
     const hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -5112,12 +4956,10 @@ library
               rightBracket: } @54
               isMap: true
               staticType: Map<int, int>
-          getter: #F2
       getters
         #F2 synthetic x
           element: <testLibrary>::@getter::x
           returnType: Object
-          variable: #F1
   topLevelVariables
     const hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -5175,12 +5017,10 @@ library
               staticType: int
               typeArgumentTypes
                 int
-          getter: #F2
       getters
         #F2 synthetic b
           element: <testLibrary>::@getter::b
           returnType: int
-          variable: #F1
       functions
         #F3 f @2
           element: <testLibrary>::@function::f
@@ -5240,14 +5080,13 @@ library
           fields
             #F2 x @18
               element: <testLibrary>::@class::C::@field::x
-              getter2: #F3
           constructors
-            #F4 const new
+            #F3 const new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 29
               formalParameters
-                #F5 default this.x @37
+                #F4 default this.x @37
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
                   initializer: expression_0
                     SimpleIdentifier
@@ -5255,10 +5094,9 @@ library
                       element: <testLibrary>::@function::foo
                       staticType: int Function()
           getters
-            #F3 synthetic x
+            #F5 synthetic x
               element: <testLibrary>::@class::C::@getter::x
               returnType: dynamic
-              variable: #F2
       functions
         #F6 foo @53
           element: <testLibrary>::@function::foo
@@ -5275,18 +5113,18 @@ library
       constructors
         const new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
           formalParameters
             optionalNamed final hasImplicitType x
-              firstFragment: #F5
+              firstFragment: #F4
               type: dynamic
               constantInitializer
-                fragment: #F5
+                fragment: #F4
                 expression: expression_0
       getters
         synthetic x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::x
   functions
@@ -5316,14 +5154,13 @@ library
           fields
             #F2 x @18
               element: <testLibrary>::@class::C::@field::x
-              getter2: #F3
           constructors
-            #F4 const new
+            #F3 const new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 29
               formalParameters
-                #F5 default this.x @37
+                #F4 default this.x @37
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
                   initializer: expression_0
                     BinaryExpression
@@ -5338,10 +5175,9 @@ library
                       staticInvokeType: num Function(num)
                       staticType: int
           getters
-            #F3 synthetic x
+            #F5 synthetic x
               element: <testLibrary>::@class::C::@getter::x
               returnType: dynamic
-              variable: #F2
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -5355,18 +5191,18 @@ library
       constructors
         const new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
           formalParameters
             optionalNamed final hasImplicitType x
-              firstFragment: #F5
+              firstFragment: #F4
               type: dynamic
               constantInitializer
-                fragment: #F5
+                fragment: #F4
                 expression: expression_0
       getters
         synthetic x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::x
 ''');
@@ -5391,14 +5227,13 @@ library
           fields
             #F2 x @18
               element: <testLibrary>::@class::C::@field::x
-              getter2: #F3
           constructors
-            #F4 const new
+            #F3 const new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 29
               formalParameters
-                #F5 default this.x @37
+                #F4 default this.x @37
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
                   initializer: expression_0
                     BinaryExpression
@@ -5413,10 +5248,9 @@ library
                       staticInvokeType: num Function(num)
                       staticType: int
           getters
-            #F3 synthetic x
+            #F5 synthetic x
               element: <testLibrary>::@class::C::@getter::x
               returnType: dynamic
-              variable: #F2
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -5430,18 +5264,18 @@ library
       constructors
         const new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
           formalParameters
             optionalPositional final hasImplicitType x
-              firstFragment: #F5
+              firstFragment: #F4
               type: dynamic
               constantInitializer
-                fragment: #F5
+                fragment: #F4
                 expression: expression_0
       getters
         synthetic x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::x
 ''');
@@ -5638,8 +5472,7 @@ library
             IntegerLiteral
               literal: 0 @10
               staticType: int
-          getter: #F2
-        #F3 hasInitializer b @19
+        #F2 hasInitializer b @19
           element: <testLibrary>::@topLevelVariable::b
           initializer: expression_1
             PostfixExpression
@@ -5654,16 +5487,13 @@ library
               writeType: InvalidType
               element: dart:core::@class::num::@method::+
               staticType: int
-          getter: #F4
       getters
-        #F2 synthetic a
+        #F3 synthetic a
           element: <testLibrary>::@getter::a
           returnType: int
-          variable: #F1
         #F4 synthetic b
           element: <testLibrary>::@getter::b
           returnType: int
-          variable: #F3
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -5675,16 +5505,16 @@ library
       getter: <testLibrary>::@getter::a
     const hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
-      firstFragment: #F3
+      firstFragment: #F2
       type: int
       constantInitializer
-        fragment: #F3
+        fragment: #F2
         expression: expression_1
       getter: <testLibrary>::@getter::b
   getters
     synthetic static a
       reference: <testLibrary>::@getter::a
-      firstFragment: #F2
+      firstFragment: #F3
       returnType: int
       variable: <testLibrary>::@topLevelVariable::a
     synthetic static b
@@ -5713,8 +5543,7 @@ library
             IntegerLiteral
               literal: 0 @15
               staticType: int
-          getter: #F2
-        #F3 hasInitializer b @24
+        #F2 hasInitializer b @24
           element: <testLibrary>::@topLevelVariable::b
           initializer: expression_1
             PostfixExpression
@@ -5725,16 +5554,13 @@ library
               operator: ! @29
               element: <null>
               staticType: int
-          getter: #F4
       getters
-        #F2 synthetic a
+        #F3 synthetic a
           element: <testLibrary>::@getter::a
           returnType: int?
-          variable: #F1
         #F4 synthetic b
           element: <testLibrary>::@getter::b
           returnType: int
-          variable: #F3
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -5746,16 +5572,16 @@ library
       getter: <testLibrary>::@getter::a
     const hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
-      firstFragment: #F3
+      firstFragment: #F2
       type: int
       constantInitializer
-        fragment: #F3
+        fragment: #F2
         expression: expression_1
       getter: <testLibrary>::@getter::b
   getters
     synthetic static a
       reference: <testLibrary>::@getter::a
-      firstFragment: #F2
+      firstFragment: #F3
       returnType: int?
       variable: <testLibrary>::@topLevelVariable::a
     synthetic static b
@@ -5784,8 +5610,7 @@ library
             IntegerLiteral
               literal: 0 @10
               staticType: int
-          getter: #F2
-        #F3 hasInitializer b @19
+        #F2 hasInitializer b @19
           element: <testLibrary>::@topLevelVariable::b
           initializer: expression_1
             PrefixExpression
@@ -5796,16 +5621,13 @@ library
                 staticType: int
               element: dart:core::@class::int::@method::unary-
               staticType: int
-          getter: #F4
       getters
-        #F2 synthetic a
+        #F3 synthetic a
           element: <testLibrary>::@getter::a
           returnType: int
-          variable: #F1
         #F4 synthetic b
           element: <testLibrary>::@getter::b
           returnType: int
-          variable: #F3
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -5817,16 +5639,16 @@ library
       getter: <testLibrary>::@getter::a
     const hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
-      firstFragment: #F3
+      firstFragment: #F2
       type: int
       constantInitializer
-        fragment: #F3
+        fragment: #F2
         expression: expression_1
       getter: <testLibrary>::@getter::b
   getters
     synthetic static a
       reference: <testLibrary>::@getter::a
-      firstFragment: #F2
+      firstFragment: #F3
       returnType: int
       variable: <testLibrary>::@topLevelVariable::a
     synthetic static b
@@ -5868,12 +5690,10 @@ library
                 staticType: Object
               element: package:test/a.dart::@extension::E::@method::unary-
               staticType: int
-          getter: #F2
       getters
         #F2 synthetic b
           element: <testLibrary>::@getter::b
           returnType: int
-          variable: #F1
   topLevelVariables
     const hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
@@ -5910,8 +5730,7 @@ library
             IntegerLiteral
               literal: 0 @10
               staticType: int
-          getter: #F2
-        #F3 hasInitializer b @19
+        #F2 hasInitializer b @19
           element: <testLibrary>::@topLevelVariable::b
           initializer: expression_1
             PrefixExpression
@@ -5926,16 +5745,13 @@ library
               writeType: InvalidType
               element: dart:core::@class::num::@method::+
               staticType: int
-          getter: #F4
       getters
-        #F2 synthetic a
+        #F3 synthetic a
           element: <testLibrary>::@getter::a
           returnType: int
-          variable: #F1
         #F4 synthetic b
           element: <testLibrary>::@getter::b
           returnType: int
-          variable: #F3
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -5947,16 +5763,16 @@ library
       getter: <testLibrary>::@getter::a
     const hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
-      firstFragment: #F3
+      firstFragment: #F2
       type: int
       constantInitializer
-        fragment: #F3
+        fragment: #F2
         expression: expression_1
       getter: <testLibrary>::@getter::b
   getters
     synthetic static a
       reference: <testLibrary>::@getter::a
-      firstFragment: #F2
+      firstFragment: #F3
       returnType: int
       variable: <testLibrary>::@topLevelVariable::a
     synthetic static b
@@ -5985,8 +5801,7 @@ library
             IntegerLiteral
               literal: 0 @10
               staticType: int
-          getter: #F2
-        #F3 hasInitializer b @19
+        #F2 hasInitializer b @19
           element: <testLibrary>::@topLevelVariable::b
           initializer: expression_1
             RecordLiteral
@@ -6009,16 +5824,13 @@ library
                     staticType: int
               rightParenthesis: ) @31
               staticType: (int, {int a})
-          getter: #F4
       getters
-        #F2 synthetic a
+        #F3 synthetic a
           element: <testLibrary>::@getter::a
           returnType: int
-          variable: #F1
         #F4 synthetic b
           element: <testLibrary>::@getter::b
           returnType: (int, {int a})
-          variable: #F3
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -6030,16 +5842,16 @@ library
       getter: <testLibrary>::@getter::a
     const hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
-      firstFragment: #F3
+      firstFragment: #F2
       type: (int, {int a})
       constantInitializer
-        fragment: #F3
+        fragment: #F2
         expression: expression_1
       getter: <testLibrary>::@getter::b
   getters
     synthetic static a
       reference: <testLibrary>::@getter::a
-      firstFragment: #F2
+      firstFragment: #F3
       returnType: int
       variable: <testLibrary>::@topLevelVariable::a
     synthetic static b
@@ -6068,8 +5880,7 @@ library
             IntegerLiteral
               literal: 0 @10
               staticType: int
-          getter: #F2
-        #F3 hasInitializer b @19
+        #F2 hasInitializer b @19
           element: <testLibrary>::@topLevelVariable::b
           initializer: expression_1
             RecordLiteral
@@ -6093,16 +5904,13 @@ library
                     staticType: int
               rightParenthesis: ) @37
               staticType: (int, {int a})
-          getter: #F4
       getters
-        #F2 synthetic a
+        #F3 synthetic a
           element: <testLibrary>::@getter::a
           returnType: int
-          variable: #F1
         #F4 synthetic b
           element: <testLibrary>::@getter::b
           returnType: (int, {int a})
-          variable: #F3
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -6114,16 +5922,16 @@ library
       getter: <testLibrary>::@getter::a
     const hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
-      firstFragment: #F3
+      firstFragment: #F2
       type: (int, {int a})
       constantInitializer
-        fragment: #F3
+        fragment: #F2
         expression: expression_1
       getter: <testLibrary>::@getter::b
   getters
     synthetic static a
       reference: <testLibrary>::@getter::a
-      firstFragment: #F2
+      firstFragment: #F3
       returnType: int
       variable: <testLibrary>::@topLevelVariable::a
     synthetic static b
@@ -6157,16 +5965,14 @@ library
                 IntegerLiteral
                   literal: 42 @33
                   staticType: int
-              getter2: #F3
           constructors
-            #F4 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 synthetic F
+            #F4 synthetic F
               element: <testLibrary>::@class::C::@getter::F
               returnType: int
-              variable: #F2
       topLevelVariables
         #F5 hasInitializer V @45
           element: <testLibrary>::@topLevelVariable::V
@@ -6183,12 +5989,10 @@ library
                 staticType: int
               element: <testLibrary>::@class::C::@getter::F
               staticType: int
-          getter: #F6
       getters
         #F6 synthetic V
           element: <testLibrary>::@getter::V
           returnType: int
-          variable: #F5
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -6205,11 +6009,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       getters
         synthetic static F
           reference: <testLibrary>::@class::C::@getter::F
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::C::@field::F
   topLevelVariables
@@ -6264,12 +6068,10 @@ library
                 staticType: int
               element: package:test/a.dart::@class::C::@getter::F
               staticType: int
-          getter: #F2
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
           returnType: int
-          variable: #F1
   topLevelVariables
     const hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
@@ -6332,12 +6134,10 @@ library
                 element: package:test/a.dart::@class::C::@getter::F
                 staticType: int
               staticType: int
-          getter: #F2
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
           returnType: int
-          variable: #F1
   topLevelVariables
     const hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
@@ -6400,12 +6200,10 @@ library
                 staticType: int Function(int, String)
               element: <testLibrary>::@class::C::@method::m
               staticType: int Function(int, String)
-          getter: #F7
       getters
         #F7 synthetic V
           element: <testLibrary>::@getter::V
           returnType: int Function(int, String)
-          variable: #F6
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -6478,12 +6276,10 @@ library
                 staticType: int Function(int, String)
               element: package:test/a.dart::@class::C::@method::m
               staticType: int Function(int, String)
-          getter: #F2
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
           returnType: int Function(int, String)
-          variable: #F1
   topLevelVariables
     const hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
@@ -6546,12 +6342,10 @@ library
                 element: package:test/a.dart::@class::C::@method::m
                 staticType: int Function(int, String)
               staticType: int Function(int, String)
-          getter: #F2
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
           returnType: int Function(int, String)
-          variable: #F1
   topLevelVariables
     const hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
@@ -6613,12 +6407,10 @@ library
                 staticType: void Function()
               element: <testLibrary>::@extension::E::@method::f
               staticType: void Function()
-          getter: #F6
       getters
         #F6 synthetic x
           element: <testLibrary>::@getter::x
           returnType: void Function()
-          variable: #F5
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -6674,12 +6466,10 @@ library
               token: foo @19
               element: <testLibrary>::@function::foo
               staticType: dynamic Function()
-          getter: #F2
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
           returnType: dynamic Function()
-          variable: #F1
       functions
         #F3 foo @0
           element: <testLibrary>::@function::foo
@@ -6725,12 +6515,10 @@ library
               token: foo @30
               element: <testLibrary>::@function::foo
               staticType: R Function<P, R>(P)
-          getter: #F2
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
           returnType: R Function<P, R>(P)
-          variable: #F1
       functions
         #F3 foo @2
           element: <testLibrary>::@function::foo
@@ -6798,12 +6586,10 @@ library
               token: foo @27
               element: package:test/a.dart::@function::foo
               staticType: dynamic Function()
-          getter: #F2
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
           returnType: dynamic Function()
-          variable: #F1
   topLevelVariables
     const hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
@@ -6857,12 +6643,10 @@ library
                 staticType: dynamic Function()
               element: package:test/a.dart::@function::foo
               staticType: dynamic Function()
-          getter: #F2
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
           returnType: dynamic Function()
-          variable: #F1
   topLevelVariables
     const hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
@@ -6899,8 +6683,7 @@ library
             IntegerLiteral
               literal: 1 @10
               staticType: int
-          getter: #F2
-        #F3 hasInitializer B @19
+        #F2 hasInitializer B @19
           element: <testLibrary>::@topLevelVariable::B
           initializer: expression_1
             BinaryExpression
@@ -6915,16 +6698,13 @@ library
               element: dart:core::@class::num::@method::+
               staticInvokeType: num Function(num)
               staticType: int
-          getter: #F4
       getters
-        #F2 synthetic A
+        #F3 synthetic A
           element: <testLibrary>::@getter::A
           returnType: int
-          variable: #F1
         #F4 synthetic B
           element: <testLibrary>::@getter::B
           returnType: int
-          variable: #F3
   topLevelVariables
     const hasInitializer A
       reference: <testLibrary>::@topLevelVariable::A
@@ -6936,16 +6716,16 @@ library
       getter: <testLibrary>::@getter::A
     const hasInitializer B
       reference: <testLibrary>::@topLevelVariable::B
-      firstFragment: #F3
+      firstFragment: #F2
       type: int
       constantInitializer
-        fragment: #F3
+        fragment: #F2
         expression: expression_1
       getter: <testLibrary>::@getter::B
   getters
     synthetic static A
       reference: <testLibrary>::@getter::A
-      firstFragment: #F2
+      firstFragment: #F3
       returnType: int
       variable: <testLibrary>::@topLevelVariable::A
     synthetic static B
@@ -6988,12 +6768,10 @@ library
               element: dart:core::@class::num::@method::+
               staticInvokeType: num Function(num)
               staticType: int
-          getter: #F2
       getters
         #F2 synthetic B
           element: <testLibrary>::@getter::B
           returnType: int
-          variable: #F1
   topLevelVariables
     const hasInitializer B
       reference: <testLibrary>::@topLevelVariable::B
@@ -7055,12 +6833,10 @@ library
               element: dart:core::@class::num::@method::+
               staticInvokeType: num Function(num)
               staticType: int
-          getter: #F2
       getters
         #F2 synthetic B
           element: <testLibrary>::@getter::B
           returnType: int
-          variable: #F1
   topLevelVariables
     const hasInitializer B
       reference: <testLibrary>::@topLevelVariable::B
@@ -7133,8 +6909,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F8
-            #F9 hasInitializer b @36
+            #F8 hasInitializer b @36
               element: <testLibrary>::@enum::E::@field::b
               initializer: expression_1
                 InstanceCreationExpression
@@ -7148,8 +6923,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F10
-            #F11 hasInitializer c @39
+            #F9 hasInitializer c @39
               element: <testLibrary>::@enum::E::@field::c
               initializer: expression_2
                 InstanceCreationExpression
@@ -7163,8 +6937,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F12
-            #F13 synthetic values
+            #F10 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_3
                 ListLiteral
@@ -7184,28 +6957,23 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-              getter2: #F14
           constructors
-            #F15 synthetic const new
+            #F11 synthetic const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F8 synthetic a
+            #F12 synthetic a
               element: <testLibrary>::@enum::E::@getter::a
               returnType: E
-              variable: #F7
-            #F10 synthetic b
+            #F13 synthetic b
               element: <testLibrary>::@enum::E::@getter::b
               returnType: E
-              variable: #F9
-            #F12 synthetic c
+            #F14 synthetic c
               element: <testLibrary>::@enum::E::@getter::c
               returnType: E
-              variable: #F11
-            #F14 synthetic values
+            #F15 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E>
-              variable: #F13
       typeAliases
         #F16 F @50
           element: <testLibrary>::@typeAlias::F
@@ -7217,84 +6985,70 @@ library
               token: dynamic @87
               element: dynamic
               staticType: Type
-          getter: #F18
-        #F19 hasInitializer vNull @102
+        #F18 hasInitializer vNull @102
           element: <testLibrary>::@topLevelVariable::vNull
           initializer: expression_5
             SimpleIdentifier
               token: Null @110
               element: dart:core::@class::Null
               staticType: Type
-          getter: #F20
-        #F21 hasInitializer vObject @122
+        #F19 hasInitializer vObject @122
           element: <testLibrary>::@topLevelVariable::vObject
           initializer: expression_6
             SimpleIdentifier
               token: Object @132
               element: dart:core::@class::Object
               staticType: Type
-          getter: #F22
-        #F23 hasInitializer vClass @146
+        #F20 hasInitializer vClass @146
           element: <testLibrary>::@topLevelVariable::vClass
           initializer: expression_7
             SimpleIdentifier
               token: C @155
               element: <testLibrary>::@class::C
               staticType: Type
-          getter: #F24
-        #F25 hasInitializer vGenericClass @164
+        #F21 hasInitializer vGenericClass @164
           element: <testLibrary>::@topLevelVariable::vGenericClass
           initializer: expression_8
             SimpleIdentifier
               token: D @180
               element: <testLibrary>::@class::D
               staticType: Type
-          getter: #F26
-        #F27 hasInitializer vEnum @189
+        #F22 hasInitializer vEnum @189
           element: <testLibrary>::@topLevelVariable::vEnum
           initializer: expression_9
             SimpleIdentifier
               token: E @197
               element: <testLibrary>::@enum::E
               staticType: Type
-          getter: #F28
-        #F29 hasInitializer vFunctionTypeAlias @206
+        #F23 hasInitializer vFunctionTypeAlias @206
           element: <testLibrary>::@topLevelVariable::vFunctionTypeAlias
           initializer: expression_10
             SimpleIdentifier
               token: F @227
               element: <testLibrary>::@typeAlias::F
               staticType: Type
-          getter: #F30
       getters
-        #F18 synthetic vDynamic
+        #F24 synthetic vDynamic
           element: <testLibrary>::@getter::vDynamic
           returnType: Type
-          variable: #F17
-        #F20 synthetic vNull
+        #F25 synthetic vNull
           element: <testLibrary>::@getter::vNull
           returnType: Type
-          variable: #F19
-        #F22 synthetic vObject
+        #F26 synthetic vObject
           element: <testLibrary>::@getter::vObject
           returnType: Type
-          variable: #F21
-        #F24 synthetic vClass
+        #F27 synthetic vClass
           element: <testLibrary>::@getter::vClass
           returnType: Type
-          variable: #F23
-        #F26 synthetic vGenericClass
+        #F28 synthetic vGenericClass
           element: <testLibrary>::@getter::vGenericClass
           returnType: Type
-          variable: #F25
-        #F28 synthetic vEnum
+        #F29 synthetic vEnum
           element: <testLibrary>::@getter::vEnum
           returnType: Type
-          variable: #F27
         #F30 synthetic vFunctionTypeAlias
           element: <testLibrary>::@getter::vFunctionTypeAlias
           returnType: Type
-          variable: #F29
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -7329,51 +7083,51 @@ library
           getter: <testLibrary>::@enum::E::@getter::a
         static const enumConstant hasInitializer b
           reference: <testLibrary>::@enum::E::@field::b
-          firstFragment: #F9
+          firstFragment: #F8
           type: E
           constantInitializer
-            fragment: #F9
+            fragment: #F8
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::b
         static const enumConstant hasInitializer c
           reference: <testLibrary>::@enum::E::@field::c
-          firstFragment: #F11
+          firstFragment: #F9
           type: E
           constantInitializer
-            fragment: #F11
+            fragment: #F9
             expression: expression_2
           getter: <testLibrary>::@enum::E::@getter::c
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F13
+          firstFragment: #F10
           type: List<E>
           constantInitializer
-            fragment: #F13
+            fragment: #F10
             expression: expression_3
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         synthetic const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F15
+          firstFragment: #F11
       getters
         synthetic static a
           reference: <testLibrary>::@enum::E::@getter::a
-          firstFragment: #F8
+          firstFragment: #F12
           returnType: E
           variable: <testLibrary>::@enum::E::@field::a
         synthetic static b
           reference: <testLibrary>::@enum::E::@getter::b
-          firstFragment: #F10
+          firstFragment: #F13
           returnType: E
           variable: <testLibrary>::@enum::E::@field::b
         synthetic static c
           reference: <testLibrary>::@enum::E::@getter::c
-          firstFragment: #F12
+          firstFragment: #F14
           returnType: E
           variable: <testLibrary>::@enum::E::@field::c
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F14
+          firstFragment: #F15
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
   typeAliases
@@ -7392,81 +7146,81 @@ library
       getter: <testLibrary>::@getter::vDynamic
     const hasInitializer vNull
       reference: <testLibrary>::@topLevelVariable::vNull
-      firstFragment: #F19
+      firstFragment: #F18
       type: Type
       constantInitializer
-        fragment: #F19
+        fragment: #F18
         expression: expression_5
       getter: <testLibrary>::@getter::vNull
     const hasInitializer vObject
       reference: <testLibrary>::@topLevelVariable::vObject
-      firstFragment: #F21
+      firstFragment: #F19
       type: Type
       constantInitializer
-        fragment: #F21
+        fragment: #F19
         expression: expression_6
       getter: <testLibrary>::@getter::vObject
     const hasInitializer vClass
       reference: <testLibrary>::@topLevelVariable::vClass
-      firstFragment: #F23
+      firstFragment: #F20
       type: Type
       constantInitializer
-        fragment: #F23
+        fragment: #F20
         expression: expression_7
       getter: <testLibrary>::@getter::vClass
     const hasInitializer vGenericClass
       reference: <testLibrary>::@topLevelVariable::vGenericClass
-      firstFragment: #F25
+      firstFragment: #F21
       type: Type
       constantInitializer
-        fragment: #F25
+        fragment: #F21
         expression: expression_8
       getter: <testLibrary>::@getter::vGenericClass
     const hasInitializer vEnum
       reference: <testLibrary>::@topLevelVariable::vEnum
-      firstFragment: #F27
+      firstFragment: #F22
       type: Type
       constantInitializer
-        fragment: #F27
+        fragment: #F22
         expression: expression_9
       getter: <testLibrary>::@getter::vEnum
     const hasInitializer vFunctionTypeAlias
       reference: <testLibrary>::@topLevelVariable::vFunctionTypeAlias
-      firstFragment: #F29
+      firstFragment: #F23
       type: Type
       constantInitializer
-        fragment: #F29
+        fragment: #F23
         expression: expression_10
       getter: <testLibrary>::@getter::vFunctionTypeAlias
   getters
     synthetic static vDynamic
       reference: <testLibrary>::@getter::vDynamic
-      firstFragment: #F18
+      firstFragment: #F24
       returnType: Type
       variable: <testLibrary>::@topLevelVariable::vDynamic
     synthetic static vNull
       reference: <testLibrary>::@getter::vNull
-      firstFragment: #F20
+      firstFragment: #F25
       returnType: Type
       variable: <testLibrary>::@topLevelVariable::vNull
     synthetic static vObject
       reference: <testLibrary>::@getter::vObject
-      firstFragment: #F22
+      firstFragment: #F26
       returnType: Type
       variable: <testLibrary>::@topLevelVariable::vObject
     synthetic static vClass
       reference: <testLibrary>::@getter::vClass
-      firstFragment: #F24
+      firstFragment: #F27
       returnType: Type
       variable: <testLibrary>::@topLevelVariable::vClass
     synthetic static vGenericClass
       reference: <testLibrary>::@getter::vGenericClass
-      firstFragment: #F26
+      firstFragment: #F28
       returnType: Type
       variable: <testLibrary>::@topLevelVariable::vGenericClass
     synthetic static vEnum
       reference: <testLibrary>::@getter::vEnum
-      firstFragment: #F28
+      firstFragment: #F29
       returnType: Type
       variable: <testLibrary>::@topLevelVariable::vEnum
     synthetic static vFunctionTypeAlias
@@ -7496,16 +7250,14 @@ library
           fields
             #F2 hasInitializer f @31
               element: <testLibrary>::@class::C::@field::f
-              getter2: #F3
           constructors
-            #F4 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 synthetic f
+            #F4 synthetic f
               element: <testLibrary>::@class::C::@getter::f
               returnType: List<dynamic Function()>
-              variable: #F2
       typeAliases
         #F5 F @8
           element: <testLibrary>::@typeAlias::F
@@ -7522,11 +7274,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       getters
         synthetic f
           reference: <testLibrary>::@class::C::@getter::f
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: List<dynamic Function()>
           variable: <testLibrary>::@class::C::@field::f
   typeAliases
@@ -7565,36 +7317,30 @@ library
               token: C @32
               element: package:test/a.dart::@class::C
               staticType: Type
-          getter: #F2
-        #F3 hasInitializer vEnum @41
+        #F2 hasInitializer vEnum @41
           element: <testLibrary>::@topLevelVariable::vEnum
           initializer: expression_1
             SimpleIdentifier
               token: E @49
               element: package:test/a.dart::@enum::E
               staticType: Type
-          getter: #F4
-        #F5 hasInitializer vFunctionTypeAlias @58
+        #F3 hasInitializer vFunctionTypeAlias @58
           element: <testLibrary>::@topLevelVariable::vFunctionTypeAlias
           initializer: expression_2
             SimpleIdentifier
               token: F @79
               element: package:test/a.dart::@typeAlias::F
               staticType: Type
-          getter: #F6
       getters
-        #F2 synthetic vClass
+        #F4 synthetic vClass
           element: <testLibrary>::@getter::vClass
           returnType: Type
-          variable: #F1
-        #F4 synthetic vEnum
+        #F5 synthetic vEnum
           element: <testLibrary>::@getter::vEnum
           returnType: Type
-          variable: #F3
         #F6 synthetic vFunctionTypeAlias
           element: <testLibrary>::@getter::vFunctionTypeAlias
           returnType: Type
-          variable: #F5
   topLevelVariables
     const hasInitializer vClass
       reference: <testLibrary>::@topLevelVariable::vClass
@@ -7606,29 +7352,29 @@ library
       getter: <testLibrary>::@getter::vClass
     const hasInitializer vEnum
       reference: <testLibrary>::@topLevelVariable::vEnum
-      firstFragment: #F3
+      firstFragment: #F2
       type: Type
       constantInitializer
-        fragment: #F3
+        fragment: #F2
         expression: expression_1
       getter: <testLibrary>::@getter::vEnum
     const hasInitializer vFunctionTypeAlias
       reference: <testLibrary>::@topLevelVariable::vFunctionTypeAlias
-      firstFragment: #F5
+      firstFragment: #F3
       type: Type
       constantInitializer
-        fragment: #F5
+        fragment: #F3
         expression: expression_2
       getter: <testLibrary>::@getter::vFunctionTypeAlias
   getters
     synthetic static vClass
       reference: <testLibrary>::@getter::vClass
-      firstFragment: #F2
+      firstFragment: #F4
       returnType: Type
       variable: <testLibrary>::@topLevelVariable::vClass
     synthetic static vEnum
       reference: <testLibrary>::@getter::vEnum
-      firstFragment: #F4
+      firstFragment: #F5
       returnType: Type
       variable: <testLibrary>::@topLevelVariable::vEnum
     synthetic static vFunctionTypeAlias
@@ -7678,8 +7424,7 @@ library
                 staticType: Type
               element: package:test/a.dart::@class::C
               staticType: Type
-          getter: #F2
-        #F3 hasInitializer vEnum @48
+        #F2 hasInitializer vEnum @48
           element: <testLibrary>::@topLevelVariable::vEnum
           initializer: expression_1
             PrefixedIdentifier
@@ -7694,8 +7439,7 @@ library
                 staticType: Type
               element: package:test/a.dart::@enum::E
               staticType: Type
-          getter: #F4
-        #F5 hasInitializer vFunctionTypeAlias @67
+        #F3 hasInitializer vFunctionTypeAlias @67
           element: <testLibrary>::@topLevelVariable::vFunctionTypeAlias
           initializer: expression_2
             PrefixedIdentifier
@@ -7710,20 +7454,16 @@ library
                 staticType: Type
               element: package:test/a.dart::@typeAlias::F
               staticType: Type
-          getter: #F6
       getters
-        #F2 synthetic vClass
+        #F4 synthetic vClass
           element: <testLibrary>::@getter::vClass
           returnType: Type
-          variable: #F1
-        #F4 synthetic vEnum
+        #F5 synthetic vEnum
           element: <testLibrary>::@getter::vEnum
           returnType: Type
-          variable: #F3
         #F6 synthetic vFunctionTypeAlias
           element: <testLibrary>::@getter::vFunctionTypeAlias
           returnType: Type
-          variable: #F5
   topLevelVariables
     const hasInitializer vClass
       reference: <testLibrary>::@topLevelVariable::vClass
@@ -7735,29 +7475,29 @@ library
       getter: <testLibrary>::@getter::vClass
     const hasInitializer vEnum
       reference: <testLibrary>::@topLevelVariable::vEnum
-      firstFragment: #F3
+      firstFragment: #F2
       type: Type
       constantInitializer
-        fragment: #F3
+        fragment: #F2
         expression: expression_1
       getter: <testLibrary>::@getter::vEnum
     const hasInitializer vFunctionTypeAlias
       reference: <testLibrary>::@topLevelVariable::vFunctionTypeAlias
-      firstFragment: #F5
+      firstFragment: #F3
       type: Type
       constantInitializer
-        fragment: #F5
+        fragment: #F3
         expression: expression_2
       getter: <testLibrary>::@getter::vFunctionTypeAlias
   getters
     synthetic static vClass
       reference: <testLibrary>::@getter::vClass
-      firstFragment: #F2
+      firstFragment: #F4
       returnType: Type
       variable: <testLibrary>::@topLevelVariable::vClass
     synthetic static vEnum
       reference: <testLibrary>::@getter::vEnum
-      firstFragment: #F4
+      firstFragment: #F5
       returnType: Type
       variable: <testLibrary>::@topLevelVariable::vEnum
     synthetic static vFunctionTypeAlias
@@ -7789,16 +7529,14 @@ library
           fields
             #F3 hasInitializer f @21
               element: <testLibrary>::@class::C::@field::f
-              getter2: #F4
           constructors
-            #F5 synthetic new
+            #F4 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 synthetic f
+            #F5 synthetic f
               element: <testLibrary>::@class::C::@getter::f
               returnType: List<T>
-              variable: #F3
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -7816,11 +7554,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F4
       getters
         synthetic f
           reference: <testLibrary>::@class::C::@getter::f
-          firstFragment: #F4
+          firstFragment: #F5
           hasEnclosingTypeParameterReference: true
           returnType: List<T>
           variable: <testLibrary>::@class::C::@field::f
@@ -7845,12 +7583,10 @@ library
               token: foo @10
               element: <null>
               staticType: InvalidType
-          getter: #F2
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
           returnType: InvalidType
-          variable: #F1
   topLevelVariables
     const hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
@@ -7903,12 +7639,10 @@ library
                 staticType: InvalidType
               element: <null>
               staticType: InvalidType
-          getter: #F4
       getters
         #F4 synthetic V
           element: <testLibrary>::@getter::V
           returnType: InvalidType
-          variable: #F3
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -7977,12 +7711,10 @@ library
                 element: <null>
                 staticType: InvalidType
               staticType: InvalidType
-          getter: #F2
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
           returnType: InvalidType
-          variable: #F1
   topLevelVariables
     const hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
@@ -8040,12 +7772,10 @@ library
               rightBracket: } @40
               isMap: false
               staticType: Set<int>
-          getter: #F2
       getters
         #F2 synthetic x
           element: <testLibrary>::@getter::x
           returnType: Object
-          variable: #F1
   topLevelVariables
     const hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -8091,12 +7821,10 @@ library
               rightBracket: } @25
               isMap: false
               staticType: Set<int>
-          getter: #F2
       getters
         #F2 synthetic x
           element: <testLibrary>::@getter::x
           returnType: Object
-          variable: #F1
   topLevelVariables
     const hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -8163,12 +7891,10 @@ library
               rightBracket: } @40
               isMap: false
               staticType: Set<int>
-          getter: #F2
       getters
         #F2 synthetic x
           element: <testLibrary>::@getter::x
           returnType: Object
-          variable: #F1
   topLevelVariables
     const hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -8235,12 +7961,10 @@ library
               rightBracket: } @41
               isMap: false
               staticType: Set<int>
-          getter: #F2
       getters
         #F2 synthetic x
           element: <testLibrary>::@getter::x
           returnType: Object
-          variable: #F1
   topLevelVariables
     const hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -8301,8 +8025,7 @@ library
               element: dart:core::@class::num::@method::==
               staticInvokeType: bool Function(Object)
               staticType: bool
-          getter: #F2
-        #F3 hasInitializer vAnd @29
+        #F2 hasInitializer vAnd @29
           element: <testLibrary>::@topLevelVariable::vAnd
           initializer: expression_1
             BinaryExpression
@@ -8316,8 +8039,7 @@ library
               element: <null>
               staticInvokeType: null
               staticType: bool
-          getter: #F4
-        #F5 hasInitializer vOr @57
+        #F3 hasInitializer vOr @57
           element: <testLibrary>::@topLevelVariable::vOr
           initializer: expression_2
             BinaryExpression
@@ -8331,8 +8053,7 @@ library
               element: <null>
               staticInvokeType: null
               staticType: bool
-          getter: #F6
-        #F7 hasInitializer vBitXor @84
+        #F4 hasInitializer vBitXor @84
           element: <testLibrary>::@topLevelVariable::vBitXor
           initializer: expression_3
             BinaryExpression
@@ -8346,8 +8067,7 @@ library
               element: dart:core::@class::int::@method::^
               staticInvokeType: int Function(int)
               staticType: int
-          getter: #F8
-        #F9 hasInitializer vBitAnd @107
+        #F5 hasInitializer vBitAnd @107
           element: <testLibrary>::@topLevelVariable::vBitAnd
           initializer: expression_4
             BinaryExpression
@@ -8361,8 +8081,7 @@ library
               element: dart:core::@class::int::@method::&
               staticInvokeType: int Function(int)
               staticType: int
-          getter: #F10
-        #F11 hasInitializer vBitOr @130
+        #F6 hasInitializer vBitOr @130
           element: <testLibrary>::@topLevelVariable::vBitOr
           initializer: expression_5
             BinaryExpression
@@ -8376,8 +8095,7 @@ library
               element: dart:core::@class::int::@method::|
               staticInvokeType: int Function(int)
               staticType: int
-          getter: #F12
-        #F13 hasInitializer vBitShiftLeft @152
+        #F7 hasInitializer vBitShiftLeft @152
           element: <testLibrary>::@topLevelVariable::vBitShiftLeft
           initializer: expression_6
             BinaryExpression
@@ -8391,8 +8109,7 @@ library
               element: dart:core::@class::int::@method::<<
               staticInvokeType: int Function(int)
               staticType: int
-          getter: #F14
-        #F15 hasInitializer vBitShiftRight @182
+        #F8 hasInitializer vBitShiftRight @182
           element: <testLibrary>::@topLevelVariable::vBitShiftRight
           initializer: expression_7
             BinaryExpression
@@ -8406,8 +8123,7 @@ library
               element: dart:core::@class::int::@method::>>
               staticInvokeType: int Function(int)
               staticType: int
-          getter: #F16
-        #F17 hasInitializer vAdd @213
+        #F9 hasInitializer vAdd @213
           element: <testLibrary>::@topLevelVariable::vAdd
           initializer: expression_8
             BinaryExpression
@@ -8421,8 +8137,7 @@ library
               element: dart:core::@class::num::@method::+
               staticInvokeType: num Function(num)
               staticType: int
-          getter: #F18
-        #F19 hasInitializer vSubtract @233
+        #F10 hasInitializer vSubtract @233
           element: <testLibrary>::@topLevelVariable::vSubtract
           initializer: expression_9
             BinaryExpression
@@ -8436,8 +8151,7 @@ library
               element: dart:core::@class::num::@method::-
               staticInvokeType: num Function(num)
               staticType: int
-          getter: #F20
-        #F21 hasInitializer vMiltiply @258
+        #F11 hasInitializer vMiltiply @258
           element: <testLibrary>::@topLevelVariable::vMiltiply
           initializer: expression_10
             BinaryExpression
@@ -8451,8 +8165,7 @@ library
               element: dart:core::@class::num::@method::*
               staticInvokeType: num Function(num)
               staticType: int
-          getter: #F22
-        #F23 hasInitializer vDivide @283
+        #F12 hasInitializer vDivide @283
           element: <testLibrary>::@topLevelVariable::vDivide
           initializer: expression_11
             BinaryExpression
@@ -8466,8 +8179,7 @@ library
               element: dart:core::@class::num::@method::/
               staticInvokeType: double Function(num)
               staticType: double
-          getter: #F24
-        #F25 hasInitializer vFloorDivide @306
+        #F13 hasInitializer vFloorDivide @306
           element: <testLibrary>::@topLevelVariable::vFloorDivide
           initializer: expression_12
             BinaryExpression
@@ -8481,8 +8193,7 @@ library
               element: dart:core::@class::num::@method::~/
               staticInvokeType: int Function(num)
               staticType: int
-          getter: #F26
-        #F27 hasInitializer vModulo @335
+        #F14 hasInitializer vModulo @335
           element: <testLibrary>::@topLevelVariable::vModulo
           initializer: expression_13
             BinaryExpression
@@ -8496,8 +8207,7 @@ library
               element: dart:core::@class::num::@method::%
               staticInvokeType: num Function(num)
               staticType: int
-          getter: #F28
-        #F29 hasInitializer vGreater @358
+        #F15 hasInitializer vGreater @358
           element: <testLibrary>::@topLevelVariable::vGreater
           initializer: expression_14
             BinaryExpression
@@ -8511,8 +8221,7 @@ library
               element: dart:core::@class::num::@method::>
               staticInvokeType: bool Function(num)
               staticType: bool
-          getter: #F30
-        #F31 hasInitializer vGreaterEqual @382
+        #F16 hasInitializer vGreaterEqual @382
           element: <testLibrary>::@topLevelVariable::vGreaterEqual
           initializer: expression_15
             BinaryExpression
@@ -8526,8 +8235,7 @@ library
               element: dart:core::@class::num::@method::>=
               staticInvokeType: bool Function(num)
               staticType: bool
-          getter: #F32
-        #F33 hasInitializer vLess @412
+        #F17 hasInitializer vLess @412
           element: <testLibrary>::@topLevelVariable::vLess
           initializer: expression_16
             BinaryExpression
@@ -8541,8 +8249,7 @@ library
               element: dart:core::@class::num::@method::<
               staticInvokeType: bool Function(num)
               staticType: bool
-          getter: #F34
-        #F35 hasInitializer vLessEqual @433
+        #F18 hasInitializer vLessEqual @433
           element: <testLibrary>::@topLevelVariable::vLessEqual
           initializer: expression_17
             BinaryExpression
@@ -8556,80 +8263,61 @@ library
               element: dart:core::@class::num::@method::<=
               staticInvokeType: bool Function(num)
               staticType: bool
-          getter: #F36
       getters
-        #F2 synthetic vEqual
+        #F19 synthetic vEqual
           element: <testLibrary>::@getter::vEqual
           returnType: bool
-          variable: #F1
-        #F4 synthetic vAnd
+        #F20 synthetic vAnd
           element: <testLibrary>::@getter::vAnd
           returnType: bool
-          variable: #F3
-        #F6 synthetic vOr
+        #F21 synthetic vOr
           element: <testLibrary>::@getter::vOr
           returnType: bool
-          variable: #F5
-        #F8 synthetic vBitXor
+        #F22 synthetic vBitXor
           element: <testLibrary>::@getter::vBitXor
           returnType: int
-          variable: #F7
-        #F10 synthetic vBitAnd
+        #F23 synthetic vBitAnd
           element: <testLibrary>::@getter::vBitAnd
           returnType: int
-          variable: #F9
-        #F12 synthetic vBitOr
+        #F24 synthetic vBitOr
           element: <testLibrary>::@getter::vBitOr
           returnType: int
-          variable: #F11
-        #F14 synthetic vBitShiftLeft
+        #F25 synthetic vBitShiftLeft
           element: <testLibrary>::@getter::vBitShiftLeft
           returnType: int
-          variable: #F13
-        #F16 synthetic vBitShiftRight
+        #F26 synthetic vBitShiftRight
           element: <testLibrary>::@getter::vBitShiftRight
           returnType: int
-          variable: #F15
-        #F18 synthetic vAdd
+        #F27 synthetic vAdd
           element: <testLibrary>::@getter::vAdd
           returnType: int
-          variable: #F17
-        #F20 synthetic vSubtract
+        #F28 synthetic vSubtract
           element: <testLibrary>::@getter::vSubtract
           returnType: int
-          variable: #F19
-        #F22 synthetic vMiltiply
+        #F29 synthetic vMiltiply
           element: <testLibrary>::@getter::vMiltiply
           returnType: int
-          variable: #F21
-        #F24 synthetic vDivide
+        #F30 synthetic vDivide
           element: <testLibrary>::@getter::vDivide
           returnType: double
-          variable: #F23
-        #F26 synthetic vFloorDivide
+        #F31 synthetic vFloorDivide
           element: <testLibrary>::@getter::vFloorDivide
           returnType: int
-          variable: #F25
-        #F28 synthetic vModulo
+        #F32 synthetic vModulo
           element: <testLibrary>::@getter::vModulo
           returnType: int
-          variable: #F27
-        #F30 synthetic vGreater
+        #F33 synthetic vGreater
           element: <testLibrary>::@getter::vGreater
           returnType: bool
-          variable: #F29
-        #F32 synthetic vGreaterEqual
+        #F34 synthetic vGreaterEqual
           element: <testLibrary>::@getter::vGreaterEqual
           returnType: bool
-          variable: #F31
-        #F34 synthetic vLess
+        #F35 synthetic vLess
           element: <testLibrary>::@getter::vLess
           returnType: bool
-          variable: #F33
         #F36 synthetic vLessEqual
           element: <testLibrary>::@getter::vLessEqual
           returnType: bool
-          variable: #F35
   topLevelVariables
     const hasInitializer vEqual
       reference: <testLibrary>::@topLevelVariable::vEqual
@@ -8641,224 +8329,224 @@ library
       getter: <testLibrary>::@getter::vEqual
     const hasInitializer vAnd
       reference: <testLibrary>::@topLevelVariable::vAnd
-      firstFragment: #F3
+      firstFragment: #F2
       type: bool
       constantInitializer
-        fragment: #F3
+        fragment: #F2
         expression: expression_1
       getter: <testLibrary>::@getter::vAnd
     const hasInitializer vOr
       reference: <testLibrary>::@topLevelVariable::vOr
-      firstFragment: #F5
+      firstFragment: #F3
       type: bool
       constantInitializer
-        fragment: #F5
+        fragment: #F3
         expression: expression_2
       getter: <testLibrary>::@getter::vOr
     const hasInitializer vBitXor
       reference: <testLibrary>::@topLevelVariable::vBitXor
-      firstFragment: #F7
+      firstFragment: #F4
       type: int
       constantInitializer
-        fragment: #F7
+        fragment: #F4
         expression: expression_3
       getter: <testLibrary>::@getter::vBitXor
     const hasInitializer vBitAnd
       reference: <testLibrary>::@topLevelVariable::vBitAnd
-      firstFragment: #F9
+      firstFragment: #F5
       type: int
       constantInitializer
-        fragment: #F9
+        fragment: #F5
         expression: expression_4
       getter: <testLibrary>::@getter::vBitAnd
     const hasInitializer vBitOr
       reference: <testLibrary>::@topLevelVariable::vBitOr
-      firstFragment: #F11
+      firstFragment: #F6
       type: int
       constantInitializer
-        fragment: #F11
+        fragment: #F6
         expression: expression_5
       getter: <testLibrary>::@getter::vBitOr
     const hasInitializer vBitShiftLeft
       reference: <testLibrary>::@topLevelVariable::vBitShiftLeft
-      firstFragment: #F13
+      firstFragment: #F7
       type: int
       constantInitializer
-        fragment: #F13
+        fragment: #F7
         expression: expression_6
       getter: <testLibrary>::@getter::vBitShiftLeft
     const hasInitializer vBitShiftRight
       reference: <testLibrary>::@topLevelVariable::vBitShiftRight
-      firstFragment: #F15
+      firstFragment: #F8
       type: int
       constantInitializer
-        fragment: #F15
+        fragment: #F8
         expression: expression_7
       getter: <testLibrary>::@getter::vBitShiftRight
     const hasInitializer vAdd
       reference: <testLibrary>::@topLevelVariable::vAdd
-      firstFragment: #F17
+      firstFragment: #F9
       type: int
       constantInitializer
-        fragment: #F17
+        fragment: #F9
         expression: expression_8
       getter: <testLibrary>::@getter::vAdd
     const hasInitializer vSubtract
       reference: <testLibrary>::@topLevelVariable::vSubtract
-      firstFragment: #F19
+      firstFragment: #F10
       type: int
       constantInitializer
-        fragment: #F19
+        fragment: #F10
         expression: expression_9
       getter: <testLibrary>::@getter::vSubtract
     const hasInitializer vMiltiply
       reference: <testLibrary>::@topLevelVariable::vMiltiply
-      firstFragment: #F21
+      firstFragment: #F11
       type: int
       constantInitializer
-        fragment: #F21
+        fragment: #F11
         expression: expression_10
       getter: <testLibrary>::@getter::vMiltiply
     const hasInitializer vDivide
       reference: <testLibrary>::@topLevelVariable::vDivide
-      firstFragment: #F23
+      firstFragment: #F12
       type: double
       constantInitializer
-        fragment: #F23
+        fragment: #F12
         expression: expression_11
       getter: <testLibrary>::@getter::vDivide
     const hasInitializer vFloorDivide
       reference: <testLibrary>::@topLevelVariable::vFloorDivide
-      firstFragment: #F25
+      firstFragment: #F13
       type: int
       constantInitializer
-        fragment: #F25
+        fragment: #F13
         expression: expression_12
       getter: <testLibrary>::@getter::vFloorDivide
     const hasInitializer vModulo
       reference: <testLibrary>::@topLevelVariable::vModulo
-      firstFragment: #F27
+      firstFragment: #F14
       type: int
       constantInitializer
-        fragment: #F27
+        fragment: #F14
         expression: expression_13
       getter: <testLibrary>::@getter::vModulo
     const hasInitializer vGreater
       reference: <testLibrary>::@topLevelVariable::vGreater
-      firstFragment: #F29
+      firstFragment: #F15
       type: bool
       constantInitializer
-        fragment: #F29
+        fragment: #F15
         expression: expression_14
       getter: <testLibrary>::@getter::vGreater
     const hasInitializer vGreaterEqual
       reference: <testLibrary>::@topLevelVariable::vGreaterEqual
-      firstFragment: #F31
+      firstFragment: #F16
       type: bool
       constantInitializer
-        fragment: #F31
+        fragment: #F16
         expression: expression_15
       getter: <testLibrary>::@getter::vGreaterEqual
     const hasInitializer vLess
       reference: <testLibrary>::@topLevelVariable::vLess
-      firstFragment: #F33
+      firstFragment: #F17
       type: bool
       constantInitializer
-        fragment: #F33
+        fragment: #F17
         expression: expression_16
       getter: <testLibrary>::@getter::vLess
     const hasInitializer vLessEqual
       reference: <testLibrary>::@topLevelVariable::vLessEqual
-      firstFragment: #F35
+      firstFragment: #F18
       type: bool
       constantInitializer
-        fragment: #F35
+        fragment: #F18
         expression: expression_17
       getter: <testLibrary>::@getter::vLessEqual
   getters
     synthetic static vEqual
       reference: <testLibrary>::@getter::vEqual
-      firstFragment: #F2
+      firstFragment: #F19
       returnType: bool
       variable: <testLibrary>::@topLevelVariable::vEqual
     synthetic static vAnd
       reference: <testLibrary>::@getter::vAnd
-      firstFragment: #F4
+      firstFragment: #F20
       returnType: bool
       variable: <testLibrary>::@topLevelVariable::vAnd
     synthetic static vOr
       reference: <testLibrary>::@getter::vOr
-      firstFragment: #F6
+      firstFragment: #F21
       returnType: bool
       variable: <testLibrary>::@topLevelVariable::vOr
     synthetic static vBitXor
       reference: <testLibrary>::@getter::vBitXor
-      firstFragment: #F8
+      firstFragment: #F22
       returnType: int
       variable: <testLibrary>::@topLevelVariable::vBitXor
     synthetic static vBitAnd
       reference: <testLibrary>::@getter::vBitAnd
-      firstFragment: #F10
+      firstFragment: #F23
       returnType: int
       variable: <testLibrary>::@topLevelVariable::vBitAnd
     synthetic static vBitOr
       reference: <testLibrary>::@getter::vBitOr
-      firstFragment: #F12
+      firstFragment: #F24
       returnType: int
       variable: <testLibrary>::@topLevelVariable::vBitOr
     synthetic static vBitShiftLeft
       reference: <testLibrary>::@getter::vBitShiftLeft
-      firstFragment: #F14
+      firstFragment: #F25
       returnType: int
       variable: <testLibrary>::@topLevelVariable::vBitShiftLeft
     synthetic static vBitShiftRight
       reference: <testLibrary>::@getter::vBitShiftRight
-      firstFragment: #F16
+      firstFragment: #F26
       returnType: int
       variable: <testLibrary>::@topLevelVariable::vBitShiftRight
     synthetic static vAdd
       reference: <testLibrary>::@getter::vAdd
-      firstFragment: #F18
+      firstFragment: #F27
       returnType: int
       variable: <testLibrary>::@topLevelVariable::vAdd
     synthetic static vSubtract
       reference: <testLibrary>::@getter::vSubtract
-      firstFragment: #F20
+      firstFragment: #F28
       returnType: int
       variable: <testLibrary>::@topLevelVariable::vSubtract
     synthetic static vMiltiply
       reference: <testLibrary>::@getter::vMiltiply
-      firstFragment: #F22
+      firstFragment: #F29
       returnType: int
       variable: <testLibrary>::@topLevelVariable::vMiltiply
     synthetic static vDivide
       reference: <testLibrary>::@getter::vDivide
-      firstFragment: #F24
+      firstFragment: #F30
       returnType: double
       variable: <testLibrary>::@topLevelVariable::vDivide
     synthetic static vFloorDivide
       reference: <testLibrary>::@getter::vFloorDivide
-      firstFragment: #F26
+      firstFragment: #F31
       returnType: int
       variable: <testLibrary>::@topLevelVariable::vFloorDivide
     synthetic static vModulo
       reference: <testLibrary>::@getter::vModulo
-      firstFragment: #F28
+      firstFragment: #F32
       returnType: int
       variable: <testLibrary>::@topLevelVariable::vModulo
     synthetic static vGreater
       reference: <testLibrary>::@getter::vGreater
-      firstFragment: #F30
+      firstFragment: #F33
       returnType: bool
       variable: <testLibrary>::@topLevelVariable::vGreater
     synthetic static vGreaterEqual
       reference: <testLibrary>::@getter::vGreaterEqual
-      firstFragment: #F32
+      firstFragment: #F34
       returnType: bool
       variable: <testLibrary>::@topLevelVariable::vGreaterEqual
     synthetic static vLess
       reference: <testLibrary>::@getter::vLess
-      firstFragment: #F34
+      firstFragment: #F35
       returnType: bool
       variable: <testLibrary>::@topLevelVariable::vLess
     synthetic static vLessEqual
@@ -8908,12 +8596,10 @@ library
                 literal: 22 @37
                 staticType: int
               staticType: int
-          getter: #F2
       getters
         #F2 synthetic vConditional
           element: <testLibrary>::@getter::vConditional
           returnType: int
-          variable: #F1
   topLevelVariables
     const hasInitializer vConditional
       reference: <testLibrary>::@topLevelVariable::vConditional
@@ -8971,12 +8657,10 @@ library
                 literal: 22 @35
                 staticType: int
               staticType: int
-          getter: #F2
       getters
         #F2 synthetic vIdentical
           element: <testLibrary>::@getter::vIdentical
           returnType: int
-          variable: #F1
   topLevelVariables
     const hasInitializer vIdentical
       reference: <testLibrary>::@topLevelVariable::vIdentical
@@ -9020,12 +8704,10 @@ library
               element: <null>
               staticInvokeType: null
               staticType: num
-          getter: #F2
       getters
         #F2 synthetic vIfNull
           element: <testLibrary>::@getter::vIfNull
           returnType: num
-          variable: #F1
   topLevelVariables
     const hasInitializer vIfNull
       reference: <testLibrary>::@topLevelVariable::vIfNull
@@ -9073,29 +8755,25 @@ library
             NullLiteral
               literal: null @14
               staticType: Null
-          getter: #F2
-        #F3 hasInitializer vBoolFalse @26
+        #F2 hasInitializer vBoolFalse @26
           element: <testLibrary>::@topLevelVariable::vBoolFalse
           initializer: expression_1
             BooleanLiteral
               literal: false @39
               staticType: bool
-          getter: #F4
-        #F5 hasInitializer vBoolTrue @52
+        #F3 hasInitializer vBoolTrue @52
           element: <testLibrary>::@topLevelVariable::vBoolTrue
           initializer: expression_2
             BooleanLiteral
               literal: true @64
               staticType: bool
-          getter: #F6
-        #F7 hasInitializer vIntPositive @76
+        #F4 hasInitializer vIntPositive @76
           element: <testLibrary>::@topLevelVariable::vIntPositive
           initializer: expression_3
             IntegerLiteral
               literal: 1 @91
               staticType: int
-          getter: #F8
-        #F9 hasInitializer vIntNegative @100
+        #F5 hasInitializer vIntNegative @100
           element: <testLibrary>::@topLevelVariable::vIntNegative
           initializer: expression_4
             PrefixExpression
@@ -9105,42 +8783,36 @@ library
                 staticType: int
               element: dart:core::@class::int::@method::unary-
               staticType: int
-          getter: #F10
-        #F11 hasInitializer vIntLong1 @125
+        #F6 hasInitializer vIntLong1 @125
           element: <testLibrary>::@topLevelVariable::vIntLong1
           initializer: expression_5
             IntegerLiteral
               literal: 0x7FFFFFFFFFFFFFFF @137
               staticType: int
-          getter: #F12
-        #F13 hasInitializer vIntLong2 @163
+        #F7 hasInitializer vIntLong2 @163
           element: <testLibrary>::@topLevelVariable::vIntLong2
           initializer: expression_6
             IntegerLiteral
               literal: 0xFFFFFFFFFFFFFFFF @175
               staticType: int
-          getter: #F14
-        #F15 hasInitializer vIntLong3 @201
+        #F8 hasInitializer vIntLong3 @201
           element: <testLibrary>::@topLevelVariable::vIntLong3
           initializer: expression_7
             IntegerLiteral
               literal: 0x8000000000000000 @213
               staticType: int
-          getter: #F16
-        #F17 hasInitializer vDouble @239
+        #F9 hasInitializer vDouble @239
           element: <testLibrary>::@topLevelVariable::vDouble
           initializer: expression_8
             DoubleLiteral
               literal: 2.3 @249
               staticType: double
-          getter: #F18
-        #F19 hasInitializer vString @260
+        #F10 hasInitializer vString @260
           element: <testLibrary>::@topLevelVariable::vString
           initializer: expression_9
             SimpleStringLiteral
               literal: 'abc' @270
-          getter: #F20
-        #F21 hasInitializer vStringConcat @283
+        #F11 hasInitializer vStringConcat @283
           element: <testLibrary>::@topLevelVariable::vStringConcat
           initializer: expression_10
             AdjacentStrings
@@ -9151,8 +8823,7 @@ library
                   literal: 'bbb' @305
               staticType: String
               stringValue: aaabbb
-          getter: #F22
-        #F23 hasInitializer vStringInterpolation @318
+        #F12 hasInitializer vStringInterpolation @318
           element: <testLibrary>::@topLevelVariable::vStringInterpolation
           initializer: expression_11
             StringInterpolation
@@ -9177,8 +8848,7 @@ library
                   contents:  bbb' @359
               staticType: String
               stringValue: null
-          getter: #F24
-        #F25 hasInitializer vSymbol @372
+        #F13 hasInitializer vSymbol @372
           element: <testLibrary>::@topLevelVariable::vSymbol
           initializer: expression_12
             SymbolLiteral
@@ -9190,60 +8860,46 @@ library
                   offset: 387
                 ccc
                   offset: 391
-          getter: #F26
       getters
-        #F2 synthetic vNull
+        #F14 synthetic vNull
           element: <testLibrary>::@getter::vNull
           returnType: dynamic
-          variable: #F1
-        #F4 synthetic vBoolFalse
+        #F15 synthetic vBoolFalse
           element: <testLibrary>::@getter::vBoolFalse
           returnType: bool
-          variable: #F3
-        #F6 synthetic vBoolTrue
+        #F16 synthetic vBoolTrue
           element: <testLibrary>::@getter::vBoolTrue
           returnType: bool
-          variable: #F5
-        #F8 synthetic vIntPositive
+        #F17 synthetic vIntPositive
           element: <testLibrary>::@getter::vIntPositive
           returnType: int
-          variable: #F7
-        #F10 synthetic vIntNegative
+        #F18 synthetic vIntNegative
           element: <testLibrary>::@getter::vIntNegative
           returnType: int
-          variable: #F9
-        #F12 synthetic vIntLong1
+        #F19 synthetic vIntLong1
           element: <testLibrary>::@getter::vIntLong1
           returnType: int
-          variable: #F11
-        #F14 synthetic vIntLong2
+        #F20 synthetic vIntLong2
           element: <testLibrary>::@getter::vIntLong2
           returnType: int
-          variable: #F13
-        #F16 synthetic vIntLong3
+        #F21 synthetic vIntLong3
           element: <testLibrary>::@getter::vIntLong3
           returnType: int
-          variable: #F15
-        #F18 synthetic vDouble
+        #F22 synthetic vDouble
           element: <testLibrary>::@getter::vDouble
           returnType: double
-          variable: #F17
-        #F20 synthetic vString
+        #F23 synthetic vString
           element: <testLibrary>::@getter::vString
           returnType: String
-          variable: #F19
-        #F22 synthetic vStringConcat
+        #F24 synthetic vStringConcat
           element: <testLibrary>::@getter::vStringConcat
           returnType: String
-          variable: #F21
-        #F24 synthetic vStringInterpolation
+        #F25 synthetic vStringInterpolation
           element: <testLibrary>::@getter::vStringInterpolation
           returnType: String
-          variable: #F23
         #F26 synthetic vSymbol
           element: <testLibrary>::@getter::vSymbol
           returnType: Symbol
-          variable: #F25
   topLevelVariables
     const hasInitializer vNull
       reference: <testLibrary>::@topLevelVariable::vNull
@@ -9255,159 +8911,159 @@ library
       getter: <testLibrary>::@getter::vNull
     const hasInitializer vBoolFalse
       reference: <testLibrary>::@topLevelVariable::vBoolFalse
-      firstFragment: #F3
+      firstFragment: #F2
       type: bool
       constantInitializer
-        fragment: #F3
+        fragment: #F2
         expression: expression_1
       getter: <testLibrary>::@getter::vBoolFalse
     const hasInitializer vBoolTrue
       reference: <testLibrary>::@topLevelVariable::vBoolTrue
-      firstFragment: #F5
+      firstFragment: #F3
       type: bool
       constantInitializer
-        fragment: #F5
+        fragment: #F3
         expression: expression_2
       getter: <testLibrary>::@getter::vBoolTrue
     const hasInitializer vIntPositive
       reference: <testLibrary>::@topLevelVariable::vIntPositive
-      firstFragment: #F7
+      firstFragment: #F4
       type: int
       constantInitializer
-        fragment: #F7
+        fragment: #F4
         expression: expression_3
       getter: <testLibrary>::@getter::vIntPositive
     const hasInitializer vIntNegative
       reference: <testLibrary>::@topLevelVariable::vIntNegative
-      firstFragment: #F9
+      firstFragment: #F5
       type: int
       constantInitializer
-        fragment: #F9
+        fragment: #F5
         expression: expression_4
       getter: <testLibrary>::@getter::vIntNegative
     const hasInitializer vIntLong1
       reference: <testLibrary>::@topLevelVariable::vIntLong1
-      firstFragment: #F11
+      firstFragment: #F6
       type: int
       constantInitializer
-        fragment: #F11
+        fragment: #F6
         expression: expression_5
       getter: <testLibrary>::@getter::vIntLong1
     const hasInitializer vIntLong2
       reference: <testLibrary>::@topLevelVariable::vIntLong2
-      firstFragment: #F13
+      firstFragment: #F7
       type: int
       constantInitializer
-        fragment: #F13
+        fragment: #F7
         expression: expression_6
       getter: <testLibrary>::@getter::vIntLong2
     const hasInitializer vIntLong3
       reference: <testLibrary>::@topLevelVariable::vIntLong3
-      firstFragment: #F15
+      firstFragment: #F8
       type: int
       constantInitializer
-        fragment: #F15
+        fragment: #F8
         expression: expression_7
       getter: <testLibrary>::@getter::vIntLong3
     const hasInitializer vDouble
       reference: <testLibrary>::@topLevelVariable::vDouble
-      firstFragment: #F17
+      firstFragment: #F9
       type: double
       constantInitializer
-        fragment: #F17
+        fragment: #F9
         expression: expression_8
       getter: <testLibrary>::@getter::vDouble
     const hasInitializer vString
       reference: <testLibrary>::@topLevelVariable::vString
-      firstFragment: #F19
+      firstFragment: #F10
       type: String
       constantInitializer
-        fragment: #F19
+        fragment: #F10
         expression: expression_9
       getter: <testLibrary>::@getter::vString
     const hasInitializer vStringConcat
       reference: <testLibrary>::@topLevelVariable::vStringConcat
-      firstFragment: #F21
+      firstFragment: #F11
       type: String
       constantInitializer
-        fragment: #F21
+        fragment: #F11
         expression: expression_10
       getter: <testLibrary>::@getter::vStringConcat
     const hasInitializer vStringInterpolation
       reference: <testLibrary>::@topLevelVariable::vStringInterpolation
-      firstFragment: #F23
+      firstFragment: #F12
       type: String
       constantInitializer
-        fragment: #F23
+        fragment: #F12
         expression: expression_11
       getter: <testLibrary>::@getter::vStringInterpolation
     const hasInitializer vSymbol
       reference: <testLibrary>::@topLevelVariable::vSymbol
-      firstFragment: #F25
+      firstFragment: #F13
       type: Symbol
       constantInitializer
-        fragment: #F25
+        fragment: #F13
         expression: expression_12
       getter: <testLibrary>::@getter::vSymbol
   getters
     synthetic static vNull
       reference: <testLibrary>::@getter::vNull
-      firstFragment: #F2
+      firstFragment: #F14
       returnType: dynamic
       variable: <testLibrary>::@topLevelVariable::vNull
     synthetic static vBoolFalse
       reference: <testLibrary>::@getter::vBoolFalse
-      firstFragment: #F4
+      firstFragment: #F15
       returnType: bool
       variable: <testLibrary>::@topLevelVariable::vBoolFalse
     synthetic static vBoolTrue
       reference: <testLibrary>::@getter::vBoolTrue
-      firstFragment: #F6
+      firstFragment: #F16
       returnType: bool
       variable: <testLibrary>::@topLevelVariable::vBoolTrue
     synthetic static vIntPositive
       reference: <testLibrary>::@getter::vIntPositive
-      firstFragment: #F8
+      firstFragment: #F17
       returnType: int
       variable: <testLibrary>::@topLevelVariable::vIntPositive
     synthetic static vIntNegative
       reference: <testLibrary>::@getter::vIntNegative
-      firstFragment: #F10
+      firstFragment: #F18
       returnType: int
       variable: <testLibrary>::@topLevelVariable::vIntNegative
     synthetic static vIntLong1
       reference: <testLibrary>::@getter::vIntLong1
-      firstFragment: #F12
+      firstFragment: #F19
       returnType: int
       variable: <testLibrary>::@topLevelVariable::vIntLong1
     synthetic static vIntLong2
       reference: <testLibrary>::@getter::vIntLong2
-      firstFragment: #F14
+      firstFragment: #F20
       returnType: int
       variable: <testLibrary>::@topLevelVariable::vIntLong2
     synthetic static vIntLong3
       reference: <testLibrary>::@getter::vIntLong3
-      firstFragment: #F16
+      firstFragment: #F21
       returnType: int
       variable: <testLibrary>::@topLevelVariable::vIntLong3
     synthetic static vDouble
       reference: <testLibrary>::@getter::vDouble
-      firstFragment: #F18
+      firstFragment: #F22
       returnType: double
       variable: <testLibrary>::@topLevelVariable::vDouble
     synthetic static vString
       reference: <testLibrary>::@getter::vString
-      firstFragment: #F20
+      firstFragment: #F23
       returnType: String
       variable: <testLibrary>::@topLevelVariable::vString
     synthetic static vStringConcat
       reference: <testLibrary>::@getter::vStringConcat
-      firstFragment: #F22
+      firstFragment: #F24
       returnType: String
       variable: <testLibrary>::@topLevelVariable::vStringConcat
     synthetic static vStringInterpolation
       reference: <testLibrary>::@getter::vStringInterpolation
-      firstFragment: #F24
+      firstFragment: #F25
       returnType: String
       variable: <testLibrary>::@topLevelVariable::vStringInterpolation
     synthetic static vSymbol
@@ -9436,8 +9092,7 @@ library
             IntegerLiteral
               literal: 0 @15
               staticType: int
-          getter: #F2
-        #F3 hasInitializer b @24
+        #F2 hasInitializer b @24
           element: <testLibrary>::@topLevelVariable::b
           initializer: expression_1
             MethodInvocation
@@ -9455,16 +9110,13 @@ library
                 rightParenthesis: ) @40
               staticInvokeType: String Function()
               staticType: String?
-          getter: #F4
       getters
-        #F2 synthetic a
+        #F3 synthetic a
           element: <testLibrary>::@getter::a
           returnType: int?
-          variable: #F1
         #F4 synthetic b
           element: <testLibrary>::@getter::b
           returnType: String?
-          variable: #F3
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -9476,16 +9128,16 @@ library
       getter: <testLibrary>::@getter::a
     const hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
-      firstFragment: #F3
+      firstFragment: #F2
       type: String?
       constantInitializer
-        fragment: #F3
+        fragment: #F2
         expression: expression_1
       getter: <testLibrary>::@getter::b
   getters
     synthetic static a
       reference: <testLibrary>::@getter::a
-      firstFragment: #F2
+      firstFragment: #F3
       returnType: int?
       variable: <testLibrary>::@topLevelVariable::a
     synthetic static b
@@ -9514,8 +9166,7 @@ library
             IntegerLiteral
               literal: 0 @15
               staticType: int
-          getter: #F2
-        #F3 hasInitializer b @24
+        #F2 hasInitializer b @24
           element: <testLibrary>::@topLevelVariable::b
           initializer: expression_1
             CascadeExpression
@@ -9536,16 +9187,13 @@ library
                   staticInvokeType: String Function()
                   staticType: String
               staticType: int?
-          getter: #F4
       getters
-        #F2 synthetic a
+        #F3 synthetic a
           element: <testLibrary>::@getter::a
           returnType: int?
-          variable: #F1
         #F4 synthetic b
           element: <testLibrary>::@getter::b
           returnType: int?
-          variable: #F3
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -9557,16 +9205,16 @@ library
       getter: <testLibrary>::@getter::a
     const hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
-      firstFragment: #F3
+      firstFragment: #F2
       type: int?
       constantInitializer
-        fragment: #F3
+        fragment: #F2
         expression: expression_1
       getter: <testLibrary>::@getter::b
   getters
     synthetic static a
       reference: <testLibrary>::@getter::a
-      firstFragment: #F2
+      firstFragment: #F3
       returnType: int?
       variable: <testLibrary>::@topLevelVariable::a
     synthetic static b
@@ -9597,8 +9245,7 @@ library
           initializer: expression_0
             SimpleStringLiteral
               literal: '' @18
-          getter: #F2
-        #F3 hasInitializer b @40
+        #F2 hasInitializer b @40
           element: <testLibrary>::@topLevelVariable::b
           initializer: expression_1
             ListLiteral
@@ -9617,16 +9264,13 @@ library
                   staticType: int?
               rightBracket: ] @59
               staticType: List<int?>
-          getter: #F4
       getters
-        #F2 synthetic a
+        #F3 synthetic a
           element: <testLibrary>::@getter::a
           returnType: String?
-          variable: #F1
         #F4 synthetic b
           element: <testLibrary>::@getter::b
           returnType: List<int?>
-          variable: #F3
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -9638,16 +9282,16 @@ library
       getter: <testLibrary>::@getter::a
     const hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
-      firstFragment: #F3
+      firstFragment: #F2
       type: List<int?>
       constantInitializer
-        fragment: #F3
+        fragment: #F2
         expression: expression_1
       getter: <testLibrary>::@getter::b
   getters
     synthetic static a
       reference: <testLibrary>::@getter::a
-      firstFragment: #F2
+      firstFragment: #F3
       returnType: String?
       variable: <testLibrary>::@topLevelVariable::a
     synthetic static b
@@ -9697,8 +9341,7 @@ library
               element: dart:core::@class::num::@method::*
               staticInvokeType: num Function(num)
               staticType: int
-          getter: #F2
-        #F3 hasInitializer v2 @38
+        #F2 hasInitializer v2 @38
           element: <testLibrary>::@topLevelVariable::v2
           initializer: expression_1
             PrefixExpression
@@ -9720,8 +9363,7 @@ library
                 staticType: int
               element: dart:core::@class::int::@method::unary-
               staticType: int
-          getter: #F4
-        #F5 hasInitializer v3 @63
+        #F3 hasInitializer v3 @63
           element: <testLibrary>::@topLevelVariable::v3
           initializer: expression_2
             PropertyAccess
@@ -9744,20 +9386,16 @@ library
                 element: dart:core::@class::String::@getter::length
                 staticType: int
               staticType: int
-          getter: #F6
       getters
-        #F2 synthetic v1
+        #F4 synthetic v1
           element: <testLibrary>::@getter::v1
           returnType: int
-          variable: #F1
-        #F4 synthetic v2
+        #F5 synthetic v2
           element: <testLibrary>::@getter::v2
           returnType: int
-          variable: #F3
         #F6 synthetic v3
           element: <testLibrary>::@getter::v3
           returnType: int
-          variable: #F5
   topLevelVariables
     const hasInitializer v1
       reference: <testLibrary>::@topLevelVariable::v1
@@ -9769,29 +9407,29 @@ library
       getter: <testLibrary>::@getter::v1
     const hasInitializer v2
       reference: <testLibrary>::@topLevelVariable::v2
-      firstFragment: #F3
+      firstFragment: #F2
       type: int
       constantInitializer
-        fragment: #F3
+        fragment: #F2
         expression: expression_1
       getter: <testLibrary>::@getter::v2
     const hasInitializer v3
       reference: <testLibrary>::@topLevelVariable::v3
-      firstFragment: #F5
+      firstFragment: #F3
       type: int
       constantInitializer
-        fragment: #F5
+        fragment: #F3
         expression: expression_2
       getter: <testLibrary>::@getter::v3
   getters
     synthetic static v1
       reference: <testLibrary>::@getter::v1
-      firstFragment: #F2
+      firstFragment: #F4
       returnType: int
       variable: <testLibrary>::@topLevelVariable::v1
     synthetic static v2
       reference: <testLibrary>::@getter::v2
-      firstFragment: #F4
+      firstFragment: #F5
       returnType: int
       variable: <testLibrary>::@topLevelVariable::v2
     synthetic static v3
@@ -9830,8 +9468,7 @@ library
               element: dart:core::@class::num::@method::==
               staticInvokeType: bool Function(Object)
               staticType: bool
-          getter: #F2
-        #F3 hasInitializer vNot @32
+        #F2 hasInitializer vNot @32
           element: <testLibrary>::@topLevelVariable::vNot
           initializer: expression_1
             PrefixExpression
@@ -9841,8 +9478,7 @@ library
                 staticType: bool
               element: <null>
               staticType: bool
-          getter: #F4
-        #F5 hasInitializer vNegate @52
+        #F3 hasInitializer vNegate @52
           element: <testLibrary>::@topLevelVariable::vNegate
           initializer: expression_2
             PrefixExpression
@@ -9852,8 +9488,7 @@ library
                 staticType: int
               element: dart:core::@class::int::@method::unary-
               staticType: int
-          getter: #F6
-        #F7 hasInitializer vComplement @72
+        #F4 hasInitializer vComplement @72
           element: <testLibrary>::@topLevelVariable::vComplement
           initializer: expression_3
             PrefixExpression
@@ -9863,24 +9498,19 @@ library
                 staticType: int
               element: dart:core::@class::int::@method::~
               staticType: int
-          getter: #F8
       getters
-        #F2 synthetic vNotEqual
+        #F5 synthetic vNotEqual
           element: <testLibrary>::@getter::vNotEqual
           returnType: bool
-          variable: #F1
-        #F4 synthetic vNot
+        #F6 synthetic vNot
           element: <testLibrary>::@getter::vNot
           returnType: bool
-          variable: #F3
-        #F6 synthetic vNegate
+        #F7 synthetic vNegate
           element: <testLibrary>::@getter::vNegate
           returnType: int
-          variable: #F5
         #F8 synthetic vComplement
           element: <testLibrary>::@getter::vComplement
           returnType: int
-          variable: #F7
   topLevelVariables
     const hasInitializer vNotEqual
       reference: <testLibrary>::@topLevelVariable::vNotEqual
@@ -9892,42 +9522,42 @@ library
       getter: <testLibrary>::@getter::vNotEqual
     const hasInitializer vNot
       reference: <testLibrary>::@topLevelVariable::vNot
-      firstFragment: #F3
+      firstFragment: #F2
       type: bool
       constantInitializer
-        fragment: #F3
+        fragment: #F2
         expression: expression_1
       getter: <testLibrary>::@getter::vNot
     const hasInitializer vNegate
       reference: <testLibrary>::@topLevelVariable::vNegate
-      firstFragment: #F5
+      firstFragment: #F3
       type: int
       constantInitializer
-        fragment: #F5
+        fragment: #F3
         expression: expression_2
       getter: <testLibrary>::@getter::vNegate
     const hasInitializer vComplement
       reference: <testLibrary>::@topLevelVariable::vComplement
-      firstFragment: #F7
+      firstFragment: #F4
       type: int
       constantInitializer
-        fragment: #F7
+        fragment: #F4
         expression: expression_3
       getter: <testLibrary>::@getter::vComplement
   getters
     synthetic static vNotEqual
       reference: <testLibrary>::@getter::vNotEqual
-      firstFragment: #F2
+      firstFragment: #F5
       returnType: bool
       variable: <testLibrary>::@topLevelVariable::vNotEqual
     synthetic static vNot
       reference: <testLibrary>::@getter::vNot
-      firstFragment: #F4
+      firstFragment: #F6
       returnType: bool
       variable: <testLibrary>::@topLevelVariable::vNot
     synthetic static vNegate
       reference: <testLibrary>::@getter::vNegate
-      firstFragment: #F6
+      firstFragment: #F7
       returnType: int
       variable: <testLibrary>::@topLevelVariable::vNegate
     synthetic static vComplement
@@ -9955,12 +9585,10 @@ library
             SuperExpression
               superKeyword: super @15
               staticType: InvalidType
-          getter: #F2
       getters
         #F2 synthetic vSuper
           element: <testLibrary>::@getter::vSuper
           returnType: InvalidType
-          variable: #F1
   topLevelVariables
     const hasInitializer vSuper
       reference: <testLibrary>::@topLevelVariable::vSuper
@@ -9996,12 +9624,10 @@ library
             ThisExpression
               thisKeyword: this @14
               staticType: dynamic
-          getter: #F2
       getters
         #F2 synthetic vThis
           element: <testLibrary>::@getter::vThis
           returnType: dynamic
-          variable: #F1
   topLevelVariables
     const hasInitializer vThis
       reference: <testLibrary>::@topLevelVariable::vThis
@@ -10040,12 +9666,10 @@ library
                 literal: 42 @16
                 staticType: int
               staticType: Never
-          getter: #F2
       getters
         #F2 synthetic c
           element: <testLibrary>::@getter::c
           returnType: Never
-          variable: #F1
   topLevelVariables
     const hasInitializer c
       reference: <testLibrary>::@topLevelVariable::c
@@ -10096,8 +9720,7 @@ library
               leftBracket: [ @26
               rightBracket: ] @27
               staticType: List<Null>
-          getter: #F2
-        #F3 hasInitializer vDynamic @36
+        #F2 hasInitializer vDynamic @36
           element: <testLibrary>::@topLevelVariable::vDynamic
           initializer: expression_1
             ListLiteral
@@ -10123,8 +9746,7 @@ library
                   staticType: int
               rightBracket: ] @70
               staticType: List<dynamic>
-          getter: #F4
-        #F5 hasInitializer vInterfaceNoTypeParameters @79
+        #F3 hasInitializer vInterfaceNoTypeParameters @79
           element: <testLibrary>::@topLevelVariable::vInterfaceNoTypeParameters
           initializer: expression_2
             ListLiteral
@@ -10150,8 +9772,7 @@ library
                   staticType: int
               rightBracket: ] @127
               staticType: List<int>
-          getter: #F6
-        #F7 hasInitializer vInterfaceNoTypeArguments @136
+        #F4 hasInitializer vInterfaceNoTypeArguments @136
           element: <testLibrary>::@topLevelVariable::vInterfaceNoTypeArguments
           initializer: expression_3
             ListLiteral
@@ -10167,8 +9788,7 @@ library
               leftBracket: [ @176
               rightBracket: ] @177
               staticType: List<List<dynamic>>
-          getter: #F8
-        #F9 hasInitializer vInterfaceWithTypeArguments @186
+        #F5 hasInitializer vInterfaceWithTypeArguments @186
           element: <testLibrary>::@topLevelVariable::vInterfaceWithTypeArguments
           initializer: expression_4
             ListLiteral
@@ -10192,8 +9812,7 @@ library
               leftBracket: [ @236
               rightBracket: ] @237
               staticType: List<List<String>>
-          getter: #F10
-        #F11 hasInitializer vInterfaceWithTypeArguments2 @246
+        #F6 hasInitializer vInterfaceWithTypeArguments2 @246
           element: <testLibrary>::@topLevelVariable::vInterfaceWithTypeArguments2
           initializer: expression_5
             ListLiteral
@@ -10229,32 +9848,25 @@ library
               leftBracket: [ @307
               rightBracket: ] @308
               staticType: List<Map<int, List<String>>>
-          getter: #F12
       getters
-        #F2 synthetic vNull
+        #F7 synthetic vNull
           element: <testLibrary>::@getter::vNull
           returnType: List<Null>
-          variable: #F1
-        #F4 synthetic vDynamic
+        #F8 synthetic vDynamic
           element: <testLibrary>::@getter::vDynamic
           returnType: List<dynamic>
-          variable: #F3
-        #F6 synthetic vInterfaceNoTypeParameters
+        #F9 synthetic vInterfaceNoTypeParameters
           element: <testLibrary>::@getter::vInterfaceNoTypeParameters
           returnType: List<int>
-          variable: #F5
-        #F8 synthetic vInterfaceNoTypeArguments
+        #F10 synthetic vInterfaceNoTypeArguments
           element: <testLibrary>::@getter::vInterfaceNoTypeArguments
           returnType: List<List<dynamic>>
-          variable: #F7
-        #F10 synthetic vInterfaceWithTypeArguments
+        #F11 synthetic vInterfaceWithTypeArguments
           element: <testLibrary>::@getter::vInterfaceWithTypeArguments
           returnType: List<List<String>>
-          variable: #F9
         #F12 synthetic vInterfaceWithTypeArguments2
           element: <testLibrary>::@getter::vInterfaceWithTypeArguments2
           returnType: List<Map<int, List<String>>>
-          variable: #F11
   topLevelVariables
     const hasInitializer vNull
       reference: <testLibrary>::@topLevelVariable::vNull
@@ -10266,68 +9878,68 @@ library
       getter: <testLibrary>::@getter::vNull
     const hasInitializer vDynamic
       reference: <testLibrary>::@topLevelVariable::vDynamic
-      firstFragment: #F3
+      firstFragment: #F2
       type: List<dynamic>
       constantInitializer
-        fragment: #F3
+        fragment: #F2
         expression: expression_1
       getter: <testLibrary>::@getter::vDynamic
     const hasInitializer vInterfaceNoTypeParameters
       reference: <testLibrary>::@topLevelVariable::vInterfaceNoTypeParameters
-      firstFragment: #F5
+      firstFragment: #F3
       type: List<int>
       constantInitializer
-        fragment: #F5
+        fragment: #F3
         expression: expression_2
       getter: <testLibrary>::@getter::vInterfaceNoTypeParameters
     const hasInitializer vInterfaceNoTypeArguments
       reference: <testLibrary>::@topLevelVariable::vInterfaceNoTypeArguments
-      firstFragment: #F7
+      firstFragment: #F4
       type: List<List<dynamic>>
       constantInitializer
-        fragment: #F7
+        fragment: #F4
         expression: expression_3
       getter: <testLibrary>::@getter::vInterfaceNoTypeArguments
     const hasInitializer vInterfaceWithTypeArguments
       reference: <testLibrary>::@topLevelVariable::vInterfaceWithTypeArguments
-      firstFragment: #F9
+      firstFragment: #F5
       type: List<List<String>>
       constantInitializer
-        fragment: #F9
+        fragment: #F5
         expression: expression_4
       getter: <testLibrary>::@getter::vInterfaceWithTypeArguments
     const hasInitializer vInterfaceWithTypeArguments2
       reference: <testLibrary>::@topLevelVariable::vInterfaceWithTypeArguments2
-      firstFragment: #F11
+      firstFragment: #F6
       type: List<Map<int, List<String>>>
       constantInitializer
-        fragment: #F11
+        fragment: #F6
         expression: expression_5
       getter: <testLibrary>::@getter::vInterfaceWithTypeArguments2
   getters
     synthetic static vNull
       reference: <testLibrary>::@getter::vNull
-      firstFragment: #F2
+      firstFragment: #F7
       returnType: List<Null>
       variable: <testLibrary>::@topLevelVariable::vNull
     synthetic static vDynamic
       reference: <testLibrary>::@getter::vDynamic
-      firstFragment: #F4
+      firstFragment: #F8
       returnType: List<dynamic>
       variable: <testLibrary>::@topLevelVariable::vDynamic
     synthetic static vInterfaceNoTypeParameters
       reference: <testLibrary>::@getter::vInterfaceNoTypeParameters
-      firstFragment: #F6
+      firstFragment: #F9
       returnType: List<int>
       variable: <testLibrary>::@topLevelVariable::vInterfaceNoTypeParameters
     synthetic static vInterfaceNoTypeArguments
       reference: <testLibrary>::@getter::vInterfaceNoTypeArguments
-      firstFragment: #F8
+      firstFragment: #F10
       returnType: List<List<dynamic>>
       variable: <testLibrary>::@topLevelVariable::vInterfaceNoTypeArguments
     synthetic static vInterfaceWithTypeArguments
       reference: <testLibrary>::@getter::vInterfaceWithTypeArguments
-      firstFragment: #F10
+      firstFragment: #F11
       returnType: List<List<String>>
       variable: <testLibrary>::@topLevelVariable::vInterfaceWithTypeArguments
     synthetic static vInterfaceWithTypeArguments2
@@ -10369,12 +9981,10 @@ library
               leftBracket: [ @36
               rightBracket: ] @37
               staticType: List<C>
-          getter: #F2
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
           returnType: List<C>
-          variable: #F1
   topLevelVariables
     const hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
@@ -10431,12 +10041,10 @@ library
               leftBracket: [ @43
               rightBracket: ] @44
               staticType: List<C>
-          getter: #F2
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
           returnType: List<C>
-          variable: #F1
   topLevelVariables
     const hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
@@ -10487,12 +10095,10 @@ library
               leftBracket: [ @45
               rightBracket: ] @46
               staticType: List<int Function(String)>
-          getter: #F3
       getters
         #F3 synthetic v
           element: <testLibrary>::@getter::v
           returnType: List<int Function(String)>
-          variable: #F2
   typeAliases
     F
       reference: <testLibrary>::@typeAlias::F
@@ -10551,8 +10157,7 @@ library
               rightBracket: } @39
               isMap: true
               staticType: Map<dynamic, int>
-          getter: #F2
-        #F3 hasInitializer vDynamic2 @48
+        #F2 hasInitializer vDynamic2 @48
           element: <testLibrary>::@topLevelVariable::vDynamic2
           initializer: expression_1
             SetOrMapLiteral
@@ -10573,8 +10178,7 @@ library
               rightBracket: } @81
               isMap: true
               staticType: Map<int, dynamic>
-          getter: #F4
-        #F5 hasInitializer vInterface @90
+        #F3 hasInitializer vInterface @90
           element: <testLibrary>::@topLevelVariable::vInterface
           initializer: expression_2
             SetOrMapLiteral
@@ -10595,8 +10199,7 @@ library
               rightBracket: } @123
               isMap: true
               staticType: Map<int, String>
-          getter: #F6
-        #F7 hasInitializer vInterfaceWithTypeArguments @132
+        #F4 hasInitializer vInterfaceWithTypeArguments @132
           element: <testLibrary>::@topLevelVariable::vInterfaceWithTypeArguments
           initializer: expression_3
             SetOrMapLiteral
@@ -10625,24 +10228,19 @@ library
               rightBracket: } @188
               isMap: true
               staticType: Map<int, List<String>>
-          getter: #F8
       getters
-        #F2 synthetic vDynamic1
+        #F5 synthetic vDynamic1
           element: <testLibrary>::@getter::vDynamic1
           returnType: Map<dynamic, int>
-          variable: #F1
-        #F4 synthetic vDynamic2
+        #F6 synthetic vDynamic2
           element: <testLibrary>::@getter::vDynamic2
           returnType: Map<int, dynamic>
-          variable: #F3
-        #F6 synthetic vInterface
+        #F7 synthetic vInterface
           element: <testLibrary>::@getter::vInterface
           returnType: Map<int, String>
-          variable: #F5
         #F8 synthetic vInterfaceWithTypeArguments
           element: <testLibrary>::@getter::vInterfaceWithTypeArguments
           returnType: Map<int, List<String>>
-          variable: #F7
   topLevelVariables
     const hasInitializer vDynamic1
       reference: <testLibrary>::@topLevelVariable::vDynamic1
@@ -10654,42 +10252,42 @@ library
       getter: <testLibrary>::@getter::vDynamic1
     const hasInitializer vDynamic2
       reference: <testLibrary>::@topLevelVariable::vDynamic2
-      firstFragment: #F3
+      firstFragment: #F2
       type: Map<int, dynamic>
       constantInitializer
-        fragment: #F3
+        fragment: #F2
         expression: expression_1
       getter: <testLibrary>::@getter::vDynamic2
     const hasInitializer vInterface
       reference: <testLibrary>::@topLevelVariable::vInterface
-      firstFragment: #F5
+      firstFragment: #F3
       type: Map<int, String>
       constantInitializer
-        fragment: #F5
+        fragment: #F3
         expression: expression_2
       getter: <testLibrary>::@getter::vInterface
     const hasInitializer vInterfaceWithTypeArguments
       reference: <testLibrary>::@topLevelVariable::vInterfaceWithTypeArguments
-      firstFragment: #F7
+      firstFragment: #F4
       type: Map<int, List<String>>
       constantInitializer
-        fragment: #F7
+        fragment: #F4
         expression: expression_3
       getter: <testLibrary>::@getter::vInterfaceWithTypeArguments
   getters
     synthetic static vDynamic1
       reference: <testLibrary>::@getter::vDynamic1
-      firstFragment: #F2
+      firstFragment: #F5
       returnType: Map<dynamic, int>
       variable: <testLibrary>::@topLevelVariable::vDynamic1
     synthetic static vDynamic2
       reference: <testLibrary>::@getter::vDynamic2
-      firstFragment: #F4
+      firstFragment: #F6
       returnType: Map<int, dynamic>
       variable: <testLibrary>::@topLevelVariable::vDynamic2
     synthetic static vInterface
       reference: <testLibrary>::@getter::vInterface
-      firstFragment: #F6
+      firstFragment: #F7
       returnType: Map<int, String>
       variable: <testLibrary>::@topLevelVariable::vInterface
     synthetic static vInterfaceWithTypeArguments
@@ -10730,8 +10328,7 @@ library
               rightBracket: } @34
               isMap: false
               staticType: Set<dynamic>
-          getter: #F2
-        #F3 hasInitializer vInterface @43
+        #F2 hasInitializer vInterface @43
           element: <testLibrary>::@topLevelVariable::vInterface
           initializer: expression_1
             SetOrMapLiteral
@@ -10748,8 +10345,7 @@ library
               rightBracket: } @68
               isMap: false
               staticType: Set<int>
-          getter: #F4
-        #F5 hasInitializer vInterfaceWithTypeArguments @77
+        #F3 hasInitializer vInterfaceWithTypeArguments @77
           element: <testLibrary>::@topLevelVariable::vInterfaceWithTypeArguments
           initializer: expression_2
             SetOrMapLiteral
@@ -10774,20 +10370,16 @@ library
               rightBracket: } @128
               isMap: false
               staticType: Set<List<String>>
-          getter: #F6
       getters
-        #F2 synthetic vDynamic1
+        #F4 synthetic vDynamic1
           element: <testLibrary>::@getter::vDynamic1
           returnType: Set<dynamic>
-          variable: #F1
-        #F4 synthetic vInterface
+        #F5 synthetic vInterface
           element: <testLibrary>::@getter::vInterface
           returnType: Set<int>
-          variable: #F3
         #F6 synthetic vInterfaceWithTypeArguments
           element: <testLibrary>::@getter::vInterfaceWithTypeArguments
           returnType: Set<List<String>>
-          variable: #F5
   topLevelVariables
     const hasInitializer vDynamic1
       reference: <testLibrary>::@topLevelVariable::vDynamic1
@@ -10799,29 +10391,29 @@ library
       getter: <testLibrary>::@getter::vDynamic1
     const hasInitializer vInterface
       reference: <testLibrary>::@topLevelVariable::vInterface
-      firstFragment: #F3
+      firstFragment: #F2
       type: Set<int>
       constantInitializer
-        fragment: #F3
+        fragment: #F2
         expression: expression_1
       getter: <testLibrary>::@getter::vInterface
     const hasInitializer vInterfaceWithTypeArguments
       reference: <testLibrary>::@topLevelVariable::vInterfaceWithTypeArguments
-      firstFragment: #F5
+      firstFragment: #F3
       type: Set<List<String>>
       constantInitializer
-        fragment: #F5
+        fragment: #F3
         expression: expression_2
       getter: <testLibrary>::@getter::vInterfaceWithTypeArguments
   getters
     synthetic static vDynamic1
       reference: <testLibrary>::@getter::vDynamic1
-      firstFragment: #F2
+      firstFragment: #F4
       returnType: Set<dynamic>
       variable: <testLibrary>::@topLevelVariable::vDynamic1
     synthetic static vInterface
       reference: <testLibrary>::@getter::vInterface
-      firstFragment: #F4
+      firstFragment: #F5
       returnType: Set<int>
       variable: <testLibrary>::@topLevelVariable::vInterface
     synthetic static vInterfaceWithTypeArguments
@@ -10861,12 +10453,10 @@ library
                   staticType: int
               rightBracket: ] @24
               staticType: List<int>
-          getter: #F2
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
           returnType: List<int>
-          variable: #F1
   topLevelVariables
     const hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
@@ -10927,12 +10517,10 @@ library
               rightBracket: } @45
               isMap: true
               staticType: Map<int, String>
-          getter: #F2
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
           returnType: Map<int, String>
-          variable: #F1
   topLevelVariables
     const hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
@@ -10981,12 +10569,10 @@ library
               rightBracket: } @24
               isMap: false
               staticType: Set<int>
-          getter: #F2
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
           returnType: Set<int>
-          variable: #F1
   topLevelVariables
     const hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
@@ -11033,12 +10619,10 @@ library
                 element2: dart:core::@class::List
                 type: List<int>
               staticType: Type
-          getter: #F2
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
           returnType: Type
-          variable: #F1
   topLevelVariables
     const hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
@@ -11088,8 +10672,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F3
-            #F4 hasInitializer b @11
+            #F3 hasInitializer b @11
               element: <testLibrary>::@enum::E::@field::b
               initializer: expression_1
                 InstanceCreationExpression
@@ -11103,8 +10686,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F5
-            #F6 hasInitializer c @14
+            #F4 hasInitializer c @14
               element: <testLibrary>::@enum::E::@field::c
               initializer: expression_2
                 InstanceCreationExpression
@@ -11118,8 +10700,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F7
-            #F8 synthetic values
+            #F5 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_3
                 ListLiteral
@@ -11139,51 +10720,40 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-              getter2: #F9
           constructors
-            #F10 synthetic const new
+            #F6 synthetic const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F3 synthetic a
+            #F7 synthetic a
               element: <testLibrary>::@enum::E::@getter::a
               returnType: E
-              variable: #F2
-            #F5 synthetic b
+            #F8 synthetic b
               element: <testLibrary>::@enum::E::@getter::b
               returnType: E
-              variable: #F4
-            #F7 synthetic c
+            #F9 synthetic c
               element: <testLibrary>::@enum::E::@getter::c
               returnType: E
-              variable: #F6
-            #F9 synthetic values
+            #F10 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E>
-              variable: #F8
       topLevelVariables
         #F11 hasInitializer vValue @23
           element: <testLibrary>::@topLevelVariable::vValue
-          getter: #F12
-        #F13 hasInitializer vValues @43
+        #F12 hasInitializer vValues @43
           element: <testLibrary>::@topLevelVariable::vValues
-          getter: #F14
-        #F15 hasInitializer vIndex @69
+        #F13 hasInitializer vIndex @69
           element: <testLibrary>::@topLevelVariable::vIndex
-          getter: #F16
       getters
-        #F12 synthetic vValue
+        #F14 synthetic vValue
           element: <testLibrary>::@getter::vValue
           returnType: E
-          variable: #F11
-        #F14 synthetic vValues
+        #F15 synthetic vValues
           element: <testLibrary>::@getter::vValues
           returnType: List<E>
-          variable: #F13
         #F16 synthetic vIndex
           element: <testLibrary>::@getter::vIndex
           returnType: int
-          variable: #F15
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -11200,51 +10770,51 @@ library
           getter: <testLibrary>::@enum::E::@getter::a
         static const enumConstant hasInitializer b
           reference: <testLibrary>::@enum::E::@field::b
-          firstFragment: #F4
+          firstFragment: #F3
           type: E
           constantInitializer
-            fragment: #F4
+            fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::b
         static const enumConstant hasInitializer c
           reference: <testLibrary>::@enum::E::@field::c
-          firstFragment: #F6
+          firstFragment: #F4
           type: E
           constantInitializer
-            fragment: #F6
+            fragment: #F4
             expression: expression_2
           getter: <testLibrary>::@enum::E::@getter::c
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F8
+          firstFragment: #F5
           type: List<E>
           constantInitializer
-            fragment: #F8
+            fragment: #F5
             expression: expression_3
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         synthetic const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F10
+          firstFragment: #F6
       getters
         synthetic static a
           reference: <testLibrary>::@enum::E::@getter::a
-          firstFragment: #F3
+          firstFragment: #F7
           returnType: E
           variable: <testLibrary>::@enum::E::@field::a
         synthetic static b
           reference: <testLibrary>::@enum::E::@getter::b
-          firstFragment: #F5
+          firstFragment: #F8
           returnType: E
           variable: <testLibrary>::@enum::E::@field::b
         synthetic static c
           reference: <testLibrary>::@enum::E::@getter::c
-          firstFragment: #F7
+          firstFragment: #F9
           returnType: E
           variable: <testLibrary>::@enum::E::@field::c
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F9
+          firstFragment: #F10
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
   topLevelVariables
@@ -11255,23 +10825,23 @@ library
       getter: <testLibrary>::@getter::vValue
     final hasInitializer vValues
       reference: <testLibrary>::@topLevelVariable::vValues
-      firstFragment: #F13
+      firstFragment: #F12
       type: List<E>
       getter: <testLibrary>::@getter::vValues
     final hasInitializer vIndex
       reference: <testLibrary>::@topLevelVariable::vIndex
-      firstFragment: #F15
+      firstFragment: #F13
       type: int
       getter: <testLibrary>::@getter::vIndex
   getters
     synthetic static vValue
       reference: <testLibrary>::@getter::vValue
-      firstFragment: #F12
+      firstFragment: #F14
       returnType: E
       variable: <testLibrary>::@topLevelVariable::vValue
     synthetic static vValues
       reference: <testLibrary>::@getter::vValues
-      firstFragment: #F14
+      firstFragment: #F15
       returnType: List<E>
       variable: <testLibrary>::@topLevelVariable::vValues
     synthetic static vIndex
@@ -11311,8 +10881,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: #F3
-            #F4 synthetic values
+            #F3 synthetic values
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -11324,29 +10893,24 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-              getter2: #F5
           constructors
-            #F6 synthetic const new
+            #F4 synthetic const new
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F3 synthetic a
+            #F5 synthetic a
               element: <testLibrary>::@enum::E::@getter::a
               returnType: E
-              variable: #F2
-            #F5 synthetic values
+            #F6 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E>
-              variable: #F4
       topLevelVariables
         #F7 hasInitializer vToString @17
           element: <testLibrary>::@topLevelVariable::vToString
-          getter: #F8
       getters
         #F8 synthetic vToString
           element: <testLibrary>::@getter::vToString
           returnType: String
-          variable: #F7
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -11363,25 +10927,25 @@ library
           getter: <testLibrary>::@enum::E::@getter::a
         synthetic static const values
           reference: <testLibrary>::@enum::E::@field::values
-          firstFragment: #F4
+          firstFragment: #F3
           type: List<E>
           constantInitializer
-            fragment: #F4
+            fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         synthetic const new
           reference: <testLibrary>::@enum::E::@constructor::new
-          firstFragment: #F6
+          firstFragment: #F4
       getters
         synthetic static a
           reference: <testLibrary>::@enum::E::@getter::a
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: E
           variable: <testLibrary>::@enum::E::@field::a
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F5
+          firstFragment: #F6
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
   topLevelVariables
@@ -11423,27 +10987,23 @@ library
                   token: b @29
                   element: <testLibrary>::@class::C::@getter::b
                   staticType: dynamic
-              getter2: #F3
-            #F4 hasInitializer b @47
+            #F3 hasInitializer b @47
               element: <testLibrary>::@class::C::@field::b
               initializer: expression_1
                 NullLiteral
                   literal: null @51
                   staticType: Null
-              getter2: #F5
           constructors
-            #F6 synthetic new
+            #F4 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 synthetic a
+            #F5 synthetic a
               element: <testLibrary>::@class::C::@getter::a
               returnType: dynamic
-              variable: #F2
-            #F5 synthetic b
+            #F6 synthetic b
               element: <testLibrary>::@class::C::@getter::b
               returnType: dynamic
-              variable: #F4
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -11459,25 +11019,25 @@ library
           getter: <testLibrary>::@class::C::@getter::a
         static const hasInitializer b
           reference: <testLibrary>::@class::C::@field::b
-          firstFragment: #F4
+          firstFragment: #F3
           type: dynamic
           constantInitializer
-            fragment: #F4
+            fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@class::C::@getter::b
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F6
+          firstFragment: #F4
       getters
         synthetic static a
           reference: <testLibrary>::@class::C::@getter::a
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::a
         synthetic static b
           reference: <testLibrary>::@class::C::@getter::b
-          firstFragment: #F5
+          firstFragment: #F6
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::b
 ''');
@@ -11507,16 +11067,14 @@ library
                   token: m @29
                   element: <testLibrary>::@class::C::@method::m
                   staticType: dynamic Function()
-              getter2: #F3
           constructors
-            #F4 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 synthetic a
+            #F4 synthetic a
               element: <testLibrary>::@class::C::@getter::a
               returnType: dynamic Function()
-              variable: #F2
           methods
             #F5 m @41
               element: <testLibrary>::@class::C::@method::m
@@ -11536,11 +11094,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       getters
         synthetic static a
           reference: <testLibrary>::@class::C::@getter::a
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: dynamic Function()
           variable: <testLibrary>::@class::C::@field::a
       methods

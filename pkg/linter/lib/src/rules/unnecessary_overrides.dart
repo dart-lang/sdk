@@ -187,7 +187,7 @@ class _UnnecessaryGetterOverrideVisitor
     if (enclosingElement is! InterfaceElement) return null;
     var getterName = element.name3;
     if (getterName == null) return null;
-    return enclosingElement.thisType.lookUpGetter3(
+    return enclosingElement.thisType.lookUpGetter(
       getterName,
       element.library2,
       concrete: true,
@@ -215,7 +215,7 @@ class _UnnecessaryMethodOverrideVisitor
     var enclosingElement = element.enclosingElement;
     if (enclosingElement is! InterfaceElement) return null;
 
-    return enclosingElement.firstFragment.element.thisType.lookUpMethod3(
+    return enclosingElement.firstFragment.element.thisType.lookUpMethod(
       node.name.lexeme,
       element.library2,
       concrete: true,
@@ -249,7 +249,7 @@ class _UnnecessaryOperatorOverrideVisitor
     if (enclosingElement is! InterfaceElement) return null;
     var methodName = element.name3;
     if (methodName == null) return null;
-    return enclosingElement.thisType.lookUpMethod3(
+    return enclosingElement.thisType.lookUpMethod(
       methodName,
       element.library2,
       concrete: true,
@@ -296,7 +296,7 @@ class _UnnecessarySetterOverrideVisitor
     if (element == null) return null;
     var enclosingElement = element.enclosingElement;
     if (enclosingElement is! InterfaceElement) return null;
-    return enclosingElement.thisType.lookUpSetter3(
+    return enclosingElement.thisType.lookUpSetter(
       node.name.lexeme,
       element.library2,
       concrete: true,

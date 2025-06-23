@@ -126,15 +126,15 @@ vars = {
   #   and land the review.
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
-  "dart_style_rev": "100db45075abdd66fd8788b205243e90ff0595df", # rolled manually
+  "dart_style_rev": "2a6c97b7e05234f3bd16b08dbd3150e63c8bb4ca", # rolled manually
 
   ### /third_party/pkg dependencies
   # 'tools/rev_sdk_deps.dart' will rev pkg dependencies to their latest; put an
   # EOL comment after a dependency to instead pin at the current revision.
-  "ai_rev": "f2b48c6bf688e27f41b0b73ee3ff0164a05da157",
-  "core_rev": "dc975303c312497aec2f5ed4c5828da3607e33dd",
-  "dartdoc_rev": "4ceea6b8240bf1dd9694a170368264e40c67d66b",
-  "ecosystem_rev": "64aac3a9c4606950bcf6c8729f01ed8548b9ed87",
+  "ai_rev": "12ac0a4099baf6c9b9567ffedb2b7c368938bca4",
+  "core_rev": "b59ecf4ceebe6153e1c0166b7c9a7fdd9458a89d",
+  "dartdoc_rev": "f1fe17752b1193ad52d69271ceb686cc3e4712b0",
+  "ecosystem_rev": "d5233c6dd0767cffa5742e32c4bc7c230c9c4b12",
   "flute_rev": "e4ea0459a7debae5e9592c85141707b01fac86c9",
   "http_rev": "e70a41b8b841ada9ba124b3b9e1a4d3c525b8bf9",
   "i18n_rev": "43214dde639f496377b6151115d1415128298c53",
@@ -149,8 +149,8 @@ vars = {
   "test_rev": "0793a2b3262ac900558c49c76e9bbe4f29f91ea4",
   "tools_rev": "72e6cc871a0dcb7e6b92c01a96503d1b6aebb5e3",
   "vector_math_rev": "13f185f7e97d559e003f5ac79201da12f9a01049",
-  "web_rev": "c8c1c2852ace3bb78026dddc64b111051a7e855a",
-  "webdev_rev": "661dafd4a050e4325253155af092d2243721ab28",
+  "web_rev": "4b2f02ebc74acef26fa1285801a626213c35b304",
+  "webdev_rev": "6dc3ddefdacf8c575d1636d77921f490ff07792d",
   "webdriver_rev": "b8f511d7719e2ae2c21eb4d94f68564eee32cbe2",
   "webkit_inspection_protocol_rev": "effa75205516757795683d527c3dea9546eb0c32",
 

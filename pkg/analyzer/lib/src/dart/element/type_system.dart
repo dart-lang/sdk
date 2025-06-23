@@ -520,8 +520,7 @@ class TypeSystemImpl implements TypeSystem {
       }
       candidates = [supertype];
       candidates.addAll(mixinElement.mixins);
-      if (mixinElement is ClassElementImpl &&
-          mixinElement.isMixinApplication) {
+      if (mixinElement is ClassElementImpl && mixinElement.isMixinApplication) {
         candidates.removeLast();
       }
     }
@@ -539,7 +538,7 @@ class TypeSystemImpl implements TypeSystem {
   FunctionTypeImpl? getCallMethodType(DartType t) {
     if (t is InterfaceTypeImpl) {
       return t
-          .lookUpMethod3(MethodElement.CALL_METHOD_NAME, t.element3.library2)
+          .lookUpMethod(MethodElement.CALL_METHOD_NAME, t.element3.library2)
           ?.type;
     }
     return null;

@@ -271,10 +271,7 @@ mixin ElementsTypesMixin {
       name2: representationName,
       nameOffset: -1,
     );
-    FieldElementImpl(
-      reference: Reference.root(),
-      firstFragment: fieldFragment,
-    );
+    FieldElementImpl(reference: Reference.root(), firstFragment: fieldFragment);
     fieldFragment.type = representationType;
     fragment.fields = [fieldFragment];
 

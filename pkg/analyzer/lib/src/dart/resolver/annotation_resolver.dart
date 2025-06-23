@@ -414,7 +414,7 @@ class AnnotationResolver {
     List<WhyNotPromotedGetter> whyNotPromotedArguments, {
     required TypeConstraintGenerationDataForTesting? dataForTesting,
   }) {
-    var constructorElement = aliasedType.lookUpConstructor2(
+    var constructorElement = aliasedType.lookUpConstructor(
       constructorName?.name,
       _definingLibrary,
     );

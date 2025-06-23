@@ -1075,7 +1075,10 @@ class _MockSdkElementsBuilder {
     bool isStatic = false,
   }) {
     var fieldFragment = FieldFragmentImpl(name2: name, nameOffset: -1);
-    var fieldElement = FieldElementImpl(reference: Reference.root(), firstFragment: fieldFragment);
+    var fieldElement = FieldElementImpl(
+      reference: Reference.root(),
+      firstFragment: fieldFragment,
+    );
     fieldFragment.isStatic = isStatic;
     fieldFragment.isSynthetic = true;
     fieldFragment.type = type;

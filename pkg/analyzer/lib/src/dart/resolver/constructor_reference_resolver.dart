@@ -32,8 +32,7 @@ class ConstructorReferenceResolver {
     var element = node.constructorName.element;
     if (element != null && !element.isFactory) {
       var enclosingElement = element.enclosingElement;
-      if (enclosingElement is ClassElementImpl &&
-          enclosingElement.isAbstract) {
+      if (enclosingElement is ClassElementImpl && enclosingElement.isAbstract) {
         _resolver.diagnosticReporter.atNode(
           node,
           CompileTimeErrorCode

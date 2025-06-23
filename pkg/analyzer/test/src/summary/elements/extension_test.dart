@@ -85,12 +85,10 @@ library
                 IntegerLiteral
                   literal: 0 @40
                   staticType: int
-              getter2: #F3
           getters
             #F3 synthetic x
               element: <testLibrary>::@extension::E::@getter::x
               returnType: int
-              variable: #F2
   extensions
     extension E
       reference: <testLibrary>::@extension::E
@@ -191,12 +189,10 @@ library
           fields
             #F3 synthetic foo
               element: <testLibrary>::@extension::E::@field::foo
-              getter2: #F4
           getters
             #F4 foo @38
               element: <testLibrary>::@extension::E::@getter::foo
               returnType: int
-              variable: #F3
   extensions
     extension E
       reference: <testLibrary>::@extension::E
@@ -242,12 +238,10 @@ library
           fields
             #F3 synthetic foo
               element: <testLibrary>::@extension::E::@field::foo
-              getter2: #F4
           getters
             #F4 foo @36
               element: <testLibrary>::@extension::E::@getter::foo
               returnType: T
-              variable: #F3
   extensions
     extension E
       reference: <testLibrary>::@extension::E
@@ -311,12 +305,10 @@ library
                 IntegerLiteral
                   literal: 1 @71
                   staticType: int
-              getter2: #F4
           getters
             #F4 synthetic foo
               element: <testLibrary>::@extension::E::@getter::foo
               returnType: int
-              variable: #F3
           methods
             #F5 bar @88
               element: <testLibrary>::@extension::E::@method::bar
@@ -335,12 +327,10 @@ library
             IntegerLiteral
               literal: 0 @12
               staticType: int
-          getter: #F7
       getters
         #F7 synthetic foo
           element: <testLibrary>::@getter::foo
           returnType: int
-          variable: #F6
   extensions
     extension E
       reference: <testLibrary>::@extension::E
@@ -433,12 +423,10 @@ library
             NullLiteral
               literal: null @10
               staticType: Null
-          getter: #F5
       getters
         #F5 synthetic a
           element: <testLibrary>::@getter::a
           returnType: dynamic
-          variable: #F4
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -604,12 +592,10 @@ library
           fields
             #F2 synthetic foo
               element: <testLibrary>::@extension::E::@field::foo
-              getter2: #F3
           getters
             #F3 foo @31
               element: <testLibrary>::@extension::E::@getter::foo
               returnType: int
-              variable: #F2
   extensions
     extension E
       reference: <testLibrary>::@extension::E
@@ -649,7 +635,6 @@ library
           fields
             #F2 synthetic foo
               element: <testLibrary>::@extension::E::@field::foo
-              setter2: #F3
           setters
             #F3 foo @27
               element: <testLibrary>::@extension::E::@setter::foo

@@ -655,8 +655,6 @@ class _Element2Writer extends _AbstractElementWriter {
       // writeLinking();
       _writeFragmentReference('previousFragment', f.previousFragment);
       _writeFragmentReference('nextFragment', f.nextFragment);
-      _writeFragmentReference('getter2', f.getter2);
-      _writeFragmentReference('setter2', f.setter2);
     });
   }
 
@@ -1037,7 +1035,6 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeReturnType(f.returnType);
       // _writeNonSyntheticElement(f);
       // writeLinking();
-      _writeFragmentReference('variable', f.variable2);
       _writeFragmentReference('previousFragment', f.previousFragment);
       _writeFragmentReference('nextFragment', f.nextFragment);
     });
@@ -1830,8 +1827,6 @@ class _Element2Writer extends _AbstractElementWriter {
       // writeLinking();
       _writeFragmentReference('previousFragment', f.previousFragment);
       _writeFragmentReference('nextFragment', f.nextFragment);
-      _writeFragmentReference('getter', f.getter);
-      _writeFragmentReference('setter', f.setter);
     });
   }
 

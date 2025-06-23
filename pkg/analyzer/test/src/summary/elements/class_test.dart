@@ -323,23 +323,20 @@ library
           fields
             #F2 x @18
               element: <testLibrary>::@class::C::@field::x
-              getter2: #F3
-              setter2: #F4
           constructors
-            #F5 new
+            #F3 new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 21
               formalParameters
-                #F6 this.x @36
+                #F4 this.x @36
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           getters
-            #F3 synthetic x
+            #F5 synthetic x
               element: <testLibrary>::@class::C::@getter::x
               returnType: dynamic
-              variable: #F2
           setters
-            #F4 synthetic x
+            #F6 synthetic x
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
                 #F7 _x
@@ -358,21 +355,21 @@ library
       constructors
         new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F3
           formalParameters
             requiredPositional final x
-              firstFragment: #F6
+              firstFragment: #F4
               type: dynamic
       getters
         synthetic x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::x
       setters
         synthetic x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F4
+          firstFragment: #F6
           formalParameters
             requiredPositional _x
               firstFragment: #F7
@@ -395,23 +392,20 @@ library
           fields
             #F2 x @18
               element: <testLibrary>::@class::C::@field::x
-              getter2: #F3
-              setter2: #F4
           constructors
-            #F5 new
+            #F3 new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 21
               formalParameters
-                #F6 this.x @32
+                #F4 this.x @32
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           getters
-            #F3 synthetic x
+            #F5 synthetic x
               element: <testLibrary>::@class::C::@getter::x
               returnType: dynamic
-              variable: #F2
           setters
-            #F4 synthetic x
+            #F6 synthetic x
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
                 #F7 _x
@@ -430,21 +424,21 @@ library
       constructors
         new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F3
           formalParameters
             requiredPositional final x
-              firstFragment: #F6
+              firstFragment: #F4
               type: int
       getters
         synthetic x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::x
       setters
         synthetic x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F4
+          firstFragment: #F6
           formalParameters
             requiredPositional _x
               firstFragment: #F7
@@ -467,23 +461,20 @@ library
           fields
             #F2 x @18
               element: <testLibrary>::@class::C::@field::x
-              getter2: #F3
-              setter2: #F4
           constructors
-            #F5 new
+            #F3 new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 21
               formalParameters
-                #F6 this.x @28
+                #F4 this.x @28
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           getters
-            #F3 synthetic x
+            #F5 synthetic x
               element: <testLibrary>::@class::C::@getter::x
               returnType: dynamic
-              variable: #F2
           setters
-            #F4 synthetic x
+            #F6 synthetic x
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
                 #F7 _x
@@ -502,21 +493,21 @@ library
       constructors
         new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F3
           formalParameters
             requiredPositional final hasImplicitType x
-              firstFragment: #F6
+              firstFragment: #F4
               type: dynamic
       getters
         synthetic x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::x
       setters
         synthetic x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F4
+          firstFragment: #F6
           formalParameters
             requiredPositional _x
               firstFragment: #F7
@@ -544,23 +535,20 @@ library
           fields
             #F2 x @16
               element: <testLibrary>::@class::C::@field::x
-              getter2: #F3
-              setter2: #F4
           constructors
-            #F5 new
+            #F3 new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 21
               formalParameters
-                #F6 this.x @28
+                #F4 this.x @28
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           getters
-            #F3 synthetic x
+            #F5 synthetic x
               element: <testLibrary>::@class::C::@getter::x
               returnType: dynamic
-              variable: #F2
           setters
-            #F4 synthetic x
+            #F6 synthetic x
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
                 #F7 _x
@@ -579,10 +567,10 @@ library
       constructors
         new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F3
           formalParameters
             requiredPositional final x
-              firstFragment: #F6
+              firstFragment: #F4
               type: dynamic Function(double)
               formalParameters
                 requiredPositional b
@@ -591,13 +579,13 @@ library
       getters
         synthetic x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::x
       setters
         synthetic x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F4
+          firstFragment: #F6
           formalParameters
             requiredPositional _x
               firstFragment: #F7
@@ -625,23 +613,20 @@ library
           fields
             #F2 x @16
               element: <testLibrary>::@class::C::@field::x
-              getter2: #F3
-              setter2: #F4
           constructors
-            #F5 new
+            #F3 new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 21
               formalParameters
-                #F6 this.x @32
+                #F4 this.x @32
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           getters
-            #F3 synthetic x
+            #F5 synthetic x
               element: <testLibrary>::@class::C::@getter::x
               returnType: dynamic
-              variable: #F2
           setters
-            #F4 synthetic x
+            #F6 synthetic x
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
                 #F7 _x
@@ -660,10 +645,10 @@ library
       constructors
         new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F3
           formalParameters
             requiredPositional final x
-              firstFragment: #F6
+              firstFragment: #F4
               type: int Function(double)
               formalParameters
                 requiredPositional b
@@ -672,13 +657,13 @@ library
       getters
         synthetic x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::x
       setters
         synthetic x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F4
+          firstFragment: #F6
           formalParameters
             requiredPositional _x
               firstFragment: #F7
@@ -706,23 +691,20 @@ library
           fields
             #F2 f @23
               element: <testLibrary>::@class::C::@field::f
-              getter2: #F3
-              setter2: #F4
           constructors
-            #F5 new
+            #F3 new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 28
               formalParameters
-                #F6 this.f @43
+                #F4 this.f @43
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::f
           getters
-            #F3 synthetic f
+            #F5 synthetic f
               element: <testLibrary>::@class::C::@getter::f
               returnType: dynamic Function()
-              variable: #F2
           setters
-            #F4 synthetic f
+            #F6 synthetic f
               element: <testLibrary>::@class::C::@setter::f
               formalParameters
                 #F7 _f
@@ -741,10 +723,10 @@ library
       constructors
         new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F3
           formalParameters
             requiredPositional final f
-              firstFragment: #F6
+              firstFragment: #F4
               type: List<U> Function<T, U>(T)
               formalParameters
                 requiredPositional t
@@ -753,13 +735,13 @@ library
       getters
         synthetic f
           reference: <testLibrary>::@class::C::@getter::f
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: dynamic Function()
           variable: <testLibrary>::@class::C::@field::f
       setters
         synthetic f
           reference: <testLibrary>::@class::C::@setter::f
-          firstFragment: #F4
+          firstFragment: #F6
           formalParameters
             requiredPositional _f
               firstFragment: #F7
@@ -784,36 +766,30 @@ library
           fields
             #F2 x @25
               element: <testLibrary>::@class::C::@field::x::@def::0
-              getter2: #F3
-              setter2: #F4
-            #F5 x @35
+            #F3 x @35
               element: <testLibrary>::@class::C::@field::x::@def::1
-              getter2: #F6
-              setter2: #F7
           constructors
-            #F8 new
+            #F4 new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 10
               formalParameters
-                #F9 this.x @17
+                #F5 this.x @17
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           getters
-            #F3 synthetic x
+            #F6 synthetic x
               element: <testLibrary>::@class::C::@getter::x::@def::0
               returnType: int
-              variable: #F2
-            #F6 synthetic x
+            #F7 synthetic x
               element: <testLibrary>::@class::C::@getter::x::@def::1
               returnType: String
-              variable: #F5
           setters
-            #F4 synthetic x
+            #F8 synthetic x
               element: <testLibrary>::@class::C::@setter::x::@def::0
               formalParameters
-                #F10 _x
+                #F9 _x
                   element: <testLibrary>::@class::C::@setter::x::@def::0::@formalParameter::_x
-            #F7 synthetic x
+            #F10 synthetic x
               element: <testLibrary>::@class::C::@setter::x::@def::1
               formalParameters
                 #F11 _x
@@ -831,41 +807,41 @@ library
           setter: <testLibrary>::@class::C::@setter::x::@def::0
         x
           reference: <testLibrary>::@class::C::@field::x::@def::1
-          firstFragment: #F5
+          firstFragment: #F3
           type: String
           getter: <testLibrary>::@class::C::@getter::x::@def::1
           setter: <testLibrary>::@class::C::@setter::x::@def::1
       constructors
         new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F8
+          firstFragment: #F4
           formalParameters
             requiredPositional final hasImplicitType x
-              firstFragment: #F9
+              firstFragment: #F5
               type: int
       getters
         synthetic x
           reference: <testLibrary>::@class::C::@getter::x::@def::0
-          firstFragment: #F3
+          firstFragment: #F6
           returnType: int
           variable: <testLibrary>::@class::C::@field::x::@def::0
         synthetic x
           reference: <testLibrary>::@class::C::@getter::x::@def::1
-          firstFragment: #F6
+          firstFragment: #F7
           returnType: String
           variable: <testLibrary>::@class::C::@field::x::@def::1
       setters
         synthetic x
           reference: <testLibrary>::@class::C::@setter::x::@def::0
-          firstFragment: #F4
+          firstFragment: #F8
           formalParameters
             requiredPositional _x
-              firstFragment: #F10
+              firstFragment: #F9
               type: int
           returnType: void
         synthetic x
           reference: <testLibrary>::@class::C::@setter::x::@def::1
-          firstFragment: #F7
+          firstFragment: #F10
           formalParameters
             requiredPositional _x
               firstFragment: #F11
@@ -923,23 +899,20 @@ library
           fields
             #F2 x @14
               element: <testLibrary>::@class::C::@field::x
-              getter2: #F3
-              setter2: #F4
           constructors
-            #F5 new
+            #F3 new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 17
               formalParameters
-                #F6 this.x @32
+                #F4 this.x @32
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           getters
-            #F3 synthetic x
+            #F5 synthetic x
               element: <testLibrary>::@class::C::@getter::x
               returnType: num
-              variable: #F2
           setters
-            #F4 synthetic x
+            #F6 synthetic x
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
                 #F7 _x
@@ -958,21 +931,21 @@ library
       constructors
         new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F3
           formalParameters
             requiredPositional final x
-              firstFragment: #F6
+              firstFragment: #F4
               type: dynamic
       getters
         synthetic x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: num
           variable: <testLibrary>::@class::C::@field::x
       setters
         synthetic x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F4
+          firstFragment: #F6
           formalParameters
             requiredPositional _x
               firstFragment: #F7
@@ -995,23 +968,20 @@ library
           fields
             #F2 x @14
               element: <testLibrary>::@class::C::@field::x
-              getter2: #F3
-              setter2: #F4
           constructors
-            #F5 new
+            #F3 new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 17
               formalParameters
-                #F6 this.x @28
+                #F4 this.x @28
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           getters
-            #F3 synthetic x
+            #F5 synthetic x
               element: <testLibrary>::@class::C::@getter::x
               returnType: num
-              variable: #F2
           setters
-            #F4 synthetic x
+            #F6 synthetic x
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
                 #F7 _x
@@ -1030,21 +1000,21 @@ library
       constructors
         new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F3
           formalParameters
             requiredPositional final x
-              firstFragment: #F6
+              firstFragment: #F4
               type: int
       getters
         synthetic x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: num
           variable: <testLibrary>::@class::C::@field::x
       setters
         synthetic x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F4
+          firstFragment: #F6
           formalParameters
             requiredPositional _x
               firstFragment: #F7
@@ -1067,23 +1037,20 @@ library
           fields
             #F2 x @14
               element: <testLibrary>::@class::C::@field::x
-              getter2: #F3
-              setter2: #F4
           constructors
-            #F5 new
+            #F3 new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 17
               formalParameters
-                #F6 this.x @24
+                #F4 this.x @24
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           getters
-            #F3 synthetic x
+            #F5 synthetic x
               element: <testLibrary>::@class::C::@getter::x
               returnType: num
-              variable: #F2
           setters
-            #F4 synthetic x
+            #F6 synthetic x
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
                 #F7 _x
@@ -1102,21 +1069,21 @@ library
       constructors
         new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F3
           formalParameters
             requiredPositional final hasImplicitType x
-              firstFragment: #F6
+              firstFragment: #F4
               type: num
       getters
         synthetic x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: num
           variable: <testLibrary>::@class::C::@field::x
       setters
         synthetic x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F4
+          firstFragment: #F6
           formalParameters
             requiredPositional _x
               firstFragment: #F7
@@ -1139,23 +1106,20 @@ library
           fields
             #F2 x @14
               element: <testLibrary>::@class::C::@field::x
-              getter2: #F3
-              setter2: #F4
           constructors
-            #F5 new
+            #F3 new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 17
               formalParameters
-                #F6 this.x @32
+                #F4 this.x @32
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           getters
-            #F3 synthetic x
+            #F5 synthetic x
               element: <testLibrary>::@class::C::@getter::x
               returnType: dynamic
-              variable: #F2
           setters
-            #F4 synthetic x
+            #F6 synthetic x
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
                 #F7 _x
@@ -1174,21 +1138,21 @@ library
       constructors
         new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F3
           formalParameters
             requiredPositional final x
-              firstFragment: #F6
+              firstFragment: #F4
               type: dynamic
       getters
         synthetic x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::x
       setters
         synthetic x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F4
+          firstFragment: #F6
           formalParameters
             requiredPositional _x
               firstFragment: #F7
@@ -1211,23 +1175,20 @@ library
           fields
             #F2 x @14
               element: <testLibrary>::@class::C::@field::x
-              getter2: #F3
-              setter2: #F4
           constructors
-            #F5 new
+            #F3 new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 17
               formalParameters
-                #F6 this.x @28
+                #F4 this.x @28
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           getters
-            #F3 synthetic x
+            #F5 synthetic x
               element: <testLibrary>::@class::C::@getter::x
               returnType: dynamic
-              variable: #F2
           setters
-            #F4 synthetic x
+            #F6 synthetic x
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
                 #F7 _x
@@ -1246,21 +1207,21 @@ library
       constructors
         new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F3
           formalParameters
             requiredPositional final x
-              firstFragment: #F6
+              firstFragment: #F4
               type: int
       getters
         synthetic x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::x
       setters
         synthetic x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F4
+          firstFragment: #F6
           formalParameters
             requiredPositional _x
               firstFragment: #F7
@@ -1283,23 +1244,20 @@ library
           fields
             #F2 x @14
               element: <testLibrary>::@class::C::@field::x
-              getter2: #F3
-              setter2: #F4
           constructors
-            #F5 new
+            #F3 new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 17
               formalParameters
-                #F6 this.x @24
+                #F4 this.x @24
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           getters
-            #F3 synthetic x
+            #F5 synthetic x
               element: <testLibrary>::@class::C::@getter::x
               returnType: dynamic
-              variable: #F2
           setters
-            #F4 synthetic x
+            #F6 synthetic x
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
                 #F7 _x
@@ -1318,21 +1276,21 @@ library
       constructors
         new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F3
           formalParameters
             requiredPositional final hasImplicitType x
-              firstFragment: #F6
+              firstFragment: #F4
               type: dynamic
       getters
         synthetic x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::x
       setters
         synthetic x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F4
+          firstFragment: #F6
           formalParameters
             requiredPositional _x
               firstFragment: #F7
@@ -1355,23 +1313,20 @@ library
           fields
             #F2 x @14
               element: <testLibrary>::@class::C::@field::x
-              getter2: #F3
-              setter2: #F4
           constructors
-            #F5 new
+            #F3 new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 17
               formalParameters
-                #F6 default this.x @25
+                #F4 default this.x @25
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           getters
-            #F3 synthetic x
+            #F5 synthetic x
               element: <testLibrary>::@class::C::@getter::x
               returnType: int
-              variable: #F2
           setters
-            #F4 synthetic x
+            #F6 synthetic x
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
                 #F7 _x
@@ -1390,21 +1345,21 @@ library
       constructors
         new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F3
           formalParameters
             optionalNamed final hasImplicitType x
-              firstFragment: #F6
+              firstFragment: #F4
               type: int
       getters
         synthetic x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: int
           variable: <testLibrary>::@class::C::@field::x
       setters
         synthetic x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F4
+          firstFragment: #F6
           formalParameters
             requiredPositional _x
               firstFragment: #F7
@@ -1427,27 +1382,24 @@ library
           fields
             #F2 x @14
               element: <testLibrary>::@class::C::@field::x
-              getter2: #F3
-              setter2: #F4
           constructors
-            #F5 new
+            #F3 new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 17
               formalParameters
-                #F6 default this.x @25
+                #F4 default this.x @25
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
                   initializer: expression_0
                     IntegerLiteral
                       literal: 42 @28
                       staticType: int
           getters
-            #F3 synthetic x
+            #F5 synthetic x
               element: <testLibrary>::@class::C::@getter::x
               returnType: int
-              variable: #F2
           setters
-            #F4 synthetic x
+            #F6 synthetic x
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
                 #F7 _x
@@ -1466,24 +1418,24 @@ library
       constructors
         new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F3
           formalParameters
             optionalNamed final hasImplicitType x
-              firstFragment: #F6
+              firstFragment: #F4
               type: int
               constantInitializer
-                fragment: #F6
+                fragment: #F4
                 expression: expression_0
       getters
         synthetic x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: int
           variable: <testLibrary>::@class::C::@field::x
       setters
         synthetic x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F4
+          firstFragment: #F6
           formalParameters
             requiredPositional _x
               firstFragment: #F7
@@ -1506,23 +1458,20 @@ library
           fields
             #F2 x @14
               element: <testLibrary>::@class::C::@field::x
-              getter2: #F3
-              setter2: #F4
           constructors
-            #F5 new
+            #F3 new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 17
               formalParameters
-                #F6 default this.x @25
+                #F4 default this.x @25
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           getters
-            #F3 synthetic x
+            #F5 synthetic x
               element: <testLibrary>::@class::C::@getter::x
               returnType: int
-              variable: #F2
           setters
-            #F4 synthetic x
+            #F6 synthetic x
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
                 #F7 _x
@@ -1541,21 +1490,21 @@ library
       constructors
         new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F3
           formalParameters
             optionalPositional final hasImplicitType x
-              firstFragment: #F6
+              firstFragment: #F4
               type: int
       getters
         synthetic x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: int
           variable: <testLibrary>::@class::C::@field::x
       setters
         synthetic x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F4
+          firstFragment: #F6
           formalParameters
             requiredPositional _x
               firstFragment: #F7
@@ -1578,27 +1527,24 @@ library
           fields
             #F2 x @14
               element: <testLibrary>::@class::C::@field::x
-              getter2: #F3
-              setter2: #F4
           constructors
-            #F5 new
+            #F3 new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 17
               formalParameters
-                #F6 default this.x @25
+                #F4 default this.x @25
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
                   initializer: expression_0
                     IntegerLiteral
                       literal: 42 @29
                       staticType: int
           getters
-            #F3 synthetic x
+            #F5 synthetic x
               element: <testLibrary>::@class::C::@getter::x
               returnType: int
-              variable: #F2
           setters
-            #F4 synthetic x
+            #F6 synthetic x
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
                 #F7 _x
@@ -1617,24 +1563,24 @@ library
       constructors
         new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F3
           formalParameters
             optionalPositional final hasImplicitType x
-              firstFragment: #F6
+              firstFragment: #F4
               type: int
               constantInitializer
-                fragment: #F6
+                fragment: #F4
                 expression: expression_0
       getters
         synthetic x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: int
           variable: <testLibrary>::@class::C::@field::x
       setters
         synthetic x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F4
+          firstFragment: #F6
           formalParameters
             requiredPositional _x
               firstFragment: #F7
@@ -1811,17 +1757,15 @@ library
           fields
             #F2 x @18
               element: <testLibrary>::@class::C::@field::x
-              getter2: #F3
           constructors
-            #F4 const new
+            #F3 const new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 29
           getters
-            #F3 synthetic x
+            #F4 synthetic x
               element: <testLibrary>::@class::C::@getter::x
               returnType: dynamic
-              variable: #F2
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -1835,7 +1779,7 @@ library
       constructors
         const new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
           constantInitializers
             ConstructorFieldInitializer
               fieldName: SimpleIdentifier
@@ -1849,7 +1793,7 @@ library
       getters
         synthetic x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::x
 ''');
@@ -1876,17 +1820,15 @@ library
           fields
             #F2 x @18
               element: <testLibrary>::@class::C::@field::x
-              getter2: #F3
           constructors
-            #F4 const new
+            #F3 const new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 29
           getters
-            #F3 synthetic x
+            #F4 synthetic x
               element: <testLibrary>::@class::C::@getter::x
               returnType: dynamic
-              variable: #F2
       functions
         #F5 foo @52
           element: <testLibrary>::@function::foo
@@ -1903,7 +1845,7 @@ library
       constructors
         const new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
           constantInitializers
             ConstructorFieldInitializer
               fieldName: SimpleIdentifier
@@ -1924,7 +1866,7 @@ library
       getters
         synthetic x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::x
   functions
@@ -1954,24 +1896,22 @@ library
           fields
             #F2 _f @22
               element: <testLibrary>::@class::A::@field::_f
-              getter2: #F3
           constructors
-            #F4 const new
+            #F3 const new
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 34
               formalParameters
-                #F5 default f @41
+                #F4 default f @41
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
                   initializer: expression_0
                     IntegerLiteral
                       literal: 0 @45
                       staticType: int
           getters
-            #F3 synthetic _f
+            #F5 synthetic _f
               element: <testLibrary>::@class::A::@getter::_f
               returnType: int
-              variable: #F2
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -1985,13 +1925,13 @@ library
       constructors
         const new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
           formalParameters
             optionalPositional f
-              firstFragment: #F5
+              firstFragment: #F4
               type: int
               constantInitializer
-                fragment: #F5
+                fragment: #F4
                 expression: expression_0
           constantInitializers
             ConstructorFieldInitializer
@@ -2007,7 +1947,7 @@ library
       getters
         synthetic _f
           reference: <testLibrary>::@class::A::@getter::_f
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: int
           variable: <testLibrary>::@class::A::@field::_f
 ''');
@@ -2032,20 +1972,18 @@ library
           fields
             #F2 x @25
               element: <testLibrary>::@class::C::@field::x
-              getter2: #F3
           constructors
-            #F4 const new
+            #F3 const new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 36
               formalParameters
-                #F5 a @42
+                #F4 a @42
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::a
           getters
-            #F3 synthetic x
+            #F5 synthetic x
               element: <testLibrary>::@class::C::@getter::x
               returnType: Object
-              variable: #F2
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -2059,10 +1997,10 @@ library
       constructors
         const new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
           formalParameters
             requiredPositional a
-              firstFragment: #F5
+              firstFragment: #F4
               type: int
           constantInitializers
             ConstructorFieldInitializer
@@ -2086,7 +2024,7 @@ library
       getters
         synthetic x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: Object
           variable: <testLibrary>::@class::C::@field::x
 ''');
@@ -2111,20 +2049,18 @@ library
           fields
             #F2 x @18
               element: <testLibrary>::@class::C::@field::x
-              getter2: #F3
           constructors
-            #F4 const new
+            #F3 const new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 29
               formalParameters
-                #F5 p @35
+                #F4 p @35
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::p
           getters
-            #F3 synthetic x
+            #F5 synthetic x
               element: <testLibrary>::@class::C::@getter::x
               returnType: dynamic
-              variable: #F2
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -2138,10 +2074,10 @@ library
       constructors
         const new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
           formalParameters
             requiredPositional p
-              firstFragment: #F5
+              firstFragment: #F4
               type: int
           constantInitializers
             ConstructorFieldInitializer
@@ -2165,7 +2101,7 @@ library
       getters
         synthetic x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::x
 ''');
@@ -6138,33 +6074,29 @@ library
           fields
             #F2 x @18
               element: <testLibrary>::@class::C::@field::x
-              getter2: #F3
           constructors
-            #F4 const new
+            #F3 const new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 29
           getters
-            #F3 synthetic x
+            #F4 synthetic x
               element: <testLibrary>::@class::C::@getter::x
               returnType: dynamic
-              variable: #F2
         #F5 class D @58
           element: <testLibrary>::@class::D
           fields
             #F6 x @70
               element: <testLibrary>::@class::D::@field::x
-              getter2: #F7
           constructors
-            #F8 const new
+            #F7 const new
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
               typeNameOffset: 81
           getters
-            #F7 synthetic x
+            #F8 synthetic x
               element: <testLibrary>::@class::D::@getter::x
               returnType: dynamic
-              variable: #F6
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -6178,7 +6110,7 @@ library
       constructors
         const new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
           constantInitializers
             ConstructorFieldInitializer
               fieldName: SimpleIdentifier
@@ -6201,7 +6133,7 @@ library
       getters
         synthetic x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::x
     class D
@@ -6216,7 +6148,7 @@ library
       constructors
         const new
           reference: <testLibrary>::@class::D::@constructor::new
-          firstFragment: #F8
+          firstFragment: #F7
           constantInitializers
             ConstructorFieldInitializer
               fieldName: SimpleIdentifier
@@ -6239,7 +6171,7 @@ library
       getters
         synthetic x
           reference: <testLibrary>::@class::D::@getter::x
-          firstFragment: #F7
+          firstFragment: #F8
           returnType: dynamic
           variable: <testLibrary>::@class::D::@field::x
 ''');
@@ -6268,33 +6200,29 @@ library
           fields
             #F2 x @18
               element: <testLibrary>::@class::C::@field::x
-              getter2: #F3
           constructors
-            #F4 new
+            #F3 new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 23
           getters
-            #F3 synthetic x
+            #F4 synthetic x
               element: <testLibrary>::@class::C::@getter::x
               returnType: dynamic
-              variable: #F2
         #F5 class D @50
           element: <testLibrary>::@class::D
           fields
             #F6 x @62
               element: <testLibrary>::@class::D::@field::x
-              getter2: #F7
           constructors
-            #F8 new
+            #F7 new
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
               typeNameOffset: 67
           getters
-            #F7 synthetic x
+            #F8 synthetic x
               element: <testLibrary>::@class::D::@getter::x
               returnType: dynamic
-              variable: #F6
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -6308,11 +6236,11 @@ library
       constructors
         new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       getters
         synthetic x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::x
     class D
@@ -6327,11 +6255,11 @@ library
       constructors
         new
           reference: <testLibrary>::@class::D::@constructor::new
-          firstFragment: #F8
+          firstFragment: #F7
       getters
         synthetic x
           reference: <testLibrary>::@class::D::@getter::x
-          firstFragment: #F7
+          firstFragment: #F8
           returnType: dynamic
           variable: <testLibrary>::@class::D::@field::x
 ''');
@@ -6888,19 +6816,16 @@ library
           fields
             #F2 i @34
               element: <testLibrary>::@class::C::@field::i
-              getter2: #F3
-              setter2: #F4
           constructors
-            #F5 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 synthetic i
+            #F4 synthetic i
               element: <testLibrary>::@class::C::@getter::i
               returnType: int
-              variable: #F2
           setters
-            #F4 synthetic i
+            #F5 synthetic i
               element: <testLibrary>::@class::C::@setter::i
               formalParameters
                 #F6 _i
@@ -6919,17 +6844,17 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F3
       getters
         synthetic abstract i
           reference: <testLibrary>::@class::C::@getter::i
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::C::@field::i
       setters
         synthetic abstract i
           reference: <testLibrary>::@class::C::@setter::i
-          firstFragment: #F4
+          firstFragment: #F5
           formalParameters
             requiredPositional _i
               firstFragment: #F6
@@ -6956,16 +6881,14 @@ library
                 IntegerLiteral
                   literal: 0 @31
                   staticType: int
-              getter2: #F3
           constructors
-            #F4 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 synthetic i
+            #F4 synthetic i
               element: <testLibrary>::@class::C::@getter::i
               returnType: int
-              variable: #F2
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -6982,11 +6905,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       getters
         synthetic static i
           reference: <testLibrary>::@class::C::@getter::i
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::C::@field::i
 ''');
@@ -7012,16 +6935,14 @@ library
                 IntegerLiteral
                   literal: 0 @36
                   staticType: int
-              getter2: #F3
           constructors
-            #F4 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 synthetic i
+            #F4 synthetic i
               element: <testLibrary>::@class::C::@getter::i
               returnType: int
-              variable: #F2
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -7038,11 +6959,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       getters
         synthetic static i
           reference: <testLibrary>::@class::C::@getter::i
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::C::@field::i
 ''');
@@ -7065,19 +6986,16 @@ library
           fields
             #F2 x @26
               element: <testLibrary>::@class::C::@field::x
-              getter2: #F3
-              setter2: #F4
           constructors
-            #F5 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 synthetic x
+            #F4 synthetic x
               element: <testLibrary>::@class::C::@getter::x
               returnType: int
-              variable: #F2
           setters
-            #F4 synthetic x
+            #F5 synthetic x
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
                 #F6 _x
@@ -7096,17 +7014,17 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F3
       getters
         synthetic x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::C::@field::x
       setters
         synthetic x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F4
+          firstFragment: #F5
           formalParameters
             requiredPositional covariant _x
               firstFragment: #F6
@@ -7135,19 +7053,16 @@ library
           fields
             #F2 x @38
               element: <testLibrary>::@class::C::@field::x
-              getter2: #F3
-              setter2: #F4
           constructors
-            #F5 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 synthetic x
+            #F4 synthetic x
               element: <testLibrary>::@class::C::@getter::x
               returnType: dynamic
-              variable: #F2
           setters
-            #F4 synthetic x
+            #F5 synthetic x
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
                 #F6 _x
@@ -7166,17 +7081,17 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F3
       getters
         synthetic x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::x
       setters
         synthetic x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F4
+          firstFragment: #F5
           formalParameters
             requiredPositional _x
               firstFragment: #F6
@@ -7207,26 +7122,21 @@ library
           fields
             #F2 hasInitializer foo @16
               element: <testLibrary>::@class::C::@field::foo::@def::0
-              getter2: #F3
-              setter2: #F4
-            #F5 synthetic foo
+            #F3 synthetic foo
               element: <testLibrary>::@class::C::@field::foo::@def::1
-              getter2: #F6
           constructors
-            #F7 synthetic new
+            #F4 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 synthetic foo
+            #F5 synthetic foo
               element: <testLibrary>::@class::C::@getter::foo::@def::0
               returnType: int
-              variable: #F2
             #F6 foo @35
               element: <testLibrary>::@class::C::@getter::foo::@def::1
               returnType: int
-              variable: #F5
           setters
-            #F4 synthetic foo
+            #F7 synthetic foo
               element: <testLibrary>::@class::C::@setter::foo
               formalParameters
                 #F8 _foo
@@ -7244,17 +7154,17 @@ library
           setter: <testLibrary>::@class::C::@setter::foo
         synthetic foo
           reference: <testLibrary>::@class::C::@field::foo::@def::1
-          firstFragment: #F5
+          firstFragment: #F3
           type: int
           getter: <testLibrary>::@class::C::@getter::foo::@def::1
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F7
+          firstFragment: #F4
       getters
         synthetic foo
           reference: <testLibrary>::@class::C::@getter::foo::@def::0
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: int
           variable: <testLibrary>::@class::C::@field::foo::@def::0
         foo
@@ -7265,7 +7175,7 @@ library
       setters
         synthetic foo
           reference: <testLibrary>::@class::C::@setter::foo
-          firstFragment: #F4
+          firstFragment: #F7
           formalParameters
             requiredPositional _foo
               firstFragment: #F8
@@ -7296,27 +7206,23 @@ library
           fields
             #F2 hasInitializer foo @16
               element: <testLibrary>::@class::C::@field::foo::@def::0
-              getter2: #F3
-              setter2: #F4
-            #F5 synthetic foo
+            #F3 synthetic foo
               element: <testLibrary>::@class::C::@field::foo::@def::1
-              setter2: #F6
           constructors
-            #F7 synthetic new
+            #F4 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 synthetic foo
+            #F5 synthetic foo
               element: <testLibrary>::@class::C::@getter::foo
               returnType: int
-              variable: #F2
           setters
-            #F4 synthetic foo
+            #F6 synthetic foo
               element: <testLibrary>::@class::C::@setter::foo::@def::0
               formalParameters
-                #F8 _foo
+                #F7 _foo
                   element: <testLibrary>::@class::C::@setter::foo::@def::0::@formalParameter::_foo
-            #F6 foo @31
+            #F8 foo @31
               element: <testLibrary>::@class::C::@setter::foo::@def::1
               formalParameters
                 #F9 _ @39
@@ -7334,31 +7240,31 @@ library
           setter: <testLibrary>::@class::C::@setter::foo::@def::0
         synthetic foo
           reference: <testLibrary>::@class::C::@field::foo::@def::1
-          firstFragment: #F5
+          firstFragment: #F3
           type: int
           setter: <testLibrary>::@class::C::@setter::foo::@def::1
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F7
+          firstFragment: #F4
       getters
         synthetic foo
           reference: <testLibrary>::@class::C::@getter::foo
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: int
           variable: <testLibrary>::@class::C::@field::foo::@def::0
       setters
         synthetic foo
           reference: <testLibrary>::@class::C::@setter::foo::@def::0
-          firstFragment: #F4
+          firstFragment: #F6
           formalParameters
             requiredPositional _foo
-              firstFragment: #F8
+              firstFragment: #F7
               type: int
           returnType: void
         foo
           reference: <testLibrary>::@class::C::@setter::foo::@def::1
-          firstFragment: #F6
+          firstFragment: #F8
           formalParameters
             requiredPositional _
               firstFragment: #F9
@@ -7385,19 +7291,16 @@ library
           fields
             #F2 i @34
               element: <testLibrary>::@class::C::@field::i
-              getter2: #F3
-              setter2: #F4
           constructors
-            #F5 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 synthetic i
+            #F4 synthetic i
               element: <testLibrary>::@class::C::@getter::i
               returnType: int
-              variable: #F2
           setters
-            #F4 synthetic i
+            #F5 synthetic i
               element: <testLibrary>::@class::C::@setter::i
               formalParameters
                 #F6 _i
@@ -7416,17 +7319,17 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F3
       getters
         synthetic i
           reference: <testLibrary>::@class::C::@getter::i
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::C::@field::i
       setters
         synthetic i
           reference: <testLibrary>::@class::C::@setter::i
-          firstFragment: #F4
+          firstFragment: #F5
           formalParameters
             requiredPositional _i
               firstFragment: #F6
@@ -7458,17 +7361,15 @@ library
                 IntegerLiteral
                   literal: 42 @22
                   staticType: int
-              getter2: #F3
           constructors
-            #F4 const new
+            #F3 const new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 34
           getters
-            #F3 synthetic x
+            #F4 synthetic x
               element: <testLibrary>::@class::C::@getter::x
               returnType: int
-              variable: #F2
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -7485,11 +7386,11 @@ library
       constructors
         const new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       getters
         synthetic x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::C::@field::x
 ''');
@@ -7571,17 +7472,15 @@ library
                     leftParenthesis: ( @81
                     rightParenthesis: ) @82
                   staticType: A<int Function(double)>
-              getter2: #F6
           constructors
-            #F7 const new
+            #F6 const new
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
               typeNameOffset: 93
           getters
-            #F6 synthetic f
+            #F7 synthetic f
               element: <testLibrary>::@class::B::@getter::f
               returnType: A<int Function(double)>
-              variable: #F5
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -7608,11 +7507,11 @@ library
       constructors
         const new
           reference: <testLibrary>::@class::B::@constructor::new
-          firstFragment: #F7
+          firstFragment: #F6
       getters
         synthetic f
           reference: <testLibrary>::@class::B::@getter::f
-          firstFragment: #F6
+          firstFragment: #F7
           returnType: A<int Function(double)>
           variable: <testLibrary>::@class::B::@field::f
 ''');
@@ -7636,16 +7535,14 @@ library
           fields
             #F2 hasInitializer x @18
               element: <testLibrary>::@class::C::@field::x
-              getter2: #F3
           constructors
-            #F4 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 synthetic x
+            #F4 synthetic x
               element: <testLibrary>::@class::C::@getter::x
               returnType: int
-              variable: #F2
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -7659,11 +7556,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       getters
         synthetic x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::C::@field::x
 ''');
@@ -7690,23 +7587,20 @@ library
           fields
             #F2 foo @22
               element: <testLibrary>::@class::A::@field::foo
-              getter2: #F3
-              setter2: #F4
           constructors
-            #F5 new
+            #F3 new
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 29
               formalParameters
-                #F6 this.foo @36
+                #F4 this.foo @36
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
           getters
-            #F3 synthetic foo
+            #F5 synthetic foo
               element: <testLibrary>::@class::A::@getter::foo
               returnType: int
-              variable: #F2
           setters
-            #F4 foo @48
+            #F6 foo @48
               element: <testLibrary>::@class::A::@setter::foo
               formalParameters
                 #F7 newValue @56
@@ -7725,21 +7619,21 @@ library
       constructors
         new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F3
           formalParameters
             requiredPositional final hasImplicitType foo
-              firstFragment: #F6
+              firstFragment: #F4
               type: int
       getters
         synthetic foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
       setters
         foo
           reference: <testLibrary>::@class::A::@setter::foo
-          firstFragment: #F4
+          firstFragment: #F6
           formalParameters
             requiredPositional newValue
               firstFragment: #F7
@@ -7765,23 +7659,20 @@ library
           fields
             #F2 v @24
               element: <testLibrary>::@class::C::@field::v
-              getter2: #F3
-              setter2: #F4
           constructors
-            #F5 new
+            #F3 new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 27
               formalParameters
-                #F6 this.v @34
+                #F4 this.v @34
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::v
           getters
-            #F3 synthetic v
+            #F5 synthetic v
               element: <testLibrary>::@class::C::@getter::v
               returnType: int
-              variable: #F2
           setters
-            #F4 synthetic v
+            #F6 synthetic v
               element: <testLibrary>::@class::C::@setter::v
               formalParameters
                 #F7 _v
@@ -7791,16 +7682,14 @@ library
           fields
             #F9 synthetic v
               element: <testLibrary>::@class::D::@field::v
-              getter2: #F10
           constructors
-            #F11 synthetic new
+            #F10 synthetic new
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
           getters
-            #F10 v @67
+            #F11 v @67
               element: <testLibrary>::@class::D::@getter::v
               returnType: int
-              variable: #F9
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -7816,22 +7705,22 @@ library
       constructors
         new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F3
           formalParameters
             requiredPositional final hasImplicitType v
-              firstFragment: #F6
+              firstFragment: #F4
               type: int
           superConstructor: <testLibrary>::@class::D::@constructor::new
       getters
         synthetic v
           reference: <testLibrary>::@class::C::@getter::v
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: int
           variable: <testLibrary>::@class::C::@field::v
       setters
         synthetic v
           reference: <testLibrary>::@class::C::@setter::v
-          firstFragment: #F4
+          firstFragment: #F6
           formalParameters
             requiredPositional _v
               firstFragment: #F7
@@ -7849,11 +7738,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::D::@constructor::new
-          firstFragment: #F11
+          firstFragment: #F10
       getters
         abstract v
           reference: <testLibrary>::@class::D::@getter::v
-          firstFragment: #F10
+          firstFragment: #F11
           returnType: int
           variable: <testLibrary>::@class::D::@field::v
 ''');
@@ -7873,19 +7762,16 @@ library
           fields
             #F2 x @14
               element: <testLibrary>::@class::C::@field::x
-              getter2: #F3
-              setter2: #F4
           constructors
-            #F5 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 synthetic x
+            #F4 synthetic x
               element: <testLibrary>::@class::C::@getter::x
               returnType: dynamic
-              variable: #F2
           setters
-            #F4 synthetic x
+            #F5 synthetic x
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
                 #F6 _x
@@ -7904,17 +7790,17 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F3
       getters
         synthetic x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::x
       setters
         synthetic x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F4
+          firstFragment: #F5
           formalParameters
             requiredPositional _x
               firstFragment: #F6
@@ -7937,19 +7823,16 @@ library
           fields
             #F2 x @19
               element: <testLibrary>::@class::C::@field::x
-              getter2: #F3
-              setter2: #F4
           constructors
-            #F5 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 synthetic x
+            #F4 synthetic x
               element: <testLibrary>::@class::C::@getter::x
               returnType: dynamic
-              variable: #F2
           setters
-            #F4 synthetic x
+            #F5 synthetic x
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
                 #F6 _x
@@ -7968,17 +7851,17 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F3
       getters
         synthetic x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::x
       setters
         synthetic x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F4
+          firstFragment: #F5
           formalParameters
             requiredPositional _x
               firstFragment: #F6
@@ -8001,19 +7884,16 @@ library
           fields
             #F2 hasInitializer v @14
               element: <testLibrary>::@class::C::@field::v
-              getter2: #F3
-              setter2: #F4
           constructors
-            #F5 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 synthetic v
+            #F4 synthetic v
               element: <testLibrary>::@class::C::@getter::v
               returnType: num
-              variable: #F2
           setters
-            #F4 synthetic v
+            #F5 synthetic v
               element: <testLibrary>::@class::C::@setter::v
               formalParameters
                 #F6 _v
@@ -8032,17 +7912,17 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F3
       getters
         synthetic v
           reference: <testLibrary>::@class::C::@getter::v
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: num
           variable: <testLibrary>::@class::C::@field::v
       setters
         synthetic v
           reference: <testLibrary>::@class::C::@setter::v
-          firstFragment: #F4
+          firstFragment: #F5
           formalParameters
             requiredPositional _v
               firstFragment: #F6
@@ -8065,19 +7945,16 @@ library
           fields
             #F2 hasInitializer v @14
               element: <testLibrary>::@class::C::@field::v
-              getter2: #F3
-              setter2: #F4
           constructors
-            #F5 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 synthetic v
+            #F4 synthetic v
               element: <testLibrary>::@class::C::@getter::v
               returnType: int
-              variable: #F2
           setters
-            #F4 synthetic v
+            #F5 synthetic v
               element: <testLibrary>::@class::C::@setter::v
               formalParameters
                 #F6 _v
@@ -8096,17 +7973,17 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F3
       getters
         synthetic v
           reference: <testLibrary>::@class::C::@getter::v
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::C::@field::v
       setters
         synthetic v
           reference: <testLibrary>::@class::C::@setter::v
-          firstFragment: #F4
+          firstFragment: #F5
           formalParameters
             requiredPositional _v
               firstFragment: #F6
@@ -8131,19 +8008,16 @@ library
           fields
             #F2 v @24
               element: <testLibrary>::@class::C::@field::v
-              getter2: #F3
-              setter2: #F4
           constructors
-            #F5 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 synthetic v
+            #F4 synthetic v
               element: <testLibrary>::@class::C::@getter::v
               returnType: int
-              variable: #F2
           setters
-            #F4 synthetic v
+            #F5 synthetic v
               element: <testLibrary>::@class::C::@setter::v
               formalParameters
                 #F6 _v
@@ -8153,16 +8027,14 @@ library
           fields
             #F8 synthetic v
               element: <testLibrary>::@class::D::@field::v
-              getter2: #F9
           constructors
-            #F10 synthetic new
+            #F9 synthetic new
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
           getters
-            #F9 v @56
+            #F10 v @56
               element: <testLibrary>::@class::D::@getter::v
               returnType: int
-              variable: #F8
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -8178,18 +8050,18 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F3
           superConstructor: <testLibrary>::@class::D::@constructor::new
       getters
         synthetic v
           reference: <testLibrary>::@class::C::@getter::v
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::C::@field::v
       setters
         synthetic v
           reference: <testLibrary>::@class::C::@setter::v
-          firstFragment: #F4
+          firstFragment: #F5
           formalParameters
             requiredPositional _v
               firstFragment: #F6
@@ -8207,11 +8079,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::D::@constructor::new
-          firstFragment: #F10
+          firstFragment: #F9
       getters
         abstract v
           reference: <testLibrary>::@class::D::@getter::v
-          firstFragment: #F9
+          firstFragment: #F10
           returnType: int
           variable: <testLibrary>::@class::D::@field::v
 ''');
@@ -8241,17 +8113,15 @@ library
           fields
             #F2 synthetic f
               element: <testLibrary>::@class::A::@field::f
-              getter2: #F3
           constructors
-            #F4 const new
+            #F3 const new
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 40
           getters
-            #F3 f @61
+            #F4 f @61
               element: <testLibrary>::@class::A::@getter::f
               returnType: List<int>
-              variable: #F2
         #F5 class B @72
           element: <testLibrary>::@class::B
           fields
@@ -8267,17 +8137,15 @@ library
                       staticType: int
                   rightBracket: ] @113
                   staticType: List<int>
-              getter2: #F7
           constructors
-            #F8 const new
+            #F7 const new
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
               typeNameOffset: 94
           getters
-            #F7 synthetic f
+            #F8 synthetic f
               element: <testLibrary>::@class::B::@getter::f
               returnType: List<int>
-              variable: #F6
       topLevelVariables
         #F9 hasInitializer a @6
           element: <testLibrary>::@topLevelVariable::a
@@ -8285,12 +8153,10 @@ library
             IntegerLiteral
               literal: 0 @10
               staticType: int
-          getter: #F10
       getters
         #F10 synthetic a
           element: <testLibrary>::@getter::a
           returnType: int
-          variable: #F9
   classes
     abstract class A
       reference: <testLibrary>::@class::A
@@ -8304,11 +8170,11 @@ library
       constructors
         const new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       getters
         abstract f
           reference: <testLibrary>::@class::A::@getter::f
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: List<int>
           variable: <testLibrary>::@class::A::@field::f
     class B
@@ -8327,12 +8193,12 @@ library
       constructors
         const new
           reference: <testLibrary>::@class::B::@constructor::new
-          firstFragment: #F8
+          firstFragment: #F7
           superConstructor: <testLibrary>::@class::A::@constructor::new
       getters
         synthetic f
           reference: <testLibrary>::@class::B::@getter::f
-          firstFragment: #F7
+          firstFragment: #F8
           returnType: List<int>
           variable: <testLibrary>::@class::B::@field::f
   topLevelVariables
@@ -8367,19 +8233,16 @@ library
           fields
             #F2 hasInitializer v @21
               element: <testLibrary>::@class::C::@field::v
-              getter2: #F3
-              setter2: #F4
           constructors
-            #F5 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 synthetic v
+            #F4 synthetic v
               element: <testLibrary>::@class::C::@getter::v
               returnType: int
-              variable: #F2
           setters
-            #F4 synthetic v
+            #F5 synthetic v
               element: <testLibrary>::@class::C::@setter::v
               formalParameters
                 #F6 _v
@@ -8398,17 +8261,17 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F3
       getters
         synthetic static v
           reference: <testLibrary>::@class::C::@getter::v
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::C::@field::v
       setters
         synthetic static v
           reference: <testLibrary>::@class::C::@setter::v
-          firstFragment: #F4
+          firstFragment: #F5
           formalParameters
             requiredPositional _v
               firstFragment: #F6
@@ -8440,17 +8303,15 @@ library
           fields
             #F2 synthetic foo
               element: <testLibrary>::@class::A::@field::foo
-              getter2: #F3
           constructors
-            #F4 const new
+            #F3 const new
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 27
           getters
-            #F3 foo @45
+            #F4 foo @45
               element: <testLibrary>::@class::A::@getter::foo
               returnType: double
-              variable: #F2
         #F5 class B @58
           element: <testLibrary>::@class::B
           fields
@@ -8460,17 +8321,15 @@ library
                 IntegerLiteral
                   literal: 2 @99
                   staticType: double
-              getter2: #F7
           constructors
-            #F8 const new
+            #F7 const new
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
               typeNameOffset: 80
           getters
-            #F7 synthetic foo
+            #F8 synthetic foo
               element: <testLibrary>::@class::B::@getter::foo
               returnType: double
-              variable: #F6
   classes
     abstract class A
       reference: <testLibrary>::@class::A
@@ -8484,11 +8343,11 @@ library
       constructors
         const new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       getters
         abstract foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: double
           variable: <testLibrary>::@class::A::@field::foo
     class B
@@ -8507,12 +8366,12 @@ library
       constructors
         const new
           reference: <testLibrary>::@class::B::@constructor::new
-          firstFragment: #F8
+          firstFragment: #F7
           superConstructor: <testLibrary>::@class::A::@constructor::new
       getters
         synthetic foo
           reference: <testLibrary>::@class::B::@getter::foo
-          firstFragment: #F7
+          firstFragment: #F8
           returnType: double
           variable: <testLibrary>::@class::B::@field::foo
 ''');
@@ -8537,16 +8396,14 @@ library
           fields
             #F2 synthetic _foo
               element: <testLibrary>::@class::A::@field::_foo
-              getter2: #F3
           constructors
-            #F4 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F3 _foo @30
+            #F4 _foo @30
               element: <testLibrary>::@class::A::@getter::_foo
               returnType: int?
-              variable: #F2
   classes
     abstract class A
       reference: <testLibrary>::@class::A
@@ -8560,11 +8417,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       getters
         abstract _foo
           reference: <testLibrary>::@class::A::@getter::_foo
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int?
           variable: <testLibrary>::@class::A::@field::_foo
 ''');
@@ -9355,32 +9212,26 @@ library
           fields
             #F2 a @28
               element: <testLibrary>::@class::C::@field::a
-              getter2: #F3
-              setter2: #F4
-            #F5 <null-name> (offset=30)
+            #F3 <null-name> (offset=30)
               element: <testLibrary>::@class::C::@field::0
-              getter2: #F6
-              setter2: #F7
           constructors
-            #F8 synthetic new
+            #F4 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 synthetic a
+            #F5 synthetic a
               element: <testLibrary>::@class::C::@getter::a
               returnType: Object
-              variable: #F2
             #F6 synthetic <null-name>
               element: <testLibrary>::@class::C::@getter::1
               returnType: Object
-              variable: #F5
           setters
-            #F4 synthetic a
+            #F7 synthetic a
               element: <testLibrary>::@class::C::@setter::a
               formalParameters
-                #F9 _a
+                #F8 _a
                   element: <testLibrary>::@class::C::@setter::a::@formalParameter::_a
-            #F7 synthetic <null-name>
+            #F9 synthetic <null-name>
               element: <testLibrary>::@class::C::@setter::2
               formalParameters
                 #F10 _
@@ -9398,18 +9249,18 @@ library
           setter: <testLibrary>::@class::C::@setter::a
         <null-name>
           reference: <testLibrary>::@class::C::@field::0
-          firstFragment: #F5
+          firstFragment: #F3
           type: Object
           getter: <testLibrary>::@class::C::@getter::1
           setter: <testLibrary>::@class::C::@setter::2
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F8
+          firstFragment: #F4
       getters
         synthetic a
           reference: <testLibrary>::@class::C::@getter::a
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: Object
           variable: <testLibrary>::@class::C::@field::a
         synthetic <null-name>
@@ -9420,15 +9271,15 @@ library
       setters
         synthetic a
           reference: <testLibrary>::@class::C::@setter::a
-          firstFragment: #F4
+          firstFragment: #F7
           formalParameters
             requiredPositional _a
-              firstFragment: #F9
+              firstFragment: #F8
               type: Object
           returnType: void
         synthetic <null-name>
           reference: <testLibrary>::@class::C::@setter::2
-          firstFragment: #F7
+          firstFragment: #F9
           formalParameters
             requiredPositional _
               firstFragment: #F10
@@ -9459,13 +9310,10 @@ library
           fields
             #F3 foo @24
               element: <testLibrary>::@class::C::@field::foo
-              getter2: #F4
-              setter2: #F5
           getters
             #F4 synthetic foo
               element: <testLibrary>::@class::C::@getter::foo
               returnType: int
-              variable: #F3
           setters
             #F5 synthetic foo
               element: <testLibrary>::@class::C::@setter::foo
@@ -9526,13 +9374,10 @@ library
           fields
             #F3 foo @22
               element: <testLibrary>::@class::C::@field::foo
-              getter2: #F4
-              setter2: #F5
           getters
             #F4 synthetic foo
               element: <testLibrary>::@class::C::@getter::foo
               returnType: T
-              variable: #F3
           setters
             #F5 synthetic foo
               element: <testLibrary>::@class::C::@setter::foo
@@ -9595,16 +9440,14 @@ library
                 IntegerLiteral
                   literal: 0 @29
                   staticType: int
-              getter2: #F3
           constructors
-            #F4 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 synthetic x
+            #F4 synthetic x
               element: <testLibrary>::@class::C::@getter::x
               returnType: int
-              variable: #F2
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -9621,11 +9464,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       getters
         synthetic static x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::C::@field::x
 ''');
@@ -9652,16 +9495,14 @@ library
           fields
             #F2 hasInitializer b @35
               element: <testLibrary>::@class::C::@field::b
-              getter2: #F3
           constructors
-            #F4 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 synthetic b
+            #F4 synthetic b
               element: <testLibrary>::@class::C::@getter::b
               returnType: double
-              variable: #F2
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -9675,11 +9516,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       getters
         synthetic b
           reference: <testLibrary>::@class::C::@getter::b
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: double
           variable: <testLibrary>::@class::C::@field::b
 ''');
@@ -9711,16 +9552,14 @@ library
           fields
             #F3 hasInitializer b @46
               element: <testLibrary>::@class::C::@field::b
-              getter2: #F4
           constructors
-            #F5 synthetic new
+            #F4 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 synthetic b
+            #F5 synthetic b
               element: <testLibrary>::@class::C::@getter::b
               returnType: double
-              variable: #F3
     #F1 package:test/a.dart
       element: <testLibrary>
       enclosingFragment: #F0
@@ -9728,12 +9567,10 @@ library
       topLevelVariables
         #F6 hasInitializer a @19
           element: <testLibrary>::@topLevelVariable::a
-          getter: #F7
       getters
         #F7 synthetic a
           element: <testLibrary>::@getter::a
           returnType: int
-          variable: #F6
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -9747,11 +9584,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F4
       getters
         synthetic b
           reference: <testLibrary>::@class::C::@getter::b
-          firstFragment: #F4
+          firstFragment: #F5
           returnType: double
           variable: <testLibrary>::@class::C::@field::b
   topLevelVariables
@@ -9786,16 +9623,14 @@ library
           fields
             #F2 hasInitializer x @18
               element: <testLibrary>::@class::C::@field::x
-              getter2: #F3
           constructors
-            #F4 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 synthetic x
+            #F4 synthetic x
               element: <testLibrary>::@class::C::@getter::x
               returnType: int
-              variable: #F2
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -9809,11 +9644,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       getters
         synthetic x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::C::@field::x
 ''');
@@ -9836,16 +9671,14 @@ library
           fields
             #F2 hasInitializer x @25
               element: <testLibrary>::@class::C::@field::x
-              getter2: #F3
           constructors
-            #F4 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 synthetic x
+            #F4 synthetic x
               element: <testLibrary>::@class::C::@getter::x
               returnType: int
-              variable: #F2
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -9859,11 +9692,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       getters
         synthetic static x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::C::@field::x
 ''');
@@ -9883,19 +9716,16 @@ library
           fields
             #F2 i @21
               element: <testLibrary>::@class::C::@field::i
-              getter2: #F3
-              setter2: #F4
           constructors
-            #F5 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 synthetic i
+            #F4 synthetic i
               element: <testLibrary>::@class::C::@getter::i
               returnType: int
-              variable: #F2
           setters
-            #F4 synthetic i
+            #F5 synthetic i
               element: <testLibrary>::@class::C::@setter::i
               formalParameters
                 #F6 _i
@@ -9914,17 +9744,17 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F3
       getters
         synthetic static i
           reference: <testLibrary>::@class::C::@getter::i
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::C::@field::i
       setters
         synthetic static i
           reference: <testLibrary>::@class::C::@setter::i
-          firstFragment: #F4
+          firstFragment: #F5
           formalParameters
             requiredPositional _i
               firstFragment: #F6
@@ -9952,17 +9782,15 @@ library
           fields
             #F2 hasInitializer f @25
               element: <testLibrary>::@class::C::@field::f
-              getter2: #F3
           constructors
-            #F4 const new
+            #F3 const new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 40
           getters
-            #F3 synthetic f
+            #F4 synthetic f
               element: <testLibrary>::@class::C::@getter::f
               returnType: int
-              variable: #F2
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -9976,11 +9804,11 @@ library
       constructors
         const new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       getters
         synthetic static f
           reference: <testLibrary>::@class::C::@getter::f
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::C::@field::f
 ''');
@@ -10000,16 +9828,14 @@ library
           fields
             #F2 hasInitializer x @23
               element: <testLibrary>::@class::C::@field::x
-              getter2: #F3
           constructors
-            #F4 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 synthetic x
+            #F4 synthetic x
               element: <testLibrary>::@class::C::@getter::x
               returnType: int
-              variable: #F2
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -10023,11 +9849,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       getters
         synthetic static x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::C::@field::x
 ''');
@@ -10047,19 +9873,16 @@ library
           fields
             #F2 i @26
               element: <testLibrary>::@class::C::@field::i
-              getter2: #F3
-              setter2: #F4
           constructors
-            #F5 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 synthetic i
+            #F4 synthetic i
               element: <testLibrary>::@class::C::@getter::i
               returnType: int
-              variable: #F2
           setters
-            #F4 synthetic i
+            #F5 synthetic i
               element: <testLibrary>::@class::C::@setter::i
               formalParameters
                 #F6 _i
@@ -10078,17 +9901,17 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F3
       getters
         synthetic static i
           reference: <testLibrary>::@class::C::@getter::i
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::C::@field::i
       setters
         synthetic static i
           reference: <testLibrary>::@class::C::@setter::i
-          firstFragment: #F4
+          firstFragment: #F5
           formalParameters
             requiredPositional _i
               firstFragment: #F6
@@ -10116,19 +9939,16 @@ library
           fields
             #F2 hasInitializer a @16
               element: <testLibrary>::@class::C::@field::a
-              getter2: #F3
-              setter2: #F4
           constructors
-            #F5 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 synthetic a
+            #F4 synthetic a
               element: <testLibrary>::@class::C::@getter::a
               returnType: int
-              variable: #F2
           setters
-            #F4 synthetic a
+            #F5 synthetic a
               element: <testLibrary>::@class::C::@setter::a
               formalParameters
                 #F6 _a
@@ -10147,17 +9967,17 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F3
       getters
         synthetic a
           reference: <testLibrary>::@class::C::@getter::a
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::C::@field::a
       setters
         synthetic a
           reference: <testLibrary>::@class::C::@setter::a
-          firstFragment: #F4
+          firstFragment: #F5
           formalParameters
             requiredPositional _a
               firstFragment: #F6
@@ -10185,19 +10005,16 @@ library
           fields
             #F2 hasInitializer foo @16
               element: <testLibrary>::@class::C::@field::foo
-              getter2: #F3
-              setter2: #F4
           constructors
-            #F5 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 synthetic foo
+            #F4 synthetic foo
               element: <testLibrary>::@class::C::@getter::foo
               returnType: int
-              variable: #F2
           setters
-            #F4 synthetic foo
+            #F5 synthetic foo
               element: <testLibrary>::@class::C::@setter::foo
               formalParameters
                 #F6 _foo
@@ -10216,17 +10033,17 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F3
       getters
         synthetic foo
           reference: <testLibrary>::@class::C::@getter::foo
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::C::@field::foo
       setters
         synthetic foo
           reference: <testLibrary>::@class::C::@setter::foo
-          firstFragment: #F4
+          firstFragment: #F5
           formalParameters
             requiredPositional _foo
               firstFragment: #F6
@@ -10258,31 +10075,27 @@ library
           fields
             #F2 synthetic foo
               element: <testLibrary>::@class::A::@field::foo
-              getter2: #F3
           constructors
-            #F4 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F3 foo @29
+            #F4 foo @29
               element: <testLibrary>::@class::A::@getter::foo
               returnType: int
-              variable: #F2
         #F5 class B @43
           element: <testLibrary>::@class::B
           fields
             #F6 hasInitializer foo @65
               element: <testLibrary>::@class::B::@field::foo
-              getter2: #F7
           constructors
-            #F8 synthetic new
+            #F7 synthetic new
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           getters
-            #F7 synthetic foo
+            #F8 synthetic foo
               element: <testLibrary>::@class::B::@getter::foo
               returnType: int
-              variable: #F6
   classes
     abstract class A
       reference: <testLibrary>::@class::A
@@ -10296,11 +10109,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       getters
         abstract foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
     class B
@@ -10316,12 +10129,12 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::B::@constructor::new
-          firstFragment: #F8
+          firstFragment: #F7
           superConstructor: <testLibrary>::@class::A::@constructor::new
       getters
         synthetic foo
           reference: <testLibrary>::@class::B::@getter::foo
-          firstFragment: #F7
+          firstFragment: #F8
           returnType: int
           variable: <testLibrary>::@class::B::@field::foo
 ''');
@@ -10346,19 +10159,16 @@ library
           fields
             #F2 hasInitializer a @16
               element: <testLibrary>::@class::C::@field::a
-              getter2: #F3
-              setter2: #F4
           constructors
-            #F5 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 synthetic a
+            #F4 synthetic a
               element: <testLibrary>::@class::C::@getter::a
               returnType: Never
-              variable: #F2
           setters
-            #F4 synthetic a
+            #F5 synthetic a
               element: <testLibrary>::@class::C::@setter::a
               formalParameters
                 #F6 _a
@@ -10377,17 +10187,17 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F3
       getters
         synthetic a
           reference: <testLibrary>::@class::C::@getter::a
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: Never
           variable: <testLibrary>::@class::C::@field::a
       setters
         synthetic a
           reference: <testLibrary>::@class::C::@setter::a
-          firstFragment: #F4
+          firstFragment: #F5
           formalParameters
             requiredPositional _a
               firstFragment: #F6
@@ -10410,19 +10220,16 @@ library
           fields
             #F2 hasInitializer x @14
               element: <testLibrary>::@class::C::@field::x
-              getter2: #F3
-              setter2: #F4
           constructors
-            #F5 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 synthetic x
+            #F4 synthetic x
               element: <testLibrary>::@class::C::@getter::x
               returnType: int
-              variable: #F2
           setters
-            #F4 synthetic x
+            #F5 synthetic x
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
                 #F6 _x
@@ -10441,17 +10248,17 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F3
       getters
         synthetic x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::C::@field::x
       setters
         synthetic x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F4
+          firstFragment: #F5
           formalParameters
             requiredPositional _x
               firstFragment: #F6
@@ -10474,19 +10281,16 @@ library
           fields
             #F2 hasInitializer x @14
               element: <testLibrary>::@class::C::@field::x
-              getter2: #F3
-              setter2: #F4
           constructors
-            #F5 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 synthetic x
+            #F4 synthetic x
               element: <testLibrary>::@class::C::@getter::x
               returnType: int
-              variable: #F2
           setters
-            #F4 synthetic x
+            #F5 synthetic x
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
                 #F6 _x
@@ -10505,17 +10309,17 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F3
       getters
         synthetic x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::C::@field::x
       setters
         synthetic x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F4
+          firstFragment: #F5
           formalParameters
             requiredPositional _x
               firstFragment: #F6
@@ -10538,32 +10342,26 @@ library
           fields
             #F2 i @14
               element: <testLibrary>::@class::C::@field::i
-              getter2: #F3
-              setter2: #F4
-            #F5 j @21
+            #F3 j @21
               element: <testLibrary>::@class::C::@field::j
-              getter2: #F6
-              setter2: #F7
           constructors
-            #F8 synthetic new
+            #F4 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 synthetic i
+            #F5 synthetic i
               element: <testLibrary>::@class::C::@getter::i
               returnType: int
-              variable: #F2
             #F6 synthetic j
               element: <testLibrary>::@class::C::@getter::j
               returnType: int
-              variable: #F5
           setters
-            #F4 synthetic i
+            #F7 synthetic i
               element: <testLibrary>::@class::C::@setter::i
               formalParameters
-                #F9 _i
+                #F8 _i
                   element: <testLibrary>::@class::C::@setter::i::@formalParameter::_i
-            #F7 synthetic j
+            #F9 synthetic j
               element: <testLibrary>::@class::C::@setter::j
               formalParameters
                 #F10 _j
@@ -10581,18 +10379,18 @@ library
           setter: <testLibrary>::@class::C::@setter::i
         j
           reference: <testLibrary>::@class::C::@field::j
-          firstFragment: #F5
+          firstFragment: #F3
           type: int
           getter: <testLibrary>::@class::C::@getter::j
           setter: <testLibrary>::@class::C::@setter::j
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F8
+          firstFragment: #F4
       getters
         synthetic i
           reference: <testLibrary>::@class::C::@getter::i
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: int
           variable: <testLibrary>::@class::C::@field::i
         synthetic j
@@ -10603,15 +10401,15 @@ library
       setters
         synthetic i
           reference: <testLibrary>::@class::C::@setter::i
-          firstFragment: #F4
+          firstFragment: #F7
           formalParameters
             requiredPositional _i
-              firstFragment: #F9
+              firstFragment: #F8
               type: int
           returnType: void
         synthetic j
           reference: <testLibrary>::@class::C::@setter::j
-          firstFragment: #F7
+          firstFragment: #F9
           formalParameters
             requiredPositional _j
               firstFragment: #F10
@@ -10638,19 +10436,16 @@ library
           fields
             #F2 foo @21
               element: <testLibrary>::@class::C::@field::foo
-              getter2: #F3
-              setter2: #F4
           constructors
-            #F5 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 synthetic foo
+            #F4 synthetic foo
               element: <testLibrary>::@class::C::@getter::foo
               returnType: int
-              variable: #F2
           setters
-            #F4 synthetic foo
+            #F5 synthetic foo
               element: <testLibrary>::@class::C::@setter::foo
               formalParameters
                 #F6 _foo
@@ -10669,17 +10464,17 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F3
       getters
         synthetic foo
           reference: <testLibrary>::@class::C::@getter::foo
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::C::@field::foo
       setters
         synthetic foo
           reference: <testLibrary>::@class::C::@setter::foo
-          firstFragment: #F4
+          firstFragment: #F5
           formalParameters
             requiredPositional _foo
               firstFragment: #F6
@@ -10706,19 +10501,16 @@ library
           fields
             #F2 foo @27
               element: <testLibrary>::@class::C::@field::foo
-              getter2: #F3
-              setter2: #F4
           constructors
-            #F5 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 synthetic foo
+            #F4 synthetic foo
               element: <testLibrary>::@class::C::@getter::foo
               returnType: int
-              variable: #F2
           setters
-            #F4 synthetic foo
+            #F5 synthetic foo
               element: <testLibrary>::@class::C::@setter::foo
               formalParameters
                 #F6 _foo
@@ -10737,17 +10529,17 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F3
       getters
         synthetic foo
           reference: <testLibrary>::@class::C::@getter::foo
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::C::@field::foo
       setters
         synthetic foo
           reference: <testLibrary>::@class::C::@setter::foo
-          firstFragment: #F4
+          firstFragment: #F5
           formalParameters
             requiredPositional _foo
               firstFragment: #F6
@@ -10774,16 +10566,14 @@ library
           fields
             #F2 hasInitializer foo @27
               element: <testLibrary>::@class::C::@field::foo
-              getter2: #F3
           constructors
-            #F4 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 synthetic foo
+            #F4 synthetic foo
               element: <testLibrary>::@class::C::@getter::foo
               returnType: int
-              variable: #F2
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -10797,11 +10587,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       getters
         synthetic foo
           reference: <testLibrary>::@class::C::@getter::foo
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::C::@field::foo
 ''');
@@ -10838,19 +10628,16 @@ library
           fields
             #F5 hasInitializer f @62
               element: <testLibrary>::@class::B::@field::f
-              getter2: #F6
-              setter2: #F7
           constructors
-            #F8 synthetic new
+            #F6 synthetic new
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           getters
-            #F6 synthetic f
+            #F7 synthetic f
               element: <testLibrary>::@class::B::@getter::f
               returnType: int
-              variable: #F5
           setters
-            #F7 synthetic f
+            #F8 synthetic f
               element: <testLibrary>::@class::B::@setter::f
               formalParameters
                 #F9 _f
@@ -10882,18 +10669,18 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::B::@constructor::new
-          firstFragment: #F8
+          firstFragment: #F6
           superConstructor: <testLibrary>::@class::A::@constructor::new
       getters
         synthetic f
           reference: <testLibrary>::@class::B::@getter::f
-          firstFragment: #F6
+          firstFragment: #F7
           returnType: int
           variable: <testLibrary>::@class::B::@field::f
       setters
         synthetic f
           reference: <testLibrary>::@class::B::@setter::f
-          firstFragment: #F7
+          firstFragment: #F8
           formalParameters
             requiredPositional _f
               firstFragment: #F9
@@ -10924,34 +10711,29 @@ library
           fields
             #F2 synthetic foo
               element: <testLibrary>::@class::A::@field::foo
-              getter2: #F3
           constructors
-            #F4 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F3 foo @20
+            #F4 foo @20
               element: <testLibrary>::@class::A::@getter::foo
               returnType: int
-              variable: #F2
         #F5 class B @39
           element: <testLibrary>::@class::B
           fields
             #F6 hasInitializer f @64
               element: <testLibrary>::@class::B::@field::f
-              getter2: #F7
-              setter2: #F8
           constructors
-            #F9 synthetic new
+            #F7 synthetic new
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           getters
-            #F7 synthetic f
+            #F8 synthetic f
               element: <testLibrary>::@class::B::@getter::f
               returnType: int
-              variable: #F6
           setters
-            #F8 synthetic f
+            #F9 synthetic f
               element: <testLibrary>::@class::B::@setter::f
               formalParameters
                 #F10 _f
@@ -10969,11 +10751,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       getters
         foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
     class B
@@ -10990,18 +10772,18 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::B::@constructor::new
-          firstFragment: #F9
+          firstFragment: #F7
           superConstructor: <testLibrary>::@class::A::@constructor::new
       getters
         synthetic f
           reference: <testLibrary>::@class::B::@getter::f
-          firstFragment: #F7
+          firstFragment: #F8
           returnType: int
           variable: <testLibrary>::@class::B::@field::f
       setters
         synthetic f
           reference: <testLibrary>::@class::B::@setter::f
-          firstFragment: #F8
+          firstFragment: #F9
           formalParameters
             requiredPositional _f
               firstFragment: #F10
@@ -11056,27 +10838,23 @@ library
           fields
             #F2 synthetic a
               element: <testLibrary>::@class::A::@field::a
-              getter2: #F3
-              setter2: #F4
-            #F5 synthetic b
+            #F3 synthetic b
               element: <testLibrary>::@class::A::@field::b
-              setter2: #F6
           constructors
-            #F7 synthetic new
+            #F4 synthetic new
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F3 a @20
+            #F5 a @20
               element: <testLibrary>::@class::A::@getter::a
               returnType: int
-              variable: #F2
           setters
             #F6 b @34
               element: <testLibrary>::@class::A::@setter::b
               formalParameters
-                #F8 _ @40
+                #F7 _ @40
                   element: <testLibrary>::@class::A::@setter::b::@formalParameter::_
-            #F4 a @52
+            #F8 a @52
               element: <testLibrary>::@class::A::@setter::a
               formalParameters
                 #F9 _ @58
@@ -11094,17 +10872,17 @@ library
           setter: <testLibrary>::@class::A::@setter::a
         synthetic b
           reference: <testLibrary>::@class::A::@field::b
-          firstFragment: #F5
+          firstFragment: #F3
           type: int
           setter: <testLibrary>::@class::A::@setter::b
       constructors
         synthetic new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F7
+          firstFragment: #F4
       getters
         a
           reference: <testLibrary>::@class::A::@getter::a
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: int
           variable: <testLibrary>::@class::A::@field::a
       setters
@@ -11113,12 +10891,12 @@ library
           firstFragment: #F6
           formalParameters
             requiredPositional _
-              firstFragment: #F8
+              firstFragment: #F7
               type: int
           returnType: void
         a
           reference: <testLibrary>::@class::A::@setter::a
-          firstFragment: #F4
+          firstFragment: #F8
           formalParameters
             requiredPositional _
               firstFragment: #F9
@@ -11147,26 +10925,21 @@ library
           fields
             #F2 synthetic a
               element: <testLibrary>::@class::A::@field::a
-              getter2: #F3
-              setter2: #F4
-            #F5 synthetic b
+            #F3 synthetic b
               element: <testLibrary>::@class::A::@field::b
-              getter2: #F6
           constructors
-            #F7 synthetic new
+            #F4 synthetic new
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F6 b @38
+            #F5 b @38
               element: <testLibrary>::@class::A::@getter::b
               returnType: int
-              variable: #F5
-            #F3 a @56
+            #F6 a @56
               element: <testLibrary>::@class::A::@getter::a
               returnType: int
-              variable: #F2
           setters
-            #F4 a @16
+            #F7 a @16
               element: <testLibrary>::@class::A::@setter::a
               formalParameters
                 #F8 _ @22
@@ -11184,28 +10957,28 @@ library
           setter: <testLibrary>::@class::A::@setter::a
         synthetic b
           reference: <testLibrary>::@class::A::@field::b
-          firstFragment: #F5
+          firstFragment: #F3
           type: int
           getter: <testLibrary>::@class::A::@getter::b
       constructors
         synthetic new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F7
+          firstFragment: #F4
       getters
         b
           reference: <testLibrary>::@class::A::@getter::b
-          firstFragment: #F6
+          firstFragment: #F5
           returnType: int
           variable: <testLibrary>::@class::A::@field::b
         a
           reference: <testLibrary>::@class::A::@getter::a
-          firstFragment: #F3
+          firstFragment: #F6
           returnType: int
           variable: <testLibrary>::@class::A::@field::a
       setters
         a
           reference: <testLibrary>::@class::A::@setter::a
-          firstFragment: #F4
+          firstFragment: #F7
           formalParameters
             requiredPositional _
               firstFragment: #F8
@@ -11228,16 +11001,14 @@ library
           fields
             #F2 synthetic x
               element: <testLibrary>::@class::C::@field::x
-              getter2: #F3
           constructors
-            #F4 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 x @27
+            #F4 x @27
               element: <testLibrary>::@class::C::@getter::x
               returnType: int
-              variable: #F2
   classes
     abstract class C
       reference: <testLibrary>::@class::C
@@ -11251,11 +11022,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       getters
         abstract x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::C::@field::x
 ''');
@@ -11275,16 +11046,14 @@ library
           fields
             #F2 synthetic x
               element: <testLibrary>::@class::C::@field::x
-              getter2: #F3
           constructors
-            #F4 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 x @27
+            #F4 x @27
               element: <testLibrary>::@class::C::@getter::x
               returnType: int
-              variable: #F2
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -11298,11 +11067,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       getters
         external x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::C::@field::x
 ''');
@@ -11322,16 +11091,14 @@ library
           fields
             #F2 synthetic x
               element: <testLibrary>::@class::C::@field::x
-              getter2: #F3
           constructors
-            #F4 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 x @14
+            #F4 x @14
               element: <testLibrary>::@class::C::@getter::x
               returnType: dynamic
-              variable: #F2
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -11345,11 +11112,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       getters
         x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::x
 ''');
@@ -11375,16 +11142,14 @@ library
           fields
             #F2 synthetic foo
               element: <testLibrary>::@class::A::@field::foo
-              getter2: #F3
           constructors
-            #F4 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F3 foo @20
+            #F4 foo @20
               element: <testLibrary>::@class::A::@getter::foo
               returnType: int
-              variable: #F2
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -11398,11 +11163,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       getters
         foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
 ''');
@@ -11428,16 +11193,14 @@ library
           fields
             #F2 synthetic foo
               element: <testLibrary>::@class::A::@field::foo
-              getter2: #F3
           constructors
-            #F4 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F3 foo @20
+            #F4 foo @20
               element: <testLibrary>::@class::A::@getter::foo
               returnType: int
-              variable: #F2
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -11451,11 +11214,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       getters
         foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
 ''');
@@ -11481,16 +11244,14 @@ library
           fields
             #F2 synthetic foo
               element: <testLibrary>::@class::A::@field::foo
-              getter2: #F3
           constructors
-            #F4 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F3 foo @20
+            #F4 foo @20
               element: <testLibrary>::@class::A::@getter::foo
               returnType: int
-              variable: #F2
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -11504,11 +11265,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       getters
         foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
 ''');
@@ -11570,16 +11331,14 @@ library
           fields
             #F2 synthetic x
               element: <testLibrary>::@class::C::@field::x
-              getter2: #F3
           constructors
-            #F4 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 x @20
+            #F4 x @20
               element: <testLibrary>::@class::C::@getter::x
               returnType: int
-              variable: #F2
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -11593,11 +11352,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       getters
         external x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::C::@field::x
 ''');
@@ -11625,12 +11384,10 @@ library
           fields
             #F3 synthetic foo
               element: <testLibrary>::@class::C::@field::foo
-              getter2: #F4
           getters
             #F4 foo @23
               element: <testLibrary>::@class::C::@getter::foo
               returnType: int
-              variable: #F3
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -11675,12 +11432,10 @@ library
           fields
             #F3 synthetic foo
               element: <testLibrary>::@class::C::@field::foo
-              getter2: #F4
           getters
             #F4 foo @21
               element: <testLibrary>::@class::C::@getter::foo
               returnType: T
-              variable: #F3
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -11719,16 +11474,14 @@ library
           fields
             #F2 synthetic x
               element: <testLibrary>::@class::C::@field::x
-              getter2: #F3
           constructors
-            #F4 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 x @25
+            #F4 x @25
               element: <testLibrary>::@class::C::@getter::x
               returnType: int
-              variable: #F2
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -11742,11 +11495,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       getters
         static x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::C::@field::x
 ''');
@@ -11768,23 +11521,19 @@ library
           fields
             #F2 synthetic x
               element: <testLibrary>::@class::C::@field::x
-              getter2: #F3
-            #F4 synthetic y
+            #F3 synthetic y
               element: <testLibrary>::@class::C::@field::y
-              getter2: #F5
           constructors
-            #F6 synthetic new
+            #F4 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 x @18
+            #F5 x @18
               element: <testLibrary>::@class::C::@getter::x
               returnType: int
-              variable: #F2
-            #F5 y @33
+            #F6 y @33
               element: <testLibrary>::@class::C::@getter::y
               returnType: dynamic
-              variable: #F4
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -11797,22 +11546,22 @@ library
           getter: <testLibrary>::@class::C::@getter::x
         synthetic y
           reference: <testLibrary>::@class::C::@field::y
-          firstFragment: #F4
+          firstFragment: #F3
           type: dynamic
           getter: <testLibrary>::@class::C::@getter::y
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F6
+          firstFragment: #F4
       getters
         x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: int
           variable: <testLibrary>::@class::C::@field::x
         y
           reference: <testLibrary>::@class::C::@getter::y
-          firstFragment: #F5
+          firstFragment: #F6
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::y
 ''');
@@ -11837,19 +11586,16 @@ library
           fields
             #F2 synthetic x
               element: <testLibrary>::@class::C::@field::x
-              getter2: #F3
-              setter2: #F4
           constructors
-            #F5 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 x @20
+            #F4 x @20
               element: <testLibrary>::@class::C::@getter::x
               returnType: int
-              variable: #F2
           setters
-            #F4 x @39
+            #F5 x @39
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
                 #F6 value @45
@@ -11868,17 +11614,17 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F3
       getters
         x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::C::@field::x
       setters
         x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F4
+          firstFragment: #F5
           formalParameters
             requiredPositional value
               firstFragment: #F6
@@ -11906,19 +11652,16 @@ library
           fields
             #F2 synthetic x
               element: <testLibrary>::@class::C::@field::x
-              getter2: #F3
-              setter2: #F4
           constructors
-            #F5 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 x @47
+            #F4 x @47
               element: <testLibrary>::@class::C::@getter::x
               returnType: int
-              variable: #F2
           setters
-            #F4 x @21
+            #F5 x @21
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
                 #F6 value @27
@@ -11937,17 +11680,17 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F3
       getters
         x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::C::@field::x
       setters
         x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F4
+          firstFragment: #F5
           formalParameters
             requiredPositional value
               firstFragment: #F6
@@ -12068,12 +11811,10 @@ library
           fields
             #F5 it @32
               element: <testLibrary>::@extensionType::B::@field::it
-              getter2: #F6
           getters
             #F6 synthetic it
               element: <testLibrary>::@extensionType::B::@getter::it
               returnType: int
-              variable: #F5
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -13657,12 +13398,10 @@ library
           fields
             #F3 it @32
               element: <testLibrary>::@extensionType::B::@field::it
-              getter2: #F4
           getters
             #F4 synthetic it
               element: <testLibrary>::@extensionType::B::@getter::it
               returnType: int
-              variable: #F3
       mixins
         #F5 mixin A @6
           element: <testLibrary>::@mixin::A
@@ -15207,13 +14946,10 @@ library
       topLevelVariables
         #F3 c @13
           element: <testLibrary>::@topLevelVariable::c
-          getter: #F4
-          setter: #F5
       getters
         #F4 synthetic c
           element: <testLibrary>::@getter::c
           returnType: C
-          variable: #F3
       setters
         #F5 synthetic c
           element: <testLibrary>::@setter::c
@@ -15274,13 +15010,10 @@ library
       topLevelVariables
         #F3 c @14
           element: <testLibrary>::@topLevelVariable::c
-          getter: #F4
-          setter: #F5
       getters
         #F4 synthetic c
           element: <testLibrary>::@getter::c
           returnType: C?
-          variable: #F3
       setters
         #F5 synthetic c
           element: <testLibrary>::@setter::c
@@ -15675,13 +15408,12 @@ library
           fields
             #F2 synthetic x
               element: <testLibrary>::@class::C::@field::x
-              setter2: #F3
           constructors
-            #F4 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           setters
-            #F3 x @28
+            #F4 x @28
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
                 #F5 value @34
@@ -15699,11 +15431,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       setters
         abstract x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F3
+          firstFragment: #F4
           formalParameters
             requiredPositional value
               firstFragment: #F5
@@ -15728,13 +15460,12 @@ library
           fields
             #F2 synthetic x
               element: <testLibrary>::@class::C::@field::x
-              setter2: #F3
           constructors
-            #F4 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           setters
-            #F3 x @19
+            #F4 x @19
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
                 #F5 value @35
@@ -15752,11 +15483,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       setters
         abstract x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F3
+          firstFragment: #F4
           formalParameters
             requiredPositional covariant value
               firstFragment: #F5
@@ -15781,13 +15512,12 @@ library
           fields
             #F2 synthetic x
               element: <testLibrary>::@class::C::@field::x
-              setter2: #F3
           constructors
-            #F4 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           setters
-            #F3 x @28
+            #F4 x @28
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
                 #F5 value @34
@@ -15805,11 +15535,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       setters
         external x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F3
+          firstFragment: #F4
           formalParameters
             requiredPositional value
               firstFragment: #F5
@@ -15832,13 +15562,12 @@ library
           fields
             #F2 synthetic x
               element: <testLibrary>::@class::C::@field::x
-              setter2: #F3
           constructors
-            #F4 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           setters
-            #F3 x @19
+            #F4 x @19
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
                 #F5 value @21
@@ -15856,11 +15585,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       setters
         x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F3
+          firstFragment: #F4
           formalParameters
             requiredPositional hasImplicitType value
               firstFragment: #F5
@@ -15883,13 +15612,12 @@ library
           fields
             #F2 synthetic x
               element: <testLibrary>::@class::C::@field::x
-              setter2: #F3
           constructors
-            #F4 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           setters
-            #F3 x @14
+            #F4 x @14
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
                 #F5 value @20
@@ -15907,11 +15635,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       setters
         x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F3
+          firstFragment: #F4
           formalParameters
             requiredPositional value
               firstFragment: #F5
@@ -15946,19 +15674,16 @@ library
           fields
             #F2 t @16
               element: <testLibrary>::@class::A::@field::t
-              getter2: #F3
-              setter2: #F4
           constructors
-            #F5 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F3 synthetic t
+            #F4 synthetic t
               element: <testLibrary>::@class::A::@getter::t
               returnType: int
-              variable: #F2
           setters
-            #F4 synthetic t
+            #F5 synthetic t
               element: <testLibrary>::@class::A::@setter::t
               formalParameters
                 #F6 _t
@@ -15968,19 +15693,16 @@ library
           fields
             #F8 t @50
               element: <testLibrary>::@class::B::@field::t
-              getter2: #F9
-              setter2: #F10
           constructors
-            #F11 synthetic new
+            #F9 synthetic new
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           getters
-            #F9 synthetic t
+            #F10 synthetic t
               element: <testLibrary>::@class::B::@getter::t
               returnType: double
-              variable: #F8
           setters
-            #F10 synthetic t
+            #F11 synthetic t
               element: <testLibrary>::@class::B::@setter::t
               formalParameters
                 #F12 _t
@@ -15996,13 +15718,12 @@ library
           fields
             #F16 synthetic t
               element: <testLibrary>::@class::D::@field::t
-              setter2: #F17
           constructors
-            #F18 synthetic new
+            #F17 synthetic new
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
           setters
-            #F17 t @121
+            #F18 t @121
               element: <testLibrary>::@class::D::@setter::t
               formalParameters
                 #F19 p @123
@@ -16021,17 +15742,17 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F3
       getters
         synthetic t
           reference: <testLibrary>::@class::A::@getter::t
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::A::@field::t
       setters
         synthetic t
           reference: <testLibrary>::@class::A::@setter::t
-          firstFragment: #F4
+          firstFragment: #F5
           formalParameters
             requiredPositional _t
               firstFragment: #F6
@@ -16051,18 +15772,18 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::B::@constructor::new
-          firstFragment: #F11
+          firstFragment: #F9
           superConstructor: <testLibrary>::@class::A::@constructor::new
       getters
         synthetic t
           reference: <testLibrary>::@class::B::@getter::t
-          firstFragment: #F9
+          firstFragment: #F10
           returnType: double
           variable: <testLibrary>::@class::B::@field::t
       setters
         synthetic t
           reference: <testLibrary>::@class::B::@setter::t
-          firstFragment: #F10
+          firstFragment: #F11
           formalParameters
             requiredPositional _t
               firstFragment: #F12
@@ -16092,12 +15813,12 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::D::@constructor::new
-          firstFragment: #F18
+          firstFragment: #F17
           superConstructor: <testLibrary>::@class::C::@constructor::new
       setters
         t
           reference: <testLibrary>::@class::D::@setter::t
-          firstFragment: #F17
+          firstFragment: #F18
           formalParameters
             requiredPositional hasImplicitType p
               firstFragment: #F19
@@ -16123,13 +15844,12 @@ library
           fields
             #F2 synthetic f
               element: <testLibrary>::@class::C::@field::f
-              setter2: #F3
           constructors
-            #F4 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           setters
-            #F3 f @29
+            #F4 f @29
               element: <testLibrary>::@class::C::@setter::f
               formalParameters
                 #F5 value @31
@@ -16139,13 +15859,12 @@ library
           fields
             #F7 synthetic f
               element: <testLibrary>::@class::D::@field::f
-              setter2: #F8
           constructors
-            #F9 synthetic new
+            #F8 synthetic new
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
           setters
-            #F8 f @71
+            #F9 f @71
               element: <testLibrary>::@class::D::@setter::f
               formalParameters
                 #F10 value @77
@@ -16164,12 +15883,12 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
           superConstructor: <testLibrary>::@class::D::@constructor::new
       setters
         f
           reference: <testLibrary>::@class::C::@setter::f
-          firstFragment: #F3
+          firstFragment: #F4
           formalParameters
             requiredPositional hasImplicitType value
               firstFragment: #F5
@@ -16187,11 +15906,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::D::@constructor::new
-          firstFragment: #F9
+          firstFragment: #F8
       setters
         abstract f
           reference: <testLibrary>::@class::D::@setter::f
-          firstFragment: #F8
+          firstFragment: #F9
           formalParameters
             requiredPositional value
               firstFragment: #F10
@@ -16218,13 +15937,12 @@ library
           fields
             #F2 synthetic f
               element: <testLibrary>::@class::C::@field::f
-              setter2: #F3
           constructors
-            #F4 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           setters
-            #F3 f @23
+            #F4 f @23
               element: <testLibrary>::@class::C::@setter::f
               formalParameters
                 #F5 value @29
@@ -16242,11 +15960,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       setters
         static f
           reference: <testLibrary>::@class::C::@setter::f
-          firstFragment: #F3
+          firstFragment: #F4
           formalParameters
             requiredPositional value
               firstFragment: #F5
@@ -16269,13 +15987,12 @@ library
           fields
             #F2 synthetic x
               element: <testLibrary>::@class::C::@field::x
-              setter2: #F3
           constructors
-            #F4 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           setters
-            #F3 x @19
+            #F4 x @19
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
                 #F5 default a @22
@@ -16293,11 +16010,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       setters
         x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F3
+          firstFragment: #F4
           formalParameters
             optionalNamed hasImplicitType a
               firstFragment: #F5
@@ -16320,13 +16037,12 @@ library
           fields
             #F2 synthetic x
               element: <testLibrary>::@class::C::@field::x
-              setter2: #F3
           constructors
-            #F4 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           setters
-            #F3 x @19
+            #F4 x @19
               element: <testLibrary>::@class::C::@setter::x
   classes
     class C
@@ -16341,11 +16057,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       setters
         x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: void
 ''');
   }
@@ -16364,13 +16080,12 @@ library
           fields
             #F2 synthetic x
               element: <testLibrary>::@class::C::@field::x
-              setter2: #F3
           constructors
-            #F4 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           setters
-            #F3 x @19
+            #F4 x @19
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
                 #F5 default a @22
@@ -16388,11 +16103,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       setters
         x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F3
+          firstFragment: #F4
           formalParameters
             optionalPositional hasImplicitType a
               firstFragment: #F5
@@ -16415,13 +16130,12 @@ library
           fields
             #F2 synthetic x
               element: <testLibrary>::@class::C::@field::x
-              setter2: #F3
           constructors
-            #F4 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           setters
-            #F3 x @19
+            #F4 x @19
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
                 #F5 a @21
@@ -16441,11 +16155,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       setters
         x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F3
+          firstFragment: #F4
           formalParameters
             requiredPositional hasImplicitType a
               firstFragment: #F5
@@ -16477,13 +16191,12 @@ library
           fields
             #F2 synthetic foo
               element: <testLibrary>::@class::A::@field::foo
-              setter2: #F3
           constructors
-            #F4 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           setters
-            #F3 foo @16
+            #F4 foo @16
               element: <testLibrary>::@class::A::@setter::foo
               formalParameters
                 #F5 _ @24
@@ -16501,11 +16214,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       setters
         foo
           reference: <testLibrary>::@class::A::@setter::foo
-          firstFragment: #F3
+          firstFragment: #F4
           formalParameters
             requiredPositional _
               firstFragment: #F5
@@ -16534,13 +16247,12 @@ library
           fields
             #F2 synthetic foo
               element: <testLibrary>::@class::A::@field::foo
-              setter2: #F3
           constructors
-            #F4 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           setters
-            #F3 foo @16
+            #F4 foo @16
               element: <testLibrary>::@class::A::@setter::foo
               formalParameters
                 #F5 _ @24
@@ -16558,11 +16270,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       setters
         foo
           reference: <testLibrary>::@class::A::@setter::foo
-          firstFragment: #F3
+          firstFragment: #F4
           formalParameters
             requiredPositional _
               firstFragment: #F5
@@ -16634,13 +16346,12 @@ library
           fields
             #F2 synthetic x
               element: <testLibrary>::@class::C::@field::x
-              setter2: #F3
           constructors
-            #F4 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           setters
-            #F3 x @21
+            #F4 x @21
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
                 #F5 value @27
@@ -16658,11 +16369,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       setters
         external x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F3
+          firstFragment: #F4
           formalParameters
             requiredPositional value
               firstFragment: #F5
@@ -16693,7 +16404,6 @@ library
           fields
             #F3 synthetic foo
               element: <testLibrary>::@class::C::@field::foo
-              setter2: #F4
           setters
             #F4 foo @19
               element: <testLibrary>::@class::C::@setter::foo
@@ -16747,7 +16457,6 @@ library
           fields
             #F3 synthetic foo
               element: <testLibrary>::@class::C::@field::foo
-              setter2: #F4
           setters
             #F4 foo @19
               element: <testLibrary>::@class::C::@setter::foo
@@ -16797,13 +16506,12 @@ library
           fields
             #F2 synthetic x
               element: <testLibrary>::@class::C::@field::x
-              setter2: #F3
           constructors
-            #F4 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           setters
-            #F3 x @26
+            #F4 x @26
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
                 #F5 value @32
@@ -16821,11 +16529,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       setters
         static x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F3
+          firstFragment: #F4
           formalParameters
             requiredPositional value
               firstFragment: #F5
@@ -16853,21 +16561,19 @@ library
           fields
             #F2 synthetic x
               element: <testLibrary>::@class::C::@field::x
-              setter2: #F3
-            #F4 synthetic y
+            #F3 synthetic y
               element: <testLibrary>::@class::C::@field::y
-              setter2: #F5
           constructors
-            #F6 synthetic new
+            #F4 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           setters
-            #F3 x @21
+            #F5 x @21
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
-                #F7 value @27
+                #F6 value @27
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
-            #F5 y @43
+            #F7 y @43
               element: <testLibrary>::@class::C::@setter::y
               formalParameters
                 #F8 value @45
@@ -16884,25 +16590,25 @@ library
           setter: <testLibrary>::@class::C::@setter::x
         synthetic y
           reference: <testLibrary>::@class::C::@field::y
-          firstFragment: #F4
+          firstFragment: #F3
           type: dynamic
           setter: <testLibrary>::@class::C::@setter::y
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F6
+          firstFragment: #F4
       setters
         x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F3
+          firstFragment: #F5
           formalParameters
             requiredPositional value
-              firstFragment: #F7
+              firstFragment: #F6
               type: int
           returnType: void
         y
           reference: <testLibrary>::@class::C::@setter::y
-          firstFragment: #F5
+          firstFragment: #F7
           formalParameters
             requiredPositional hasImplicitType value
               firstFragment: #F8
@@ -16988,12 +16694,10 @@ library
           fields
             #F3 it @21
               element: <testLibrary>::@extensionType::A::@field::it
-              getter2: #F4
           getters
             #F4 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
               returnType: int
-              variable: #F3
   classes
     class B
       reference: <testLibrary>::@class::B
@@ -20631,34 +20335,28 @@ library
           fields
             #F6 synthetic a
               element: <testLibrary>::@class::E::@field::a
-              getter2: #F7
-            #F8 synthetic b
+            #F7 synthetic b
               element: <testLibrary>::@class::E::@field::b
-              setter2: #F9
-            #F10 x @105
+            #F8 x @105
               element: <testLibrary>::@class::E::@field::x
-              getter2: #F11
-              setter2: #F12
           constructors
-            #F13 synthetic new
+            #F9 synthetic new
               element: <testLibrary>::@class::E::@constructor::new
               typeName: E
           getters
-            #F7 a @51
+            #F10 a @51
               element: <testLibrary>::@class::E::@getter::a
               returnType: int
-              variable: #F6
             #F11 synthetic x
               element: <testLibrary>::@class::E::@getter::x
               returnType: int
-              variable: #F10
           setters
-            #F9 b @73
+            #F12 b @73
               element: <testLibrary>::@class::E::@setter::b
               formalParameters
-                #F14 i @79
+                #F13 i @79
                   element: <testLibrary>::@class::E::@setter::b::@formalParameter::i
-            #F12 synthetic x
+            #F14 synthetic x
               element: <testLibrary>::@class::E::@setter::x
               formalParameters
                 #F15 _x
@@ -20703,23 +20401,23 @@ library
           getter: <testLibrary>::@class::E::@getter::a
         synthetic b
           reference: <testLibrary>::@class::E::@field::b
-          firstFragment: #F8
+          firstFragment: #F7
           type: int
           setter: <testLibrary>::@class::E::@setter::b
         x
           reference: <testLibrary>::@class::E::@field::x
-          firstFragment: #F10
+          firstFragment: #F8
           type: int
           getter: <testLibrary>::@class::E::@getter::x
           setter: <testLibrary>::@class::E::@setter::x
       constructors
         synthetic new
           reference: <testLibrary>::@class::E::@constructor::new
-          firstFragment: #F13
+          firstFragment: #F9
       getters
         a
           reference: <testLibrary>::@class::E::@getter::a
-          firstFragment: #F7
+          firstFragment: #F10
           returnType: int
           variable: <testLibrary>::@class::E::@field::a
         synthetic x
@@ -20730,15 +20428,15 @@ library
       setters
         b
           reference: <testLibrary>::@class::E::@setter::b
-          firstFragment: #F9
+          firstFragment: #F12
           formalParameters
             requiredPositional i
-              firstFragment: #F14
+              firstFragment: #F13
               type: int
           returnType: void
         synthetic x
           reference: <testLibrary>::@class::E::@setter::x
-          firstFragment: #F12
+          firstFragment: #F14
           formalParameters
             requiredPositional _x
               firstFragment: #F15
@@ -20811,21 +20509,19 @@ library
           fields
             #F2 x @25
               element: <testLibrary>::@class::C::@field::x
-              getter2: #F3
           constructors
-            #F4 const named @38
+            #F3 const named @38
               element: <testLibrary>::@class::C::@constructor::named
               typeName: C
               typeNameOffset: 36
               periodOffset: 37
               formalParameters
-                #F5 this.x @49
+                #F4 this.x @49
                   element: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
           getters
-            #F3 synthetic x
+            #F5 synthetic x
               element: <testLibrary>::@class::C::@getter::x
               returnType: Object
-              variable: #F2
       topLevelVariables
         #F6 hasInitializer x @61
           element: <testLibrary>::@topLevelVariable::x
@@ -20850,12 +20546,10 @@ library
                     staticType: int
                 rightParenthesis: ) @75
               staticType: C
-          getter: #F7
       getters
         #F7 synthetic x
           element: <testLibrary>::@getter::x
           returnType: C
-          variable: #F6
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -20869,15 +20563,15 @@ library
       constructors
         const named
           reference: <testLibrary>::@class::C::@constructor::named
-          firstFragment: #F4
+          firstFragment: #F3
           formalParameters
             requiredPositional final hasImplicitType x
-              firstFragment: #F5
+              firstFragment: #F4
               type: Object
       getters
         synthetic x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: Object
           variable: <testLibrary>::@class::C::@field::x
   topLevelVariables
@@ -20917,27 +20611,23 @@ library
           fields
             #F2 foo @16
               element: <testLibrary>::@class::C::@field::foo
-              getter2: #F3
-              setter2: #F4
-            #F5 synthetic bar
+            #F3 synthetic bar
               element: <testLibrary>::@class::C::@field::bar
-              setter2: #F6
           constructors
-            #F7 synthetic new
+            #F4 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F3 synthetic foo
+            #F5 synthetic foo
               element: <testLibrary>::@class::C::@getter::foo
               returnType: int
-              variable: #F2
           setters
-            #F4 synthetic foo
+            #F6 synthetic foo
               element: <testLibrary>::@class::C::@setter::foo
               formalParameters
-                #F8 _foo
+                #F7 _foo
                   element: <testLibrary>::@class::C::@setter::foo::@formalParameter::_foo
-            #F6 bar @32
+            #F8 bar @32
               element: <testLibrary>::@class::C::@setter::bar
               formalParameters
                 #F9 this.foo @41
@@ -20955,31 +20645,31 @@ library
           setter: <testLibrary>::@class::C::@setter::foo
         synthetic bar
           reference: <testLibrary>::@class::C::@field::bar
-          firstFragment: #F5
+          firstFragment: #F3
           type: dynamic
           setter: <testLibrary>::@class::C::@setter::bar
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F7
+          firstFragment: #F4
       getters
         synthetic foo
           reference: <testLibrary>::@class::C::@getter::foo
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: int
           variable: <testLibrary>::@class::C::@field::foo
       setters
         synthetic foo
           reference: <testLibrary>::@class::C::@setter::foo
-          firstFragment: #F4
+          firstFragment: #F6
           formalParameters
             requiredPositional _foo
-              firstFragment: #F8
+              firstFragment: #F7
               type: int
           returnType: void
         bar
           reference: <testLibrary>::@class::C::@setter::bar
-          firstFragment: #F6
+          firstFragment: #F8
           formalParameters
             requiredPositional final hasImplicitType foo
               firstFragment: #F9
@@ -21006,13 +20696,12 @@ library
           fields
             #F2 synthetic x
               element: <testLibrary>::@class::C::@field::x
-              setter2: #F3
           constructors
-            #F4 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           setters
-            #F3 x @16
+            #F4 x @16
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
                 #F5 this.x @23
@@ -21030,11 +20719,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       setters
         x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F3
+          firstFragment: #F4
           formalParameters
             requiredPositional final hasImplicitType x
               firstFragment: #F5
@@ -21073,28 +20762,22 @@ library
       topLevelVariables
         #F5 c @36
           element: <testLibrary>::@topLevelVariable::c
-          getter: #F6
-          setter: #F7
-        #F8 hasInitializer v @43
+        #F6 hasInitializer v @43
           element: <testLibrary>::@topLevelVariable::v
-          getter: #F9
-          setter: #F10
       getters
-        #F6 synthetic c
+        #F7 synthetic c
           element: <testLibrary>::@getter::c
           returnType: C<int>
-          variable: #F5
-        #F9 synthetic v
+        #F8 synthetic v
           element: <testLibrary>::@getter::v
           returnType: void Function()
-          variable: #F8
       setters
-        #F7 synthetic c
+        #F9 synthetic c
           element: <testLibrary>::@setter::c
           formalParameters
-            #F11 _c
+            #F10 _c
               element: <testLibrary>::@setter::c::@formalParameter::_c
-        #F10 synthetic v
+        #F11 synthetic v
           element: <testLibrary>::@setter::v
           formalParameters
             #F12 _v
@@ -21124,33 +20807,33 @@ library
       setter: <testLibrary>::@setter::c
     hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
-      firstFragment: #F8
+      firstFragment: #F6
       type: void Function()
       getter: <testLibrary>::@getter::v
       setter: <testLibrary>::@setter::v
   getters
     synthetic static c
       reference: <testLibrary>::@getter::c
-      firstFragment: #F6
+      firstFragment: #F7
       returnType: C<int>
       variable: <testLibrary>::@topLevelVariable::c
     synthetic static v
       reference: <testLibrary>::@getter::v
-      firstFragment: #F9
+      firstFragment: #F8
       returnType: void Function()
       variable: <testLibrary>::@topLevelVariable::v
   setters
     synthetic static c
       reference: <testLibrary>::@setter::c
-      firstFragment: #F7
+      firstFragment: #F9
       formalParameters
         requiredPositional _c
-          firstFragment: #F11
+          firstFragment: #F10
           type: C<int>
       returnType: void
     synthetic static v
       reference: <testLibrary>::@setter::v
-      firstFragment: #F10
+      firstFragment: #F11
       formalParameters
         requiredPositional _v
           firstFragment: #F12

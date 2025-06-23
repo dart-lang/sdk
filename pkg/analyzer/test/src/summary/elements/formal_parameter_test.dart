@@ -658,40 +658,37 @@ library
           fields
             #F2 x @16
               element: <testLibrary>::@class::C::@field::x
-              getter2: #F3
-              setter2: #F4
           constructors
-            #F5 positional @23
+            #F3 positional @23
               element: <testLibrary>::@class::C::@constructor::positional
               typeName: C
               typeNameOffset: 21
               periodOffset: 22
               formalParameters
-                #F6 default this.x @40
+                #F4 default this.x @40
                   element: <testLibrary>::@class::C::@constructor::positional::@formalParameter::x
                   initializer: expression_0
                     IntegerLiteral
                       literal: 1 @44
                       staticType: int
-            #F7 named @53
+            #F5 named @53
               element: <testLibrary>::@class::C::@constructor::named
               typeName: C
               typeNameOffset: 51
               periodOffset: 52
               formalParameters
-                #F8 default this.x @65
+                #F6 default this.x @65
                   element: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
                   initializer: expression_1
                     IntegerLiteral
                       literal: 1 @68
                       staticType: int
           getters
-            #F3 synthetic x
+            #F7 synthetic x
               element: <testLibrary>::@class::C::@getter::x
               returnType: dynamic
-              variable: #F2
           setters
-            #F4 synthetic x
+            #F8 synthetic x
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
                 #F9 _x
@@ -710,34 +707,34 @@ library
       constructors
         positional
           reference: <testLibrary>::@class::C::@constructor::positional
-          firstFragment: #F5
+          firstFragment: #F3
           formalParameters
             optionalPositional final hasImplicitType x
+              firstFragment: #F4
+              type: dynamic
+              constantInitializer
+                fragment: #F4
+                expression: expression_0
+        named
+          reference: <testLibrary>::@class::C::@constructor::named
+          firstFragment: #F5
+          formalParameters
+            optionalNamed final hasImplicitType x
               firstFragment: #F6
               type: dynamic
               constantInitializer
                 fragment: #F6
-                expression: expression_0
-        named
-          reference: <testLibrary>::@class::C::@constructor::named
-          firstFragment: #F7
-          formalParameters
-            optionalNamed final hasImplicitType x
-              firstFragment: #F8
-              type: dynamic
-              constantInitializer
-                fragment: #F8
                 expression: expression_1
       getters
         synthetic x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F3
+          firstFragment: #F7
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::x
       setters
         synthetic x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F4
+          firstFragment: #F8
           formalParameters
             requiredPositional _x
               firstFragment: #F9

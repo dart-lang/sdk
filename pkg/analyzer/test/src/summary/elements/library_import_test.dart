@@ -356,13 +356,10 @@ library
       topLevelVariables
         #F1 f @51
           element: <testLibrary>::@topLevelVariable::f
-          getter: #F2
-          setter: #F3
       getters
         #F2 synthetic f
           element: <testLibrary>::@getter::f
           returnType: Future<dynamic>
-          variable: #F1
       setters
         #F3 synthetic f
           element: <testLibrary>::@setter::f
@@ -455,13 +452,10 @@ library
       topLevelVariables
         #F1 f @52
           element: <testLibrary>::@topLevelVariable::f
-          getter: #F2
-          setter: #F3
       getters
         #F2 synthetic f
           element: <testLibrary>::@getter::f
           returnType: Future<dynamic>
-          variable: #F1
       setters
         #F3 synthetic f
           element: <testLibrary>::@setter::f
@@ -515,13 +509,10 @@ library
       topLevelVariables
         #F1 c @26
           element: <testLibrary>::@topLevelVariable::c
-          getter: #F2
-          setter: #F3
       getters
         #F2 synthetic c
           element: <testLibrary>::@getter::c
           returnType: C
-          variable: #F1
       setters
         #F3 synthetic c
           element: <testLibrary>::@setter::c
@@ -644,28 +635,22 @@ library
       topLevelVariables
         #F1 f @48
           element: <testLibrary>::@topLevelVariable::f
-          getter: #F2
-          setter: #F3
-        #F4 s @58
+        #F2 s @58
           element: <testLibrary>::@topLevelVariable::s
-          getter: #F5
-          setter: #F6
       getters
-        #F2 synthetic f
+        #F3 synthetic f
           element: <testLibrary>::@getter::f
           returnType: Future<dynamic>
-          variable: #F1
-        #F5 synthetic s
+        #F4 synthetic s
           element: <testLibrary>::@getter::s
           returnType: Stream<dynamic>
-          variable: #F4
       setters
-        #F3 synthetic f
+        #F5 synthetic f
           element: <testLibrary>::@setter::f
           formalParameters
-            #F7 _f
+            #F6 _f
               element: <testLibrary>::@setter::f::@formalParameter::_f
-        #F6 synthetic s
+        #F7 synthetic s
           element: <testLibrary>::@setter::s
           formalParameters
             #F8 _s
@@ -679,33 +664,33 @@ library
       setter: <testLibrary>::@setter::f
     s
       reference: <testLibrary>::@topLevelVariable::s
-      firstFragment: #F4
+      firstFragment: #F2
       type: Stream<dynamic>
       getter: <testLibrary>::@getter::s
       setter: <testLibrary>::@setter::s
   getters
     synthetic static f
       reference: <testLibrary>::@getter::f
-      firstFragment: #F2
+      firstFragment: #F3
       returnType: Future<dynamic>
       variable: <testLibrary>::@topLevelVariable::f
     synthetic static s
       reference: <testLibrary>::@getter::s
-      firstFragment: #F5
+      firstFragment: #F4
       returnType: Stream<dynamic>
       variable: <testLibrary>::@topLevelVariable::s
   setters
     synthetic static f
       reference: <testLibrary>::@setter::f
-      firstFragment: #F3
+      firstFragment: #F5
       formalParameters
         requiredPositional _f
-          firstFragment: #F7
+          firstFragment: #F6
           type: Future<dynamic>
       returnType: void
     synthetic static s
       reference: <testLibrary>::@setter::s
-      firstFragment: #F6
+      firstFragment: #F7
       formalParameters
         requiredPositional _s
           firstFragment: #F8
@@ -752,28 +737,22 @@ library
       topLevelVariables
         #F1 c @36
           element: <testLibrary>::@topLevelVariable::c
-          getter: #F2
-          setter: #F3
-        #F4 d @41
+        #F2 d @41
           element: <testLibrary>::@topLevelVariable::d
-          getter: #F5
-          setter: #F6
       getters
-        #F2 synthetic c
+        #F3 synthetic c
           element: <testLibrary>::@getter::c
           returnType: C
-          variable: #F1
-        #F5 synthetic d
+        #F4 synthetic d
           element: <testLibrary>::@getter::d
           returnType: D
-          variable: #F4
       setters
-        #F3 synthetic c
+        #F5 synthetic c
           element: <testLibrary>::@setter::c
           formalParameters
-            #F7 _c
+            #F6 _c
               element: <testLibrary>::@setter::c::@formalParameter::_c
-        #F6 synthetic d
+        #F7 synthetic d
           element: <testLibrary>::@setter::d
           formalParameters
             #F8 _d
@@ -787,33 +766,33 @@ library
       setter: <testLibrary>::@setter::c
     d
       reference: <testLibrary>::@topLevelVariable::d
-      firstFragment: #F4
+      firstFragment: #F2
       type: D
       getter: <testLibrary>::@getter::d
       setter: <testLibrary>::@setter::d
   getters
     synthetic static c
       reference: <testLibrary>::@getter::c
-      firstFragment: #F2
+      firstFragment: #F3
       returnType: C
       variable: <testLibrary>::@topLevelVariable::c
     synthetic static d
       reference: <testLibrary>::@getter::d
-      firstFragment: #F5
+      firstFragment: #F4
       returnType: D
       variable: <testLibrary>::@topLevelVariable::d
   setters
     synthetic static c
       reference: <testLibrary>::@setter::c
-      firstFragment: #F3
+      firstFragment: #F5
       formalParameters
         requiredPositional _c
-          firstFragment: #F7
+          firstFragment: #F6
           type: C
       returnType: void
     synthetic static d
       reference: <testLibrary>::@setter::d
-      firstFragment: #F6
+      firstFragment: #F7
       formalParameters
         requiredPositional _d
           firstFragment: #F8
@@ -1006,12 +985,10 @@ library
             IntegerLiteral
               literal: 0 @33
               staticType: int
-          getter: #F2
       getters
         #F2 synthetic a
           element: <testLibrary>::@getter::a
           returnType: int
-          variable: #F1
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -1070,12 +1047,10 @@ library
             IntegerLiteral
               literal: 0 @46
               staticType: int
-          getter: #F2
       getters
         #F2 synthetic a
           element: <testLibrary>::@getter::a
           returnType: int
-          variable: #F1
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -1118,13 +1093,10 @@ library
       topLevelVariables
         #F1 hasInitializer v @36
           element: <testLibrary>::@topLevelVariable::v
-          getter: #F2
-          setter: #F3
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
           returnType: A
-          variable: #F1
       setters
         #F3 synthetic v
           element: <testLibrary>::@setter::v

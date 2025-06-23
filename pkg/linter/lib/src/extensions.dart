@@ -396,8 +396,8 @@ extension ExpressionExtension on Expression {
     var superTypes = enclosingElement.allSupertypes;
     var superMembers =
         element is MethodElement
-            ? superTypes.map((t) => t.getMethod2(elementName))
-            : superTypes.map((t) => t.getGetter2(elementName));
+            ? superTypes.map((t) => t.getMethod(elementName))
+            : superTypes.map((t) => t.getGetter(elementName));
     return superMembers.any((e) => e.hasAwaitNotRequired);
   }
 }
@@ -600,17 +600,17 @@ extension MethodDeclarationExtension on MethodDeclaration {
     if (isGetter) {
       // Search supertypes for a getter of the same name.
       return parentElement.allSupertypes.any(
-        (t) => t.lookUpGetter3(name, parentLibrary) != null,
+        (t) => t.lookUpGetter(name, parentLibrary) != null,
       );
     } else if (isSetter) {
       // Search supertypes for a setter of the same name.
       return parentElement.allSupertypes.any(
-        (t) => t.lookUpSetter3(name, parentLibrary) != null,
+        (t) => t.lookUpSetter(name, parentLibrary) != null,
       );
     } else {
       // Search supertypes for a method of the same name.
       return parentElement.allSupertypes.any(
-        (t) => t.lookUpMethod3(name, parentLibrary) != null,
+        (t) => t.lookUpMethod(name, parentLibrary) != null,
       );
     }
   }

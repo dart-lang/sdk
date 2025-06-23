@@ -988,9 +988,6 @@ class KernelCompilationRequest : public ValueObject {
     if (result_.status == Dart_KernelCompilationStatus_Ok) {
       LoadKernelFromResponse(response[1]);
     } else {
-      if (result_.status == Dart_KernelCompilationStatus_Error) {
-        LoadKernelFromResponse(response[2]);
-      }
       // This is an error.
       ASSERT(response[1]->type == Dart_CObject_kString);
       result_.error = Utils::StrDup(response[1]->value.as_string);

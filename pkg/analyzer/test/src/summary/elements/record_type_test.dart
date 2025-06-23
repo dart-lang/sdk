@@ -34,16 +34,14 @@ library
           fields
             #F2 x @32
               element: <testLibrary>::@class::A::@field::x
-              getter2: #F3
           constructors
-            #F4 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F3 synthetic x
+            #F4 synthetic x
               element: <testLibrary>::@class::A::@getter::x
               returnType: (int, String)
-              variable: #F2
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -57,11 +55,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       getters
         synthetic x
           reference: <testLibrary>::@class::A::@getter::x
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: (int, String)
           variable: <testLibrary>::@class::A::@field::x
 ''');
@@ -85,16 +83,14 @@ library
           fields
             #F2 hasInitializer x @18
               element: <testLibrary>::@class::A::@field::x
-              getter2: #F3
           constructors
-            #F4 synthetic new
+            #F3 synthetic new
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F3 synthetic x
+            #F4 synthetic x
               element: <testLibrary>::@class::A::@getter::x
               returnType: (int, bool)
-              variable: #F2
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -108,11 +104,11 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
       getters
         synthetic x
           reference: <testLibrary>::@class::A::@getter::x
-          firstFragment: #F3
+          firstFragment: #F4
           returnType: (int, bool)
           variable: <testLibrary>::@class::A::@field::x
 ''');
@@ -528,12 +524,10 @@ library
       topLevelVariables
         #F1 x @20
           element: <testLibrary>::@topLevelVariable::x
-          getter: #F2
       getters
         #F2 synthetic x
           element: <testLibrary>::@getter::x
           returnType: (int, String)
-          variable: #F1
   topLevelVariables
     final x
       reference: <testLibrary>::@topLevelVariable::x
@@ -562,12 +556,10 @@ library
       topLevelVariables
         #F1 hasInitializer x @6
           element: <testLibrary>::@topLevelVariable::x
-          getter: #F2
       getters
         #F2 synthetic x
           element: <testLibrary>::@getter::x
           returnType: (int, bool)
-          variable: #F1
   topLevelVariables
     final hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -627,12 +619,10 @@ library
                 element2: dart:core::@class::List
                 type: List<({int f1, String f2})>
               staticType: Type
-          getter: #F2
       getters
         #F2 synthetic x
           element: <testLibrary>::@getter::x
           returnType: Type
-          variable: #F1
   topLevelVariables
     const hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -691,12 +681,10 @@ library
                 element2: dart:core::@class::List
                 type: List<(int, String)>
               staticType: Type
-          getter: #F2
       getters
         #F2 synthetic x
           element: <testLibrary>::@getter::x
           returnType: Type
-          variable: #F1
   topLevelVariables
     const hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x

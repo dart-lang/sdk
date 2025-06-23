@@ -93,6 +93,7 @@ class AnalyzeCommand extends DartdevCommand {
       ..addFlag(
         useAotSnapshotFlag,
         help: 'Use the AOT analysis server snapshot',
+        defaultsTo: true,
         hide: true,
       )
       ..addExperimentalFlags();
@@ -124,7 +125,7 @@ class AnalyzeCommand extends DartdevCommand {
       }
     }
 
-    /// Errors in analysis_options and pubspec.yaml will be reported first
+    /// Errors in analysis_options.yaml and pubspec.yaml will be reported first
     /// and a note that they might be the cause of other errors.
     final List<AnalysisError> priorityErrors = <AnalysisError>[];
     final List<AnalysisError> errors = <AnalysisError>[];

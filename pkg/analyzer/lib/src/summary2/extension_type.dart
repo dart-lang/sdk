@@ -98,8 +98,7 @@ class _ImplementsNode extends graph.Node<_ImplementsNode> {
 }
 
 class _ImplementsWalker extends graph.DependencyWalker<_ImplementsNode> {
-  final Map<ExtensionTypeElementImpl, _ImplementsNode> nodeMap =
-      Map.identity();
+  final Map<ExtensionTypeElementImpl, _ImplementsNode> nodeMap = Map.identity();
 
   @override
   void evaluate(_ImplementsNode v) {

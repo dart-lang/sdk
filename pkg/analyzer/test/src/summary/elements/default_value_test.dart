@@ -100,14 +100,13 @@ library
           fields
             #F2 f @71
               element: <testLibrary>::@class::X::@field::f
-              getter2: #F3
           constructors
-            #F4 const new
+            #F3 const new
               element: <testLibrary>::@class::X::@constructor::new
               typeName: X
               typeNameOffset: 82
               formalParameters
-                #F5 default this.f @90
+                #F4 default this.f @90
                   element: <testLibrary>::@class::X::@constructor::new::@formalParameter::f
                   initializer: expression_0
                     FunctionReference
@@ -119,13 +118,12 @@ library
                       typeArgumentTypes
                         dynamic
           getters
-            #F3 synthetic f
+            #F5 synthetic f
               element: <testLibrary>::@class::X::@getter::f
               returnType: void Function(dynamic)
                 alias: <testLibrary>::@typeAlias::F
                   typeArguments
                     dynamic
-              variable: #F2
       typeAliases
         #F6 F @13
           element: <testLibrary>::@typeAlias::F
@@ -157,21 +155,21 @@ library
       constructors
         const new
           reference: <testLibrary>::@class::X::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F3
           formalParameters
             optionalNamed final hasImplicitType f
-              firstFragment: #F5
+              firstFragment: #F4
               type: void Function(dynamic)
                 alias: <testLibrary>::@typeAlias::F
                   typeArguments
                     dynamic
               constantInitializer
-                fragment: #F5
+                fragment: #F4
                 expression: expression_0
       getters
         synthetic f
           reference: <testLibrary>::@class::X::@getter::f
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: void Function(dynamic)
             alias: <testLibrary>::@typeAlias::F
               typeArguments

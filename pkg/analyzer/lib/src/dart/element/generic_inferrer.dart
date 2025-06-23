@@ -51,8 +51,8 @@ import 'package:collection/collection.dart';
 class GenericInferrer {
   final TypeSystemImpl _typeSystem;
   final Set<TypeParameterElementImpl> _typeParameters = Set.identity();
-  final Map<TypeParameterElementImpl, List<MergedTypeConstraint>>
-  _constraints = {};
+  final Map<TypeParameterElementImpl, List<MergedTypeConstraint>> _constraints =
+      {};
 
   /// The list of type parameters being inferred.
   final List<TypeParameterElementImpl> _typeFormals;

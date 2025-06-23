@@ -1041,12 +1041,10 @@ library
       topLevelVariables
         #F1 synthetic main (offset=-1)
           element: <testLibrary>::@topLevelVariable::main
-          getter: #F2
       getters
         #F2 main @4
           element: <testLibrary>::@getter::main
           returnType: dynamic
-          variable: #F1
   topLevelVariables
     synthetic main
       reference: <testLibrary>::@topLevelVariable::main
@@ -1120,13 +1118,10 @@ library
       topLevelVariables
         #F1 main @4
           element: <testLibrary>::@topLevelVariable::main
-          getter: #F2
-          setter: #F3
       getters
         #F2 synthetic main
           element: <testLibrary>::@getter::main
           returnType: dynamic
-          variable: #F1
       setters
         #F3 synthetic main
           element: <testLibrary>::@setter::main

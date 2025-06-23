@@ -881,25 +881,43 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  GetterElement2OrMember? getGetter2(String getterName) {
+  GetterElement2OrMember? getGetter(String getterName) {
     var element = element3.getGetter(getterName);
     return element != null ? GetterMember.forTargetType(element, this) : null;
   }
 
+  @Deprecated('Use getGetter instead')
   @override
-  MethodElement2OrMember? getMethod2(String methodName) {
+  GetterElement2OrMember? getGetter2(String getterName) {
+    return getGetter(getterName);
+  }
+
+  @override
+  MethodElement2OrMember? getMethod(String methodName) {
     var element = element3.getMethod(methodName);
     return element != null ? MethodMember.forTargetType(element, this) : null;
   }
 
+  @Deprecated('Use getMethod instead')
   @override
-  SetterElement2OrMember? getSetter2(String setterName) {
+  MethodElement2OrMember? getMethod2(String methodName) {
+    return getMethod(methodName);
+  }
+
+  @override
+  SetterElement2OrMember? getSetter(String setterName) {
     var element = element3.getSetter(setterName);
     return element != null ? SetterMember.forTargetType(element, this) : null;
   }
 
+  @Deprecated('Use getSetter instead')
   @override
-  ConstructorElementMixin2? lookUpConstructor2(
+  SetterElement2OrMember? getSetter2(String setterName) {
+    return getSetter(setterName);
+  }
+
+  @override
+  ConstructorElementMixin2? lookUpConstructor(
     String? constructorName,
     LibraryElement library,
   ) {
@@ -919,8 +937,17 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return ConstructorMember.from2(constructorElement, this);
   }
 
+  @Deprecated('Use lookUpConstructor instead')
   @override
-  GetterElement2OrMember? lookUpGetter3(
+  ConstructorElementMixin2? lookUpConstructor2(
+    String? constructorName,
+    LibraryElement library,
+  ) {
+    return lookUpConstructor(constructorName, library);
+  }
+
+  @override
+  GetterElement2OrMember? lookUpGetter(
     String name,
     LibraryElement library, {
     bool concrete = false,
@@ -957,8 +984,26 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return null;
   }
 
+  @Deprecated('Use lookUpGetter instead')
   @override
-  MethodElement2OrMember? lookUpMethod3(
+  GetterElement2OrMember? lookUpGetter3(
+    String name,
+    LibraryElement library, {
+    bool concrete = false,
+    bool inherited = false,
+    bool recoveryStatic = false,
+  }) {
+    return lookUpGetter(
+      name,
+      library,
+      concrete: concrete,
+      inherited: inherited,
+      recoveryStatic: recoveryStatic,
+    );
+  }
+
+  @override
+  MethodElement2OrMember? lookUpMethod(
     String name,
     LibraryElement library, {
     bool concrete = false,
@@ -995,8 +1040,26 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return null;
   }
 
+  @Deprecated('Use lookUpMethod instead')
   @override
-  SetterElement2OrMember? lookUpSetter3(
+  MethodElement2OrMember? lookUpMethod3(
+    String name,
+    LibraryElement library, {
+    bool concrete = false,
+    bool inherited = false,
+    bool recoveryStatic = false,
+  }) {
+    return lookUpMethod(
+      name,
+      library,
+      concrete: concrete,
+      inherited: inherited,
+      recoveryStatic: recoveryStatic,
+    );
+  }
+
+  @override
+  SetterElement2OrMember? lookUpSetter(
     String name,
     LibraryElement library, {
     bool concrete = false,
@@ -1031,6 +1094,24 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
 
     return null;
+  }
+
+  @Deprecated('Use lookUpSetter instead')
+  @override
+  SetterElement2OrMember? lookUpSetter3(
+    String name,
+    LibraryElement library, {
+    bool concrete = false,
+    bool inherited = false,
+    bool recoveryStatic = false,
+  }) {
+    return lookUpSetter(
+      name,
+      library,
+      concrete: concrete,
+      inherited: inherited,
+      recoveryStatic: recoveryStatic,
+    );
   }
 
   @Deprecated('Use referencesAny2() instead')

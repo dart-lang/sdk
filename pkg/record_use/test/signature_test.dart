@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:record_use/src/signature.dart';
+import 'package:record_use/record_use_internal.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -90,6 +90,20 @@ Future<void> fetchData(String url, int retries, [bool? cache, Duration? timeout]
         namedOptionalParameters: [],
       );
       expect(Signature.parseMethodSignature(signature), expected);
+    });
+
+    test('mixed parameters', () {
+      final signature = 'void config(String apiKey, {required String apiUrl})';
+      final parsed = Signature.parseMethodSignature(signature).parseArguments(
+        const CallWithArguments(
+          positionalArguments: [StringConstant('value')],
+          namedArguments: {'apiUrl': StringConstant('value2')},
+          loadingUnit: null,
+          location: Location(uri: ''),
+        ),
+      );
+      expect(parsed.named.entries.single.value?.toValue(), 'value2');
+      expect(parsed.positional.single?.toValue(), 'value');
     });
 
     test('handles signatures with no parameters', () {

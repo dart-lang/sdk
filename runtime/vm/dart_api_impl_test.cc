@@ -8299,8 +8299,7 @@ TEST_CASE(DartAPI_Multiroot_Valid) {
   int sourcefiles_count = sizeof(sourcefiles) / sizeof(Dart_SourceFile);
   lib = TestCase::LoadTestScriptWithDFE(
       sourcefiles_count, sourcefiles, nullptr, /* finalize= */ true,
-      /* incrementally= */ true, /* allow_compile_errors= */ false,
-      "foo:///main.dart",
+      /* incrementally= */ true, "foo:///main.dart",
       /* multiroot_filepaths= */ "/bar,/baz",
       /* multiroot_scheme= */ "foo");
   EXPECT_VALID(lib);
@@ -8340,8 +8339,7 @@ TEST_CASE(DartAPI_Multiroot_FailWhenUriIsWrong) {
   int sourcefiles_count = sizeof(sourcefiles) / sizeof(Dart_SourceFile);
   lib = TestCase::LoadTestScriptWithDFE(
       sourcefiles_count, sourcefiles, nullptr, /* finalize= */ true,
-      /* incrementally= */ true, /* allow_compile_errors= */ false,
-      "foo1:///main.dart",
+      /* incrementally= */ true, "foo1:///main.dart",
       /* multiroot_filepaths= */ "/bar,/baz",
       /* multiroot_scheme= */ "foo");
   EXPECT_ERROR(lib,

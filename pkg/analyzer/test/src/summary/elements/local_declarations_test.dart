@@ -130,12 +130,10 @@ library
       topLevelVariables
         #F1 synthetic g (offset=-1)
           element: <testLibrary>::@topLevelVariable::g
-          getter: #F2
       getters
         #F2 g @4
           element: <testLibrary>::@getter::g
           returnType: dynamic
-          variable: #F1
   topLevelVariables
     synthetic g
       reference: <testLibrary>::@topLevelVariable::g

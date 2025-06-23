@@ -1184,9 +1184,6 @@ char* IsolateGroupReloadContext::CompileToKernel(bool force_reload,
         /*multiroot_scheme=*/nullptr);
   }
   if (retval.status != Dart_KernelCompilationStatus_Ok) {
-    if (retval.kernel != nullptr) {
-      free(retval.kernel);
-    }
     return retval.error;
   }
   *kernel_buffer = retval.kernel;

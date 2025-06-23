@@ -76,30 +76,24 @@ library
           fields
             #F12 f @101
               element: <testLibrary>::@mixin::M::@field::f
-              getter2: #F13
-              setter2: #F14
-            #F15 synthetic g
+            #F13 synthetic g
               element: <testLibrary>::@mixin::M::@field::g
-              getter2: #F16
-            #F17 synthetic s
+            #F14 synthetic s
               element: <testLibrary>::@mixin::M::@field::s
-              setter2: #F18
           getters
-            #F13 synthetic f
+            #F15 synthetic f
               element: <testLibrary>::@mixin::M::@getter::f
               returnType: T
-              variable: #F12
             #F16 g @112
               element: <testLibrary>::@mixin::M::@getter::g
               returnType: U
-              variable: #F15
           setters
-            #F14 synthetic f
+            #F17 synthetic f
               element: <testLibrary>::@mixin::M::@setter::f
               formalParameters
-                #F19 _f
+                #F18 _f
                   element: <testLibrary>::@mixin::M::@setter::f::@formalParameter::_f
-            #F18 s @126
+            #F19 s @126
               element: <testLibrary>::@mixin::M::@setter::s
               formalParameters
                 #F20 v @132
@@ -165,19 +159,19 @@ library
           setter: <testLibrary>::@mixin::M::@setter::f
         synthetic g
           reference: <testLibrary>::@mixin::M::@field::g
-          firstFragment: #F15
+          firstFragment: #F13
           hasEnclosingTypeParameterReference: true
           type: U
           getter: <testLibrary>::@mixin::M::@getter::g
         synthetic s
           reference: <testLibrary>::@mixin::M::@field::s
-          firstFragment: #F17
+          firstFragment: #F14
           type: int
           setter: <testLibrary>::@mixin::M::@setter::s
       getters
         synthetic f
           reference: <testLibrary>::@mixin::M::@getter::f
-          firstFragment: #F13
+          firstFragment: #F15
           hasEnclosingTypeParameterReference: true
           returnType: T
           variable: <testLibrary>::@mixin::M::@field::f
@@ -190,16 +184,16 @@ library
       setters
         synthetic f
           reference: <testLibrary>::@mixin::M::@setter::f
-          firstFragment: #F14
+          firstFragment: #F17
           hasEnclosingTypeParameterReference: true
           formalParameters
             requiredPositional _f
-              firstFragment: #F19
+              firstFragment: #F18
               type: T
           returnType: void
         s
           reference: <testLibrary>::@mixin::M::@setter::s
-          firstFragment: #F18
+          firstFragment: #F19
           formalParameters
             requiredPositional v
               firstFragment: #F20
@@ -256,12 +250,10 @@ library
           fields
             #F2 hasInitializer x @18
               element: <testLibrary>::@mixin::M::@field::x
-              getter2: #F3
           getters
             #F3 synthetic x
               element: <testLibrary>::@mixin::M::@getter::x
               returnType: int
-              variable: #F2
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
@@ -315,12 +307,10 @@ library
           fields
             #F2 synthetic foo
               element: <testLibrary>::@mixin::M::@field::foo
-              getter2: #F3
           getters
             #F3 foo @25
               element: <testLibrary>::@mixin::M::@getter::foo
               returnType: int
-              variable: #F2
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
@@ -362,12 +352,10 @@ library
           fields
             #F2 synthetic foo
               element: <testLibrary>::@mixin::M::@field::foo
-              getter2: #F3
           getters
             #F3 foo @25
               element: <testLibrary>::@mixin::M::@getter::foo
               returnType: int
-              variable: #F2
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
@@ -409,12 +397,10 @@ library
           fields
             #F2 synthetic foo
               element: <testLibrary>::@mixin::M::@field::foo
-              getter2: #F3
           getters
             #F3 foo @25
               element: <testLibrary>::@mixin::M::@getter::foo
               returnType: int
-              variable: #F2
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
@@ -1209,12 +1195,10 @@ library
           fields
             #F4 it @32
               element: <testLibrary>::@extensionType::B::@field::it
-              getter2: #F5
           getters
             #F5 synthetic it
               element: <testLibrary>::@extensionType::B::@getter::it
               returnType: int
-              variable: #F4
       mixins
         #F6 mixin M @56
           element: <testLibrary>::@mixin::M
@@ -1466,7 +1450,6 @@ library
           fields
             #F2 synthetic foo
               element: <testLibrary>::@mixin::M::@field::foo
-              setter2: #F3
           setters
             #F3 foo @21
               element: <testLibrary>::@mixin::M::@setter::foo
@@ -1517,7 +1500,6 @@ library
           fields
             #F2 synthetic foo
               element: <testLibrary>::@mixin::M::@field::foo
-              setter2: #F3
           setters
             #F3 foo @21
               element: <testLibrary>::@mixin::M::@setter::foo
@@ -1573,12 +1555,10 @@ library
           fields
             #F4 it @32
               element: <testLibrary>::@extensionType::B::@field::it
-              getter2: #F5
           getters
             #F5 synthetic it
               element: <testLibrary>::@extensionType::B::@getter::it
               returnType: int
-              variable: #F4
       mixins
         #F6 mixin M @56
           element: <testLibrary>::@mixin::M

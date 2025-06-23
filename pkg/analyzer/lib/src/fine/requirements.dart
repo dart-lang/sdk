@@ -1052,9 +1052,7 @@ class RequirementsManifest {
     }
   }
 
-  _InstanceItemWithRequirements? _getInstanceItem(
-    InstanceElementImpl element,
-  ) {
+  _InstanceItemWithRequirements? _getInstanceItem(InstanceElementImpl element) {
     var libraryElement = element.library2;
     var manifest = libraryElement.manifest;
 

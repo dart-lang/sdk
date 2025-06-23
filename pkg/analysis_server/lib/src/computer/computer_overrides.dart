@@ -57,9 +57,8 @@ class DartUnitOverridesComputer {
         var interfaceMembers =
             interfaceElements
                 .map(
-                  (member) => proto.newOverriddenMember_fromEngine(
-                    member.nonSynthetic,
-                  ),
+                  (member) =>
+                      proto.newOverriddenMember_fromEngine(member.nonSynthetic),
                 )
                 .toList();
         _overrides.add(

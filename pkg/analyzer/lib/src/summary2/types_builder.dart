@@ -230,7 +230,8 @@ class TypesBuilder {
         case SetterElementImpl():
           element.returnType = returnType;
           var fragmentValue =
-              element.formalParameters.singleOrNull as FormalParameterElementImpl?;
+              element.formalParameters.singleOrNull
+                  as FormalParameterElementImpl?;
           var valueNode = node.parameters?.parameters.firstOrNull;
           var valueNodeType = valueNode?.declaredFragment!.type;
           fragmentValue?.type = valueNodeType ?? InvalidTypeImpl.instance;
