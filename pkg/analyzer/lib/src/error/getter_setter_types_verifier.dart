@@ -58,7 +58,7 @@ class GetterSetterTypesVerifier {
 
     var libraryUri = element.library2.uri;
 
-    var interfaceMap = interface.map2;
+    var interfaceMap = interface.map;
     for (var entry in interfaceMap.entries) {
       var getterName = entry.key;
       if (!getterName.isAccessibleFor(libraryUri)) continue;

@@ -306,8 +306,8 @@ class _ClassVerifier {
           continue;
         }
 
-        var interfaceElement = interface.map[name]!.asElement2;
-        var concreteElement = interface.implemented2[name];
+        var interfaceElement = interface.map[name]!;
+        var concreteElement = interface.implemented[name];
 
         // No concrete implementation of the name.
         if (concreteElement == null) {

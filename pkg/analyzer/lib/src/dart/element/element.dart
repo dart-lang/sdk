@@ -5199,7 +5199,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   Map<Name, ExecutableElement> get interfaceMembers =>
       (session as AnalysisSessionImpl).inheritanceManager
           .getInterface(this)
-          .map2;
+          .map;
 
   @override
   List<InterfaceTypeImpl> get interfaces {
@@ -5276,7 +5276,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
 
   @override
   List<ExecutableElement>? getOverridden(Name name) =>
-      (session as AnalysisSessionImpl).inheritanceManager.getOverridden4(
+      (session as AnalysisSessionImpl).inheritanceManager.getOverridden(
         this,
         name,
       );
