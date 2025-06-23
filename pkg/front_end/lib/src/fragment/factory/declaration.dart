@@ -86,6 +86,8 @@ abstract class FactoryDeclaration {
 
   void resolveRedirectingFactory(
       {required SourceLibraryBuilder libraryBuilder});
+
+  bool get isRedirectingFactory;
 }
 
 class FactoryDeclarationImpl
@@ -137,6 +139,9 @@ class FactoryDeclarationImpl
   @override
   // Coverage-ignore(suite): Not run.
   Uri get fileUri => _fragment.fileUri;
+
+  @override
+  bool get isRedirectingFactory => _fragment.redirectionTarget != null;
 
   @override
   List<FormalParameterBuilder>? get formals => _fragment.formals;

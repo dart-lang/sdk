@@ -1035,7 +1035,7 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
     uword* exit_fp = reinterpret_cast<uword*>(thread_->top_exit_frame_info());
     bool has_exit_frame = exit_fp != nullptr;
     if (has_exit_frame) {
-      // Exited from compiled code.
+      // Exited from compiled code or interpreter.
       pc_ = nullptr;
       fp_ = exit_fp;
 
@@ -1047,17 +1047,27 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
         // Running compiled code.
         // Use the FP and PC from the thread interrupt or simulator; already set
         // in the constructor.
+
+#if defined(DART_DYNAMIC_MODULES)
+      } else if (thread_->vm_tag() == VMTag::kDartInterpretedTagId) {
+        // Running interpreter.
+        pc_ = reinterpret_cast<uword*>(thread_->interpreter()->get_pc());
+        fp_ = reinterpret_cast<uword*>(thread_->interpreter()->get_fp());
+        RELEASE_ASSERT(IsInterpretedFrame());
+#endif
       } else {
         // No Dart on the stack; caller shouldn't use this walker.
         UNREACHABLE();
       }
 
+      const bool is_interpreted_frame = IsInterpretedFrame();
       const bool is_entry_frame =
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
-          StubCode::InInvocationStub(Stack(0)) ||
-          StubCode::InInvocationStub(Stack(1));
+          StubCode::InInvocationStub(Stack(0), is_interpreted_frame) ||
+          StubCode::InInvocationStub(Stack(1), is_interpreted_frame);
 #else
-          StubCode::InInvocationStub(reinterpret_cast<uword>(lr_));
+          StubCode::InInvocationStub(reinterpret_cast<uword>(lr_),
+                                     is_interpreted_frame);
 #endif
       if (is_entry_frame) {
         // During the prologue of a function, CallerPC will return the caller's
@@ -1075,7 +1085,8 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
 
     for (;;) {
       // Skip entry frame.
-      if (StubCode::InInvocationStub(reinterpret_cast<uword>(pc_))) {
+      if (StubCode::InInvocationStub(reinterpret_cast<uword>(pc_),
+                                     IsInterpretedFrame())) {
         pc_ = nullptr;
         fp_ = ExitLink();
         if (fp_ == nullptr) {
@@ -1087,8 +1098,8 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
         fp_ = CallerFP();
 
         // At least one frame between exit and next entry frame.
-        RELEASE_ASSERT(
-            !StubCode::InInvocationStub(reinterpret_cast<uword>(pc_)));
+        RELEASE_ASSERT(!StubCode::InInvocationStub(reinterpret_cast<uword>(pc_),
+                                                   IsInterpretedFrame()));
       }
 
       if (!Append(reinterpret_cast<uword>(pc_), reinterpret_cast<uword>(fp_))) {
@@ -1101,9 +1112,21 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
   }
 
  private:
+  bool IsInterpretedFrame() const {
+#if defined(DART_DYNAMIC_MODULES)
+    Interpreter* interpreter = thread_->interpreter();
+    return (interpreter != nullptr) &&
+           interpreter->HasFrame(reinterpret_cast<uword>(fp_));
+#else
+    return false;
+#endif
+  }
+
   uword* CallerPC() const {
     ASSERT(fp_ != nullptr);
-    uword* caller_pc_ptr = fp_ + kSavedCallerPcSlotFromFp;
+    uword* caller_pc_ptr =
+        fp_ + (IsInterpretedFrame() ? kKBCSavedCallerPcSlotFromFp
+                                    : kSavedCallerPcSlotFromFp);
     // MSan/ASan are unaware of frames initialized by generated code.
     MSAN_UNPOISON(caller_pc_ptr, kWordSize);
     ASAN_UNPOISON(caller_pc_ptr, kWordSize);
@@ -1112,7 +1135,9 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
 
   uword* CallerFP() const {
     ASSERT(fp_ != nullptr);
-    uword* caller_fp_ptr = fp_ + kSavedCallerFpSlotFromFp;
+    uword* caller_fp_ptr =
+        fp_ + (IsInterpretedFrame() ? kKBCSavedCallerFpSlotFromFp
+                                    : kSavedCallerFpSlotFromFp);
     // MSan/ASan are unaware of frames initialized by generated code.
     MSAN_UNPOISON(caller_fp_ptr, kWordSize);
     ASAN_UNPOISON(caller_fp_ptr, kWordSize);
@@ -1121,7 +1146,9 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
 
   uword* ExitLink() const {
     ASSERT(fp_ != nullptr);
-    uword* exit_link_ptr = fp_ + kExitLinkSlotFromEntryFp;
+    uword* exit_link_ptr =
+        fp_ + (IsInterpretedFrame() ? kKBCExitLinkSlotFromEntryFp
+                                    : kExitLinkSlotFromEntryFp);
     // MSan/ASan are unaware of frames initialized by generated code.
     MSAN_UNPOISON(exit_link_ptr, kWordSize);
     ASAN_UNPOISON(exit_link_ptr, kWordSize);
@@ -1503,6 +1530,8 @@ class CodeLookupTableBuilder : public ObjectVisitor {
   void VisitObject(ObjectPtr raw_obj) override {
     if (raw_obj->IsCode() && !Code::IsUnknownDartCode(Code::RawCast(raw_obj))) {
       table_->Add(Code::Handle(Code::RawCast(raw_obj)));
+    } else if (raw_obj->IsBytecode()) {
+      table_->Add(Bytecode::Handle(Bytecode::RawCast(raw_obj)));
     }
   }
 
@@ -1555,7 +1584,7 @@ void CodeLookupTable::Build(Thread* thread) {
 
 void CodeLookupTable::Add(const Object& code) {
   ASSERT(!code.IsNull());
-  ASSERT(code.IsCode());
+  ASSERT(code.IsCode() || code.IsBytecode());
   CodeDescriptor* cd = new CodeDescriptor(AbstractCode(code.ptr()));
   code_objects_.Add(cd);
 }
@@ -1736,6 +1765,11 @@ void ProcessedSample::CheckForMissingDartFrame(const CodeLookupTable& clt,
                                                uword pc_marker,
                                                uword* stack_buffer) {
   ASSERT(cd != nullptr);
+  if (cd->code().IsBytecode()) {
+    // Bytecode frame build is atomic from the profiler's perspective,
+    // there are no missing frames.
+    return;
+  }
   const Code& code = Code::Handle(Code::RawCast(cd->code().ptr()));
   ASSERT(!code.IsNull());
   // Some stubs (and intrinsics) do not push a frame onto the stack leaving

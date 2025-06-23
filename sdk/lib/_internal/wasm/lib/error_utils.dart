@@ -258,6 +258,8 @@ const _reachabilityError = _LateErrorWithoutDetails(
 
 const _noSuchMethodErrorWithoutDetails = _NoSuchMethodErrorWithoutDetails();
 
+const _unsupportedErrorWithoutDetails = _UnsupportedErrorWithoutDetails();
+
 const typeErrorWithoutDetails = _TypeErrorWithoutDetails();
 
 class _ErrorWithoutDetails implements Error {
@@ -278,7 +280,7 @@ class _ArgumentErrorWithoutDetails extends _ErrorWithoutDetails
   String? get name => null;
 
   @override
-  String get message => toString();
+  String get message => _message;
 
   @override
   dynamic get invalidValue => null;
@@ -290,16 +292,16 @@ class _IndexErrorWithoutDetails extends _ArgumentErrorWithoutDetails
     : super('IndexError (details omitted due to --minify)');
 
   @override
-  int get start => throw 'no details';
+  int get start => throw _unsupportedErrorWithoutDetails;
 
   @override
-  int get end => throw 'no details';
+  int get end => throw _unsupportedErrorWithoutDetails;
 
   @override
-  int get length => throw 'no details';
+  int get length => throw _unsupportedErrorWithoutDetails;
 
   @override
-  int get invalidValue => throw 'no details';
+  int get invalidValue => throw _unsupportedErrorWithoutDetails;
 
   @override
   Object? get indexable => null;
@@ -334,4 +336,13 @@ class _NoSuchMethodErrorWithoutDetails extends _ErrorWithoutDetails
 class _LateErrorWithoutDetails extends _ErrorWithoutDetails
     implements LateError {
   const _LateErrorWithoutDetails(String message) : super(message);
+}
+
+class _UnsupportedErrorWithoutDetails extends _ErrorWithoutDetails
+    implements UnsupportedError {
+  const _UnsupportedErrorWithoutDetails()
+    : super('UnsupportedError (details omitted due to --minify)');
+
+  @override
+  String get message => _message;
 }
