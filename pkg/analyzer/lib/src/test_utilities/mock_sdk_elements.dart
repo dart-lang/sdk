@@ -1025,15 +1025,26 @@ class _MockSdkElementsBuilder {
     fragment.isFinal = isFinal;
     fragment.isStatic = isStatic;
 
-    var getterFragment = PropertyAccessorFragmentImplImplicitGetter(fragment);
+    var getterFragment = GetterFragmentImpl(name2: name, nameOffset: -1)
+      ..isSynthetic = true;
     var getterElement = GetterElementImpl(Reference.root(), getterFragment);
     element.getter2 = getterElement;
 
     if (!isConst && !isFinal) {
-      var setterFragment = PropertyAccessorFragmentImplImplicitSetter(fragment);
+      var valueFragment = FormalParameterFragmentImpl(
+        nameOffset: -1,
+        name2: null,
+        nameOffset2: null,
+        parameterKind: ParameterKind.REQUIRED,
+      );
+      var setterFragment =
+          SetterFragmentImpl(name2: name, nameOffset: -1)
+            ..isSynthetic = true
+            ..parameters = [valueFragment];
       var setterElement = SetterElementImpl(Reference.root(), setterFragment);
       element.setter2 = setterElement;
     }
+
     fragment.type = type;
     return fragment;
   }
@@ -1260,7 +1271,8 @@ class _MockSdkElementsBuilder {
     var fragment = TopLevelVariableFragmentImpl(name2: name, nameOffset: -1)
       ..isConst = true;
     var element = TopLevelVariableElementImpl(Reference.root(), fragment);
-    var getterFragment = PropertyAccessorFragmentImplImplicitGetter(fragment);
+    var getterFragment = GetterFragmentImpl(name2: name, nameOffset: -1)
+      ..isSynthetic = true;
     var getterElement = GetterElementImpl(Reference.root(), getterFragment);
     element.getter2 = getterElement;
     fragment.type = type;
