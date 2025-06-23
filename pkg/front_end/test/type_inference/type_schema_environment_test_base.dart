@@ -99,7 +99,7 @@ abstract class TypeSchemaEnvironmentTestBase {
   void checkIsSubtype(String subtype, String supertype) {
     expect(
         typeSchemaEnvironment
-            .performNullabilityAwareSubtypeCheck(
+            .performSubtypeCheck(
                 parseType(subtype), parseType(supertype))
             .isSuccess(),
         isTrue);
@@ -108,7 +108,7 @@ abstract class TypeSchemaEnvironmentTestBase {
   void checkIsNotSubtype(String subtype, String supertype) {
     expect(
         typeSchemaEnvironment
-            .performNullabilityAwareSubtypeCheck(
+            .performSubtypeCheck(
                 parseType(subtype), parseType(supertype))
             .isSuccess(),
         isFalse);

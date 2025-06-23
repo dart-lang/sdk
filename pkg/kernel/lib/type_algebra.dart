@@ -1942,12 +1942,11 @@ class _NullabilityConstructorUnwrapper implements DartTypeVisitor<DartType> {
   DartType visitVoidType(VoidType node) => node;
 }
 
-abstract class NullabilityAwareTypeVariableEliminatorBase
-    extends ReplacementVisitor {
+abstract class TypeVariableEliminatorBase extends ReplacementVisitor {
   final CoreTypes coreTypes;
   late bool _isLeastClosure;
 
-  NullabilityAwareTypeVariableEliminatorBase({required this.coreTypes});
+  TypeVariableEliminatorBase({required this.coreTypes});
 
   bool containsTypeVariablesToEliminate(DartType type);
 
@@ -2029,19 +2028,18 @@ abstract class NullabilityAwareTypeVariableEliminatorBase
 /// Use this class when only a specific subset of unbound variables in a type
 /// should be substituted with one of [bottomType], [topType], or
 /// [topFunctionType].  For example, running a
-/// `NullabilityAwareTypeVariableEliminatorBase({T}, Never, Object?,
+/// `TypeVariableEliminatorBase({T}, Never, Object?,
 /// Function).eliminateToLeast` on type `T Function<S>(S s, R r)` will return
 /// `Never Function<S>(S s, R r)`.
 ///
 /// The algorithm for elimination of type variables is described in
 /// https://github.com/dart-lang/language/pull/957
-class NullabilityAwareTypeParameterEliminator
-    extends NullabilityAwareTypeVariableEliminatorBase {
+class TypeParameterEliminator extends TypeVariableEliminatorBase {
   final Set<StructuralParameter> structuralEliminationTargets;
   final Set<TypeParameter> nominalEliminationTargets;
   final DartTypeVisitorAuxiliaryFunction<bool>? unhandledTypeHandler;
 
-  NullabilityAwareTypeParameterEliminator(
+  TypeParameterEliminator(
       {required this.structuralEliminationTargets,
       required this.nominalEliminationTargets,
       required CoreTypes coreTypes,
@@ -2071,17 +2069,16 @@ class NullabilityAwareTypeParameterEliminator
 ///
 /// Use this class when all unbound variables in a type should be substituted
 /// with one of [bottomType], [topType], or [topFunctionType].  For example,
-/// running a `NullabilityAwareFreeTypeVariableEliminator(Never, Object?,
+/// running a `FreeTypeVariableEliminator(Never, Object?,
 /// Function).eliminateToLeast` on type `T Function<S>(S s, R r)` will return
 /// `Never Function<S>(S s, Object? r)`.
 ///
 /// The algorithm for elimination of type variables is described in
 /// https://github.com/dart-lang/language/pull/957
-class NullabilityAwareFreeTypeParameterEliminator
-    extends NullabilityAwareTypeVariableEliminatorBase {
+class FreeTypeParameterEliminator extends TypeVariableEliminatorBase {
   Set<StructuralParameter> _boundVariables = <StructuralParameter>{};
 
-  NullabilityAwareFreeTypeParameterEliminator({required CoreTypes coreTypes})
+  FreeTypeParameterEliminator({required CoreTypes coreTypes})
       : super(coreTypes: coreTypes);
 
   @override

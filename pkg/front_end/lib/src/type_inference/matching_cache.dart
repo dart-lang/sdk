@@ -875,7 +875,7 @@ class PromotedCacheableExpression
     Expression result = _expression.createExpression(typeEnvironment,
         effects: effects, inCacheInitializer: inCacheInitializer);
     if (!typeEnvironment
-            .performNullabilityAwareSubtypeCheck(
+            .performSubtypeCheck(
                 _expression.getType(typeEnvironment), _promotedType)
             .isSuccess() ||
         (_promotedType is! DynamicType &&

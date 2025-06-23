@@ -58,7 +58,7 @@ class SubtypeInstrumenterConfig implements InstrumenterConfig {
 
   @override
   bool includeProcedure(Procedure procedure) {
-    if (procedure.name.text == 'performNullabilityAwareSubtypeCheck') {
+    if (procedure.name.text == 'performSubtypeCheck') {
       Library library = procedure.enclosingLibrary;
       Class? cls = procedure.enclosingClass;
       if (cls?.name == 'Types' &&

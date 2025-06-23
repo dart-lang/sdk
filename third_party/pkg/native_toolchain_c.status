@@ -27,5 +27,6 @@ test/native_toolchain/xcode_test: SkipByDesign # XCode on Dart CI doesn't have t
 
 [ $system == windows ]
 test/cbuilder/compiler_resolver_test: SkipByDesign # Toolchains not installed in default locations on Dart CI.
+test/clinker/objects_cross_test: SkipByDesign # Toolchains not installed in default locations on Dart CI.
 test/native_toolchain/msvc_test: SkipByDesign # Toolchains not installed in default locations on Dart CI.
 test/tool/tool_resolver_test: SkipByDesign # Toolchains not installed in default locations on Dart CI.
