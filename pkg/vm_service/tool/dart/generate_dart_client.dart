@@ -533,7 +533,7 @@ void addTypeFactory(String name, Function factory) {
     gen.writeln();
     gen.writeln('final _typeFactories = <String, Function>{');
     for (var type in types) {
-      gen.writeln("'${type!.rawName}': ${type.name}.parse,");
+      gen.writeln("'${type.rawName}': ${type.name}.parse,");
     }
     gen.writeln('};');
     gen.writeln();
@@ -672,12 +672,12 @@ typedef VmServiceFactory<T extends VmService> = T Function({
     }
     gen.writeln();
     gen.writeln('// types');
-    types.where((t) => !t!.skip).forEach((t) => t!.generate(gen));
+    types.where((t) => !t.skip).forEach((t) => t.generate(gen));
   }
 
   void setDefaultValue(String typeName, String fieldName, String defaultValue) {
     types
-        .firstWhere((t) => t!.name == typeName)!
+        .firstWhere((t) => t.name == typeName)
         .fields
         .firstWhere((f) => f.name == fieldName)
         .defaultValue = defaultValue;
