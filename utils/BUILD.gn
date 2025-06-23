@@ -8,7 +8,7 @@ import("../sdk_args.gni")
 _dart_root = get_path_info("..", "abspath")
 
 template("aot_compile_using_prebuilt_sdk") {
-  prebuilt_dart_action(target_name) {
+  action(target_name) {
     forward_variables_from(invoker,
                            [
                              "deps",
@@ -17,24 +17,31 @@ template("aot_compile_using_prebuilt_sdk") {
                              "visibility",
                            ])
 
+    script = "$_dart_root/build/gn_dart_compile_exe.py"
+
     inputs = [
       invoker.entry_point,
       invoker.package_config,
     ]
+
     outputs = [ invoker.output ]
+
     depfile = invoker.output + ".d"
 
+    # TODO(vegorov): support RBE by using rewrapper script.
     args = [
-      "compile",
-      "exe",
+      "--dart-sdk",
+      rebase_path("$_dart_root/tools/sdks/dart-sdk", root_build_dir),
+      "--sdk-hash",
+      "$sdk_hash",
+      "--entry-point",
+      rebase_path(invoker.entry_point, root_build_dir),
+      "--output",
+      rebase_path(invoker.output, root_build_dir),
       "--packages",
       rebase_path(invoker.package_config, root_build_dir),
-      "-Dsdk_hash=$sdk_hash",
       "--depfile",
       rebase_path(depfile, root_build_dir),
-      "-o",
-      rebase_path(invoker.output, root_build_dir),
-      rebase_path(invoker.entry_point, root_build_dir),
     ]
   }
 }
