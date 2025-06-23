@@ -315,16 +315,34 @@ abstract class InterfaceType implements ParameterizedType {
   /// Return the element representing the getter with the given [name] that is
   /// declared in this class, or `null` if this class does not declare a getter
   /// with the given name.
+  GetterElement? getGetter(String name);
+
+  /// Return the element representing the getter with the given [name] that is
+  /// declared in this class, or `null` if this class does not declare a getter
+  /// with the given name.
+  @Deprecated('Use getGetter instead')
   GetterElement? getGetter2(String name);
 
   /// Return the element representing the method with the given [name] that is
   /// declared in this class, or `null` if this class does not declare a method
   /// with the given name.
+  MethodElement? getMethod(String name);
+
+  /// Return the element representing the method with the given [name] that is
+  /// declared in this class, or `null` if this class does not declare a method
+  /// with the given name.
+  @Deprecated('Use getMethod instead')
   MethodElement? getMethod2(String name);
 
   /// Return the element representing the setter with the given [name] that is
   /// declared in this class, or `null` if this class does not declare a setter
   /// with the given name.
+  SetterElement? getSetter(String name);
+
+  /// Return the element representing the setter with the given [name] that is
+  /// declared in this class, or `null` if this class does not declare a setter
+  /// with the given name.
+  @Deprecated('Use getSetter instead')
   SetterElement? getSetter2(String name);
 
   /// Return the element representing the constructor that results from looking
@@ -337,6 +355,19 @@ abstract class InterfaceType implements ParameterizedType {
   /// <i>T<i>. Otherwise, if <i>q</i> is not defined or not accessible, a
   /// NoSuchMethodException is thrown.
   /// </blockquote>
+  ConstructorElement? lookUpConstructor(String? name, LibraryElement library);
+
+  /// Return the element representing the constructor that results from looking
+  /// up the constructor with the given [name] in this class with respect to the
+  /// given [library], or `null` if the look up fails. The behavior of this
+  /// method is defined by the Dart Language Specification in section 12.11.1:
+  /// <blockquote>
+  /// If <i>e</i> is of the form <b>new</b> <i>T.id()</i> then let <i>q<i> be
+  /// the constructor <i>T.id</i>, otherwise let <i>q<i> be the constructor
+  /// <i>T<i>. Otherwise, if <i>q</i> is not defined or not accessible, a
+  /// NoSuchMethodException is thrown.
+  /// </blockquote>
+  @Deprecated('Use lookUpConstructor instead')
   ConstructorElement? lookUpConstructor2(String? name, LibraryElement library);
 
   /// Return the getter with the given [name].
@@ -349,6 +380,25 @@ abstract class InterfaceType implements ParameterizedType {
   ///
   /// If [recoveryStatic] is `true`, then static getters of the class,
   /// and its superclasses are considered. Clients should not use it.
+  GetterElement? lookUpGetter(
+    String name,
+    LibraryElement library, {
+    bool concrete = false,
+    bool inherited = false,
+    bool recoveryStatic = false,
+  });
+
+  /// Return the getter with the given [name].
+  ///
+  /// If [concrete] is `true`, then the concrete implementation is returned,
+  /// from this type, or its superclass.
+  ///
+  /// If [inherited] is `true`, then only getters from the superclass are
+  /// considered.
+  ///
+  /// If [recoveryStatic] is `true`, then static getters of the class,
+  /// and its superclasses are considered. Clients should not use it.
+  @Deprecated('Use lookUpGetter instead')
   GetterElement? lookUpGetter3(
     String name,
     LibraryElement library, {
@@ -367,6 +417,25 @@ abstract class InterfaceType implements ParameterizedType {
   ///
   /// If [recoveryStatic] is `true`, then static methods of the class,
   /// and its superclasses are considered. Clients should not use it.
+  MethodElement? lookUpMethod(
+    String name,
+    LibraryElement library, {
+    bool concrete = false,
+    bool inherited = false,
+    bool recoveryStatic = false,
+  });
+
+  /// Return the method with the given [name].
+  ///
+  /// If [concrete] is `true`, then the concrete implementation is returned,
+  /// from this type, or its superclass.
+  ///
+  /// If [inherited] is `true`, then only methods from the superclass are
+  /// considered.
+  ///
+  /// If [recoveryStatic] is `true`, then static methods of the class,
+  /// and its superclasses are considered. Clients should not use it.
+  @Deprecated('Use lookUpMethod instead')
   MethodElement? lookUpMethod3(
     String name,
     LibraryElement library, {
@@ -385,6 +454,25 @@ abstract class InterfaceType implements ParameterizedType {
   ///
   /// If [recoveryStatic] is `true`, then static setters of the class,
   /// and its superclasses are considered. Clients should not use it.
+  SetterElement? lookUpSetter(
+    String name,
+    LibraryElement library, {
+    bool concrete = false,
+    bool inherited = false,
+    bool recoveryStatic = false,
+  });
+
+  /// Return the setter with the given [name].
+  ///
+  /// If [concrete] is `true`, then the concrete implementation is returned,
+  /// from this type, or its superclass.
+  ///
+  /// If [inherited] is `true`, then only setters from the superclass are
+  /// considered.
+  ///
+  /// If [recoveryStatic] is `true`, then static setters of the class,
+  /// and its superclasses are considered. Clients should not use it.
+  @Deprecated('Use lookUpSetter instead')
   SetterElement? lookUpSetter3(
     String name,
     LibraryElement library, {

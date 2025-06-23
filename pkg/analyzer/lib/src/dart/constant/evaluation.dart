@@ -3148,7 +3148,7 @@ class _InstanceCreationEvaluator {
               );
             }
             _fieldMap[fieldName] = evaluationResult;
-            var getter = definingType.getGetter2(fieldName);
+            var getter = definingType.getGetter(fieldName);
             if (getter != null) {
               var field = getter.variable3;
               if (field == null) {
@@ -3441,7 +3441,7 @@ class _InstanceCreationEvaluator {
     if (superclass != null && !superclass.isDartCoreObject) {
       var superConstructor =
           superclass
-              .lookUpConstructor2(superName, _constructor.library2)
+              .lookUpConstructor(superName, _constructor.library2)
               ?.asElement;
       if (superConstructor == null) {
         return null;

@@ -109,7 +109,7 @@ class InvocationInferenceHelper {
       var aliasedType = typeElement.aliasedType;
       if (aliasedType is InterfaceTypeImpl) {
         var constructorIdentifier = constructorName;
-        rawElement = aliasedType.lookUpConstructor2(
+        rawElement = aliasedType.lookUpConstructor(
           constructorIdentifier?.name,
           definingLibrary,
         );

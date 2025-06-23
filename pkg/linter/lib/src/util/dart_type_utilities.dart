@@ -216,7 +216,7 @@ bool _isFunctionTypeUnrelatedToType(FunctionType type1, DartType type2) {
   if (type2 is InterfaceType) {
     var element2 = type2.element3;
     if (element2 is ClassElement &&
-        element2.thisType.lookUpMethod3(
+        element2.thisType.lookUpMethod(
               'call',
               element2.library2,
               concrete: true,

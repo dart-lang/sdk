@@ -52,6 +52,13 @@
 * Deprecate `ExtensionTypeElement.representation2`, use `representation` instead.
 * Deprecate `ExtensionTypeFragment.primaryConstructor2`, use `primaryConstructor` instead.
 * Deprecate `ExtensionTypeFragment.representation2`, use `representation` instead.
+* Deprecate `InterfaceType.getGetter2`, use `getGetter` instead.
+* Deprecate `InterfaceType.getMethod2`, use `getMethod` instead.
+* Deprecate `InterfaceType.getSetter2`, use `getSetter` instead.
+* Deprecate `InterfaceType.lookUpConstructor2`, use `lookUpConstructor` instead.
+* Deprecate `InterfaceType.lookUpGetter3`, use `lookUpGetter` instead.
+* Deprecate `InterfaceType.lookUpMethod3`, use `lookUpMethod` instead.
+* Deprecate `InterfaceType.lookUpSetter3`, use `lookUpSetter` instead.
 
 ## 7.4.1
 * Restore `InstanceElement.augmented` getter.

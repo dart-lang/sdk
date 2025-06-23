@@ -84,10 +84,10 @@ class _Visitor extends SimpleAstVisitor<void> {
           if (owningElement != null) {
             var variableName = child.name.lexeme;
             for (var superInterface in owningElement.allSupertypes) {
-              if (superInterface.getGetter2(variableName) != null) {
+              if (superInterface.getGetter(variableName) != null) {
                 ignoreThisVariable = true;
               }
-              if (superInterface.getSetter2(variableName) != null) {
+              if (superInterface.getSetter(variableName) != null) {
                 ignoreThisVariable = true;
               }
             }

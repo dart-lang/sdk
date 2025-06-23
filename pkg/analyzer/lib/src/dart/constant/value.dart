@@ -1583,13 +1583,13 @@ class GenericState extends InstanceState {
       var element = type.element3;
       var library = element.library2;
 
-      var eqEq = type.lookUpMethod3('==', library, concrete: true);
+      var eqEq = type.lookUpMethod('==', library, concrete: true);
       if (!isFromDartCoreObject(eqEq)) {
         return false;
       }
 
       if (featureSet.isEnabled(Feature.patterns)) {
-        var hash = type.lookUpGetter3('hashCode', library, concrete: true);
+        var hash = type.lookUpGetter('hashCode', library, concrete: true);
         if (!isFromDartCoreObject(hash)) {
           return false;
         }

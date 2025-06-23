@@ -175,7 +175,7 @@ class FunctionReferenceResolver {
     }
     // Otherwise, a 'call' method on the interface, or on an applicable
     // extension method applies.
-    return type.lookUpMethod3(
+    return type.lookUpMethod(
           MethodElement.CALL_METHOD_NAME,
           type.element3.library2,
         ) ??

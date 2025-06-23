@@ -81,17 +81,17 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     // B b;
     // cOfB.m(b); // infer <B>
     _assertType(
-      _inferCall2(cOfB.getMethod2('m')!.type, [typeB]),
+      _inferCall2(cOfB.getMethod('m')!.type, [typeB]),
       'B Function(B)',
     );
     // cOfA.m(b); // infer <B>
     _assertType(
-      _inferCall2(cOfA.getMethod2('m')!.type, [typeB]),
+      _inferCall2(cOfA.getMethod('m')!.type, [typeB]),
       'B Function(B)',
     );
     // cOfObject.m(b); // infer <B>
     _assertType(
-      _inferCall2(cOfObject.getMethod2('m')!.type, [typeB]),
+      _inferCall2(cOfObject.getMethod('m')!.type, [typeB]),
       'B Function(B)',
     );
   }
@@ -135,17 +135,17 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     var listOfB = listNone(typeB);
     // cOfB.m(b); // infer <B>
     _assertType(
-      _inferCall2(cOfB.getMethod2('m')!.type, [listOfB]),
+      _inferCall2(cOfB.getMethod('m')!.type, [listOfB]),
       'List<B> Function(List<B>)',
     );
     // cOfA.m(b); // infer <B>
     _assertType(
-      _inferCall2(cOfA.getMethod2('m')!.type, [listOfB]),
+      _inferCall2(cOfA.getMethod('m')!.type, [listOfB]),
       'List<B> Function(List<B>)',
     );
     // cOfObject.m(b); // infer <B>
     _assertType(
-      _inferCall2(cOfObject.getMethod2('m')!.type, [listOfB]),
+      _inferCall2(cOfObject.getMethod('m')!.type, [listOfB]),
       'List<B> Function(List<B>)',
     );
   }
