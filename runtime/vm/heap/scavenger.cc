@@ -320,6 +320,7 @@ class ScavengerVisitor : public ObjectPointerVisitor,
   }
 
   void ProcessWeak() {
+    page_space_->ReleaseLock(freelist_);
     if (!scavenger_->abort_) {
       ASSERT(!HasWork());
 
@@ -334,7 +335,6 @@ class ScavengerVisitor : public ObjectPointerVisitor,
       MournFinalizerEntries();
       scavenger_->IterateWeak();
     }
-    page_space_->ReleaseLock(freelist_);
     thread_ = nullptr;
   }
 
