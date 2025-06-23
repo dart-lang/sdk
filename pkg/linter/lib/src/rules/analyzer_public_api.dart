@@ -276,11 +276,10 @@ class _Visitor extends SimpleAstVisitor<void> {
         offset = fragment.nameOffset2!;
         length = fragment.name2!.length;
         break;
-      } else if (fragment case PropertyAccessorFragment(
-        :var variable3?,
-      ) when variable3.nameOffset2 != null) {
-        offset = variable3.nameOffset2!;
-        length = variable3.name2!.length;
+      } else if (fragment case PropertyAccessorFragment()
+          when fragment.element.variable3!.firstFragment.nameOffset2 != null) {
+        offset = fragment.element.variable3!.firstFragment.nameOffset2!;
+        length = fragment.element.variable3!.name3!.length;
         break;
       } else if (fragment is ConstructorFragment &&
           fragment.typeNameOffset != null) {

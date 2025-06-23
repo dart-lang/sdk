@@ -1026,8 +1026,10 @@ class InheritanceManager3 {
 
       var result = SetterElementImpl(setterReference, resultFragment);
 
-      var field = executable.variable3!;
-      var resultField = FieldFragmentImpl(name2: field.name3, nameOffset: -1);
+      var resultField = FieldFragmentImpl(
+        name2: executable.name3,
+        nameOffset: -1,
+      );
       resultField.enclosingElement3 = class_.firstFragment;
 
       var elementName = executable.name3!;

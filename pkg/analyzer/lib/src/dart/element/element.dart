@@ -3184,10 +3184,11 @@ class FieldFragmentImpl extends PropertyInducingFragmentImpl
   ///
   /// Such fields are `index`, `_name`, and `values`.
   bool get isSyntheticEnumField {
+    // TODO(scheglov): move to element
     return enclosingElement3 is EnumFragmentImpl &&
         isSynthetic &&
         element.getter2?.isSynthetic == true &&
-        setter == null;
+        element.setter2 == null;
   }
 
   @override
@@ -4488,12 +4489,6 @@ class GetterFragmentImpl extends PropertyAccessorFragmentImpl
   GetterFragmentImpl({required super.name2, required super.nameOffset});
 
   GetterFragmentImpl.forVariable(super.variable) : super.forVariable();
-
-  @override
-  PropertyAccessorFragmentImpl? get correspondingGetter => null;
-
-  @override
-  PropertyAccessorFragmentImpl? get correspondingSetter => variable2?.setter;
 
   @override
   bool get isGetter => true;
@@ -8829,16 +8824,6 @@ abstract class PropertyAccessorElementImpl extends ExecutableElementImpl
 /// `PropertyAccessorElement`.
 abstract class PropertyAccessorElementOrMember
     implements ExecutableElementOrMember {
-  /// The accessor representing the getter that corresponds to (has the same
-  /// name as) this setter, or `null` if this accessor is not a setter or
-  /// if there is no corresponding getter.
-  PropertyAccessorElementOrMember? get correspondingGetter;
-
-  /// The accessor representing the setter that corresponds to (has the same
-  /// name as) this getter, or `null` if this accessor is not a getter or
-  /// if there is no corresponding setter.
-  PropertyAccessorElementOrMember? get correspondingSetter;
-
   /// Whether the accessor represents a getter.
   bool get isGetter;
 
@@ -8847,15 +8832,6 @@ abstract class PropertyAccessorElementOrMember
 
   @override
   TypeImpl get returnType;
-
-  /// The field or top-level variable associated with this accessor.
-  ///
-  /// If this accessor was explicitly defined (is not synthetic) then the
-  /// variable associated with it will be synthetic.
-  ///
-  /// If this accessor is an augmentation, and [augmentationTarget] is `null`,
-  /// the variable is `null`.
-  PropertyInducingElementOrMember? get variable2;
 }
 
 sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
@@ -8883,12 +8859,6 @@ sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
     isStatic = variable.isStatic;
     isSynthetic = true;
   }
-
-  @override
-  PropertyAccessorFragmentImpl? get correspondingGetter;
-
-  @override
-  PropertyAccessorFragmentImpl? get correspondingSetter;
 
   @override
   PropertyAccessorFragmentImpl get declaration => this;
@@ -8944,14 +8914,6 @@ sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
     }
     return _nameOffset;
   }
-
-  @override
-  PropertyInducingFragmentImpl? get variable2 {
-    return element.variable3?.firstFragment;
-  }
-
-  @override
-  PropertyInducingFragment? get variable3 => variable2;
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
@@ -9088,15 +9050,6 @@ abstract class PropertyInducingFragmentImpl
   @override
   Fragment get enclosingFragment => enclosingElement3 as Fragment;
 
-  /// The getter associated with this variable.
-  ///
-  /// If this variable was explicitly defined (is not synthetic) then the
-  /// getter associated with it will be synthetic.
-  GetterFragmentImpl? get getter => element.getter2?.firstFragment;
-
-  @override
-  GetterFragmentImpl? get getter2 => getter;
-
   /// Return `true` if this variable needs the setter.
   bool get hasSetter {
     if (isConst) {
@@ -9126,20 +9079,6 @@ abstract class PropertyInducingFragmentImpl
   @Deprecated('Use metadata instead')
   @override
   MetadataImpl get metadata2 => metadata;
-
-  /// The setter associated with this variable, or `null` if the variable
-  /// is effectively `final` and therefore does not have a setter associated
-  /// with it.
-  ///
-  /// This can happen either because the variable is explicitly defined as
-  /// being `final` or because the variable is induced by an explicit getter
-  /// that does not have a corresponding setter. If this variable was
-  /// explicitly defined (is not synthetic) then the setter associated with
-  /// it will be synthetic.
-  SetterFragmentImpl? get setter => element.setter2?.firstFragment;
-
-  @override
-  SetterFragmentImpl? get setter2 => setter;
 
   bool get shouldUseTypeForInitializerInference {
     return hasModifier(Modifier.SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE);
@@ -9308,12 +9247,6 @@ class SetterFragmentImpl extends PropertyAccessorFragmentImpl
   SetterFragmentImpl({required super.name2, required super.nameOffset});
 
   SetterFragmentImpl.forVariable(super.variable) : super.forVariable();
-
-  @override
-  PropertyAccessorFragmentImpl? get correspondingGetter => variable2?.getter;
-
-  @override
-  PropertyAccessorFragmentImpl? get correspondingSetter => null;
 
   @override
   bool get isGetter => false;

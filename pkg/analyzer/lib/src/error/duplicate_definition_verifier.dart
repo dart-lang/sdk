@@ -597,7 +597,7 @@ class MemberDuplicateDefinitionVerifier {
       if (!definesSetter) {
         // The field just defines a getter, so treat it as a getter for
         // duplicate checking purposes.
-        fragment = fragment.getter!;
+        fragment = fragment.element.getter2!.firstFragment;
       }
     }
 

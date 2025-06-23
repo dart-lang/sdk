@@ -361,8 +361,18 @@ int foo = 0;
     expect(fooNode.length, 7);
 
     // Synthetic elements don't have nodes.
-    expect(parsedLibrary.getFragmentDeclaration(fooElement.getter2!), isNull);
-    expect(parsedLibrary.getFragmentDeclaration(fooElement.setter2!), isNull);
+    expect(
+      parsedLibrary.getFragmentDeclaration(
+        fooElement.element.getter2!.firstFragment,
+      ),
+      isNull,
+    );
+    expect(
+      parsedLibrary.getFragmentDeclaration(
+        fooElement.element.setter2!.firstFragment,
+      ),
+      isNull,
+    );
   }
 
   test_getParsedLibrary_inconsistent() async {
@@ -621,8 +631,18 @@ int foo = 0;
     expect(fooNode.declaredFragment!.name2, 'foo');
 
     // Synthetic elements don't have nodes.
-    expect(resolvedLibrary.getFragmentDeclaration(fooElement.getter2!), isNull);
-    expect(resolvedLibrary.getFragmentDeclaration(fooElement.setter2!), isNull);
+    expect(
+      resolvedLibrary.getFragmentDeclaration(
+        fooElement.element.getter2!.firstFragment,
+      ),
+      isNull,
+    );
+    expect(
+      resolvedLibrary.getFragmentDeclaration(
+        fooElement.element.setter2!.firstFragment,
+      ),
+      isNull,
+    );
   }
 
   test_getResolvedLibrary_inconsistent() async {
