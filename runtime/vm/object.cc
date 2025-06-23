@@ -13085,11 +13085,12 @@ ObjectPtr Field::StaticConstFieldValue() const {
 
   auto thread = Thread::Current();
   auto zone = thread->zone();
-  auto initial_field_table = thread->isolate_group()->initial_field_table();
+  auto initial_field_table =
+      is_shared() ? thread->isolate_group()->shared_initial_field_table()
+                  : thread->isolate_group()->initial_field_table();
 
   // We can safely cache the value of the static const field in the initial
   // field table.
-  ASSERT(!is_shared());
   auto& value = Object::Handle(
       zone, initial_field_table->At(field_id(), /*concurrent_use=*/true));
   if (value.ptr() == Object::sentinel().ptr()) {
@@ -13111,9 +13112,10 @@ ObjectPtr Field::StaticConstFieldValue() const {
 void Field::SetStaticConstFieldValue(const Instance& value,
                                      bool assert_initializing_store) const {
   ASSERT(is_static());
-  ASSERT(!is_shared());
   auto thread = Thread::Current();
-  auto initial_field_table = thread->isolate_group()->initial_field_table();
+  auto initial_field_table =
+      is_shared() ? thread->isolate_group()->shared_initial_field_table()
+                  : thread->isolate_group()->initial_field_table();
 
   SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   ASSERT(initial_field_table->At(field_id()) == Object::sentinel().ptr() ||
