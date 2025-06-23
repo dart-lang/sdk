@@ -64,6 +64,7 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
       ..addFlag(
         useAotSnapshotFlag,
         help: 'Use the AOT analysis server snapshot',
+        defaultsTo: true,
         hide: true,
       )
       ..addExperimentalFlags(verbose: verbose);
