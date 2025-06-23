@@ -1,3 +1,7 @@
+## 0.4.1
+
+- Fix bug in signature parsing.
+
 ## 0.4.0
 
 - Update SDK constraint to `^3.5.0`.
