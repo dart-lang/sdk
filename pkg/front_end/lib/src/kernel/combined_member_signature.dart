@@ -356,7 +356,7 @@ abstract class CombinedMemberSignatureBase {
         DartType signatureTypeParameterBound =
             instantiator.substitute(signatureTypeParameters[i].bound);
         if (!_types
-            .performNullabilityAwareMutualSubtypesCheck(
+            .performMutualSubtypesCheck(
                 typeParameterBound, signatureTypeParameterBound)
             .isSuccess()) {
           return null;

@@ -248,8 +248,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   }
 
   @override
-  IsSubtypeOf performNullabilityAwareSubtypeCheck(
-      DartType subtype, DartType supertype) {
+  IsSubtypeOf performSubtypeCheck(DartType subtype, DartType supertype) {
     if (subtype is UnknownType) return const IsSubtypeOf.success();
 
     DartType unwrappedSupertype = supertype;
@@ -259,7 +258,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     if (unwrappedSupertype is UnknownType) {
       return const IsSubtypeOf.success();
     }
-    return super.performNullabilityAwareSubtypeCheck(subtype, supertype);
+    return super.performSubtypeCheck(subtype, supertype);
   }
 
   // TODO(johnniwinther): Should [context] be non-nullable?
@@ -309,9 +308,9 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
 
     if (!isEmptyContext(returnContextType)) {
       if (isConst) {
-        returnContextType = new NullabilityAwareFreeTypeParameterEliminator(
-                coreTypes: coreTypes)
-            .eliminateToLeast(returnContextType!);
+        returnContextType =
+            new FreeTypeParameterEliminator(coreTypes: coreTypes)
+                .eliminateToLeast(returnContextType!);
       }
       gatherer.tryConstrainUpper(declaredReturnType!, returnContextType!,
           treeNodeForTesting: treeNodeForTesting);
@@ -548,11 +547,11 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   }
 }
 
-class TypeParameterEliminator extends Substitution {
+class AllTypeParameterEliminator extends Substitution {
   final DartType bottomType;
   final DartType topType;
 
-  TypeParameterEliminator(this.bottomType, this.topType);
+  AllTypeParameterEliminator(this.bottomType, this.topType);
 
   @override
   DartType getSubstitute(TypeParameter parameter, bool upperBound) {

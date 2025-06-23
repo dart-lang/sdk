@@ -1573,7 +1573,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           }
           DartType computedBound = substitution.substituteType(interfaceBound);
           if (!types
-              .performNullabilityAwareMutualSubtypesCheck(
+              .performMutualSubtypesCheck(
                   declaredBound, computedBound)
               .isSuccess()) {
             reportInvalidOverride(

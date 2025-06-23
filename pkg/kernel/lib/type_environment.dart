@@ -648,7 +648,7 @@ class IsSubtypeOf {
       return this;
     } else {
       return this
-          .and(tester.performNullabilityAwareSubtypeCheck(subtype, supertype));
+          .and(tester.performSubtypeCheck(subtype, supertype));
     }
   }
 
@@ -679,7 +679,7 @@ class IsSubtypeOf {
       return this;
     } else {
       return this
-          .or(tester.performNullabilityAwareSubtypeCheck(subtype, supertype));
+          .or(tester.performSubtypeCheck(subtype, supertype));
     }
   }
 

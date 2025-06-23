@@ -67,7 +67,7 @@ class FastaTypesTest extends SubtypeTest<DartType, TypeParserEnvironment> {
   @override
   IsSubtypeOf isSubtypeImpl(DartType subtype, DartType supertype) {
     return hierarchy.types
-        .performNullabilityAwareSubtypeCheck(subtype, supertype);
+        .performSubtypeCheck(subtype, supertype);
   }
 
   @override

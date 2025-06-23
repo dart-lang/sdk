@@ -472,7 +472,7 @@ class _AsyncClosureContext implements ClosureContext {
           ..parent = statement;
       } else if (flattenedExpressionType is! VoidType &&
           !inferrer.typeSchemaEnvironment
-              .performNullabilityAwareSubtypeCheck(
+              .performSubtypeCheck(
                   flattenedExpressionType, emittedValueType!)
               .isSuccess()) {
         // It is a compile-time error if s is `return e;`, flatten(S) is not

@@ -59,7 +59,7 @@ import 'type_schema_environment.dart'
     show
         getNamedParameterType,
         getPositionalParameterType,
-        TypeParameterEliminator,
+        AllTypeParameterEliminator,
         TypeSchemaEnvironment;
 
 /// Given a [FunctionExpression], computes a set whose elements consist of (a)
@@ -880,8 +880,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       );
     }
 
-    IsSubtypeOf isDirectSubtypeResult = typeSchemaEnvironment
-        .performNullabilityAwareSubtypeCheck(expressionType, contextType);
+    IsSubtypeOf isDirectSubtypeResult =
+        typeSchemaEnvironment.performSubtypeCheck(expressionType, contextType);
     bool isDirectlyAssignable = isDirectSubtypeResult.isSuccess();
     if (isDirectlyAssignable) {
       return new AssignabilityResult(
@@ -894,7 +894,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     bool isIndirectlyAssignable = expressionType is DynamicType;
     if (!isIndirectlyAssignable) {
       if (typeSchemaEnvironment
-          .performNullabilityAwareSubtypeCheck(
+          .performSubtypeCheck(
             expressionType,
             contextType.withDeclaredNullability(Nullability.nullable),
           )
@@ -1843,7 +1843,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     TypeConstraintGatherer? gatherer;
     if (inferenceNeeded) {
       if (isConst) {
-        typeContext = new TypeParameterEliminator(
+        typeContext = new AllTypeParameterEliminator(
           bottomType,
           coreTypes.objectNullableRawType,
         ).substituteType(typeContext);
