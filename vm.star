@@ -106,17 +106,15 @@ _vm_builder(
     "vm-linux-debug-simriscv64",
     category = "vm|jit|rv",
 )
-_vm_builder(
-    "vm-linux-release-arm64",
-    category = "vm|jit|a6",
+_nightly_builder(
+    "vm-linux-debug-arm64",
+    category = "vm|jit|da",
     dimensions = [arm64],
 )
 _vm_builder(
-    "vm-mac-debug-arm64",
-    category = "vm|jit|m1d",
-    dimensions = [mac, arm64],
-    properties = [no_android, slow_shards],
-    on_cq = True,
+    "vm-linux-release-arm64",
+    category = "vm|jit|ra",
+    dimensions = [arm64],
 )
 _vm_builder(
     "vm-mac-debug-x64",
@@ -125,20 +123,27 @@ _vm_builder(
     properties = slow_shards,
 )
 _vm_builder(
+    "vm-mac-release-x64",
+    category = "vm|jit|mr",
+    dimensions = mac,
+)
+_vm_builder(
+    "vm-mac-debug-arm64",
+    category = "vm|jit|mda",
+    dimensions = [mac, arm64],
+    properties = [no_android, slow_shards],
+    on_cq = True,
+)
+_vm_builder(
     "vm-mac-release-arm64",
-    category = "vm|jit|m1r",
+    category = "vm|jit|mra",
     dimensions = [mac, arm64],
     properties = no_android,
 )
 _vm_builder(
     "vm-checked-mac-release-arm64",
-    category = "vm|jit|rc",
+    category = "vm|jit|mc",
     dimensions = [mac, arm64],
-)
-_vm_builder(
-    "vm-mac-release-x64",
-    category = "vm|jit|mr",
-    dimensions = mac,
 )
 _vm_builder(
     "vm-win-debug-x64",
@@ -210,9 +215,14 @@ _nightly_builder(
     category = "vm|aot|rv",
     properties = [slow_shards],
 )
+_nightly_builder(
+    "vm-aot-linux-debug-arm64",
+    category = "vm|aot|da",
+    dimensions = [arm64],
+)
 _vm_builder(
     "vm-aot-linux-release-arm64",
-    category = "vm|aot|a6",
+    category = "vm|aot|ra",
     dimensions = [arm64],
 )
 _nightly_builder(
