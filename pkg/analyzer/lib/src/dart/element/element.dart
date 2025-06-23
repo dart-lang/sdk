@@ -1099,11 +1099,6 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
   }
 
   @override
-  FragmentImpl get nonSynthetic {
-    return isSynthetic ? enclosingElement3 : this;
-  }
-
-  @override
   int get offset => isSynthetic ? enclosingElement3.offset : _nameOffset;
 
   @override
@@ -3677,11 +3672,6 @@ class FormalParameterFragmentImplOfImplicitSetter
   }
 
   @override
-  FragmentImpl get nonSynthetic {
-    return setter.variable2;
-  }
-
-  @override
   int get offset => setter.offset;
 
   @override
@@ -3998,16 +3988,6 @@ abstract class FragmentImpl implements FragmentOrMember {
   set nameOffset(int offset) {
     _nameOffset = offset;
   }
-
-  /// The non-synthetic element that caused this element to be created.
-  ///
-  /// If this element is not synthetic, then the element itself is returned.
-  ///
-  /// If this element is synthetic, then the corresponding non-synthetic
-  /// element is returned. For example, for a synthetic getter of a
-  /// non-synthetic field the field is returned; for a synthetic constructor
-  /// the enclosing class is returned.
-  FragmentImpl get nonSynthetic => this;
 
   @override
   AnalysisSession? get session {
@@ -7921,14 +7901,6 @@ class MethodFragmentImpl extends ExecutableFragmentImpl
     return name2;
   }
 
-  @override
-  FragmentImpl get nonSynthetic {
-    if (isSynthetic && enclosingElement3 is EnumFragmentImpl) {
-      return enclosingElement3;
-    }
-    return this;
-  }
-
   void addFragment(MethodFragmentImpl fragment) {
     fragment.element = element;
     fragment.previousFragment = this;
@@ -9076,15 +9048,6 @@ class PropertyAccessorFragmentImplImplicitGetter extends GetterFragmentImpl {
   String? get name2 => variable2.name2;
 
   @override
-  FragmentImpl get nonSynthetic {
-    if (!variable2.isSynthetic) {
-      return variable2;
-    }
-    assert(enclosingElement3 is EnumFragmentImpl);
-    return enclosingElement3;
-  }
-
-  @override
   int get offset => variable2.offset;
 
   @override
@@ -9133,9 +9096,6 @@ class PropertyAccessorFragmentImplImplicitSetter extends SetterFragmentImpl {
 
   @override
   String? get name2 => variable2.name2;
-
-  @override
-  FragmentImpl get nonSynthetic => variable2;
 
   @override
   int get offset => variable2.offset;
@@ -9347,21 +9307,6 @@ abstract class PropertyInducingFragmentImpl
   @Deprecated('Use metadata instead')
   @override
   MetadataImpl get metadata2 => metadata;
-
-  @override
-  FragmentImpl get nonSynthetic {
-    if (isSynthetic) {
-      if (enclosingElement3 is EnumFragmentImpl) {
-        // TODO(scheglov): remove 'index'?
-        if (name2 == 'index' || name2 == 'values') {
-          return enclosingElement3;
-        }
-      }
-      return (getter ?? setter)!;
-    } else {
-      return this;
-    }
-  }
 
   /// The setter associated with this variable, or `null` if the variable
   /// is effectively `final` and therefore does not have a setter associated
