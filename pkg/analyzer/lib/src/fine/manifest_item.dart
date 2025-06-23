@@ -697,8 +697,7 @@ sealed class InstanceItemMemberItem<E extends AnnotatableElementImpl>
   }
 }
 
-class InstanceItemMethodItem
-    extends InstanceItemMemberItem<MethodElementImpl> {
+class InstanceItemMethodItem extends InstanceItemMemberItem<MethodElementImpl> {
   final ManifestFunctionType functionType;
 
   InstanceItemMethodItem({

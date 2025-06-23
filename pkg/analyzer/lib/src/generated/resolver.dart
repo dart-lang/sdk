@@ -963,11 +963,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  SwitchExpressionMemberInfo<
-    AstNodeImpl,
-    ExpressionImpl,
-    PromotableElementImpl
-  >
+  SwitchExpressionMemberInfo<AstNodeImpl, ExpressionImpl, PromotableElementImpl>
   getSwitchExpressionMemberInfo(
     covariant SwitchExpressionImpl node,
     int index,

@@ -520,8 +520,7 @@ class TypeSystemImpl implements TypeSystem {
       }
       candidates = [supertype];
       candidates.addAll(mixinElement.mixins);
-      if (mixinElement is ClassElementImpl &&
-          mixinElement.isMixinApplication) {
+      if (mixinElement is ClassElementImpl && mixinElement.isMixinApplication) {
         candidates.removeLast();
       }
     }
