@@ -9,7 +9,7 @@ import 'package:expect/expect.dart';
 class Foo<T> {
   a<A>() {
     b<B>() {
-      c<C>() => '$T $A $B $C';
+      c<C>() => [T, A, B, C];
       return c;
     }
 
@@ -18,8 +18,10 @@ class Foo<T> {
 }
 
 main() {
-  Expect.equals(
-    'bool int double String',
-    ((new Foo<bool>().a<int>())<double>())<String>(),
-  );
+  Expect.listEquals([
+    bool,
+    int,
+    double,
+    String,
+  ], ((new Foo<bool>().a<int>())<double>())<String>());
 }

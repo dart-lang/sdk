@@ -82,7 +82,9 @@ testCallsToStringOnMessageLazily() {
     Expect.fail("Assert should throw.");
   } catch (e) {
     Expect.isFalse(toString.calledToString);
-    Expect.isTrue(e.toString().contains("Instance of 'ToString'"));
+    Expect.type<AssertionError>(e);
+    e as AssertionError;
+    Expect.identical(toString, e.message);
     Expect.isFalse(toString.calledToString);
   }
 }

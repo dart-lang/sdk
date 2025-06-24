@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Prevent obfuscation:
-// dart2jsOptions=--no-minify
-
 // Tests self referencing types.
 
 import "package:expect/expect.dart";
@@ -23,13 +20,15 @@ class Derived2<U, V>
 main() {
   var d = new Derived1<Derived1, Derived2>();
   Expect.equals(
-    "Derived1<Derived1<dynamic, dynamic>, Derived2<dynamic, dynamic>>",
-    d.u.toString(),
+    Derived1<Derived1<dynamic, dynamic>, Derived2<dynamic, dynamic>>,
+    d.u,
   );
   Expect.equals(
-    "Derived1<Derived2<Derived2<dynamic, dynamic>, "
-    "Derived1<dynamic, dynamic>>, Derived2<dynamic, dynamic>>",
-    d.v.toString(),
+    Derived1<
+      Derived2<Derived2<dynamic, dynamic>, Derived1<dynamic, dynamic>>,
+      Derived2<dynamic, dynamic>
+    >,
+    d.v,
   );
   Expect.isTrue(d is Derived1<Derived1, Derived2>);
   Expect.isFalse(d is Derived1<Derived1, Derived1>);

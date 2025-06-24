@@ -4,6 +4,8 @@
 
 // Test of Symbol class for operators..
 
+import 'package:expect/variations.dart';
+
 dynamic $ = new Symbolize();
 
 main() {
@@ -23,7 +25,7 @@ main() {
   testSymbol(#<=, $ <= $, "<=");
   testSymbol(#>, $ > $, ">");
   testSymbol(#>=, $ >= $, ">=");
-  testSymbol(#==, new Symbol("=="), "=="); // Can't hit noSuchMethod.
+  testSymbol(#==, #==, "=="); // Can't hit noSuchMethod.
   testSymbol(#[], $[$], "[]");
   testSymbol(#[]=, ($[$] = $).lastMember, "[]=");
   testSymbol(Symbol.unaryMinus, -$, "unary-");
@@ -39,27 +41,29 @@ main() {
 }
 
 void testSymbol(Symbol constSymbol, var mirrorSymbol, String name) {
-  Symbol dynamicSymbol = new Symbol(name);
   if (constSymbol != mirrorSymbol) {
     throw "Not equal #$name, \$$name: $constSymbol, $mirrorSymbol";
-  }
-  if (constSymbol != dynamicSymbol) {
-    throw "Not equal #$name, new Symbol('$name'): $constSymbol, $dynamicSymbol";
-  }
-  if (mirrorSymbol != dynamicSymbol) {
-    throw "Not equal \$$name, new Symbol('$name'): "
-        "$mirrorSymbol, $dynamicSymbol";
   }
   if (constSymbol.hashCode != mirrorSymbol.hashCode) {
     throw "HashCode not equal #$name, \$$name: $constSymbol, $mirrorSymbol";
   }
-  if (constSymbol.hashCode != dynamicSymbol.hashCode) {
-    throw "HashCode not equal #$name, new Symbol('$name'): "
-        "$constSymbol, $dynamicSymbol";
-  }
-  if (mirrorSymbol.hashCode != dynamicSymbol.hashCode) {
-    throw "HashCode not equal \$$name, new Symbol('$name'): "
-        "$mirrorSymbol, $dynamicSymbol";
+  if (!minifiedSymbols) {
+    final dynamicSymbol = new Symbol(name);
+    if (constSymbol != dynamicSymbol) {
+      throw "Not equal #$name, new Symbol('$name'): $constSymbol, $dynamicSymbol";
+    }
+    if (mirrorSymbol != dynamicSymbol) {
+      throw "Not equal \$$name, new Symbol('$name'): "
+          "$mirrorSymbol, $dynamicSymbol";
+    }
+    if (constSymbol.hashCode != dynamicSymbol.hashCode) {
+      throw "HashCode not equal #$name, new Symbol('$name'): "
+          "$constSymbol, $dynamicSymbol";
+    }
+    if (mirrorSymbol.hashCode != dynamicSymbol.hashCode) {
+      throw "HashCode not equal \$$name, new Symbol('$name'): "
+          "$mirrorSymbol, $dynamicSymbol";
+    }
   }
 }
 

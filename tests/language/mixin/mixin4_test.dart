@@ -22,7 +22,7 @@ class C<T, K> = S<T> with A<T, List<K>> implements J<K>;
 
 main() {
   var c = new C<int, bool>();
-  Expect.equals("Map<int, List<bool>>", c.t().toString());
+  Expect.equals(Map<int, List<bool>>, c.t());
   Expect.isTrue(c is I<List<bool>>);
   Expect.isTrue(c is J<bool>);
   Expect.isTrue(c is S<int>);

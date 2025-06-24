@@ -103,13 +103,17 @@ void testToString() {
   String h<T, U>(T x, U y) => h.runtimeType.toString();
 
   // Check that generic method types are printed in a reasonable way
-  Expect.isTrue(
-      new RegExp(r'<(\w+) extends num, (\w+) extends \1>\(\1, \2\) => num')
-          .hasMatch(f.runtimeType.toString()));
-  Expect.isTrue(new RegExp(r'<(\w+), (\w+)>\(\1, \2\) => num')
-      .hasMatch(g.runtimeType.toString()));
-  Expect.isTrue(
-      new RegExp(r'<(\w+), (\w+)>\(\1, \2\) => String').hasMatch(h(42, 123.0)));
+  void checkMatches(String pattern, Type type) {
+    Expect.isTrue(RegExp(pattern).hasMatch(type.toString()));
+  }
+
+  checkMatches(
+      '<(\\w+) extends $num, (\\w+) extends \\1>\\(\\1, \\2\\) => $num',
+          f.runtimeType);
+  checkMatches('<(\\w+), (\\w+)>\\(\\1, \\2\\) => $num',
+      g.runtimeType);
+  checkMatches(
+      '<(\\w+), (\\w+)>\\(\\1, \\2\\) => $String', h.runtimeType);
 }
 
 main() {

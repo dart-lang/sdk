@@ -71,7 +71,13 @@ class AddLate extends ResolvedCorrectionProducer {
         if (variableElement != null &&
             !variableElement.isSynthetic &&
             !variableElement.isLate &&
-            variableElement.setter2 == null) {
+            variableElement.setter2 == null &&
+            // It is currently too expensive to do a `getFragmentDeclaration`
+            // call if we don't already have the resolved library ready.
+            // If it becomes desirable to allow such edits we'll likely need
+            // to do something else to not regress performance.
+            variableElement.firstFragment.libraryFragment.source.fullName ==
+                file) {
           var variableFragment = variableElement.firstFragment;
           var declarationResult = await sessionHelper.getFragmentDeclaration(
             variableFragment,
