@@ -202,6 +202,7 @@ class BundleWriter {
         // TODO(scheglov): avoid cast
         _resolutionSink.withTypeParameters(element.typeParameters2.cast(), () {
           _resolutionSink.writeElement(element.superConstructor2);
+          _resolutionSink.writeElement(element.redirectedConstructor2);
           // TODO(scheglov): formal parameters
         });
       });
@@ -218,7 +219,6 @@ class BundleWriter {
       _sink.writeList(fragment.formalParameters, _writeParameterElement);
       _resolutionSink._writeMetadata(fragment.metadata);
       _resolutionSink.writeType(fragment.returnType);
-      _resolutionSink.writeElement(fragment.redirectedConstructor?.asElement2);
       _resolutionSink._writeNodeList(fragment.constantInitializers);
     });
   }

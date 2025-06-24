@@ -489,7 +489,7 @@ class ConstantEvaluationEngine {
       // let [evaluateInstanceCreationExpression] handle it specially.
       return null;
     }
-    var redirectedConstructor = constructor.redirectedConstructor;
+    var redirectedConstructor = constructor.asElement2.redirectedConstructor2;
     if (redirectedConstructor == null) {
       // This can happen if constructor is an external factory constructor.
       return null;
@@ -500,7 +500,7 @@ class ConstantEvaluationEngine {
       // [ErrorVerifier.checkForRedirectToNonConstConstructor()]).
       return null;
     }
-    return redirectedConstructor;
+    return redirectedConstructor.asElement as ConstructorElementMixin;
   }
 
   static _EnumConstant? _enumConstant(VariableFragmentImpl element) {

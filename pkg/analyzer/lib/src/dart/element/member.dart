@@ -88,14 +88,9 @@ class ConstructorMember extends ExecutableMember
   String? get name3 => _element2.name3;
 
   @override
-  ConstructorElementMixin? get redirectedConstructor {
-    var element = declaration.redirectedConstructor;
-    return _redirect(element);
-  }
-
-  @override
   ConstructorElementMixin2? get redirectedConstructor2 {
-    return redirectedConstructor?.asElement2;
+    var element = baseElement.redirectedConstructor2;
+    return _redirect(element);
   }
 
   @override
@@ -107,14 +102,9 @@ class ConstructorMember extends ExecutableMember
   @override
   Source get source => _declaration.source!;
 
-  ConstructorElementMixin? get superConstructor {
-    var element = declaration.element.superConstructor2;
-    return _redirect(element?.firstFragment as ConstructorElementMixin?);
-  }
-
   @override
   ConstructorElementMixin2? get superConstructor2 {
-    return _redirect2(declaration.element.superConstructor2);
+    return _redirect(declaration.element.superConstructor2);
   }
 
   @override
@@ -130,28 +120,7 @@ class ConstructorMember extends ExecutableMember
     builder.writeConstructorElement(this);
   }
 
-  ConstructorElementMixin? _redirect(ConstructorElementMixin? element) {
-    switch (element) {
-      case null:
-        return null;
-      case ConstructorFragmentImpl():
-        return element;
-      case ConstructorMember():
-        var memberMap = element.substitution.map;
-        var map = <TypeParameterElement, DartType>{
-          for (var MapEntry(:key, :value) in memberMap.entries)
-            key: substitution.substituteType(value),
-        };
-        return ConstructorMember(
-          declaration: element.declaration,
-          substitution: Substitution.fromMap2(map),
-        );
-      default:
-        throw UnimplementedError('(${element.runtimeType}) $element');
-    }
-  }
-
-  ConstructorElementMixin2? _redirect2(ConstructorElementMixin2? element) {
+  ConstructorElementMixin2? _redirect(ConstructorElementMixin2? element) {
     switch (element) {
       case null:
         return null;

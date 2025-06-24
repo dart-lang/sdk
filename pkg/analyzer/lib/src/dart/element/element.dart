@@ -757,6 +757,9 @@ class ConstructorElementImpl extends ExecutableElementImpl
   @override
   final ConstructorFragmentImpl firstFragment;
 
+  /// The constructor to which this constructor is redirecting.
+  ConstructorElementMixin2? _redirectedConstructor;
+
   /// The super-constructor which this constructor is invoking, or `null` if
   /// this constructor is not generative, or is redirecting, or the
   /// super-constructor is not resolved, or the enclosing class is `Object`.
@@ -852,11 +855,12 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @override
   ConstructorElementMixin2? get redirectedConstructor2 {
-    return firstFragment.redirectedConstructor?.asElement2;
+    _ensureReadResolution();
+    return _redirectedConstructor;
   }
 
   set redirectedConstructor2(ConstructorElementMixin2? value) {
-    firstFragment.redirectedConstructor = value?.asElement;
+    _redirectedConstructor = value;
   }
 
   @override
@@ -914,8 +918,6 @@ mixin ConstructorElementMixin
   @override
   LibraryElementImpl get library2;
 
-  ConstructorElementMixin? get redirectedConstructor;
-
   @override
   InterfaceTypeImpl get returnType;
 }
@@ -938,9 +940,6 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
     with ConstructorElementMixin
     implements ConstructorFragment {
   late final ConstructorElementImpl element;
-
-  /// The constructor to which this constructor is redirecting.
-  ConstructorElementMixin? _redirectedConstructor;
 
   /// The initializers for this constructor (used for evaluating constant
   /// instance creation expressions).
@@ -1073,16 +1072,6 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
 
   @override
   int get offset => isSynthetic ? enclosingElement3.offset : _nameOffset;
-
-  @override
-  ConstructorElementMixin? get redirectedConstructor {
-    _ensureReadResolution();
-    return _redirectedConstructor;
-  }
-
-  set redirectedConstructor(ConstructorElementMixin? redirectedConstructor) {
-    _redirectedConstructor = redirectedConstructor;
-  }
 
   @override
   InterfaceTypeImpl get returnType {
