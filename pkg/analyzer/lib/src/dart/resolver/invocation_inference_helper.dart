@@ -15,7 +15,6 @@ import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Information about a constructor element to instantiate.
 ///
@@ -31,12 +30,12 @@ import 'package:analyzer/src/utilities/extensions/element.dart';
 /// are the type parameters of the alias.
 class ConstructorElementToInfer {
   /// The type parameters used in [element].
-  final List<TypeParameterElementImpl> typeParameters2;
+  final List<TypeParameterElementImpl> typeParameters;
 
   /// The element, might be [ConstructorMember].
-  final ConstructorElementMixin2 element2;
+  final ConstructorElementMixin2 element;
 
-  ConstructorElementToInfer(this.typeParameters2, this.element2);
+  ConstructorElementToInfer(this.typeParameters, this.element);
 
   /// Return the equivalent generic function type that we could use to
   /// forward to the constructor, or for a non-generic type simply returns
@@ -47,18 +46,12 @@ class ConstructorElementToInfer {
   FunctionType get asType {
     return typeParameters.isEmpty
         ? element.type
-        : FunctionTypeImpl(
-          typeFormals: typeParameters,
-          parameters: element.parameters.map((f) => f.asElement2).toList(),
+        : FunctionTypeImpl.v2(
+          typeParameters: typeParameters,
+          formalParameters: element.formalParameters,
           returnType: element.returnType,
           nullabilitySuffix: NullabilitySuffix.none,
         );
-  }
-
-  ConstructorElementMixin get element => element2.asElement;
-
-  List<TypeParameterFragmentImpl> get typeParameters {
-    return typeParameters2.map((e) => e.asElement).toList();
   }
 }
 
