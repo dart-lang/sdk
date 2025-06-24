@@ -218,11 +218,6 @@ bool DartUtils::IsDartSchemeURL(const char* url_name) {
   return (strncmp(url_name, kDartScheme, kDartSchemeLen) == 0);
 }
 
-bool DartUtils::IsHttpSchemeURL(const char* url_name) {
-  static const intptr_t kHttpSchemeLen = strlen(kHttpScheme);
-  return (strncmp(url_name, kHttpScheme, kHttpSchemeLen) == 0);
-}
-
 bool DartUtils::IsDartIOLibURL(const char* url_name) {
   return (strcmp(url_name, kIOLibURL) == 0);
 }
@@ -237,15 +232,6 @@ bool DartUtils::IsDartHttpLibURL(const char* url_name) {
 
 bool DartUtils::IsDartBuiltinLibURL(const char* url_name) {
   return (strcmp(url_name, kBuiltinLibURL) == 0);
-}
-
-const char* DartUtils::RemoveScheme(const char* url) {
-  const char* colon = strchr(url, ':');
-  if (colon == nullptr) {
-    return url;
-  } else {
-    return colon + 1;
-  }
 }
 
 char* DartUtils::DirName(const char* url) {

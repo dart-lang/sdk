@@ -3718,9 +3718,6 @@ class RODataDeserializationCluster
       VerifyCanonicalSet(d, refs,
                          WeakArray::Handle(object_store->symbol_table()));
       object_store->set_symbol_table(table_);
-      if (d->isolate_group() == Dart::vm_isolate_group()) {
-        Symbols::InitFromSnapshot(d->isolate_group());
-      }
     } else if (!is_root_unit_ && is_canonical()) {
       FATAL("Cannot recanonicalize RO objects.");
     }
@@ -6790,9 +6787,6 @@ class StringDeserializationCluster
       VerifyCanonicalSet(d, refs,
                          WeakArray::Handle(object_store->symbol_table()));
       object_store->set_symbol_table(table_);
-      if (d->isolate_group() == Dart::vm_isolate_group()) {
-        Symbols::InitFromSnapshot(d->isolate_group());
-      }
 #if defined(DEBUG)
       Symbols::New(Thread::Current(), ":some:new:symbol:");
       ASSERT(object_store->symbol_table() == table_.ptr());  // Did not rehash.
@@ -6824,10 +6818,10 @@ class FakeSerializationCluster : public SerializationCluster {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class VMSerializationRoots : public SerializationRoots {
  public:
-  explicit VMSerializationRoots(const WeakArray& symbols,
-                                bool should_write_symbols)
-      : symbols_(symbols),
-        should_write_symbols_(should_write_symbols),
+  explicit VMSerializationRoots(const WeakArray& symbol_table,
+                                bool should_write_symbol_table)
+      : symbol_table_(symbol_table),
+        should_write_symbol_table_(should_write_symbol_table),
         zone_(Thread::Current()->zone()) {}
 
   void AddBaseObjects(Serializer* s) {
@@ -6901,11 +6895,11 @@ class VMSerializationRoots : public SerializationRoots {
   }
 
   void PushRoots(Serializer* s) {
-    if (should_write_symbols_) {
-      s->Push(symbols_.ptr());
+    if (should_write_symbol_table_) {
+      s->Push(symbol_table_.ptr());
     } else {
-      for (intptr_t i = 0; i < symbols_.Length(); i++) {
-        s->Push(symbols_.At(i));
+      for (intptr_t i = 0; i < symbol_table_.Length(); i++) {
+        s->Push(symbol_table_.At(i));
       }
     }
     if (Snapshot::IncludesCode(s->kind())) {
@@ -6916,8 +6910,12 @@ class VMSerializationRoots : public SerializationRoots {
   }
 
   void WriteRoots(Serializer* s) {
-    s->WriteRootRef(should_write_symbols_ ? symbols_.ptr() : Object::null(),
-                    "symbol-table");
+    for (intptr_t i = 1; i < Symbols::kMaxPredefinedId; i++) {
+      s->WriteRootRef(Symbols::Symbol(i).ptr(), "<symbol>");
+    }
+    s->WriteRootRef(
+        should_write_symbol_table_ ? symbol_table_.ptr() : Object::null(),
+        "symbol-table");
     if (Snapshot::IncludesCode(s->kind())) {
       for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
         s->WriteRootRef(StubCode::EntryAt(i).ptr(),
@@ -6925,26 +6923,28 @@ class VMSerializationRoots : public SerializationRoots {
       }
     }
 
-    if (!should_write_symbols_ && s->profile_writer() != nullptr) {
+    if (!should_write_symbol_table_ && s->profile_writer() != nullptr) {
       // If writing V8 snapshot profile create an artificial node representing
       // VM isolate symbol table.
-      ASSERT(!s->IsReachable(symbols_.ptr()));
-      s->AssignArtificialRef(symbols_.ptr());
-      const auto& symbols_snapshot_id = s->GetProfileId(symbols_.ptr());
-      s->profile_writer()->SetObjectTypeAndName(symbols_snapshot_id, "Symbols",
-                                                "vm_symbols");
-      s->profile_writer()->AddRoot(symbols_snapshot_id);
-      for (intptr_t i = 0; i < symbols_.Length(); i++) {
+      ASSERT(!s->IsReachable(symbol_table_.ptr()));
+      s->AssignArtificialRef(symbol_table_.ptr());
+      const auto& symbol_table_snapshot_id =
+          s->GetProfileId(symbol_table_.ptr());
+      s->profile_writer()->SetObjectTypeAndName(symbol_table_snapshot_id,
+                                                "Symbols", "vm_symbols");
+      s->profile_writer()->AddRoot(symbol_table_snapshot_id);
+      for (intptr_t i = 0; i < symbol_table_.Length(); i++) {
         s->profile_writer()->AttributeReferenceTo(
-            symbols_snapshot_id, V8SnapshotProfileWriter::Reference::Element(i),
-            s->GetProfileId(symbols_.At(i)));
+            symbol_table_snapshot_id,
+            V8SnapshotProfileWriter::Reference::Element(i),
+            s->GetProfileId(symbol_table_.At(i)));
       }
     }
   }
 
  private:
-  const WeakArray& symbols_;
-  const bool should_write_symbols_;
+  const WeakArray& symbol_table_;
+  const bool should_write_symbol_table_;
   Zone* zone_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
@@ -7007,10 +7007,16 @@ class VMDeserializationRoots : public DeserializationRoots {
   }
 
   void ReadRoots(Deserializer* d) override {
+    for (intptr_t i = 1; i < Symbols::kMaxPredefinedId; i++) {
+      String* symbol = String::ReadOnlyHandle();
+      *symbol ^= d->ReadRef();
+      Symbols::InitSymbol(i, symbol);
+    }
     symbol_table_ ^= d->ReadRef();
     if (!symbol_table_.IsNull()) {
       d->isolate_group()->object_store()->set_symbol_table(symbol_table_);
     }
+    Symbols::InitFromSnapshot(d->isolate_group());
     if (Snapshot::IncludesCode(d->kind())) {
       for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
         Code* code = Code::ReadOnlyHandle();
@@ -7025,10 +7031,6 @@ class VMDeserializationRoots : public DeserializationRoots {
     // Move remaining bump allocation space to the freelist so it used by C++
     // allocations (e.g., FinalizeVMIsolate) before allocating new pages.
     d->heap()->old_space()->ReleaseBumpAllocation();
-
-    if (!symbol_table_.IsNull()) {
-      Symbols::InitFromSnapshot(d->isolate_group());
-    }
 
     Object::set_vm_isolate_snapshot_object_table(refs);
   }
@@ -9701,7 +9703,7 @@ ZoneGrowableArray<Object*>* FullSnapshotWriter::WriteVMSnapshot() {
   VMSerializationRoots roots(
       WeakArray::Handle(
           Dart::vm_isolate_group()->object_store()->symbol_table()),
-      /*should_write_symbols=*/!Snapshot::IncludesStringsInROData(kind_));
+      /*should_write_symbol_table=*/!Snapshot::IncludesStringsInROData(kind_));
   ZoneGrowableArray<Object*>* objects = serializer.Serialize(&roots);
   serializer.FillHeader(serializer.kind());
   clustered_vm_size_ = serializer.bytes_written();
