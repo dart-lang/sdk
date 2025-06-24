@@ -411,15 +411,6 @@ extension LocalVariableElementImplExtension on LocalVariableFragmentImpl {
   }
 }
 
-extension MethodElement2OrMemberExtension on MethodElement2OrMember {
-  MethodElementOrMember get asElement {
-    if (this case MethodMember member) {
-      return member;
-    }
-    return (this as MethodElementImpl).lastFragment;
-  }
-}
-
 extension MethodElementImpl2Extension on MethodElementImpl {
   MethodFragmentImpl get asElement {
     return lastFragment;
@@ -473,16 +464,6 @@ extension PatternVariableElementImpl2Extension on PatternVariableElementImpl {
 extension PatternVariableElementImplExtension on PatternVariableFragmentImpl {
   PatternVariableElementImpl get asElement2 {
     return element;
-  }
-}
-
-extension PropertyAccessorElement2OrMemberExtension
-    on PropertyAccessorElement2OrMember {
-  PropertyAccessorElementOrMember get asElement {
-    if (this case PropertyAccessorMember member) {
-      return member;
-    }
-    return (this as PropertyAccessorElementImpl).lastFragment;
   }
 }
 

@@ -854,8 +854,7 @@ abstract class Member implements FragmentOrMember {
 
 /// A method element defined in a parameterized type where the values of the
 /// type parameters are known.
-class MethodMember extends ExecutableMember
-    implements MethodElementOrMember, MethodElement2OrMember {
+class MethodMember extends ExecutableMember implements MethodElement2OrMember {
   factory MethodMember({
     required MethodFragmentImpl declaration,
     required MapSubstitution substitution,
@@ -1172,9 +1171,7 @@ class ParameterMember extends VariableMember
 /// A property accessor element defined in a parameterized type where the values
 /// of the type parameters are known.
 abstract class PropertyAccessorMember extends ExecutableMember
-    implements
-        PropertyAccessorElementOrMember,
-        PropertyAccessorElement2OrMember {
+    implements PropertyAccessorElement2OrMember {
   factory PropertyAccessorMember({
     required PropertyAccessorFragmentImpl declaration,
     required MapSubstitution substitution,
@@ -1218,12 +1215,6 @@ abstract class PropertyAccessorMember extends ExecutableMember
   Element get enclosingElement2 => enclosingElement;
 
   @override
-  bool get isGetter => declaration.isGetter;
-
-  @override
-  bool get isSetter => declaration.isSetter;
-
-  @override
   String? get name3 => _element2.name3;
 
   @override
@@ -1247,26 +1238,7 @@ abstract class PropertyAccessorMember extends ExecutableMember
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeExecutableElement(
       this,
-      (isGetter ? 'get ' : 'set ') + displayName,
-    );
-  }
-
-  /// If the given [element]'s type is different when any type parameters from
-  /// the defining type's declaration are replaced with the actual type
-  /// arguments from the [definingType], create an accessor member representing
-  /// the given accessor. Return the member that was created, or the base
-  /// accessor if no member was created.
-  static PropertyAccessorElementOrMember? from(
-    PropertyAccessorFragmentImpl? element,
-    InterfaceType definingType,
-  ) {
-    if (element == null || definingType.typeArguments.isEmpty) {
-      return element;
-    }
-
-    return PropertyAccessorMember(
-      declaration: element,
-      substitution: Substitution.fromInterfaceType(definingType),
+      (this is GetterElement ? 'get ' : 'set ') + displayName,
     );
   }
 }
