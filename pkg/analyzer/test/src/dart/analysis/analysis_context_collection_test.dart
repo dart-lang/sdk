@@ -1140,14 +1140,6 @@ contexts
     packagesFile: /home/.dart_tool/package_config.json
     workspace: workspace_0
     analyzedFiles
-      /home/packages/package1/lib/package1.dart
-        uri: package:package1/package1.dart
-        analysisOptions_0
-        workspacePackage_0_0
-      /home/packages/package2/lib/package2.dart
-        uri: package:package2/package2.dart
-        analysisOptions_1
-        workspacePackage_0_1
   /home/packages/package1
     packagesFile: /home/.dart_tool/package_config.json
     workspace: workspace_1
@@ -1170,13 +1162,6 @@ analysisOptions
 workspaces
   workspace_0: PackageConfigWorkspace
     root: /home
-    pubPackages
-      workspacePackage_0_0: PubPackage
-        root: /home/packages/package1
-        sdkVersionConstraint: ^3.6.0
-      workspacePackage_0_1: PubPackage
-        root: /home/packages/package2
-        sdkVersionConstraint: ^3.6.0
   workspace_1: PackageConfigWorkspace
     root: /home
     pubPackages
