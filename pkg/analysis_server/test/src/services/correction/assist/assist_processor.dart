@@ -86,7 +86,7 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
     var fileEdits = _change.edits;
     if (additionallyChangedFiles == null) {
       expect(fileEdits, hasLength(1));
-      expect(_change.edits[0].file, testFilePath);
+      expect(_change.edits[0].file, testFile.path);
       _resultCode = SourceEdit.applySequence(testCode, _change.edits[0].edits);
       expect(_resultCode, expected);
     } else {
