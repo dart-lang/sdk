@@ -106,9 +106,9 @@ class TypeDefinitionHandler
 
         analyzer.Element? element;
         if (type is InterfaceType) {
-          element = type.element3;
+          element = type.element;
         } else if (type is TypeParameterType) {
-          element = type.element3;
+          element = type.element;
         }
         if (element is! analyzer.Element) {
           return success(_emptyResult);

@@ -45,7 +45,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     for (var interface in implementsClause.interfaces) {
       var interfaceType = interface.type;
       if (interfaceType is InterfaceType &&
-          _overridesEquals(interfaceType.element3)) {
+          _overridesEquals(interfaceType.element)) {
         rule.reportAtNode(interface);
       }
     }

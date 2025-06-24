@@ -719,7 +719,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     _addSubtypeForClassDeclaration(node);
     var declaredElement = node.declaredFragment!.element;
     if (node.extendsClause == null) {
-      var objectElement = declaredElement.supertype?.element3;
+      var objectElement = declaredElement.supertype?.element;
       recordRelationOffset(
         objectElement,
         IndexRelationKind.IS_EXTENDED_BY,
@@ -1468,7 +1468,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
       if (superType != null) {
         _recordIsAncestorOf(
           descendant,
-          superType.element3,
+          superType.element,
           true,
           visitedElements,
         );
@@ -1477,20 +1477,20 @@ class _IndexContributor extends GeneralizingAstVisitor {
     for (InterfaceType mixinType in ancestor.mixins) {
       _recordIsAncestorOf(
         descendant,
-        mixinType.element3,
+        mixinType.element,
         true,
         visitedElements,
       );
     }
     if (ancestor is MixinElement) {
       for (InterfaceType type in ancestor.superclassConstraints) {
-        _recordIsAncestorOf(descendant, type.element3, true, visitedElements);
+        _recordIsAncestorOf(descendant, type.element, true, visitedElements);
       }
     }
     for (InterfaceType implementedType in ancestor.interfaces) {
       _recordIsAncestorOf(
         descendant,
-        implementedType.element3,
+        implementedType.element,
         true,
         visitedElements,
       );

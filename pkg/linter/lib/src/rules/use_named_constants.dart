@@ -37,7 +37,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.isConst) {
       var type = node.staticType;
       if (type is! InterfaceType) return;
-      var element = type.element3;
+      var element = type.element;
       if (element is ClassElement) {
         var nodeField =
             node

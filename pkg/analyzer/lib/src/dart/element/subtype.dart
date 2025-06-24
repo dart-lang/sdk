@@ -86,7 +86,7 @@ class SubtypeHelper {
           T0 is TypeParameterTypeImpl) {
         var S = T0.promotedBound;
         if (S == null) {
-          var B = T0.element3.bound ?? _objectQuestion;
+          var B = T0.element.bound ?? _objectQuestion;
           return isSubtypeOf(B, _objectNone);
         } else {
           return isSubtypeOf(S, _objectNone);
@@ -109,7 +109,7 @@ class SubtypeHelper {
         return false;
       }
       // Extension types require explicit `Object` implementation.
-      if (T0 is InterfaceTypeImpl && T0.element3 is ExtensionTypeElement) {
+      if (T0 is InterfaceTypeImpl && T0.element is ExtensionTypeElement) {
         for (var interface in T0.interfaces) {
           if (isSubtypeOf(interface, T1)) {
             return true;
@@ -173,7 +173,7 @@ class SubtypeHelper {
     if (T0 is TypeParameterTypeImpl &&
         T1 is TypeParameterTypeImpl &&
         T1.promotedBound == null &&
-        T0.element3 == T1.element3) {
+        T0.element == T1.element) {
       return true;
     }
 
@@ -183,7 +183,7 @@ class SubtypeHelper {
       var T1_promotedBound = T1.promotedBound;
       if (T1_promotedBound != null) {
         var X1 = TypeParameterTypeImpl(
-          element3: T1.element3,
+          element: T1.element,
           nullabilitySuffix: T1.nullabilitySuffix,
         );
         return isSubtypeOf(T0, X1) && isSubtypeOf(T0, T1_promotedBound);
@@ -215,7 +215,7 @@ class SubtypeHelper {
         if (S0 != null && isSubtypeOf(S0, T1)) {
           return true;
         }
-        var B0 = T0.element3.bound;
+        var B0 = T0.element.bound;
         if (B0 != null && isSubtypeOf(B0, T1)) {
           return true;
         }
@@ -243,7 +243,7 @@ class SubtypeHelper {
         if (S0 != null && isSubtypeOf(S0, T1)) {
           return true;
         }
-        var B0 = T0.element3.bound;
+        var B0 = T0.element.bound;
         if (B0 != null && isSubtypeOf(B0, T1)) {
           return true;
         }
@@ -269,7 +269,7 @@ class SubtypeHelper {
         return true;
       }
 
-      var B0 = T0.element3.bound;
+      var B0 = T0.element.bound;
       if (B0 != null && isSubtypeOf(B0, T1)) {
         return true;
       }
@@ -454,8 +454,8 @@ class SubtypeHelper {
       return false;
     }
 
-    var subElement = subType.element3;
-    var superElement = superType.element3;
+    var subElement = subType.element;
+    var superElement = superType.element;
     if (identical(subElement, superElement)) {
       return _interfaceArguments(superElement, subType, superType);
     }
@@ -466,7 +466,7 @@ class SubtypeHelper {
     }
 
     for (var interface in subElement.allSupertypes) {
-      if (identical(interface.element3, superElement)) {
+      if (identical(interface.element, superElement)) {
         var substitution = Substitution.fromInterfaceType(subType);
         var substitutedInterface = substitution.mapInterfaceType(interface);
         return _interfaceArguments(

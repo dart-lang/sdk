@@ -66,7 +66,7 @@ class BaseOrFinalTypeVerifier {
     for (NamedType interface in interfaces) {
       var interfaceType = interface.type;
       if (interfaceType is InterfaceType) {
-        var interfaceElement = interfaceType.element3;
+        var interfaceElement = interfaceType.element;
         if (interfaceElement is InterfaceElementImpl) {
           // Return early if an error has been reported to prevent reporting
           // multiple errors on one element.
@@ -90,7 +90,7 @@ class BaseOrFinalTypeVerifier {
     InterfaceElementImpl subElement,
   ) {
     for (var supertype in supertypes) {
-      var supertypeElement = supertype.element3;
+      var supertypeElement = supertype.element;
       if (supertypeElement is InterfaceElementImpl) {
         // Return early if an error has been reported to prevent reporting
         // multiple errors on one element.
@@ -141,7 +141,7 @@ class BaseOrFinalTypeVerifier {
   ) {
     InterfaceElementImpl? baseOrFinalElement;
     for (var supertype in supertypes) {
-      var supertypeElement = supertype.element3;
+      var supertypeElement = supertype.element;
       if (supertypeElement is InterfaceElementImpl) {
         baseOrFinalElement = _getExplicitlyBaseOrFinalElement(supertypeElement);
         if (baseOrFinalElement != null) {

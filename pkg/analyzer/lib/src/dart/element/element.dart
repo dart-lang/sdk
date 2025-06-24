@@ -263,12 +263,12 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
         }
         // check mixins
         for (var mixinType in currentElement.mixins) {
-          classesToVisit.add(mixinType.element3);
+          classesToVisit.add(mixinType.element);
         }
         // check super
         var supertype = currentElement.supertype;
         if (supertype != null) {
-          classesToVisit.add(supertype.element3);
+          classesToVisit.add(supertype.element);
         }
       }
     }
@@ -330,7 +330,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
 
     // No subclasses in the library.
     for (var class_ in library2.classes) {
-      if (class_.supertype?.element3 == this) {
+      if (class_.supertype?.element == this) {
         return false;
       }
     }
@@ -575,7 +575,7 @@ class ClassFragmentImpl extends ClassOrMixinFragmentImpl
     // Assign to break a possible infinite recursion during computing.
     _constructors = const <ConstructorFragmentImpl>[];
 
-    var superElement2 = superType.element3 as ClassElementImpl;
+    var superElement2 = superType.element as ClassElementImpl;
     var superElement = superElement2.firstFragment;
 
     var constructorsToForward = superElement.constructors
@@ -604,7 +604,7 @@ class ClassFragmentImpl extends ClassOrMixinFragmentImpl
     );
 
     bool typeHasInstanceVariables(InterfaceTypeImpl type) =>
-        type.element3.fields.any((e) => !e.isSynthetic);
+        type.element.fields.any((e) => !e.isSynthetic);
 
     // Now create an implicit constructor for every constructor found above,
     // substituting type parameters as appropriate.
@@ -4894,14 +4894,14 @@ recorded above.
       }
       for (var mixin in element.mixins.reversed) {
         mixin as InterfaceTypeImpl;
-        getter = mixin.element3.getGetter(name);
+        getter = mixin.element.getGetter(name);
         if (getter != null) {
           yield getter as PropertyAccessorElement2OrMember;
         }
       }
       var supertype = element.firstFragment.supertype;
       supertype as InterfaceTypeImpl?;
-      element = supertype?.element3;
+      element = supertype?.element;
     }
   }
 
@@ -4920,14 +4920,14 @@ recorded above.
       }
       for (var mixin in element.mixins.reversed) {
         mixin as InterfaceTypeImpl;
-        method = mixin.element3.getMethod(name);
+        method = mixin.element.getMethod(name);
         if (method != null) {
           yield method as MethodElement2OrMember;
         }
       }
       var supertype = element.firstFragment.supertype;
       supertype as InterfaceTypeImpl?;
-      element = supertype?.element3;
+      element = supertype?.element;
     }
   }
 
@@ -4946,14 +4946,14 @@ recorded above.
       }
       for (var mixin in element.mixins.reversed) {
         mixin as InterfaceTypeImpl;
-        setter = mixin.element3.getSetter(name);
+        setter = mixin.element.getSetter(name);
         if (setter != null) {
           yield setter as PropertyAccessorElement2OrMember;
         }
       }
       var supertype = element.firstFragment.supertype;
       supertype as InterfaceTypeImpl?;
-      element = supertype?.element3;
+      element = supertype?.element;
     }
   }
 }
@@ -9734,7 +9734,7 @@ class TypeAliasElementImpl extends TypeDefiningElementImpl
       return false;
     }
     var typeParameters = typeParameters2;
-    var aliasedClass = aliasedType_.element3;
+    var aliasedClass = aliasedType_.element;
     var typeArguments = aliasedType_.typeArguments;
     var typeParameterCount = typeParameters.length;
     if (typeParameterCount != aliasedClass.typeParameters2.length) {
@@ -9751,7 +9751,7 @@ class TypeAliasElementImpl extends TypeDefiningElementImpl
       }
       var typeArgument = typeArguments[i];
       if (typeArgument is TypeParameterType &&
-          typeParameters[i] != typeArgument.element3) {
+          typeParameters[i] != typeArgument.element) {
         return false;
       }
     }
@@ -9833,7 +9833,7 @@ class TypeAliasElementImpl extends TypeDefiningElementImpl
       );
     } else if (type is InterfaceTypeImpl) {
       return InterfaceTypeImpl(
-        element: type.element3,
+        element: type.element,
         typeArguments: type.typeArguments,
         nullabilitySuffix: resultNullability,
         alias: InstantiatedTypeAliasElementImpl(
@@ -9853,7 +9853,7 @@ class TypeAliasElementImpl extends TypeDefiningElementImpl
       );
     } else if (type is TypeParameterTypeImpl) {
       return TypeParameterTypeImpl(
-        element3: type.element3,
+        element: type.element,
         nullabilitySuffix: resultNullability,
         alias: InstantiatedTypeAliasElementImpl(
           element2: this,
@@ -10081,7 +10081,7 @@ class TypeParameterElementImpl extends TypeDefiningElementImpl
     required NullabilitySuffix nullabilitySuffix,
   }) {
     return TypeParameterTypeImpl(
-      element3: this,
+      element: this,
       nullabilitySuffix: nullabilitySuffix,
     );
   }
@@ -10233,7 +10233,7 @@ class TypeParameterFragmentImpl extends FragmentImpl
   /// Computes the variance of the type parameters in the [type].
   shared.Variance computeVarianceInType(DartType type) {
     if (type is TypeParameterTypeImpl) {
-      if (type.element3 == element) {
+      if (type.element == element) {
         return shared.Variance.covariant;
       } else {
         return shared.Variance.unrelated;
@@ -10242,7 +10242,7 @@ class TypeParameterFragmentImpl extends FragmentImpl
       var result = shared.Variance.unrelated;
       for (int i = 0; i < type.typeArguments.length; ++i) {
         var argument = type.typeArguments[i];
-        var parameter = type.element3.typeParameters2[i];
+        var parameter = type.element.typeParameters2[i];
 
         var parameterVariance = parameter.variance;
         result = result.meet(

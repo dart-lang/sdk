@@ -150,7 +150,7 @@ class _TypeToConvert implements _ToConvert {
           addElementsFrom(parameter.type);
         }
       } else if (type is InterfaceType) {
-        if (elements.add(type.element3)) {
+        if (elements.add(type.element)) {
           for (var typeArgument in type.typeArguments) {
             addElementsFrom(typeArgument);
           }

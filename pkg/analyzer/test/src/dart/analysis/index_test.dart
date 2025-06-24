@@ -214,7 +214,7 @@ Prefixes: p
 class A {}
 ''');
     var elementA = findElement2.class_('A');
-    var elementObject = elementA.supertype!.element3;
+    var elementObject = elementA.supertype!.element;
     assertElementIndexText(elementObject, r'''
 6 1:7 |A| IS_ANCESTOR_OF
 6 1:7 || IS_EXTENDED_BY qualified
@@ -1001,7 +1001,7 @@ import 'lib.dart';
 /// An [A].
 void f(A a) {}
 ''');
-    var element = findElement2.function('f').formalParameters[0].type.element3!;
+    var element = findElement2.function('f').formalParameters[0].type.element!;
     assertElementIndexText(element, r'''
 28 3:9 |A| IS_REFERENCED_BY
 39 4:8 |A| IS_REFERENCED_BY
@@ -1019,7 +1019,7 @@ import 'lib.dart' as p;
 /// A [p.A] and [A].
 void f(p.A a) {}
 ''');
-    var element = findElement2.function('f').formalParameters[0].type.element3!;
+    var element = findElement2.function('f').formalParameters[0].type.element!;
     assertElementIndexText(element, r'''
 53 4:10 |A| IS_REFERENCED_BY qualified
 61 4:18 |A| IS_REFERENCED_BY
@@ -1038,7 +1038,7 @@ import 'lib.dart' as p;
 /// A [p.A].
 void f(p.A a) {}
 ''');
-    var element = findElement2.function('f').formalParameters[0].type.element3!;
+    var element = findElement2.function('f').formalParameters[0].type.element!;
     assertElementIndexText(element, r'''
 34 3:10 |A| IS_REFERENCED_BY qualified
 47 4:10 |A| IS_REFERENCED_BY qualified
@@ -1474,7 +1474,7 @@ void f(E e) {
   f(E.c);
 }
 ''');
-    var element = findElement2.function('f').formalParameters[0].type.element3!;
+    var element = findElement2.function('f').formalParameters[0].type.element!;
     assertElementIndexText(element, r'''
 27 3:8 |E| IS_REFERENCED_BY
 38 4:5 |E| IS_REFERENCED_BY
@@ -1495,7 +1495,7 @@ void f(p.E e) {
   f(E.c);
 }
 ''');
-    var element = findElement2.function('f').formalParameters[0].type.element3!;
+    var element = findElement2.function('f').formalParameters[0].type.element!;
     assertElementIndexText(element, r'''
 53 4:10 |E| IS_REFERENCED_BY qualified
 64 5:5 |E| IS_REFERENCED_BY
@@ -1517,7 +1517,7 @@ void f(p.E e) {
   f(q.E.c);
 }
 ''');
-    var element = findElement2.function('f').formalParameters[0].type.element3!;
+    var element = findElement2.function('f').formalParameters[0].type.element!;
     assertElementIndexText(element, r'''
 58 4:10 |E| IS_REFERENCED_BY qualified
 71 5:7 |E| IS_REFERENCED_BY qualified
@@ -1538,7 +1538,7 @@ void f(p.E e) {
   f(p.E.c);
 }
 ''');
-    var element = findElement2.function('f').formalParameters[0].type.element3!;
+    var element = findElement2.function('f').formalParameters[0].type.element!;
     assertElementIndexText(element, r'''
 34 3:10 |E| IS_REFERENCED_BY qualified
 47 4:7 |E| IS_REFERENCED_BY qualified
@@ -1940,7 +1940,7 @@ int f() => p.A.f;
 
 class B extends p.A {}
 ''');
-    var element = findElement2.class_('B').supertype!.element3;
+    var element = findElement2.class_('B').supertype!.element;
     assertElementIndexText(element, r'''
 38 3:14 |A| IS_REFERENCED_BY qualified
 50 5:7 |B| IS_ANCESTOR_OF
@@ -2033,7 +2033,7 @@ void f() => p.A.m();
 
 class B extends p.A {}
 ''');
-    var element = findElement2.class_('B').supertype!.element3;
+    var element = findElement2.class_('B').supertype!.element;
     assertElementIndexText(element, r'''
 39 3:15 |A| IS_REFERENCED_BY qualified
 53 5:7 |B| IS_ANCESTOR_OF
@@ -2333,7 +2333,7 @@ void f(int i) => p.A.f = i;
 
 class B extends p.A {}
 ''');
-    var element = findElement2.class_('B').supertype!.element3;
+    var element = findElement2.class_('B').supertype!.element;
     assertElementIndexText(element, r'''
 44 3:20 |A| IS_REFERENCED_BY qualified
 60 5:7 |B| IS_ANCESTOR_OF
@@ -2355,7 +2355,7 @@ var t = A;
 
 class B extends p.A {}
 ''');
-    var element = findElement2.class_('B').supertype!.element3;
+    var element = findElement2.class_('B').supertype!.element;
     assertElementIndexText(element, r'''
 52 4:9 |A| IS_REFERENCED_BY
 62 6:7 |B| IS_ANCESTOR_OF
@@ -2376,7 +2376,7 @@ var t = p.A;
 
 class B extends p.A {}
 ''');
-    var element = findElement2.class_('B').supertype!.element3;
+    var element = findElement2.class_('B').supertype!.element;
     assertElementIndexText(element, r'''
 35 3:11 |A| IS_REFERENCED_BY qualified
 45 5:7 |B| IS_ANCESTOR_OF

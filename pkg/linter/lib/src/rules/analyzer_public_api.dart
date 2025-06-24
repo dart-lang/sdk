@@ -319,11 +319,11 @@ class _Visitor extends SimpleAstVisitor<void> {
             ..._problemsForAnalyzerPublicApi(f.type),
           for (var f in namedFields) ..._problemsForAnalyzerPublicApi(f.type),
         };
-      case InterfaceType(:var element3, :var typeArguments):
+      case InterfaceType(:var element, :var typeArguments):
         return {
-          if (!importedPublicElements.contains(element3) &&
-              !element3.isOkForAnalyzerPublicApi)
-            element3.name3!,
+          if (!importedPublicElements.contains(element) &&
+              !element.isOkForAnalyzerPublicApi)
+            element.name3!,
           for (var t in typeArguments) ..._problemsForAnalyzerPublicApi(t),
         };
       case NeverType():
@@ -422,7 +422,7 @@ extension on Element {
         // in practice it doesn't matter (we don't expect to have multiple
         // declarations of this annotation that we need to distinguish), and the
         // advantage of not checking the URI is that unit testing is easier.
-        element3: InterfaceElement(name3: 'AnalyzerPublicApi'),
+        element: InterfaceElement(name3: 'AnalyzerPublicApi'),
       ),
     )) {
       return true;

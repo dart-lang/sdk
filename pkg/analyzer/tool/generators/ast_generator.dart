@@ -55,7 +55,7 @@ class _Generator {
             .map((annotation) {
               var generateObject = annotation.computeConstantValue();
               var generateObjectType = generateObject?.type;
-              if (generateObjectType?.element3?.name3 != 'GenerateNodeImpl') {
+              if (generateObjectType?.element?.name3 != 'GenerateNodeImpl') {
                 return null;
               }
               return generateObject;
@@ -77,7 +77,7 @@ class _Generator {
     }
 
     currentClassElement = classElement;
-    var interfaceElement = classElement.interfaces.last.element3;
+    var interfaceElement = classElement.interfaces.last.element;
 
     var inheritanceManager = classElement.inheritanceManager;
 
@@ -814,14 +814,14 @@ class _ImplClass {
   bool get isAnnotatedNodeSubclass {
     var element = node.declaredFragment!.element;
     return element.allSupertypes.any(
-      (type) => type.element3.isAnnotatedNodeExactly,
+      (type) => type.element.isAnnotatedNodeExactly,
     );
   }
 
   bool get isNamedCompilationUnitMemberSubclass {
     var element = node.declaredFragment!.element;
     return element.allSupertypes.any(
-      (type) => type.element3.isNamedCompilationUnitMemberNodeExactly,
+      (type) => type.element.isNamedCompilationUnitMemberNodeExactly,
     );
   }
 
@@ -864,7 +864,7 @@ class _Property {
       case _PropertyTypeKindOther():
         return type.asCode;
       default:
-        return '${type.element3.name3!}Impl$nullSuffix';
+        return '${type.element.name3!}Impl$nullSuffix';
     }
   }
 }
@@ -899,7 +899,7 @@ class _PropertyTypeKindNodeList extends _PropertyTypeKind {
   _PropertyTypeKindNodeList({required this.elementType});
 
   String get elementTypeCode {
-    return '${elementType.element3.name3!}Impl';
+    return '${elementType.element.name3!}Impl';
   }
 }
 
@@ -929,13 +929,13 @@ extension _DartTypeExtension on DartType {
       case InterfaceType self:
         var typeArguments = self.typeArguments;
         if (typeArguments.isEmpty) {
-          return '${self.element3.name3!}$nullSuffix';
+          return '${self.element.name3!}$nullSuffix';
         } else {
           var typeArgumentsStr = typeArguments.map((t) => t.asCode).join(', ');
-          return '${self.element3.name3}<$typeArgumentsStr>$nullSuffix';
+          return '${self.element.name3}<$typeArgumentsStr>$nullSuffix';
         }
       case TypeParameterType self:
-        return '${self.element3.name3!}$nullSuffix';
+        return '${self.element.name3!}$nullSuffix';
       case VoidType():
         return 'void';
       default:
@@ -1028,15 +1028,15 @@ extension _InterfaceElementExtension on InterfaceElement {
 
 extension _InterfaceTypeExtension on InterfaceType {
   bool get isExpressionExactly {
-    return element3.isExpressionExactly;
+    return element.isExpressionExactly;
   }
 
   bool get isNodeExactly {
-    return element3.isNodeExactly;
+    return element.isNodeExactly;
   }
 
   bool get isNodeListExactly {
-    return element3.isNodeListExactly;
+    return element.isNodeListExactly;
   }
 
   bool get isNodeOrSubtype {
@@ -1044,11 +1044,11 @@ extension _InterfaceTypeExtension on InterfaceType {
   }
 
   bool get isToken {
-    return element3.isTokenExactly;
+    return element.isTokenExactly;
   }
 
   bool get isTokenListExactly {
-    return element3.isListExactly &&
+    return element.isListExactly &&
         typeArguments.length == 1 &&
         typeArguments.single.isToken;
   }

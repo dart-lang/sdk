@@ -2952,7 +2952,7 @@ library
     // This test should verify that we correctly record inferred types,
     // when the type is defined in a part of an SDK library. So, test that
     // the type is actually in a part.
-    var streamElement = (p.type as InterfaceType).element3;
+    var streamElement = (p.type as InterfaceType).element;
     expect(
       streamElement.firstFragment.libraryFragment.source,
       isNot(streamElement.library2.firstFragment.source),

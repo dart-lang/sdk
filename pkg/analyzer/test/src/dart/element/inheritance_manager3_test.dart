@@ -964,12 +964,12 @@ abstract class B<E> {
     var foo = manager.getMember(B, Name(null, 'foo'))!;
     var T = foo.typeParameters2.single;
     var returnType = foo.returnType;
-    expect(returnType.element3, same(T));
+    expect(returnType.element, same(T));
   }
 
   test_getMember_fromGenericSuper_method_bound() async {
     void checkTextendsFooT(TypeParameterElement t) {
-      var otherT = (t.bound as InterfaceType).typeArguments.single.element3;
+      var otherT = (t.bound as InterfaceType).typeArguments.single.element;
       expect(otherT, same(t));
     }
 
@@ -998,7 +998,7 @@ abstract class B<XB> extends A<XB> {}
 
   test_getMember_fromGenericSuper_method_bound2() async {
     void checkTextendsFooT(TypeParameterElement t) {
-      var otherT = (t.bound as InterfaceType).typeArguments.single.element3;
+      var otherT = (t.bound as InterfaceType).typeArguments.single.element;
       expect(otherT, same(t));
     }
 
@@ -1040,7 +1040,7 @@ abstract class B<E> extends A<E> {}
     var T = foo.typeParameters2.single;
     var returnType = foo.returnType;
     // Check that the return type uses the same `T` as `<T>`.
-    expect(returnType.element3, same(T));
+    expect(returnType.element, same(T));
   }
 
   test_getMember_fromNotGenericSuper_method_returnType() async {
@@ -1055,7 +1055,7 @@ abstract class B extends A {}
     var foo = manager.getMember(B, Name(null, 'foo'))!;
     var T = foo.typeParameters2.single;
     var returnType = foo.returnType;
-    expect(returnType.element3, same(T));
+    expect(returnType.element, same(T));
   }
 
   test_getMember_method_covariantAfterSubstitutedParameter_merged() async {
@@ -1438,7 +1438,7 @@ mixin M on A {}
 class A {}
 ''');
     var member = manager.getMember(
-      typeProvider.objectType.element3,
+      typeProvider.objectType.element,
       Name(null, 'hashCode'),
       forSuper: true,
     );

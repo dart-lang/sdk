@@ -53,7 +53,7 @@ class ClassDescriptionRegistry {
   /// Return `true` if properties should be created for instances of [type].
   bool hasNestedProperties(DartType type) {
     if (type is InterfaceType) {
-      return _isOptedInClass(type.element3);
+      return _isOptedInClass(type.element);
     }
     return false;
   }

@@ -672,7 +672,7 @@ class _ParametersCollector extends RecursiveAstVisitor<void> {
       var enclosingClasses =
           this.enclosingClasses ??= <InterfaceElement>[
             enclosingClass,
-            ...enclosingClass.allSupertypes.map((t) => t.element3),
+            ...enclosingClass.allSupertypes.map((t) => t.element),
           ];
       return enclosingClasses.contains(element.enclosingElement);
     }

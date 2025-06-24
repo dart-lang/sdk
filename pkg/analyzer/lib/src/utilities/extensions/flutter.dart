@@ -176,7 +176,7 @@ extension DartTypeExtension on DartType? {
     var self = this;
     return self is InterfaceType &&
         self.nullabilitySuffix == NullabilitySuffix.none &&
-        self.element3._isExactly(_nameBuildContext, _uriFramework);
+        self.element._isExactly(_nameBuildContext, _uriFramework);
   }
 
   /// Whether this is the 'dart.ui' class `Color`, or a subtype.
@@ -186,9 +186,9 @@ extension DartTypeExtension on DartType? {
       return false;
     }
 
-    return [self, ...self.element3.allSupertypes].any(
+    return [self, ...self.element.allSupertypes].any(
       (t) =>
-          t.element3.name3 == 'Color' && t.element3.library2.name3 == 'dart.ui',
+          t.element.name3 == 'Color' && t.element.library2.name3 == 'dart.ui',
     );
   }
 
@@ -199,10 +199,10 @@ extension DartTypeExtension on DartType? {
       return false;
     }
 
-    return [self, ...self.element3.allSupertypes].any(
+    return [self, ...self.element.allSupertypes].any(
       (t) =>
-          t.element3.name3 == 'Diagnosticable' &&
-          t.element3.library2.firstFragment.source.uri == _uriDiagnostics,
+          t.element.name3 == 'Diagnosticable' &&
+          t.element.library2.firstFragment.source.uri == _uriDiagnostics,
     );
   }
 
@@ -210,77 +210,77 @@ extension DartTypeExtension on DartType? {
   bool get isExactEdgeInsetsGeometryType {
     var self = this;
     return self is InterfaceType &&
-        self.element3._isExactly('EdgeInsetsGeometry', _uriEdgeInsets);
+        self.element._isExactly('EdgeInsetsGeometry', _uriEdgeInsets);
   }
 
   /// Whether this is the Flutter class `StatefulWidget`.
   bool get isExactlyStatefulWidgetType {
     var self = this;
     return self is InterfaceType &&
-        self.element3._isExactly(_nameStatefulWidget, _uriFramework);
+        self.element._isExactly(_nameStatefulWidget, _uriFramework);
   }
 
   /// Whether this is the Flutter class `StatelessWidget`.
   bool get isExactlyStatelessWidgetType {
     var self = this;
     return self is InterfaceType &&
-        self.element3._isExactly(_nameStatelessWidget, _uriFramework);
+        self.element._isExactly(_nameStatelessWidget, _uriFramework);
   }
 
   /// Whether this is the Flutter class `Align`.
   bool get isExactWidgetTypeAlign {
     var self = this;
     return self is InterfaceType &&
-        self.element3._isExactly(_nameAlign, _uriBasic);
+        self.element._isExactly(_nameAlign, _uriBasic);
   }
 
   /// Whether this is the Flutter class `Builder`.
   bool get isExactWidgetTypeBuilder {
     var self = this;
     return self is InterfaceType &&
-        self.element3._isExactly(_nameBuilder, _uriBasic);
+        self.element._isExactly(_nameBuilder, _uriBasic);
   }
 
   /// Whether this is the Flutter class `Center`.
   bool get isExactWidgetTypeCenter {
     var self = this;
     return self is InterfaceType &&
-        self.element3._isExactly(_nameCenter, _uriBasic);
+        self.element._isExactly(_nameCenter, _uriBasic);
   }
 
   /// Whether this is the Flutter class `Container`.
   bool get isExactWidgetTypeContainer {
     var self = this;
     return self is InterfaceType &&
-        self.element3._isExactly(_nameContainer, _uriContainer);
+        self.element._isExactly(_nameContainer, _uriContainer);
   }
 
   /// Whether this is the Flutter class `Expanded`.
   bool get isExactWidgetTypeExpanded {
     var self = this;
     return self is InterfaceType &&
-        self.element3._isExactly(_nameExpanded, _uriBasic);
+        self.element._isExactly(_nameExpanded, _uriBasic);
   }
 
   /// Whether this is the Flutter class `Flexible`.
   bool get isExactWidgetTypeFlexible {
     var self = this;
     return self is InterfaceType &&
-        self.element3._isExactly(_nameFlexible, _uriBasic);
+        self.element._isExactly(_nameFlexible, _uriBasic);
   }
 
   /// Whether this is the Flutter class `Padding`.
   bool get isExactWidgetTypePadding {
     var self = this;
     return self is InterfaceType &&
-        self.element3._isExactly(_namePadding, _uriBasic);
+        self.element._isExactly(_namePadding, _uriBasic);
   }
 
   /// Whether this is the Flutter class `SizedBox`.
   bool get isExactWidgetTypeSizedBox {
     var self = this;
     return self is InterfaceType &&
-        self.element3._isExactly(_nameSizedBox, _uriBasic);
+        self.element._isExactly(_nameSizedBox, _uriBasic);
   }
 
   /// Whether this is the Flutter class `Widget`, or its subtype.
@@ -299,10 +299,10 @@ extension DartTypeExtension on DartType? {
       return false;
     }
 
-    return [self, ...self.element3.allSupertypes].any(
+    return [self, ...self.element.allSupertypes].any(
       (t) =>
-          t.element3.name3 == 'Matrix4' &&
-          t.element3.library2.name3 == 'vector_math_64',
+          t.element.name3 == 'Matrix4' &&
+          t.element.library2.name3 == 'vector_math_64',
     );
   }
 
@@ -319,7 +319,7 @@ extension DartTypeExtension on DartType? {
   /// Whether this is the Flutter class `Widget`, or its subtype.
   bool get isWidgetType {
     var self = this;
-    return self is InterfaceType && self.element3.isWidget;
+    return self is InterfaceType && self.element.isWidget;
   }
 }
 
@@ -459,7 +459,7 @@ extension InterfaceElement2Extension on InterfaceElement? {
       return true;
     }
     return self.allSupertypes.any(
-      (type) => type.element3._isExactly(_nameFlex, _uriBasic),
+      (type) => type.element._isExactly(_nameFlex, _uriBasic),
     );
   }
 }
@@ -490,7 +490,7 @@ extension InterfaceElementExtension2 on InterfaceElement? {
       return true;
     }
     return self.allSupertypes.any(
-      (type) => type.element3._isExactly(_nameWidget, _uriFramework),
+      (type) => type.element._isExactly(_nameWidget, _uriFramework),
     );
   }
 
@@ -502,8 +502,8 @@ extension InterfaceElementExtension2 on InterfaceElement? {
       return false;
     }
     for (var type in self.allSupertypes) {
-      if (type.element3.name3 == requiredName) {
-        var uri = type.element3.library2.firstFragment.source.uri;
+      if (type.element.name3 == requiredName) {
+        var uri = type.element.library2.firstFragment.source.uri;
         if (uri == requiredUri) {
           return true;
         }

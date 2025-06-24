@@ -110,7 +110,7 @@ extension DartTypeExtension on DartType {
   /// Whether this type is `Future` or `FutureOr` from dart:async, or is a
   /// subtype of `Future`.
   bool get isOrImplementsFutureOrFutureOr {
-    var typeElement = element3;
+    var typeElement = element;
     if (typeElement is! InterfaceElement) return false;
     return isDartAsyncFuture ||
         isDartAsyncFutureOr ||

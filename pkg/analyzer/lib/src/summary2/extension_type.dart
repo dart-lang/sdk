@@ -51,7 +51,7 @@ class _DependenciesCollector extends RecursiveTypeVisitor {
 
   @override
   bool visitInterfaceType(InterfaceType type) {
-    var element = type.element3;
+    var element = type.element;
     if (element is ExtensionTypeElementImpl) {
       dependencies.add(element);
     }
@@ -72,7 +72,7 @@ class _ImplementsNode extends graph.Node<_ImplementsNode> {
   @override
   List<_ImplementsNode> computeDependencies() {
     return element.interfaces
-        .map((interface) => interface.element3)
+        .map((interface) => interface.element)
         .whereType<ExtensionTypeElementImpl>()
         .map(walker.getNode)
         .toList();

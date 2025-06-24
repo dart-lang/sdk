@@ -77,7 +77,7 @@ abstract class CreateFieldOrGetter extends ResolvedCorrectionProducer {
 
     await addForObjectPattern(
       builder: builder,
-      targetElement: matchedType.element3,
+      targetElement: matchedType.element,
       fieldName: effectiveName,
       fieldType: fieldType,
     );
@@ -154,7 +154,7 @@ class CreateGetter extends CreateFieldOrGetter {
       if (targetType is! InterfaceType) {
         return;
       }
-      targetElement = targetType.element3;
+      targetElement = targetType.element;
       // maybe static
       if (target is Identifier) {
         var targetIdentifier = target;

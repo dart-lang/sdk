@@ -4337,7 +4337,8 @@ package:analyzer/dart/element/type.dart:
   DartType (class extends Object):
     new (constructor: DartType Function())
     alias (getter: InstantiatedTypeAliasElement?)
-    element3 (getter: Element?, experimental)
+    element (getter: Element?, experimental)
+    element3 (getter: Element?, deprecated, experimental)
     extensionTypeErasure (getter: DartType)
     isBottom (getter: bool)
     isDartAsyncFuture (getter: bool)
@@ -4369,7 +4370,8 @@ package:analyzer/dart/element/type.dart:
     new (constructor: DynamicType Function())
   FunctionType (class extends Object implements DartType):
     new (constructor: FunctionType Function())
-    element3 (getter: Null)
+    element (getter: Null)
+    element3 (getter: Null, deprecated)
     formalParameters (getter: List<FormalParameterElement>, experimental)
     namedParameterTypes (getter: Map<String, DartType>)
     normalParameterTypes (getter: List<DartType>)
@@ -4385,7 +4387,8 @@ package:analyzer/dart/element/type.dart:
     new (constructor: InterfaceType Function())
     allSupertypes (getter: List<InterfaceType>)
     constructors2 (getter: List<ConstructorElement>, experimental)
-    element3 (getter: InterfaceElement, experimental)
+    element (getter: InterfaceElement, experimental)
+    element3 (getter: InterfaceElement, deprecated, experimental)
     getters (getter: List<GetterElement>, experimental)
     interfaces (getter: List<InterfaceType>)
     methods2 (getter: List<MethodElement>, experimental)
@@ -4416,7 +4419,8 @@ package:analyzer/dart/element/type.dart:
     typeArguments (getter: List<DartType>)
   RecordType (class extends Object implements DartType):
     new (constructor: RecordType Function({required Map<String, DartType> named, required NullabilitySuffix nullabilitySuffix, required List<DartType> positional}))
-    element3 (getter: Null)
+    element (getter: Null)
+    element3 (getter: Null, deprecated)
     namedFields (getter: List<RecordTypeNamedField>)
     positionalFields (getter: List<RecordTypePositionalField>)
   RecordTypeField (class extends Object):
@@ -4430,10 +4434,12 @@ package:analyzer/dart/element/type.dart:
   TypeParameterType (class extends Object implements DartType):
     new (constructor: TypeParameterType Function())
     bound (getter: DartType)
-    element3 (getter: TypeParameterElement, experimental)
+    element (getter: TypeParameterElement, experimental)
+    element3 (getter: TypeParameterElement, deprecated, experimental)
   VoidType (class extends Object implements DartType):
     new (constructor: VoidType Function())
-    element3 (getter: Null)
+    element (getter: Null)
+    element3 (getter: Null, deprecated)
 package:analyzer/dart/element/type_provider.dart:
   TypeProvider (class extends Object):
     new (constructor: TypeProvider Function())

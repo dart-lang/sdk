@@ -429,14 +429,14 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
           requiredParameter(
             name: 'x',
             type: TypeParameterTypeImpl(
-              element3: t.element,
+              element: t.element,
               nullabilitySuffix: NullabilitySuffix.none,
             ),
           ),
           requiredParameter(
             name: 'y',
             type: TypeParameterTypeImpl(
-              element3: t.element,
+              element: t.element,
               nullabilitySuffix: NullabilitySuffix.none,
             ),
           ),

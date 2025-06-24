@@ -195,8 +195,8 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     if (left is InterfaceTypeImpl && right is InterfaceTypeImpl) {
-      var leftElement = left.element3;
-      var rightElement = right.element3;
+      var leftElement = left.element;
+      var rightElement = right.element;
 
       // Can happen in JavaScript.
       if (left.isDartCoreInt && right.isDartCoreDouble ||
@@ -208,7 +208,7 @@ class TypeSystemImpl implements TypeSystem {
         InterfaceTypeImpl left,
         InterfaceTypeImpl right,
       ) {
-        assert(left.element3 == right.element3);
+        assert(left.element == right.element);
         var leftArguments = left.typeArguments;
         var rightArguments = right.typeArguments;
         assert(leftArguments.length == rightArguments.length);
@@ -421,7 +421,7 @@ class TypeSystemImpl implements TypeSystem {
         // * otherwise, flatten(T) = flatten(X)
         return flatten(
           TypeParameterTypeImpl(
-            element3: T.element3,
+            element: T.element,
             nullabilitySuffix: nullabilitySuffix,
           ),
         );
@@ -525,7 +525,7 @@ class TypeSystemImpl implements TypeSystem {
       }
     }
     return candidates
-        .where((type) => type.element3.typeParameters2.isNotEmpty)
+        .where((type) => type.element.typeParameters2.isNotEmpty)
         .toList();
   }
 
@@ -538,7 +538,7 @@ class TypeSystemImpl implements TypeSystem {
   FunctionTypeImpl? getCallMethodType(DartType t) {
     if (t is InterfaceTypeImpl) {
       return t
-          .lookUpMethod(MethodElement.CALL_METHOD_NAME, t.element3.library2)
+          .lookUpMethod(MethodElement.CALL_METHOD_NAME, t.element.library2)
           ?.type;
     }
     return null;
@@ -567,7 +567,7 @@ class TypeSystemImpl implements TypeSystem {
       }
       visitedTypes.add(type);
       if (type is TypeParameterType) {
-        var element = type.element3;
+        var element = type.element;
         if ((candidates == null || candidates.contains(element)) &&
             !boundTypeParameters.contains(element)) {
           parameters ??= <TypeParameterElement>[];
@@ -715,7 +715,7 @@ class TypeSystemImpl implements TypeSystem {
       return type.instantiate(typeArguments);
     } else if (type is InterfaceTypeImpl) {
       // TODO(scheglov): Use `ClassElement.instantiate()`, don't use raw types.
-      return type.element3.instantiateImpl(
+      return type.element.instantiateImpl(
         typeArguments: typeArguments,
         nullabilitySuffix: type.nullabilitySuffix,
       );
@@ -828,7 +828,7 @@ class TypeSystemImpl implements TypeSystem {
       if (type.isDartCoreNull) {
         return true;
       }
-      var element = type.element3;
+      var element = type.element;
       if (element is EnumElement) {
         return true;
       }
@@ -847,7 +847,7 @@ class TypeSystemImpl implements TypeSystem {
       if (promotedBound != null && isAlwaysExhaustive(promotedBound)) {
         return true;
       }
-      var bound = type.element3.bound;
+      var bound = type.element.bound;
       if (bound != null && isAlwaysExhaustive(bound)) {
         return true;
       }
@@ -910,7 +910,7 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     if (type is TypeParameterTypeImpl) {
-      var bound = type.element3.bound;
+      var bound = type.element.bound;
       if (bound != null && isDynamicBounded(bound)) {
         return true;
       }
@@ -946,7 +946,7 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     if (type is TypeParameterTypeImpl) {
-      var bound = type.element3.bound;
+      var bound = type.element.bound;
       if (bound != null && isFunctionBounded(bound)) {
         return true;
       }
@@ -970,7 +970,7 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     // `T` is an extension type that does not implement `Future`.
-    if (T.element3 is ExtensionTypeElement) {
+    if (T.element is ExtensionTypeElement) {
       var anyFuture = typeProvider.futureType(objectQuestion);
       if (!isSubtypeOf(T, anyFuture)) {
         return true;
@@ -984,7 +984,7 @@ class TypeSystemImpl implements TypeSystem {
       }
       // `T` is a type variable with bound `S`, and `S` is incompatible
       // with await.
-      if (T.element3.bound case var S?) {
+      if (T.element.bound case var S?) {
         return isIncompatibleWithAwait(S);
       }
     }
@@ -999,7 +999,7 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     if (type is TypeParameterTypeImpl) {
-      var bound = type.element3.bound;
+      var bound = type.element.bound;
       if (bound != null && isInvalidBounded(bound)) {
         return true;
       }
@@ -1064,8 +1064,8 @@ class TypeSystemImpl implements TypeSystem {
       // is anything except none by this point.
       assert(T_nullability == NullabilitySuffix.none);
       assert(S_nullability == NullabilitySuffix.none);
-      var T_element = T.element3;
-      var S_element = S.element3;
+      var T_element = T.element;
+      var S_element = S.element;
 
       // MOREBOTTOM(X&T, Y&S) = MOREBOTTOM(T, S)
       var T_promotedBound = T.promotedBound;
@@ -1183,11 +1183,11 @@ class TypeSystemImpl implements TypeSystem {
       if (type.isDartAsyncFutureOr) {
         return isNonNullable(type.typeArguments[0]);
       }
-      if (type.element3 is ExtensionTypeElement) {
+      if (type.element is ExtensionTypeElement) {
         return type.interfaces.isNotEmpty;
       }
     } else if (type is TypeParameterType) {
-      var bound = type.element3.bound;
+      var bound = type.element.bound;
       return bound != null && isNonNullable(bound);
     }
     return true;
@@ -1275,7 +1275,7 @@ class TypeSystemImpl implements TypeSystem {
       if (type.isDartAsyncFutureOr) {
         return isStrictlyNonNullable(type.typeArguments[0]);
       }
-      if (type.element3 is ExtensionTypeElement) {
+      if (type.element is ExtensionTypeElement) {
         return type.interfaces.isNotEmpty;
       }
     } else if (type is TypeParameterType) {
@@ -1491,13 +1491,13 @@ class TypeSystemImpl implements TypeSystem {
     if (type.isDartCoreNull) return NeverTypeImpl.instance;
 
     if (type is TypeParameterTypeImpl) {
-      var element = type.element3;
+      var element = type.element;
 
       // NonNull(X & T) = X & NonNull(T)
       if (type.promotedBound != null) {
         var promotedBound = promoteToNonNull(type.promotedBound!);
         return TypeParameterTypeImpl(
-          element3: element,
+          element: element,
           nullabilitySuffix: NullabilitySuffix.none,
           promotedBound: promotedBound,
         );
@@ -1512,7 +1512,7 @@ class TypeSystemImpl implements TypeSystem {
         promotedBound = null;
       }
       return TypeParameterTypeImpl(
-        element3: element,
+        element: element,
         nullabilitySuffix: NullabilitySuffix.none,
         promotedBound: promotedBound,
       );
@@ -1667,7 +1667,7 @@ class TypeSystemImpl implements TypeSystem {
         return resolveToBound(promotedBound);
       }
 
-      var bound = type.element3.bound;
+      var bound = type.element.bound;
       if (bound == null) {
         return objectQuestion;
       }
@@ -1769,9 +1769,9 @@ class TypeSystemImpl implements TypeSystem {
     // `U` to `S` where `S <: U`, yielding a type parameter `T extends S`.
     if (from is TypeParameterTypeImpl) {
       if (isSubtypeOf(to, from.bound)) {
-        var declaration = from.element3.baseElement;
+        var declaration = from.element.baseElement;
         return TypeParameterTypeImpl(
-          element3: declaration as TypeParameterElementImpl,
+          element: declaration as TypeParameterElementImpl,
           nullabilitySuffix: _promotedTypeParameterTypeNullability(
             from.nullabilitySuffix,
             to.nullabilitySuffix,
@@ -1788,7 +1788,7 @@ class TypeSystemImpl implements TypeSystem {
   /// the type arguments of [right]. Both types must be instantiations of the
   /// same element.
   bool _canBeEqualArguments(InterfaceType left, InterfaceType right) {
-    assert(left.element3 == right.element3);
+    assert(left.element == right.element);
     var leftArguments = left.typeArguments;
     var rightArguments = right.typeArguments;
     assert(leftArguments.length == rightArguments.length);
@@ -1805,7 +1805,7 @@ class TypeSystemImpl implements TypeSystem {
   /// Optimistically estimates, if [left] can be equal to [right].
   bool _canBeEqualTo(DartType left, DartType right) {
     if (left is InterfaceType && right is InterfaceType) {
-      if (left.element3 != right.element3) {
+      if (left.element != right.element) {
         return false;
       }
     }
@@ -1845,7 +1845,7 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     if (T is TypeParameterTypeImpl) {
-      var bound = T.element3.bound;
+      var bound = T.element.bound;
       if (bound != null) {
         var result = _futureTypeOfBounded(bound);
         if (result != null) {

@@ -1801,7 +1801,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       return;
     }
     if (targetType is InterfaceType) {
-      var targetClass = targetType.element3;
+      var targetClass = targetType.element;
       var extension = member.thisOrAncestorOfType2<ExtensionElement>();
       if (extension != null) {
         _recordDistance('member (extension)', 0);
@@ -1823,12 +1823,12 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
             }
             for (var mixin in currentClass.mixins.reversed) {
               depth++;
-              if (mixin.element3 == memberClass) {
+              if (mixin.element == memberClass) {
                 return depth;
               }
             }
             depth++;
-            currentClass = currentClass.supertype?.element3;
+            currentClass = currentClass.supertype?.element;
           }
           return -1;
         }
@@ -1840,7 +1840,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
           InterfaceElement? currentClass = targetClass;
           while (currentClass != null) {
             depth += currentClass.mixins.length + 1;
-            currentClass = currentClass.supertype?.element3;
+            currentClass = currentClass.supertype?.element;
           }
           return depth;
         }
@@ -2072,16 +2072,16 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
           argumentType is InterfaceType &&
           parameterType is InterfaceType) {
         int distance;
-        if (parameterType.element3 == typeProvider.futureOrElement2) {
+        if (parameterType.element == typeProvider.futureOrElement2) {
           var typeArgument = parameterType.typeArguments[0];
           distance = featureComputer.inheritanceDistance(
-            argumentType.element3,
+            argumentType.element,
             typeProvider.futureElement2,
           );
           if (typeArgument is InterfaceType) {
             var argDistance = featureComputer.inheritanceDistance(
-              argumentType.element3,
-              typeArgument.element3,
+              argumentType.element,
+              typeArgument.element,
             );
             if (distance < 0 || (argDistance >= 0 && argDistance < distance)) {
               distance = argDistance;
@@ -2089,8 +2089,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
           }
         } else {
           distance = featureComputer.inheritanceDistance(
-            argumentType.element3,
-            parameterType.element3,
+            argumentType.element,
+            parameterType.element,
           );
         }
         data.recordDistance('Subtype of context type ($descriptor)', distance);

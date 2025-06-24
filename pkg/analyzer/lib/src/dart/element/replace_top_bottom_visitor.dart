@@ -90,7 +90,7 @@ class ReplaceTopBottomVisitor {
   }
 
   InterfaceTypeImpl _interfaceType(InterfaceTypeImpl type, Variance variance) {
-    var typeParameters = type.element3.typeParameters2;
+    var typeParameters = type.element.typeParameters2;
     if (typeParameters.isEmpty) {
       return type;
     }
@@ -105,7 +105,7 @@ class ReplaceTopBottomVisitor {
     }
 
     return InterfaceTypeImpl(
-      element: type.element3,
+      element: type.element,
       nullabilitySuffix: type.nullabilitySuffix,
       typeArguments: newTypeArguments,
     );

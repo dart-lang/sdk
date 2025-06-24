@@ -556,7 +556,7 @@ mixin ElementsTypesMixin {
     required TypeImpl promotedBound,
   }) {
     return TypeParameterTypeImpl(
-      element3: element,
+      element: element,
       nullabilitySuffix: nullabilitySuffix,
       promotedBound: promotedBound,
     );
@@ -685,7 +685,7 @@ mixin ElementsTypesMixin {
     TypeImpl? promotedBound,
   }) {
     return TypeParameterTypeImpl(
-      element3: element,
+      element: element,
       nullabilitySuffix: nullabilitySuffix,
       promotedBound: promotedBound,
     );

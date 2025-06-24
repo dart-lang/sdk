@@ -192,7 +192,7 @@ Set<String> _getNamesConflictingAt(AstNode node) {
     var enclosingInterfaceElement = node.enclosingInterfaceElement;
     if (enclosingInterfaceElement != null) {
       var elements = [
-        ...enclosingInterfaceElement.allSupertypes.map((type) => type.element3),
+        ...enclosingInterfaceElement.allSupertypes.map((type) => type.element),
         enclosingInterfaceElement,
       ];
       for (var interfaceElement in elements) {

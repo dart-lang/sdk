@@ -44,7 +44,7 @@ class AddMissingEnumCaseClauses extends ResolvedCorrectionProducer {
 
     var expressionType = statement.expression.staticType;
     if (expressionType is InterfaceType) {
-      var enumElement = expressionType.element3;
+      var enumElement = expressionType.element;
       if (enumElement is EnumElement) {
         enumName = enumElement.name3;
         for (var field in enumElement.fields) {

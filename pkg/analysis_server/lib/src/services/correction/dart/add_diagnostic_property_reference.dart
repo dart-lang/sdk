@@ -425,7 +425,7 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
   }
 
   bool _isEnum(DartType type) {
-    return type is InterfaceType && type.element3 is EnumElement;
+    return type is InterfaceType && type.element is EnumElement;
   }
 
   bool _isIterable(DartType type) {

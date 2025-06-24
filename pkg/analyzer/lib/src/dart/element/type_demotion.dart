@@ -21,7 +21,7 @@ class DemotionVisitor extends ReplacementVisitor {
     }
 
     return TypeParameterTypeImpl(
-      element3: type.element3,
+      element: type.element,
       nullabilitySuffix: type.nullabilitySuffix,
       alias: type.alias,
     );

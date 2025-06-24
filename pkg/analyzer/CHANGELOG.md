@@ -61,6 +61,8 @@
 * Deprecate `InterfaceType.lookUpSetter3`, use `lookUpSetter` instead.
 * Remove `PropertyAccessorFragmentImplImplicitGetter`, `PropertyAccessorFragmentImplImplicitSetter`, 
   and `FormalParameterFragmentImplOfImplicitSetter`, replace with `GetterFragmentImpl`, and `SetterFragmentImpl`.
+* Deprecate `ExtensionTypeFragment.representation2`, use `representation` instead.
+* Deprecate `DartType.element3`, use `element` instead.
 
 ## 7.4.1
 * Restore `InstanceElement.augmented` getter.

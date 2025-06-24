@@ -145,7 +145,7 @@ class CovariantParametersVerifier {
 
     var superMembers = <_SuperMember>[];
     for (var interface in interfaces) {
-      var superMember = _correspondingMember(interface.element3, _thisMember);
+      var superMember = _correspondingMember(interface.element, _thisMember);
       if (superMember != null) {
         superMembers.add(_SuperMember(interface, superMember));
       }

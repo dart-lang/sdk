@@ -429,7 +429,7 @@ class _ClassVerifier {
     InterfaceTypeImpl type, {
     required int mixinIndex,
   }) {
-    var libraryUri = type.element3.library2.uri;
+    var libraryUri = type.element.library2.uri;
     for (var method in type.methods2) {
       _checkDeclaredMember(node, libraryUri, method, mixinIndex: mixinIndex);
     }
@@ -456,7 +456,7 @@ class _ClassVerifier {
     if (type is! InterfaceType) {
       return false;
     }
-    var typeElement = type.element3;
+    var typeElement = type.element;
 
     var classElement = this.classElement;
     if (typeElement is ClassElement &&
@@ -612,26 +612,26 @@ class _ClassVerifier {
     // n-case
     var supertype = element.supertype;
     if (supertype != null &&
-        _checkForRecursiveInterfaceInheritance(supertype.element3, path)) {
+        _checkForRecursiveInterfaceInheritance(supertype.element, path)) {
       return true;
     }
 
     for (var type in element.mixins) {
-      if (_checkForRecursiveInterfaceInheritance(type.element3, path)) {
+      if (_checkForRecursiveInterfaceInheritance(type.element, path)) {
         return true;
       }
     }
 
     if (element is MixinElementImpl) {
       for (var type in element.superclassConstraints) {
-        if (_checkForRecursiveInterfaceInheritance(type.element3, path)) {
+        if (_checkForRecursiveInterfaceInheritance(type.element, path)) {
           return true;
         }
       }
     }
 
     for (var type in element.interfaces) {
-      if (_checkForRecursiveInterfaceInheritance(type.element3, path)) {
+      if (_checkForRecursiveInterfaceInheritance(type.element, path)) {
         return true;
       }
     }
@@ -730,7 +730,7 @@ class _ClassVerifier {
       return false;
     }
 
-    var interfaceElement = type.element3;
+    var interfaceElement = type.element;
     if (interfaceElement is EnumElement ||
         interfaceElement is ExtensionTypeElement) {
       return false;
@@ -750,20 +750,20 @@ class _ClassVerifier {
   /// Return the error code that should be used when the given class [element]
   /// references itself directly.
   DiagnosticCode _getRecursiveErrorCode(InterfaceElement element) {
-    if (element.supertype?.element3 == classElement.asElement2) {
+    if (element.supertype?.element == classElement.asElement2) {
       return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS;
     }
 
     if (element is MixinElement) {
       for (var type in element.superclassConstraints) {
-        if (type.element3 == classElement.asElement2) {
+        if (type.element == classElement.asElement2) {
           return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_ON;
         }
       }
     }
 
     for (var type in element.mixins) {
-      if (type.element3 == classElement.asElement2) {
+      if (type.element == classElement.asElement2) {
         return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_WITH;
       }
     }
@@ -774,7 +774,7 @@ class _ClassVerifier {
   /// If [name] is not implemented in the extended concrete class, the
   /// issue should be fixed there, and then [classElement] will not have it too.
   bool _isNotImplementedInConcreteSuperClass(Name name) {
-    var superElement = classElement.supertype?.element3;
+    var superElement = classElement.supertype?.element;
     if (superElement is ClassElementImpl && !superElement.isAbstract) {
       var superInterface = inheritance.getInterface(superElement);
       return superInterface.map.containsKey(name);

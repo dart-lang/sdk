@@ -159,8 +159,8 @@ mixin EditableArgumentsMixin {
 
   /// Returns a list of the constants of an enum constant prefixed with the enum
   /// name.
-  List<String> getQualifiedEnumConstantNames(EnumElement element3) =>
-      element3.constants2.map(getQualifiedEnumConstantName).nonNulls.toList();
+  List<String> getQualifiedEnumConstantNames(EnumElement element) =>
+      element.constants2.map(getQualifiedEnumConstantName).nonNulls.toList();
 
   /// Returns the name of an enum constant prefixed with the enum name.
   static String? getQualifiedEnumConstantName(FieldElement enumConstant) {

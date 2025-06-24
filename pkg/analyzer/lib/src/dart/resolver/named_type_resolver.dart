@@ -260,7 +260,7 @@ class NamedTypeResolver with ScopeHelpers {
     if (element is InterfaceElementImpl) {
       if (identical(node, withClause_namedType)) {
         for (var mixin in enclosingClass!.mixins) {
-          if (mixin.element3 == element) {
+          if (mixin.element == element) {
             return mixin;
           }
         }

@@ -554,7 +554,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         ).eliminateToGreatest(valueType);
         return _typeSystem.isSubtypeOf(constantType, valueTypeGreatest);
       } else if (valueType is TypeParameterTypeImpl) {
-        var bound = valueType.promotedBound ?? valueType.element3.bound;
+        var bound = valueType.promotedBound ?? valueType.element.bound;
         if (bound != null && !hasTypeParameterReference(bound)) {
           var lowestBound =
               valueType.nullabilitySuffix == NullabilitySuffix.question

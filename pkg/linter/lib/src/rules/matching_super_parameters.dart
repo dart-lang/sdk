@@ -54,7 +54,7 @@ class _Visitor extends SimpleAstVisitor<void> {
                 .declaredFragment
                 ?.element
                 .supertype
-                ?.element3
+                ?.element
                 .unnamedConstructor2;
       }
     }

@@ -851,20 +851,20 @@ class _FieldPromotability
 
     var supertype = class_.supertype;
     if (supertype != null) {
-      result.add(supertype.element3);
+      result.add(supertype.element);
     }
 
     for (var mixin in class_.mixins) {
-      result.add(mixin.element3);
+      result.add(mixin.element);
     }
 
     if (!ignoreImplements) {
       for (var interface in class_.interfaces) {
-        result.add(interface.element3);
+        result.add(interface.element);
       }
       if (class_ is MixinElementImpl) {
         for (var constraint in class_.superclassConstraints) {
-          result.add(constraint.element3);
+          result.add(constraint.element);
         }
       }
     }

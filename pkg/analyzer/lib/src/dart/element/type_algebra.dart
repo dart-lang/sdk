@@ -34,7 +34,7 @@ FreshTypeParameters getFreshTypeParameters2(
   var map = <TypeParameterElement, DartType>{};
   for (int i = 0; i < typeParameters.length; ++i) {
     map[typeParameters[i]] = TypeParameterTypeImpl(
-      element3: freshParameters[i],
+      element: freshParameters[i],
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
@@ -195,7 +195,7 @@ abstract class Substitution {
     if (type.typeArguments.isEmpty) {
       return _NullSubstitution.instance;
     }
-    return fromPairs2(type.element3.typeParameters2, type.typeArguments);
+    return fromPairs2(type.element.typeParameters2, type.typeArguments);
   }
 
   /// Substitutes each parameter to the type it maps to in [map].
@@ -317,7 +317,7 @@ class _NullSubstitution extends MapSubstitution {
   @override
   DartType getSubstitute(TypeParameterElement parameter, bool upperBound) {
     return TypeParameterTypeImpl(
-      element3: parameter as TypeParameterElementImpl,
+      element: parameter as TypeParameterElementImpl,
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
@@ -521,7 +521,7 @@ abstract class _TypeSubstitutor
     }
 
     return InterfaceTypeImpl(
-      element: type.element3,
+      element: type.element,
       typeArguments: typeArguments,
       nullabilitySuffix: type.nullabilitySuffix,
       alias: alias,
@@ -546,7 +546,7 @@ abstract class _TypeSubstitutor
     return NamedTypeBuilder(
       linker: type.linker,
       typeSystem: type.typeSystem,
-      element3: type.element3,
+      element: type.element,
       arguments: arguments,
       nullabilitySuffix: type.nullabilitySuffix,
     );
@@ -593,7 +593,7 @@ abstract class _TypeSubstitutor
 
   @override
   TypeImpl visitTypeParameterType(covariant TypeParameterTypeImpl type) {
-    var argument = getSubstitute(type.element3);
+    var argument = getSubstitute(type.element);
     if (argument == null) {
       return type;
     }

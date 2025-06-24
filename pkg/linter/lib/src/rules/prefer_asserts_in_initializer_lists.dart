@@ -106,9 +106,9 @@ class _ClassAndSuperClasses {
       void addRecursively(InterfaceElement? element) {
         if (element != null && _classes.add(element)) {
           for (var t in element.mixins) {
-            addRecursively(t.element3);
+            addRecursively(t.element);
           }
-          addRecursively(element.supertype?.element3);
+          addRecursively(element.supertype?.element);
         }
       }
 

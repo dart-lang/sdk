@@ -88,7 +88,7 @@ class DestructureLocalVariableAssignment extends ResolvedCorrectionProducer {
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addReplacement(range.entity(node.name), (builder) {
-        builder.write('${type.element3.name3}(');
+        builder.write('${type.element.name3}(');
         if (varMap.isEmpty) {
           builder.selectHere();
         } else {

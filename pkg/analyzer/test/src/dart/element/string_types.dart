@@ -453,8 +453,8 @@ class _TypeParameterCollector extends TypeVisitor<void> {
 
   @override
   void visitTypeParameterType(TypeParameterType type) {
-    if (!functionTypeParameters.contains(type.element3)) {
-      var bound = type.element3.bound;
+    if (!functionTypeParameters.contains(type.element)) {
+      var bound = type.element.bound;
 
       if (bound == null) {
         return;
@@ -463,7 +463,7 @@ class _TypeParameterCollector extends TypeVisitor<void> {
       var str = '';
 
       var boundStr = bound.getDisplayString();
-      str += '${type.element3.name3} extends $boundStr';
+      str += '${type.element.name3} extends $boundStr';
 
       typeParameters.add(str);
     }

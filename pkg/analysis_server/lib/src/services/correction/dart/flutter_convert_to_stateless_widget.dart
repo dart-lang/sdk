@@ -269,11 +269,11 @@ class FlutterConvertToStatelessWidget extends ResolvedCorrectionProducer {
 
     var firstArgument = type.typeArguments.singleOrNull;
     if (firstArgument is! InterfaceType ||
-        firstArgument.element3 != widgetClassElement) {
+        firstArgument.element != widgetClassElement) {
       return false;
     }
 
-    var classElement = type.element3;
+    var classElement = type.element;
     return classElement is ClassElement && classElement.isExactState;
   }
 }
@@ -412,7 +412,7 @@ class _StateUsageVisitor extends RecursiveAstVisitor<void> {
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     super.visitInstanceCreationExpression(node);
     var type = node.staticType;
-    if (type is! InterfaceType || type.element3 != stateClassElement) {
+    if (type is! InterfaceType || type.element != stateClassElement) {
       return;
     }
     var methodDeclaration = node.thisOrAncestorOfType<MethodDeclaration>();
@@ -431,7 +431,7 @@ class _StateUsageVisitor extends RecursiveAstVisitor<void> {
     if (type is InterfaceType &&
         node.methodName.name == 'createState' &&
         (FlutterConvertToStatelessWidget._isState(widgetClassElement, type) ||
-            type.element3 == stateClassElement)) {
+            type.element == stateClassElement)) {
       used = true;
     }
   }

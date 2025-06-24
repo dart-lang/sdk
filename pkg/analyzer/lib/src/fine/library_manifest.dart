@@ -241,7 +241,7 @@ class LibraryManifestBuilder {
       var item = declaredItems[element] as ClassItem;
 
       // SAFETY: we set `Object` during linking if it is not a class.
-      var superElement = element.supertype!.element3;
+      var superElement = element.supertype!.element;
       superElement as ClassElementImpl;
 
       // The supertype could be a mixin application itself.
@@ -890,7 +890,7 @@ class LibraryManifestBuilder {
 
       // Ensure that we have interfaces of supertypes first.
       for (var superType in element.allSupertypes) {
-        addInterfacesToFill(superType.element3);
+        addInterfacesToFill(superType.element);
       }
 
       interfaceSet.add(element);

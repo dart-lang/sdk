@@ -46,7 +46,7 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
       if (target != null) {
         var targetType = target.staticType;
         if (targetType is InterfaceType) {
-          targetElement = targetType.element3;
+          targetElement = targetType.element;
           argument = target.parent as Expression;
         } else if (target case SimpleIdentifier(
           :InterfaceElement? element,

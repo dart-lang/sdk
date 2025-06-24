@@ -2196,6 +2196,7 @@ class _EnclosingContext {
   final List<MethodFragmentImpl> _methods = [];
   final List<MixinFragmentImpl> _mixins = [];
   final List<FormalParameterFragmentImpl> _parameters = [];
+
   // TODO(scheglov): Use getters / setters instead.
   final List<PropertyAccessorFragmentImpl> _propertyAccessors = [];
   final List<TopLevelVariableFragmentImpl> _topLevelVariables = [];

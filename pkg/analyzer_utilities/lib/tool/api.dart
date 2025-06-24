@@ -183,10 +183,10 @@ class ApiDescription {
           ')',
           suffix,
         ];
-      case InterfaceType(:var element3, :var typeArguments):
-        _potentiallyDanglingReferences.addLast(element3);
+      case InterfaceType(:var element, :var typeArguments):
+        _potentiallyDanglingReferences.addLast(element);
         return [
-          _uniqueNamer.name(element3),
+          _uniqueNamer.name(element),
           if (typeArguments.isNotEmpty)
             ...typeArguments
                 .map(_describeType)
@@ -214,8 +214,8 @@ class ApiDescription {
           ].separate(prefix: '(', suffix: ')'),
           suffix,
         ];
-      case TypeParameterType(:var element3):
-        return [element3.name3!, suffix];
+      case TypeParameterType(:var element):
+        return [element.name3!, suffix];
       case VoidType():
         return ['void'];
       case dynamic(:var runtimeType):
@@ -453,7 +453,7 @@ class ApiDescription {
         if (interface is MixinElement) ...interface.superclassConstraints,
       ]) {
         if (superinterface == null) continue;
-        var superinterfaceElement = superinterface.element3;
+        var superinterfaceElement = superinterface.element;
         if (superinterfaceElement is ClassElement &&
             superinterfaceElement.isSealed) {
           (result[superinterfaceElement] ??= {}).add(interface);
@@ -674,7 +674,7 @@ extension on Element {
   bool _isPublicApiAnnotation(ElementAnnotation annotation) {
     if (annotation.computeConstantValue() case DartObject(
       type: InterfaceType(
-        element3: InterfaceElement(name3: 'AnalyzerPublicApi'),
+        element: InterfaceElement(name3: 'AnalyzerPublicApi'),
       ),
     )) {
       return true;

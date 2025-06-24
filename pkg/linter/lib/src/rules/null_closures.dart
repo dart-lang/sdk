@@ -290,7 +290,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       );
     }
 
-    var element = type.element3;
+    var element = type.element;
     if (element.isSynthetic) return null;
 
     var elementName = element.name3;
@@ -302,7 +302,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (method != null) return method;
 
     for (var supertype in element.allSupertypes) {
-      var superElement = supertype.element3;
+      var superElement = supertype.element;
       if (superElement.name3 case var superElementName?) {
         method = getMethod(superElement.library2.name3, superElementName);
         if (method != null) return method;

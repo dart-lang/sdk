@@ -446,7 +446,7 @@ class AnnotationResolver {
     ExecutableElement? getter;
     var aliasedType = typeAliasElement.aliasedType;
     if (aliasedType is InterfaceType) {
-      var classElement = aliasedType.element3;
+      var classElement = aliasedType.element;
       if (getterName != null) {
         getter = classElement.getGetter(getterName.name);
       }

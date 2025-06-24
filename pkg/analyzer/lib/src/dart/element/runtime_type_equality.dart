@@ -98,7 +98,7 @@ class RuntimeTypeEqualityVisitor
   @override
   bool visitInterfaceType(InterfaceType T1, DartType T2) {
     if (T2 is InterfaceType &&
-        identical(T1.element3, T2.element3) &&
+        identical(T1.element, T2.element) &&
         _compatibleNullability(T1, T2)) {
       var T1_typeArguments = T1.typeArguments;
       var T2_typeArguments = T2.typeArguments;
@@ -177,7 +177,7 @@ class RuntimeTypeEqualityVisitor
   bool visitTypeParameterType(TypeParameterType T1, DartType T2) {
     return T2 is TypeParameterType &&
         _compatibleNullability(T1, T2) &&
-        identical(T1.element3, T2.element3);
+        identical(T1.element, T2.element);
   }
 
   @override

@@ -253,7 +253,7 @@ class _BaseClassMemberValidator {
     required Set<InterfaceElement> subClasses,
   }) async {
     var superClasses =
-        interfaceElement.allSupertypes.map((e) => e.element3).toSet();
+        interfaceElement.allSupertypes.map((e) => e.element).toSet();
     // check shadowing in the hierarchy
     var declarations = await searchEngine.searchMemberDeclarations(name);
     for (var declaration in declarations) {

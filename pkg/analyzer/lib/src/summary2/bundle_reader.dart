@@ -1801,7 +1801,7 @@ class ResolutionReader {
         );
       } else if (type is InterfaceTypeImpl) {
         return InterfaceTypeImpl(
-          element: type.element3,
+          element: type.element,
           typeArguments: type.typeArguments,
           nullabilitySuffix: type.nullabilitySuffix,
           alias: InstantiatedTypeAliasElementImpl(
@@ -1821,7 +1821,7 @@ class ResolutionReader {
         );
       } else if (type is TypeParameterTypeImpl) {
         return TypeParameterTypeImpl(
-          element3: type.element3,
+          element: type.element,
           nullabilitySuffix: type.nullabilitySuffix,
           alias: InstantiatedTypeAliasElementImpl(
             element2: aliasElement,

@@ -219,7 +219,7 @@ class CreateExtensionOperator extends _CreateExtensionMember {
 
     switch (node) {
       case IndexExpression(:var parent):
-        if (node.target?.staticType?.element3.declaresIndex ?? true) {
+        if (node.target?.staticType?.element.declaresIndex ?? true) {
           return;
         }
         target = node.target;
@@ -519,7 +519,7 @@ extension on List<DartType?> {
   List<TypeParameterElement> get typeParameters =>
       {
         for (var type in whereType<TypeParameterType>()) ...[
-          type.element3,
+          type.element,
           ...[type.bound].typeParameters,
         ],
         for (var type in whereType<InterfaceType>())

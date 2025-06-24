@@ -213,7 +213,7 @@ class ElementDisplayStringBuilder {
       return;
     }
 
-    _write(type.element3.name3 ?? '<null>');
+    _write(type.element.name3 ?? '<null>');
     _writeTypeArguments(type.typeArguments);
     _writeNullability(type.nullabilitySuffix);
   }
@@ -376,14 +376,14 @@ class ElementDisplayStringBuilder {
       if (hasSuffix) {
         _write('(');
       }
-      _write(type.element3.displayName);
+      _write(type.element.displayName);
       _write(' & ');
       _writeType(promotedBound);
       if (hasSuffix) {
         _write(')');
       }
     } else {
-      _write(type.element3.displayName);
+      _write(type.element.displayName);
     }
     _writeNullability(type.nullabilitySuffix);
   }
@@ -600,7 +600,7 @@ class ElementDisplayStringBuilder {
 
     void collectTypeParameters(DartType? type) {
       if (type is TypeParameterType) {
-        referencedTypeParameters.add(type.element3);
+        referencedTypeParameters.add(type.element);
       } else if (type is FunctionType) {
         for (var typeParameter in type.typeParameters) {
           collectTypeParameters(typeParameter.bound);

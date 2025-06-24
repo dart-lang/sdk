@@ -52,7 +52,7 @@ class ConvertClassToMixin extends ResolvedCorrectionProducer {
     var classFragment = classDeclaration.declaredFragment!;
     var classElement = classFragment.element;
     for (var type in classElement.mixins) {
-      if (referencedClasses.contains(type.element3)) {
+      if (referencedClasses.contains(type.element)) {
         superclassConstraints.add(type);
       } else {
         interfaces.add(type);

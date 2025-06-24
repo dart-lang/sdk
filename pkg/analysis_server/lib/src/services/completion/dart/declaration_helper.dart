@@ -457,7 +457,7 @@ class DeclarationHelper {
   }) {
     var extendedType = extension.extendedType;
     var referencingInterface =
-        (extendedType is InterfaceType) ? extendedType.element3 : null;
+        (extendedType is InterfaceType) ? extendedType.element : null;
     if (includeMethods) {
       for (var method in extension.methods) {
         if (!method.isStatic) {
@@ -648,7 +648,7 @@ class DeclarationHelper {
     if (element is TypeAliasElement) {
       var aliasedType = element.aliasedType;
       if (aliasedType is InterfaceType) {
-        element = aliasedType.element3;
+        element = aliasedType.element;
       }
     }
     switch (element) {
@@ -1109,8 +1109,8 @@ class DeclarationHelper {
     var substitution = Substitution.fromInterfaceType(type);
     var map =
         onlySuper
-            ? type.element3.inheritedConcreteMembers
-            : type.element3.interfaceMembers;
+            ? type.element.inheritedConcreteMembers
+            : type.element.interfaceMembers;
 
     var membersByName = <String, List<ExecutableElement>>{};
     for (var rawMember in map.values) {
@@ -1121,7 +1121,7 @@ class DeclarationHelper {
             .add(rawMember);
       }
     }
-    var referencingInterface = _referencingInterfaceFor(type.element3);
+    var referencingInterface = _referencingInterfaceFor(type.element);
     for (var entry in membersByName.entries) {
       var members = entry.value;
       var rawMember = _bestMember(members);
@@ -1722,7 +1722,7 @@ class DeclarationHelper {
     if (element is InterfaceElement) {
       return element;
     } else if (element is InstanceElement) {
-      var thisElement = element.thisType.element3;
+      var thisElement = element.thisType.element;
       if (thisElement is InterfaceElement) {
         return thisElement;
       }

@@ -44,7 +44,7 @@ class AddSuperParameter extends ResolvedCorrectionProducer {
 
     var classElement = classDeclaration.declaredFragment!.element;
     var superType = classElement.supertype;
-    var superElement = superType?.element3;
+    var superElement = superType?.element;
     var superUnnamedConstructor = superElement?.unnamedConstructor2;
     if (superUnnamedConstructor == null) return;
 

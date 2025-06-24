@@ -88,7 +88,7 @@ class _SuperComputer {
     // For super classes, we use the first fragment (the original declaration).
     // This differs from methods/getters because we jump to the end of the
     // augmentation chain for those.
-    return element.supertype?.element3.firstFragment;
+    return element.supertype?.element.firstFragment;
   }
 
   Fragment? _findSuperConstructor(ConstructorElement element) {

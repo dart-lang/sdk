@@ -247,8 +247,8 @@ class TypeConstraintGatherer
     InterfaceType type,
     InterfaceElementImpl typeDeclaration,
   ) {
-    for (var interface in type.element3.allSupertypes) {
-      if (interface.element3 == typeDeclaration) {
+    for (var interface in type.element.allSupertypes) {
+      if (interface.element == typeDeclaration) {
         var substitution = Substitution.fromInterfaceType(type);
         return substitution.mapInterfaceType(interface).typeArguments;
       }

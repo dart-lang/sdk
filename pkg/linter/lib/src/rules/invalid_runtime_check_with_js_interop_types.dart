@@ -41,7 +41,7 @@ const Set<String> _sdkWebLibraries = {
 bool _isJsInteropType(DartType type, _InteropTypeKind kind) {
   if (type is TypeParameterType) return _isJsInteropType(type.bound, kind);
   if (type is InterfaceType) {
-    var element = type.element3;
+    var element = type.element;
     var dartJsInteropTypeKind =
         kind == _InteropTypeKind.dartJsInteropType ||
         kind == _InteropTypeKind.any;
@@ -83,7 +83,7 @@ bool _isWasmIncompatibleJsInterop(DartType type) {
     return _isWasmIncompatibleJsInterop(type.bound);
   }
   if (type is! InterfaceType) return false;
-  var element = type.element3;
+  var element = type.element;
   // `hasJS` only checks for the `dart:_js_annotations` definition, which is
   // what we want here.
   if (element.metadata.hasJS) return true;
@@ -102,7 +102,7 @@ bool _isWasmIncompatibleJsInterop(DartType type) {
 ///
 /// Returns null if `type` is not a `dart:js_interop` `@staticInterop` class.
 DartType? _jsTypeForStaticInterop(InterfaceType type) {
-  var element = type.element3;
+  var element = type.element;
   if (element is! ClassElement) return null;
   var metadata = element.metadata;
   var hasJS = false;
@@ -153,7 +153,7 @@ class EraseNonJSInteropTypes extends ExtensionTypeErasure {
         : _isJsInteropType(type, _InteropTypeKind.dartJsInteropType)) {
       // Nullability and generics on interop types are ignored for this lint. In
       // order to just compare the interfaces themselves, we use `thisType`.
-      return type.element3.thisType;
+      return type.element.thisType;
     } else {
       // TODO(scheglov): remove this cast
       var jsType = _jsTypeForStaticInterop(type) as TypeImpl?;

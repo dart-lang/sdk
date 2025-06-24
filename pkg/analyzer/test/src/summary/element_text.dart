@@ -1106,7 +1106,7 @@ class _Element2Writer extends _AbstractElementWriter {
 
       void writeSupertype(InterfaceElement e) {
         if (e.supertype case var supertype?) {
-          if (supertype.element3.name3 != 'Object' || e.mixins.isNotEmpty) {
+          if (supertype.element.name3 != 'Object' || e.mixins.isNotEmpty) {
             _writeType('supertype', supertype);
           }
         }
@@ -1148,7 +1148,7 @@ class _Element2Writer extends _AbstractElementWriter {
       }
 
       if (configuration.withAllSupertypes && e is InterfaceElementImpl) {
-        var sorted = e.allSupertypes.sortedBy((t) => t.element3.name3!);
+        var sorted = e.allSupertypes.sortedBy((t) => t.element.name3!);
         _elementPrinter.writeTypeList('allSupertypes', sorted);
       }
 

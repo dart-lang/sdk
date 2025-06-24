@@ -39,6 +39,12 @@ abstract class DartType {
   /// Return the element representing the declaration of this type, or `null`
   /// if the type is not associated with an element.
   @experimental
+  Element? get element;
+
+  /// Return the element representing the declaration of this type, or `null`
+  /// if the type is not associated with an element.
+  @Deprecated('Use element instead')
+  @experimental
   Element? get element3;
 
   /// The extension type erasure of this type.
@@ -203,6 +209,10 @@ abstract class DynamicType implements DartType {}
 /// Clients may not extend, implement or mix-in this class.
 abstract class FunctionType implements DartType {
   @override
+  Null get element;
+
+  @Deprecated('Use element instead')
+  @override
   Null get element3;
 
   /// The formal parameters.
@@ -271,6 +281,11 @@ abstract class InterfaceType implements ParameterizedType {
   @experimental
   List<ConstructorElement> get constructors2;
 
+  @experimental
+  @override
+  InterfaceElement get element;
+
+  @Deprecated('Use element instead')
   @experimental
   @override
   InterfaceElement get element3;
@@ -526,6 +541,10 @@ abstract class RecordType implements DartType {
   }) = RecordTypeImpl.fromApi;
 
   @override
+  Null get element;
+
+  @Deprecated('Use element instead')
+  @override
   Null get element3;
 
   /// The named fields (might be empty).
@@ -566,12 +585,21 @@ abstract class TypeParameterType implements DartType {
 
   @experimental
   @override
+  TypeParameterElement get element;
+
+  @Deprecated('Use element instead')
+  @experimental
+  @override
   TypeParameterElement get element3;
 }
 
 /// The special type `void` is used to indicate that the value of an
 /// expression is meaningless, and intended to be discarded.
 abstract class VoidType implements DartType {
+  @override
+  Null get element;
+
+  @Deprecated('Use element instead')
   @override
   Null get element3;
 }

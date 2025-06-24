@@ -81,7 +81,7 @@ class PropertyElementResolver with ScopeHelpers {
         // Infer type parameters.
         var elementToInfer = _resolver.inferenceHelper
             .constructorElementToInfer(
-              typeElement: context.element3,
+              typeElement: context.element,
               constructorName: identifier,
               definingLibrary: _resolver.definingLibrary,
             );
@@ -114,7 +114,7 @@ class PropertyElementResolver with ScopeHelpers {
       }
 
       // Didn't find any constructor tearoffs, look for static getters.
-      var contextElement = context.element3;
+      var contextElement = context.element;
       return _resolveTargetInterfaceElement(
         typeReference: contextElement,
         isCascaded: false,
@@ -506,7 +506,7 @@ class PropertyElementResolver with ScopeHelpers {
         var aliasedType = targetElement.aliasedType;
         if (aliasedType is InterfaceType) {
           return _resolveTargetInterfaceElement(
-            typeReference: aliasedType.element3,
+            typeReference: aliasedType.element,
             isCascaded: isCascaded,
             propertyName: propertyName,
             hasRead: hasRead,
@@ -779,7 +779,7 @@ class PropertyElementResolver with ScopeHelpers {
     bool resolvingDotShorthand = false,
   }) {
     if (isCascaded) {
-      typeReference = _resolver.typeProvider.typeType.element3;
+      typeReference = _resolver.typeProvider.typeType.element;
     }
 
     ExecutableElement? readElement;
@@ -927,7 +927,7 @@ class PropertyElementResolver with ScopeHelpers {
       if (hasRead) {
         var name = Name(_definingLibrary.source.uri, propertyName.name);
         readElement = _resolver.inheritance.getMember(
-          targetType.element3,
+          targetType.element,
           name,
           forSuper: true,
         );
@@ -939,7 +939,7 @@ class PropertyElementResolver with ScopeHelpers {
           // But we would like to give the user at least some resolution.
           // So, we retry simply looking for an inherited member.
           readElement = _resolver.inheritance.getInherited(
-            targetType.element3,
+            targetType.element,
             name,
           );
           if (readElement != null) {

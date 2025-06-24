@@ -34,7 +34,7 @@ class AddMissingEnumLikeCaseClauses extends ResolvedCorrectionProducer {
       if (expressionType is! InterfaceType) {
         return;
       }
-      var classElement = expressionType.element3;
+      var classElement = expressionType.element;
       var className = classElement.name3;
       if (className == null) {
         return;
