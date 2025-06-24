@@ -1001,15 +1001,14 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
         }
 
         dartDocTestCompilationUnit.addSyntheticImport(
-            uri: dependency.importedLibraryReference.asLibrary.importUri
-                .toString(),
+            importUri: dependency.importedLibraryReference.asLibrary.importUri,
             prefix: dependency.name,
             combinators: combinators,
             deferred: dependency.isDeferred);
       }
 
       dartDocTestCompilationUnit.addSyntheticImport(
-          uri: libraryBuilder.importUri.toString(),
+          importUri: libraryBuilder.importUri,
           prefix: null,
           combinators: null,
           deferred: false);

@@ -910,23 +910,21 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   @override
   // Coverage-ignore(suite): Not run.
   void addSyntheticImport(
-      {required String uri,
+      {required Uri importUri,
       required String? prefix,
       required List<CombinatorBuilder>? combinators,
       required bool deferred}) {
     assert(
         checkState(pending: [SourceCompilationUnitState.importsAddedToScope]));
-    _fragmentFactory.addImport(
-        metadata: null,
-        isAugmentationImport: false,
-        uri: uri,
-        configurations: null,
-        prefix: prefix,
-        combinators: combinators,
-        deferred: deferred,
-        charOffset: -1,
-        prefixCharOffset: -1,
-        uriOffset: -1);
+    CompilationUnit? compilationUnit = loader.read(importUri, -1,
+        origin: null,
+        accessor: this,
+        isAugmentation: false,
+        referencesFromIndex: indexedLibrary);
+    Import import = new Import(this, compilationUnit, false, deferred, prefix,
+        combinators, null, fileUri, -1, -1,
+        nativeImportPath: null);
+    _fragmentFactoryResult.imports.add(import);
   }
 
   @override

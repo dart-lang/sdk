@@ -1830,7 +1830,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           }
 
           debugLibrary.compilationUnit.addSyntheticImport(
-              uri: dependency.importedLibraryReference.canonicalName!.name,
+              importUri:
+                  dependency.importedLibraryReference.asLibrary.importUri,
               prefix: dependency.name,
               combinators: combinators,
               deferred: dependency.isDeferred);
