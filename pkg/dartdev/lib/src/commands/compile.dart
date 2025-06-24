@@ -741,7 +741,13 @@ class CompileWasmCommand extends CompileSubcommandCommand {
   // file for the flags. So please keep the formatting.
 
   final List<String> binaryenFlags = _flagList('''
-      --all-features
+      --enable-gc
+      --enable-reference-types
+      --enable-multivalue
+      --enable-exception-handling
+      --enable-nontrapping-float-to-int
+      --enable-sign-ext
+
       --closed-world
       --traps-never-happen
       --type-unfinalizing
