@@ -62,6 +62,6 @@ main() {
   }
 
   dynamic fn = bar<String>();
-  Expect.equals("${fn.runtimeType}", "${stringAndIntToString.runtimeType}");
-  Expect.equals(fn("a", 1), "String, int");
+  Expect.equals("${stringAndIntToString.runtimeType}", "${fn.runtimeType}");
+  Expect.equals("$String, $int", fn("a", 1));
 }

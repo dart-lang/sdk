@@ -77,27 +77,31 @@ class Derived extends Base with Foo, Bar {
 
 main() {
   Expect.equals(
-      "S<int,String,bool>.foo\n"
-      "M<String>.foo\n",
-      SM<int, String, bool>().foo());
+    "S<$int,$String,$bool>.foo\n"
+    "M<$String>.foo\n",
+    SM<int, String, bool>().foo(),
+  );
   Expect.equals(
-      "S<int,String,bool>.foo\n"
-      "M<String>.foo\n"
-      "N<bool>.foo\n"
-      "MNA1<int, String, bool>.foo\n",
-      MNA1<int, String, bool>().foo());
+    "S<$int,$String,$bool>.foo\n"
+    "M<$String>.foo\n"
+    "N<$bool>.foo\n"
+    "MNA1<$int, $String, $bool>.foo\n",
+    MNA1<int, String, bool>().foo(),
+  );
   Expect.equals(
-      "S<int,String,bool>.foo\n"
-      "M<String>.foo\n"
-      "N<bool>.foo\n"
-      "MNA2<int, String, bool>.foo\n",
-      MNA2<int, String, bool>().foo());
+    "S<$int,$String,$bool>.foo\n"
+    "M<$String>.foo\n"
+    "N<$bool>.foo\n"
+    "MNA2<$int, $String, $bool>.foo\n",
+    MNA2<int, String, bool>().foo(),
+  );
   Expect.equals(
-      "S<int,String,bool>.foo\n"
-      "M<String>.foo\n"
-      "N<bool>.foo\n"
-      "MNA3<int, String, bool>.foo\n",
-      MNA3<int, String, bool>().foo());
+    "S<$int,$String,$bool>.foo\n"
+    "M<$String>.foo\n"
+    "N<$bool>.foo\n"
+    "MNA3<$int, $String, $bool>.foo\n",
+    MNA3<int, String, bool>().foo(),
+  );
   Expect.equals(
       "Bar.y\n"
       "Foo.x\n"

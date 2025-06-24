@@ -24,18 +24,9 @@ class C {
   List posArgs;
   Map namedArgs;
   noSuchMethod(m) {
-    Expect.equals(typeArgs.length, m.typeArguments.length);
-    for (var i = 0; i < typeArgs.length; ++i) {
-      Expect.equals(typeArgs[i], m.typeArguments[i]);
-    }
-    Expect.equals(posArgs.length, m.positionalArguments.length);
-    for (var i = 0; i < posArgs.length; ++i) {
-      Expect.equals(posArgs[i], m.positionalArguments[i]);
-    }
-    Expect.equals(namedArgs.length, m.namedArguments.length);
-    for (var k in namedArgs.keys) {
-      Expect.equals(namedArgs[k], m.namedArguments[new Symbol(k)]);
-    }
+    Expect.listEquals(typeArgs, m.typeArguments);
+    Expect.listEquals(posArgs, m.positionalArguments);
+    Expect.mapEquals(namedArgs, m.namedArguments);
     return 123;
   }
 }
@@ -63,7 +54,7 @@ main() {
   }
 
   // Test type, named, and positional arguments.
-  dynamic c = new C([int, A], [100], {"n1": 101, "n2": 102});
+  dynamic c = new C([int, A], [100], {#n1: 101, #n2: 102});
   for (var i = 0; i < 20; ++i) {
     Expect.equals(123, c.bar<int, A>(100, n1: 101, n2: 102));
     Expect.equals(123, c.bar<int, A>(100, n2: 102, n1: 101));

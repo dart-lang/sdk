@@ -23,13 +23,13 @@ dyn(x) => x;
 main() {
   var ts = new TS<int, String>();
 
-  Expect.equals("String", ts.sType.toString());
-  Expect.equals("int", ts.tType.toString());
-  Expect.equals("String", ts.getSType.toString());
-  Expect.equals("int", ts.getTType.toString());
+  Expect.equals(String, ts.sType);
+  Expect.equals(int, ts.tType);
+  Expect.equals(String, ts.getSType);
+  Expect.equals(int, ts.getTType);
 
-  Expect.equals("String", dyn(ts).sType.toString());
-  Expect.equals("int", dyn(ts).tType.toString());
-  Expect.equals("String", dyn(ts).getSType.toString());
-  Expect.equals("int", dyn(ts).getTType.toString());
+  Expect.equals(String, dyn(ts).sType);
+  Expect.equals(int, dyn(ts).tType);
+  Expect.equals(String, dyn(ts).getSType);
+  Expect.equals(int, dyn(ts).getTType);
 }

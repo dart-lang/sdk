@@ -26,9 +26,9 @@ main() {
     Expect.throws(() => new Bar().required(i: x, a: y), (e) {
       if (e is TypeError) {
         var m = e.toString();
-        return m.contains("is not a subtype of type 'int'") ||
+        return m.contains("is not a subtype of type '$int'") ||
             m.contains(
-              "Expected a value of type 'int', but got one of type 'String'",
+              "Expected a value of type '$int', but got one of type '$String'",
             );
       }
       return false;
@@ -36,9 +36,9 @@ main() {
     Expect.throws(() => new Bar().optional(i: x, a: y), (e) {
       if (e is TypeError) {
         var m = e.toString();
-        return m.contains("is not a subtype of type 'int?'") ||
+        return m.contains("is not a subtype of type '$int?'") ||
             m.contains(
-              "Expected a value of type 'int?', but got one of type 'String'",
+              "Expected a value of type '$int?', but got one of type 'String'",
             );
       }
       return false;
