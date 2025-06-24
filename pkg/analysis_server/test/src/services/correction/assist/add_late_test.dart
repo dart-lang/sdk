@@ -55,6 +55,48 @@ class C {
 ''');
   }
 
+  Future<void> test_field_finalType_in_other_file() async {
+    late var test2FilePath = '$testPackageLibPath/test2.dart';
+    var test2File = getFile(test2FilePath);
+    newFile(test2File.path, '''
+class C {
+  final String s;
+  C(this.s);
+}
+''');
+    await resolveTestCode('''
+import 'test2.dart';
+
+void foo() {
+  C c = C('42');
+  c.s^;
+}
+''');
+
+    // Don't give assists for another file.
+    await assertNoAssist();
+  }
+
+  Future<void> test_field_finalType_when_in_constructor() async {
+    verifyNoTestUnitErrors = false;
+    await resolveTestCode('''
+class C {
+  final String s;
+  C() {
+    s^ = '';
+  }
+}
+''');
+    await assertHasAssist('''
+class C {
+  late final String s;
+  C() {
+    s = '';
+  }
+}
+''');
+  }
+
   Future<void> test_field_type() async {
     await resolveTestCode('''
 class C {

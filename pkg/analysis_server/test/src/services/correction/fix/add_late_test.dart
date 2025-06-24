@@ -33,11 +33,7 @@ void f(C c) {
   c.s = '';
 }
 ''');
-    await assertHasFix('''
-class C {
-  late final String s;
-}
-''', target: '$testPackageLibPath/a.dart');
+    await assertNoFix();
   }
 
   Future<void> test_changeInPart() async {
@@ -55,13 +51,7 @@ void f(C c) {
   c.s = '';
 }
 ''');
-    await assertHasFix('''
-part 'test.dart';
-
-class C {
-  late final String s;
-}
-''', target: '$testPackageLibPath/a.dart');
+    await assertNoFix();
   }
 
   Future<void> test_final_implicitThis() async {
