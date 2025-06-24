@@ -333,8 +333,13 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
     CHECK_RESULT(uri);
     Dart_Handle resolved_script_uri = DartUtils::ResolveScript(uri);
     CHECK_RESULT(resolved_script_uri);
-    result = Dart_LoadScriptFromKernel(kernel_buffer, kernel_buffer_size);
-    CHECK_RESULT(result);
+    if (Dart_IsBytecode(kernel_buffer, kernel_buffer_size)) {
+      result = Dart_LoadScriptFromBytecode(kernel_buffer, kernel_buffer_size);
+      CHECK_RESULT(result);
+    } else {
+      result = Dart_LoadScriptFromKernel(kernel_buffer, kernel_buffer_size);
+      CHECK_RESULT(result);
+    }
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 

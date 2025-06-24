@@ -11,6 +11,12 @@ import("../create_timestamp.gni")
 
 _dart_root = get_path_info("../..", "abspath")
 
+if (dart_dynamic_modules) {
+  _kernel_service_script = "pkg/dart2bytecode/bin/kernel_service.dart"
+} else {
+  _kernel_service_script = "pkg/vm/bin/kernel_service.dart"
+}
+
 group("kernel-service") {
   if (dart_snapshot_kind == "app-jit") {
     deps = [ ":copy_kernel-service_snapshot" ]
@@ -20,14 +26,14 @@ group("kernel-service") {
 }
 
 application_snapshot("kernel-service_snapshot") {
-  main_dart = "../../pkg/vm/bin/kernel_service.dart"
+  main_dart = "../../$_kernel_service_script"
   training_args = [
     "--train",
 
     # Force triple-slashes both on Windows and otherwise.
     # Becomes e.g. file:///full/path/to/file and "file:///C:/full/path/to/file.
     # Without the ', "/"' part, on Linux it would get four slashes.
-    "file:///" + rebase_path("../../pkg/vm/bin/kernel_service.dart", "/"),
+    "file:///" + rebase_path("../../$_kernel_service_script", "/"),
   ]
   output = "$root_gen_dir/kernel-service.dart.snapshot"
 }
@@ -93,7 +99,7 @@ template("kernel_service_dill") {
       }
 
       gen_kernel_tool = "//utils:gen_kernel.exe($host_toolchain)"
-      kernel_service_script = "../../pkg/vm/bin/kernel_service.dart"
+      kernel_service_script = "../../$_kernel_service_script"
 
       deps = [
         "../../runtime/vm:vm_platform",
@@ -131,7 +137,7 @@ template("kernel_service_dill") {
         "--no-aot",
         "--no-embed-sources",
         "--output=" + rebase_path(output, root_build_dir),
-        scheme + ":///pkg/vm/bin/kernel_service.dart",
+        scheme + ":///$_kernel_service_script",
       ]
     }
   } else {
@@ -140,7 +146,7 @@ template("kernel_service_dill") {
         "../../runtime/vm:kernel_platform_files($host_toolchain)",
         "../../runtime/vm:vm_platform",
       ]
-      kernel_service_script = "../../pkg/vm/bin/kernel_service.dart"
+      kernel_service_script = "../../$_kernel_service_script"
       gen_kernel_script = "../../pkg/vm/bin/gen_kernel.dart"
 
       inputs = [
@@ -179,7 +185,7 @@ template("kernel_service_dill") {
                "--no-embed-sources",
                "--output=" + rebase_path(output, root_build_dir),
              ]
-      args += [ scheme + ":///pkg/vm/bin/kernel_service.dart" ]
+      args += [ scheme + ":///$_kernel_service_script" ]
     }
   }
 }

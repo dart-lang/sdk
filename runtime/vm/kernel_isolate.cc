@@ -685,6 +685,10 @@ class KernelCompilationRequest : public ValueObject {
     enable_mirrors.type = Dart_CObject_kBool;
     enable_mirrors.value.as_bool = FLAG_enable_mirrors;
 
+    Dart_CObject generate_bytecode;
+    generate_bytecode.type = Dart_CObject_kBool;
+    generate_bytecode.value.as_bool = FLAG_interpreter;
+
     Dart_CObject message;
     message.type = Dart_CObject_kArray;
     Dart_CObject* message_arr[] = {&tag,
@@ -707,7 +711,8 @@ class KernelCompilationRequest : public ValueObject {
                                    &num_blob_loads,
                                    &enable_asserts,
                                    &experimental_flags_object,
-                                   &enable_mirrors};
+                                   &enable_mirrors,
+                                   &generate_bytecode};
     message.value.as_array.values = message_arr;
     message.value.as_array.length = ARRAY_SIZE(message_arr);
 
@@ -914,6 +919,10 @@ class KernelCompilationRequest : public ValueObject {
     enable_mirrors.type = Dart_CObject_kBool;
     enable_mirrors.value.as_bool = FLAG_enable_mirrors;
 
+    Dart_CObject generate_bytecode;
+    generate_bytecode.type = Dart_CObject_kBool;
+    generate_bytecode.value.as_bool = FLAG_interpreter;
+
     Dart_CObject* message_arr[] = {&tag,
                                    &send_port,
                                    &uri,
@@ -929,7 +938,8 @@ class KernelCompilationRequest : public ValueObject {
                                    &multiroot_filepaths_object,
                                    &multiroot_scheme_object,
                                    &verbosity_str,
-                                   &enable_mirrors};
+                                   &enable_mirrors,
+                                   &generate_bytecode};
     message.value.as_array.values = message_arr;
     message.value.as_array.length = ARRAY_SIZE(message_arr);
     // Send the message.

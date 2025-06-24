@@ -77,6 +77,18 @@ const int kRejectTag = 7;
 
 bool allowDartInternalImport = false;
 
+// Bytecode generator, optionally injected in
+// pkg/dart2bytecode/bin/kernel_service.dart.
+Uint8List Function(
+  Component component,
+  List<Library> libraries,
+  CoreTypes coreTypes,
+  ClassHierarchy hierarchy,
+  Target target,
+  bool enableAsserts,
+)?
+bytecodeGenerator;
+
 CompilerOptions setupCompilerOptions(
   FileSystem fileSystem,
   Uri? platformKernelPath,
@@ -165,6 +177,7 @@ abstract class Compiler {
   final String invocationModes;
   final String verbosityLevel;
   final bool enableMirrors;
+  final bool generateBytecode;
 
   // Code coverage and hot reload are only supported by incremental compiler,
   // which is used if vm-service is enabled.
@@ -189,6 +202,7 @@ abstract class Compiler {
     this.invocationModes = '',
     this.verbosityLevel = Verbosity.defaultValue,
     required this.enableMirrors,
+    required this.generateBytecode,
   }) {
     Uri? packagesUri = null;
     final packageConfig = this.packageConfig ?? Platform.packageConfig;
@@ -309,6 +323,7 @@ class IncrementalCompilerWrapper extends Compiler {
     String invocationModes = '',
     String verbosityLevel = Verbosity.defaultValue,
     required bool enableMirrors,
+    required super.generateBytecode,
   }) : super(
          isolateGroupId,
          fileSystem,
@@ -333,6 +348,7 @@ class IncrementalCompilerWrapper extends Compiler {
     String? packageConfig,
     String invocationModes = '',
     required bool enableMirrors,
+    required bool generateBytecode,
   }) {
     IncrementalCompilerWrapper result = IncrementalCompilerWrapper(
       isolateGroupId,
@@ -343,6 +359,7 @@ class IncrementalCompilerWrapper extends Compiler {
       packageConfig: packageConfig,
       invocationModes: invocationModes,
       enableMirrors: enableMirrors,
+      generateBytecode: generateBytecode,
     );
     result.generator = new IncrementalCompiler.forExpressionCompilationOnly(
       component,
@@ -381,6 +398,7 @@ class IncrementalCompilerWrapper extends Compiler {
       packageConfig: packageConfig,
       invocationModes: invocationModes,
       enableMirrors: enableMirrors,
+      generateBytecode: generateBytecode,
     );
     final generator = this.generator!;
     // TODO(VM TEAM): This does not seem safe. What if cloning while having
@@ -424,6 +442,7 @@ class SingleShotCompilerWrapper extends Compiler {
     String invocationModes = '',
     String verbosityLevel = Verbosity.defaultValue,
     required bool enableMirrors,
+    required super.generateBytecode,
   }) : super(
          isolateGroupId,
          fileSystem,
@@ -483,6 +502,7 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(
   String invocationModes = '',
   String verbosityLevel = Verbosity.defaultValue,
   required bool enableMirrors,
+  required bool generateBytecode,
 }) async {
   IncrementalCompilerWrapper? compiler = lookupIncrementalCompiler(
     isolateGroupId,
@@ -520,6 +540,7 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(
         invocationModes: invocationModes,
         verbosityLevel: verbosityLevel,
         enableMirrors: enableMirrors,
+        generateBytecode: generateBytecode,
       );
     }
     isolateCompilers[isolateGroupId] = compiler;
@@ -578,6 +599,7 @@ Future _processExpressionCompilationRequest(request) async {
   final List<String>? experimentalFlags =
       request[19] != null ? request[19].cast<String>() : null;
   final bool enableMirrors = request[20];
+  final bool generateBytecode = request[21];
 
   IncrementalCompilerWrapper? compiler = isolateCompilers[isolateGroupId];
 
@@ -676,6 +698,7 @@ Future _processExpressionCompilationRequest(request) async {
           experimentalFlags: experimentalFlags,
           packageConfig: packageConfigFile,
           enableMirrors: enableMirrors,
+          generateBytecode: generateBytecode,
         );
         isolateCompilers[isolateGroupId] = compiler;
         await compiler.compile(
@@ -737,7 +760,20 @@ Future _processExpressionCompilationRequest(request) async {
       result = new CompilationResult.errors(compiler.errorsPlain);
     } else {
       Component component = createExpressionEvaluationComponent(procedure);
-      result = new CompilationResult.ok(serializeComponent(component));
+      Uint8List bytes;
+      if (compiler.generateBytecode) {
+        bytes = bytecodeGenerator!.call(
+          component,
+          component.libraries,
+          compiler.generator!.lastKnownGoodResult!.coreTypes,
+          compiler.generator!.lastKnownGoodResult!.classHierarchy,
+          compiler.options.target!,
+          compiler.enableAsserts,
+        );
+      } else {
+        bytes = serializeComponent(component);
+      }
+      result = new CompilationResult.ok(bytes);
     }
   } catch (error, stack) {
     result = new CompilationResult.crash(error, stack);
@@ -867,6 +903,7 @@ Future _processLoadRequest(request) async {
   final String? multirootScheme = request[13];
   final String verbosityLevel = request[14];
   final bool enableMirrors = request[15];
+  final bool generateBytecode = request[16];
   Uri platformKernelPath;
   List<int>? platformKernel = null;
   if (request[3] is String) {
@@ -952,6 +989,7 @@ Future _processLoadRequest(request) async {
       invocationModes: invocationModes,
       verbosityLevel: verbosityLevel,
       enableMirrors: enableMirrors,
+      generateBytecode: generateBytecode,
     );
     fileSystem = compiler.fileSystem;
   } else {
@@ -973,6 +1011,7 @@ Future _processLoadRequest(request) async {
       invocationModes: invocationModes,
       verbosityLevel: verbosityLevel,
       enableMirrors: enableMirrors,
+      generateBytecode: generateBytecode,
     );
   }
 
@@ -1028,13 +1067,30 @@ Future _processLoadRequest(request) async {
       // these sources built-in. Everything loaded as a summary in
       // [kernelForProgram] is marked `external`, so we can use that bit to
       // decide what to exclude.
-      result = new CompilationResult.ok(
-        serializeComponent(
+      Uint8List bytes;
+      if (compiler.generateBytecode) {
+        final generator = bytecodeGenerator;
+        if (generator == null) {
+          throw 'Cannot generate bytecode as dynamic modules are disabled.';
+        }
+        bytes = generator(
+          compilerResult.component!,
+          compilerResult.component!.libraries
+              .where((lib) => !loadedLibraries.contains(lib))
+              .toList(),
+          compilerResult.coreTypes!,
+          compilerResult.classHierarchy!,
+          compiler.options.target!,
+          compiler.enableAsserts,
+        );
+      } else {
+        bytes = serializeComponent(
           compilerResult.component!,
           filter: (lib) => !loadedLibraries.contains(lib),
           nativeAssetsComponent: nativeAssetsComponent,
-        ),
-      );
+        );
+      }
+      result = new CompilationResult.ok(bytes);
     }
   } catch (error, stack) {
     result = new CompilationResult.crash(error, stack);
@@ -1232,7 +1288,7 @@ Future trainInternal(String scriptUri, String? platformKernelPath) async {
     null /* multirootScheme */,
     'all' /* CFE logging mode */,
     true /* enableMirrors */,
-    null /* native assets yaml */,
+    false /* generateBytecode */,
   ];
   await _processLoadRequest(request);
 }

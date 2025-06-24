@@ -111,6 +111,7 @@ typedef void (*Dart_ExitIsolateType)();
 typedef Dart_Handle (
     *Dart_CreateSnapshotType)(uint8_t**, intptr_t*, uint8_t**, intptr_t*, bool);
 typedef bool (*Dart_IsKernelType)(const uint8_t*, intptr_t);
+typedef bool (*Dart_IsBytecodeType)(const uint8_t*, intptr_t);
 typedef char* (*Dart_IsolateMakeRunnableType)(Dart_Isolate);
 typedef void (*Dart_SetMessageNotifyCallbackType)(Dart_MessageNotifyCallback);
 typedef Dart_MessageNotifyCallback (*Dart_GetMessageNotifyCallbackType)();
@@ -347,6 +348,8 @@ typedef Dart_Handle (*Dart_DeferredLoadCompleteErrorType)(intptr_t,
                                                           const char*,
                                                           bool);
 typedef Dart_Handle (*Dart_LoadScriptFromKernelType)(const uint8_t*, intptr_t);
+typedef Dart_Handle (*Dart_LoadScriptFromBytecodeType)(const uint8_t*,
+                                                       intptr_t);
 typedef Dart_Handle (*Dart_RootLibraryType)();
 typedef Dart_Handle (*Dart_SetRootLibraryType)(Dart_Handle);
 typedef Dart_Handle (*Dart_GetTypeType)(Dart_Handle,
@@ -528,6 +531,7 @@ static Dart_AddSymbolsType Dart_AddSymbolsFn = NULL;
 static Dart_ExitIsolateType Dart_ExitIsolateFn = NULL;
 static Dart_CreateSnapshotType Dart_CreateSnapshotFn = NULL;
 static Dart_IsKernelType Dart_IsKernelFn = NULL;
+static Dart_IsBytecodeType Dart_IsBytecodeFn = NULL;
 static Dart_IsolateMakeRunnableType Dart_IsolateMakeRunnableFn = NULL;
 static Dart_SetMessageNotifyCallbackType Dart_SetMessageNotifyCallbackFn = NULL;
 static Dart_GetMessageNotifyCallbackType Dart_GetMessageNotifyCallbackFn = NULL;
@@ -692,6 +696,7 @@ static Dart_DeferredLoadCompleteType Dart_DeferredLoadCompleteFn = NULL;
 static Dart_DeferredLoadCompleteErrorType Dart_DeferredLoadCompleteErrorFn =
     NULL;
 static Dart_LoadScriptFromKernelType Dart_LoadScriptFromKernelFn = NULL;
+static Dart_LoadScriptFromBytecodeType Dart_LoadScriptFromBytecodeFn = NULL;
 static Dart_RootLibraryType Dart_RootLibraryFn = NULL;
 static Dart_SetRootLibraryType Dart_SetRootLibraryFn = NULL;
 static Dart_GetTypeType Dart_GetTypeFn = NULL;
@@ -898,6 +903,8 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
         (Dart_CreateSnapshotType)GetProcAddress(process, "Dart_CreateSnapshot");
     Dart_IsKernelFn =
         (Dart_IsKernelType)GetProcAddress(process, "Dart_IsKernel");
+    Dart_IsBytecodeFn =
+        (Dart_IsBytecodeType)GetProcAddress(process, "Dart_IsBytecode");
     Dart_IsolateMakeRunnableFn = (Dart_IsolateMakeRunnableType)GetProcAddress(
         process, "Dart_IsolateMakeRunnable");
     Dart_SetMessageNotifyCallbackFn =
@@ -1225,6 +1232,9 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
             process, "Dart_DeferredLoadCompleteError");
     Dart_LoadScriptFromKernelFn = (Dart_LoadScriptFromKernelType)GetProcAddress(
         process, "Dart_LoadScriptFromKernel");
+    Dart_LoadScriptFromBytecodeFn =
+        (Dart_LoadScriptFromBytecodeType)GetProcAddress(
+            process, "Dart_LoadScriptFromBytecode");
     Dart_RootLibraryFn =
         (Dart_RootLibraryType)GetProcAddress(process, "Dart_RootLibrary");
     Dart_SetRootLibraryFn =
@@ -1646,6 +1656,10 @@ Dart_Handle Dart_CreateSnapshot(uint8_t** vm_snapshot_data_buffer,
 
 bool Dart_IsKernel(const uint8_t* buffer, intptr_t buffer_size) {
   return Dart_IsKernelFn(buffer, buffer_size);
+}
+
+bool Dart_IsBytecode(const uint8_t* buffer, intptr_t buffer_size) {
+  return Dart_IsBytecodeFn(buffer, buffer_size);
 }
 
 char* Dart_IsolateMakeRunnable(Dart_Isolate isolate) {
@@ -2367,6 +2381,11 @@ Dart_Handle Dart_DeferredLoadCompleteError(intptr_t loading_unit_id,
 Dart_Handle Dart_LoadScriptFromKernel(const uint8_t* kernel_buffer,
                                       intptr_t kernel_size) {
   return Dart_LoadScriptFromKernelFn(kernel_buffer, kernel_size);
+}
+
+Dart_Handle Dart_LoadScriptFromBytecode(const uint8_t* kernel_buffer,
+                                        intptr_t kernel_size) {
+  return Dart_LoadScriptFromBytecodeFn(kernel_buffer, kernel_size);
 }
 
 Dart_Handle Dart_RootLibrary() {

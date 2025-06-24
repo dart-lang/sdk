@@ -238,7 +238,8 @@ void DFE::ReadScript(const char* script_uri,
                          kernel_buffer_size, decode_uri)) {
     return;
   }
-  if (!Dart_IsKernel(*kernel_buffer, *kernel_buffer_size)) {
+  if (!Dart_IsKernel(*kernel_buffer, *kernel_buffer_size) &&
+      !Dart_IsBytecode(*kernel_buffer, *kernel_buffer_size)) {
     free(*kernel_buffer);
     *kernel_buffer = nullptr;
     *kernel_buffer_size = -1;
@@ -259,7 +260,8 @@ static bool TryReadSimpleKernelBuffer(uint8_t* buffer,
                                       intptr_t* p_kernel_ir_size) {
   DartUtils::MagicNumber magic_number =
       DartUtils::SniffForMagicNumber(buffer, *p_kernel_ir_size);
-  if (magic_number == DartUtils::kKernelMagicNumber) {
+  if ((magic_number == DartUtils::kKernelMagicNumber) ||
+      (magic_number == DartUtils::kBytecodeMagicNumber)) {
     // Do not free buffer if this is a kernel file - kernel_file will be
     // backed by the same memory as the buffer and caller will own it.
     // Caller is responsible for freeing the buffer when this function
@@ -428,7 +430,7 @@ bool DFE::TryReadKernelFile(const char* script_uri,
   *kernel_ir_size = -1;
 
   if (app_snapshot == nullptr || app_snapshot->IsKernel() ||
-      app_snapshot->IsKernelList()) {
+      app_snapshot->IsKernelList() || app_snapshot->IsBytecode()) {
     uint8_t* buffer;
     if (!TryReadFile(script_uri, &buffer, kernel_ir_size, decode_uri)) {
       return false;
@@ -440,6 +442,10 @@ bool DFE::TryReadKernelFile(const char* script_uri,
       magic_number = DartUtils::kKernelMagicNumber;
       ASSERT(DartUtils::SniffForMagicNumber(buffer, *kernel_ir_size) ==
              DartUtils::kKernelMagicNumber);
+    } else if (app_snapshot->IsBytecode()) {
+      magic_number = DartUtils::kBytecodeMagicNumber;
+      ASSERT(DartUtils::SniffForMagicNumber(buffer, *kernel_ir_size) ==
+             DartUtils::kBytecodeMagicNumber);
     } else {
       magic_number = DartUtils::kKernelListMagicNumber;
       ASSERT(DartUtils::SniffForMagicNumber(buffer, *kernel_ir_size) ==
