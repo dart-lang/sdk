@@ -279,7 +279,7 @@ class SafepointLocker : public ValueObject {
   explicit SafepointLocker(M* monitor) : monitor_(monitor) { AcquireLock(); }
   virtual ~SafepointLocker() { ReleaseLock(); }
 
-  M::WaitResult Wait(int64_t millis = Monitor::kNoTimeout);
+  typename M::WaitResult Wait(int64_t millis = Monitor::kNoTimeout);
 
   void NotifyAll() { monitor_->NotifyAll(); }
 
