@@ -10,6 +10,8 @@ import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
 import "dart:html";
 
+import "../csp_helper.dart";
+
 main() {
   asyncStart();
 
@@ -31,7 +33,11 @@ main() {
     Expect.equals(1, scripts.length);
     for (var script in scripts) {
       Expect.equals("an-example-nonce-string", script.nonce);
-      Expect.equals("an-example-nonce-string", script.getAttribute('nonce'));
+      // nonce attribute not copied through to script when csp enabled.
+      Expect.equals(
+        isCspEnabled ? "" : "an-example-nonce-string",
+        script.getAttribute('nonce'),
+      );
     }
     asyncEnd();
   });
