@@ -69,14 +69,13 @@ enum _DeclarationKind {
 
 abstract class _Declaration {
   final _DeclarationKind kind;
-  final Fragment _fragment;
   final String displayName;
   final bool isAugment;
   final bool inPatch;
   final bool inLibrary;
   final bool isStatic;
 
-  _Declaration(this.kind, this._fragment,
+  _Declaration(this.kind,
       {required this.displayName,
       required this.isAugment,
       required this.inPatch,
@@ -118,7 +117,6 @@ abstract class _Declaration {
 }
 
 mixin _FragmentDeclarationMixin implements _Declaration {
-  @override
   Fragment get _fragment;
 
   @override
@@ -129,7 +127,7 @@ mixin _FragmentDeclarationMixin implements _Declaration {
 }
 
 abstract class _NonConstructorDeclaration extends _Declaration {
-  _NonConstructorDeclaration(super.kind, super.fragment,
+  _NonConstructorDeclaration(super.kind,
       {required super.displayName,
       required super.isAugment,
       required super.inPatch,
@@ -146,94 +144,64 @@ abstract class _NonConstructorDeclaration extends _Declaration {
   }
 }
 
-mixin _PropertyFragmentDeclarationMixin implements _PropertyDeclaration {
-  @override
-  Fragment get _fragment;
-
-  @override
-  _PropertyDeclarations createDeclarations() {
-    Fragment fragment = _fragment;
-    switch (fragment) {
-      case FieldFragment():
-        RegularFieldDeclaration declaration =
-            new RegularFieldDeclaration(fragment);
-        return new _PropertyDeclarations(
-            field: declaration,
-            getter: declaration,
-            setter: fragment.hasSetter ? declaration : null);
-      case PrimaryConstructorFieldFragment():
-        PrimaryConstructorFieldDeclaration declaration =
-            new PrimaryConstructorFieldDeclaration(fragment);
-        return new _PropertyDeclarations(
-            field: declaration, getter: declaration);
-      case EnumElementFragment():
-        EnumElementDeclaration declaration =
-            new EnumElementDeclaration(fragment);
-        return new _PropertyDeclarations(
-            field: declaration, getter: declaration);
-      case GetterFragment():
-        return new _PropertyDeclarations(
-            getter: new RegularGetterDeclaration(fragment));
-      case SetterFragment():
-        return new _PropertyDeclarations(
-            setter: new RegularSetterDeclaration(fragment));
-      // Coverage-ignore(suite): Not run.
-      default:
-        throw new UnsupportedError("Unexpected property fragment $fragment");
-    }
-  }
-}
-
 abstract class _PropertyDeclaration extends _NonConstructorDeclaration {
   final _PropertyKind propertyKind;
+  final _PropertyDeclarations declarations;
 
-  _PropertyDeclaration(super.kind, super.fragment,
+  @override
+  final UriOffsetLength uriOffset;
+
+  _PropertyDeclaration(
       {required super.displayName,
       required super.isAugment,
       required super.inPatch,
       required super.inLibrary,
       required this.propertyKind,
-      super.isStatic});
-
-  _PropertyDeclarations createDeclarations();
+      required this.declarations,
+      required this.uriOffset,
+      super.isStatic})
+      : super(_DeclarationKind.Property);
 }
 
-class _FieldDeclaration extends _PropertyDeclaration
-    with _FragmentDeclarationMixin, _PropertyFragmentDeclarationMixin {
-  _FieldDeclaration(super.kind, super.fragment,
+class _FieldDeclaration extends _PropertyDeclaration {
+  _FieldDeclaration(
       {required super.displayName,
       required super.isAugment,
       required super.inPatch,
       required super.inLibrary,
       required super.propertyKind,
+      required super.declarations,
+      required super.uriOffset,
       super.isStatic});
 
   @override
   _PreBuilder _createPreBuilder() => new _PropertyPreBuilder.forField(this);
 }
 
-class _GetterDeclaration extends _PropertyDeclaration
-    with _FragmentDeclarationMixin, _PropertyFragmentDeclarationMixin {
-  _GetterDeclaration(super.kind, super.fragment,
+class _GetterDeclaration extends _PropertyDeclaration {
+  _GetterDeclaration(
       {required super.displayName,
       required super.isAugment,
       required super.inPatch,
       required super.inLibrary,
       required super.propertyKind,
+      required super.declarations,
+      required super.uriOffset,
       super.isStatic});
 
   @override
   _PreBuilder _createPreBuilder() => new _PropertyPreBuilder.forGetter(this);
 }
 
-class _SetterDeclaration extends _PropertyDeclaration
-    with _FragmentDeclarationMixin, _PropertyFragmentDeclarationMixin {
-  _SetterDeclaration(super.kind, super.fragment,
+class _SetterDeclaration extends _PropertyDeclaration {
+  _SetterDeclaration(
       {required super.displayName,
       required super.isAugment,
       required super.inPatch,
       required super.inLibrary,
       required super.propertyKind,
+      required super.declarations,
+      required super.uriOffset,
       super.isStatic});
 
   @override
@@ -246,7 +214,23 @@ mixin _StandardFragmentDeclarationMixin implements _StandardDeclaration {
 }
 
 abstract class _StandardDeclaration extends _NonConstructorDeclaration {
-  _StandardDeclaration(super.kind, super.fragment,
+  // TODO(johnniwinther): Remove this.
+  Fragment get _fragment;
+
+  _StandardDeclaration(super.kind,
+      {required super.displayName,
+      required super.isAugment,
+      required super.inPatch,
+      required super.inLibrary,
+      super.isStatic});
+}
+
+class _StandardFragmentDeclaration extends _StandardDeclaration
+    with _FragmentDeclarationMixin, _StandardFragmentDeclarationMixin {
+  @override
+  final Fragment _fragment;
+
+  _StandardFragmentDeclaration(super.kind, this._fragment,
       {required super.displayName,
       required super.isAugment,
       required super.inPatch,
@@ -257,30 +241,19 @@ abstract class _StandardDeclaration extends _NonConstructorDeclaration {
   _PreBuilder _createPreBuilder() => new _DeclarationPreBuilder(this);
 }
 
-class _StandardFragmentDeclaration extends _StandardDeclaration
-    with _FragmentDeclarationMixin, _StandardFragmentDeclarationMixin {
-  _StandardFragmentDeclaration(super.kind, super.fragment,
-      {required super.displayName,
-      required super.isAugment,
-      required super.inPatch,
-      required super.inLibrary,
-      super.isStatic});
-}
-
-mixin _ConstructorFragmentDeclarationMixin implements _ConstructorDeclaration {
-  @override
-  Fragment get _fragment;
-}
-
 sealed class _ConstructorDeclaration extends _Declaration {
   final bool isConst;
 
-  _ConstructorDeclaration(super.kind, super.fragment,
+  @override
+  final UriOffsetLength uriOffset;
+
+  _ConstructorDeclaration(super.kind,
       {required super.displayName,
       required super.isAugment,
       required super.inPatch,
       required super.inLibrary,
-      required this.isConst});
+      required this.isConst,
+      required this.uriOffset});
 
   @override
   void registerPreBuilder(
@@ -292,40 +265,40 @@ sealed class _ConstructorDeclaration extends _Declaration {
   }
 }
 
-class _GenerativeConstructorDeclaration extends _ConstructorDeclaration
-    with _FragmentDeclarationMixin, _ConstructorFragmentDeclarationMixin {
+class _GenerativeConstructorDeclaration extends _ConstructorDeclaration {
   final String _name;
   final ConstructorDeclaration _declaration;
 
-  _GenerativeConstructorDeclaration(this._declaration, Fragment fragment,
+  _GenerativeConstructorDeclaration(this._declaration,
       {required String name,
       required super.displayName,
       required super.isAugment,
       required super.inPatch,
       required super.inLibrary,
-      required super.isConst})
+      required super.isConst,
+      required super.uriOffset})
       : _name = name,
-        super(_DeclarationKind.Constructor, fragment);
+        super(_DeclarationKind.Constructor);
 
   @override
   _PreBuilder _createPreBuilder() =>
       new _GenerativeConstructorPreBuilder(_name, this);
 }
 
-class _FactoryConstructorDeclaration extends _ConstructorDeclaration
-    with _FragmentDeclarationMixin, _ConstructorFragmentDeclarationMixin {
+class _FactoryConstructorDeclaration extends _ConstructorDeclaration {
   final String _name;
   final FactoryDeclaration _declaration;
 
-  _FactoryConstructorDeclaration(this._declaration, Fragment fragment,
+  _FactoryConstructorDeclaration(this._declaration,
       {required String name,
       required super.displayName,
       required super.isAugment,
       required super.inPatch,
       required super.inLibrary,
-      required super.isConst})
+      required super.isConst,
+      required super.uriOffset})
       : _name = name,
-        super(_DeclarationKind.Factory, fragment);
+        super(_DeclarationKind.Factory);
 
   @override
   _PreBuilder _createPreBuilder() =>
@@ -517,40 +490,40 @@ class _BuilderFactory {
       case FactoryFragment():
         return new _FactoryConstructorDeclaration(
           new FactoryDeclarationImpl(fragment),
-          fragment,
           name: fragment.name,
           displayName: fragment.constructorName.fullName,
           isAugment: fragment.modifiers.isAugment,
           inPatch: fragment.enclosingDeclaration.isPatch,
           inLibrary: inLibrary,
           isConst: fragment.modifiers.isConst,
+          uriOffset: fragment.uriOffset,
         );
       case ConstructorFragment():
         return new _GenerativeConstructorDeclaration(
           new RegularConstructorDeclaration(fragment),
-          fragment,
           name: fragment.name,
           displayName: fragment.constructorName.fullName,
           isAugment: fragment.modifiers.isAugment,
           inPatch: fragment.enclosingDeclaration.isPatch,
           inLibrary: inLibrary,
           isConst: fragment.modifiers.isConst,
+          uriOffset: fragment.uriOffset,
         );
       case PrimaryConstructorFragment():
         return new _GenerativeConstructorDeclaration(
           new PrimaryConstructorDeclaration(fragment),
-          fragment,
           name: fragment.name,
           displayName: fragment.constructorName.fullName,
           isAugment: fragment.modifiers.isAugment,
           inPatch: fragment.enclosingDeclaration.isPatch,
           inLibrary: inLibrary,
           isConst: fragment.modifiers.isConst,
+          uriOffset: fragment.uriOffset,
         );
       case FieldFragment():
+        RegularFieldDeclaration declaration =
+            new RegularFieldDeclaration(fragment);
         return new _FieldDeclaration(
-          _DeclarationKind.Property,
-          fragment,
           displayName: fragment.name,
           isAugment: fragment.modifiers.isAugment,
           propertyKind: fragment.hasSetter
@@ -560,22 +533,28 @@ class _BuilderFactory {
           inPatch: fragment.enclosingDeclaration?.isPatch ??
               fragment.enclosingCompilationUnit.isPatch,
           inLibrary: inLibrary,
+          uriOffset: fragment.uriOffset,
+          declarations: new _PropertyDeclarations(
+              field: declaration,
+              getter: declaration,
+              setter: fragment.hasSetter ? declaration : null),
         );
       case PrimaryConstructorFieldFragment():
+        PrimaryConstructorFieldDeclaration declaration =
+            new PrimaryConstructorFieldDeclaration(fragment);
         return new _FieldDeclaration(
-          _DeclarationKind.Property,
-          fragment,
           displayName: fragment.name,
           isAugment: false,
           propertyKind: _PropertyKind.FinalField,
           isStatic: false,
           inPatch: fragment.enclosingDeclaration.isPatch,
           inLibrary: false,
+          uriOffset: fragment.uriOffset,
+          declarations: new _PropertyDeclarations(
+              field: declaration, getter: declaration),
         );
       case GetterFragment():
         return new _GetterDeclaration(
-          _DeclarationKind.Property,
-          fragment,
           displayName: fragment.name,
           isAugment: fragment.modifiers.isAugment,
           propertyKind: _PropertyKind.Getter,
@@ -583,11 +562,12 @@ class _BuilderFactory {
           inPatch: fragment.enclosingDeclaration?.isPatch ??
               fragment.enclosingCompilationUnit.isPatch,
           inLibrary: inLibrary,
+          uriOffset: fragment.uriOffset,
+          declarations: new _PropertyDeclarations(
+              getter: new RegularGetterDeclaration(fragment)),
         );
       case SetterFragment():
         return new _SetterDeclaration(
-          _DeclarationKind.Property,
-          fragment,
           displayName: fragment.name,
           isAugment: fragment.modifiers.isAugment,
           propertyKind: _PropertyKind.Setter,
@@ -595,17 +575,23 @@ class _BuilderFactory {
           inPatch: fragment.enclosingDeclaration?.isPatch ??
               fragment.enclosingCompilationUnit.isPatch,
           inLibrary: inLibrary,
+          uriOffset: fragment.uriOffset,
+          declarations: new _PropertyDeclarations(
+              setter: new RegularSetterDeclaration(fragment)),
         );
       case EnumElementFragment():
+        EnumElementDeclaration declaration =
+            new EnumElementDeclaration(fragment);
         return new _FieldDeclaration(
-          _DeclarationKind.Property,
-          fragment,
           displayName: fragment.name,
           isAugment: false,
           propertyKind: _PropertyKind.FinalField,
           isStatic: true,
           inPatch: fragment.enclosingDeclaration.isPatch,
           inLibrary: inLibrary,
+          uriOffset: fragment.uriOffset,
+          declarations: new _PropertyDeclarations(
+              field: declaration, getter: declaration),
         );
     }
   }
@@ -1359,7 +1345,7 @@ class _PropertyPreBuilder extends _PreBuilder {
         name = getter.displayName,
         uriOffset = getter.uriOffset,
         _getterPropertyKind = getter.propertyKind {
-    _PropertyDeclarations declarations = getter.createDeclarations();
+    _PropertyDeclarations declarations = getter.declarations;
     assert(declarations.field == null,
         "Unexpected field declaration from getter ${getter}.");
     assert(declarations.getter != null,
@@ -1376,7 +1362,7 @@ class _PropertyPreBuilder extends _PreBuilder {
         name = setter.displayName,
         uriOffset = setter.uriOffset,
         _setterPropertyKind = setter.propertyKind {
-    _PropertyDeclarations declarations = setter.createDeclarations();
+    _PropertyDeclarations declarations = setter.declarations;
     assert(declarations.field == null,
         "Unexpected field declaration from setter ${setter}.");
     assert(declarations.getter == null,
@@ -1393,7 +1379,7 @@ class _PropertyPreBuilder extends _PreBuilder {
         name = field.displayName,
         uriOffset = field.uriOffset,
         _getterPropertyKind = field.propertyKind {
-    _PropertyDeclarations declarations = field.createDeclarations();
+    _PropertyDeclarations declarations = field.declarations;
     assert(declarations.field != null,
         "Unexpected field declaration from field ${field}.");
     assert(declarations.getter != null,
@@ -1502,8 +1488,7 @@ class _PropertyPreBuilder extends _PreBuilder {
             }
             return false;
           } else {
-            _PropertyDeclarations declarations =
-                declaration.createDeclarations();
+            _PropertyDeclarations declarations = declaration.declarations;
             assert(
                 declarations.field == null,
                 "Unexpected field declaration from getter "
@@ -1525,8 +1510,7 @@ class _PropertyPreBuilder extends _PreBuilder {
             //    int get foo => 42;
             //    augment int get foo => 87;
             //
-            _PropertyDeclarations declarations =
-                declaration.createDeclarations();
+            _PropertyDeclarations declarations = declaration.declarations;
             assert(
                 declarations.field == null,
                 "Unexpected field declaration from getter "
@@ -1609,8 +1593,7 @@ class _PropertyPreBuilder extends _PreBuilder {
               return false;
             }
           } else {
-            _PropertyDeclarations declarations =
-                declaration.createDeclarations();
+            _PropertyDeclarations declarations = declaration.declarations;
             assert(
                 declarations.field == null,
                 "Unexpected field declaration from setter "
@@ -1632,8 +1615,7 @@ class _PropertyPreBuilder extends _PreBuilder {
             //    void set foo(_) {}
             //    augment void set foo(_) {}
             //
-            _PropertyDeclarations declarations =
-                declaration.createDeclarations();
+            _PropertyDeclarations declarations = declaration.declarations;
             assert(
                 declarations.field == null,
                 "Unexpected field declaration from setter "
@@ -1720,8 +1702,7 @@ class _PropertyPreBuilder extends _PreBuilder {
               //    int foo = 42;
               //    augment int foo = 87;
               //
-              _PropertyDeclarations declarations =
-                  declaration.createDeclarations();
+              _PropertyDeclarations declarations = declaration.declarations;
               // TODO(johnniwinther): Handle field augmentation.
               _getterAugmentations.add(declarations.getter!);
               _setterAugmentations.add(declarations.setter!);
@@ -1834,8 +1815,7 @@ class _PropertyPreBuilder extends _PreBuilder {
               return false;
             }
           } else {
-            _PropertyDeclarations declarations =
-                declaration.createDeclarations();
+            _PropertyDeclarations declarations = declaration.declarations;
             assert(
                 declarations.setter == null,
                 "Unexpected setter declaration from field "
@@ -1866,8 +1846,7 @@ class _PropertyPreBuilder extends _PreBuilder {
               //    final int foo = 42;
               //    augment final int foo = 87;
               //
-              _PropertyDeclarations declarations =
-                  declaration.createDeclarations();
+              _PropertyDeclarations declarations = declaration.declarations;
               assert(
                   declarations.setter == null,
                   "Unexpected setter declaration from final field "
@@ -2146,8 +2125,8 @@ class _FactoryConstructorPreBuilder
 
 /// [_PreBuilder] for non-constructor, non-property declarations.
 class _DeclarationPreBuilder extends _PreBuilder {
-  final _Declaration _declaration;
-  final List<_Declaration> _augmentations = [];
+  final _StandardDeclaration _declaration;
+  final List<_StandardDeclaration> _augmentations = [];
 
   // TODO(johnniwinther): Report error if [fragment] is augmenting.
   _DeclarationPreBuilder(this._declaration);
@@ -2162,7 +2141,7 @@ class _DeclarationPreBuilder extends _PreBuilder {
         //    class Foo {}
         //    augment class Foo {}
         //
-        _augmentations.add(declaration);
+        _augmentations.add(declaration as _StandardDeclaration);
         return true;
       } else {
         // Example:
