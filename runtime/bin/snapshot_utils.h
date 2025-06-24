@@ -29,6 +29,9 @@ class AppSnapshot {
   bool IsKernelList() const {
     return magic_number_ == DartUtils::kKernelListMagicNumber;
   }
+  bool IsBytecode() const {
+    return magic_number_ == DartUtils::kBytecodeMagicNumber;
+  }
 
  protected:
   explicit AppSnapshot(DartUtils::MagicNumber num) : magic_number_(num) {}

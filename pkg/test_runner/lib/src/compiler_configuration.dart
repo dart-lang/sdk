@@ -1666,15 +1666,14 @@ class BytecodeCompilerConfiguration extends CompilerConfiguration {
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
-      ..._replaceDartFiles(
-          originalArguments,
-          (_configuration.runtime == Runtime.dartPrecompiled)
-              ? '${_configuration.buildDirectory}/dynamic_module_runner.snapshot'
-              : Platform.script
-                  .resolve(
-                      '../../../pkg/dynamic_modules/bin/dynamic_module_runner.dart')
-                  .toFilePath()),
-      filename,
+      if (_configuration.runtime == Runtime.dartPrecompiled) ...[
+        ..._replaceDartFiles(originalArguments,
+            '${_configuration.buildDirectory}/dynamic_module_runner.snapshot'),
+        filename,
+      ] else ...[
+        '--interpreter',
+        ...originalArguments,
+      ],
       ...testFile.dartOptions
     ];
   }

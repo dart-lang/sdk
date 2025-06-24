@@ -44,6 +44,7 @@ MagicNumberData kernel_magic_number = {4, {0x90, 0xab, 0xcd, 0xef}};
 MagicNumberData kernel_list_magic_number = {
     7,
     {0x23, 0x40, 0x64, 0x69, 0x6c, 0x6c, 0x0a}};  // #@dill\n
+MagicNumberData bytecode_magic_number = {4, {0x33, 0x43, 0x42, 0x44}};
 MagicNumberData gzip_magic_number = {2, {0x1f, 0x8b, 0, 0}};
 
 static bool IsWindowsHost() {
@@ -398,6 +399,7 @@ DartUtils::MagicNumber DartUtils::SniffForMagicNumber(const char* filename) {
   ASSERT(aotcoff_riscv64_magic_number.length <= appjit_magic_number.length);
   ASSERT(kernel_magic_number.length <= appjit_magic_number.length);
   ASSERT(kernel_list_magic_number.length <= appjit_magic_number.length);
+  ASSERT(bytecode_magic_number.length <= appjit_magic_number.length);
   ASSERT(gzip_magic_number.length <= appjit_magic_number.length);
   if (File::GetType(nullptr, filename, true) == File::kIsFile) {
     File* file = File::Open(nullptr, filename, File::kRead);
@@ -426,8 +428,8 @@ DartUtils::MagicNumber DartUtils::SniffForMagicNumber(const uint8_t* buffer,
     return kKernelListMagicNumber;
   }
 
-  if (CheckMagicNumber(buffer, buffer_length, gzip_magic_number)) {
-    return kGzipMagicNumber;
+  if (CheckMagicNumber(buffer, buffer_length, bytecode_magic_number)) {
+    return kBytecodeMagicNumber;
   }
 
   if (CheckMagicNumber(buffer, buffer_length, gzip_magic_number)) {

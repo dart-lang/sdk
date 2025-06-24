@@ -1461,6 +1461,16 @@ Dart_CreateSnapshot(uint8_t** vm_snapshot_data_buffer,
 DART_EXPORT bool Dart_IsKernel(const uint8_t* buffer, intptr_t buffer_size);
 
 /**
+ * Returns whether the buffer contains a bytecode file.
+ *
+ * \param buffer Pointer to a buffer that might contain a bytecode binary.
+ * \param buffer_size Size of the buffer.
+ *
+ * \return Whether the buffer contains a bytecode binary.
+ */
+DART_EXPORT bool Dart_IsBytecode(const uint8_t* buffer, intptr_t buffer_size);
+
+/**
  * Make isolate runnable.
  *
  * When isolates are spawned, this function is used to indicate that
@@ -3550,6 +3560,20 @@ Dart_DeferredLoadCompleteError(intptr_t loading_unit_id,
  */
 DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
 Dart_LoadScriptFromKernel(const uint8_t* kernel_buffer, intptr_t kernel_size);
+
+/**
+ * Loads the root library for the current isolate.
+ *
+ * Requires there to be no current root library.
+ *
+ * \param kernel_buffer A buffer which contains a bytecode binary.
+ *   Must remain valid until isolate group shutdown.
+ * \param kernel_size Length of the passed in buffer.
+ *
+ * \return A handle to the root library, or an error.
+ */
+DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
+Dart_LoadScriptFromBytecode(const uint8_t* kernel_buffer, intptr_t kernel_size);
 
 /**
  * Gets the library for the root script for the current isolate.

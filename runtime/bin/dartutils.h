@@ -256,6 +256,7 @@ class DartUtils {
     kAppJITMagicNumber,
     kKernelMagicNumber,
     kKernelListMagicNumber,
+    kBytecodeMagicNumber,
     kGzipMagicNumber,
     kAotELFMagicNumber,
     // Only the host-endian magic numbers are recognized, not the reverse-endian

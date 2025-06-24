@@ -1320,7 +1320,8 @@
           "arguments": [
             "-nvm-dyn-${system}-${mode}-${arch}",
             "corelib",
-            "language"
+            "language",
+            "pkg/vm_service/"
           ],
           "fileset": "vm",
           "shards": 5
