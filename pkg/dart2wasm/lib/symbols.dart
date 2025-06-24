@@ -35,7 +35,8 @@ class Symbols {
           symbolOrdinals.putIfAbsent(symbol, () => symbolOrdinals.length));
     }
 
-    if (symbol.libraryReference == null) {
+    final libraryReference = symbol.libraryReference;
+    if (libraryReference == null) {
       return symbol.name;
     }
 
@@ -46,7 +47,7 @@ class Symbols {
     // The symbol must be a private identifier (library symbols like `#a.b.c` do
     // not have private parts in them).
     assert(!symbol.name.contains('.') && symbol.name.startsWith('_'));
-    return '${symbol.name}@${symbol.libraryReference!.canonicalName.hashCode}';
+    return '${symbol.name}@${libraryReference.asLibrary.importUri.hashCode}';
   }
 }
 
