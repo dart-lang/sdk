@@ -622,6 +622,10 @@ class Symbols : public AllStatic {
     ASSERT((index > kIllegal) && (index < kMaxPredefinedId));
     return *(symbol_handles_[index]);
   }
+  static void InitSymbol(intptr_t index, String* symbol) {
+    ASSERT((index > kIllegal) && (index < kMaxPredefinedId));
+    symbol_handles_[index] = symbol;
+  }
 
   // Access methods for one byte character symbols stored in the vm isolate.
   static const String& Dot() { return *(symbol_handles_[kNullCharId + '.']); }
@@ -777,9 +781,6 @@ class Symbols : public AllStatic {
   static StringPtr FromGet(Thread* thread, const String& str);
   static StringPtr FromSet(Thread* thread, const String& str);
   static StringPtr FromDot(Thread* thread, const String& str);
-
-  // Returns char* of predefined symbol.
-  static const char* Name(SymbolId symbol);
 
   static StringPtr FromCharCode(Thread* thread, uint16_t char_code);
 

@@ -21,6 +21,7 @@ namespace dart {
 StringPtr Symbols::predefined_[Symbols::kNumberOfOneCharCodeSymbols];
 String* Symbols::symbol_handles_[Symbols::kMaxPredefinedId];
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 static const char* const names[] = {
     // clang-format off
   nullptr,
@@ -34,6 +35,7 @@ static const char* const names[] = {
 #undef DEFINE_TOKEN_SYMBOL_INDEX
     // clang-format on
 };
+#endif
 
 StringPtr StringFrom(const uint8_t* data, intptr_t len, Heap::Space space) {
   return String::FromLatin1(data, len, space);
@@ -63,11 +65,6 @@ StringPtr ConcatString::ToSymbol() const {
   return result.ptr();
 }
 
-const char* Symbols::Name(SymbolId symbol) {
-  ASSERT((symbol > kIllegal) && (symbol < kNullCharId));
-  return names[symbol];
-}
-
 const String& Symbols::Token(Token::Kind token) {
   const int tok_index = token;
   ASSERT((0 <= tok_index) && (tok_index < Token::kNumTokens));
@@ -78,6 +75,10 @@ const String& Symbols::Token(Token::Kind token) {
 }
 
 void Symbols::Init(IsolateGroup* vm_isolate_group) {
+  // TODO(engine): Require a snapshot when running the JIT runtime too.
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   // Should only be run by the vm isolate.
   ASSERT(IsolateGroup::Current() == Dart::vm_isolate_group());
   ASSERT(vm_isolate_group == Dart::vm_isolate_group());
@@ -122,47 +123,14 @@ void Symbols::Init(IsolateGroup* vm_isolate_group) {
   }
 
   vm_isolate_group->object_store()->set_symbol_table(table.Release());
+#endif
 }
 
 void Symbols::InitFromSnapshot(IsolateGroup* vm_isolate_group) {
-  // Should only be run by the vm isolate.
-  ASSERT(IsolateGroup::Current() == Dart::vm_isolate_group());
-  ASSERT(vm_isolate_group == Dart::vm_isolate_group());
-  Zone* zone = Thread::Current()->zone();
-
-  CanonicalStringSet table(zone,
-                           vm_isolate_group->object_store()->symbol_table());
-
-  // Lookup all the predefined string symbols and language keyword symbols
-  // and cache them in the read only handles for fast access.
-  for (intptr_t i = 1; i < Symbols::kNullCharId; i++) {
-    String* str = String::ReadOnlyHandle();
-    const unsigned char* name =
-        reinterpret_cast<const unsigned char*>(names[i]);
-    *str ^= table.GetOrNull(Latin1Array(name, strlen(names[i])));
-    ASSERT(!str->IsNull());
-    ASSERT(str->HasHash());
-    ASSERT(str->IsCanonical());
-    symbol_handles_[i] = str;
-  }
-
-  // Lookup Latin1 character Symbols and cache them in read only handles,
-  // so that Symbols::FromCharCode is fast.
   for (intptr_t c = 0; c < kNumberOfOneCharCodeSymbols; c++) {
     intptr_t idx = (kNullCharId + c);
-    ASSERT(idx < kMaxPredefinedId);
-    ASSERT(Utf::IsLatin1(c));
-    uint8_t ch = static_cast<uint8_t>(c);
-    String* str = String::ReadOnlyHandle();
-    *str ^= table.GetOrNull(Latin1Array(&ch, 1));
-    ASSERT(!str->IsNull());
-    ASSERT(str->HasHash());
-    ASSERT(str->IsCanonical());
-    predefined_[c] = str->ptr();
-    symbol_handles_[idx] = str;
+    predefined_[c] = symbol_handles_[idx]->ptr();
   }
-
-  vm_isolate_group->object_store()->set_symbol_table(table.Release());
 }
 
 void Symbols::SetupSymbolTable(IsolateGroup* isolate_group) {
