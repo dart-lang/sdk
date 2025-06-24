@@ -14,14 +14,6 @@ unsorted/disassemble_test: SkipByDesign # JIT only test
 *: Pass, Slow # The CFE is not run from AppJit snapshot, JIT warmup in debug mode very slow
 
 [ $builder_tag == obfuscated && $compiler == dartkp ]
-generic/function_dcall_test/01: SkipByDesign # Prints type names
-mixin/generic_test: SkipByDesign # Prints type names
-mixin/mixin3_test: SkipByDesign # Prints type names
-mixin/mixin5_test: SkipByDesign # Prints type names
-mixin/mixin6_test: SkipByDesign # Prints type names
-mixin/mixin_bound2_test: SkipByDesign # Prints type names
-unsorted/cyclic_type2_test: SkipByDesign # Prints type names
-unsorted/many_named_arguments_test: SkipByDesign # Checks names of arguments
 vm/bool_check_stack_traces_test: SkipByDesign # Looks for filenames in stacktrace output
 vm/no_such_args_error_message_vm_test: SkipByDesign # Looks for function name in error message
 vm/no_such_method_error_message_callable_vm_test: SkipByDesign # Expects unobfuscated method names
