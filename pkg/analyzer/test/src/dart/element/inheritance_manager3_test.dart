@@ -3012,7 +3012,7 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
     required String name,
     String? expected,
   }) {
-    var members = manager.getOverridden4(
+    var members = manager.getOverridden(
       findElement2.classOrMixin(className),
       Name(null, name),
     );
@@ -3121,19 +3121,19 @@ class _InterfacePrinter {
        _configuration = configuration;
 
   void write(Interface interface) {
-    _writeNameToMap('map', interface.map2);
-    _writeNameToMap('declared', interface.declared2);
+    _writeNameToMap('map', interface.map);
+    _writeNameToMap('declared', interface.declared);
 
     if (_configuration.withoutIdenticalImplemented) {
-      expect(interface.implemented2, same(interface.map2));
+      expect(interface.implemented, same(interface.map));
     } else {
-      _writeNameToMap('implemented', interface.implemented2);
+      _writeNameToMap('implemented', interface.implemented);
     }
 
-    _writeNameToListMap('overridden', interface.overridden2);
-    _writeNameToListMap('redeclared', interface.redeclared2);
-    _writeListOfMaps('superImplemented', interface.superImplemented2);
-    _writeNameToMap('inheritedMap', interface.inheritedMap2 ?? {});
+    _writeNameToListMap('overridden', interface.overridden);
+    _writeNameToListMap('redeclared', interface.redeclared);
+    _writeListOfMaps('superImplemented', interface.superImplemented);
+    _writeNameToMap('inheritedMap', interface.inheritedMap ?? {});
     _writeConflicts(interface.conflicts);
   }
 
@@ -3190,7 +3190,7 @@ class _InterfacePrinter {
           case NotUniqueExtensionMemberConflict _:
             _elementPrinter.writeElementList2(
               'NotUniqueExtensionMemberConflict',
-              conflict.candidates2,
+              conflict.candidates,
             );
           default:
             fail('Not implemented: ${conflict.runtimeType}');

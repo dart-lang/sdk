@@ -59,6 +59,8 @@
 * Deprecate `InterfaceType.lookUpGetter3`, use `lookUpGetter` instead.
 * Deprecate `InterfaceType.lookUpMethod3`, use `lookUpMethod` instead.
 * Deprecate `InterfaceType.lookUpSetter3`, use `lookUpSetter` instead.
+* Remove `PropertyAccessorFragmentImplImplicitGetter`, `PropertyAccessorFragmentImplImplicitSetter`, 
+  and `FormalParameterFragmentImplOfImplicitSetter`, replace with `GetterFragmentImpl`, and `SetterFragmentImpl`.
 
 ## 7.4.1
 * Restore `InstanceElement.augmented` getter.

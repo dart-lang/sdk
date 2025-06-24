@@ -834,7 +834,7 @@ class LibraryManifestBuilder {
     item.interface.beforeUpdating();
 
     var interface = element.inheritanceManager.getInterface(element);
-    for (var entry in interface.map2.entries) {
+    for (var entry in interface.map.entries) {
       var executable = entry.value.baseElement;
 
       var lookupName = executable.lookupName?.asLookupName;

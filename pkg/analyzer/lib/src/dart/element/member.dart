@@ -532,15 +532,11 @@ class FieldMember extends VariableMember
 
   @override
   GetterElement2OrMember? get getter2 {
-    var baseGetter = declaration.getter;
+    var baseGetter = baseElement.getter2;
     if (baseGetter == null) {
       return null;
     }
-    return GetterMember._(
-      declaration: baseGetter,
-      substitution: substitution,
-      typeParameters: baseGetter.typeParameters,
-    );
+    return GetterMember.forSubstitution(baseGetter, substitution);
   }
 
   @override
@@ -586,15 +582,11 @@ class FieldMember extends VariableMember
 
   @override
   SetterElement2OrMember? get setter2 {
-    var baseSetter = declaration.setter;
+    var baseSetter = baseElement.setter2;
     if (baseSetter == null) {
       return null;
     }
-    return SetterMember._(
-      declaration: baseSetter,
-      substitution: substitution,
-      typeParameters: baseSetter.typeParameters,
-    );
+    return SetterMember.forSubstitution(baseSetter, substitution);
   }
 
   @override
@@ -676,11 +668,11 @@ class GetterMember extends PropertyAccessorMember
 
   @override
   SetterElement2OrMember? get correspondingSetter2 {
-    var setter = correspondingSetter;
-    if (setter is SetterMember) {
-      return setter;
+    var baseSetter = baseElement.variable3!.setter2;
+    if (baseSetter == null) {
+      return null;
     }
-    return setter?.asElement2 as SetterElementImpl?;
+    return SetterMember.forSubstitution(baseSetter, substitution);
   }
 
   @override
@@ -721,14 +713,21 @@ class GetterMember extends PropertyAccessorMember
     return visitor.visitGetterElement(this);
   }
 
+  static GetterElement2OrMember forSubstitution(
+    GetterElement2OrMember element,
+    MapSubstitution substitution,
+  ) {
+    // TODO(scheglov): avoid type cast
+    return ExecutableMember.from(element, substitution)
+        as GetterElement2OrMember;
+  }
+
   static GetterElement2OrMember forTargetType(
     GetterElement2OrMember element,
     InterfaceType targetType,
   ) {
     var substitution = Substitution.fromInterfaceType(targetType);
-    // TODO(scheglov): avoid type cast
-    return ExecutableMember.from(element, substitution)
-        as GetterElement2OrMember;
+    return forSubstitution(element, substitution);
   }
 }
 
@@ -1216,30 +1215,6 @@ abstract class PropertyAccessorMember extends ExecutableMember
   });
 
   @override
-  PropertyAccessorElementOrMember? get correspondingGetter {
-    var baseGetter = declaration.correspondingGetter;
-    if (baseGetter == null) {
-      return null;
-    }
-    return PropertyAccessorMember(
-      declaration: baseGetter,
-      substitution: substitution,
-    );
-  }
-
-  @override
-  PropertyAccessorElementOrMember? get correspondingSetter {
-    var baseSetter = declaration.correspondingSetter;
-    if (baseSetter == null) {
-      return null;
-    }
-    return PropertyAccessorMember(
-      declaration: baseSetter,
-      substitution: substitution,
-    );
-  }
-
-  @override
   PropertyAccessorFragmentImpl get declaration =>
       _declaration as PropertyAccessorFragmentImpl;
 
@@ -1263,17 +1238,6 @@ abstract class PropertyAccessorMember extends ExecutableMember
 
   @override
   Source get source => _declaration.source!;
-
-  @override
-  PropertyInducingElementOrMember? get variable2 {
-    var variable = declaration.variable2;
-    switch (variable) {
-      case FieldFragmentImpl():
-        return FieldMember(declaration: variable, substitution: substitution);
-      default:
-        return variable;
-    }
-  }
 
   @override
   PropertyInducingElement2OrMember? get variable3 {
@@ -1332,11 +1296,11 @@ class SetterMember extends PropertyAccessorMember
 
   @override
   GetterElement2OrMember? get correspondingGetter2 {
-    var getter = correspondingGetter;
-    if (getter is GetterMember) {
-      return getter;
+    var baseGetter = baseElement.variable3!.getter2;
+    if (baseGetter == null) {
+      return null;
     }
-    return getter?.asElement2 as GetterElementImpl?;
+    return GetterMember.forSubstitution(baseGetter, substitution);
   }
 
   @override
@@ -1377,14 +1341,21 @@ class SetterMember extends PropertyAccessorMember
     return visitor.visitSetterElement(this);
   }
 
+  static SetterElement2OrMember forSubstitution(
+    SetterElement2OrMember element,
+    MapSubstitution substitution,
+  ) {
+    // TODO(scheglov): avoid type cast
+    return ExecutableMember.from(element, substitution)
+        as SetterElement2OrMember;
+  }
+
   static SetterElement2OrMember forTargetType(
     SetterElement2OrMember element,
     InterfaceType targetType,
   ) {
     var substitution = Substitution.fromInterfaceType(targetType);
-    // TODO(scheglov): avoid type cast
-    return ExecutableMember.from(element, substitution)
-        as SetterElement2OrMember;
+    return forSubstitution(element, substitution);
   }
 }
 

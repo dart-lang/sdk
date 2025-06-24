@@ -3184,10 +3184,11 @@ class FieldFragmentImpl extends PropertyInducingFragmentImpl
   ///
   /// Such fields are `index`, `_name`, and `values`.
   bool get isSyntheticEnumField {
+    // TODO(scheglov): move to element
     return enclosingElement3 is EnumFragmentImpl &&
         isSynthetic &&
         element.getter2?.isSynthetic == true &&
-        setter == null;
+        element.setter2 == null;
   }
 
   @override
@@ -3616,71 +3617,6 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
   FormalParameterElementImpl _createElement(
     FormalParameterFragment firstFragment,
   ) => FormalParameterElementImpl(firstFragment as FormalParameterFragmentImpl);
-}
-
-/// The parameter of an implicit setter.
-class FormalParameterFragmentImplOfImplicitSetter
-    extends FormalParameterFragmentImpl {
-  final PropertyAccessorFragmentImplImplicitSetter setter;
-
-  FormalParameterFragmentImplOfImplicitSetter(this.setter)
-    : super(
-        nameOffset: -1,
-        name2:
-            setter.variable2.name2 == null
-                ? null
-                : considerCanonicalizeString('_${setter.variable2.name2!}'),
-        nameOffset2: null,
-        parameterKind: ParameterKind.REQUIRED,
-      ) {
-    enclosingElement3 = setter;
-    isSynthetic = true;
-  }
-
-  @override
-  bool get inheritsCovariant {
-    var variable = setter.variable2;
-    if (variable is FieldFragmentImpl) {
-      return variable.inheritsCovariant;
-    }
-    return false;
-  }
-
-  @override
-  set inheritsCovariant(bool value) {
-    var variable = setter.variable2;
-    if (variable is FieldFragmentImpl) {
-      variable.inheritsCovariant = value;
-    }
-  }
-
-  @override
-  bool get isCovariant {
-    if (isExplicitlyCovariant || inheritsCovariant) {
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool get isExplicitlyCovariant {
-    var variable = setter.variable2;
-    if (variable is FieldFragmentImpl) {
-      return variable.isCovariant;
-    }
-    return false;
-  }
-
-  @override
-  int get offset => setter.offset;
-
-  @override
-  TypeImpl get type => setter.variable2.type;
-
-  @override
-  set type(DartType type) {
-    assert(false); // Should never be called.
-  }
 }
 
 mixin FragmentedAnnotatableElementMixin<E extends Fragment>
@@ -4555,12 +4491,6 @@ class GetterFragmentImpl extends PropertyAccessorFragmentImpl
   GetterFragmentImpl.forVariable(super.variable) : super.forVariable();
 
   @override
-  PropertyAccessorFragmentImpl? get correspondingGetter => null;
-
-  @override
-  PropertyAccessorFragmentImpl? get correspondingSetter => variable2?.setter;
-
-  @override
   bool get isGetter => true;
 
   @override
@@ -5264,7 +5194,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   Map<Name, ExecutableElement> get interfaceMembers =>
       (session as AnalysisSessionImpl).inheritanceManager
           .getInterface(this)
-          .map2;
+          .map;
 
   @override
   List<InterfaceTypeImpl> get interfaces {
@@ -5341,7 +5271,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
 
   @override
   List<ExecutableElement>? getOverridden(Name name) =>
-      (session as AnalysisSessionImpl).inheritanceManager.getOverridden4(
+      (session as AnalysisSessionImpl).inheritanceManager.getOverridden(
         this,
         name,
       );
@@ -8894,16 +8824,6 @@ abstract class PropertyAccessorElementImpl extends ExecutableElementImpl
 /// `PropertyAccessorElement`.
 abstract class PropertyAccessorElementOrMember
     implements ExecutableElementOrMember {
-  /// The accessor representing the getter that corresponds to (has the same
-  /// name as) this setter, or `null` if this accessor is not a setter or
-  /// if there is no corresponding getter.
-  PropertyAccessorElementOrMember? get correspondingGetter;
-
-  /// The accessor representing the setter that corresponds to (has the same
-  /// name as) this getter, or `null` if this accessor is not a getter or
-  /// if there is no corresponding setter.
-  PropertyAccessorElementOrMember? get correspondingSetter;
-
   /// Whether the accessor represents a getter.
   bool get isGetter;
 
@@ -8912,15 +8832,6 @@ abstract class PropertyAccessorElementOrMember
 
   @override
   TypeImpl get returnType;
-
-  /// The field or top-level variable associated with this accessor.
-  ///
-  /// If this accessor was explicitly defined (is not synthetic) then the
-  /// variable associated with it will be synthetic.
-  ///
-  /// If this accessor is an augmentation, and [augmentationTarget] is `null`,
-  /// the variable is `null`.
-  PropertyInducingElementOrMember? get variable2;
 }
 
 sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
@@ -8948,12 +8859,6 @@ sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
     isStatic = variable.isStatic;
     isSynthetic = true;
   }
-
-  @override
-  PropertyAccessorFragmentImpl? get correspondingGetter;
-
-  @override
-  PropertyAccessorFragmentImpl? get correspondingSetter;
 
   @override
   PropertyAccessorFragmentImpl get declaration => this;
@@ -9011,136 +8916,12 @@ sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
   }
 
   @override
-  PropertyInducingFragmentImpl? get variable2 {
-    return element.variable3?.firstFragment;
-  }
-
-  @override
-  PropertyInducingFragment? get variable3 => variable2;
-
-  @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeExecutableElement(
       this,
       (isGetter ? 'get ' : 'set ') + displayName,
     );
   }
-}
-
-/// Implicit getter for a [PropertyInducingFragmentImpl].
-class PropertyAccessorFragmentImplImplicitGetter extends GetterFragmentImpl {
-  /// Create the implicit getter and bind it to the [property].
-  PropertyAccessorFragmentImplImplicitGetter(super.property)
-    : super.forVariable();
-
-  @override
-  FragmentImpl get enclosingElement3 {
-    return variable2.enclosingElement3;
-  }
-
-  @override
-  bool get hasImplicitReturnType => variable2.hasImplicitType;
-
-  @override
-  bool get isGetter => true;
-
-  @override
-  String? get name2 => variable2.name2;
-
-  @override
-  int get offset => variable2.offset;
-
-  @override
-  TypeImpl get returnType => variable2.type;
-
-  @override
-  set returnType(DartType returnType) {
-    assert(false); // Should never be called.
-  }
-
-  @override
-  Version? get sinceSdkVersion => variable2.sinceSdkVersion;
-
-  @override
-  FunctionTypeImpl get type {
-    return _type ??= FunctionTypeImpl(
-      typeFormals: const <TypeParameterFragmentImpl>[],
-      parameters: const <FormalParameterElementImpl>[],
-      returnType: returnType,
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-  }
-
-  @override
-  set type(FunctionType type) {
-    assert(false); // Should never be called.
-  }
-
-  @override
-  PropertyInducingFragmentImpl get variable2 => super.variable2!;
-}
-
-/// Implicit setter for a [PropertyInducingFragmentImpl].
-class PropertyAccessorFragmentImplImplicitSetter extends SetterFragmentImpl {
-  /// Create the implicit setter and bind it to the [property].
-  PropertyAccessorFragmentImplImplicitSetter(super.property)
-    : super.forVariable();
-
-  @override
-  FragmentImpl get enclosingElement3 {
-    return variable2.enclosingElement3;
-  }
-
-  @override
-  bool get isSetter => true;
-
-  @override
-  String? get name2 => variable2.name2;
-
-  @override
-  int get offset => variable2.offset;
-
-  @override
-  List<FormalParameterFragmentImpl> get parameters {
-    if (_parameters.isNotEmpty) {
-      return _parameters;
-    }
-
-    return _parameters = List.generate(
-      1,
-      (_) => FormalParameterFragmentImplOfImplicitSetter(this),
-      growable: false,
-    );
-  }
-
-  @override
-  TypeImpl get returnType => VoidTypeImpl.instance;
-
-  @override
-  set returnType(DartType returnType) {
-    assert(false); // Should never be called.
-  }
-
-  @override
-  Version? get sinceSdkVersion => variable2.sinceSdkVersion;
-
-  @override
-  FunctionTypeImpl get type {
-    return _type ??= FunctionTypeImpl(
-      typeFormals: const <TypeParameterFragmentImpl>[],
-      parameters: parameters.map((f) => f.asElement2).toList(),
-      returnType: returnType,
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-  }
-
-  @override
-  set type(FunctionType type) {
-    assert(false); // Should never be called.
-  }
-
-  @override
-  PropertyInducingFragmentImpl get variable2 => super.variable2!;
 }
 
 /// Common base class for all analyzer-internal classes that implement
@@ -9269,15 +9050,6 @@ abstract class PropertyInducingFragmentImpl
   @override
   Fragment get enclosingFragment => enclosingElement3 as Fragment;
 
-  /// The getter associated with this variable.
-  ///
-  /// If this variable was explicitly defined (is not synthetic) then the
-  /// getter associated with it will be synthetic.
-  GetterFragmentImpl? get getter => element.getter2?.firstFragment;
-
-  @override
-  GetterFragmentImpl? get getter2 => getter;
-
   /// Return `true` if this variable needs the setter.
   bool get hasSetter {
     if (isConst) {
@@ -9307,20 +9079,6 @@ abstract class PropertyInducingFragmentImpl
   @Deprecated('Use metadata instead')
   @override
   MetadataImpl get metadata2 => metadata;
-
-  /// The setter associated with this variable, or `null` if the variable
-  /// is effectively `final` and therefore does not have a setter associated
-  /// with it.
-  ///
-  /// This can happen either because the variable is explicitly defined as
-  /// being `final` or because the variable is induced by an explicit getter
-  /// that does not have a corresponding setter. If this variable was
-  /// explicitly defined (is not synthetic) then the setter associated with
-  /// it will be synthetic.
-  SetterFragmentImpl? get setter => element.setter2?.firstFragment;
-
-  @override
-  SetterFragmentImpl? get setter2 => setter;
 
   bool get shouldUseTypeForInitializerInference {
     return hasModifier(Modifier.SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE);
@@ -9369,23 +9127,6 @@ abstract class PropertyInducingFragmentImpl
 
     shouldUseTypeForInitializerInference = false;
     return _type!;
-  }
-
-  @override
-  set type(TypeImpl type) {
-    super.type = type;
-    // Reset cached types of synthetic getters and setters.
-    // TODO(scheglov): Consider not caching these types.
-    if (!isSynthetic) {
-      var getter = this.getter;
-      if (getter is PropertyAccessorFragmentImplImplicitGetter) {
-        getter._type = null;
-      }
-      var setter = this.setter;
-      if (setter is PropertyAccessorFragmentImplImplicitSetter) {
-        setter._type = null;
-      }
-    }
   }
 }
 
@@ -9506,12 +9247,6 @@ class SetterFragmentImpl extends PropertyAccessorFragmentImpl
   SetterFragmentImpl({required super.name2, required super.nameOffset});
 
   SetterFragmentImpl.forVariable(super.variable) : super.forVariable();
-
-  @override
-  PropertyAccessorFragmentImpl? get correspondingGetter => variable2?.getter;
-
-  @override
-  PropertyAccessorFragmentImpl? get correspondingSetter => null;
 
   @override
   bool get isGetter => false;

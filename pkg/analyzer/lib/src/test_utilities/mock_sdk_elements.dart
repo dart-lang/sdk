@@ -154,7 +154,9 @@ class _MockSdkElementsBuilder {
     deprecatedElement.fields = [_field('message', stringType, isFinal: true)];
 
     deprecatedElement.getters =
-        deprecatedElement.fields.map((f) => f.getter!).toList();
+        deprecatedElement.fields
+            .map((f) => f.element.getter2!.firstFragment)
+            .toList();
 
     deprecatedElement.constructors = [
       _constructor(
@@ -192,7 +194,9 @@ class _MockSdkElementsBuilder {
     ];
 
     doubleElement.getters =
-        doubleElement.fields.map((field) => field.getter!).toList();
+        doubleElement.fields
+            .map((field) => field.element.getter2!.firstFragment)
+            .toList();
 
     doubleElement.methods = [
       _method(
@@ -1025,15 +1029,26 @@ class _MockSdkElementsBuilder {
     fragment.isFinal = isFinal;
     fragment.isStatic = isStatic;
 
-    var getterFragment = PropertyAccessorFragmentImplImplicitGetter(fragment);
+    var getterFragment = GetterFragmentImpl(name2: name, nameOffset: -1)
+      ..isSynthetic = true;
     var getterElement = GetterElementImpl(Reference.root(), getterFragment);
     element.getter2 = getterElement;
 
     if (!isConst && !isFinal) {
-      var setterFragment = PropertyAccessorFragmentImplImplicitSetter(fragment);
+      var valueFragment = FormalParameterFragmentImpl(
+        nameOffset: -1,
+        name2: null,
+        nameOffset2: null,
+        parameterKind: ParameterKind.REQUIRED,
+      );
+      var setterFragment =
+          SetterFragmentImpl(name2: name, nameOffset: -1)
+            ..isSynthetic = true
+            ..parameters = [valueFragment];
       var setterElement = SetterElementImpl(Reference.root(), setterFragment);
       element.setter2 = setterElement;
     }
+
     fragment.type = type;
     return fragment;
   }
@@ -1206,8 +1221,8 @@ class _MockSdkElementsBuilder {
     );
 
     _coreUnit.getters = <GetterFragmentImpl>[
-      deprecatedVariable.getter!,
-      overrideVariable.getter!,
+      deprecatedVariable.element.getter2!.firstFragment,
+      overrideVariable.element.getter2!.firstFragment,
     ];
 
     _coreUnit.topLevelVariables = <TopLevelVariableFragmentImpl>[
@@ -1248,7 +1263,7 @@ class _MockSdkElementsBuilder {
     classElement.getters = getters;
     classElement.fields =
         getters
-            .map((accessor) => accessor.variable2)
+            .map((accessor) => accessor.element.variable3!.firstFragment)
             .cast<FieldFragmentImpl>()
             .toList();
   }
@@ -1260,7 +1275,8 @@ class _MockSdkElementsBuilder {
     var fragment = TopLevelVariableFragmentImpl(name2: name, nameOffset: -1)
       ..isConst = true;
     var element = TopLevelVariableElementImpl(Reference.root(), fragment);
-    var getterFragment = PropertyAccessorFragmentImplImplicitGetter(fragment);
+    var getterFragment = GetterFragmentImpl(name2: name, nameOffset: -1)
+      ..isSynthetic = true;
     var getterElement = GetterElementImpl(Reference.root(), getterFragment);
     element.getter2 = getterElement;
     fragment.type = type;

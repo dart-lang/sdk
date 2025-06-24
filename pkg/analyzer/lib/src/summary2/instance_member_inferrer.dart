@@ -117,7 +117,7 @@ class InstanceMemberInferrer {
     }
 
     var getterName = Name(elementLibraryUri, elementName);
-    var overriddenGetters = inheritance.getOverridden4(
+    var overriddenGetters = inheritance.getOverridden(
       currentInterfaceElement.element,
       getterName,
     );
@@ -129,7 +129,7 @@ class InstanceMemberInferrer {
     }
 
     var setterName = Name(elementLibraryUri, '$elementName=');
-    var overriddenSetters = inheritance.getOverridden4(
+    var overriddenSetters = inheritance.getOverridden(
       currentInterfaceElement.element,
       setterName,
     );
@@ -413,7 +413,7 @@ class InstanceMemberInferrer {
     }
 
     var name = Name(element.library.source.uri, element.name2 ?? '');
-    var overriddenElements = inheritance.getOverridden4(
+    var overriddenElements = inheritance.getOverridden(
       currentInterfaceElement.element,
       name,
     );

@@ -3406,7 +3406,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             ...conflict.extension,
           ]);
         case NotUniqueExtensionMemberConflict _:
-          report(conflict.name.name, conflict.candidates2);
+          report(conflict.name.name, conflict.candidates);
       }
     }
   }

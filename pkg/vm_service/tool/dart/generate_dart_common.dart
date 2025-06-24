@@ -148,7 +148,7 @@ abstract class Api with ApiParseUtil {
     if (docs != null) docs = replaceHTMLEntities(docs.trim());
 
     if (definition.startsWith('class ')) {
-      types.add(Type(this, this, name, definition, docs));
+      types.add(Type(this, this, definition, docs));
     } else if (name.substring(0, 1).toLowerCase() == name.substring(0, 1)) {
       methods.add(Method(this, name, definition, docs));
     } else if (definition.startsWith('enum ')) {
@@ -506,8 +506,7 @@ class Type extends Member {
   final String? docs;
   List<TypeField> fields = [];
 
-  Type(this.api, this.parent, String categoryName, String definition,
-      [this.docs]) {
+  Type(this.api, this.parent, String definition, [this.docs]) {
     _parse(Tokenizer(definition).tokenize());
   }
 

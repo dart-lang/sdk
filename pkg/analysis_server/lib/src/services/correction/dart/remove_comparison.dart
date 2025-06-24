@@ -85,6 +85,8 @@ class RemoveComparison extends ResolvedCorrectionProducer {
       await _ifElement(parent, builder);
     } else if (parent is IfStatement) {
       await _ifStatement(parent, builder);
+    } else if (parent is ConditionalExpression) {
+      await _conditionalExpression(parent, builder);
     }
   }
 
@@ -109,6 +111,24 @@ class RemoveComparison extends ResolvedCorrectionProducer {
       buffer.write(updatedLine);
     }
     return buffer.toString();
+  }
+
+  Future<void> _conditionalExpression(
+    ConditionalExpression node,
+    ChangeBuilder builder,
+  ) async {
+    Future<void> replaceWithExpression(Expression expression) async {
+      var text = utils.getNodeText(expression);
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addSimpleReplacement(range.node(node), text);
+      });
+    }
+
+    if (_conditionIsTrue) {
+      await replaceWithExpression(node.thenExpression);
+    } else if (_conditionIsFalse) {
+      await replaceWithExpression(node.elseExpression);
+    }
   }
 
   Future<void> _ifElement(IfElement node, ChangeBuilder builder) async {

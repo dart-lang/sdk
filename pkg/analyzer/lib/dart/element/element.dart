@@ -3208,12 +3208,6 @@ abstract class PropertyAccessorFragment implements ExecutableFragment {
 
   @override
   PropertyAccessorFragment? get previousFragment;
-
-  /// The field or top-level variable associated with this property accessors.
-  ///
-  /// If this property accessor was explicitly defined (is not synthetic) then
-  /// the variable associated with it will be synthetic.
-  PropertyInducingFragment? get variable3;
 }
 
 /// A variable that has an associated getter and possibly a setter. Note that
@@ -3275,12 +3269,6 @@ abstract class PropertyInducingFragment
   @override
   PropertyInducingElement get element;
 
-  /// The getter associated with this variable.
-  ///
-  /// If this variable was explicitly defined (is not synthetic) then the
-  /// getter associated with it will be synthetic.
-  GetterFragment? get getter2;
-
   /// Whether the variable has an initializer at declaration.
   bool get hasInitializer;
 
@@ -3305,18 +3293,6 @@ abstract class PropertyInducingFragment
 
   @override
   PropertyInducingFragment? get previousFragment;
-
-  /// The setter associated with this variable.
-  ///
-  /// Returns `null` if the variable is effectively `final` and therefore
-  /// doesn't have a setter associated with it.
-  ///
-  /// This can happen either because the variable is explicitly defined as
-  /// being `final` or because the variable is induced by an explicit getter
-  /// that does not have a corresponding setter. If this variable was
-  /// explicitly defined (is not synthetic) then the setter associated with
-  /// it will be synthetic.
-  SetterFragment? get setter2;
 }
 
 /// A setter.

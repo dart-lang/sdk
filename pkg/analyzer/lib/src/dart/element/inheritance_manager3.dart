@@ -13,7 +13,6 @@ import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/fine/requirements.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:meta/meta.dart';
 
 /// Failure because of there is no most specific signature in [candidates].
@@ -149,8 +148,7 @@ class InheritanceManager3 {
       return const {};
     }
 
-    var map = interface.superImplemented.last;
-    return map.mapValue((e) => e.asElement2);
+    return interface.superImplemented.last;
   }
 
   /// Returns the mapping from names to most specific signatures of members
@@ -166,15 +164,15 @@ class InheritanceManager3 {
     element as InterfaceElementImpl; // TODO(scheglov): remove cast
 
     var interface = getInterface(element);
-    var inheritedMap = interface.inheritedMap2;
+    var inheritedMap = interface.inheritedMap;
     if (inheritedMap == null) {
-      inheritedMap = interface.inheritedMap2 = {};
+      inheritedMap = interface.inheritedMap = {};
       _findMostSpecificFromNamedCandidates(
         element,
         inheritedMap,
         element is ExtensionTypeElementImpl
-            ? interface.redeclared2
-            : interface.overridden2,
+            ? interface.redeclared
+            : interface.overridden,
       );
     }
     return inheritedMap;
@@ -216,7 +214,7 @@ class InheritanceManager3 {
       if (element is ExtensionTypeFragmentImpl) {
         return null;
       }
-      var superImplemented = interface.superImplemented2;
+      var superImplemented = interface.superImplemented;
       if (forMixinIndex >= 0) {
         return superImplemented[forMixinIndex][name];
       }
@@ -228,10 +226,10 @@ class InheritanceManager3 {
       }
     }
     if (concrete) {
-      return interface.implemented2[name];
+      return interface.implemented[name];
     }
 
-    var result = interface.map2[name];
+    var result = interface.map[name];
     globalResultRequirements?.record_interface_getMember(
       element: element,
       nameObj: name,
@@ -267,13 +265,20 @@ class InheritanceManager3 {
   /// Return all members of mixins, superclasses, and interfaces that a member
   /// with the given [name], defined in the [element], would override; or `null`
   /// if no members would be overridden.
-  List<ExecutableElement2OrMember>? getOverridden4(
+  List<ExecutableElement2OrMember>? getOverridden(
     InterfaceElement element,
     Name name,
   ) {
     var interface = getInterface(element);
-    var fragments = interface.overridden[name];
-    return fragments?.map((fragment) => fragment.asElement2).toList();
+    return interface.overridden[name];
+  }
+
+  @Deprecated('Use getOverridden() instead')
+  List<ExecutableElement2OrMember>? getOverridden4(
+    InterfaceElement element,
+    Name name,
+  ) {
+    return getOverridden(element, name);
   }
 
   /// Remove interfaces for classes defined in specified libraries.
@@ -288,7 +293,7 @@ class InheritanceManager3 {
     required MapSubstitution substitution,
     required Interface interface,
   }) {
-    var map = interface.map2;
+    var map = interface.map;
     for (var entry in map.entries) {
       var name = entry.key;
       var candidate = entry.value;
@@ -331,7 +336,7 @@ class InheritanceManager3 {
     required MapSubstitution substitution,
     required Interface mixin,
   }) {
-    for (var entry in mixin.implemented2.entries) {
+    for (var entry in mixin.implemented.entries) {
       var executable = entry.value;
       if (executable.isAbstract) {
         continue;
@@ -503,7 +508,7 @@ class InheritanceManager3 {
         interface: superTypeInterface,
       );
 
-      for (var entry in superTypeInterface.implemented2.entries) {
+      for (var entry in superTypeInterface.implemented.entries) {
         var executable = entry.value;
         executable = ExecutableMember.from(executable, substitution);
         implemented[entry.key] = executable;
@@ -536,7 +541,7 @@ class InheritanceManager3 {
       var candidatesFromSuperAndMixin =
           <Name, List<ExecutableElement2OrMember>>{};
       var mixinConflicts = <Conflict>[];
-      for (var entry in mixinInterface.map2.entries) {
+      for (var entry in mixinInterface.map.entries) {
         var name = entry.key;
         var candidate = ExecutableMember.from(entry.value, substitution);
 
@@ -654,22 +659,13 @@ class InheritanceManager3 {
     });
 
     return Interface._(
-      map2: interface,
-      declared: declared.mapValue((e) => e.asElement),
-      implemented: implemented.mapValue((e) => e.asElement),
-      implemented2: implemented,
+      map: interface,
+      declared: declared,
+      implemented: implemented,
       noSuchMethodForwarders: noSuchMethodForwarders,
-      overridden: namedCandidates.mapValue(
-        (elements) => elements.map((e) => e.asElement).toList(),
-      ),
-      overridden2: namedCandidates,
+      overridden: namedCandidates,
       redeclared: const {},
-      redeclared2: const {},
-      superImplemented:
-          superImplemented
-              .map((map) => map.mapValue((e) => e.asElement))
-              .toList(),
-      superImplemented2: superImplemented,
+      superImplemented: superImplemented,
       conflicts: conflicts.toFixedList(),
       combinedSignatures: _combinedSignatures.remove(fragment.element) ?? {},
     );
@@ -711,7 +707,7 @@ class InheritanceManager3 {
     var notExtensionCandidates = <Name, _ExtensionTypeCandidates>{};
     for (var interface in element.interfaces) {
       var substitution = Substitution.fromInterfaceType(interface);
-      for (var entry in getInterface(interface.element3).map2.entries) {
+      for (var entry in getInterface(interface.element3).map.entries) {
         var name = entry.key;
         var executable = ExecutableMember.from(entry.value, substitution);
         if (executable.isExtensionTypeMember) {
@@ -781,7 +777,7 @@ class InheritanceManager3 {
         conflicts.add(
           NotUniqueExtensionMemberConflict(
             name: name,
-            candidates2: notPrecluded,
+            candidates: notPrecluded,
           ),
         );
         continue;
@@ -843,19 +839,13 @@ class InheritanceManager3 {
     }
 
     return Interface._(
-      map2: implemented,
-      declared: declared.mapValue((e) => e.asElement),
-      implemented: implemented.mapValue((e) => e.asElement),
-      implemented2: implemented,
+      map: implemented,
+      declared: declared,
+      implemented: implemented,
       noSuchMethodForwarders: const {},
       overridden: const {},
-      overridden2: const {},
-      redeclared: uniqueRedeclared.mapValue(
-        (elements) => elements.map((e) => e.asElement).toList(),
-      ),
-      redeclared2: uniqueRedeclared,
+      redeclared: uniqueRedeclared,
       superImplemented: const [],
-      superImplemented2: const [],
       conflicts: conflicts.toFixedList(),
       combinedSignatures: _combinedSignatures.remove(fragment.element) ?? {},
     );
@@ -906,19 +896,13 @@ class InheritanceManager3 {
     _addImplemented(implemented, element);
 
     return Interface._(
-      map2: interface,
-      declared: declared.mapValue((e) => e.asElement),
-      implemented: implemented.mapValue((e) => e.asElement),
-      implemented2: implemented,
+      map: interface,
+      declared: declared,
+      implemented: implemented,
       noSuchMethodForwarders: {},
-      overridden: interfaceCandidates.mapValue(
-        (elements) => elements.map((e) => e.asElement).toList(),
-      ),
-      overridden2: interfaceCandidates,
+      overridden: interfaceCandidates,
       redeclared: const {},
-      redeclared2: const {},
-      superImplemented: [superInterface.mapValue((e) => e.asElement)],
-      superImplemented2: [superInterface],
+      superImplemented: [superInterface],
       conflicts:
           <Conflict>[...superConflicts, ...interfaceConflicts].toFixedList(),
       combinedSignatures: _combinedSignatures.remove(fragment.element) ?? {},
@@ -1042,8 +1026,10 @@ class InheritanceManager3 {
 
       var result = SetterElementImpl(setterReference, resultFragment);
 
-      var field = executable.variable3!;
-      var resultField = FieldFragmentImpl(name2: field.name3, nameOffset: -1);
+      var resultField = FieldFragmentImpl(
+        name2: executable.name3,
+        nameOffset: -1,
+      );
       resultField.enclosingElement3 = class_.firstFragment;
 
       var elementName = executable.name3!;
@@ -1250,73 +1236,42 @@ class InheritanceManager3 {
 /// The instance interface of an [InterfaceType].
 class Interface {
   static final _empty = Interface._(
-    map2: const {},
+    map: const {},
     declared: const {},
     implemented: const {},
-    implemented2: const {},
     noSuchMethodForwarders: <Name>{},
     overridden: const {},
-    overridden2: const {},
     redeclared: const {},
-    redeclared2: const {},
     superImplemented: const [{}],
-    superImplemented2: const [{}],
     conflicts: const [],
     combinedSignatures: const {},
   );
 
   /// The map of names to their signature in the interface.
-  late final Map<Name, ExecutableElementOrMember> map = map2.mapValue(
-    (element) => element.asElement,
-  );
-
-  /// The map of names to their signature in the interface.
-  final Map<Name, ExecutableElement2OrMember> map2;
+  final Map<Name, ExecutableElement2OrMember> map;
 
   /// The map of declared names to their signatures.
-  final Map<Name, ExecutableElementOrMember> declared;
-
-  /// The map of declared names to their signatures.
-  late final Map<Name, ExecutableElement> declared2 = declared.mapValue(
-    (element) => element.asElement2,
-  );
+  final Map<Name, ExecutableElement2OrMember> declared;
 
   /// The map of names to their concrete implementations.
-  final Map<Name, ExecutableElementOrMember> implemented;
-
-  /// The map of names to their concrete implementations.
-  final Map<Name, ExecutableElement2OrMember> implemented2;
+  final Map<Name, ExecutableElement2OrMember> implemented;
 
   /// The set of names that are `noSuchMethod` forwarders in [implemented].
   final Set<Name> noSuchMethodForwarders;
 
   /// The map of names to their signatures from the mixins, superclasses,
   /// or interfaces.
-  final Map<Name, List<ExecutableElementOrMember>> overridden;
-
-  /// The map of names to their signatures from the mixins, superclasses,
-  /// or interfaces.
-  final Map<Name, List<ExecutableElement2OrMember>> overridden2;
+  final Map<Name, List<ExecutableElement2OrMember>> overridden;
 
   /// The map of names to the signatures from superinterfaces that a member
   /// declaration in this extension type redeclares.
-  final Map<Name, List<ExecutableElementOrMember>> redeclared;
-
-  /// The map of names to the signatures from superinterfaces that a member
-  /// declaration in this extension type redeclares.
-  final Map<Name, List<ExecutableElement2OrMember>> redeclared2;
+  final Map<Name, List<ExecutableElement2OrMember>> redeclared;
 
   /// Each item of this list maps names to their concrete implementations.
   /// The first item of the list is the nominal superclass, next the nominal
   /// superclass plus the first mixin, etc. So, for the class like
   /// `class C extends S with M1, M2`, we get `[S, S&M1, S&M1&M2]`.
-  final List<Map<Name, ExecutableElementOrMember>> superImplemented;
-
-  /// Each item of this list maps names to their concrete implementations.
-  /// The first item of the list is the nominal superclass, next the nominal
-  /// superclass plus the first mixin, etc. So, for the class like
-  /// `class C extends S with M1, M2`, we get `[S, S&M1, S&M1&M2]`.
-  final List<Map<Name, ExecutableElement2OrMember>> superImplemented2;
+  final List<Map<Name, ExecutableElement2OrMember>> superImplemented;
 
   /// The list of conflicts between superinterfaces - the nominal superclass,
   /// mixins, and interfaces.  Does not include conflicts with the declared
@@ -1329,27 +1284,22 @@ class Interface {
 
   /// The map of names to the most specific signatures from the mixins,
   /// superclasses, or interfaces.
-  Map<Name, ExecutableElementOrMember>? inheritedMap;
-
-  /// The map of names to the most specific signatures from the mixins,
-  /// superclasses, or interfaces.
-  Map<Name, ExecutableElement2OrMember>? inheritedMap2;
+  Map<Name, ExecutableElement2OrMember>? inheritedMap;
 
   Interface._({
-    required this.map2,
+    required this.map,
     required this.declared,
     required this.implemented,
-    required this.implemented2,
     required this.noSuchMethodForwarders,
     required this.overridden,
-    required this.overridden2,
     required this.redeclared,
-    required this.redeclared2,
     required this.superImplemented,
-    required this.superImplemented2,
     required this.conflicts,
     required this.combinedSignatures,
   });
+
+  @Deprecated('Use map instead')
+  Map<Name, ExecutableElement2OrMember> get map2 => map;
 
   /// Return `true` if the [name] is implemented in the supertype.
   bool isSuperImplemented(Name name) {
@@ -1444,11 +1394,11 @@ class Name {
 
 /// Failure because of not unique extension type member.
 class NotUniqueExtensionMemberConflict extends Conflict {
-  final List<ExecutableElement2OrMember> candidates2;
+  final List<ExecutableElement2OrMember> candidates;
 
   NotUniqueExtensionMemberConflict({
     required super.name,
-    required this.candidates2,
+    required this.candidates,
   });
 }
 

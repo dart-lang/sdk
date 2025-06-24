@@ -4015,7 +4015,6 @@ package:analyzer/dart/element/element.dart:
     element (getter: PropertyAccessorElement)
     nextFragment (getter: PropertyAccessorFragment?)
     previousFragment (getter: PropertyAccessorFragment?)
-    variable3 (getter: PropertyInducingFragment?)
   PropertyInducingElement (class extends Object implements VariableElement, Annotatable, HasSinceSdkVersion):
     new (constructor: PropertyInducingElement Function())
     firstFragment (getter: PropertyInducingFragment)
@@ -4027,14 +4026,12 @@ package:analyzer/dart/element/element.dart:
   PropertyInducingFragment (class extends Object implements VariableFragment, Annotatable):
     new (constructor: PropertyInducingFragment Function())
     element (getter: PropertyInducingElement)
-    getter2 (getter: GetterFragment?)
     hasInitializer (getter: bool)
     isAugmentation (getter: bool)
     isSynthetic (getter: bool)
     libraryFragment (getter: LibraryFragment)
     nextFragment (getter: PropertyInducingFragment?)
     previousFragment (getter: PropertyInducingFragment?)
-    setter2 (getter: SetterFragment?)
   SetterElement (class extends Object implements PropertyAccessorElement):
     new (constructor: SetterElement Function())
     baseElement (getter: SetterElement)
