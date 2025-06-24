@@ -11504,7 +11504,9 @@ library
         synthetic new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F11
-          superConstructor: <testLibrary>::@class::A::@constructor::new
+          superConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::A::@constructor::new
+            substitution: {T: int}
       getters
         x
           reference: <testLibrary>::@class::B::@getter::x
@@ -12393,7 +12395,9 @@ library
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F12
-          superConstructor: <testLibrary>::@class::A::@constructor::new
+          superConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::A::@constructor::new
+            substitution: {T: int}
       methods
         m
           reference: <testLibrary>::@class::C::@method::m
@@ -12522,7 +12526,9 @@ library
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F13
-          superConstructor: <testLibrary>::@class::A::@constructor::new
+          superConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::A::@constructor::new
+            substitution: {K: int, V: String}
       methods
         m
           reference: <testLibrary>::@class::C::@method::m
@@ -13044,7 +13050,9 @@ library
         synthetic new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F9
-          superConstructor: <testLibrary>::@class::A::@constructor::new
+          superConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::A::@constructor::new
+            substitution: {K: int, V: T}
     class C
       reference: <testLibrary>::@class::C
       firstFragment: #F10
@@ -13053,7 +13061,9 @@ library
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F11
-          superConstructor: <testLibrary>::@class::B::@constructor::new
+          superConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::B::@constructor::new
+            substitution: {T: String}
       methods
         m
           reference: <testLibrary>::@class::C::@method::m
@@ -13483,7 +13493,9 @@ library
         synthetic new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F9
-          superConstructor: <testLibrary>::@class::A::@constructor::new
+          superConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::A::@constructor::new
+            substitution: {K: int, V: String}
       methods
         m
           reference: <testLibrary>::@class::B::@method::m
@@ -13842,7 +13854,9 @@ library
         synthetic new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F9
-          superConstructor: <testLibrary>::@class::A::@constructor::new
+          superConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::A::@constructor::new
+            substitution: {K: int, V: T}
     class C
       reference: <testLibrary>::@class::C
       firstFragment: #F10
@@ -13851,7 +13865,9 @@ library
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F11
-          superConstructor: <testLibrary>::@class::B::@constructor::new
+          superConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::B::@constructor::new
+            substitution: {T: String}
       methods
         m
           reference: <testLibrary>::@class::C::@method::m
@@ -14124,7 +14140,9 @@ library
         synthetic new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F10
-          superConstructor: <testLibrary>::@class::A::@constructor::new
+          superConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::A::@constructor::new
+            substitution: {K: T2, V: T1}
     class C
       reference: <testLibrary>::@class::C
       firstFragment: #F11
@@ -14412,7 +14430,9 @@ library
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F13
-          superConstructor: <testLibrary>::@class::A::@constructor::new
+          superConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::A::@constructor::new
+            substitution: {K: int, V: String}
       methods
         m
           reference: <testLibrary>::@class::C::@method::m

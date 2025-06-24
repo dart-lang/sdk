@@ -1249,7 +1249,9 @@ library
         const new
           reference: <testLibrary>::@class::P1::@constructor::new
           firstFragment: #F6
-          superConstructor: <testLibrary>::@class::P::@constructor::new
+          superConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::P::@constructor::new
+            substitution: {T: T}
     class P2
       reference: <testLibrary>::@class::P2
       firstFragment: #F7
@@ -1261,7 +1263,9 @@ library
         const new
           reference: <testLibrary>::@class::P2::@constructor::new
           firstFragment: #F9
-          superConstructor: <testLibrary>::@class::P::@constructor::new
+          superConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::P::@constructor::new
+            substitution: {T: T}
   topLevelVariables
     const hasInitializer values
       reference: <testLibrary>::@topLevelVariable::values

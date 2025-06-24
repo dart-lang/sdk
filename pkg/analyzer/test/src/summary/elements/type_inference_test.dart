@@ -2269,7 +2269,9 @@ library
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
-          superConstructor: <testLibrary>::@class::D::@constructor::new
+          superConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::D::@constructor::new
+            substitution: {U: int, V: T}
       getters
         synthetic v
           reference: <testLibrary>::@class::C::@getter::v
@@ -2457,7 +2459,9 @@ library
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
-          superConstructor: <testLibrary>::@class::D::@constructor::new
+          superConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::D::@constructor::new
+            substitution: {V: U, W: int}
       methods
         f
           reference: <testLibrary>::@class::C::@method::f
@@ -4222,7 +4226,9 @@ library
                     staticType: T
                 rightParenthesis: ) @0
               element: <testLibrary>::@class::A::@constructor::new
-          superConstructor: <testLibrary>::@class::A::@constructor::new
+          superConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::A::@constructor::new
+            substitution: {T: T}
     class C
       reference: <testLibrary>::@class::C
       firstFragment: #F13

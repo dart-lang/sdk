@@ -419,6 +419,140 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
   bool isMixableIn2(LibraryElement library) {
     return isMixableIn(library);
   }
+
+  @override
+  void _buildMixinAppConstructors() {
+    // Do nothing if not a mixin application.
+    if (!isMixinApplication) {
+      return;
+    }
+
+    var superType = supertype;
+    if (superType == null) {
+      // Shouldn't ever happen, since the only classes with no supertype are
+      // Object and mixins, and they aren't a mixin application. But for
+      // safety's sake just assume an empty list.
+      assert(false);
+      _constructors = <ConstructorElementImpl>[];
+      return;
+    }
+
+    // Assign to break a possible infinite recursion during computing.
+    _constructors = const <ConstructorElementImpl>[];
+
+    var superConstructors = superType.constructors2
+        .where((constructor) => constructor.isAccessibleIn2(library2))
+        .where((constructor) => constructor.isGenerative)
+        .toList(growable: false);
+
+    bool typeHasInstanceVariables(InterfaceTypeImpl type) =>
+        type.element.fields.any((e) => !e.isSynthetic);
+
+    _constructors =
+        superConstructors.map((superConstructor) {
+          var constructorFragment = ConstructorFragmentImpl(
+            name2: superConstructor.name3 ?? 'new',
+            nameOffset: -1,
+          );
+          constructorFragment.isSynthetic = true;
+          constructorFragment.typeName = name3;
+          constructorFragment.isConst =
+              superConstructor.isConst && !mixins.any(typeHasInstanceVariables);
+          constructorFragment.enclosingElement3 = firstFragment;
+
+          var constructorElement = ConstructorElementImpl(
+            name3: constructorFragment.name2,
+            reference: reference
+                .getChild('@constructor')
+                .getChild(constructorFragment.name2),
+            firstFragment: constructorFragment,
+          );
+          constructorElement.superConstructor2 = superConstructor;
+          // TODO(scheglov): make it explicit
+          // constructorElement.enclosingElement = this;
+
+          var formalParameterFragments = <FormalParameterFragmentImpl>[];
+          var formalParameterElements = <FormalParameterElementImpl>[];
+          var superInvocationArguments = <ExpressionImpl>[];
+          for (var superFormalParameter in superConstructor.formalParameters) {
+            FormalParameterFragmentImpl formalParameterFragment;
+            if (superFormalParameter.firstFragment
+                case ConstVariableFragment constVariable) {
+              // TODO(scheglov): Maybe stop making this distinction
+              formalParameterFragment = DefaultParameterFragmentImpl(
+                nameOffset: -1,
+                name2: superFormalParameter.name3,
+                nameOffset2: null,
+                parameterKind: superFormalParameter.parameterKind,
+              )..constantInitializer = constVariable.constantInitializer;
+            } else {
+              formalParameterFragment = FormalParameterFragmentImpl(
+                nameOffset: -1,
+                name2: superFormalParameter.name3,
+                nameOffset2: null,
+                parameterKind: superFormalParameter.parameterKind,
+              );
+            }
+
+            formalParameterFragment.isConst = superFormalParameter.isConst;
+            formalParameterFragment.isFinal = superFormalParameter.isFinal;
+            formalParameterFragment.isSynthetic = true;
+            formalParameterFragments.add(formalParameterFragment);
+
+            var formalParameterElement = FormalParameterElementImpl(
+              formalParameterFragment,
+            );
+            formalParameterElements.add(formalParameterElement);
+
+            formalParameterFragment.type = superFormalParameter.type;
+            formalParameterElement.type = superFormalParameter.type;
+
+            superInvocationArguments.add(
+              SimpleIdentifierImpl(
+                  token: StringToken(
+                    TokenType.STRING,
+                    formalParameterFragment.name2 ?? '',
+                    -1,
+                  ),
+                )
+                ..element = formalParameterElement
+                ..setPseudoExpressionStaticType(formalParameterFragment.type),
+            );
+          }
+
+          constructorFragment.parameters =
+              formalParameterFragments.toFixedList();
+
+          var isNamed = superConstructor.name3 != 'new';
+          var superInvocation = SuperConstructorInvocationImpl(
+            superKeyword: Tokens.super_(),
+            period: isNamed ? Tokens.period() : null,
+            constructorName:
+                isNamed
+                    ? (SimpleIdentifierImpl(
+                      token: StringToken(
+                        TokenType.STRING,
+                        superConstructor.name3 ?? 'new',
+                        -1,
+                      ),
+                    )..element = superConstructor.baseElement)
+                    : null,
+            argumentList: ArgumentListImpl(
+              leftParenthesis: Tokens.openParenthesis(),
+              arguments: superInvocationArguments,
+              rightParenthesis: Tokens.closeParenthesis(),
+            ),
+          );
+          AstNodeImpl.linkNodeTokens(superInvocation);
+          superInvocation.element = superConstructor.baseElement;
+          constructorFragment.constantInitializers = [superInvocation];
+
+          return constructorElement;
+        }).toFixedList();
+
+    firstFragment.constructors =
+        _constructors.map((e) => e.firstFragment).toFixedList();
+  }
 }
 
 /// An [InterfaceFragmentImpl] which is a class.
@@ -554,169 +688,6 @@ class ClassFragmentImpl extends ClassOrMixinFragmentImpl
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeClassElement(this);
   }
-
-  @override
-  void _buildMixinAppConstructors() {
-    // Do nothing if not a mixin application.
-    if (!isMixinApplication) {
-      return;
-    }
-
-    var superType = supertype;
-    if (superType == null) {
-      // Shouldn't ever happen, since the only classes with no supertype are
-      // Object and mixins, and they aren't a mixin application. But for
-      // safety's sake just assume an empty list.
-      assert(false);
-      _constructors = <ConstructorFragmentImpl>[];
-      return;
-    }
-
-    // Assign to break a possible infinite recursion during computing.
-    _constructors = const <ConstructorFragmentImpl>[];
-
-    var superElement2 = superType.element as ClassElementImpl;
-    var superElement = superElement2.firstFragment;
-
-    var constructorsToForward = superElement.constructors
-        .where((constructor) => constructor.asElement2.isAccessibleIn2(library))
-        .where((constructor) => !constructor.isFactory)
-        .toList(growable: false);
-
-    // Figure out the type parameter substitution we need to perform in order
-    // to produce constructors for this class.  We want to be robust in the
-    // face of errors, so drop any extra type arguments and fill in any missing
-    // ones with `dynamic`.
-    var superClassParameters = superElement.typeParameters;
-    List<DartType> argumentTypes = List<DartType>.filled(
-      superClassParameters.length,
-      DynamicTypeImpl.instance,
-    );
-    for (int i = 0; i < superType.typeArguments.length; i++) {
-      if (i >= argumentTypes.length) {
-        break;
-      }
-      argumentTypes[i] = superType.typeArguments[i];
-    }
-    var substitution = Substitution.fromPairs(
-      superClassParameters,
-      argumentTypes,
-    );
-
-    bool typeHasInstanceVariables(InterfaceTypeImpl type) =>
-        type.element.fields.any((e) => !e.isSynthetic);
-
-    // Now create an implicit constructor for every constructor found above,
-    // substituting type parameters as appropriate.
-    _constructors = constructorsToForward
-        .map((superclassConstructor) {
-          var name = superclassConstructor.name2;
-          var implicitConstructorFragment = ConstructorFragmentImpl(
-            name2: name,
-            nameOffset: -1,
-          );
-          implicitConstructorFragment.isSynthetic = true;
-          implicitConstructorFragment.typeName = name2;
-
-          var hasMixinWithInstanceVariables = mixins.any(
-            typeHasInstanceVariables,
-          );
-          implicitConstructorFragment.isConst =
-              superclassConstructor.isConst && !hasMixinWithInstanceVariables;
-          var superParameters = superclassConstructor.parameters;
-          int count = superParameters.length;
-          var argumentsForSuperInvocation = <ExpressionImpl>[];
-          if (count > 0) {
-            var implicitParameters = <FormalParameterFragmentImpl>[];
-            for (int i = 0; i < count; i++) {
-              var superParameter = superParameters[i];
-              FormalParameterFragmentImpl implicitParameter;
-              if (superParameter is ConstVariableFragment) {
-                var constVariable = superParameter as ConstVariableFragment;
-                implicitParameter = DefaultParameterFragmentImpl(
-                  nameOffset: -1,
-                  name2: superParameter.name2,
-                  nameOffset2: null,
-                  parameterKind: superParameter.parameterKind,
-                )..constantInitializer = constVariable.constantInitializer;
-              } else {
-                implicitParameter = FormalParameterFragmentImpl(
-                  nameOffset: -1,
-                  name2: superParameter.name2,
-                  nameOffset2: null,
-                  parameterKind: superParameter.parameterKind,
-                );
-              }
-              implicitParameter.isConst = superParameter.isConst;
-              implicitParameter.isFinal = superParameter.isFinal;
-              implicitParameter.isSynthetic = true;
-              implicitParameter.type = substitution.substituteType(
-                superParameter.type,
-              );
-              implicitParameters.add(implicitParameter);
-              argumentsForSuperInvocation.add(
-                SimpleIdentifierImpl(
-                    token: StringToken(
-                      TokenType.STRING,
-                      implicitParameter.name2 ?? '',
-                      -1,
-                    ),
-                  )
-                  ..element = implicitParameter.asElement2
-                  ..setPseudoExpressionStaticType(implicitParameter.type),
-              );
-            }
-            implicitConstructorFragment.parameters =
-                implicitParameters.toFixedList();
-          }
-          implicitConstructorFragment.enclosingElement3 = this;
-          // TODO(scheglov): Why do we manually map parameters types above?
-          implicitConstructorFragment.superConstructor = ConstructorMember.from(
-            superclassConstructor,
-            superType,
-          );
-
-          var isNamed = superclassConstructor.name2 != 'new';
-          var superInvocation = SuperConstructorInvocationImpl(
-            superKeyword: Tokens.super_(),
-            period: isNamed ? Tokens.period() : null,
-            constructorName:
-                isNamed
-                    ? (SimpleIdentifierImpl(
-                      token: StringToken(
-                        TokenType.STRING,
-                        superclassConstructor.name2,
-                        -1,
-                      ),
-                    )..element = superclassConstructor.asElement2)
-                    : null,
-            argumentList: ArgumentListImpl(
-              leftParenthesis: Tokens.openParenthesis(),
-              arguments: argumentsForSuperInvocation,
-              rightParenthesis: Tokens.closeParenthesis(),
-            ),
-          );
-          AstNodeImpl.linkNodeTokens(superInvocation);
-          superInvocation.element = superclassConstructor.asElement2;
-          implicitConstructorFragment.constantInitializers = [superInvocation];
-
-          return implicitConstructorFragment;
-        })
-        .toList(growable: false);
-
-    if (element.firstFragment == this) {
-      element.constructors =
-          _constructors.map((fragment) {
-            return ConstructorElementImpl(
-              name3: fragment.name2,
-              reference: element.reference
-                  .getChild('@constructor')
-                  .getChild(fragment.name2),
-              firstFragment: fragment,
-            );
-          }).toList();
-    }
-  }
 }
 
 abstract class ClassOrMixinFragmentImpl extends InterfaceFragmentImpl {
@@ -785,6 +756,14 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @override
   final ConstructorFragmentImpl firstFragment;
+
+  /// The super-constructor which this constructor is invoking, or `null` if
+  /// this constructor is not generative, or is redirecting, or the
+  /// super-constructor is not resolved, or the enclosing class is `Object`.
+  ///
+  // TODO(scheglov): We cannot have both super and redirecting constructors.
+  // So, ideally we should have some kind of "either" or "variant" here.
+  ConstructorElementMixin2? _superConstructor;
 
   ConstructorElementImpl({
     required this.name3,
@@ -886,11 +865,13 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  ConstructorElementMixin2? get superConstructor2 =>
-      firstFragment.superConstructor?.declaration.element;
+  ConstructorElementMixin2? get superConstructor2 {
+    _ensureReadResolution();
+    return _superConstructor;
+  }
 
-  set superConstructor2(ConstructorElementMixin2? value) {
-    firstFragment.superConstructor = value?.asElement;
+  set superConstructor2(ConstructorElementMixin2? superConstructor) {
+    _superConstructor = superConstructor;
   }
 
   @override
@@ -957,14 +938,6 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
     with ConstructorElementMixin
     implements ConstructorFragment {
   late final ConstructorElementImpl element;
-
-  /// The super-constructor which this constructor is invoking, or `null` if
-  /// this constructor is not generative, or is redirecting, or the
-  /// super-constructor is not resolved, or the enclosing class is `Object`.
-  ///
-  // TODO(scheglov): We cannot have both super and redirecting constructors.
-  // So, ideally we should have some kind of "either" or "variant" here.
-  ConstructorElementMixin? _superConstructor;
 
   /// The constructor to which this constructor is redirecting.
   ConstructorElementMixin? _redirectedConstructor;
@@ -1120,15 +1093,6 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
 
     result = enclosingElement3.element.thisType;
     return _returnType = result as InterfaceTypeImpl;
-  }
-
-  ConstructorElementMixin? get superConstructor {
-    _ensureReadResolution();
-    return _superConstructor;
-  }
-
-  set superConstructor(ConstructorElementMixin? superConstructor) {
-    _superConstructor = superConstructor;
   }
 
   @override
@@ -1298,9 +1262,9 @@ class DefaultSuperFormalParameterElementImpl
       return super.evaluationResult;
     }
 
-    var superConstructorParameter = this.superConstructorParameter?.declaration;
-    if (superConstructorParameter is FormalParameterFragmentImpl) {
-      return superConstructorParameter.evaluationResult;
+    var superConstructorParameter = this.superConstructorParameter?.baseElement;
+    if (superConstructorParameter is FormalParameterElementImpl) {
+      return superConstructorParameter.firstFragment.evaluationResult;
     }
 
     return null;
@@ -5131,7 +5095,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   /// The cached result of [allSupertypes].
   List<InterfaceTypeImpl>? _allSupertypes;
 
-  List<ConstructorElementImpl> _constructors = [];
+  List<ConstructorElementImpl> _constructors = _Sentinel.constructorElement;
 
   @override
   List<InterfaceTypeImpl> get allSupertypes {
@@ -5147,8 +5111,11 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   @override
   List<ConstructorElementImpl> get constructors {
     ensureReadMembers();
-    // TODO(scheglov): we use this for the side effect of creating
-    firstFragment.constructors;
+    if (!identical(_constructors, _Sentinel.constructorElement)) {
+      return _constructors;
+    }
+
+    _buildMixinAppConstructors();
     return _constructors;
   }
 
@@ -5242,7 +5209,8 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   }
 
   void addConstructor(ConstructorElementImpl element) {
-    _constructors.add(element);
+    // TODO(scheglov): optimize
+    _constructors = [..._constructors, element];
   }
 
   @override
@@ -5450,6 +5418,9 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   void resetCachedAllSupertypes() {
     _allSupertypes = null;
   }
+
+  /// Builds constructors for this mixin application.
+  void _buildMixinAppConstructors() {}
 }
 
 abstract class InterfaceFragmentImpl extends InstanceFragmentImpl
@@ -5471,7 +5442,7 @@ abstract class InterfaceFragmentImpl extends InstanceFragmentImpl
   /// of this class have been inferred.
   bool hasBeenInferred = false;
 
-  List<ConstructorFragmentImpl> _constructors = _Sentinel.constructorElement;
+  List<ConstructorFragmentImpl> _constructors = _Sentinel.constructorFragment;
 
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
@@ -5490,11 +5461,12 @@ abstract class InterfaceFragmentImpl extends InstanceFragmentImpl
   @override
   List<ConstructorFragmentImpl> get constructors {
     element.ensureReadMembers();
-    if (!identical(_constructors, _Sentinel.constructorElement)) {
+    if (!identical(_constructors, _Sentinel.constructorFragment)) {
       return _constructors;
     }
 
-    _buildMixinAppConstructors();
+    // This will also create constructor fragments.
+    element._buildMixinAppConstructors();
     return _constructors;
   }
 
@@ -5598,9 +5570,6 @@ abstract class InterfaceFragmentImpl extends InstanceFragmentImpl
     _constructors = [..._constructors, fragment];
     fragment.enclosingElement3 = this;
   }
-
-  /// Builds constructors for this mixin application.
-  void _buildMixinAppConstructors() {}
 
   static PropertyAccessorElementOrMember? getSetterFromAccessors(
     String setterName,
@@ -9321,7 +9290,7 @@ class SuperFormalParameterElementImpl extends FormalParameterElementImpl
 
   @override
   FormalParameterElementMixin? get superConstructorParameter2 {
-    return firstFragment.superConstructorParameter?.asElement2;
+    return firstFragment.superConstructorParameter;
   }
 
   /// Return the index of this super-formal parameter among other super-formals.
@@ -9341,7 +9310,7 @@ abstract class SuperFormalParameterElementOrMember
   ///
   /// Can be `null` for erroneous code - not existing super-constructor,
   /// no corresponding parameter in the super-constructor.
-  ParameterElementMixin? get superConstructorParameter;
+  FormalParameterElementMixin? get superConstructorParameter;
 }
 
 class SuperFormalParameterFragmentImpl extends FormalParameterFragmentImpl
@@ -9378,15 +9347,15 @@ class SuperFormalParameterFragmentImpl extends FormalParameterFragmentImpl
       super.previousFragment as SuperFormalParameterFragmentImpl?;
 
   @override
-  ParameterElementMixin? get superConstructorParameter {
+  FormalParameterElementMixin? get superConstructorParameter {
     var enclosingElement = enclosingElement3;
     if (enclosingElement is ConstructorFragmentImpl) {
-      var superConstructor = enclosingElement.superConstructor;
+      var superConstructor = enclosingElement.element.superConstructor2;
       if (superConstructor != null) {
-        var superParameters = superConstructor.parameters;
+        var superParameters = superConstructor.formalParameters;
         if (isNamed) {
           return superParameters.firstWhereOrNull(
-            (e) => e.isNamed && e.name2 == name2,
+            (e) => e.isNamed && e.name3 == name2,
           );
         } else {
           var index = indexIn(enclosingElement);
@@ -10642,7 +10611,9 @@ mixin _NonTopLevelVariableOrParameter on Element {
 /// Instances of [List]s that are used as "not yet computed" values, they
 /// must be not `null`, and not identical to `const <T>[]`.
 class _Sentinel {
-  static final List<ConstructorFragmentImpl> constructorElement =
+  static final List<ConstructorFragmentImpl> constructorFragment =
+      List.unmodifiable([]);
+  static final List<ConstructorElementImpl> constructorElement =
       List.unmodifiable([]);
   static final List<FieldFragmentImpl> fieldElement = List.unmodifiable([]);
   static final List<GetterFragmentImpl> getterElement = List.unmodifiable([]);

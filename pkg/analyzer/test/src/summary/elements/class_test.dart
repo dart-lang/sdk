@@ -3878,7 +3878,9 @@ library
             requiredPositional final hasImplicitType a
               firstFragment: #F6
               type: int
-          superConstructor: <testLibrary>::@class::B::@constructor::new
+          superConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::B::@constructor::new
+            substitution: {T: String}
     class B
       reference: <testLibrary>::@class::B
       firstFragment: #F7
@@ -4197,7 +4199,9 @@ library
         named
           reference: <testLibrary>::@class::D::@constructor::named
           firstFragment: #F9
-          superConstructor: <testLibrary>::@class::C::@constructor::_
+          superConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::C::@constructor::_
+            substitution: {T: U, U: T}
 ''');
   }
 
@@ -4762,7 +4766,9 @@ library
         new
           reference: <testLibrary>::@class::D::@constructor::new
           firstFragment: #F9
-          superConstructor: <testLibrary>::@class::C::@constructor::_
+          superConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::C::@constructor::_
+            substitution: {T: U, U: T}
 ''');
   }
 
@@ -5731,7 +5737,10 @@ library
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
-          superConstructor: <testLibrary>::@class::B::@constructor::new
+          superConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::B::@constructor::new
+            substitution: {U: int}
+            superConstructor: <testLibrary>::@class::A::@constructor::new
 ''');
   }
 
@@ -5767,7 +5776,13 @@ library
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
-          superConstructor: <testLibrary>::@class::B::@constructor::new
+          superConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::B::@constructor::new
+            substitution: {U: int}
+            superConstructor: ConstructorMember
+              baseElement: <testLibrary>::@class::A::@constructor::new
+              substitution: {T: String}
+              superConstructor: dart:core::@class::Object::@constructor::new
 ''');
   }
 
@@ -5831,7 +5846,9 @@ library
         new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F6
-          superConstructor: <testLibrary>::@class::A::@constructor::named
+          superConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::A::@constructor::named
+            substitution: {T: int}
 ''');
   }
 
@@ -16762,7 +16779,9 @@ library
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
-          superConstructor: <testLibrary>::@class::D::@constructor::new
+          superConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::D::@constructor::new
+            substitution: {T1: int, T2: double}
     class D
       reference: <testLibrary>::@class::D
       firstFragment: #F3
@@ -16858,7 +16877,9 @@ library
         synthetic new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F5
-          superConstructor: <testLibrary>::@class::A::@constructor::new
+          superConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::A::@constructor::new
+            substitution: {T: B}
 ''');
   }
 
@@ -18878,7 +18899,9 @@ library
                     staticType: E
                 rightParenthesis: ) @0
               element: <testLibrary>::@class::A::@constructor::new
-          superConstructor: <testLibrary>::@class::A::@constructor::new
+          superConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::A::@constructor::new
+            substitution: {T: E}
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
@@ -20176,7 +20199,9 @@ library
                     staticType: List<dynamic>
                 rightParenthesis: ) @0
               element: <testLibrary>::@class::Base::@constructor::ctor
-          superConstructor: <testLibrary>::@class::Base::@constructor::ctor
+          superConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::Base::@constructor::ctor
+            substitution: {T: dynamic}
 ''');
   }
 
@@ -20297,7 +20322,9 @@ library
                     staticType: List<List<U>>
                 rightParenthesis: ) @0
               element: <testLibrary>::@class::Base::@constructor::ctor
-          superConstructor: <testLibrary>::@class::Base::@constructor::ctor
+          superConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::Base::@constructor::ctor
+            substitution: {T: List<U>}
 ''');
   }
 

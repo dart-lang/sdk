@@ -197,6 +197,14 @@ class BundleWriter {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
       _sink.writeList(element.fragments, _writeFragmentId);
+
+      _writeElementResolution(() {
+        // TODO(scheglov): avoid cast
+        _resolutionSink.withTypeParameters(element.typeParameters2.cast(), () {
+          _resolutionSink.writeElement(element.superConstructor2);
+          // TODO(scheglov): formal parameters
+        });
+      });
     });
   }
 
@@ -210,7 +218,6 @@ class BundleWriter {
       _sink.writeList(fragment.formalParameters, _writeParameterElement);
       _resolutionSink._writeMetadata(fragment.metadata);
       _resolutionSink.writeType(fragment.returnType);
-      _resolutionSink.writeElement(fragment.superConstructor?.asElement2);
       _resolutionSink.writeElement(fragment.redirectedConstructor?.asElement2);
       _resolutionSink._writeNodeList(fragment.constantInitializers);
     });

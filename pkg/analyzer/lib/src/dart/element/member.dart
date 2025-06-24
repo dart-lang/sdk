@@ -108,13 +108,13 @@ class ConstructorMember extends ExecutableMember
   Source get source => _declaration.source!;
 
   ConstructorElementMixin? get superConstructor {
-    var element = declaration.superConstructor;
-    return _redirect(element);
+    var element = declaration.element.superConstructor2;
+    return _redirect(element?.firstFragment as ConstructorElementMixin?);
   }
 
   @override
   ConstructorElementMixin2? get superConstructor2 {
-    return superConstructor?.asElement2;
+    return _redirect2(declaration.element.superConstructor2);
   }
 
   @override
@@ -135,6 +135,27 @@ class ConstructorMember extends ExecutableMember
       case null:
         return null;
       case ConstructorFragmentImpl():
+        return element;
+      case ConstructorMember():
+        var memberMap = element.substitution.map;
+        var map = <TypeParameterElement, DartType>{
+          for (var MapEntry(:key, :value) in memberMap.entries)
+            key: substitution.substituteType(value),
+        };
+        return ConstructorMember(
+          declaration: element.declaration,
+          substitution: Substitution.fromMap2(map),
+        );
+      default:
+        throw UnimplementedError('(${element.runtimeType}) $element');
+    }
+  }
+
+  ConstructorElementMixin2? _redirect2(ConstructorElementMixin2? element) {
+    switch (element) {
+      case null:
+        return null;
+      case ConstructorElementImpl():
         return element;
       case ConstructorMember():
         var memberMap = element.substitution.map;
@@ -1394,17 +1415,17 @@ class SuperFormalParameterMember extends ParameterMember
   bool get isCovariant => declaration.isCovariant;
 
   @override
-  ParameterElementMixin? get superConstructorParameter {
+  FormalParameterElementMixin? get superConstructorParameter {
     var superConstructorParameter = declaration.superConstructorParameter;
     if (superConstructorParameter == null) {
       return null;
     }
 
-    return ParameterMember.from(superConstructorParameter, substitution);
+    return ParameterMember.from2(superConstructorParameter, substitution);
   }
 
   FormalParameterElement? get superConstructorParameter2 =>
-      superConstructorParameter?.asElement2;
+      superConstructorParameter;
 }
 
 /// A variable element defined in a parameterized type where the values of the
