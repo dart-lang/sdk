@@ -1154,4 +1154,17 @@ ISOLATE_UNIT_TEST_CASE(SafepointMonitorUnlockScope) {
   }
 }
 
+ISOLATE_UNIT_TEST_CASE(ReentrantMonitorAllowsReentrance) {
+  ReentrantMonitor monitor;
+  {
+    SafepointLocker<ReentrantMonitor> ml1(&monitor);
+    ASSERT(monitor.IsOwnedByCurrentThread());
+    {
+      SafepointLocker<ReentrantMonitor> ml2(&monitor);
+      ASSERT(monitor.IsOwnedByCurrentThread());
+    }
+    ASSERT(monitor.IsOwnedByCurrentThread());
+  }
+}
+
 }  // namespace dart

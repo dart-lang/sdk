@@ -273,14 +273,13 @@ class SafepointMutexLocker : public StackResource {
  *      ...
  *    }
  */
-class SafepointMonitorLocker : public ValueObject {
+template <typename M>
+class SafepointLocker : public ValueObject {
  public:
-  explicit SafepointMonitorLocker(Monitor* monitor) : monitor_(monitor) {
-    AcquireLock();
-  }
-  virtual ~SafepointMonitorLocker() { ReleaseLock(); }
+  explicit SafepointLocker(M* monitor) : monitor_(monitor) { AcquireLock(); }
+  virtual ~SafepointLocker() { ReleaseLock(); }
 
-  Monitor::WaitResult Wait(int64_t millis = Monitor::kNoTimeout);
+  M::WaitResult Wait(int64_t millis = Monitor::kNoTimeout);
 
   void NotifyAll() { monitor_->NotifyAll(); }
 
@@ -288,12 +287,15 @@ class SafepointMonitorLocker : public ValueObject {
   friend class SafepointMonitorUnlockScope;
 
   void AcquireLock();
-  void ReleaseLock();
 
-  Monitor* const monitor_;
+  void ReleaseLock() { monitor_->Exit(); }
 
-  DISALLOW_COPY_AND_ASSIGN(SafepointMonitorLocker);
+  M* const monitor_;
+
+  DISALLOW_COPY_AND_ASSIGN(SafepointLocker);
 };
+
+typedef SafepointLocker<Monitor> SafepointMonitorLocker;
 
 class SafepointMonitorUnlockScope : public ValueObject {
  public:
