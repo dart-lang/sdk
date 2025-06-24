@@ -1893,10 +1893,12 @@ class CompilationTask {
   CompilationTask(this.function, this._codeGenerator);
 
   void run(Translator translator, bool printKernel, bool printWasm) {
-    _codeGenerator.generate(function.body, function.locals.toList(), null);
     if (printWasm) {
       print("#${function.name} (synthetic)");
       print(function.type);
+    }
+    _codeGenerator.generate(function.body, function.locals.toList(), null);
+    if (printWasm) {
       print(function.body.trace);
     }
   }
@@ -1913,9 +1915,6 @@ class AstCompilationTask extends CompilationTask {
   void run(Translator translator, bool printKernel, bool printWasm) {
     final member = reference.asMember;
 
-    final codeGen = getMemberCodeGenerator(translator, function, reference);
-    codeGen.generate(function.body, function.locals.toList(), null);
-
     if (printKernel || printWasm) {
       final (:name, :exportName) = _getNames(translator);
 
@@ -1927,6 +1926,7 @@ class AstCompilationTask extends CompilationTask {
         header = "$header (type checker)";
       }
       print(header);
+      print(function.type);
       print(member.function
           ?.computeFunctionType(Nullability.nonNullable)
           .toStringInternal());
@@ -1950,8 +1950,10 @@ class AstCompilationTask extends CompilationTask {
       if (!printWasm) print("");
     }
 
+    final codeGen = getMemberCodeGenerator(translator, function, reference);
+    codeGen.generate(function.body, function.locals.toList(), null);
+
     if (printWasm) {
-      print(function.type);
       print(function.body.trace);
     }
   }
