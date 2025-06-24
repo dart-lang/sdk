@@ -59,7 +59,7 @@ bool isWidgetProperty(DartType? type) {
   }
   if (type is InterfaceType &&
       type.implementsAnyInterface(_collectionInterfaces)) {
-    return type.element3.typeParameters2.length == 1 &&
+    return type.element.typeParameters2.length == 1 &&
         isWidgetProperty(type.typeArguments.first);
   }
   return false;
@@ -102,7 +102,7 @@ class _Flutter {
         element.firstFragment.isAugmentation
             ? element.thisType
             : element.supertype;
-    return hasWidgetAsAscendant(type?.element3, alreadySeen);
+    return hasWidgetAsAscendant(type?.element, alreadySeen);
   }
 
   bool isBuildContext(DartType? type, {bool skipNullable = false}) {
@@ -112,7 +112,7 @@ class _Flutter {
     if (skipNullable && type.nullabilitySuffix == NullabilitySuffix.question) {
       return false;
     }
-    return isExactly(type.element3, _nameBuildContext, _uriFramework);
+    return isExactly(type.element, _nameBuildContext, _uriFramework);
   }
 
   /// Whether [element] is exactly the element named [type], from Flutter.
@@ -124,11 +124,11 @@ class _Flutter {
 
   bool isExactWidgetTypeContainer(DartType? type) =>
       type is InterfaceType &&
-      isExactly(type.element3, _nameContainer, _uriContainer);
+      isExactly(type.element, _nameContainer, _uriContainer);
 
   bool isExactWidgetTypeSizedBox(DartType? type) =>
       type is InterfaceType &&
-      isExactly(type.element3, _nameSizedBox, _uriBasic);
+      isExactly(type.element, _nameSizedBox, _uriBasic);
 
   bool isKDebugMode(Element? element) =>
       element != null &&
@@ -138,13 +138,13 @@ class _Flutter {
   bool isState(InterfaceElement element) =>
       isExactly(element, _nameState, _uriFramework) ||
       element.allSupertypes.any(
-        (type) => isExactly(type.element3, _nameState, _uriFramework),
+        (type) => isExactly(type.element, _nameState, _uriFramework),
       );
 
   bool isStatefulWidget(ClassElement element) =>
       isExactly(element, _nameStatefulWidget, _uriFramework) ||
       element.allSupertypes.any(
-        (type) => isExactly(type.element3, _nameStatefulWidget, _uriFramework),
+        (type) => isExactly(type.element, _nameStatefulWidget, _uriFramework),
       );
 
   bool isWidget(InterfaceElement element) {
@@ -152,7 +152,7 @@ class _Flutter {
       return true;
     }
     for (var type in element.allSupertypes) {
-      if (isExactly(type.element3, _nameWidget, _uriFramework)) {
+      if (isExactly(type.element, _nameWidget, _uriFramework)) {
         return true;
       }
     }
@@ -160,7 +160,7 @@ class _Flutter {
   }
 
   bool isWidgetType(DartType? type) =>
-      type is InterfaceType && isWidget(type.element3);
+      type is InterfaceType && isWidget(type.element);
 }
 
 // TODO(pq): based on similar extension in server. (Move and reuse.)
@@ -177,7 +177,7 @@ extension InterfaceElementExtension2 on InterfaceElement? {
     if (isExactlyWidget) return true;
 
     return self.allSupertypes.any(
-      (type) => type.element3._isExactly(_nameWidget, _uriFramework),
+      (type) => type.element._isExactly(_nameWidget, _uriFramework),
     );
   }
 
@@ -198,6 +198,6 @@ extension InterfaceElementExtension2 on InterfaceElement? {
 
     if (!alreadySeen.add(element)) return false;
 
-    return _hasWidgetAsAscendant(element.supertype?.element3, alreadySeen);
+    return _hasWidgetAsAscendant(element.supertype?.element, alreadySeen);
   }
 }

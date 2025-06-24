@@ -181,11 +181,26 @@ class ContextLocatorImpl {
       );
 
       ContextRootImpl? root;
+      // Check whether there are existing roots that overlap with this one.
       for (var existingRoot in roots) {
-        if (existingRoot.root.isOrContains(folder.path) &&
-            _matchRootWithLocation(existingRoot, location)) {
-          root = existingRoot;
-          break;
+        if (existingRoot.root.isOrContains(folder.path)) {
+          if (_matchRootWithLocation(existingRoot, location)) {
+            // This root is covered exactly by the existing root (with the same
+            // options/packages file) so we can simple use it.
+            root = existingRoot;
+            break;
+          } else {
+            // This root is within another (but doesn't share options/packages)
+            // so we still need a new root. However, we should exclude this
+            // from the existing root so these files aren't analyzed by both.
+            //
+            // It's possible this folder is already excluded (for example
+            // because it's also a project and had a context root created as
+            // part of the parent analysis root).
+            if (!existingRoot.excluded.contains(folder)) {
+              existingRoot.excluded.add(folder);
+            }
+          }
         }
       }
 

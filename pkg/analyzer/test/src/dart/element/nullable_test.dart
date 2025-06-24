@@ -587,7 +587,7 @@ class PromoteToNonNullTest extends AbstractTypeSystemTest {
     required TypeImpl? promotedBound,
   }) {
     var actual = typeSystem.promoteToNonNull(type) as TypeParameterTypeImpl;
-    expect(actual.element3, same(element));
+    expect(actual.element, same(element));
     expect(actual.promotedBound, promotedBound);
     expect(actual.nullabilitySuffix, NullabilitySuffix.none);
   }

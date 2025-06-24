@@ -205,7 +205,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
 
     var inferredTypes = _inferCall(rawType, [S_and_int]);
     var inferredType = inferredTypes[0] as TypeParameterTypeImpl;
-    expect(inferredType.element3, S);
+    expect(inferredType.element, S);
     expect(inferredType.promotedBound, isNull);
   }
 

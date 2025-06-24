@@ -369,7 +369,7 @@ extension InterfaceElementImplExtension on InterfaceFragmentImpl {
 }
 
 extension InterfaceTypeImplExtension on InterfaceTypeImpl {
-  InterfaceFragmentImpl get elementImpl => element3.firstFragment;
+  InterfaceFragmentImpl get elementImpl => element.firstFragment;
 }
 
 extension JoinPatternVariableElementImplExtension

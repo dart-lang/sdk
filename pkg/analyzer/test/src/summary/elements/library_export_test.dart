@@ -548,7 +548,7 @@ library
 ''');
 
     var typeA = library.getClass2('B')!.supertype!;
-    var fragmentA = typeA.element3.firstFragment;
+    var fragmentA = typeA.element.firstFragment;
     var sourceA = fragmentA.libraryFragment.source;
     expect(sourceA.shortName, 'foo.dart');
   }
@@ -598,7 +598,7 @@ library
 ''');
 
     var typeA = library.getClass2('B')!.supertype!;
-    var fragmentA = typeA.element3.firstFragment;
+    var fragmentA = typeA.element.firstFragment;
     var sourceA = fragmentA.libraryFragment.source;
     expect(sourceA.shortName, 'foo_io.dart');
   }
@@ -648,7 +648,7 @@ library
 ''');
 
     var typeA = library.getClass2('B')!.supertype!;
-    var fragmentA = typeA.element3.firstFragment;
+    var fragmentA = typeA.element.firstFragment;
     var sourceA = fragmentA.libraryFragment.source;
     expect(sourceA.shortName, 'foo_html.dart');
   }

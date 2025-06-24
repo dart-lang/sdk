@@ -190,8 +190,8 @@ bool typesAreUnrelated(
       promotedRightType is TypeParameterType) {
     return typesAreUnrelated(
       typeSystem,
-      promotedLeftType.element3.bound,
-      promotedRightType.element3.bound,
+      promotedLeftType.element.bound,
+      promotedRightType.element.bound,
     );
   } else if (promotedLeftType is FunctionType) {
     if (_isFunctionTypeUnrelatedToType(promotedLeftType, promotedRightType)) {
@@ -214,7 +214,7 @@ bool _isFunctionTypeUnrelatedToType(FunctionType type1, DartType type2) {
     return false;
   }
   if (type2 is InterfaceType) {
-    var element2 = type2.element3;
+    var element2 = type2.element;
     if (element2 is ClassElement &&
         element2.thisType.lookUpMethod(
               'call',
@@ -255,8 +255,8 @@ extension on TypeSystem {
     InterfaceType leftType,
     InterfaceType rightType,
   ) {
-    var leftElement = leftType.element3;
-    var rightElement = rightType.element3;
+    var leftElement = leftType.element;
+    var rightElement = rightType.element;
     if (leftElement == rightElement) {
       // In this case, [leftElement] and [rightElement] represent the same
       // class, modulo generics, e.g. `List<int>` and `List<dynamic>`. Now we

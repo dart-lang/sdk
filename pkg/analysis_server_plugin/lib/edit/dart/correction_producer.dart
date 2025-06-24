@@ -482,7 +482,7 @@ abstract class ResolvedCorrectionProducer
   InterfaceElement? getTargetInterfaceElement(Expression target) {
     var type = target.staticType;
     if (type is InterfaceType) {
-      return type.element3;
+      return type.element;
     } else if (target is Identifier) {
       var element = target.element;
       if (element is InterfaceElement) {

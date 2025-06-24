@@ -226,7 +226,7 @@ class ElementPrinter {
       if (type is InterfaceType) {
         if (_configuration.withInterfaceTypeElements) {
           _sink.withIndent(() {
-            writeNamedElement2('element', type.element3);
+            writeNamedElement2('element', type.element);
           });
         }
       }

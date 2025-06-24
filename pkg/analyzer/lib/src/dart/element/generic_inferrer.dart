@@ -795,7 +795,7 @@ class GenericInferrer {
     }
     if (errorEntity is ConstructorName &&
         !(errorEntity.type.type as InterfaceType)
-            .element3
+            .element
             .metadata
             .hasOptionalTypeArgs) {
       String constructorName =
@@ -829,7 +829,7 @@ class GenericInferrer {
         if (element is VariableElement) {
           // For variable elements, we check their type and possible alias type.
           var type = element.type;
-          var typeElement = type is InterfaceType ? type.element3 : null;
+          var typeElement = type is InterfaceType ? type.element : null;
           if (typeElement != null && typeElement.metadata.hasOptionalTypeArgs) {
             return;
           }

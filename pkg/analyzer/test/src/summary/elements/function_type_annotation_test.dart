@@ -1034,7 +1034,9 @@ library
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
               element: <testLibrary>::@class::A::@constructor::new
-          superConstructor: <testLibrary>::@class::A::@constructor::new
+          superConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::A::@constructor::new
+            substitution: {T: void Function()}
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M

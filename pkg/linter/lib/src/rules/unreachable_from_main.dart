@@ -278,7 +278,7 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
     node.type?.alias != null ||
         // Any reference to an extension type marks it as reachable, since
         // casting can be used to instantiate the type.
-        node.type?.element3 is ExtensionTypeElement ||
+        node.type?.element is ExtensionTypeElement ||
         nodeIsInTypeArgument ||
         // A reference to any type in an external variable declaration marks
         // that type as reachable, since the external implementation can
@@ -640,7 +640,7 @@ extension on Annotation {
       // Dunno what this is.
       return false;
     }
-    return type is InterfaceType && type.element3.isPragma;
+    return type is InterfaceType && type.element.isPragma;
   }
 
   bool get isWidgetPreview {
@@ -649,7 +649,7 @@ extension on Annotation {
       // Dunno what this is.
       return false;
     }
-    return type is InterfaceType && type.element3.isWidgetPreview;
+    return type is InterfaceType && type.element.isWidgetPreview;
   }
 
   DartType? get _elementType {

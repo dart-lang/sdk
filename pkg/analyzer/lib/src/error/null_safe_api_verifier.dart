@@ -48,7 +48,7 @@ class NullSafeApiVerifier {
     var targetType = node.realTarget?.staticType;
     if (targetType is! InterfaceTypeImpl) return;
 
-    var targetClass = targetType.element3;
+    var targetClass = targetType.element;
 
     if (targetClass.library2.isDartAsync == true &&
         targetClass.name3 == 'Completer' &&

@@ -1292,7 +1292,7 @@ class _MockSdkElementsBuilder {
 
   TypeParameterTypeImpl _typeParameterType(TypeParameterElementImpl element) {
     return TypeParameterTypeImpl(
-      element3: element,
+      element: element,
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }

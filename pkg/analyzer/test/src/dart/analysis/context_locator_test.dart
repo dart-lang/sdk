@@ -951,6 +951,62 @@ ${getFolder(outPath).path}
     expect(outerRoot.packagesFile, outerPackagesFile);
   }
 
+  /// Verify that overlapped roots do not result in nested files being analyzed
+  /// in multiple contexts (when the nested folder is passed first).
+  ///
+  /// See https://github.com/Dart-Code/Dart-Code/issues/5548')
+  void test_locateRoots_nested_issueDartCode5548_nestedThenRoot() {
+    var rootPath = convertPath('/root');
+    var rootFolder = newFolder(rootPath);
+    var rootOptionsFile = newAnalysisOptionsYamlFile(rootPath, '');
+
+    var nestedPath = convertPath('/root/packages/foo');
+    var nestedFolder = newFolder(nestedPath);
+    var nestedOptionsFile = newAnalysisOptionsYamlFile(nestedPath, '');
+    var nestedDartFile = newFile(join(nestedPath, 'main.dart'), '');
+
+    var roots = contextLocator.locateRoots(
+      includedPaths: [nestedPath, rootPath],
+    );
+    expect(roots, hasLength(2));
+
+    // The root context should not analyze nestedDartFile.
+    var root = findRoot(roots, rootFolder);
+    _assertAnalyzedFiles2(root, [rootOptionsFile]);
+
+    // The nested context should analyze nestedDartFile.
+    var nested = findRoot(roots, nestedFolder);
+    _assertAnalyzedFiles2(nested, [nestedOptionsFile, nestedDartFile]);
+  }
+
+  /// Verify that overlapped roots do not result in nested files being analyzed
+  /// in multiple contexts (when the nested folder is passed last).
+  ///
+  /// See https://github.com/Dart-Code/Dart-Code/issues/5548')
+  void test_locateRoots_nested_issueDartCode5548_rootThenNested() {
+    var rootPath = convertPath('/root');
+    var rootFolder = newFolder(rootPath);
+    var rootOptionsFile = newAnalysisOptionsYamlFile(rootPath, '');
+
+    var nestedPath = convertPath('/root/packages/foo');
+    var nestedFolder = newFolder(nestedPath);
+    var nestedOptionsFile = newAnalysisOptionsYamlFile(nestedPath, '');
+    var nestedDartFile = newFile(join(nestedPath, 'main.dart'), '');
+
+    var roots = contextLocator.locateRoots(
+      includedPaths: [rootPath, nestedPath],
+    );
+    expect(roots, hasLength(2));
+
+    // The root context should not analyze nestedDartFile.
+    var root = findRoot(roots, rootFolder);
+    _assertAnalyzedFiles2(root, [rootOptionsFile]);
+
+    // The nested context should analyze nestedDartFile.
+    var nested = findRoot(roots, nestedFolder);
+    _assertAnalyzedFiles2(nested, [nestedOptionsFile, nestedDartFile]);
+  }
+
   void test_locateRoots_nested_multiple() {
     Folder outerRootFolder = newFolder('/test/outer');
     File outerOptionsFile = newAnalysisOptionsYamlFile('/test/outer', '');

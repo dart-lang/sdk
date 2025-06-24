@@ -478,14 +478,14 @@ class FeatureComputer {
       return -1;
     }
     var minDepth = _inheritanceDistance(
-      subclass.supertype?.element3,
+      subclass.supertype?.element,
       superclass,
       visited,
     );
 
     void visitTypes(List<InterfaceType> types) {
       for (var type in types) {
-        var depth = _inheritanceDistance(type.element3, superclass, visited);
+        var depth = _inheritanceDistance(type.element, superclass, visited);
         if (minDepth < 0 || (depth >= 0 && depth < minDepth)) {
           minDepth = depth;
         }
@@ -1283,7 +1283,7 @@ parent3: ${node.parent?.parent?.parent}
     }
     var declaredElement = field.element2?.library2;
     var uri = declaredElement?.uri;
-    var member = type.element3.getInterfaceMember(Name(uri, name));
+    var member = type.element.getInterfaceMember(Name(uri, name));
     if (member is GetterElement) {
       return member.returnType;
     } else if (member is MethodElement) {

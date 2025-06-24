@@ -90,7 +90,7 @@ main() {
 
     var reporter = DiagnosticReporter(
       listener,
-      firstType.element3.firstFragment.libraryFragment.source,
+      firstType.element.firstFragment.libraryFragment.source,
     );
 
     reporter.atNode(
@@ -132,7 +132,7 @@ main() {
 
     var reporter = DiagnosticReporter(
       listener,
-      firstType.element3.firstFragment.libraryFragment.source,
+      firstType.element.firstFragment.libraryFragment.source,
     );
     reporter.atNode(
       findNode.simple('x'),

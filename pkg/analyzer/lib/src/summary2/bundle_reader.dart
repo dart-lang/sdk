@@ -355,11 +355,24 @@ class LibraryReader {
       var reference = _readReference();
       var fragments = _readFragmentsById<ConstructorFragmentImpl>();
       // TODO(scheglov): link fragments.
-      return ConstructorElementImpl(
+      var element = ConstructorElementImpl(
         name3: fragments.first.name2,
         reference: reference,
         firstFragment: fragments.first,
       );
+
+      // TODO(scheglov): type parameters
+      // TODO(scheglov): formal parameters
+      element.deferReadResolution(
+        _createDeferredReadResolutionCallback((reader) {
+          var enclosingElement =
+              element.enclosingElement as InstanceElementImpl;
+          reader._addTypeParameters2(enclosingElement.typeParameters2);
+          element.superConstructor2 = reader.readConstructorElementMixin2();
+        }),
+      );
+
+      return element;
     });
   }
 
@@ -398,7 +411,6 @@ class LibraryReader {
         );
         _readFragmentMetadata(fragment, reader);
         fragment.returnType = reader.readRequiredType();
-        fragment.superConstructor = reader.readConstructorElementMixin();
         fragment.redirectedConstructor = reader.readConstructorElementMixin();
         fragment.constantInitializers = reader.readNodeList();
       });
@@ -1561,6 +1573,10 @@ class ResolutionReader {
     return element2?.asElement as ConstructorElementMixin?;
   }
 
+  ConstructorElementMixin2? readConstructorElementMixin2() {
+    return readElement() as ConstructorElementMixin2?;
+  }
+
   double readDouble() {
     return _reader.readDouble();
   }
@@ -1801,7 +1817,7 @@ class ResolutionReader {
         );
       } else if (type is InterfaceTypeImpl) {
         return InterfaceTypeImpl(
-          element: type.element3,
+          element: type.element,
           typeArguments: type.typeArguments,
           nullabilitySuffix: type.nullabilitySuffix,
           alias: InstantiatedTypeAliasElementImpl(
@@ -1821,7 +1837,7 @@ class ResolutionReader {
         );
       } else if (type is TypeParameterTypeImpl) {
         return TypeParameterTypeImpl(
-          element3: type.element3,
+          element: type.element,
           nullabilitySuffix: type.nullabilitySuffix,
           alias: InstantiatedTypeAliasElementImpl(
             element2: aliasElement,

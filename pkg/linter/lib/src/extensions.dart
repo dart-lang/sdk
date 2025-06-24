@@ -152,7 +152,7 @@ extension BlockExtension on Block {
 extension ClassElementExtension on ClassElement {
   bool get hasImmutableAnnotation {
     var inheritedAndSelfElements = <InterfaceElement>[
-      ...allSupertypes.map((t) => t.element3),
+      ...allSupertypes.map((t) => t.element),
       this,
     ];
 
@@ -279,8 +279,8 @@ extension DartTypeExtension on DartType? {
     }
     if (typeToCheck is InterfaceType) {
       return isAnyInterface(typeToCheck) ||
-          !typeToCheck.element3.isSynthetic &&
-              typeToCheck.element3.allSupertypes.any(isAnyInterface);
+          !typeToCheck.element.isSynthetic &&
+              typeToCheck.element.allSupertypes.any(isAnyInterface);
     } else {
       return false;
     }
@@ -292,7 +292,7 @@ extension DartTypeExtension on DartType? {
       return false;
     }
     bool predicate(InterfaceType i) => i.isSameAs(interface, library);
-    var element = self.element3;
+    var element = self.element;
     return predicate(self) ||
         !element.isSynthetic && element.allSupertypes.any(predicate);
   }
@@ -302,8 +302,8 @@ extension DartTypeExtension on DartType? {
   bool isSameAs(String? interface, String? library) {
     var self = this;
     return self is InterfaceType &&
-        self.element3.name3 == interface &&
-        self.element3.library2.name3 == library;
+        self.element.name3 == interface &&
+        self.element.library2.name3 == library;
   }
 
   static bool _extendsClass(
@@ -313,7 +313,7 @@ extension DartTypeExtension on DartType? {
     String? library,
   ) =>
       type != null &&
-      seenElements.add(type.element3) &&
+      seenElements.add(type.element) &&
       (type.isSameAs(className, library) ||
           _extendsClass(type.superclass, seenElements, className, library));
 }
@@ -555,7 +555,7 @@ extension InterfaceTypeExtension on InterfaceType {
       Set<InterfaceElement> alreadyVisited,
       List<InterfaceType> interfaceTypes,
     ) {
-      if (type == null || !alreadyVisited.add(type.element3)) {
+      if (type == null || !alreadyVisited.add(type.element)) {
         return;
       }
       interfaceTypes.add(type);

@@ -312,8 +312,8 @@ class TypeArgumentsVerifier {
       typeParameters = alias.element2.typeParameters2;
       typeArguments = alias.typeArguments;
     } else if (type is InterfaceTypeImpl) {
-      elementName = type.element3.name3;
-      typeParameters = type.element3.typeParameters2;
+      elementName = type.element.name3;
+      typeParameters = type.element.typeParameters2;
       typeArguments = type.typeArguments;
     } else {
       return;
@@ -681,7 +681,7 @@ class TypeArgumentsVerifier {
         return false;
     }
 
-    if (namedType.type?.element3 is ExtensionTypeElement) {
+    if (namedType.type?.element is ExtensionTypeElement) {
       return false;
     }
 

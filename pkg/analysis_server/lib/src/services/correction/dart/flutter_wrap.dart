@@ -441,6 +441,6 @@ extension on Expression {
 extension on DartType? {
   bool get isWidgetFlexType {
     var self = this;
-    return self is InterfaceType && self.element3.isFlexWidget;
+    return self is InterfaceType && self.element.isFlexWidget;
   }
 }

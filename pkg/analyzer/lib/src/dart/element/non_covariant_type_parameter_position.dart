@@ -77,7 +77,7 @@ class NonCovariantTypeParameterPositionVisitor implements TypeVisitor<bool> {
   @override
   bool visitTypeParameterType(TypeParameterType type) {
     return _variance != Variance.covariant &&
-        _typeParameters.contains(type.element3);
+        _typeParameters.contains(type.element);
   }
 
   @override

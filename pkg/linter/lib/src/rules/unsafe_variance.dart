@@ -47,7 +47,7 @@ class _UnsafeVarianceChecker extends VarianceChecker {
     TypeAnnotation typeAnnotation,
   ) {
     if (staticType is TypeParameterType) {
-      var typeParameterElement = staticType.element3;
+      var typeParameterElement = staticType.element;
       if (!owningDeclarationSupportsVariance(typeParameterElement)) {
         return;
       }

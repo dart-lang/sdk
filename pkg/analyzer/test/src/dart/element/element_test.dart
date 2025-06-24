@@ -533,7 +533,7 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
   void test_getElement() {
     var element = typeParameter('E');
     TypeParameterTypeImpl type = typeParameterTypeNone(element);
-    expect(type.element3, element);
+    expect(type.element, element);
   }
 
   void _assert_asInstanceOf(

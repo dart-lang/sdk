@@ -210,9 +210,9 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
         ),
       );
     } else if (parameter.type case InterfaceType(
-      :EnumElement element3,
+      :EnumElement element,
     ) when value is String?) {
-      var allowedValues = getQualifiedEnumConstantNames(element3);
+      var allowedValues = getQualifiedEnumConstantNames(element);
       if (allowedValues.contains(value)) {
         return success(value.toString());
       } else {

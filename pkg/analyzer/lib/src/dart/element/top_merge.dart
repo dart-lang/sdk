@@ -119,7 +119,7 @@ class TopMergeHelper {
     }
 
     if (T is TypeParameterType && S is TypeParameterType) {
-      if (T.element3 == S.element3) {
+      if (T.element == S.element) {
         return T;
       } else {
         throw _TopMergeStateError(T, S, 'Not the same type parameters');
@@ -225,7 +225,7 @@ class TopMergeHelper {
   }
 
   InterfaceTypeImpl _interfaceTypes(InterfaceTypeImpl T, InterfaceTypeImpl S) {
-    if (T.element3 != S.element3) {
+    if (T.element != S.element) {
       throw _TopMergeStateError(T, S, 'Different class elements');
     }
 
@@ -239,7 +239,7 @@ class TopMergeHelper {
         (i) => topMerge(T_arguments[i], S_arguments[i]),
         growable: false,
       );
-      return T.element3.instantiateImpl(
+      return T.element.instantiateImpl(
         typeArguments: arguments,
         nullabilitySuffix: NullabilitySuffix.none,
       );

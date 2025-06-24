@@ -60,7 +60,7 @@ class ConvertIntoForIndex extends ResolvedCorrectionProducer {
     {
       var iterableType = iterable.staticType;
       if (iterableType is! InterfaceType ||
-          iterableType.element3 != typeProvider.listElement2) {
+          iterableType.element != typeProvider.listElement2) {
         return;
       }
     }

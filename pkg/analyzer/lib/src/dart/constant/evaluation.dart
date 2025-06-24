@@ -301,7 +301,7 @@ class ConstantEvaluationEngine {
           var superclass = constant.returnType.superclass;
           if (superclass != null && !superclass.isDartCoreObject) {
             var unnamedConstructor =
-                superclass.element3.unnamedConstructor2?.baseElement;
+                superclass.element.unnamedConstructor2?.baseElement;
             if (unnamedConstructor != null && unnamedConstructor.isConst) {
               callback(unnamedConstructor.asElement);
             }
@@ -955,7 +955,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       if (typeArgumentTypes != null) {
         var instantiatedTypeArgumentTypes = typeArgumentTypes.map((type) {
           if (type is TypeParameterType) {
-            return _lexicalTypeEnvironment?[type.element3] ?? type;
+            return _lexicalTypeEnvironment?[type.element] ?? type;
           } else {
             return type;
           }
@@ -2989,7 +2989,7 @@ class _InstanceCreationEvaluator {
     }
 
     var definingType = this.definingType;
-    if (definingType.element3 case ExtensionTypeElement element) {
+    if (definingType.element case ExtensionTypeElement element) {
       var representation = _fieldMap[element.representation.name3];
       if (representation != null) {
         return representation;

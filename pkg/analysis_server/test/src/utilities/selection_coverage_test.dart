@@ -75,7 +75,7 @@ class SelectionCoverageTest {
         var implementsClause = declaration.implementsClause;
         if (implementsClause != null) {
           for (var type in implementsClause.interfaces) {
-            var element = type.type?.element3;
+            var element = type.type?.element;
             if (element is ClassElement && element.name3 == interfaceName) {
               data.instantiableInterfaces.add(element);
             }
@@ -97,7 +97,7 @@ class SelectionCoverageTest {
         var implementsClause = declaration.implementsClause;
         if (implementsClause != null) {
           for (var supertype in implementsClause.interfaces) {
-            var supertypeElement = supertype.type?.element3;
+            var supertypeElement = supertype.type?.element;
             if (supertypeElement is ClassElement) {
               data.supertypes
                   .putIfAbsent(subtypeElement, () => [])
@@ -143,7 +143,7 @@ class SelectionCoverageTest {
                     .declaredFragment
                     ?.element
                     .type
-                    .element3;
+                    .element;
             if (visitedClass is ClassElement) {
               var visitor = VisitMethodVisitor();
               member.body.accept(visitor);

@@ -96,7 +96,7 @@ class _ReferencesTypeParameterVisitor extends RecursiveTypeVisitor {
 
   @override
   bool visitTypeParameterType(TypeParameterType type) {
-    if (type.element3.enclosingElement == instanceElement) {
+    if (type.element.enclosingElement == instanceElement) {
       result = true;
     }
     return true;

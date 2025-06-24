@@ -2269,7 +2269,9 @@ library
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
-          superConstructor: <testLibrary>::@class::D::@constructor::new
+          superConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::D::@constructor::new
+            substitution: {U: int, V: T}
       getters
         synthetic v
           reference: <testLibrary>::@class::C::@getter::v
@@ -2457,7 +2459,9 @@ library
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
-          superConstructor: <testLibrary>::@class::D::@constructor::new
+          superConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::D::@constructor::new
+            substitution: {V: U, W: int}
       methods
         f
           reference: <testLibrary>::@class::C::@method::f
@@ -2952,7 +2956,7 @@ library
     // This test should verify that we correctly record inferred types,
     // when the type is defined in a part of an SDK library. So, test that
     // the type is actually in a part.
-    var streamElement = (p.type as InterfaceType).element3;
+    var streamElement = (p.type as InterfaceType).element;
     expect(
       streamElement.firstFragment.libraryFragment.source,
       isNot(streamElement.library2.firstFragment.source),
@@ -4222,7 +4226,9 @@ library
                     staticType: T
                 rightParenthesis: ) @0
               element: <testLibrary>::@class::A::@constructor::new
-          superConstructor: <testLibrary>::@class::A::@constructor::new
+          superConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::A::@constructor::new
+            substitution: {T: T}
     class C
       reference: <testLibrary>::@class::C
       firstFragment: #F13

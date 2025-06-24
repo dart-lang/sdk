@@ -228,7 +228,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
         targetType = node.realTarget.staticType;
       }
       if (targetType != null) {
-        var targetElement = targetType.element3;
+        var targetElement = targetType.element;
         return targetElement is ClassElement && targetElement.isDartCoreEnum;
       }
       return false;

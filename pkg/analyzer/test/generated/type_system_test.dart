@@ -71,7 +71,7 @@ class TryPromoteToTest extends AbstractTypeSystemTest {
       NullabilitySuffix nullability,
       DartType promotedBound,
     ) {
-      expect(type.element3, element);
+      expect(type.element, element);
       expect(type.nullabilitySuffix, nullability);
       expect(type.promotedBound, promotedBound);
     }

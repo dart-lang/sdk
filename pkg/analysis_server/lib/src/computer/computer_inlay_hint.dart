@@ -186,8 +186,8 @@ class DartInlayHintComputer {
         InlayHintLabelPart(
           // Write type without type args or nullability suffix. Type args need
           // adding as their own parts, and the nullability suffix does after them.
-          value: type.element3?.name3 ?? type.getDisplayString(),
-          location: _locationForElement(type.element3),
+          value: type.element?.name3 ?? type.getDisplayString(),
+          location: _locationForElement(type.element),
         ),
       );
       // Call recursively for any nested type arguments.

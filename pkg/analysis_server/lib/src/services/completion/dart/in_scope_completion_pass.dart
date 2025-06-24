@@ -928,7 +928,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     var contextType = _computeContextType(node);
     if (contextType == null) return;
 
-    var element = contextType.element3;
+    var element = contextType.element;
     if (element == null) return;
 
     var parent = node.parent;
@@ -2302,7 +2302,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
             featureSet.isEnabled(Feature.dot_shorthands)) {
           var contextType = _computeContextType(node);
           if (contextType == null) return;
-          element = contextType.element3;
+          element = contextType.element;
         } else {
           element = target.element;
         }

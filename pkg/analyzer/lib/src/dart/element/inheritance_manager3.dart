@@ -248,7 +248,7 @@ class InheritanceManager3 {
   }) {
     type as InterfaceTypeImpl; // TODO(scheglov): remove cast
     var rawElement = getMember(
-      type.element3,
+      type.element,
       name,
       concrete: concrete,
       forMixinIndex: forMixinIndex,
@@ -501,7 +501,7 @@ class InheritanceManager3 {
     if (superType != null) {
       superType as InterfaceTypeImpl;
       var substitution = Substitution.fromInterfaceType(superType);
-      superTypeInterface = getInterface(superType.element3);
+      superTypeInterface = getInterface(superType.element);
       _addCandidates(
         namedCandidates: namedCandidates,
         substitution: substitution,
@@ -523,7 +523,7 @@ class InheritanceManager3 {
     // interfaces. Consider using `Map<Name, ExecutableElement>` here.
     var mixinsConflicts = <List<Conflict>>[];
     for (var mixin in element.mixins) {
-      var mixinElement = mixin.element3;
+      var mixinElement = mixin.element;
       var substitution = Substitution.fromInterfaceType(mixin);
       var mixinInterface = getInterface(mixinElement);
       // `class X extends S with M1, M2 {}` is semantically a sequence of:
@@ -598,7 +598,7 @@ class InheritanceManager3 {
       _addCandidates(
         namedCandidates: namedCandidates,
         substitution: Substitution.fromInterfaceType(interface),
-        interface: getInterface(interface.element3),
+        interface: getInterface(interface.element),
       );
     }
 
@@ -707,7 +707,7 @@ class InheritanceManager3 {
     var notExtensionCandidates = <Name, _ExtensionTypeCandidates>{};
     for (var interface in element.interfaces) {
       var substitution = Substitution.fromInterfaceType(interface);
-      for (var entry in getInterface(interface.element3).map.entries) {
+      for (var entry in getInterface(interface.element).map.entries) {
         var name = entry.key;
         var executable = ExecutableMember.from(entry.value, substitution);
         if (executable.isExtensionTypeMember) {
@@ -857,7 +857,7 @@ class InheritanceManager3 {
     var superCandidates = <Name, List<ExecutableElement2OrMember>>{};
     for (var constraint in element.superclassConstraints) {
       var substitution = Substitution.fromInterfaceType(constraint);
-      var interfaceObj = getInterface(constraint.element3);
+      var interfaceObj = getInterface(constraint.element);
       _addCandidates(
         namedCandidates: superCandidates,
         substitution: substitution,
@@ -879,7 +879,7 @@ class InheritanceManager3 {
       _addCandidates(
         namedCandidates: interfaceCandidates,
         substitution: Substitution.fromInterfaceType(interface),
-        interface: getInterface(interface.element3),
+        interface: getInterface(interface.element),
       );
     }
 

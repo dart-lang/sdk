@@ -499,7 +499,9 @@ library
         synthetic new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F5
-          superConstructor: <testLibrary>::@class::A::@constructor::new
+          superConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::A::@constructor::new
+            substitution: {T: int}
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
@@ -601,7 +603,9 @@ library
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
               element: <testLibrary>::@class::A::@constructor::new
-          superConstructor: <testLibrary>::@class::A::@constructor::new
+          superConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::A::@constructor::new
+            substitution: {T: int}
 ''');
   }
 
@@ -793,7 +797,9 @@ library
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F5
-          superConstructor: <testLibrary>::@class::A::@constructor::new
+          superConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::A::@constructor::new
+            substitution: {T: int Function(String)}
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
@@ -863,7 +869,9 @@ library
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F5
-          superConstructor: <testLibrary>::@class::A::@constructor::new
+          superConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::A::@constructor::new
+            substitution: {T: List<int>}
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
@@ -946,7 +954,9 @@ library
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
               element: <testLibrary>::@class::I::@constructor::new
-          superConstructor: <testLibrary>::@class::I::@constructor::new
+          superConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::I::@constructor::new
+            substitution: {X: int}
   mixins
     mixin M1
       reference: <testLibrary>::@mixin::M1
@@ -1037,7 +1047,9 @@ library
         synthetic new
           reference: <testLibrary>::@class::X::@constructor::new
           firstFragment: #F5
-          superConstructor: <testLibrary>::@class::S::@constructor::new
+          superConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::S::@constructor::new
+            substitution: {T3: String}
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
@@ -1137,7 +1149,9 @@ library
         synthetic new
           reference: <testLibrary>::@class::X::@constructor::new
           firstFragment: #F5
-          superConstructor: <testLibrary>::@class::S::@constructor::new
+          superConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::S::@constructor::new
+            substitution: {T4: String}
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M

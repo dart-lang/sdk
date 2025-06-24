@@ -72,7 +72,7 @@ void SafepointLocker<M>::AcquireLock() {
 }
 
 template <typename M>
-M::WaitResult SafepointLocker<M>::Wait(int64_t millis) {
+typename M::WaitResult SafepointLocker<M>::Wait(int64_t millis) {
   Thread* thread = Thread::Current();
   if (thread != nullptr) {
     typename M::WaitResult result;

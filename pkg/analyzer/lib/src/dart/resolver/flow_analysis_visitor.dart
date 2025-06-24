@@ -648,7 +648,7 @@ class TypeSystemOperations
 
   @override
   bool isExtensionTypeInternal(TypeImpl type) {
-    return type is InterfaceType && type.element3 is ExtensionTypeElement;
+    return type is InterfaceType && type.element is ExtensionTypeElement;
   }
 
   @override
@@ -661,7 +661,7 @@ class TypeSystemOperations
     return type is InterfaceType &&
         !type.isDartCoreNull &&
         !type.isDartAsyncFutureOr &&
-        type.element3 is! ExtensionTypeElement;
+        type.element is! ExtensionTypeElement;
   }
 
   @override
@@ -778,7 +778,7 @@ class TypeSystemOperations
   @override
   TypeParameterElementImpl? matchInferableParameterInternal(TypeImpl type) {
     if (type is TypeParameterTypeImpl) {
-      return type.element3;
+      return type.element;
     } else {
       return null;
     }
@@ -828,7 +828,7 @@ class TypeSystemOperations
       return TypeDeclarationMatchResult(
         typeDeclarationKind: TypeDeclarationKind.interfaceDeclaration,
         typeDeclarationType: interfaceType,
-        typeDeclaration: interfaceType.element3,
+        typeDeclaration: interfaceType.element,
         typeArguments: interfaceType.typeArguments,
       );
     } else if (isExtensionTypeInternal(type)) {
@@ -836,7 +836,7 @@ class TypeSystemOperations
       return TypeDeclarationMatchResult(
         typeDeclarationKind: TypeDeclarationKind.extensionTypeDeclaration,
         typeDeclarationType: interfaceType,
-        typeDeclaration: interfaceType.element3,
+        typeDeclaration: interfaceType.element,
         typeArguments: interfaceType.typeArguments,
       );
     } else {
@@ -848,7 +848,7 @@ class TypeSystemOperations
   TypeImpl? matchTypeParameterBoundInternal(TypeImpl type) {
     if (type is TypeParameterTypeImpl &&
         type.nullabilitySuffix == NullabilitySuffix.none) {
-      return type.promotedBound ?? type.element3.bound;
+      return type.promotedBound ?? type.element.bound;
     } else {
       return null;
     }

@@ -61,7 +61,7 @@ class CreateSetter extends ResolvedCorrectionProducer {
       if (targetType is! InterfaceType) {
         return;
       }
-      targetElement = targetType.element3;
+      targetElement = targetType.element;
       // maybe static
       if (target is Identifier) {
         var targetIdentifier = target;

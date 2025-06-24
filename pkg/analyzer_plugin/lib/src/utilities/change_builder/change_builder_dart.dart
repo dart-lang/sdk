@@ -1140,7 +1140,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       } else if (expectedType.isDartCoreString) {
         _addSingleCharacterName(excluded, res, $s);
       } else if (expectedType is InterfaceType) {
-        var className = expectedType.element3.name3;
+        var className = expectedType.element.name3;
         _addAll(excluded, res, _getCamelWordCombinations(className));
       }
     }
@@ -1155,7 +1155,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   DartType? _getVisibleType(DartType? type,
       {ExecutableElement? methodBeingCopied}) {
     if (type is InterfaceType) {
-      var element = type.element3;
+      var element = type.element;
       if (element.isPrivate &&
           !_dartFileEditBuilder._isDefinedLocally(element)) {
         return null;
@@ -1164,7 +1164,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
     if (type is TypeParameterType) {
       _initializeEnclosingElements();
-      var element = type.element3;
+      var element = type.element;
       var enclosing = element.enclosingElement;
       while (enclosing is GenericFunctionTypeElement ||
           enclosing is FormalParameterElement) {
@@ -1308,7 +1308,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
     if (type is InterfaceType) {
       _writeTypeElementArguments(
-        element: type.element3,
+        element: type.element,
         typeArguments: type.typeArguments,
         methodBeingCopied: methodBeingCopied,
       );
@@ -1323,7 +1323,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
 
     if (type is TypeParameterType) {
-      write(type.element3.name3!);
+      write(type.element.name3!);
       _writeTypeNullability(type);
       return true;
     }

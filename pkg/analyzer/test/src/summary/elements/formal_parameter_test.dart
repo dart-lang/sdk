@@ -255,7 +255,9 @@ library
         synthetic new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F8
-          superConstructor: <testLibrary>::@class::A::@constructor::new
+          superConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::A::@constructor::new
+            substitution: {T: T}
       methods
         f
           reference: <testLibrary>::@class::B::@method::f

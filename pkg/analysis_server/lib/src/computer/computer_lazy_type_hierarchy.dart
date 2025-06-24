@@ -81,7 +81,7 @@ class DartLazyTypeHierarchyComputer {
     }
 
     return type is InterfaceType
-        ? TypeHierarchyItem.forElement(type.element3)
+        ? TypeHierarchyItem.forElement(type.element)
         : null;
   }
 
@@ -259,28 +259,28 @@ class TypeHierarchyRelatedItem extends TypeHierarchyItem {
 
   static TypeHierarchyRelatedItem? constrainedTo(InterfaceType type) =>
       _forElement(
-        type.element3,
+        type.element,
         relationship: TypeHierarchyItemRelationship.constrainedTo,
       );
 
   static TypeHierarchyRelatedItem? extends_(InterfaceType type) => _forElement(
-    type.element3,
+    type.element,
     relationship: TypeHierarchyItemRelationship.extends_,
   );
 
   static TypeHierarchyRelatedItem? implements(InterfaceType type) =>
       _forElement(
-        type.element3,
+        type.element,
         relationship: TypeHierarchyItemRelationship.implements,
       );
 
   static TypeHierarchyRelatedItem? mixesIn(InterfaceType type) => _forElement(
-    type.element3,
+    type.element,
     relationship: TypeHierarchyItemRelationship.mixesIn,
   );
 
   static TypeHierarchyRelatedItem? unknown(InterfaceType type) => _forElement(
-    type.element3,
+    type.element,
     relationship: TypeHierarchyItemRelationship.unknown,
   );
 

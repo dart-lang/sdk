@@ -74,7 +74,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     InterfaceElement? current = self;
     var seenElements = <InterfaceElement>{};
     while (current != null && seenElements.add(current)) {
-      current = current.supertype?.element3;
+      current = current.supertype?.element;
     }
     return seenElements.toList();
   }

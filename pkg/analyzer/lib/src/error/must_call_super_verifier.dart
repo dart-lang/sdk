@@ -100,11 +100,11 @@ class MustCallSuperVerifier {
     var superclasses = Queue<InterfaceElement?>();
 
     void addToQueue(InterfaceElement element) {
-      superclasses.addAll(element.mixins.map((i) => i.element3));
-      superclasses.add(element.supertype?.element3);
+      superclasses.addAll(element.mixins.map((i) => i.element));
+      superclasses.add(element.supertype?.element);
       if (element is MixinElement) {
         superclasses.addAll(
-          element.superclassConstraints.map((i) => i.element3),
+          element.superclassConstraints.map((i) => i.element),
         );
       }
     }
@@ -204,7 +204,7 @@ extension on InterfaceType? {
   bool isConcrete(String name) {
     var self = this;
     if (self == null) return false;
-    var element = self.element3;
+    var element = self.element;
 
     var library = element.library2 as LibraryElementImpl;
     var inheritanceManager = library.session.inheritanceManager;

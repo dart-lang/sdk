@@ -79,7 +79,7 @@ void checkForTypeParameterBoundRecursion(
         if (boundNode is NamedType) {
           var boundType = boundNode.typeOrThrow;
           boundType = boundType.extensionTypeErasure;
-          current = elementToNode[boundType.element3];
+          current = elementToNode[boundType.element];
         } else {
           current = null;
         }
@@ -346,7 +346,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// The language team is thinking about adding abstract fields, or external
   /// fields. But for now we will ignore such fields in `Struct` subtypes.
   bool get _isEnclosingClassFfiStruct {
-    var superClass = _enclosingClass?.supertype?.element3;
+    var superClass = _enclosingClass?.supertype?.element;
     return superClass != null &&
         _isDartFfiLibrary(superClass.library2) &&
         superClass.name3 == 'Struct';
@@ -355,7 +355,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// The language team is thinking about adding abstract fields, or external
   /// fields. But for now we will ignore such fields in `Struct` subtypes.
   bool get _isEnclosingClassFfiUnion {
-    var superClass = _enclosingClass?.supertype?.element3;
+    var superClass = _enclosingClass?.supertype?.element;
     return superClass != null &&
         _isDartFfiLibrary(superClass.library2) &&
         superClass.name3 == 'Union';
@@ -1848,14 +1848,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         )) {
           problemReported = true;
         } else {
-          var mixinElement = mixinType.element3;
+          var mixinElement = mixinType.element;
           if (_checkForExtendsOrImplementsDeferredClass(
             mixinName,
             CompileTimeErrorCode.MIXIN_DEFERRED_CLASS,
           )) {
             problemReported = true;
           }
-          if (mixinType.element3 is ExtensionTypeElement) {
+          if (mixinType.element is ExtensionTypeElement) {
             // Already reported.
           } else if (mixinElement is MixinElement) {
             if (_checkForMixinSuperclassConstraints(
@@ -2159,8 +2159,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         var implementedInterfaces =
             [
               interfaceType,
-              ...interfaceType.element3.allSupertypes,
-            ].map((e) => e.element3).toList();
+              ...interfaceType.element.allSupertypes,
+            ].map((e) => e.element).toList();
         for (var interfaceElement in implementedInterfaces) {
           if ((interfaceElement is ClassElementImpl &&
                       interfaceElement.isBase ||
@@ -2213,7 +2213,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       for (NamedType withMixin in withClause.mixinTypes) {
         var withType = withMixin.type;
         if (withType is InterfaceType) {
-          var withElement = withType.element3;
+          var withElement = withType.element;
           if (withElement is ClassElementImpl &&
               !withElement.isMixinClass &&
               withElement.library2.featureSet.isEnabled(
@@ -2663,7 +2663,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         superInitializer != declaration.initializers.last) {
       var superType = enclosingClass.supertype;
       if (superType != null) {
-        var superNamedType = superType.element3.displayName;
+        var superNamedType = superType.element.displayName;
         var constructorStrName = superNamedType;
         var constructorName = superInitializer.constructorName;
         if (constructorName != null) {
@@ -2704,7 +2704,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var instanceFields = <FieldElement>[];
     for (var mixin in enclosingClass.mixins) {
       instanceFields.addAll(
-        mixin.element3.fields.where((field) {
+        mixin.element.fields.where((field) {
           if (field.isStatic) {
             return false;
           }
@@ -2843,7 +2843,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     NamedType namedType,
     InterfaceType type,
   ) {
-    var element = type.element3;
+    var element = type.element;
     if (element is ClassElement && element.isAbstract) {
       var constructorElement = expression.constructorName.element;
       if (constructorElement != null && !constructorElement.isFactory) {
@@ -2861,7 +2861,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     NamedType namedType,
     InterfaceType type,
   ) {
-    if (type.element3 is MixinElement) {
+    if (type.element is MixinElement) {
       diagnosticReporter.atNode(
         namedType,
         CompileTimeErrorCode.MIXIN_INSTANTIATE,
@@ -3273,7 +3273,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
     var type = namedType.type;
     return type is InterfaceType &&
-        _typeProvider.isNonSubtypableClass2(type.element3);
+        _typeProvider.isNonSubtypableClass2(type.element);
   }
 
   void _checkForExtensionDeclaresInstanceField(FieldDeclaration node) {
@@ -3585,7 +3585,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (superclass != null) {
       var type = superclass.type;
       if (type is InterfaceType) {
-        var element = type.element3;
+        var element = type.element;
         if (element is ClassElementImpl &&
             element.isFinal &&
             !element.isSealed &&
@@ -3606,8 +3606,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           var implementedInterfaces =
               [
                 type,
-                ...type.element3.allSupertypes,
-              ].map((e) => e.element3).toList();
+                ...type.element.allSupertypes,
+              ].map((e) => e.element).toList();
           for (var element in implementedInterfaces) {
             if (element is ClassElement &&
                 element.isFinal &&
@@ -3617,8 +3617,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
               // If the final interface is an indirect interface and is in a
               // different library that has class modifiers enabled, there is a
               // nearer declaration that would emit an error, if any.
-              if (element != type.element3 &&
-                  type.element3.library2.featureSet.isEnabled(
+              if (element != type.element &&
+                  type.element.library2.featureSet.isEnabled(
                     Feature.class_modifiers,
                   )) {
                 continue;
@@ -3639,7 +3639,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       for (NamedType namedType in onClause.superclassConstraints) {
         var type = namedType.type;
         if (type is InterfaceType) {
-          var element = type.element3;
+          var element = type.element;
           if (element is ClassElement &&
               element.isFinal &&
               !element.isSealed &&
@@ -3814,7 +3814,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (superclass != null) {
       var superclassType = superclass.type;
       if (superclassType is InterfaceType) {
-        var superclassElement = superclassType.element3;
+        var superclassElement = superclassType.element;
         if (superclassElement is ClassElementImpl &&
             superclassElement.isInterface &&
             !superclassElement.isSealed &&
@@ -4182,7 +4182,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     var hasCaseNull = false;
     if (expressionType is InterfaceType) {
-      var enumElement = expressionType.element3;
+      var enumElement = expressionType.element;
       if (enumElement is EnumElement) {
         var constantNames =
             enumElement.fields
@@ -4487,7 +4487,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         }
         names[name] = namedType.name.lexeme;
         var inheritedMember = _inheritanceManager.getMember(
-          declaredSupertype.element3,
+          declaredSupertype.element,
           Name(library.uri, name),
           concrete: true,
         );
@@ -4516,7 +4516,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     for (NamedType mixinType in withClause.mixinTypes) {
       DartType type = mixinType.typeOrThrow;
       if (type is InterfaceType) {
-        var library = type.element3.library2;
+        var library = type.element.library2;
         if (library != _currentLibrary) {
           for (var getter in type.getters) {
             if (getter.isStatic) {
@@ -4578,7 +4578,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
     DartType type = namedType.typeOrThrow;
     if (type is InterfaceType) {
-      var element = type.element3;
+      var element = type.element;
       if (element is EnumElement || element is MixinElement) {
         // We have already reported the error.
         return;
@@ -4617,7 +4617,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (superType == null) {
       return;
     }
-    var superElement = superType.element3;
+    var superElement = superType.element;
     // try to find default generative super constructor
     var superUnnamedConstructor = superElement.unnamedConstructor2;
     if (superUnnamedConstructor != null) {
@@ -4638,7 +4638,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
     }
 
-    if (!_typeProvider.isNonSubtypableClass2(superType.element3)) {
+    if (!_typeProvider.isNonSubtypableClass2(superType.element)) {
       // Don't report this diagnostic for non-subtypable classes because the
       // real problem was already reported.
       diagnosticReporter.atElement2(
@@ -4661,7 +4661,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       // subclass has only factory constructors.
       return false;
     }
-    var superElement = superType.element3;
+    var superElement = superType.element;
     if (superElement.constructors.isEmpty) {
       // Exclude empty constructor set, which indicates other errors occurred.
       return false;
@@ -5164,7 +5164,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     for (var namedType in namedTypes) {
       var type = namedType.type;
       if (type is InterfaceType) {
-        var element = type.element3;
+        var element = type.element;
         var added = accumulatedElements.add(element);
         if (!added) {
           diagnosticReporter.atNode(
@@ -5226,7 +5226,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       for (NamedType namedType in namedTypes) {
         var type = namedType.type;
         if (type is InterfaceType) {
-          var element = type.element3;
+          var element = type.element;
           if (element is ClassElement &&
               element.isSealed &&
               element.library2 != _currentLibrary) {
@@ -5432,7 +5432,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (superType == null) {
       return;
     }
-    var superElement = superType.element3;
+    var superElement = superType.element;
 
     if (superElement.constructors.every(
       (constructor) => constructor.isFactory,
@@ -6015,14 +6015,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    var superElement = _enclosingClass!.supertype?.element3;
+    var superElement = _enclosingClass!.supertype?.element;
     if (superElement == null) {
       return;
     }
 
     for (var interfaceNode in implementsClause.interfaces) {
       var type = interfaceNode.type;
-      if (type is InterfaceType && type.element3 == superElement) {
+      if (type is InterfaceType && type.element == superElement) {
         diagnosticReporter.atNode(
           interfaceNode,
           CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS,
@@ -6081,14 +6081,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    var superElement = _enclosingClass!.supertype?.element3;
+    var superElement = _enclosingClass!.supertype?.element;
     if (superElement == null) {
       return;
     }
 
     for (var mixinNode in withClause.mixinTypes) {
       var type = mixinNode.type;
-      if (type is InterfaceType && type.element3 == superElement) {
+      if (type is InterfaceType && type.element == superElement) {
         diagnosticReporter.atNode(
           mixinNode,
           CompileTimeErrorCode.MIXINS_SUPER_CLASS,
@@ -6500,7 +6500,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       } else if (element is TypeAliasElement) {
         var aliasedType = element.aliasedType;
         if (aliasedType is InterfaceType) {
-          return aliasedType.element3;
+          return aliasedType.element;
         }
       }
     }

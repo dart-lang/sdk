@@ -132,7 +132,7 @@ getHierarchyMembersAndParameters(
 
     var superElementsToSearch =
         enclosingElement.allSupertypes
-            .map((superType) => superType.element3)
+            .map((superType) => superType.element)
             .where((interface) {
               return member2.isPublic || interface.library2 == member2.library2;
             })
@@ -253,7 +253,7 @@ Future<List<FormalParameterElement>> getHierarchyPositionalParameters(
 ///
 /// Excludes: constructors and synthetic elements.
 List<Element> getMembers(InterfaceElement clazz) {
-  var classElements = [...clazz.allSupertypes.map((e) => e.element3), clazz];
+  var classElements = [...clazz.allSupertypes.map((e) => e.element), clazz];
   var members = <Element>[];
   for (var superClass in classElements) {
     members.addAll(getClassMembers(superClass));

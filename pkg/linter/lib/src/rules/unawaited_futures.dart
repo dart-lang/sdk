@@ -46,7 +46,7 @@ class UnawaitedFutures extends LintRule {
 extension on DartType {
   /// Whether this type is `Future` from dart:async, or is a subtype thereof.
   bool get isOrImplementsFuture {
-    var typeElement = element3;
+    var typeElement = element;
     if (typeElement is! InterfaceElement) return false;
     return isDartAsyncFuture ||
         typeElement.allSupertypes.any((t) => t.isDartAsyncFuture);

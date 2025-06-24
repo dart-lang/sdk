@@ -82,7 +82,7 @@ class LeastGreatestClosureHelper extends ReplacementVisitor {
 
   @override
   TypeImpl? visitTypeParameterType(TypeParameterType type) {
-    if (eliminationTargets.contains(type.element3)) {
+    if (eliminationTargets.contains(type.element)) {
       var replacement = _typeParameterReplacement;
       return replacement.withNullability(
         uniteNullabilities(

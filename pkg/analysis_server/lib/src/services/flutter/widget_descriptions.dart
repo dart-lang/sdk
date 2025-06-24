@@ -388,7 +388,7 @@ class _WidgetDescriptionComputer {
     } else if (valueExpression == null) {
       var type = parameter.type;
       if (type is InterfaceType) {
-        var classDescription = classRegistry.get(type.element3);
+        var classDescription = classRegistry.get(type.element);
         if (classDescription != null) {
           _addProperties(
             properties: propertyDescription.children,
@@ -450,7 +450,7 @@ class _WidgetDescriptionComputer {
       );
     }
     if (type is InterfaceType) {
-      var classElement = type.element3;
+      var classElement = type.element;
       if (classElement is EnumElement) {
         return protocol.FlutterWidgetPropertyEditor(
           protocol.FlutterWidgetPropertyEditorKind.ENUM,

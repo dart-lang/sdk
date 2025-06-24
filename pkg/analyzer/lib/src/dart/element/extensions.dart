@@ -13,7 +13,7 @@ import 'package:meta/meta_meta.dart';
 
 extension DartTypeExtension on DartType {
   bool get isExtensionType {
-    return element3 is ExtensionTypeElement;
+    return element is ExtensionTypeElement;
   }
 }
 
@@ -110,7 +110,7 @@ extension ElementAnnotationExtensions on ElementAnnotation {
     if (element is GetterElement) {
       var type = element.returnType;
       if (type is InterfaceType) {
-        interfaceElement = type.element3;
+        interfaceElement = type.element;
       }
     } else if (element is ConstructorElement) {
       interfaceElement = element.enclosingElement;

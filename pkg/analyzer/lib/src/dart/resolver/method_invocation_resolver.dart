@@ -172,7 +172,7 @@ class MethodInvocationResolver with ScopeHelpers {
         if (aliasedType is InterfaceType) {
           return _resolveReceiverTypeLiteral(
             node,
-            aliasedType.element3,
+            aliasedType.element,
             nameNode,
             name,
             whyNotPromotedArguments,
@@ -274,7 +274,7 @@ class MethodInvocationResolver with ScopeHelpers {
 
     // TODO(kallentu): Dot shorthands work - Support other context types
     if (dotShorthandContextType is InterfaceTypeImpl) {
-      var receiver = dotShorthandContextType.element3;
+      var receiver = dotShorthandContextType.element;
       return _resolveReceiverTypeLiteralForDotShorthand(
         node,
         receiver,
@@ -851,7 +851,7 @@ class MethodInvocationResolver with ScopeHelpers {
           contextType: contextType,
         );
         var receiverTypeName = switch (receiverType) {
-          InterfaceTypeImpl() => receiverType.element3.name3!,
+          InterfaceTypeImpl() => receiverType.element.name3!,
           FunctionType() => 'Function',
           _ => '<unknown>',
         };
@@ -1158,7 +1158,7 @@ class MethodInvocationResolver with ScopeHelpers {
 
     String receiverClassName = '<unknown>';
     if (receiverType is InterfaceTypeImpl) {
-      receiverClassName = receiverType.element3.name3!;
+      receiverClassName = receiverType.element.name3!;
     } else if (receiverType is FunctionType) {
       receiverClassName = 'Function';
     }
@@ -1187,7 +1187,7 @@ class MethodInvocationResolver with ScopeHelpers {
     required TypeImpl contextType,
   }) {
     if (node.isCascaded) {
-      receiver = _typeType.element3;
+      receiver = _typeType.element;
     }
 
     var element = _resolveElement(receiver, nameNode);

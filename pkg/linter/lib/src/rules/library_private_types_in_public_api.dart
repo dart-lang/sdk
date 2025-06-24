@@ -135,7 +135,7 @@ class Validator extends SimpleAstVisitor<void> {
     var element = node.declaredFragment?.element;
     if (element is FieldFormalParameterElement) {
       var type = element.type;
-      if (type is InterfaceType && isPrivateName(type.element3.name3)) {
+      if (type is InterfaceType && isPrivateName(type.element.name3)) {
         rule.reportAtToken(node.name);
       }
     }
@@ -247,7 +247,7 @@ class Validator extends SimpleAstVisitor<void> {
     var element = node.declaredFragment?.element;
     if (element is SuperFormalParameterElement) {
       var type = element.type;
-      if (type is InterfaceType && isPrivateName(type.element3.name3)) {
+      if (type is InterfaceType && isPrivateName(type.element.name3)) {
         rule.reportAtToken(node.name);
       }
     }

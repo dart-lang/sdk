@@ -1230,7 +1230,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (staticType == null) return;
       for (var method in protectedInstanceMethods) {
         if (invocation.methodName.name == method.name &&
-            staticType.element3?.name3 == method.type) {
+            staticType.element?.name3 == method.type) {
           checkPositionalArguments(
             method.positional,
             positionalArguments,
@@ -1472,7 +1472,7 @@ extension ElementExtension on Element {
           ExecutableElement() => self.returnType,
           VariableElement() => self.type,
           _ => null,
-        }?.element3;
+        }?.element;
     if (buildContextElement is InterfaceElement) {
       return buildContextElement.lookUpGetter(
         name: 'mounted',

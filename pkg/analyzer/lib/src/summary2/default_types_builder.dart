@@ -282,11 +282,11 @@ class DefaultTypesBuilder {
   ) {
     var paths = <List<_CycleElement>>[];
     if (startType is NamedTypeBuilder) {
-      var declaration = startType.element3;
+      var declaration = startType.element;
       if (startType.arguments.isEmpty) {
-        if (startType.element3 == end) {
+        if (startType.element == end) {
           paths.add([_CycleElement(startParameter, startType)]);
-        } else if (visited.add(startType.element3)) {
+        } else if (visited.add(startType.element)) {
           void recurseParameters(List<TypeParameterElement> parameters) {
             for (var parameter in parameters) {
               var parameterNode = _getTypeParameterNode(
@@ -317,7 +317,7 @@ class DefaultTypesBuilder {
           } else if (declaration is TypeAliasElement) {
             recurseParameters(declaration.typeParameters2);
           }
-          visited.remove(startType.element3);
+          visited.remove(startType.element);
         }
       } else {
         for (var argument in startType.arguments) {
@@ -421,7 +421,7 @@ class _TypeParametersGraph implements Graph<int> {
         _collectReferencesFrom(index, argument);
       }
     } else if (type is TypeParameterType) {
-      var typeIndex = _parameterToIndex[type.element3];
+      var typeIndex = _parameterToIndex[type.element];
       if (typeIndex != null) {
         _edges[typeIndex].add(index);
       }
@@ -472,9 +472,9 @@ class _UpperLowerReplacementVisitor extends ReplacementVisitor {
   @override
   TypeImpl? visitTypeParameterType(TypeParameterType type) {
     if (_variance == Variance.contravariant) {
-      return _lower[type.element3];
+      return _lower[type.element];
     } else {
-      return _upper[type.element3];
+      return _upper[type.element];
     }
   }
 }

@@ -161,7 +161,7 @@ extension CompilationUnitExtension on CompilationUnit {
 
 extension ExtensionElementExtension on ExtensionElement {
   InterfaceElement? get extendedInterfaceElement =>
-      extendedType.ifTypeOrNull<InterfaceType>()?.element3;
+      extendedType.ifTypeOrNull<InterfaceType>()?.element;
 }
 
 extension VariableDeclarationExtension on VariableDeclaration {

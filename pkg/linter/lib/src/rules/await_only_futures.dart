@@ -42,7 +42,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (type == null || type is DynamicType) return;
     type = context.typeSystem.promoteToNonNull(type);
     if (type.isDartAsyncFutureOr) return;
-    if (type.element3 is ExtensionTypeElement) return;
+    if (type.element is ExtensionTypeElement) return;
     if (type is InvalidType) return;
 
     if (context.typeSystem.isAssignableTo(

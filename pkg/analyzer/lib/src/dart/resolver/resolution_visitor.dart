@@ -1723,7 +1723,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       return;
     }
 
-    var element = type.element3;
+    var element = type.element;
     switch (element) {
       case ClassElement():
         return;
@@ -1875,7 +1875,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
                 .EXTENSION_TYPE_IMPLEMENTS_REPRESENTATION_NOT_SUPERTYPE,
             arguments: [
               implementedRepresentation,
-              type.element3.name3 ?? '',
+              type.element.name3 ?? '',
               declaredRepresentation,
               declaredElement.name2 ?? '',
             ],

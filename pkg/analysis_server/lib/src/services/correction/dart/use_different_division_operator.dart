@@ -131,7 +131,7 @@ class _UseDifferentDivisionOperator extends ResolvedCorrectionProducer {
 
 extension on DartType {
   Set<_DivisionOperator> get divisionOperators {
-    switch (element3) {
+    switch (element) {
       case InterfaceElement element:
         return {
           for (var method in element.methods)

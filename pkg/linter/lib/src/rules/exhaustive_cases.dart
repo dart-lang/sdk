@@ -37,7 +37,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitSwitchStatement(SwitchStatement statement) {
     var expressionType = statement.expression.staticType;
     if (expressionType is InterfaceType) {
-      var interfaceElement = expressionType.element3;
+      var interfaceElement = expressionType.element;
       // Handled in analyzer.
       if (interfaceElement is! ClassElement) {
         return;

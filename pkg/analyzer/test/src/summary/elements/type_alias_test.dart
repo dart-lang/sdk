@@ -3730,7 +3730,9 @@ library
         synthetic new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F5
-          superConstructor: <testLibrary>::@class::A::@constructor::new
+          superConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::A::@constructor::new
+            substitution: {T: int}
   typeAliases
     X
       reference: <testLibrary>::@typeAlias::X
@@ -3795,7 +3797,9 @@ library
         synthetic new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F5
-          superConstructor: <testLibrary>::@class::A::@constructor::new
+          superConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::A::@constructor::new
+            substitution: {T: int}
   typeAliases
     X
       reference: <testLibrary>::@typeAlias::X
@@ -3952,7 +3956,9 @@ library
         synthetic new
           reference: <testLibrary>::@class::D::@constructor::new
           firstFragment: #F5
-          superConstructor: <testLibrary>::@class::A::@constructor::new
+          superConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::A::@constructor::new
+            substitution: {T: int?}
   typeAliases
     X
       reference: <testLibrary>::@typeAlias::X

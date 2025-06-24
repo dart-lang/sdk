@@ -265,7 +265,7 @@ abstract class SourceCompilationUnit
   IndexedLibrary? get indexedLibrary;
 
   void addSyntheticImport(
-      {required String uri,
+      {required Uri importUri,
       required String? prefix,
       required List<CombinatorBuilder>? combinators,
       required bool deferred});

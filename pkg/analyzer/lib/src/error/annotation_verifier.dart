@@ -77,7 +77,7 @@ class AnnotationVerifier {
         return;
       }
 
-      var element = type.element3;
+      var element = type.element;
       if (element is InterfaceElement &&
           element.allSupertypes.any((t) => t.isDartAsyncFuture)) {
         return;
@@ -300,10 +300,10 @@ class AnnotationVerifier {
     var parent = node.parent;
     if (parent is ClassDeclaration) {
       classElement = parent.declaredFragment?.element;
-      superElement = classElement?.supertype?.element3;
+      superElement = classElement?.supertype?.element;
     } else if (parent is ClassTypeAlias) {
       classElement = parent.declaredFragment?.element;
-      superElement = classElement?.supertype?.element3;
+      superElement = classElement?.supertype?.element;
     } else {
       // If `parent` is neither of the above types, then `_checkKinds` will
       // report a warning.

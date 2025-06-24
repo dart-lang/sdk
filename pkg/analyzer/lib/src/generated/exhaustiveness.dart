@@ -79,7 +79,7 @@ class AnalyzerEnumOperations
 
   @override
   EnumElement? getEnumClass(TypeImpl type) {
-    var element = type.element3;
+    var element = type.element;
     if (element is EnumElement) {
       return element;
     }
@@ -149,7 +149,7 @@ class AnalyzerSealedClassOperations
       }
       if (declaration != sealedClass && declaration is InterfaceElementImpl) {
         bool checkType(InterfaceTypeImpl? type) {
-          if (type?.element3 == sealedClass) {
+          if (type?.element == sealedClass) {
             subclasses.add(declaration);
             return true;
           }
@@ -183,7 +183,7 @@ class AnalyzerSealedClassOperations
 
   @override
   ClassElementImpl? getSealedClass(TypeImpl type) {
-    var element = type.element3;
+    var element = type.element;
     if (element is ClassElementImpl && element.isSealed) {
       return element;
     }
@@ -196,7 +196,7 @@ class AnalyzerSealedClassOperations
     covariant InterfaceTypeImpl sealedClassType,
   ) {
     var thisType = subClass.thisType;
-    var asSealedClass = thisType.asInstanceOf2(sealedClassType.element3)!;
+    var asSealedClass = thisType.asInstanceOf2(sealedClassType.element)!;
     if (thisType.typeArguments.isEmpty) {
       return thisType;
     }
@@ -677,7 +677,7 @@ class PatternConverter with SpaceCreator<DartPattern, TypeImpl> {
     } else if (pattern is ListPattern) {
       var type = pattern.requiredType as InterfaceTypeImpl;
       assert(
-        type.element3 == cache.typeSystem.typeProvider.listElement2 &&
+        type.element == cache.typeSystem.typeProvider.listElement2 &&
             type.typeArguments.length == 1,
       );
       var elementType = type.typeArguments[0];
@@ -708,7 +708,7 @@ class PatternConverter with SpaceCreator<DartPattern, TypeImpl> {
     } else if (pattern is MapPattern) {
       var type = pattern.requiredType as InterfaceTypeImpl;
       assert(
-        type.element3 == cache.typeSystem.typeProvider.mapElement2 &&
+        type.element == cache.typeSystem.typeProvider.mapElement2 &&
             type.typeArguments.length == 2,
       );
       var keyType = type.typeArguments[0];
@@ -778,7 +778,7 @@ class PatternConverter with SpaceCreator<DartPattern, TypeImpl> {
       return Space(path, cache.getStaticType(type), properties: properties);
     }
     if (type is InterfaceTypeImpl) {
-      var element = type.element3;
+      var element = type.element;
       if (element is EnumElementImpl) {
         return Space(path, cache.getEnumElementStaticType(element, value));
       }
@@ -830,7 +830,7 @@ class TypeParameterReplacer extends ReplacementVisitor {
     if (_variance == Variance.contravariant) {
       return _replaceTypeParameterTypes(_typeSystem.typeProvider.neverType);
     } else {
-      var element = node.element3;
+      var element = node.element;
       var defaultType = element.defaultType!;
       return _replaceTypeParameterTypes(defaultType);
     }

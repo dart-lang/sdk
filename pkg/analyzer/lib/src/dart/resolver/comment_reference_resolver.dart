@@ -67,7 +67,7 @@ class CommentReferenceResolver {
 
     if (prefixElement is TypeAliasElement) {
       // When resolving `name`, use the aliased element.
-      prefixElement = prefixElement.aliasedType.element3;
+      prefixElement = prefixElement.aliasedType.element;
     }
 
     if (prefixElement is PrefixElement) {
@@ -140,7 +140,7 @@ class CommentReferenceResolver {
 
     if (element is TypeAliasElement) {
       // When resolving `propertyName`, use the aliased element.
-      element = element.aliasedType.element3;
+      element = element.aliasedType.element;
     }
 
     if (element is InterfaceElement) {

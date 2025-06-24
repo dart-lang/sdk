@@ -424,7 +424,7 @@ class _SuggestionBuilder {
     var typesToVisit = <InterfaceType>[type];
     while (typesToVisit.isNotEmpty) {
       var nextType = typesToVisit.removeLast();
-      if (!classesSeen.add(nextType.element3)) {
+      if (!classesSeen.add(nextType.element)) {
         // Class had already been seen, so ignore this type.
         continue;
       }

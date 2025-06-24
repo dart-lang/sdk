@@ -197,6 +197,14 @@ class BundleWriter {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
       _sink.writeList(element.fragments, _writeFragmentId);
+
+      _writeElementResolution(() {
+        // TODO(scheglov): avoid cast
+        _resolutionSink.withTypeParameters(element.typeParameters2.cast(), () {
+          _resolutionSink.writeElement(element.superConstructor2);
+          // TODO(scheglov): formal parameters
+        });
+      });
     });
   }
 
@@ -210,7 +218,6 @@ class BundleWriter {
       _sink.writeList(fragment.formalParameters, _writeParameterElement);
       _resolutionSink._writeMetadata(fragment.metadata);
       _resolutionSink.writeType(fragment.returnType);
-      _resolutionSink.writeElement(fragment.superConstructor?.asElement2);
       _resolutionSink.writeElement(fragment.redirectedConstructor?.asElement2);
       _resolutionSink._writeNodeList(fragment.constantInitializers);
     });
@@ -1017,11 +1024,11 @@ class ResolutionSink extends _SummaryDataWriter {
           writeByte(Tag.InterfaceType_noTypeArguments_question);
         }
         // TODO(scheglov): Write raw
-        writeElement(type.element3);
+        writeElement(type.element);
       } else {
         writeByte(Tag.InterfaceType);
         // TODO(scheglov): Write raw
-        writeElement(type.element3);
+        writeElement(type.element);
         writeUInt30(typeArguments.length);
         for (var i = 0; i < typeArguments.length; ++i) {
           writeType(typeArguments[i]);
@@ -1041,7 +1048,7 @@ class ResolutionSink extends _SummaryDataWriter {
       _writeTypeAliasElementArguments(type);
     } else if (type is TypeParameterTypeImpl) {
       writeByte(Tag.TypeParameterType);
-      writeElement(type.element3);
+      writeElement(type.element);
       _writeNullabilitySuffix(type.nullabilitySuffix);
       _writeTypeAliasElementArguments(type);
     } else if (type is VoidTypeImpl) {

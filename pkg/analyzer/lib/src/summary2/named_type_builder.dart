@@ -27,7 +27,7 @@ class NamedTypeBuilder extends TypeBuilder {
   final TypeSystemImpl typeSystem;
 
   @override
-  final Element element3;
+  final Element element;
 
   final List<TypeImpl> arguments;
 
@@ -48,7 +48,7 @@ class NamedTypeBuilder extends TypeBuilder {
   NamedTypeBuilder({
     required this.linker,
     required this.typeSystem,
-    required this.element3,
+    required this.element,
     required this.arguments,
     required this.nullabilitySuffix,
     this.node,
@@ -72,7 +72,7 @@ class NamedTypeBuilder extends TypeBuilder {
     return NamedTypeBuilder(
       linker: linker,
       typeSystem: typeSystem,
-      element3: element,
+      element: element,
       arguments: arguments,
       nullabilitySuffix: nullabilitySuffix,
       node: node,
@@ -81,7 +81,7 @@ class NamedTypeBuilder extends TypeBuilder {
 
   // TODO(scheglov): Only when enabled both in the element, and target?
   bool get _isNonFunctionTypeAliasesEnabled {
-    return element3.library2!.featureSet.isEnabled(
+    return element.library2!.featureSet.isEnabled(
       Feature.nonfunction_type_aliases,
     );
   }
@@ -102,28 +102,28 @@ class NamedTypeBuilder extends TypeBuilder {
       return _type!;
     }
 
-    var element3 = this.element3;
-    if (element3 is InterfaceElementImpl) {
-      var parameters = element3.typeParameters2;
+    var element = this.element;
+    if (element is InterfaceElementImpl) {
+      var parameters = element.typeParameters2;
       var arguments = _buildArguments(parameters);
-      _type = element3.instantiateImpl(
+      _type = element.instantiateImpl(
         typeArguments: arguments,
         nullabilitySuffix: nullabilitySuffix,
       );
-    } else if (element3 is TypeAliasElementImpl) {
-      var aliasedType = _getAliasedType(element3);
-      var parameters = element3.typeParameters2;
+    } else if (element is TypeAliasElementImpl) {
+      var aliasedType = _getAliasedType(element);
+      var parameters = element.typeParameters2;
       var arguments = _buildArguments(parameters);
-      element3.aliasedType = aliasedType;
-      _type = element3.instantiateImpl(
+      element.aliasedType = aliasedType;
+      _type = element.instantiateImpl(
         typeArguments: arguments,
         nullabilitySuffix: nullabilitySuffix,
       );
-    } else if (element3 is NeverElementImpl) {
+    } else if (element is NeverElementImpl) {
       _type = NeverTypeImpl.instance.withNullability(nullabilitySuffix);
-    } else if (element3 is TypeParameterElementImpl) {
+    } else if (element is TypeParameterElementImpl) {
       _type = TypeParameterTypeImpl(
-        element3: element3,
+        element: element,
         nullabilitySuffix: nullabilitySuffix,
       );
     } else {
@@ -137,7 +137,7 @@ class NamedTypeBuilder extends TypeBuilder {
   @override
   String toString() {
     var buffer = StringBuffer();
-    buffer.write(element3.displayName);
+    buffer.write(element.displayName);
     if (arguments.isNotEmpty) {
       buffer.write('<');
       buffer.write(arguments.join(', '));
@@ -155,7 +155,7 @@ class NamedTypeBuilder extends TypeBuilder {
     return NamedTypeBuilder(
       linker: linker,
       typeSystem: typeSystem,
-      element3: element3,
+      element: element,
       arguments: arguments,
       nullabilitySuffix: nullabilitySuffix,
       node: node,

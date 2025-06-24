@@ -73,7 +73,7 @@ class InstanceCreationExpressionResolver {
 
     // TODO(kallentu): Support other context types
     if (dotShorthandContextType is InterfaceTypeImpl) {
-      InterfaceElementImpl? contextElement = dotShorthandContextType.element3;
+      InterfaceElementImpl? contextElement = dotShorthandContextType.element;
       // This branch will be true if we're resolving an explicitly marked
       // const constructor invocation. It's completely unresolved, unlike a
       // rewritten [DotShorthandConstructorInvocation] that resulted from
@@ -134,7 +134,7 @@ class InstanceCreationExpressionResolver {
     var whyNotPromotedArguments = <WhyNotPromotedGetter>[];
     _resolver.elementResolver.visitDotShorthandConstructorInvocation(node);
     var elementToInfer = _resolver.inferenceHelper.constructorElementToInfer(
-      typeElement: dotShorthandContextType.element3,
+      typeElement: dotShorthandContextType.element,
       constructorName: node.constructorName,
       definingLibrary: _resolver.definingLibrary,
     );
