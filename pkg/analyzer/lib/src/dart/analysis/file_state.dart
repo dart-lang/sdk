@@ -591,7 +591,8 @@ class FileState {
 
   /// Return a new parsed unresolved [CompilationUnit].
   CompilationUnitImpl parse({
-    DiagnosticListener diagnosticListener = DiagnosticListener.NULL_LISTENER,
+    DiagnosticOrErrorListener diagnosticListener =
+        DiagnosticListener.nullListener,
     required OperationPerformanceImpl performance,
   }) {
     try {
@@ -608,7 +609,7 @@ class FileState {
   /// Parses given [code] with the same features as this file.
   CompilationUnitImpl parseCode({
     required String code,
-    required DiagnosticListener diagnosticListener,
+    required DiagnosticOrErrorListener diagnosticListener,
     required OperationPerformanceImpl performance,
   }) {
     return performance.run('parseCode', (performance) {

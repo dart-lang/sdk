@@ -1294,7 +1294,7 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
   /// Parse the given [content] as a compilation unit.
   CompilationUnit parseCompilationUnit2(
     String content, {
-    DiagnosticListener listener = DiagnosticListener.NULL_LISTENER,
+    DiagnosticOrErrorListener listener = DiagnosticListener.nullListener,
   }) {
     Source source = NonExistingSource.unknown;
 

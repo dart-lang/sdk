@@ -24,13 +24,13 @@ import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart' show Folder;
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/context/packages.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart' show FolderBasedDartSdk;
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/parser.dart';
@@ -113,7 +113,7 @@ CompilationUnit parseDirectives(Source source) {
   var lineInfo = LineInfo(result.lineStarts);
   var parser = new Parser(
     source,
-    DiagnosticListener.NULL_LISTENER,
+    DiagnosticListener.nullListener,
     featureSet: FeatureSet.latestLanguageVersion(),
     languageVersion: LibraryLanguageVersion(
         package: ExperimentStatus.currentVersion, override: null),
@@ -141,7 +141,7 @@ CompilationUnit parseFull(Source source) {
   parseTimer.start();
   var parser = new Parser(
     source,
-    DiagnosticListener.NULL_LISTENER,
+    DiagnosticListener.nullListener,
     featureSet: FeatureSet.latestLanguageVersion(),
     languageVersion: LibraryLanguageVersion(
         package: ExperimentStatus.currentVersion, override: null),

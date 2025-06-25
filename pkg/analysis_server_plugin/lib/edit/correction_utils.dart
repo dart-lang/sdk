@@ -443,7 +443,7 @@ class TokenUtils {
       var scanner = Scanner(
         _SourceMock(),
         CharSequenceReader(s),
-        DiagnosticListener.NULL_LISTENER,
+        DiagnosticListener.nullListener,
       )..configureFeatures(
           featureSetForOverriding: featureSet,
           featureSet: featureSet,
