@@ -498,11 +498,6 @@ class AnalyticsManager {
       analytics.send(
         Event.contextStructure(
           numberOfContexts: contextStructure.numberOfContexts,
-          // TODO(pq): remove context creation data if we can safely change report shape (https://github.com/dart-lang/sdk/issues/60411)
-          contextsWithoutFiles: 0,
-          contextsFromPackagesFiles: 0,
-          contextsFromOptionsFiles: 0,
-          contextsFromBothFiles: 0,
           immediateFileCount: contextStructure.immediateFileCount,
           immediateFileLineCount: contextStructure.immediateFileLineCount,
           transitiveFileCount: contextStructure.transitiveFileCount,
