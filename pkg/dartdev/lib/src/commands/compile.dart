@@ -748,6 +748,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       --enable-nontrapping-float-to-int
       --enable-sign-ext
       --enable-bulk-memory
+      --enable-threads
 
       --closed-world
       --traps-never-happen
@@ -1147,5 +1148,5 @@ class CompileCommand extends DartdevCommand {
   }
 
   @override
-  String get category => 'Project';
+  CommandCategory get commandCategory => CommandCategory.project;
 }

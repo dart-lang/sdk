@@ -36,7 +36,7 @@ class BuildCommand extends DartdevCommand {
   }
 
   @override
-  String get category => 'Project';
+  CommandCategory get commandCategory => CommandCategory.project;
 }
 
 /// Subcommand for `dart build cli`.

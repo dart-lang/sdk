@@ -40,7 +40,7 @@ EXPERIMENTAL: This tool may change dramatically or disappear at any time.''';
   }
 
   @override
-  String get category => 'Tools';
+  CommandCategory get commandCategory => CommandCategory.tools;
 
   @override
   Future<int> run() async {

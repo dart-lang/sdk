@@ -459,6 +459,16 @@ void Profiler::DumpStackTrace(void* context) {
 #endif
 }
 
+// We need the call to DumpStackTrace to be a non-tail call and this function to
+// not get the shrink wrap optimization, otherwise the frame from which we start
+// our stack walk may be clobbered before the stack walk begins.
+#ifdef _MSC_VER
+#pragma optimize("", off)
+#elif __clang__
+__attribute__((optnone))
+#elif __GNUC__
+__attribute__((optimize(0)))
+#endif
 void Profiler::DumpStackTrace(bool for_crash) {
   uintptr_t sp = OSThread::GetCurrentStackPointer();
   uintptr_t fp = 0;
@@ -468,6 +478,9 @@ void Profiler::DumpStackTrace(bool for_crash) {
 
   DumpStackTrace(sp, fp, pc, for_crash);
 }
+#ifdef _MSC_VER
+#pragma optimize("", on)
+#endif
 
 static void DumpCompilerState(Thread* thread) {
 #if !defined(DART_PRECOMPILED_RUNTIME)

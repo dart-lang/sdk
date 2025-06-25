@@ -515,7 +515,19 @@ dynamic _createSpecificObject(
   }
 }
 
-Future<T> extensionCallHelper<T>(VmService service, String method, Map<String, dynamic> args) {
+/// Returns a list of `T` using [createServiceObject] if [json] is non-`null`,
+/// and `null` otherwise.
+List<T>? _createServiceObjectListOrNull<T>(
+    Object? json, List<String> expectedTypes) {
+  if (json == null) return null;
+  final serviceObject = createServiceObject(json, expectedTypes) as List?;
+  if (serviceObject == null) return [];
+  return List<T>.from(serviceObject);
+}
+
+
+Future<T> extensionCallHelper<T>(
+    VmService service, String method, Map<String, dynamic> args) {
   return service._call(method, args);
 }
 

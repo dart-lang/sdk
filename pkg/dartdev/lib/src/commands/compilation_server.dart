@@ -44,7 +44,7 @@ class CompilationServerCommand extends DartdevCommand {
   }
 
   @override
-  String get category => 'Tools';
+  CommandCategory get commandCategory => CommandCategory.tools;
 }
 
 class CompilationServerStartCommand extends DartdevCommand {

@@ -62,7 +62,12 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (expressionToTest.argumentList.arguments.isEmpty) {
         return;
       }
+    } else if (expressionToTest is DotShorthandConstructorInvocation) {
+      if (expressionToTest.argumentList.arguments.isEmpty) {
+        return;
+      }
     }
+
     rule.reportAtNode(expressionToTest ?? body);
   }
 }
