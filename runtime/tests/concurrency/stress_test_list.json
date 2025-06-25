@@ -3515,7 +3515,6 @@
   "../../../tests/standalone/io/regress_50206_test.dart",
   "../../../tests/standalone/io/regress_8828_test.dart",
   "../../../tests/standalone/io/regress_9194_test.dart",
-  "../../../tests/standalone/io/secure_builtin_roots_test.dart",
   "../../../tests/standalone/io/secure_socket_argument_test.dart",
   "../../../tests/standalone/io/server_socket_close_listen_test.dart",
   "../../../tests/standalone/io/server_socket_exception_test.dart",
