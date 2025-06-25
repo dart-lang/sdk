@@ -14,7 +14,7 @@ class SinceSdkVersionComputer {
   /// Evaluates its annotations and returns the version.
   Version? compute(Element element) {
     // Must be in a `dart:` library.
-    var libraryUri = element.library2?.uri;
+    var libraryUri = element.library?.uri;
     if (libraryUri == null || !libraryUri.isScheme('dart')) {
       return null;
     }

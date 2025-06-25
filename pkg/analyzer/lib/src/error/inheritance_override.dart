@@ -429,7 +429,7 @@ class _ClassVerifier {
     InterfaceTypeImpl type, {
     required int mixinIndex,
   }) {
-    var libraryUri = type.element.library2.uri;
+    var libraryUri = type.element.library.uri;
     for (var method in type.methods2) {
       _checkDeclaredMember(node, libraryUri, method, mixinIndex: mixinIndex);
     }
@@ -977,7 +977,7 @@ class _ClassVerifier {
       // denotes whether any declared element has been so annotated. Then the
       // expensive looping is deferred until we have such a class.
       for (var method in supertype.methods2) {
-        if (method.isPrivate && method.library2 != classElement.library2) {
+        if (method.isPrivate && method.library != classElement.library) {
           continue;
         }
         if (method.isStatic) {
@@ -991,7 +991,7 @@ class _ClassVerifier {
         }
       }
       for (var getter in supertype.getters) {
-        if (getter.isPrivate && getter.library2 != classElement.library2) {
+        if (getter.isPrivate && getter.library != classElement.library) {
           continue;
         }
         if (getter.isStatic) {
@@ -1006,7 +1006,7 @@ class _ClassVerifier {
         }
       }
       for (var setter in supertype.setters) {
-        if (setter.isPrivate && setter.library2 != classElement.library2) {
+        if (setter.isPrivate && setter.library != classElement.library) {
           continue;
         }
         if (setter.isStatic) {

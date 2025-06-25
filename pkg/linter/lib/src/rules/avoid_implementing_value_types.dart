@@ -53,7 +53,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   bool _overridesEquals(InterfaceElement element) {
     var member = element.getInterfaceMember(equalsName);
-    var definingLibrary = member?.enclosingElement?.library2;
+    var definingLibrary = member?.enclosingElement?.library;
     return definingLibrary != null && !definingLibrary.isDartCore;
   }
 }

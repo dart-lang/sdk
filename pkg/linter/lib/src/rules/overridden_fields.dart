@@ -42,7 +42,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       var parent = variable.declaredFragment?.element.enclosingElement;
       if (parent is InterfaceElement) {
         var overriddenMember = parent.getInheritedConcreteMember(
-          Name(parent.library2.uri, variable.name.lexeme),
+          Name(parent.library.uri, variable.name.lexeme),
         );
         if (overriddenMember is GetterElement2OrMember &&
             overriddenMember.isSynthetic) {

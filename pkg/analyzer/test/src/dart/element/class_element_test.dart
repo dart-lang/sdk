@@ -1277,25 +1277,25 @@ extension on ClassElement {
   PropertyAccessorElement? _lookUpInheritedConcreteGetter(String name) {
     return (this as InterfaceElementImpl).lookUpInheritedConcreteGetter(
       name,
-      library2,
+      library,
     );
   }
 
   MethodElement? _lookUpInheritedConcreteMethod(String name) {
     return (this as InterfaceElementImpl).lookUpInheritedConcreteMethod(
       name,
-      library2,
+      library,
     );
   }
 
   PropertyAccessorElement? _lookUpInheritedConcreteSetter(String name) {
     return (this as InterfaceElementImpl).lookUpInheritedConcreteSetter(
       name,
-      library2,
+      library,
     );
   }
 
   MethodElement? _lookUpInheritedMethod(String name) {
-    return (this as InterfaceElementImpl).lookUpInheritedMethod(name, library2);
+    return (this as InterfaceElementImpl).lookUpInheritedMethod(name, library);
   }
 }

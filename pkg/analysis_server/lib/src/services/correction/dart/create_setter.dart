@@ -77,7 +77,7 @@ class CreateSetter extends ResolvedCorrectionProducer {
     }
     var targetFragment = targetElement.firstFragment;
     var targetSource = targetFragment.libraryFragment.source;
-    if (targetElement.library2.isInSdk == true) {
+    if (targetElement.library.isInSdk == true) {
       return;
     }
     // prepare target declaration

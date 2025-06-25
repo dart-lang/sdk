@@ -60,7 +60,7 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
     for (var part in parts) {
       if (part is MissingPatternEnumValuePart &&
           (part.enumElement2.isPrivate || part.value2.isPrivate) &&
-          libraryElement2 != part.enumElement2.library2) {
+          libraryElement2 != part.enumElement2.library) {
         return true;
       }
     }

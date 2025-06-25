@@ -61,5 +61,5 @@ class _Visitor extends SimpleAstVisitor<void> {
 extension on MethodInvocation {
   bool get isUnawaitedFunction =>
       methodName.name == 'unawaited' &&
-      methodName.element?.library2?.name3 == 'dart.async';
+      methodName.element?.library?.name3 == 'dart.async';
 }

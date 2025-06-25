@@ -106,7 +106,7 @@ class ReplaceReturnType extends ResolvedCorrectionProducer {
 
     var classElement = clazz.declaredFragment!.element;
     var overriddenList = classElement.getOverridden(
-      Name.forLibrary(classElement.library2, methodName),
+      Name.forLibrary(classElement.library, methodName),
     );
 
     if (overriddenList == null) {

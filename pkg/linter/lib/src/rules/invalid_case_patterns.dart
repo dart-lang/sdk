@@ -89,7 +89,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 extension on SimpleIdentifier {
   bool isDartCoreIdentifier({required String named}) {
     if (name != named) return false;
-    var library = element?.library2;
+    var library = element?.library;
     return library != null && library.isDartCore;
   }
 }

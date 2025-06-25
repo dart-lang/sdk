@@ -66,7 +66,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   ) {
     var memberName = member.name3;
     if (memberName == null) return false;
-    var name = Name.forLibrary(member.library2, memberName);
+    var name = Name.forLibrary(member.library, memberName);
     return extensionType.getInheritedMember(name) != null;
   }
 }

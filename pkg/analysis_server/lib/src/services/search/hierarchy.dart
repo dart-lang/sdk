@@ -134,7 +134,7 @@ getHierarchyMembersAndParameters(
         enclosingElement.allSupertypes
             .map((superType) => superType.element)
             .where((interface) {
-              return member2.isPublic || interface.library2 == member2.library2;
+              return member2.isPublic || interface.library == member2.library;
             })
             .toList();
     var searchClasses = [...superElementsToSearch, enclosingElement];
@@ -154,7 +154,7 @@ getHierarchyMembersAndParameters(
     }
     if (member2.isPrivate) {
       subClasses.removeWhere(
-        (subClass) => subClass.library2 != member2.library2,
+        (subClass) => subClass.library != member2.library,
       );
     }
     for (var subClass in subClasses) {

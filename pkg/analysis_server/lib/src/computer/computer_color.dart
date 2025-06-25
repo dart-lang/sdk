@@ -228,16 +228,16 @@ class ColorComputer {
   }
 
   /// Checks whether this elements library is dart:ui.
-  bool _isDartUi(Element? element) => element?.library2?.name3 == 'dart.ui';
+  bool _isDartUi(Element? element) => element?.library?.name3 == 'dart.ui';
 
   /// Checks whether this elements library is Flutter Material colors.
   bool _isFlutterMaterial(Element? element) =>
-      element?.library2?.identifier ==
+      element?.library?.identifier ==
       'package:flutter/src/material/colors.dart';
 
   /// Checks whether this elements library is Flutter Painting colors.
   bool _isFlutterPainting(Element? element) =>
-      element?.library2?.identifier ==
+      element?.library?.identifier ==
       'package:flutter/src/painting/colors.dart';
 
   /// Tries to record a color from [colorConst] for [expression].

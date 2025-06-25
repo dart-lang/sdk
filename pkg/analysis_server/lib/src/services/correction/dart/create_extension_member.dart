@@ -533,9 +533,9 @@ extension on Element? {
     if (element is! InterfaceElement) {
       return false;
     }
-    var indexName = Name.forLibrary(element.library2, TokenType.INDEX.lexeme);
+    var indexName = Name.forLibrary(element.library, TokenType.INDEX.lexeme);
     var indexEqName = Name.forLibrary(
-      element.library2,
+      element.library,
       TokenType.INDEX_EQ.lexeme,
     );
     var member =

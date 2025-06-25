@@ -747,6 +747,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       --enable-exception-handling
       --enable-nontrapping-float-to-int
       --enable-sign-ext
+      --enable-bulk-memory
 
       --closed-world
       --traps-never-happen

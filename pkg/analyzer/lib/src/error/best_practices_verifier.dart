@@ -1038,7 +1038,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   void _checkForInvalidSealedSuperclass(NamedCompilationUnitMember node) {
     bool currentPackageContains(Element element) {
-      return _isLibraryInWorkspacePackage(element.library2);
+      return _isLibraryInWorkspacePackage(element.library);
     }
 
     // [NamedCompilationUnitMember.declaredElement] is not necessarily a
@@ -1800,7 +1800,7 @@ class _InvalidAccessVerifier {
       return;
     }
 
-    if (element.isInternal && !_isLibraryInWorkspacePackage(element.library2)) {
+    if (element.isInternal && !_isLibraryInWorkspacePackage(element.library)) {
       var fieldName = node.name;
       if (fieldName == null) {
         return;
@@ -1825,7 +1825,7 @@ class _InvalidAccessVerifier {
     var element = node.element;
     if (element != null &&
         element.isInternal &&
-        !_isLibraryInWorkspacePackage(element.library2)) {
+        !_isLibraryInWorkspacePackage(element.library)) {
       _errorReporter.atNode(
         node,
         WarningCode.INVALID_USE_OF_INTERNAL_MEMBER,
@@ -1928,7 +1928,7 @@ class _InvalidAccessVerifier {
     required Token nameToken,
     required Element element,
   }) {
-    if (element.isInternal && !_isLibraryInWorkspacePackage(element.library2)) {
+    if (element.isInternal && !_isLibraryInWorkspacePackage(element.library)) {
       String name;
       SyntacticEntity node;
 
@@ -2118,7 +2118,7 @@ class _InvalidAccessVerifier {
     return parent is CommentReference || parent?.parent is CommentReference;
   }
 
-  bool _inCurrentLibrary(Element element) => element.library2 == _library;
+  bool _inCurrentLibrary(Element element) => element.library == _library;
 
   bool _inExportDirective(AstNode node) =>
       node.parent is Combinator && node.parent!.parent is ExportDirective;

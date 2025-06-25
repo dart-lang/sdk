@@ -165,7 +165,7 @@ MockLibraryImportElement? _getMockImportElement(
   if (element.enclosingElement is! LibraryElement) {
     return null;
   }
-  var usedLibrary = element.library2;
+  var usedLibrary = element.library;
   // find ImportElement that imports used library with used prefix
   List<LibraryImport>? candidates;
   var libraryImports =

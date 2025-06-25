@@ -38,7 +38,7 @@ class AddEnumConstant extends ResolvedCorrectionProducer {
 
     var targetElement = target.element;
     if (targetElement is! EnumElement) return;
-    if (targetElement.library2.isInSdk) return;
+    if (targetElement.library.isInSdk) return;
 
     var targetFragment = targetElement.firstFragment;
     var targetDeclarationResult = await sessionHelper.getFragmentDeclaration(

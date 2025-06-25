@@ -47,7 +47,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var methodElement = node.element;
     if (methodElement == null) return;
 
-    var libraryElement = methodElement.library2;
+    var libraryElement = methodElement.library;
     if (!libraryElement.isDartCore) return;
 
     var parent = node.parent;

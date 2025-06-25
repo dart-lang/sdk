@@ -2317,8 +2317,8 @@ h(bool b) {
       [error(WarningCode.UNUSED_LOCAL_VARIABLE, 104, 1)],
     );
     var parameter = findNode.stringLiteral("'x'").correspondingParameter;
-    expect(parameter!.library2, isNull);
-    expect(parameter.library2?.firstFragment.source, isNull);
+    expect(parameter!.library, isNull);
+    expect(parameter.library?.firstFragment.source, isNull);
   }
 
   test_loadLibraryDefined() async {

@@ -3237,7 +3237,7 @@ class C implements List {}
       var matcher = contains(
         predicate((SearchResult r) {
           var element = r.enclosingFragment.element;
-          return element.library2!.uri.toString() == uriStr &&
+          return element.library!.uri.toString() == uriStr &&
               element.name3 == name;
         }),
       );

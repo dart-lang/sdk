@@ -73,7 +73,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (parentElement.isPrivate) return;
 
       var parentMethod = parentElement.getInheritedConcreteMember(
-        Name(parentElement.library2.uri, node.name.lexeme),
+        Name(parentElement.library.uri, node.name.lexeme),
       );
       if (parentMethod == null) return;
 

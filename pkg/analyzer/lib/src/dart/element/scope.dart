@@ -15,7 +15,7 @@ import 'package:analyzer/src/utilities/extensions/collection.dart';
 /// The scope for the initializers in a constructor.
 class ConstructorInitializerScope extends EnclosedScope {
   ConstructorInitializerScope(super.parent, ConstructorElement element) {
-    var hasWildcardVariables = element.library2.featureSet.isEnabled(
+    var hasWildcardVariables = element.library.featureSet.isEnabled(
       Feature.wildcard_variables,
     );
     for (var formalParameter in element.formalParameters) {
@@ -555,7 +555,7 @@ class PrefixScope implements Scope {
     if (deferredLibrary != null &&
         id == TopLevelFunctionElement.LOAD_LIBRARY_NAME) {
       return ScopeLookupResultImpl(
-        getter2: deferredLibrary.loadLibraryFunction2,
+        getter2: deferredLibrary.loadLibraryFunction,
         setter2: null,
       );
     }
@@ -703,7 +703,7 @@ class PrefixScope implements Scope {
     if (element is MultiplyDefinedElement) {
       return false;
     }
-    return element.library2!.isInSdk;
+    return element.library!.isInSdk;
   }
 }
 

@@ -39,7 +39,7 @@ class _BodyVisitor extends RecursiveAstVisitor<void> {
   _BodyVisitor(this.rule);
 
   bool implements(ClassElement visitor, String methodName) {
-    var member = visitor.lookUpConcreteMethod(methodName, visitor.library2);
+    var member = visitor.lookUpConcreteMethod(methodName, visitor.library);
     // In general lint visitors should only inherit from [SimpleAstVisitor]s
     // (and the method implementations inherited from there are only stubs).
     // (We might consider enforcing this since it's harder to ensure that

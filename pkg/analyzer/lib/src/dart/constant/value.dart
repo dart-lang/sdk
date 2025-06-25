@@ -1581,7 +1581,7 @@ class GenericState extends InstanceState {
       }
 
       var element = type.element;
-      var library = element.library2;
+      var library = element.library;
 
       var eqEq = type.lookUpMethod('==', library, concrete: true);
       if (!isFromDartCoreObject(eqEq)) {

@@ -57,7 +57,7 @@ class ElementLocation {
   /// Returns `null` if this element is neither a top level element or a
   /// member of a top level element, or if either do not have a `lookupName`.
   static ElementLocation? forElement(Element element) {
-    var library = element.library2;
+    var library = element.library;
     if (library == null) return null;
     var libraryUri = library.uri.toString();
 

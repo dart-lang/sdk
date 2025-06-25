@@ -378,7 +378,7 @@ class DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
     String displayName,
     String? message,
   ) {
-    var library = element is LibraryElement ? element : element.library2;
+    var library = element is LibraryElement ? element : element.library;
 
     message = message?.trim();
     if (message == null || message.isEmpty || message == '.') {

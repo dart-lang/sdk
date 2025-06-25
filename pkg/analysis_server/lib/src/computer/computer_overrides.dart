@@ -123,7 +123,7 @@ class _OverriddenElementsFinder {
 
   factory _OverriddenElementsFinder(Element seed) {
     var class_ = seed.enclosingElement as InterfaceElement;
-    var library = class_.library2;
+    var library = class_.library;
     var name = seed.displayName;
     List<ElementKind> kinds;
     if (seed is FieldElement) {
@@ -217,7 +217,7 @@ class _OverriddenElementsFinder {
   Element? _lookupMember(InterfaceElement classElement) {
     Element? findMatchingElement(Iterable<Element> elements) {
       return elements.firstWhereOrNull((Element element) {
-        if (!identical(element.library2, _library) && _name.startsWith('_')) {
+        if (!identical(element.library, _library) && _name.startsWith('_')) {
           return false;
         }
         return element.name3 == _name;

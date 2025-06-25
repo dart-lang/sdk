@@ -1212,7 +1212,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
     var import = _dartFileEditBuilder._getImportElement(element);
     if (import == null) {
-      var library = element.library2?.uri;
+      var library = element.library?.uri;
       if (library != null) {
         import = _dartFileEditBuilder._importLibrary(library);
       }
@@ -1661,7 +1661,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         await TopLevelDeclarations(resolvedUnit)
             .publiclyExporting(element, resultCache: resultCache) ??
         // Fall back to the element's library if we didn't find a better one.
-        element.library2;
+        element.library;
 
     var uriToImport = libraryToImport?.uri;
     if (uriToImport != null) {
@@ -2322,7 +2322,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       var definedNames = import.namespace.definedNames2;
       var importedElement = definedNames[lookupName];
       if (importedElement != null &&
-          importedElement.library2?.uri == element.library2?.uri) {
+          importedElement.library?.uri == element.library?.uri) {
         var importedLibrary = import.importedLibrary2;
         if (importedLibrary != null) {
           return _LibraryImport(
@@ -2517,7 +2517,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
   /// Returns whether the [element] is defined in the target library.
   bool _isDefinedLocally(Element element) {
-    return element.library2 == resolvedUnit.libraryElement2;
+    return element.library == resolvedUnit.libraryElement2;
   }
 
   /// Removes any pending imports (for [Element]s) that are no longer necessary

@@ -1053,7 +1053,7 @@ class RequirementsManifest {
   }
 
   _InstanceItemWithRequirements? _getInstanceItem(InstanceElementImpl element) {
-    var libraryElement = element.library2;
+    var libraryElement = element.library;
     var manifest = libraryElement.manifest;
 
     // If we are linking the library, its manifest is not set yet.
@@ -1089,7 +1089,7 @@ class RequirementsManifest {
   _InterfaceItemWithRequirements? _getInterfaceItem(
     InterfaceElementImpl element,
   ) {
-    var libraryElement = element.library2;
+    var libraryElement = element.library;
     var manifest = libraryElement.manifest;
 
     // If we are linking the library, its manifest is not set yet.
@@ -1125,7 +1125,7 @@ class RequirementsManifest {
     InterfaceElementImpl element,
     LookupName methodName,
   ) {
-    return '${element.library2.uri} '
+    return '${element.library.uri} '
         '${element.displayName}.'
         '${methodName.asString}';
   }

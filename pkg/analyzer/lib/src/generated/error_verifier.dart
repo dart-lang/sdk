@@ -348,7 +348,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   bool get _isEnclosingClassFfiStruct {
     var superClass = _enclosingClass?.supertype?.element;
     return superClass != null &&
-        _isDartFfiLibrary(superClass.library2) &&
+        _isDartFfiLibrary(superClass.library) &&
         superClass.name3 == 'Struct';
   }
 
@@ -357,7 +357,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   bool get _isEnclosingClassFfiUnion {
     var superClass = _enclosingClass?.supertype?.element;
     return superClass != null &&
-        _isDartFfiLibrary(superClass.library2) &&
+        _isDartFfiLibrary(superClass.library) &&
         superClass.name3 == 'Union';
   }
 
@@ -1976,7 +1976,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         diagnosticReporter.atNode(
           directive.uri,
           CompileTimeErrorCode.AMBIGUOUS_EXPORT,
-          arguments: [name, prevElement.library2!.uri, element.library2!.uri],
+          arguments: [name, prevElement.library!.uri, element.library!.uri],
         );
         return;
       } else {
@@ -2166,8 +2166,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                       interfaceElement.isBase ||
                   interfaceElement is MixinElementImpl &&
                       interfaceElement.isBase) &&
-              interfaceElement.library2 != _currentLibrary &&
-              !_mayIgnoreClassModifiers(interfaceElement.library2)) {
+              interfaceElement.library != _currentLibrary &&
+              !_mayIgnoreClassModifiers(interfaceElement.library)) {
             // Should this be combined with _checkForImplementsClauseErrorCodes
             // to avoid double errors if implementing `int`.
             if (interfaceElement is ClassElementImpl &&
@@ -2216,10 +2216,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           var withElement = withType.element;
           if (withElement is ClassElementImpl &&
               !withElement.isMixinClass &&
-              withElement.library2.featureSet.isEnabled(
+              withElement.library.featureSet.isEnabled(
                 Feature.class_modifiers,
               ) &&
-              !_mayIgnoreClassModifiers(withElement.library2)) {
+              !_mayIgnoreClassModifiers(withElement.library)) {
             diagnosticReporter.atNode(
               withMixin,
               CompileTimeErrorCode.CLASS_USED_AS_MIXIN,
@@ -3589,8 +3589,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         if (element is ClassElementImpl &&
             element.isFinal &&
             !element.isSealed &&
-            element.library2 != _currentLibrary &&
-            !_mayIgnoreClassModifiers(element.library2)) {
+            element.library != _currentLibrary &&
+            !_mayIgnoreClassModifiers(element.library)) {
           diagnosticReporter.atNode(
             superclass,
             CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY,
@@ -3612,13 +3612,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             if (element is ClassElement &&
                 element.isFinal &&
                 !element.isSealed &&
-                element.library2 != _currentLibrary &&
-                !_mayIgnoreClassModifiers(element.library2)) {
+                element.library != _currentLibrary &&
+                !_mayIgnoreClassModifiers(element.library)) {
               // If the final interface is an indirect interface and is in a
               // different library that has class modifiers enabled, there is a
               // nearer declaration that would emit an error, if any.
               if (element != type.element &&
-                  type.element.library2.featureSet.isEnabled(
+                  type.element.library.featureSet.isEnabled(
                     Feature.class_modifiers,
                   )) {
                 continue;
@@ -3643,8 +3643,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           if (element is ClassElement &&
               element.isFinal &&
               !element.isSealed &&
-              element.library2 != _currentLibrary &&
-              !_mayIgnoreClassModifiers(element.library2)) {
+              element.library != _currentLibrary &&
+              !_mayIgnoreClassModifiers(element.library)) {
             diagnosticReporter.atNode(
               namedType,
               CompileTimeErrorCode
@@ -3818,8 +3818,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         if (superclassElement is ClassElementImpl &&
             superclassElement.isInterface &&
             !superclassElement.isSealed &&
-            superclassElement.library2 != _currentLibrary &&
-            !_mayIgnoreClassModifiers(superclassElement.library2)) {
+            superclassElement.library != _currentLibrary &&
+            !_mayIgnoreClassModifiers(superclassElement.library)) {
           diagnosticReporter.atNode(
             superclass,
             CompileTimeErrorCode.INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY,
@@ -4392,7 +4392,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return false;
     }
 
-    Uri mixinLibraryUri = mixinElement.library2.uri;
+    Uri mixinLibraryUri = mixinElement.library.uri;
     for (var name in mixinElementImpl.superInvokedNames) {
       var nameObject = Name(mixinLibraryUri, name);
 
@@ -4516,7 +4516,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     for (NamedType mixinType in withClause.mixinTypes) {
       DartType type = mixinType.typeOrThrow;
       if (type is InterfaceType) {
-        var library = type.element.library2;
+        var library = type.element.library;
         if (library != _currentLibrary) {
           for (var getter in type.getters) {
             if (getter.isStatic) {
@@ -5229,7 +5229,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           var element = type.element;
           if (element is ClassElement &&
               element.isSealed &&
-              element.library2 != _currentLibrary) {
+              element.library != _currentLibrary) {
             diagnosticReporter.atNode(
               namedType,
               CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY,
@@ -6237,7 +6237,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (element == null) {
       return '';
     }
-    var library = element.library2;
+    var library = element.library;
     if (library == null) {
       return '';
     }

@@ -101,8 +101,8 @@ class CovariantParametersVerifier {
   final ExecutableElement2OrMember _thisMember;
 
   CovariantParametersVerifier({required ExecutableElement2OrMember thisMember})
-    : _session = thisMember.library2.session as AnalysisSessionImpl,
-      _typeSystem = thisMember.library2.typeSystem as TypeSystemImpl,
+    : _session = thisMember.library.session as AnalysisSessionImpl,
+      _typeSystem = thisMember.library.typeSystem as TypeSystemImpl,
       _thisMember = thisMember;
 
   void verify({

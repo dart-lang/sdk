@@ -199,7 +199,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       if (implementsClause != null) {
         var compoundType = node.declaredFragment!.element.thisType;
         var structType = compoundType.superclass!;
-        var ffiLibrary = structType.element.library2;
+        var ffiLibrary = structType.element.library;
         var finalizableElement = ffiLibrary.getClass2(_finalizableClassName)!;
         var finalizableType = finalizableElement.thisType;
         if (typeSystem.isSubtypeOf(compoundType, finalizableType)) {
@@ -371,7 +371,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         }
       }
     } else if (element is TopLevelFunctionElement) {
-      if (element.library2.name3 == 'dart.ffi') {
+      if (element.library.name3 == 'dart.ffi') {
         if (element.name3 == 'sizeOf') {
           _validateSizeOf(node);
         }
@@ -518,7 +518,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
                 formalParameters: dartSignature.formalParameters,
                 returnType:
                     ffiVoidType ??=
-                        annotationType.element.library2
+                        annotationType.element.library
                             .getClass2('Void')!
                             .thisType,
                 nullabilitySuffix: dartSignature.nullabilitySuffix,
@@ -1792,7 +1792,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
                     formalParameters: staticType.formalParameters,
                     returnType:
                         ffiVoidType ??=
-                            annotationType.element.library2
+                            annotationType.element.library
                                 .getClass2('Void')!
                                 .thisType,
                     nullabilitySuffix: staticType.nullabilitySuffix,
@@ -2537,17 +2537,17 @@ extension on InterfaceElement {
   }
 
   bool get isFfiClass {
-    return library2.name3 == FfiVerifier._dartFfiLibraryName;
+    return library.name3 == FfiVerifier._dartFfiLibraryName;
   }
 
   bool get isTypedDataClass {
-    return library2.name3 == FfiVerifier._dartTypedDataLibraryName;
+    return library.name3 == FfiVerifier._dartTypedDataLibraryName;
   }
 }
 
 extension on ExtensionElement {
   bool get isFfiExtension {
-    return library2.name3 == FfiVerifier._dartFfiLibraryName;
+    return library.name3 == FfiVerifier._dartFfiLibraryName;
   }
 }
 

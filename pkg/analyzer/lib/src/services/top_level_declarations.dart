@@ -29,7 +29,7 @@ class TopLevelDeclarations {
       return resultCache![element];
     }
 
-    var declarationFilePath = element.library2?.firstFragment.source.fullName;
+    var declarationFilePath = element.library?.firstFragment.source.fullName;
     if (declarationFilePath == null) {
       return null;
     }

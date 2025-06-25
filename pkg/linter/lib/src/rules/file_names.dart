@@ -34,7 +34,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitCompilationUnit(CompilationUnit node) {
     var element = node.declaredFragment?.element;
     if (element != null) {
-      var fileName = element.library2.firstFragment.source.shortName;
+      var fileName = element.library.firstFragment.source.shortName;
       if (!isValidDartFileName(fileName)) {
         rule.reportAtOffset(0, 0, arguments: [fileName]);
       }

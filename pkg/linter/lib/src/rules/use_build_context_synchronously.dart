@@ -1462,7 +1462,7 @@ extension ElementExtension on Element {
         // check on the State.
         return enclosingElement.lookUpGetter(
           name: 'mounted',
-          library: enclosingElement.library2,
+          library: enclosingElement.library,
         );
       }
     }
@@ -1476,7 +1476,7 @@ extension ElementExtension on Element {
     if (buildContextElement is InterfaceElement) {
       return buildContextElement.lookUpGetter(
         name: 'mounted',
-        library: buildContextElement.library2,
+        library: buildContextElement.library,
       );
     }
 

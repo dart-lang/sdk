@@ -408,7 +408,7 @@ class GetElementDeclarationParsedTest extends PubPackageResolutionTest
   Future<FragmentDeclarationResult?> getFragmentDeclaration(
     Fragment fragment,
   ) async {
-    var library = fragment.element.library2!;
+    var library = fragment.element.library!;
     var path = library.firstFragment.source.fullName;
     var file = getFile(path);
     var parsedLibrary = await _getParsedLibrary(file);
@@ -428,7 +428,7 @@ class GetElementDeclarationResolvedTest extends PubPackageResolutionTest
   Future<FragmentDeclarationResult?> getFragmentDeclaration(
     Fragment fragment,
   ) async {
-    var library = fragment.element.library2!;
+    var library = fragment.element.library!;
     var path = library.firstFragment.source.fullName;
     var file = getFile(path);
     var resolvedLibrary = await _getResolvedLibrary(file);

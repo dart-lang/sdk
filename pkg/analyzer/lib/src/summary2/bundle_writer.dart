@@ -547,7 +547,7 @@ class BundleWriter {
   }
 
   void _writeLoadLibraryFunctionReferences(LibraryElementImpl library) {
-    var element = library.loadLibraryFunction2;
+    var element = library.loadLibraryFunction;
     _writeReference(element.reference);
   }
 

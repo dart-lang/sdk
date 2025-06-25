@@ -187,8 +187,7 @@ extension DartTypeExtension on DartType? {
     }
 
     return [self, ...self.element.allSupertypes].any(
-      (t) =>
-          t.element.name3 == 'Color' && t.element.library2.name3 == 'dart.ui',
+      (t) => t.element.name3 == 'Color' && t.element.library.name3 == 'dart.ui',
     );
   }
 
@@ -202,7 +201,7 @@ extension DartTypeExtension on DartType? {
     return [self, ...self.element.allSupertypes].any(
       (t) =>
           t.element.name3 == 'Diagnosticable' &&
-          t.element.library2.firstFragment.source.uri == _uriDiagnostics,
+          t.element.library.firstFragment.source.uri == _uriDiagnostics,
     );
   }
 
@@ -302,7 +301,7 @@ extension DartTypeExtension on DartType? {
     return [self, ...self.element.allSupertypes].any(
       (t) =>
           t.element.name3 == 'Matrix4' &&
-          t.element.library2.name3 == 'vector_math_64',
+          t.element.library.name3 == 'vector_math_64',
     );
   }
 
@@ -336,7 +335,7 @@ extension ElementAnnotationExtension on ElementAnnotation {
       return false;
     }
     return element2.enclosingElement.name3 == 'Preview' &&
-        element2.library2.uri == _flutterWidgetPreviewLibraryUri;
+        element2.library.uri == _flutterWidgetPreviewLibraryUri;
   }
 }
 
@@ -503,7 +502,7 @@ extension InterfaceElementExtension2 on InterfaceElement? {
     }
     for (var type in self.allSupertypes) {
       if (type.element.name3 == requiredName) {
-        var uri = type.element.library2.firstFragment.source.uri;
+        var uri = type.element.library.firstFragment.source.uri;
         if (uri == requiredUri) {
           return true;
         }

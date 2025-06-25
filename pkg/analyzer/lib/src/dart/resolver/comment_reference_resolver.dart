@@ -83,7 +83,7 @@ class CommentReferenceResolver {
         name.element =
             _resolver.inheritance.getMember(
               prefixElement,
-              Name(prefixElement.library2.uri, name.name),
+              Name(prefixElement.library.uri, name.name),
             ) ??
             prefixElement.getMethod(name.name) ??
             prefixElement.getGetter(name.name) ??

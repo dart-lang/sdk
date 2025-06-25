@@ -401,7 +401,7 @@ extension on Element {
       return true;
     }
     if (name3 case var name? when !name.isPublic) return false;
-    if (library2!.uri.isInAnalyzerPublicLib) return true;
+    if (library!.uri.isInAnalyzerPublicLib) return true;
     return false;
   }
 
@@ -411,7 +411,7 @@ extension on Element {
         kind == ElementKind.NEVER) {
       return true;
     }
-    if (library2!.uri.isDartUri) return true;
+    if (library!.uri.isDartUri) return true;
     return isInAnalyzerPublicApi;
   }
 

@@ -428,8 +428,8 @@ class ExtensionMemberResolver {
     //    former extension is not.
     // 2. They are both declared in platform libraries, or both declared in
     //    non-platform libraries.
-    var e1_isInSdk = e1.extension.library2.isInSdk;
-    var e2_isInSdk = e2.extension.library2.isInSdk;
+    var e1_isInSdk = e1.extension.library.isInSdk;
+    var e2_isInSdk = e2.extension.library.isInSdk;
     if (e1_isInSdk && !e2_isInSdk) {
       return false;
     } else if (!e1_isInSdk && e2_isInSdk) {

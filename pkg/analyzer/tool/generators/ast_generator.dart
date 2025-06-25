@@ -989,15 +989,15 @@ extension _InterfaceElementExtension on InterfaceElement {
   );
 
   bool get isAnnotatedNodeExactly {
-    return library2.uri == uriAst && name3 == 'AnnotatedNode';
+    return library.uri == uriAst && name3 == 'AnnotatedNode';
   }
 
   bool get isDoNotGenerateExactly {
-    return library2.uri == uriAst && name3 == 'DoNotGenerate';
+    return library.uri == uriAst && name3 == 'DoNotGenerate';
   }
 
   bool get isExpressionExactly {
-    return library2.uri == uriAst && name3 == 'Expression';
+    return library.uri == uriAst && name3 == 'Expression';
   }
 
   bool get isExpressionOrSubtype {
@@ -1006,23 +1006,23 @@ extension _InterfaceElementExtension on InterfaceElement {
   }
 
   bool get isListExactly {
-    return library2.uri == Uri.parse('dart:core') && name3 == 'List';
+    return library.uri == Uri.parse('dart:core') && name3 == 'List';
   }
 
   bool get isNamedCompilationUnitMemberNodeExactly {
-    return library2.uri == uriAst && name3 == 'NamedCompilationUnitMember';
+    return library.uri == uriAst && name3 == 'NamedCompilationUnitMember';
   }
 
   bool get isNodeExactly {
-    return library2.uri == uriAst && name3 == 'AstNode';
+    return library.uri == uriAst && name3 == 'AstNode';
   }
 
   bool get isNodeListExactly {
-    return library2.uri == uriAst && name3 == 'NodeList';
+    return library.uri == uriAst && name3 == 'NodeList';
   }
 
   bool get isTokenExactly {
-    return library2.uri == uriToken && name3 == 'Token';
+    return library.uri == uriToken && name3 == 'Token';
   }
 }
 

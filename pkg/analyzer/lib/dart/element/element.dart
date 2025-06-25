@@ -643,6 +643,14 @@ abstract class Element {
   /// This will be the element itself if it's a library element. This will be
   /// `null` if this element is a [MultiplyDefinedElement] that isn't contained
   /// in a single library.
+  LibraryElement? get library;
+
+  /// Library that contains this element.
+  ///
+  /// This will be the element itself if it's a library element. This will be
+  /// `null` if this element is a [MultiplyDefinedElement] that isn't contained
+  /// in a single library.
+  @Deprecated('Use library instead')
   LibraryElement? get library2;
 
   /// The name to use for lookup in maps.
@@ -2349,6 +2357,10 @@ abstract class LabelElement implements Element {
   List<LabelFragment> get fragments;
 
   @override
+  LibraryElement get library;
+
+  @Deprecated('Use library instead')
+  @override
   LibraryElement get library2;
 }
 
@@ -2454,6 +2466,10 @@ abstract class LibraryElement
   LibraryLanguageVersion get languageVersion;
 
   @override
+  LibraryElement get library;
+
+  @Deprecated('Use library instead')
+  @override
   LibraryElement get library2;
 
   /// The element representing the synthetic function `loadLibrary`.
@@ -2461,6 +2477,14 @@ abstract class LibraryElement
   /// Technically the function is implicitly defined for this library only if
   /// the library is imported using a deferred import, but the element is always
   /// defined for performance reasons.
+  TopLevelFunctionElement get loadLibraryFunction;
+
+  /// The element representing the synthetic function `loadLibrary`.
+  ///
+  /// Technically the function is implicitly defined for this library only if
+  /// the library is imported using a deferred import, but the element is always
+  /// defined for performance reasons.
+  @Deprecated('Use loadLibraryFunction instead')
   TopLevelFunctionElement get loadLibraryFunction2;
 
   /// The mixins defined in this library.
@@ -3109,6 +3133,10 @@ abstract class PrefixElement implements Element {
   List<LibraryImport> get imports;
 
   @override
+  LibraryElement get library;
+
+  @Deprecated('Use library instead')
+  @override
   LibraryElement get library2;
 
   /// The name lookup scope for this import prefix.
@@ -3244,6 +3272,10 @@ abstract class PropertyInducingElement
   /// Whether any fragment of this variable has an initializer at declaration.
   bool get hasInitializer;
 
+  @override
+  LibraryElement get library;
+
+  @Deprecated('Use library instead')
   @override
   LibraryElement get library2;
 
@@ -3621,6 +3653,10 @@ abstract class TypeParameterizedElement implements Element, Annotatable {
   /// If the element does not define a type, returns `true`.
   bool get isSimplyBounded;
 
+  @override
+  LibraryElement get library;
+
+  @Deprecated('Use library instead')
   @override
   LibraryElement get library2;
 

@@ -194,7 +194,7 @@ class TypeHierarchyComputerHelper {
 
     return TypeHierarchyComputerHelper(
       pivotElement,
-      pivotElement.library2!,
+      pivotElement.library!,
       pivotElement.kind,
       pivotElement.name3,
       pivotFieldFinal,

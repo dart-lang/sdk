@@ -100,7 +100,7 @@ class CreateOperator extends ResolvedCorrectionProducer {
       return;
     }
     targetFragment = targetClassElement.firstFragment;
-    if (targetClassElement.library2.isInSdk) {
+    if (targetClassElement.library.isInSdk) {
       return;
     }
     // Prepare target ClassDeclaration.

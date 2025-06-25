@@ -37,7 +37,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (expression is! MethodInvocation) return false;
     var element = expression.methodName.element;
     return element is TopLevelFunctionElement &&
-        element.library2.uri ==
+        element.library.uri ==
             Uri.parse('package:test_api/src/frontend/expect.dart') &&
         element.name3 == functionName;
   }

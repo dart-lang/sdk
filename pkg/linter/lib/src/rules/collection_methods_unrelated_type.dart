@@ -103,7 +103,7 @@ class _MethodDefinitionForName extends _MethodDefinition {
     for (var supertype in [targetType, ...targetType.allSupertypes]) {
       var element = supertype.element;
       if (element.name3 == interfaceName &&
-          element.library2.name3 == libraryName) {
+          element.library.name3 == libraryName) {
         return targetType.asInstanceOf2(element);
       }
     }

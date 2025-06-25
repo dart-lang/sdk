@@ -147,7 +147,7 @@ final class ManifestElement {
       givenTopLevelElement = enclosingElement;
       givenMemberElement = element;
     }
-    var givenLibraryUri = enclosingElement.library2!.uri;
+    var givenLibraryUri = enclosingElement.library!.uri;
 
     if (givenLibraryUri != libraryUri) {
       return false;
@@ -190,7 +190,7 @@ final class ManifestElement {
     }
 
     return ManifestElement(
-      libraryUri: topLevelElement.library2!.uri,
+      libraryUri: topLevelElement.library!.uri,
       kind: ManifestElementKind.of(element),
       topLevelName: topLevelElement.lookupName!,
       memberName: memberElement?.lookupName,
@@ -347,7 +347,7 @@ extension LinkedElementFactoryExtension on LinkedElementFactory {
     }
 
     // SAFETY: if we can reference the element, it is in a library.
-    var libraryUri = topLevelElement.library2!.uri;
+    var libraryUri = topLevelElement.library!.uri;
 
     // Prepare the external library manifest.
     var manifest = libraryManifests[libraryUri];

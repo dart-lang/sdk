@@ -164,7 +164,7 @@ extension ClassElementExtension on ClassElement {
   }
 
   bool get hasSubclassInDefiningCompilationUnit {
-    for (var cls in library2.classes) {
+    for (var cls in library.classes) {
       InterfaceType? classType = cls.thisType;
       do {
         classType = classType?.superclass;
@@ -255,7 +255,7 @@ extension ConstructorElementExtension on ConstructorElement {
     required String className,
     required String constructorName,
   }) =>
-      library2.name3 == uri &&
+      library.name3 == uri &&
       enclosingElement.name3 == className &&
       name3 == constructorName;
 }
@@ -303,7 +303,7 @@ extension DartTypeExtension on DartType? {
     var self = this;
     return self is InterfaceType &&
         self.element.name3 == interface &&
-        self.element.library2.name3 == library;
+        self.element.library.name3 == library;
   }
 
   static bool _extendsClass(
@@ -320,9 +320,9 @@ extension DartTypeExtension on DartType? {
 
 extension ElementAnnotationExtension on ElementAnnotation {
   bool get isReflectiveTest => switch (element2) {
-    GetterElement(:var name3, :var library2) =>
+    GetterElement(:var name3, :var library) =>
       name3 == 'reflectiveTest' &&
-          library2.uri.toString() ==
+          library.uri.toString() ==
               'package:test_reflective_loader/test_reflective_loader.dart',
     _ => false,
   };
@@ -575,7 +575,7 @@ extension InterfaceTypeExtension on InterfaceType {
 
   GetterElement? getGetter2(String name, {LibraryElement? library}) =>
       getters.firstWhereOrNull(
-        (s) => s.name3 == name && (library == null || (s.library2 == library)),
+        (s) => s.name3 == name && (library == null || (s.library == library)),
       );
 
   SetterElement? getSetter2(String name) =>
@@ -595,7 +595,7 @@ extension MethodDeclarationExtension on MethodDeclaration {
     var parentElement = element?.enclosingElement;
     if (parentElement is! InterfaceElement) return false;
 
-    var parentLibrary = parentElement.library2;
+    var parentLibrary = parentElement.library;
 
     if (isGetter) {
       // Search supertypes for a getter of the same name.

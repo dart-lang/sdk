@@ -345,7 +345,7 @@ class _SuggestionBuilder {
   /// shadowed by a previously added suggestion.
   void _addSuggestion(Element element, {int? relevance}) {
     if (element.isPrivate) {
-      if (element.library2 != containingLibrary) {
+      if (element.library != containingLibrary) {
         // Do not suggest private members for imported libraries
         return;
       }

@@ -192,7 +192,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
 extension on InterfaceType {
   bool get isDartAsyncFutureOrSubtype {
-    var typeProvider = element.library2.typeProvider;
+    var typeProvider = element.library.typeProvider;
     return asInstanceOf2(typeProvider.futureElement2) != null;
   }
 }

@@ -599,7 +599,7 @@ extension on ElementAnnotation {
     var element2 = this.element2;
     return element2 is ConstructorElement &&
         element2.enclosingElement.name3 == 'Preview' &&
-        element2.library2.uri == _flutterWidgetPreviewLibraryUri;
+        element2.library.uri == _flutterWidgetPreviewLibraryUri;
   }
 }
 
@@ -628,9 +628,9 @@ extension on Element {
           metadata.hasWidgetPreview,
     _ => false,
   };
-  bool get isPragma => (library2?.isDartCore ?? false) && name3 == 'pragma';
+  bool get isPragma => (library?.isDartCore ?? false) && name3 == 'pragma';
   bool get isWidgetPreview =>
-      (library2?.isWidgetPreviews ?? false) && name3 == 'Preview';
+      (library?.isWidgetPreviews ?? false) && name3 == 'Preview';
 }
 
 extension on Annotation {

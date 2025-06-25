@@ -87,7 +87,7 @@ class _ImplementsNode extends graph.Node<_ImplementsNode> {
     element.hasImplementsSelfReference = true;
 
     var representationType = element.firstFragment.representation.type;
-    var typeSystem = element.library2.typeSystem;
+    var typeSystem = element.library.typeSystem;
 
     var superInterface =
         typeSystem.isNonNullable(representationType)
@@ -151,7 +151,7 @@ class _Node extends graph.Node<_Node> {
   }
 
   void _evaluateWithType(TypeImpl type) {
-    var typeSystem = element.library2.typeSystem;
+    var typeSystem = element.library.typeSystem;
 
     var representation = element.firstFragment.representation;
     representation.type = type;

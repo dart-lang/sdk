@@ -564,7 +564,7 @@ class LibraryManifestBuilder {
         var element = entry.value;
 
         // Skip elements that exist in nowhere.
-        var elementLibraryUri = element.library2?.uri;
+        var elementLibraryUri = element.library?.uri;
         if (elementLibraryUri == null) {
           continue;
         }
@@ -575,7 +575,7 @@ class LibraryManifestBuilder {
         }
 
         // Skip if the element is declared in this library.
-        if (element.library2 == libraryElement) {
+        if (element.library == libraryElement) {
           continue;
         }
 
@@ -884,7 +884,7 @@ class LibraryManifestBuilder {
 
     void addInterfacesToFill(InterfaceElementImpl element) {
       // If not in this bundle, it has interface ready.
-      if (!librarySet.contains(element.library2)) {
+      if (!librarySet.contains(element.library)) {
         return;
       }
 

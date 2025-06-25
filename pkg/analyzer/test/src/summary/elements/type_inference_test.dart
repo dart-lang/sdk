@@ -2959,7 +2959,7 @@ library
     var streamElement = (p.type as InterfaceType).element;
     expect(
       streamElement.firstFragment.libraryFragment.source,
-      isNot(streamElement.library2.firstFragment.source),
+      isNot(streamElement.library.firstFragment.source),
     );
   }
 

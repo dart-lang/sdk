@@ -608,7 +608,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     required NullabilitySuffix nullabilitySuffix,
     InstantiatedTypeAliasElementImpl? alias,
   }) {
-    if (element.name3 == 'FutureOr' && element.library2.isDartAsync) {
+    if (element.name3 == 'FutureOr' && element.library.isDartAsync) {
       return FutureOrTypeImpl(
         element: element,
         typeArgument:
@@ -618,7 +618,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         nullabilitySuffix: nullabilitySuffix,
         alias: alias,
       );
-    } else if (element.name3 == 'Null' && element.library2.isDartCore) {
+    } else if (element.name3 == 'Null' && element.library.isDartCore) {
       return NullTypeImpl(element: element, alias: alias);
     } else {
       return InterfaceTypeImpl._(
@@ -643,14 +643,14 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     required this.nullabilitySuffix,
     super.alias,
   }) : typeArguments = [typeArgument] {
-    assert(element.name3 == 'FutureOr' && element.library2.isDartAsync);
+    assert(element.name3 == 'FutureOr' && element.library.isDartAsync);
     assert(this is FutureOrTypeImpl);
   }
 
   InterfaceTypeImpl._null({required this.element, super.alias})
     : typeArguments = const [],
       nullabilitySuffix = NullabilitySuffix.none {
-    assert(element.name3 == 'Null' && element.library2.isDartCore);
+    assert(element.name3 == 'Null' && element.library.isDartCore);
     assert(this is NullTypeImpl);
   }
 
@@ -696,22 +696,22 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   bool get isDartAsyncFuture {
-    return element.name3 == "Future" && element.library2.isDartAsync;
+    return element.name3 == "Future" && element.library.isDartAsync;
   }
 
   @override
   bool get isDartAsyncStream {
-    return element.name3 == "Stream" && element.library2.isDartAsync;
+    return element.name3 == "Stream" && element.library.isDartAsync;
   }
 
   @override
   bool get isDartCoreBool {
-    return element.name3 == "bool" && element.library2.isDartCore;
+    return element.name3 == "bool" && element.library.isDartCore;
   }
 
   @override
   bool get isDartCoreDouble {
-    return element.name3 == "double" && element.library2.isDartCore;
+    return element.name3 == "double" && element.library.isDartCore;
   }
 
   @override
@@ -722,62 +722,62 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   bool get isDartCoreFunction {
-    return element.name3 == "Function" && element.library2.isDartCore;
+    return element.name3 == "Function" && element.library.isDartCore;
   }
 
   @override
   bool get isDartCoreInt {
-    return element.name3 == "int" && element.library2.isDartCore;
+    return element.name3 == "int" && element.library.isDartCore;
   }
 
   @override
   bool get isDartCoreIterable {
-    return element.name3 == "Iterable" && element.library2.isDartCore;
+    return element.name3 == "Iterable" && element.library.isDartCore;
   }
 
   @override
   bool get isDartCoreList {
-    return element.name3 == "List" && element.library2.isDartCore;
+    return element.name3 == "List" && element.library.isDartCore;
   }
 
   @override
   bool get isDartCoreMap {
-    return element.name3 == "Map" && element.library2.isDartCore;
+    return element.name3 == "Map" && element.library.isDartCore;
   }
 
   @override
   bool get isDartCoreNum {
-    return element.name3 == "num" && element.library2.isDartCore;
+    return element.name3 == "num" && element.library.isDartCore;
   }
 
   @override
   bool get isDartCoreObject {
-    return element.name3 == "Object" && element.library2.isDartCore;
+    return element.name3 == "Object" && element.library.isDartCore;
   }
 
   @override
   bool get isDartCoreRecord {
-    return element.name3 == "Record" && element.library2.isDartCore;
+    return element.name3 == "Record" && element.library.isDartCore;
   }
 
   @override
   bool get isDartCoreSet {
-    return element.name3 == "Set" && element.library2.isDartCore;
+    return element.name3 == "Set" && element.library.isDartCore;
   }
 
   @override
   bool get isDartCoreString {
-    return element.name3 == "String" && element.library2.isDartCore;
+    return element.name3 == "String" && element.library.isDartCore;
   }
 
   @override
   bool get isDartCoreSymbol {
-    return element.name3 == "Symbol" && element.library2.isDartCore;
+    return element.name3 == "Symbol" && element.library.isDartCore;
   }
 
   @override
   bool get isDartCoreType {
-    return element.name3 == "Type" && element.library2.isDartCore;
+    return element.name3 == "Type" && element.library.isDartCore;
   }
 
   @override
@@ -839,7 +839,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   InheritanceManager3 get _inheritanceManager =>
-      element.library2.session.inheritanceManager;
+      element.library.session.inheritanceManager;
 
   @override
   bool operator ==(Object other) {

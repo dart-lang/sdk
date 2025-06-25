@@ -139,7 +139,7 @@ class FlutterDataCollector extends RecursiveAstVisitor<void> {
         );
       }
       var childWidget = element.enclosingElement.name3!;
-      var library = element.library2;
+      var library = element.library;
       if (!library.uri.toString().startsWith('package:flutter/')) {
         childWidget = 'user-defined';
       }
