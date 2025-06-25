@@ -258,22 +258,11 @@ List<AstNode> getParents(AstNode node) {
 
 /// If given [node] is name of qualified property extraction, returns target
 /// from which this property is extracted, otherwise `null`.
-Expression? getQualifiedPropertyTarget(AstNode node) {
-  var parent = node.parent;
-  if (parent is PrefixedIdentifier) {
-    var prefixed = parent;
-    if (prefixed.identifier == node) {
-      return parent.prefix;
-    }
-  }
-  if (parent is PropertyAccess) {
-    var access = parent;
-    if (access.propertyName == node) {
-      return access.realTarget;
-    }
-  }
-  return null;
-}
+Expression? getQualifiedPropertyTarget(AstNode node) => switch (node.parent) {
+  PrefixedIdentifier parent when parent.identifier == node => parent.prefix,
+  PropertyAccess parent when parent.propertyName == node => parent.realTarget,
+  _ => null,
+};
 
 /// Returns the given [statement] if not a block, or the first child statement
 /// if a block, or `null` if more than one child.
