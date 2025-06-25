@@ -35,12 +35,14 @@ main() {
 }
 """);
   String executable = new File(Platform.executable).resolveSymbolicLinksSync();
+  String absolutePackages = Uri.parse(Platform.packageConfig!).toFilePath();
   // Note: we prevent this child process from using Crashpad handler because
   // this introduces an issue with deleting the temporary directory.
   Process.run(
     executable,
     []
       ..addAll(Platform.executableArguments)
+      ..add("--packages=$absolutePackages")
       ..add('script.dart'),
     workingDirectory: temp.path,
     environment: {'DART_CRASHPAD_HANDLER': ''},
