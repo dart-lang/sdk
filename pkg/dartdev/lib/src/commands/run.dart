@@ -312,6 +312,9 @@ class RunCommand extends DartdevCommand {
   String get invocation =>
       '${super.invocation} [<dart-file|package-target> [args]]';
 
+  @override
+  String get category => 'Project';
+
   /// Attempts to compile [executable] to a kernel file using the Resident
   /// Frontend Compiler associated with [residentCompilerInfoFile]. If
   /// [shouldRetryOnFrontendCompilerException] is true, when a

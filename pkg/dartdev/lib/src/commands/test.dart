@@ -33,6 +33,9 @@ class TestCommand extends DartdevCommand {
   }
 
   @override
+  String get category => 'Project';
+
+  @override
   void printUsage() {
     print('''Usage: dart test [arguments]
 

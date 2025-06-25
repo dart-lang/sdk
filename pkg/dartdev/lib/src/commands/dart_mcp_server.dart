@@ -40,6 +40,9 @@ EXPERIMENTAL: This tool may change dramatically or disappear at any time.''';
   }
 
   @override
+  String get category => 'Tools';
+
+  @override
   Future<int> run() async {
     final args = argResults!;
     if (!args.flag(_experimentFlag)) {

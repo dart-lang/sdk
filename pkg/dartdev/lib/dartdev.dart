@@ -116,11 +116,11 @@ class DartdevRunner extends CommandRunner<int> {
     addCommand(DevToolsCommand(verbose: verbose));
     addCommand(DocCommand(verbose: verbose));
     addCommand(FixCommand(verbose: verbose));
-    addCommand(FormatCommand(verbose: verbose));
+    addCommand(FormatCommand(verbose: verbose, category: 'Source code'));
     addCommand(InfoCommand(verbose: verbose));
     addCommand(LanguageServerCommand(verbose: verbose));
     addCommand(DartMCPServerCommand(verbose: verbose));
-    addCommand(pubCommand(isVerbose: () => verbose));
+    addCommand(pubCommand(isVerbose: () => verbose, category: 'Project'));
     addCommand(RunCommand(
       verbose: verbose,
       nativeAssetsExperimentEnabled: nativeAssetsExperimentEnabled,

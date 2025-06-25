@@ -40,6 +40,9 @@ class DevToolsCommand extends DartdevCommand {
   String get name => 'devtools';
 
   @override
+  String get category => 'Tools';
+
+  @override
   String get description => DevToolsServer.commandDescription;
 
   @override
