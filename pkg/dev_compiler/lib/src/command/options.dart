@@ -100,15 +100,6 @@ class Options {
   /// Whether the compiler is generating a dynamic module.
   final bool dynamicModule;
 
-  /// Raw precompiled macro options, each of the format
-  /// `<program-uri>;<macro-library-uri>`.
-  ///
-  /// Multiple library URIs may be provided separated by additional semicolons.
-  final List<String> precompiledMacros;
-
-  /// The serialization mode to use for macro communication.
-  final String? macroSerializationMode;
-
   Options({
     this.sourceMap = true,
     this.inlineSourceMap = false,
@@ -129,8 +120,6 @@ class Options {
     this.experiments = const {},
     this.canaryFeatures = false,
     this.dynamicModule = false,
-    this.precompiledMacros = const [],
-    this.macroSerializationMode,
   }) : emitLibraryBundle =
            canaryFeatures &&
            moduleFormats.length == 1 &&
@@ -165,8 +154,6 @@ class Options {
         ),
         canaryFeatures: args['canary'] as bool,
         dynamicModule: args['dynamic-module'] as bool,
-        precompiledMacros: args['precompiled-macro'] as List<String>,
-        macroSerializationMode: args['macro-serialization-mode'] as String?,
       );
 
   Options.fromSdkRequiredArguments(ArgResults args)
@@ -281,23 +268,6 @@ class Options {
             '`reload-last-accepted-kernel` to get incremental hot reload '
             'checks.',
         hide: true,
-      )
-      ..addMultiOption(
-        'precompiled-macro',
-        help:
-            'Configuration for precompiled macro binaries or kernel files.\n'
-            'The expected format of this option is as follows: '
-            '<absolute-path-to-binary>;<macro-library-uri>\nFor example: '
-            '--precompiled-macro="/path/to/compiled/macro;'
-            'package:some_macro/some_macro.dart". Multiple library uris may be '
-            'passed as well (separated by semicolons).',
-        hide: true,
-      )
-      ..addOption(
-        'macro-serialization-mode',
-        help: 'The serialization mode for communicating with macros.',
-        allowed: ['bytedata', 'json'],
-        defaultsTo: 'bytedata',
       )
       ..addFlag(
         'dynamic-module',
