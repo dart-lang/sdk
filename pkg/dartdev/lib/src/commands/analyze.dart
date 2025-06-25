@@ -100,6 +100,9 @@ class AnalyzeCommand extends DartdevCommand {
   }
 
   @override
+  String get category => 'Source code';
+
+  @override
   String get invocation => '${super.invocation} [<directory>]';
 
   @override

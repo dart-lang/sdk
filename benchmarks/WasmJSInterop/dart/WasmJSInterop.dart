@@ -341,6 +341,6 @@ void main() {
 }
 
 /// Reports in Golem-specific format.
-void report(String name, double nsPerCall) {
-  print('$name(RunTimeRaw): $nsPerCall ns.');
+void report(String name, double usPerCall) {
+  print('$name(RunTimeRaw): ${usPerCall * 1000} ns.');
 }

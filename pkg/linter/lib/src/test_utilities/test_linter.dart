@@ -77,7 +77,7 @@ class TestLinter implements DiagnosticListener {
   }
 
   @override
-  void onError(Diagnostic error) => errors.add(error);
+  void onDiagnostic(Diagnostic error) => errors.add(error);
 
   /// Returns whether this [entry] is a pubspec file.
   bool _isPubspecFile(FileSystemEntity entry) =>

@@ -17,8 +17,12 @@
 * Deprecate `ErrorSeverity`; use `DiagnosticSeverity` instead.
 * Deprecate `DiagnosticCode.errorSeverity`; use
   `DiagnosticCode.diagnosticSeverity` instead.
-* Deprecate `ErrorListener` and `RecordingErrorListener`; use
-  `DiagnosticListener` and `RecordingDiagnosticListener` instead.
+* Deprecate `AnalysisErrorListener`, `BooleanErrorListener`, and
+  `RecordingErrorListener`; use `DiagnosticListener`,
+  `BooleanDiagnosticListener`, and `RecordingDiagnosticListener` respectively,
+  instead. Instead of calling or overriding `AnalysisErrorListener.onError`,
+  call or override `DiagnosticListener.onDiagnostic`. Instead of using
+  `AnalysisErrorListener.NULL_LISTENER`, use `DiagnosticListener.nullListener`.
 * Deprecate `RecordingErrorListener.errors`; use
   `RecordingDiagnosticListener.diagnostics` instead.
 * Deprecate `RecordingErrorListener.getErrorsForSource`; no longer supported.

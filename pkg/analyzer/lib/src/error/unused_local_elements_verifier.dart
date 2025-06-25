@@ -1011,7 +1011,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   ) {
     if (element != null) {
       var fragment = element.firstFragment;
-      _diagnosticListener.onError(
+      _diagnosticListener.onDiagnostic(
         Diagnostic.tmp(
           source: fragment.libraryFragment!.source,
           offset:

@@ -24,7 +24,7 @@ class AstResolver {
   final Scope _nameScope;
   final FeatureSet _featureSet;
   final DiagnosticListener _diagnosticListener =
-      DiagnosticListener.NULL_LISTENER;
+      DiagnosticListener.nullListener;
   final AnalysisOptions analysisOptions;
   final InterfaceElementImpl? enclosingClassElement;
   final ExecutableElementImpl? enclosingExecutableElement;

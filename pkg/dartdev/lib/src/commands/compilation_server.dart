@@ -42,6 +42,9 @@ class CompilationServerCommand extends DartdevCommand {
     addSubcommand(CompilationServerStartCommand());
     addSubcommand(CompilationServerShutdownCommand());
   }
+
+  @override
+  String get category => 'Tools';
 }
 
 class CompilationServerStartCommand extends DartdevCommand {

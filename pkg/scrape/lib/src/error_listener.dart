@@ -18,7 +18,7 @@ class SimpleDiagnosticListener implements DiagnosticListener {
   bool get hadDiagnostic => _hadDiagnostic;
 
   @override
-  void onError(Diagnostic diagnostic) {
+  void onDiagnostic(Diagnostic diagnostic) {
     _hadDiagnostic = true;
 
     if (_printDiagnostics) {

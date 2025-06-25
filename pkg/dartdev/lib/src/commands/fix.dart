@@ -71,6 +71,9 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
   }
 
   @override
+  String get category => 'Source code';
+
+  @override
   String get description {
     if (log.ansi.useAnsi) {
       return cmdDescription

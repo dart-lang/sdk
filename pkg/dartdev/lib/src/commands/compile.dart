@@ -1145,4 +1145,7 @@ class CompileCommand extends DartdevCommand {
     ));
     addSubcommand(CompileWasmCommand(verbose: verbose));
   }
+
+  @override
+  String get category => 'Project';
 }

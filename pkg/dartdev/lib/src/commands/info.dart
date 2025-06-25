@@ -18,6 +18,9 @@ class InfoCommand extends DartdevCommand {
   static const String cmdDescription =
       'Show diagnostic information about the installed tooling.';
 
+  @override
+  String get category => 'Tools';
+
   InfoCommand({bool verbose = false})
       : super(cmdName, cmdDescription, verbose) {
     argParser.addFlag(

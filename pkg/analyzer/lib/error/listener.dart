@@ -16,9 +16,6 @@ import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
-@Deprecated("Use 'DiagnosticListener' instead")
-typedef AnalysisErrorListener = DiagnosticListener;
-
 @Deprecated("Use 'BooleanDiagnosticListener' instead")
 typedef BooleanErrorListener = BooleanDiagnosticListener;
 
@@ -28,9 +25,26 @@ typedef ErrorReporter = DiagnosticReporter;
 @Deprecated("Use 'RecordingDiagnosticListener' instead")
 typedef RecorderingErrorListener = RecordingDiagnosticListener;
 
-/// An [DiagnosticListener] that keeps track of whether any diagnostic has been
+/// An object that listens for [Diagnostic]s being produced by the analysis
+/// engine.
+@Deprecated("Use 'DiagnosticListener' instead")
+abstract class AnalysisErrorListener implements DiagnosticOrErrorListener {
+  /// A diagnostic listener that ignores diagnostics that are reported to it.
+  @Deprecated("Use 'DiagnosticListener.nullListener' instead")
+  static const AnalysisErrorListener NULL_LISTENER = _NullErrorListener();
+
+  /// This method is invoked when a [diagnostic] has been found by the analysis
+  /// engine.
+  void onError(Diagnostic diagnostic);
+}
+
+/// A [DiagnosticListener] that keeps track of whether any diagnostic has been
 /// reported to it.
-class BooleanDiagnosticListener implements DiagnosticListener {
+class BooleanDiagnosticListener
+    implements
+        // ignore: deprecated_member_use_from_same_package
+        AnalysisErrorListener,
+        DiagnosticListener {
   /// A flag indicating whether a diagnostic has been reported to this listener.
   bool _diagnosticReported = false;
 
@@ -38,28 +52,28 @@ class BooleanDiagnosticListener implements DiagnosticListener {
   bool get errorReported => _diagnosticReported;
 
   @override
-  void onError(Diagnostic diagnostic) {
+  void onDiagnostic(Diagnostic diagnostic) {
     _diagnosticReported = true;
   }
+
+  @override
+  void onError(Diagnostic diagnostic) => onDiagnostic(diagnostic);
 }
 
-/// An object that listens for [Diagnostic]s being produced by the analysis
-/// engine.
-abstract class DiagnosticListener {
+abstract class DiagnosticListener implements DiagnosticOrErrorListener {
   /// A diagnostic listener that ignores diagnostics that are reported to it.
-  static const DiagnosticListener NULL_LISTENER = _NullDiagnosticListener();
+  static const DiagnosticListener nullListener = _NullDiagnosticListener();
 
-  /// This method is invoked when a [diagnostic] has been found by the analysis
-  /// engine.
-  // TODO(srawlins): Rename to 'onDiagnostic'.
-  void onError(Diagnostic diagnostic);
+  void onDiagnostic(Diagnostic diagnostic);
 }
+
+sealed class DiagnosticOrErrorListener {}
 
 /// An object used to create diagnostics and report them to a diagnostic
 /// listener.
 class DiagnosticReporter {
   /// The diagnostic listener to which diagnostics are reported.
-  final DiagnosticListener _diagnosticListener;
+  final DiagnosticOrErrorListener _diagnosticListener;
 
   /// The source to be used when reporting diagnostics.
   final Source _source;
@@ -211,7 +225,7 @@ class DiagnosticReporter {
 
     contextMessages ??= [];
     contextMessages.addAll(convertTypeNames(arguments));
-    _diagnosticListener.onError(
+    _diagnosticListener.onDiagnostic(
       Diagnostic.tmp(
         source: _source,
         offset: offset,
@@ -266,14 +280,18 @@ class DiagnosticReporter {
 
   /// Report the given [diagnostic].
   void reportError(Diagnostic diagnostic) {
-    _diagnosticListener.onError(diagnostic);
+    _diagnosticListener.onDiagnostic(diagnostic);
   }
 }
 
 /// A diagnostic listener that records the diagnostics that are reported to it
 /// in a way that is appropriate for caching those diagnostic within an
 /// analysis context.
-class RecordingDiagnosticListener implements DiagnosticListener {
+class RecordingDiagnosticListener
+    implements
+        // ignore: deprecated_member_use_from_same_package
+        AnalysisErrorListener,
+        DiagnosticListener {
   Set<Diagnostic>? _diagnostics;
 
   /// The diagnostics collected by the listener.
@@ -297,17 +315,42 @@ class RecordingDiagnosticListener implements DiagnosticListener {
   }
 
   @override
-  void onError(Diagnostic diagnostic) {
+  void onDiagnostic(Diagnostic diagnostic) {
     (_diagnostics ??= {}).add(diagnostic);
+  }
+
+  @override
+  void onError(Diagnostic diagnostic) => onDiagnostic(diagnostic);
+}
+
+/// A [DiagnosticListener] that ignores everything.
+class _NullDiagnosticListener implements DiagnosticListener {
+  const _NullDiagnosticListener();
+
+  @override
+  void onDiagnostic(Diagnostic diagnostic) {
+    // Ignore diagnostics.
   }
 }
 
-/// An [DiagnosticListener] that ignores everything.
-class _NullDiagnosticListener implements DiagnosticListener {
-  const _NullDiagnosticListener();
+// ignore: deprecated_member_use_from_same_package
+/// An [AnalysisErrorListener] that ignores everything.
+class _NullErrorListener
+    implements
+        // ignore: deprecated_member_use_from_same_package
+        AnalysisErrorListener {
+  const _NullErrorListener();
 
   @override
   void onError(Diagnostic diagnostic) {
     // Ignore diagnostics.
   }
+}
+
+extension DiagnosticOrErrorListenerExtension on DiagnosticOrErrorListener {
+  void onDiagnostic(Diagnostic diagnostic) => switch (this) {
+    DiagnosticListener self => self.onDiagnostic(diagnostic),
+    // ignore: deprecated_member_use_from_same_package
+    AnalysisErrorListener self => self.onError(diagnostic),
+  };
 }

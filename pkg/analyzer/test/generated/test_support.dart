@@ -168,7 +168,7 @@ class GatheringDiagnosticListener implements DiagnosticListener {
   /// Adds the given [diagnostics] to this listener.
   void addAll(List<Diagnostic> diagnostics) {
     for (Diagnostic diagnostic in diagnostics) {
-      onError(diagnostic);
+      onDiagnostic(diagnostic);
     }
   }
 
@@ -439,7 +439,7 @@ class GatheringDiagnosticListener implements DiagnosticListener {
   LineInfo? getLineInfo(Source source) => _lineInfoMap[source];
 
   @override
-  void onError(Diagnostic diagnostic) {
+  void onDiagnostic(Diagnostic diagnostic) {
     _diagnostics.add(diagnostic);
   }
 

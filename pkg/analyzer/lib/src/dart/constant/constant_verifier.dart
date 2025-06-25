@@ -975,7 +975,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
             // Ignore any diagnostics produced during validation--if the
             // constant can't be evaluated we'll just report a single error.
             DiagnosticReporter subDiagnosticReporter = DiagnosticReporter(
-              DiagnosticListener.NULL_LISTENER,
+              DiagnosticListener.nullListener,
               _diagnosticReporter.source,
             );
             var result = initializer.accept(

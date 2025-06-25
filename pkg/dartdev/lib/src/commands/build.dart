@@ -34,6 +34,9 @@ class BuildCommand extends DartdevCommand {
       recordUseEnabled: recordUseEnabled,
     ));
   }
+
+  @override
+  String get category => 'Project';
 }
 
 /// Subcommand for `dart build cli`.
