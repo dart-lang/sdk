@@ -141,7 +141,7 @@ class AnalyzerSealedClassOperations
     InterfaceElementImpl sealedClass,
   ) {
     List<InterfaceElementImpl> subclasses = [];
-    var library = sealedClass.library2;
+    var library = sealedClass.library;
     outer:
     for (var declaration in library.children2) {
       if (declaration is ExtensionTypeElement) {
@@ -407,7 +407,7 @@ class AnalyzerTypeOperations implements TypeOperations<TypeImpl> {
         fieldTypes.addAll(_getInterfaceFieldTypes(supertype));
       }
       for (var getter in type.getters) {
-        if (getter.isPrivate && getter.library2 != _enclosingLibrary) {
+        if (getter.isPrivate && getter.library != _enclosingLibrary) {
           continue;
         }
         var name = getter.name3;
@@ -419,7 +419,7 @@ class AnalyzerTypeOperations implements TypeOperations<TypeImpl> {
         }
       }
       for (var method in type.methods2) {
-        if (method.isPrivate && method.library2 != _enclosingLibrary) {
+        if (method.isPrivate && method.library != _enclosingLibrary) {
           continue;
         }
         var name = method.name3;

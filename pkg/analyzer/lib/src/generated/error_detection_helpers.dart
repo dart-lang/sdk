@@ -365,7 +365,7 @@ mixin ErrorDetectionHelpers {
           .getMember3(
             type,
             Name.forLibrary(
-              type.element.library2,
+              type.element.library,
               MethodElement.CALL_METHOD_NAME,
             ),
           )

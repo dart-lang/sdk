@@ -514,7 +514,7 @@ class Search {
     String id;
     if (type1 != null) {
       name = type1.name3!;
-      var librarySource = type1.library2.firstFragment.source;
+      var librarySource = type1.library.firstFragment.source;
       var source = type1.firstFragment.libraryFragment.source;
       id = '${librarySource.uri};${source.uri};$name';
     } else {
@@ -641,7 +641,7 @@ class Search {
     // Prepare the list of files that reference the element name.
     var files = <FileState>[];
     if (name.startsWith('_')) {
-      String libraryPath = element.library2!.firstFragment.source.fullName;
+      String libraryPath = element.library!.firstFragment.source.fullName;
       if (searchedFiles.add(libraryPath, this)) {
         var libraryFile = _driver.fsState.getFileForPath(libraryPath);
         var libraryKind = libraryFile.kind;
@@ -1003,7 +1003,7 @@ class Search {
     }
 
     List<SearchResult> results = <SearchResult>[];
-    var libraryElement = element.library2;
+    var libraryElement = element.library;
     for (var unitElement in libraryElement.units) {
       String unitPath = unitElement.source.fullName;
       var unitResult = await _driver.getResolvedUnit(unitPath);

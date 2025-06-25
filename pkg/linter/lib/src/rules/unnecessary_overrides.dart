@@ -189,7 +189,7 @@ class _UnnecessaryGetterOverrideVisitor
     if (getterName == null) return null;
     return enclosingElement.thisType.lookUpGetter(
       getterName,
-      element.library2,
+      element.library,
       concrete: true,
       inherited: true,
     );
@@ -217,7 +217,7 @@ class _UnnecessaryMethodOverrideVisitor
 
     return enclosingElement.firstFragment.element.thisType.lookUpMethod(
       node.name.lexeme,
-      element.library2,
+      element.library,
       concrete: true,
       inherited: true,
     );
@@ -251,7 +251,7 @@ class _UnnecessaryOperatorOverrideVisitor
     if (methodName == null) return null;
     return enclosingElement.thisType.lookUpMethod(
       methodName,
-      element.library2,
+      element.library,
       concrete: true,
       inherited: true,
     );
@@ -298,7 +298,7 @@ class _UnnecessarySetterOverrideVisitor
     if (enclosingElement is! InterfaceElement) return null;
     return enclosingElement.thisType.lookUpSetter(
       node.name.lexeme,
-      element.library2,
+      element.library,
       concrete: true,
       inherited: true,
     );

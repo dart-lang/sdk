@@ -437,7 +437,7 @@ int t;
         matches.where((m) {
           var element = m.element;
           return element.name3 == name &&
-              element.library2?.firstFragment.source.fullName == path;
+              element.library?.firstFragment.source.fullName == path;
         }),
         hasLength(1),
       );

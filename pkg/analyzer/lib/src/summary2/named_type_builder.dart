@@ -81,7 +81,7 @@ class NamedTypeBuilder extends TypeBuilder {
 
   // TODO(scheglov): Only when enabled both in the element, and target?
   bool get _isNonFunctionTypeAliasesEnabled {
-    return element.library2!.featureSet.isEnabled(
+    return element.library!.featureSet.isEnabled(
       Feature.nonfunction_type_aliases,
     );
   }

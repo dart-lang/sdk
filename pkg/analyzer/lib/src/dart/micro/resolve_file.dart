@@ -870,7 +870,7 @@ class FileResolver {
     MockLibraryImportElement element,
   ) async {
     var results = <CiderSearchMatch>[];
-    var libraryElement = element.library2;
+    var libraryElement = element.library;
     for (var libraryFragment in libraryElement.fragments) {
       String unitPath = libraryFragment.source.fullName;
       var unitResult = await resolve(path: unitPath);

@@ -109,7 +109,7 @@ class ApiDescription {
     while (_potentiallyDanglingReferences.isNotEmpty) {
       var element = _potentiallyDanglingReferences.removeFirst();
       if (!_dumpedTopLevelElements.add(element)) continue;
-      var containingLibraryUri = element.library2!.uri;
+      var containingLibraryUri = element.library!.uri;
       var childNode =
           Node<MemberSortKey>()..text.add(_uniqueNamer.name(element));
       _dumpElement(element, childNode);
@@ -306,7 +306,7 @@ class ApiDescription {
               var parenthetical = <Object>['sealed'];
               parentheticals.add(parenthetical);
               if (_getOrComputeImmediateSubinterfaceMap(
-                    element.library2,
+                    element.library,
                   )[element]
                   case var subinterfaces?) {
                 parenthetical.add(' (immediate subtypes: ');
@@ -667,7 +667,7 @@ extension on Element {
       }
     }
     if (name3 case var name? when !name.isPublic) return false;
-    if (library2!.uri.isInPublicLibOf(packageName)) return true;
+    if (library!.uri.isInPublicLibOf(packageName)) return true;
     return false;
   }
 

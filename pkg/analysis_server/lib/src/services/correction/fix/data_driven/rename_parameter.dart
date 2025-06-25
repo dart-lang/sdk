@@ -136,7 +136,7 @@ extension on MethodDeclaration {
     if (element != null) {
       var enclosingElement = element.enclosingElement;
       if (enclosingElement is InterfaceElement) {
-        var name = Name(enclosingElement.library2.uri, element.name3!);
+        var name = Name(enclosingElement.library.uri, element.name3!);
         return enclosingElement.getInheritedMember(name);
       }
     }

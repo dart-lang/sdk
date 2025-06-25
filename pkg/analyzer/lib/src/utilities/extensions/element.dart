@@ -17,13 +17,13 @@ class MockLibraryImportElement implements Element, PrefixFragment {
     : import = import as LibraryImportImpl;
 
   @override
-  LibraryElement get enclosingElement => library2;
+  LibraryElement get enclosingElement => library;
 
   @override
   ElementKind get kind => ElementKind.IMPORT;
 
   @override
-  LibraryElementImpl get library2 => libraryFragment.element;
+  LibraryElementImpl get library => libraryFragment.element;
 
   @override
   LibraryFragmentImpl get libraryFragment => import.libraryFragment;

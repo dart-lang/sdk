@@ -7,19 +7,19 @@ import 'package:analyzer/dart/element/element.dart';
 extension ClassElementExtensions on ClassElement {
   /// Return `true` if this element represents the class `Iterable` from
   /// `dart:core`.
-  bool get isDartCoreIterable => name3 == 'Iterable' && library2.isDartCore;
+  bool get isDartCoreIterable => name3 == 'Iterable' && library.isDartCore;
 
   /// Return `true` if this element represents the class `List` from
   /// `dart:core`.
-  bool get isDartCoreList => name3 == 'List' && library2.isDartCore;
+  bool get isDartCoreList => name3 == 'List' && library.isDartCore;
 
   /// Return `true` if this element represents the class `Map` from
   /// `dart:core`.
-  bool get isDartCoreMap => name3 == 'Map' && library2.isDartCore;
+  bool get isDartCoreMap => name3 == 'Map' && library.isDartCore;
 
   /// Return `true` if this element represents the class `Set` from
   /// `dart:core`.
-  bool get isDartCoreSet => name3 == 'Set' && library2.isDartCore;
+  bool get isDartCoreSet => name3 == 'Set' && library.isDartCore;
 }
 
 extension ElementExtensions on Element {

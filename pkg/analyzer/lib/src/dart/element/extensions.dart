@@ -86,7 +86,7 @@ extension Element2Extension on Element {
             (this is FormalParameterElement &&
                 this is! FieldFormalParameterElement &&
                 this is! SuperFormalParameterElement)) &&
-        library2.hasWildcardVariablesFeatureEnabled;
+        library.hasWildcardVariablesFeatureEnabled;
   }
 }
 

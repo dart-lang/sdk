@@ -218,7 +218,7 @@ bool _isFunctionTypeUnrelatedToType(FunctionType type1, DartType type2) {
     if (element2 is ClassElement &&
         element2.thisType.lookUpMethod(
               'call',
-              element2.library2,
+              element2.library,
               concrete: true,
             ) !=
             null) {

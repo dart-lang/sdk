@@ -85,7 +85,7 @@ class AnalysisSessionHelper {
 
   /// Returns the resolved unit that declares the given [element].
   Future<ResolvedUnitResult?> getResolvedUnitByElement(Element element) async {
-    var libraryPath = element.library2!.firstFragment.source.fullName;
+    var libraryPath = element.library!.firstFragment.source.fullName;
     var resolvedLibrary = await _getResolvedLibrary(libraryPath);
     if (resolvedLibrary == null) {
       return null;

@@ -327,7 +327,7 @@ class ImportLibrary extends MultiCorrectionProducer {
             prefix.isEmptyOrNull
                 ? DartFixKind.IMPORT_LIBRARY_PROJECT3_SHOW
                 : DartFixKind.IMPORT_LIBRARY_PROJECT3_PREFIXED_SHOW;
-      } else if (declaration.library2 != libraryElement) {
+      } else if (declaration.library != libraryElement) {
         // Ugly: exports.
         fixKind =
             prefix.isEmptyOrNull

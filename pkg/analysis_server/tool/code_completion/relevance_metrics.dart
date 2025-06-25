@@ -1625,7 +1625,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   /// 3: class member
   /// 4+: local function
   int _depth(Element element) {
-    if (element.library2 != enclosingLibrary) {
+    if (element.library != enclosingLibrary) {
       return 0;
     }
     var depth = 0;

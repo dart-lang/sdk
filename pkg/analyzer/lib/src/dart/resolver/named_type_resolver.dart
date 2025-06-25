@@ -72,9 +72,9 @@ class NamedTypeResolver with ScopeHelpers {
   }) : typeSystem = libraryElement.typeSystem;
 
   bool get _genericMetadataIsEnabled =>
-      enclosingClass!.library2.featureSet.isEnabled(Feature.generic_metadata);
+      enclosingClass!.library.featureSet.isEnabled(Feature.generic_metadata);
 
-  bool get _inferenceUsingBoundsIsEnabled => enclosingClass!.library2.featureSet
+  bool get _inferenceUsingBoundsIsEnabled => enclosingClass!.library.featureSet
       .isEnabled(Feature.inference_using_bounds);
 
   /// Resolve the given [NamedType] - set its element and static type. Only the

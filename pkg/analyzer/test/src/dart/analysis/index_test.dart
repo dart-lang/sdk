@@ -406,7 +406,7 @@ void f() {
 }
 ''');
     var mathLib = findElement2.import('dart:math').importedLibrary2!;
-    var element = mathLib.loadLibraryFunction2;
+    var element = mathLib.loadLibraryFunction;
     assertElementIndexText(element, r'''
 55 3:8 |loadLibrary| IS_INVOKED_BY qualified
 82 4:8 |loadLibrary| IS_INVOKED_BY qualified

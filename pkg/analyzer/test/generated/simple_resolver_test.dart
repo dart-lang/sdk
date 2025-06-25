@@ -454,7 +454,7 @@ export 'a.dart';
     var main = library.entryPoint2!;
 
     expect(main, isNotNull);
-    expect(main.library2, isNot(same(library)));
+    expect(main.library, isNot(same(library)));
   }
 
   test_entryPoint_local() async {
@@ -466,7 +466,7 @@ main() {}
     var main = library.entryPoint2!;
 
     expect(main, isNotNull);
-    expect(main.library2, same(library));
+    expect(main.library, same(library));
   }
 
   test_entryPoint_none() async {

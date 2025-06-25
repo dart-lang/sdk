@@ -42,9 +42,9 @@ class RefactoringLocationTest extends AbstractSingleUnitTest {
     var sourceRange = range.fragmentName(firstFragment)!;
     SearchMatch match = SearchMatchImpl(
       libraryFragment.source.fullName,
-      element.library2.firstFragment.source,
+      element.library.firstFragment.source,
       libraryFragment.source,
-      element.library2,
+      element.library,
       element,
       true,
       false,

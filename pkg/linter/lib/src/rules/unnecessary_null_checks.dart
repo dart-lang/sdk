@@ -124,7 +124,7 @@ DartType? getExpectedType(PostfixExpression node) {
       if (targetType is InterfaceType) {
         var targetClass = targetType.element;
 
-        if (targetClass.library2.isDartAsync &&
+        if (targetClass.library.isDartAsync &&
             targetClass.name3 == 'Completer' &&
             grandParent.methodName.name == 'complete') {
           return null;

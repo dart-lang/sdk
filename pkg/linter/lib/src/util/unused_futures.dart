@@ -72,7 +72,7 @@ class UnusedFuturesVisitor extends SimpleAstVisitor<void> {
       expr.argumentList.arguments.length == 2;
 
   bool _isMapClass(Element? e) =>
-      e is ClassElement && e.name3 == 'Map' && e.library2.name3 == 'dart.core';
+      e is ClassElement && e.name3 == 'Map' && e.library.name3 == 'dart.core';
 
   /// Detects `Map.putIfAbsent` invocations.
   bool _isMapPutIfAbsentInvocation(Expression expr) =>

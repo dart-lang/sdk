@@ -160,7 +160,7 @@ extension AstNodeExtension on AstNode {
     if (this case SimpleIdentifier(:var element)) {
       if (element is TopLevelFunctionElement &&
           element.name3 == 'print' &&
-          element.library2.isDartCore &&
+          element.library.isDartCore &&
           parent is MethodInvocation &&
           grandparent is ExpressionStatement) {
         return grandparent;

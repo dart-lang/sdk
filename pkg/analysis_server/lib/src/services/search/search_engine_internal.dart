@@ -51,7 +51,7 @@ class SearchEngineImpl implements SearchEngine {
     var drivers = _drivers.toList();
     var searchedFiles = _createSearchedFiles(drivers);
 
-    var libraryUriStr = type.library2.uri.toString();
+    var libraryUriStr = type.library.uri.toString();
     var hasSubtypes = false;
     var visitedIds = <String>{};
     var members = <String>{};
@@ -189,7 +189,7 @@ class SearchEngineImpl implements SearchEngine {
       hashCode: (e) => e.name3.hashCode,
       equals: (a, b) {
         return a.lookupName == b.lookupName &&
-            a.library2?.uri == b.library2?.uri;
+            a.library?.uri == b.library?.uri;
       },
     );
     var regExp = RegExp(pattern);

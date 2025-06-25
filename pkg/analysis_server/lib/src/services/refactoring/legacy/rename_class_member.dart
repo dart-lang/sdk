@@ -230,7 +230,7 @@ class _BaseClassMemberValidator {
     this.name,
   );
 
-  LibraryElement get library => interfaceElement.library2;
+  LibraryElement get library => interfaceElement.library;
 
   void _checkClassAlreadyDeclares() {
     // check if there is a member with "newName" in the same ClassElement
@@ -556,7 +556,7 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
     }
     for (var reference in references) {
       var refElement = reference.element;
-      var refLibrary = refElement.library2!;
+      var refLibrary = refElement.library!;
       if (refLibrary != library) {
         var message = format(
           "Renamed {0} will be invisible in '{1}'.",

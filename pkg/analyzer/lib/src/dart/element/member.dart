@@ -77,9 +77,11 @@ class ConstructorMember extends ExecutableMember
   bool get isGenerative => baseElement.isGenerative;
 
   @override
-  LibraryElementImpl get library2 {
-    return _declaration.library!;
-  }
+  LibraryElementImpl get library => _declaration.library!;
+
+  @Deprecated('Use library instead')
+  @override
+  LibraryElementImpl get library2 => _declaration.library!;
 
   @override
   String? get lookupName => _element2.lookupName;
@@ -271,7 +273,11 @@ abstract class ExecutableMember extends Member
   bool get isSynchronous => declaration.isSynchronous;
 
   @override
-  LibraryElement get library2 => _element2.library2;
+  LibraryElement get library => _element2.library;
+
+  @Deprecated('Use library instead')
+  @override
+  LibraryElement get library2 => library;
 
   @override
   Source get librarySource => _declaration.librarySource!;
@@ -548,7 +554,11 @@ class FieldMember extends VariableMember
   bool get isPromotable => declaration.isPromotable;
 
   @override
-  LibraryElement get library2 => _element2.library2;
+  LibraryElement get library => _element2.library;
+
+  @Deprecated('Use library instead')
+  @override
+  LibraryElement get library2 => library;
 
   @override
   String? get lookupName => _element2.lookupName;
@@ -898,7 +908,11 @@ class MethodMember extends ExecutableMember implements MethodElement2OrMember {
   }
 
   @override
-  LibraryElement get library2 => _element2.library2;
+  LibraryElement get library => _element2.library;
+
+  @Deprecated('Use library instead')
+  @override
+  LibraryElement get library2 => library;
 
   @override
   String? get lookupName => name3;
@@ -1020,7 +1034,11 @@ class ParameterMember extends VariableMember
   bool get isSuperFormal => declaration.isSuperFormal;
 
   @override
-  LibraryElement? get library2 => _element2.library2;
+  LibraryElement? get library => _element2.library;
+
+  @Deprecated('Use library instead')
+  @override
+  LibraryElement? get library2 => library;
 
   @override
   String? get lookupName => _element2.lookupName;

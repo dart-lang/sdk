@@ -171,7 +171,7 @@ mixin ElementsTypesMixin {
   }
 
   InterfaceTypeImpl comparableNone(TypeImpl type) {
-    var coreLibrary = typeProvider.intElement2.library2;
+    var coreLibrary = typeProvider.intElement2.library;
     var element = coreLibrary.getClass2('Comparable')!;
     return element.instantiateImpl(
       typeArguments: [type],
@@ -180,7 +180,7 @@ mixin ElementsTypesMixin {
   }
 
   InterfaceTypeImpl comparableQuestion(TypeImpl type) {
-    var coreLibrary = typeProvider.intElement2.library2;
+    var coreLibrary = typeProvider.intElement2.library;
     var element = coreLibrary.getClass2('Comparable')!;
     return element.instantiateImpl(
       typeArguments: [type],

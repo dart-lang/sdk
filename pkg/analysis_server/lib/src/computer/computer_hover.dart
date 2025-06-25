@@ -151,7 +151,7 @@ class DartUnitHoverComputer {
 
   /// Returns information about the library that contains [element].
   _LibraryInfo _libraryInfo(Element element) {
-    var library = element.library2;
+    var library = element.library;
     if (library == null) {
       return null;
     }

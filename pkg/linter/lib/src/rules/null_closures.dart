@@ -298,13 +298,13 @@ class _Visitor extends SimpleAstVisitor<void> {
       return null;
     }
 
-    var method = getMethod(element.library2.name3, elementName);
+    var method = getMethod(element.library.name3, elementName);
     if (method != null) return method;
 
     for (var supertype in element.allSupertypes) {
       var superElement = supertype.element;
       if (superElement.name3 case var superElementName?) {
-        method = getMethod(superElement.library2.name3, superElementName);
+        method = getMethod(superElement.library.name3, superElementName);
         if (method != null) return method;
       }
     }

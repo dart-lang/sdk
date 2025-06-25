@@ -114,7 +114,7 @@ DartType? _jsTypeForStaticInterop(InterfaceType type) {
         annotationElement.isFromLibrary(_dartJsInteropUri) &&
         annotationElement.enclosingElement.name3 == 'JS') {
       hasJS = true;
-      dartJsInterop = annotationElement.library2;
+      dartJsInterop = annotationElement.library;
     } else if (annotationElement is GetterElement &&
         annotationElement.isFromLibrary(_dartJsAnnotationsUri) &&
         annotationElement.name3 == 'staticInterop') {
@@ -446,5 +446,5 @@ class _Visitor extends SimpleAstVisitor<void> {
 
 extension on Element {
   /// Returns whether this is from the Dart library at [uri].
-  bool isFromLibrary(String uri) => library2?.uri.toString() == uri;
+  bool isFromLibrary(String uri) => library?.uri.toString() == uri;
 }

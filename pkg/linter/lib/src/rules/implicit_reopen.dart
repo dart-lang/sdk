@@ -47,10 +47,10 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (element.isSealed) return;
     if (element.isMixinClass) return;
 
-    var library = element.library2;
+    var library = element.library;
     var supertype = element.supertype?.element;
     if (supertype is! ClassElement) return;
-    if (supertype.library2 != library) return;
+    if (supertype.library != library) return;
 
     if (element.isBase) {
       if (supertype.isFinal) {

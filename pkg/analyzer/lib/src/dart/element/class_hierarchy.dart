@@ -28,7 +28,7 @@ class ClassHierarchy {
   /// Remove hierarchies for classes defined in specified libraries.
   void removeOfLibraries(Set<Uri> uriSet) {
     _map.removeWhere((element, _) {
-      if (uriSet.contains(element.library2.uri)) {
+      if (uriSet.contains(element.library.uri)) {
         element.resetCachedAllSupertypes();
         return true;
       }
@@ -48,7 +48,7 @@ class ClassHierarchy {
     );
     _map[element] = hierarchy;
 
-    var typeSystem = element.library2.typeSystem;
+    var typeSystem = element.library.typeSystem;
     var interfacesMerger = InterfacesMerger(typeSystem);
 
     void append(InterfaceTypeImpl? type) {

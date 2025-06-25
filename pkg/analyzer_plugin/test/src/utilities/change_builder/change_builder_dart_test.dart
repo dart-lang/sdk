@@ -2447,7 +2447,7 @@ import 'package:test/all.dart';
     expect(edits, hasLength(1));
     expect(
         edits[0].replacement, equalsIgnoringWhitespace("import 'dart:async';"));
-    expect(cache[futureOrElement], futureOrElement.library2);
+    expect(cache[futureOrElement], futureOrElement.library);
   }
 
   Future<void> test_importElementLibrary_srcElement() async {

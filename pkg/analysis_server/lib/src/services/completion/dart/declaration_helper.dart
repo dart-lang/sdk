@@ -218,7 +218,7 @@ class DeclarationHelper {
             collector.addSuggestion(
               LoadLibraryFunctionSuggestion(
                 kind: CompletionSuggestionKind.INVOCATION,
-                element: importedLibrary.loadLibraryFunction2,
+                element: importedLibrary.loadLibraryFunction,
                 matcherScore: matcherScore,
               ),
             );
@@ -1627,7 +1627,7 @@ class DeclarationHelper {
     if (element.isInternal) {
       switch (request.fileState.workspacePackage) {
         case PubPackage pubPackage:
-          var librarySource = element.library2.firstFragment.source;
+          var librarySource = element.library.firstFragment.source;
           if (!pubPackage.contains(librarySource)) {
             return false;
           }
@@ -1640,7 +1640,7 @@ class DeclarationHelper {
         return false;
       }
 
-      if (elementInterface.library2 != requestLibrary) {
+      if (elementInterface.library != requestLibrary) {
         var contextInterface = request.target.enclosingInterfaceElement;
         if (contextInterface == null) {
           return false;
@@ -1654,12 +1654,12 @@ class DeclarationHelper {
     }
 
     if (element.isVisibleForTesting) {
-      if (element.library2 != requestLibrary) {
+      if (element.library != requestLibrary) {
         var fileState = request.fileState;
         switch (fileState.workspacePackage) {
           case PubPackage pubPackage:
             // Must be in the same package.
-            var librarySource = element.library2.firstFragment.source;
+            var librarySource = element.library.firstFragment.source;
             if (!pubPackage.contains(librarySource)) {
               return false;
             }
@@ -2698,7 +2698,7 @@ extension on Element {
   /// An element is visible if it's declared in the [referencingLibrary] or if
   /// the name is not private.
   bool isVisibleIn(LibraryElement referencingLibrary) {
-    if (library2 == referencingLibrary) {
+    if (library == referencingLibrary) {
       return true;
     }
     var name = name3;

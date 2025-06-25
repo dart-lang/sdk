@@ -1879,7 +1879,7 @@ extension on LibraryElement {
     var sb = StringBuffer();
 
     // Check if imported.
-    var library = element.library2;
+    var library = element.library;
     if (library != null && library != this) {
       // No source, if private.
       if (element.isPrivate) {

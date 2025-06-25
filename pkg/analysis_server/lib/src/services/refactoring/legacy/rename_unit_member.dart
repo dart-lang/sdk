@@ -166,7 +166,7 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
     var element = this.element;
     if (element is ClassElement && element.isStatefulWidgetDeclaration) {
       var oldStateName = '${oldName}State';
-      var library = element.library2;
+      var library = element.library;
       _flutterWidgetState =
           library.getClass2(oldStateName) ??
           library.getClass2('_$oldStateName');
@@ -205,7 +205,7 @@ class _BaseUnitMemberValidator {
 
   /// Returns `true` if [element] is visible at the given [SearchMatch].
   bool _isVisibleAt(Element element, SearchMatch at) {
-    var atLibrary = at.element.library2!;
+    var atLibrary = at.element.library!;
     // may be the same library
     if (library == atLibrary) {
       return true;
@@ -304,7 +304,7 @@ class _RenameUnitMemberValidator extends _BaseUnitMemberValidator {
     SearchEngine searchEngine,
     this.element,
     String name,
-  ) : super(searchEngine, element.library2!, element.kind, name);
+  ) : super(searchEngine, element.library!, element.kind, name);
 
   Future<RefactoringStatus> validate() async {
     _validateWillConflict();
@@ -322,7 +322,7 @@ class _RenameUnitMemberValidator extends _BaseUnitMemberValidator {
     }
     for (var reference in references) {
       var refElement = reference.element;
-      var refLibrary = refElement.library2!;
+      var refLibrary = refElement.library!;
       if (refLibrary != library) {
         var message = format(
           "Renamed {0} will be invisible in '{1}'.",

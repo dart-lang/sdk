@@ -36,7 +36,7 @@ mixin ElementSuggestionBuilder {
   void addSuggestion(Element element,
       {String? prefix, int relevance = DART_RELEVANCE_DEFAULT}) {
     if (element.isPrivate) {
-      if (element.library2 != containingLibrary) {
+      if (element.library != containingLibrary) {
         return;
       }
     }

@@ -88,7 +88,7 @@ class ConstantEvaluationEngine {
       constant = element.declaration as ConstantEvaluationTarget;
     }
 
-    var library = constant.library2 as LibraryElementImpl;
+    var library = constant.library as LibraryElementImpl;
     if (constant is FormalParameterFragmentImpl) {
       if (constant is ConstVariableFragment) {
         var defaultValue = constant.constantInitializer;
@@ -479,7 +479,7 @@ class ConstantEvaluationEngine {
     if (!constructor.isFactory) {
       return null;
     }
-    var typeProvider = constructor.library2.typeProvider;
+    var typeProvider = constructor.library.typeProvider;
     if (constructor.asElement2.enclosingElement ==
         typeProvider.symbolElement2) {
       // The dart:core.Symbol has a const factory constructor that redirects
@@ -553,6 +553,9 @@ abstract class ConstantEvaluationTarget {
   bool get isConstantEvaluated;
 
   /// The library with this constant.
+  LibraryElement? get library;
+
+  @Deprecated('Use library instead')
   LibraryElement? get library2;
 
   /// The library containing this constant.
@@ -2832,7 +2835,7 @@ class _InstanceCreationEvaluator {
 
   late final ConstantVisitor _initializerVisitor = ConstantVisitor(
     _evaluationEngine,
-    _constructor.library2,
+    _constructor.library,
     _externalDiagnosticReporter,
     lexicalEnvironment: _parameterMap,
     lexicalTypeEnvironment: _typeParameterMap,
@@ -3441,7 +3444,7 @@ class _InstanceCreationEvaluator {
     if (superclass != null && !superclass.isDartCoreObject) {
       var superConstructor =
           superclass
-              .lookUpConstructor(superName, _constructor.library2)
+              .lookUpConstructor(superName, _constructor.library)
               ?.asElement;
       if (superConstructor == null) {
         return null;

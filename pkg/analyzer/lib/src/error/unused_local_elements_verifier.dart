@@ -374,7 +374,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
       return;
     }
     // Check if [element] is a local element.
-    if (!identical(element.library2, _enclosingLibrary)) {
+    if (!identical(element.library, _enclosingLibrary)) {
       return;
     }
     // Ignore references to an element from itself.

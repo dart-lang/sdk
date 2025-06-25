@@ -119,7 +119,7 @@ class _Visitor extends UnifyingAstVisitor<void> {
       return;
     }
 
-    var path = element.library2?.firstFragment.source.fullName;
+    var path = element.library?.firstFragment.source.fullName;
     if (path == null) {
       return;
     }

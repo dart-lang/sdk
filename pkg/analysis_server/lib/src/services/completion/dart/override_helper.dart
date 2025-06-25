@@ -77,7 +77,7 @@ class OverrideHelper {
   /// yet declared in the class.
   List<Name> _namesToOverride(InterfaceElement interfaceElement) {
     var namesToOverride = <Name>[];
-    var libraryUri = interfaceElement.library2.uri;
+    var libraryUri = interfaceElement.library.uri;
     var memberNames = interfaceElement.interfaceMembers.keys;
     for (var name in memberNames) {
       if (name.isAccessibleFor(libraryUri)) {

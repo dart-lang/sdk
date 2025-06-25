@@ -54,7 +54,7 @@ class _DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
     String displayName,
     String? message,
   ) {
-    var library = element is LibraryElement ? element : element.library2;
+    var library = element is LibraryElement ? element : element.library;
     if (library == null ||
         !_workspacePackage.contains(library.firstFragment.source)) {
       // In this case, `DEPRECATED_MEMBER_USE` is reported by the analyzer.

@@ -3075,7 +3075,7 @@ class _InheritanceManager3Base2 extends ElementsBaseTest {
   }
 
   String _interfaceText(InterfaceElementImpl element) {
-    var library = element.library2;
+    var library = element.library;
     var inheritance = library.session.inheritanceManager;
     var interface = inheritance.getInterface(element);
 

@@ -179,7 +179,7 @@ class IndexElementInfo {
       } else if (element is TopLevelFunctionElement &&
           element.name3 == TopLevelFunctionElement.LOAD_LIBRARY_NAME) {
         kind = IndexSyntheticElementKind.loadLibrary;
-        element = element.library2;
+        element = element.library;
       } else if (elementKind == ElementKind.FIELD) {
         var field = element as FieldElement;
         kind = IndexSyntheticElementKind.field;
@@ -1296,7 +1296,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     List<String> members = [];
 
     String getInterfaceElementId(InterfaceElement element) {
-      var libraryUri = element.library2.uri;
+      var libraryUri = element.library.uri;
       var libraryFragment = element.firstFragment.libraryFragment;
       var libraryFragmentUri = libraryFragment.source.uri;
       return '$libraryUri;$libraryFragmentUri;${element.name3}';

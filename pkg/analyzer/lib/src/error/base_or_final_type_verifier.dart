@@ -181,15 +181,15 @@ class BaseOrFinalTypeVerifier {
     NamedType? implementsNamedType,
   }) {
     // Only report errors on elements within the current library.
-    if (element.library2 != _definingLibrary) {
+    if (element.library != _definingLibrary) {
       return false;
     }
 
     InterfaceElementImpl? baseOrFinalSuperElement;
     if (superElement.isBase ||
         superElement.isFinal ||
-        (!superElement.library2.featureSet.isEnabled(Feature.class_modifiers) &&
-            element.library2.featureSet.isEnabled(Feature.class_modifiers))) {
+        (!superElement.library.featureSet.isEnabled(Feature.class_modifiers) &&
+            element.library.featureSet.isEnabled(Feature.class_modifiers))) {
       // The 'base' or 'final' modifier may be an induced modifier. Find the
       // explicitly declared 'base' or 'final' in the hierarchy.
       // In the case where the super element is in a pre-feature library, we
@@ -204,7 +204,7 @@ class BaseOrFinalTypeVerifier {
       return false;
     }
 
-    if (_mayIgnoreClassModifiers(baseOrFinalSuperElement.library2)) {
+    if (_mayIgnoreClassModifiers(baseOrFinalSuperElement.library)) {
       return false;
     }
 
@@ -235,7 +235,7 @@ class BaseOrFinalTypeVerifier {
     // different library which is marked base.
     if (implementsNamedType != null &&
         superElement.isSealed &&
-        baseOrFinalSuperElement.library2 != element.library2) {
+        baseOrFinalSuperElement.library != element.library) {
       if (baseOrFinalSuperElement.isBase) {
         var errorCode =
             baseOrFinalSuperElement is MixinElement
@@ -257,7 +257,7 @@ class BaseOrFinalTypeVerifier {
         // If you can't extend, implement or mix in a final element outside of
         // its library anyways, it's not helpful to report a subelement
         // modifier error.
-        if (baseOrFinalSuperElement.library2 != element.library2) {
+        if (baseOrFinalSuperElement.library != element.library) {
           // In the case where the 'baseOrFinalSuperElement' is a core
           // library element and we are subtyping from a super element that's
           // from a pre-feature library, we want to produce a final
@@ -266,10 +266,10 @@ class BaseOrFinalTypeVerifier {
           // For implements clauses with the above scenario, we avoid
           // over-reporting since there will already be a
           // [FinalClassImplementedOutsideOfLibrary] error.
-          if (superElement.library2.featureSet.isEnabled(
+          if (superElement.library.featureSet.isEnabled(
                 Feature.class_modifiers,
               ) ||
-              !baseOrFinalSuperElement.library2.isInSdk ||
+              !baseOrFinalSuperElement.library.isInSdk ||
               implementsNamedType != null) {
             return false;
           }

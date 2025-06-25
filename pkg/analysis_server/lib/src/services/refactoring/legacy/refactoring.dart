@@ -469,7 +469,7 @@ abstract class RenameRefactoring implements Refactoring {
     }
     var enclosingElement = element.enclosingElement;
     if (element is PrefixElement) {
-      enclosingElement = element.library2;
+      enclosingElement = element.library;
     }
     if (enclosingElement is LibraryElement) {
       return RenameUnitMemberRefactoringImpl(

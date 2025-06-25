@@ -56,7 +56,7 @@ class GetterSetterTypesVerifier {
       return;
     }
 
-    var libraryUri = element.library2.uri;
+    var libraryUri = element.library.uri;
 
     var interfaceMap = interface.map;
     for (var entry in interfaceMap.entries) {

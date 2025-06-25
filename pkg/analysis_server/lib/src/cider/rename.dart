@@ -97,7 +97,7 @@ class CanRenameResponse {
   FlutterWidgetState? _findFlutterStateClass(Element element, String newName) {
     if (element is ClassElement && element.isStatefulWidgetDeclaration) {
       var oldStateName = '${element.displayName}State';
-      var library = element.library2;
+      var library = element.library;
       var state =
           library.getClass2(oldStateName) ??
           library.getClass2('_$oldStateName');
@@ -217,7 +217,7 @@ class CheckNameResponse {
         );
       }
       // add element declaration
-      var sourcePath = element.library2!.firstFragment.source.fullName;
+      var sourcePath = element.library!.firstFragment.source.fullName;
       var infos = await _addElementDeclaration(element, sourcePath);
       replaceMatches.addMatch(sourcePath, infos);
     }
@@ -365,7 +365,7 @@ class CheckNameResponse {
     var interfaceElement = element.enclosingElement!;
 
     var fileResolver = canRename._fileResolver;
-    var libraryPath = interfaceElement.library2!.firstFragment.source.fullName;
+    var libraryPath = interfaceElement.library!.firstFragment.source.fullName;
     var resolvedLibrary = await fileResolver.resolveLibrary2(path: libraryPath);
     var result = resolvedLibrary.getFragmentDeclaration(
       interfaceElement.firstFragment,
@@ -429,7 +429,7 @@ class CiderRenameComputer {
     if (node == null || element == null) {
       return null;
     }
-    if (element.library2?.isInSdk == true) {
+    if (element.library?.isInSdk == true) {
       return null;
     }
     if (element is MethodElement && element.isOperator) {

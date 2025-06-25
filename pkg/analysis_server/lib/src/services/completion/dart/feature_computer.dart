@@ -1281,7 +1281,7 @@ parent3: ${node.parent?.parent?.parent}
     if (type is! InterfaceType) {
       return null;
     }
-    var declaredElement = field.element2?.library2;
+    var declaredElement = field.element2?.library;
     var uri = declaredElement?.uri;
     var member = type.element.getInterfaceMember(Name(uri, name));
     if (member is GetterElement) {

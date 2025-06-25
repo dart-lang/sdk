@@ -116,7 +116,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
     required this.typeSystem,
     required this.inheritanceManager,
     required this.eventListener,
-  }) : coreLibrary = typeProvider.objectElement2.library2;
+  }) : coreLibrary = typeProvider.objectElement2.library;
 
   /// If [node] is used as the target of a [CompoundAssignmentExpression],
   /// returns the [CompoundAssignmentExpression].
@@ -755,7 +755,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
           previousNestingLevel: previousNestingLevel,
         );
         // Stack: arguments
-        if (methodElement.library2.isDartCore &&
+        if (methodElement.library.isDartCore &&
             methodElement.name3 == 'identical') {
           ir.identical();
         } else {

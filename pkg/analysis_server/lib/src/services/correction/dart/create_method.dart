@@ -70,12 +70,12 @@ class CreateMethod extends ResolvedCorrectionProducer {
         if (missingEquals) {
           _memberName = '==';
           element = classElement.getInheritedMember(
-            Name.forLibrary(classElement.library2, _memberName),
+            Name.forLibrary(classElement.library, _memberName),
           );
         } else {
           _memberName = 'hashCode';
           element = classElement.getInheritedMember(
-            Name.forLibrary(classElement.library2, _memberName),
+            Name.forLibrary(classElement.library, _memberName),
           );
         }
         if (element == null) {
@@ -135,7 +135,7 @@ class CreateMethod extends ResolvedCorrectionProducer {
         return;
       }
       targetFragment = targetClassElement.firstFragment;
-      if (targetClassElement.library2.isInSdk) {
+      if (targetClassElement.library.isInSdk) {
         return;
       }
       // Prepare target ClassDeclaration.

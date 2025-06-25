@@ -195,7 +195,7 @@ class CreateGetter extends CreateFieldOrGetter {
 
     var targetFragment = targetElement.firstFragment;
     var targetSource = targetFragment.libraryFragment.source;
-    if (targetElement.library2.isInSdk) {
+    if (targetElement.library.isInSdk) {
       return;
     }
     // prepare target declaration

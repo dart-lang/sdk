@@ -325,7 +325,7 @@ class AnnotationVerifier {
       );
       return;
     }
-    if (classElement.library2 != superElement.library2) {
+    if (classElement.library != superElement.library) {
       _diagnosticReporter.atNode(
         node.name,
         WarningCode.INVALID_REOPEN_ANNOTATION,

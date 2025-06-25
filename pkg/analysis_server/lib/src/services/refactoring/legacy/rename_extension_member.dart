@@ -114,7 +114,7 @@ class _ExtensionMemberValidator {
     this.element,
     this.name,
   ) : isRename = true,
-      library = elementExtension.library2,
+      library = elementExtension.library,
       elementKind = element.kind;
 
   Future<RefactoringStatus> validate() async {

@@ -314,7 +314,7 @@ class InheritanceManager3 {
     Map<Name, ExecutableElement2OrMember> implemented,
     InterfaceElementImpl element,
   ) {
-    var libraryUri = element.library2.uri;
+    var libraryUri = element.library.uri;
 
     void addMember(ExecutableElement2OrMember member) {
       if (!member.isAbstract && !member.isStatic) {
@@ -396,7 +396,7 @@ class InheritanceManager3 {
       return candidates[0];
     }
 
-    var targetLibrary = targetClass.library2;
+    var targetLibrary = targetClass.library;
     var typeSystem = targetLibrary.typeSystem;
 
     var validOverrides = _getValidOverrides(
@@ -1176,7 +1176,7 @@ class InheritanceManager3 {
     InterfaceElementImpl element,
   ) {
     var declared = <Name, ExecutableElement2OrMember>{};
-    var libraryUri = element.library2.uri;
+    var libraryUri = element.library.uri;
 
     void addMember(ExecutableElement2OrMember member) {
       if (!member.isStatic) {
@@ -1384,7 +1384,7 @@ class Name {
     }
 
     if (name.startsWith('_')) {
-      var libraryUri = element.library2!.uri;
+      var libraryUri = element.library!.uri;
       return Name(libraryUri, name);
     } else {
       return Name(null, name);

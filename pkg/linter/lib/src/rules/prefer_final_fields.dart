@@ -36,7 +36,7 @@ class _DeclarationsCollector extends RecursiveAstVisitor<void> {
     if (enclosingElement is! InterfaceElement) return false;
 
     return enclosingElement.getOverridden(
-          Name.forLibrary(field.library2, '${field.name3!}='),
+          Name.forLibrary(field.library, '${field.name3!}='),
         ) !=
         null;
   }

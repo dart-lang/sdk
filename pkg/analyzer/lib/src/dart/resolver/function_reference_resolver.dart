@@ -177,7 +177,7 @@ class FunctionReferenceResolver {
     // extension method applies.
     return type.lookUpMethod(
           MethodElement.CALL_METHOD_NAME,
-          type.element.library2,
+          type.element.library,
         ) ??
         _extensionResolver.findExtension(type, node, callMethodName).getter2;
   }

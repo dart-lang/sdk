@@ -176,7 +176,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
 
     if (isFinal) {
       var result = <InterfaceTypeImpl>[];
-      for (var element in library2.children2) {
+      for (var element in library.children2) {
         if (element is InterfaceElementImpl && element != this) {
           var elementThis = element.thisType;
           if (elementThis.asInstanceOf2(this) != null) {
@@ -189,7 +189,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
 
     if (isSealed) {
       var result = <InterfaceTypeImpl>[];
-      for (var element in library2.children2) {
+      for (var element in library.children2) {
         if (element is! InterfaceElementImpl || identical(element, this)) {
           continue;
         }
@@ -298,7 +298,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
 
   @trackedIncludedIntoId
   bool get isDartCoreRecord {
-    return name3 == 'Record' && library2.isDartCore;
+    return name3 == 'Record' && library.isDartCore;
   }
 
   @trackedDirectlyExpensive
@@ -329,7 +329,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
     }
 
     // No subclasses in the library.
-    for (var class_ in library2.classes) {
+    for (var class_ in library.classes) {
       if (class_.supertype?.element == this) {
         return false;
       }
@@ -376,7 +376,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
   @override
   @trackedIndirectly
   bool isExtendableIn(LibraryElement library) {
-    if (library == library2) {
+    if (library == this.library) {
       return true;
     }
     return !isInterface && !isFinal && !isSealed;
@@ -391,7 +391,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
   @override
   @trackedIndirectly
   bool isImplementableIn(LibraryElement library) {
-    if (library == library2) {
+    if (library == this.library) {
       return true;
     }
     return !isBase && !isFinal && !isSealed;
@@ -406,9 +406,9 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
   @override
   @trackedIndirectly
   bool isMixableIn(LibraryElement library) {
-    if (library == library2) {
+    if (library == this.library) {
       return true;
-    } else if (library2.featureSet.isEnabled(Feature.class_modifiers)) {
+    } else if (this.library.featureSet.isEnabled(Feature.class_modifiers)) {
       return isMixinClass && !isInterface && !isFinal && !isSealed;
     }
     return true;
@@ -441,7 +441,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
     _constructors = const <ConstructorElementImpl>[];
 
     var superConstructors = superType.constructors2
-        .where((constructor) => constructor.isAccessibleIn2(library2))
+        .where((constructor) => constructor.isAccessibleIn2(library))
         .where((constructor) => constructor.isGenerative)
         .toList(growable: false);
 
@@ -916,6 +916,10 @@ mixin ConstructorElementMixin
   bool get isGenerative;
 
   @override
+  LibraryElementImpl get library;
+
+  @Deprecated('Use library instead')
+  @override
   LibraryElementImpl get library2;
 
   @override
@@ -1057,6 +1061,7 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
   @override
   ElementKind get kind => ElementKind.CONSTRUCTOR;
 
+  @Deprecated('Use library instead')
   @override
   LibraryElementImpl get library2 => library;
 
@@ -1461,7 +1466,11 @@ class DynamicElementImpl extends TypeDefiningElementImpl {
   ElementKind get kind => ElementKind.DYNAMIC;
 
   @override
-  Null get library2 => null;
+  Null get library => null;
+
+  @Deprecated('Use library instead')
+  @override
+  Null get library2 => library;
 
   @override
   MetadataImpl get metadata {
@@ -1751,7 +1760,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
     var element2 = this.element2;
     if (element2 is ConstructorElement) {
       return element2.enclosingElement.name3 == 'Since' &&
-          element2.library2.uri.toString() == 'dart:_internal';
+          element2.library.uri.toString() == 'dart:_internal';
     }
     return false;
   }
@@ -1760,10 +1769,10 @@ class ElementAnnotationImpl implements ElementAnnotation {
   bool get isDeprecated {
     var element2 = this.element2;
     if (element2 is ConstructorElement) {
-      return element2.library2.isDartCore &&
+      return element2.library.isDartCore &&
           element2.enclosingElement.name3 == _deprecatedClassName;
     } else if (element2 is PropertyAccessorElement) {
-      return element2.library2.isDartCore &&
+      return element2.library.isDartCore &&
           element2.name3 == _deprecatedVariableName;
     }
     return false;
@@ -1894,6 +1903,10 @@ class ElementAnnotationImpl implements ElementAnnotation {
   );
 
   @override
+  LibraryElementImpl get library => compilationUnit.library;
+
+  @Deprecated('Use library instead')
+  @override
   LibraryElementImpl get library2 => compilationUnit.library;
 
   @override
@@ -1932,7 +1945,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
     var element2 = this.element2;
     return element2 is ConstructorElement &&
         element2.enclosingElement.name3 == className &&
-        element2.library2.name3 == libraryName;
+        element2.library.name3 == libraryName;
   }
 
   bool _isDartCoreGetter(String name) {
@@ -1955,8 +1968,8 @@ class ElementAnnotationImpl implements ElementAnnotation {
     var element2 = this.element2;
     return element2 is PropertyAccessorElement &&
         element2.name3 == name &&
-        (libraryName == null || element2.library2.name3 == libraryName) &&
-        (libraryUri == null || element2.library2.uri == libraryUri);
+        (libraryName == null || element2.library.name3 == libraryName) &&
+        (libraryUri == null || element2.library.uri == libraryUri);
   }
 }
 
@@ -2092,7 +2105,7 @@ abstract class ElementImpl implements Element {
   bool isAccessibleIn2(LibraryElement library) {
     var name3 = this.name3;
     if (name3 == null || Identifier.isPrivateName(name3)) {
-      return library == library2;
+      return library == this.library;
     }
     return true;
   }
@@ -2287,10 +2300,14 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
   }
 
   @override
-  LibraryElement get library2 {
+  LibraryElement get library {
     var firstFragment = this.firstFragment as ExecutableFragmentImpl;
     return firstFragment.library;
   }
+
+  @Deprecated('Use library instead')
+  @override
+  LibraryElement get library2 => library;
 
   @override
   TypeImpl get returnType {
@@ -2943,9 +2960,11 @@ class FieldElementImpl extends PropertyInducingElementImpl
   ElementKind get kind => ElementKind.FIELD;
 
   @override
-  LibraryElementImpl get library2 {
-    return firstFragment.library;
-  }
+  LibraryElementImpl get library => firstFragment.library;
+
+  @Deprecated('Use library instead')
+  @override
+  LibraryElementImpl get library2 => library;
 
   @override
   String? get name3 => firstFragment.name2;
@@ -3147,6 +3166,7 @@ class FieldFragmentImpl extends PropertyInducingFragmentImpl
   @override
   ElementKind get kind => ElementKind.FIELD;
 
+  @Deprecated('Use library instead')
   @override
   LibraryElementImpl get library2 => library;
 
@@ -3298,7 +3318,11 @@ class FormalParameterElementImpl extends PromotableElementImpl
   ElementKind get kind => ElementKind.PARAMETER;
 
   @override
-  LibraryElementImpl? get library2 => wrappedElement.library;
+  LibraryElementImpl? get library => wrappedElement.library;
+
+  @Deprecated('Use library instead')
+  @override
+  LibraryElementImpl? get library2 => library;
 
   @override
   String? get name3 {
@@ -3514,6 +3538,7 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
     return library as LibraryElementImpl?;
   }
 
+  @Deprecated('Use library instead')
   @override
   LibraryElementImpl? get library2 => library;
 
@@ -4202,7 +4227,11 @@ class GenericFunctionTypeElementImpl extends FunctionTypedElementImpl
   ElementKind get kind => _wrappedElement.kind;
 
   @override
-  LibraryElementImpl get library2 => _wrappedElement.library;
+  LibraryElementImpl get library => _wrappedElement.library;
+
+  @Deprecated('Use library instead')
+  @override
+  LibraryElementImpl get library2 => library;
 
   @override
   MetadataImpl get metadata => _wrappedElement.metadata;
@@ -4567,7 +4596,11 @@ abstract class InstanceElementImpl extends ElementImpl
   ElementKind get kind => firstFragment.kind;
 
   @override
-  LibraryElementImpl get library2 => firstFragment.library;
+  LibraryElementImpl get library => firstFragment.library;
+
+  @Deprecated('Use library instead')
+  @override
+  LibraryElementImpl get library2 => library;
 
   @override
   MetadataImpl get metadata => firstFragment.metadata;
@@ -4745,7 +4778,7 @@ recorded above.
   bool isAccessibleIn2(LibraryElement library) {
     var name = name3;
     if (name != null && Identifier.isPrivateName(name)) {
-      return library == library2;
+      return library == this.library;
     }
     return true;
   }
@@ -4814,7 +4847,7 @@ recorded above.
     if (predicate(this)) {
       return this;
     }
-    return library2.thisOrAncestorMatching2(predicate);
+    return library.thisOrAncestorMatching2(predicate);
   }
 
   @override
@@ -4822,7 +4855,7 @@ recorded above.
     if (this case E result) {
       return result;
     }
-    return library2.thisOrAncestorOfType2<E>();
+    return library.thisOrAncestorOfType2<E>();
   }
 
   @override
@@ -5088,7 +5121,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
 
   @override
   List<InterfaceTypeImpl> get allSupertypes {
-    return _allSupertypes ??= library2.session.classHierarchy
+    return _allSupertypes ??= library.session.classHierarchy
         .implementedInterfaces(this);
   }
 
@@ -5134,7 +5167,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   }
 
   InheritanceManager3 get inheritanceManager {
-    return library2.session.inheritanceManager;
+    return library.session.inheritanceManager;
   }
 
   @override
@@ -5731,9 +5764,11 @@ class LabelElementImpl extends ElementImpl
   bool get isOnSwitchMember => _wrappedElement.isOnSwitchMember;
 
   @override
-  LibraryElement get library2 {
-    return _wrappedElement.library;
-  }
+  LibraryElement get library => _wrappedElement.library;
+
+  @Deprecated('Use library instead')
+  @override
+  LibraryElement get library2 => library;
 
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
@@ -6066,15 +6101,25 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @override
-  LibraryElementImpl get library2 => this;
+  LibraryElementImpl get library => this;
+
+  @Deprecated('Use library instead')
+  @override
+  LibraryElementImpl get library2 => library;
 
   LibraryDeclarations get libraryDeclarations {
     return _libraryDeclarations ??= LibraryDeclarations(this);
   }
 
   @override
-  TopLevelFunctionElementImpl get loadLibraryFunction2 {
+  TopLevelFunctionElementImpl get loadLibraryFunction {
     return loadLibraryProvider.getElement(this);
+  }
+
+  @Deprecated('Use loadLibraryFunction instead')
+  @override
+  TopLevelFunctionElementImpl get loadLibraryFunction2 {
+    return loadLibraryFunction;
   }
 
   @override
@@ -7108,9 +7153,11 @@ class LocalVariableElementImpl extends PromotableElementImpl
   bool get isStatic => _wrappedElement.isStatic;
 
   @override
-  LibraryElementImpl get library2 {
-    return _wrappedElement.library;
-  }
+  LibraryElementImpl get library => _wrappedElement.library;
+
+  @Deprecated('Use library instead')
+  @override
+  LibraryElementImpl get library2 => library;
 
   @override
   MetadataImpl get metadata => _wrappedElement.metadata;
@@ -7188,6 +7235,7 @@ class LocalVariableFragmentImpl extends NonParameterVariableFragmentImpl
   @override
   ElementKind get kind => ElementKind.LOCAL_VARIABLE;
 
+  @Deprecated('Use library instead')
   @override
   LibraryElementImpl get library2 => library;
 
@@ -7840,7 +7888,7 @@ class MixinElementImpl extends InterfaceElementImpl implements MixinElement {
 
   @override
   bool isImplementableIn2(LibraryElement library) {
-    if (library == library2) {
+    if (library == this.library) {
       return true;
     }
     return !isBase;
@@ -8111,7 +8159,11 @@ class MultiplyDefinedElementImpl extends ElementImpl
   ElementKind get kind => ElementKind.ERROR;
 
   @override
-  LibraryElement get library2 => libraryFragment.element;
+  LibraryElement get library => libraryFragment.element;
+
+  @Deprecated('Use library instead')
+  @override
+  LibraryElement get library2 => library;
 
   @override
   Element get nonSynthetic => this;
@@ -8249,7 +8301,11 @@ class NeverElementImpl extends TypeDefiningElementImpl {
   ElementKind get kind => ElementKind.NEVER;
 
   @override
-  Null get library2 => null;
+  Null get library => null;
+
+  @Deprecated('Use library instead')
+  @override
+  Null get library2 => library;
 
   @override
   MetadataImpl get metadata {
@@ -8635,9 +8691,11 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
   ElementKind get kind => ElementKind.PREFIX;
 
   @override
-  LibraryElementImpl get library2 {
-    return firstFragment.libraryFragment.element;
-  }
+  LibraryElementImpl get library => firstFragment.libraryFragment.element;
+
+  @Deprecated('Use library instead')
+  @override
+  LibraryElementImpl get library2 => library;
 
   @override
   String? get name3 => firstFragment.name2;
@@ -9421,7 +9479,7 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl
 
   @override
   bool get isDartCoreIdentical {
-    return name3 == 'identical' && library2.isDartCore;
+    return name3 == 'identical' && library.isDartCore;
   }
 
   @override
@@ -9438,9 +9496,11 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl
   }
 
   @override
-  LibraryElementImpl get library2 {
-    return firstFragment.library;
-  }
+  LibraryElementImpl get library => firstFragment.library;
+
+  @Deprecated('Use library instead')
+  @override
+  LibraryElementImpl get library2 => library;
 
   @override
   String? get name3 => firstFragment.name2;
@@ -9544,9 +9604,11 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
   ElementKind get kind => ElementKind.TOP_LEVEL_VARIABLE;
 
   @override
-  LibraryElement get library2 {
-    return firstFragment.libraryFragment.element;
-  }
+  LibraryElement get library => firstFragment.libraryFragment.element;
+
+  @Deprecated('Use library instead')
+  @override
+  LibraryElement get library2 => library;
 
   @override
   String? get name3 => firstFragment.name2;
@@ -9595,6 +9657,7 @@ class TopLevelVariableFragmentImpl extends PropertyInducingFragmentImpl
   @override
   ElementKind get kind => ElementKind.TOP_LEVEL_VARIABLE;
 
+  @Deprecated('Use library instead')
   @override
   LibraryElementImpl get library2 => library;
 
@@ -9702,9 +9765,9 @@ class TypeAliasElementImpl extends TypeDefiningElementImpl
       var bound = typeParameters[i].bound ?? DynamicTypeImpl.instance;
       var aliasedBound =
           aliasedClass.typeParameters2[i].bound ??
-          library2.typeProvider.dynamicType;
-      if (!library2.typeSystem.isSubtypeOf(bound, aliasedBound) ||
-          !library2.typeSystem.isSubtypeOf(aliasedBound, bound)) {
+          library.typeProvider.dynamicType;
+      if (!library.typeSystem.isSubtypeOf(bound, aliasedBound) ||
+          !library.typeSystem.isSubtypeOf(aliasedBound, bound)) {
         return false;
       }
       var typeArgument = typeArguments[i];
@@ -9729,9 +9792,11 @@ class TypeAliasElementImpl extends TypeDefiningElementImpl
   ElementKind get kind => ElementKind.TYPE_ALIAS;
 
   @override
-  LibraryElementImpl get library2 {
-    return firstFragment.library;
-  }
+  LibraryElementImpl get library => firstFragment.library;
+
+  @Deprecated('Use library instead')
+  @override
+  LibraryElementImpl get library2 => library;
 
   @override
   String? get name3 => firstFragment.name2;
@@ -10013,7 +10078,11 @@ class TypeParameterElementImpl extends TypeDefiningElementImpl
   ElementKind get kind => ElementKind.TYPE_PARAMETER;
 
   @override
-  LibraryElementImpl? get library2 => firstFragment.library;
+  LibraryElementImpl? get library => firstFragment.library;
+
+  @Deprecated('Use library instead')
+  @override
+  LibraryElementImpl? get library2 => library;
 
   shared.Variance get variance => firstFragment.variance;
 

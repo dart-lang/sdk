@@ -386,7 +386,7 @@ class _AvailabilityAnalyzer {
       return NotAvailableNoExecutableElement();
     }
 
-    var libraryFilePath = element.library2.firstFragment.source.fullName;
+    var libraryFilePath = element.library.firstFragment.source.fullName;
     if (!refactoringContext.workspace.containsFile(libraryFilePath)) {
       return NotAvailableExternalElement();
     }

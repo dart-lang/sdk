@@ -5992,7 +5992,7 @@ class _WhyNotPromotedVisitor
     if (receiverElement is PropertyAccessorElement) {
       var property = propertyReference = receiverElement;
       var propertyName = reason.propertyName;
-      var library = receiverElement.library2 as LibraryElementImpl;
+      var library = receiverElement.library as LibraryElementImpl;
       var fieldNonPromotabilityInfo = library.fieldNameNonPromotabilityInfo;
       var fieldNameInfo = fieldNonPromotabilityInfo[reason.propertyName];
       var messages = <DiagnosticMessage>[];
@@ -6117,5 +6117,5 @@ extension on Element {
   bool get isWildcardFunction =>
       this is LocalFunctionElement &&
       name3 == '_' &&
-      library2.hasWildcardVariablesFeatureEnabled;
+      library.hasWildcardVariablesFeatureEnabled;
 }
