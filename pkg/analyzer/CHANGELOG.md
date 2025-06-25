@@ -6,6 +6,8 @@
 * Remove `ElementLocation` class; its values are not returned anymore.
 * Remove deprecated `AnalysisContext.analysisOptions`.
 * `LibraryFragment` is not `Annotatable` anymore.
+* Stop implementing `ConstantEvaluationTarget` by `ElementAnnotation`.
+  This is an internal interface that should not have been exposed.
 * Deprecate `element2.dart` library; import `element.dart`.
 * Deprecate `XyzElement2` classes; use `XyzElement` instead.
 * Deprecate `AnalysisError.correction` field; use

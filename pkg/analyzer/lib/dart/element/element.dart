@@ -57,7 +57,6 @@ import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
-import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart' show Name;
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:meta/meta.dart';
@@ -754,7 +753,7 @@ abstract class Element {
 /// A single annotation associated with an element.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class ElementAnnotation implements ConstantEvaluationTarget {
+abstract class ElementAnnotation {
   /// The errors that were produced while computing a value for this
   /// annotation, or `null` if no value has been computed.
   ///
@@ -886,6 +885,9 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
   /// Whether the annotation marks the associated member as being a widget
   /// factory.
   bool get isWidgetFactory;
+
+  /// The library fragment that contains this annotation.
+  LibraryFragment get libraryFragment;
 
   /// Returns a representation of the value of this annotation, forcing the
   /// value to be computed if it had not previously been computed, or `null`

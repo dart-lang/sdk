@@ -4,7 +4,6 @@
 
 import 'dart:collection';
 
-import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
@@ -540,10 +539,6 @@ class ConstantEvaluationEngine {
 }
 
 /// Interface for constant evaluation targets.
-@AnalyzerPublicApi(
-  message: 'exposed because it is implemented by various elements',
-)
-// TODO(scheglov): consider implementing only in Impl or removing
 abstract class ConstantEvaluationTarget {
   /// Return the [AnalysisContext] which should be used to evaluate this
   /// constant.

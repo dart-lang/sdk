@@ -291,8 +291,8 @@ package:analyzer/analysis_rule/rule_visitor_registry.dart:
     addYieldStatement (method: void Function(AbstractAnalysisRule, AstVisitor<dynamic>))
     afterLibrary (method: void Function(AbstractAnalysisRule, void Function()))
 package:analyzer/dart/analysis/analysis_context.dart:
-  AnalysisContext@1 (class extends Object):
-    new (constructor: AnalysisContext@1 Function())
+  AnalysisContext (class extends Object):
+    new (constructor: AnalysisContext Function())
     contextRoot (getter: ContextRoot)
     currentSession (getter: AnalysisSession)
     sdkRoot (getter: Folder?)
@@ -302,8 +302,8 @@ package:analyzer/dart/analysis/analysis_context.dart:
 package:analyzer/dart/analysis/analysis_context_collection.dart:
   AnalysisContextCollection (class extends Object):
     new (constructor: AnalysisContextCollection Function({List<String>? excludedPaths, required List<String> includedPaths, ResourceProvider? resourceProvider, String? sdkPath}))
-    contexts (getter: List<AnalysisContext@1>)
-    contextFor (method: AnalysisContext@1 Function(String))
+    contexts (getter: List<AnalysisContext>)
+    contextFor (method: AnalysisContext Function(String))
     dispose (method: Future<void> Function())
 package:analyzer/dart/analysis/analysis_options.dart:
   AnalysisOptions (class extends Object):
@@ -543,7 +543,7 @@ package:analyzer/dart/analysis/results.dart:
 package:analyzer/dart/analysis/session.dart:
   AnalysisSession (class extends Object):
     new (constructor: AnalysisSession Function())
-    analysisContext (getter: AnalysisContext@1)
+    analysisContext (getter: AnalysisContext)
     declaredVariables (getter: DeclaredVariables)
     resourceProvider (getter: ResourceProvider)
     uriConverter (getter: UriConverter)
@@ -3384,7 +3384,7 @@ package:analyzer/dart/element/element.dart:
     thisOrAncestorMatching2 (method: Element? Function(bool Function(Element)))
     thisOrAncestorOfType2 (method: E? Function<E extends Element>())
     visitChildren2 (method: void Function<T>(ElementVisitor2<T>))
-  ElementAnnotation (class extends Object implements ConstantEvaluationTarget):
+  ElementAnnotation (class extends Object):
     new (constructor: ElementAnnotation Function())
     constantEvaluationErrors (getter: List<Diagnostic>?)
     element2 (getter: Element?)
@@ -3420,6 +3420,7 @@ package:analyzer/dart/element/element.dart:
     isVisibleForTesting (getter: bool)
     isVisibleOutsideTemplate (getter: bool)
     isWidgetFactory (getter: bool)
+    libraryFragment (getter: LibraryFragment)
     computeConstantValue (method: DartObject? Function())
     toSource (method: String Function())
   ElementDirective (class extends Object implements Annotatable):
@@ -5152,15 +5153,6 @@ package:analyzer/src/dart/ast/ast.dart:
   AttemptedConstantEvaluationResult (class extends Object):
     diagnostics (getter: List<Diagnostic>)
     value (getter: DartObject?)
-package:analyzer/src/dart/constant/evaluation.dart:
-  ConstantEvaluationTarget (class extends Object):
-    new (constructor: ConstantEvaluationTarget Function())
-    context (getter: AnalysisContext@2)
-    isConstantEvaluated (getter: bool)
-    library (getter: LibraryElement?)
-    library2 (getter: LibraryElement?, deprecated)
-    librarySource (getter: Source?)
-    source (getter: Source?)
 package:analyzer/src/dart/resolver/scope.dart:
   Namespace (class extends Object):
     EMPTY (static getter: Namespace)
@@ -5169,14 +5161,6 @@ package:analyzer/src/dart/resolver/scope.dart:
     definedNames2 (getter: Map<String, Element>)
     get2 (method: Element? Function(String))
     getPrefixed2 (method: Element? Function(String, String))
-package:analyzer/src/generated/engine.dart:
-  AnalysisContext@2 (class extends Object):
-    new (constructor: AnalysisContext@2 Function())
-    declaredVariables (getter: DeclaredVariables)
-    sourceFactory (getter: SourceFactory)
-    getAnalysisOptionsForFile (method: AnalysisOptions Function(File), experimental)
-package:analyzer/src/generated/source.dart:
-  SourceFactory (non-public)
 package:analyzer/src/generated/timestamped_data.dart:
   TimestampedData (class<E> extends Object):
     new (constructor: TimestampedData<E> Function(int, E))
