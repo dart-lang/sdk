@@ -273,14 +273,6 @@ class InheritanceManager3 {
     return interface.overridden[name];
   }
 
-  @Deprecated('Use getOverridden() instead')
-  List<ExecutableElement2OrMember>? getOverridden4(
-    InterfaceElement element,
-    Name name,
-  ) {
-    return getOverridden(element, name);
-  }
-
   /// Remove interfaces for classes defined in specified libraries.
   void removeOfLibraries(Set<Uri> uriSet) {
     _interfaces.removeWhere((element, _) {
@@ -1297,9 +1289,6 @@ class Interface {
     required this.conflicts,
     required this.combinedSignatures,
   });
-
-  @Deprecated('Use map instead')
-  Map<Name, ExecutableElement2OrMember> get map2 => map;
 
   /// Return `true` if the [name] is implemented in the supertype.
   bool isSuperImplemented(Name name) {
