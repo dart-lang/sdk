@@ -76,9 +76,11 @@ workspace:
   - pkg/vm_service_protos
   - pkg/vm_snapshot_analysis
   - pkg/wasm_builder
+  - runtime/tests/vm/dart
   - runtime/tools/profiling
   - samples/ffi/http
   - samples/ffi/httpIG
+  - tests/ffi
   # dap and language_server_protocol are checked in to and
   # developed in the SDK repo, though they are located in `third_party/`.
   - third_party/pkg/dap
@@ -86,6 +88,7 @@ workspace:
   - tools/package_deps
   - tools/verify_docs
   - tools
+  - utils
 
 # All third_party packages are retrieved via the DEPS-file and overridden here.
 dependency_overrides:
