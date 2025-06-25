@@ -67,4 +67,40 @@ void help() {
       }
     });
   });
+
+  test('command categories', () async {
+    p = project();
+    final result = await p.run(['help', '--verbose']);
+    // Include the `Available commands:` with the empty line to ensure all
+    // commands have a category.
+    expect(
+        result.stdout,
+        contains(
+          '''
+Available commands:
+
+Project
+  build                 Build a Dart application including native assets.
+  compile               Compile Dart to various formats.
+  create                Create a new Dart project.
+  pub                   Work with packages.
+  run                   Run a Dart program.
+  test                  Run tests for a project.
+
+Source code
+  analyze               Analyze Dart code in a directory.
+  doc                   Generate API documentation for Dart projects.
+  fix                   Apply automated fixes to Dart source code.
+  format                Idiomatically format Dart source code.
+
+Tools
+  compilation-server    Control resident frontend compilers.
+  development-service   Start Dart's development service.
+  devtools              Open DevTools (optionally connecting to an existing application).
+  info                  Show diagnostic information about the installed tooling.
+  language-server       Start Dart's analysis server.
+  tooling-daemon        Start Dart's tooling daemon.
+''',
+        ));
+  });
 }

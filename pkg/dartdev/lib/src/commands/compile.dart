@@ -1148,5 +1148,5 @@ class CompileCommand extends DartdevCommand {
   }
 
   @override
-  String get category => 'Project';
+  CommandCategory get commandCategory => CommandCategory.project;
 }

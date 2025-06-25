@@ -71,7 +71,7 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
   }
 
   @override
-  String get category => 'Source code';
+  CommandCategory get commandCategory => CommandCategory.sourceCode;
 
   @override
   String get description {

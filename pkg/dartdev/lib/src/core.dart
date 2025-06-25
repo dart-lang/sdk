@@ -53,6 +53,18 @@ abstract class DartdevCommand extends Command<int> {
   ArgParser get argParser => _argParser ??= createArgParser();
 
   @override
+  String get category {
+    if (parent != null) {
+      // Subcommands should not have a top level command category.
+      assert(commandCategory == null);
+      return '';
+    }
+    return commandCategory!.name;
+  }
+
+  CommandCategory? get commandCategory => null;
+
+  @override
   String get invocation {
     String result = super.invocation;
     if (_verbose) {
@@ -68,6 +80,16 @@ abstract class DartdevCommand extends Command<int> {
   /// Subclasses can override this in order to create a customized ArgParser.
   ArgParser createArgParser() =>
       ArgParser(usageLineLength: dartdevUsageLineLength);
+}
+
+enum CommandCategory {
+  project('Project'),
+  sourceCode('Source code'),
+  tools('Tools');
+
+  final String name;
+
+  const CommandCategory(this.name);
 }
 
 extension DartDevCommand<T> on Command<T> {

@@ -16,7 +16,7 @@ class LanguageServerCommand extends DartdevCommand {
   static const String commandName = 'language-server';
 
   @override
-  String get category => 'Tools';
+  CommandCategory get commandCategory => CommandCategory.tools;
 
   static const String commandDescription = '''
 Start Dart's analysis server.

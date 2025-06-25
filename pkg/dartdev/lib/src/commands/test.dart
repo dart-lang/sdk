@@ -33,7 +33,7 @@ class TestCommand extends DartdevCommand {
   }
 
   @override
-  String get category => 'Project';
+  CommandCategory get commandCategory => CommandCategory.project;
 
   @override
   void printUsage() {

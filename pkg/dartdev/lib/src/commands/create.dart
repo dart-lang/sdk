@@ -62,7 +62,7 @@ class CreateCommand extends DartdevCommand {
   String get invocation => '${super.invocation} <directory>';
 
   @override
-  String get category => 'Project';
+  CommandCategory get commandCategory => CommandCategory.project;
 
   @override
   FutureOr<int> run() async {
