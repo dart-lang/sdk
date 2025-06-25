@@ -107,7 +107,7 @@ class ConstructorReferenceResolver {
     // Otherwise we'll have a ConstructorElement, and we can skip inference
     // because there's nothing to infer in a non-generic type.
     if (elementToInfer != null &&
-        elementToInfer.typeParameters2.isNotEmpty &&
+        elementToInfer.typeParameters.isNotEmpty &&
         constructorName.type.typeArguments == null) {
       // TODO(leafp): Currently, we may re-infer types here, since we
       // sometimes resolve multiple times.  We should really check that we
@@ -119,7 +119,7 @@ class ConstructorReferenceResolver {
       // Get back to the uninstantiated generic constructor.
       // TODO(jmesserly): should we store this earlier in resolution?
       // Or look it up, instead of jumping backwards through the Member?
-      var rawElement = elementToInfer.element2.baseElement;
+      var rawElement = elementToInfer.element.baseElement;
       var constructorType = elementToInfer.asType;
 
       var inferred =

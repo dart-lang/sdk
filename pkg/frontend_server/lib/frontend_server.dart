@@ -1146,9 +1146,7 @@ class FrontendCompiler implements CompilerInterface {
       Map<String, String> jsModules,
       Map<String, String> jsFrameValues,
       String expression) async {
-    _generator.accept();
     errors.clear();
-
     if (_bundler == null) {
       reportError('JavaScript bundler is null');
       return;
@@ -1166,9 +1164,7 @@ class FrontendCompiler implements CompilerInterface {
     final Compiler kernel2jsCompiler = cachedProgramCompilers[libraryUri]!;
     IncrementalCompilerResult compilerResult = _generator.lastKnownGoodResult!;
     Component component = compilerResult.component;
-    component.computeCanonicalNames();
-
-    _processedOptions.ticker.logMs('Computed component');
+    _processedOptions.ticker.logMs('Retrieved cached component');
 
     ModuleFormat moduleFormat =
         parseModuleFormat(_options['dartdevc-module-format'] as String);

@@ -368,7 +368,8 @@ class LibraryReader {
           var enclosingElement =
               element.enclosingElement as InstanceElementImpl;
           reader._addTypeParameters2(enclosingElement.typeParameters2);
-          element.superConstructor2 = reader.readConstructorElementMixin2();
+          element.superConstructor2 = reader.readConstructorElementMixin();
+          element.redirectedConstructor2 = reader.readConstructorElementMixin();
         }),
       );
 
@@ -411,7 +412,6 @@ class LibraryReader {
         );
         _readFragmentMetadata(fragment, reader);
         fragment.returnType = reader.readRequiredType();
-        fragment.redirectedConstructor = reader.readConstructorElementMixin();
         fragment.constantInitializers = reader.readNodeList();
       });
 
@@ -1568,12 +1568,7 @@ class ResolutionReader {
     return _reader.readByte();
   }
 
-  ConstructorElementMixin? readConstructorElementMixin() {
-    var element2 = readElement() as ConstructorElement?;
-    return element2?.asElement as ConstructorElementMixin?;
-  }
-
-  ConstructorElementMixin2? readConstructorElementMixin2() {
+  ConstructorElementMixin2? readConstructorElementMixin() {
     return readElement() as ConstructorElementMixin2?;
   }
 

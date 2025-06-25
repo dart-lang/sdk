@@ -46,6 +46,11 @@ class ReplaceFinalWithVar extends ResolvedCorrectionProducer {
       keyword: var keywordToken,
     )) {
       finalKeyword = keywordToken;
+    } else if (context.node case DeclaredIdentifier(
+      keyword: var keywordToken?,
+    )) {
+      assert(keywordToken.keyword == Keyword.FINAL);
+      finalKeyword = keywordToken;
     }
 
     return ReplaceFinalWithVar._(

@@ -86,7 +86,7 @@ class PropertyElementResolver with ScopeHelpers {
               definingLibrary: _resolver.definingLibrary,
             );
         if (elementToInfer != null &&
-            elementToInfer.typeParameters2.isNotEmpty) {
+            elementToInfer.typeParameters.isNotEmpty) {
           var inferred =
               _resolver.inferenceHelper.inferTearOff(
                     node,
@@ -97,7 +97,7 @@ class PropertyElementResolver with ScopeHelpers {
                   as FunctionType;
           var inferredType = inferred.returnType;
           var constructorElement = ConstructorMember.from2(
-            elementToInfer.element2.baseElement,
+            elementToInfer.element.baseElement,
             inferredType as InterfaceType,
           );
           node.propertyName.element = constructorElement.baseElement;

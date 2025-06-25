@@ -92,7 +92,7 @@ void runTests(SetupCompilerOptions setup) {
     });
   });
 
-  group('Expression compiler import tests', () {
+  group('Expression compiler dart: import tests', () {
     var source = '''
       import 'dart:io' show Directory;
       import 'dart:io' as p;
@@ -142,6 +142,67 @@ void runTests(SetupCompilerOptions setup) {
           scope: <String, String>{},
           expression: 'p.utf8.decoder',
           expectedResult: contains('return convert.utf8.decoder;'),
+        );
+      },
+    );
+  });
+  group('Expression compiler package: import tests', () {
+    var source = '''
+      import 'package:a/a.dart' show topLevelMethod;
+      import 'package:a/a.dart' as prefix;
+      import 'package:b/b.dart' as prefix;
+
+      main() {
+        print(topLevelMethod(99));
+        print(prefix.topLevelMethod(99));
+        print(prefix.anotherTopLevelMethod('hello'));
+      }
+
+      void foo() {
+        // Breakpoint
+      }
+      ''';
+
+    var a = 'bool topLevelMethod(int i) => i.isEven;';
+    var b = 'int anotherTopLevelMethod(String s) => s.length;';
+
+    late ExpressionCompilerTestDriver driver;
+
+    setUp(() {
+      driver = ExpressionCompilerTestDriver(
+        setup,
+        source,
+        additionalLibraries: [(name: 'a', source: a), (name: 'b', source: b)],
+      );
+    });
+
+    tearDown(() {
+      driver.delete();
+    });
+
+    test('expression referencing unnamed import', () async {
+      await driver.check(
+        scope: <String, String>{},
+        expression: 'topLevelMethod(99)',
+        expectedResult: contains('return a.topLevelMethod(99);'),
+      );
+    });
+
+    test('expression referencing named import', () async {
+      await driver.check(
+        scope: <String, String>{},
+        expression: 'prefix.topLevelMethod(99)',
+        expectedResult: contains('return a.topLevelMethod(99);'),
+      );
+    });
+
+    test(
+      'expression referencing another library with the same named import',
+      () async {
+        await driver.check(
+          scope: <String, String>{},
+          expression: 'prefix.anotherTopLevelMethod("hello")',
+          expectedResult: contains('return b.anotherTopLevelMethod("hello")'),
         );
       },
     );
