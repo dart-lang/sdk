@@ -158,7 +158,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
         _diagnosticReporter.atNode(
           name,
           warningCode,
-          arguments: [library.identifier, nameStr],
+          arguments: ['${library.uri}', nameStr],
         );
       }
     }
