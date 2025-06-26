@@ -4394,7 +4394,8 @@ package:analyzer/dart/element/type.dart:
   InterfaceType (class extends Object implements ParameterizedType):
     new (constructor: InterfaceType Function())
     allSupertypes (getter: List<InterfaceType>)
-    constructors2 (getter: List<ConstructorElement>, experimental)
+    constructors (getter: List<ConstructorElement>, experimental)
+    constructors2 (getter: List<ConstructorElement>, deprecated, experimental)
     element (getter: InterfaceElement, experimental)
     element3 (getter: InterfaceElement, deprecated, experimental)
     getters (getter: List<GetterElement>, experimental)

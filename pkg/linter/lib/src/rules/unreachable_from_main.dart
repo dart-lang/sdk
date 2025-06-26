@@ -404,7 +404,7 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
     var classElement = class_.declaredFragment?.element;
     var supertype = classElement?.supertype;
     if (supertype != null) {
-      var unnamedConstructor = supertype.constructors2.firstWhereOrNull(
+      var unnamedConstructor = supertype.constructors.firstWhereOrNull(
         (e) => e.name3 == 'new',
       );
       if (unnamedConstructor != null) {

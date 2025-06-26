@@ -753,8 +753,10 @@
     },
     {
       "builders": [
-        "vm-aot-android-release-arm_x64",
-        "vm-aot-android-release-arm64c"
+        "vm-aot-android-debug-arm64c",
+        "vm-aot-android-debug-arm_x64",
+        "vm-aot-android-release-arm64c",
+        "vm-aot-android-release-arm_x64"
       ],
       "meta": {
         "description": "This configuration is used by the vm precomp builders on Android."
@@ -950,9 +952,7 @@
     },
     {
       "builders": [
-        "vm-linux-debug-ia32",
         "vm-linux-debug-x64",
-        "vm-linux-release-ia32",
         "vm-linux-release-x64",
         "vm-win-debug-x64",
         "vm-win-release-x64"
@@ -1023,8 +1023,12 @@
     },
     {
       "builders": [
+        "vm-linux-debug-ia32",
+        "vm-linux-release-ia32",
         "vm-linux-debug-simriscv32",
         "vm-linux-debug-simriscv64",
+        "vm-linux-release-simriscv32",
+        "vm-linux-release-simriscv64",
         "vm-linux-debug-x64c",
         "vm-linux-release-simarm",
         "vm-linux-release-simarm64",
@@ -1047,12 +1051,10 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-nvm-${system}-${mode}-${arch}",
-            "--default-suites",
-            "co19"
+            "-nvm-${system}-${mode}-${arch}"
           ],
           "fileset": "vm",
-          "shards": 16
+          "shards": 10
         }
       ]
     },
@@ -1060,6 +1062,9 @@
       "builders": [
         "vm-aot-linux-debug-x64",
         "vm-aot-linux-release-x64",
+        "vm-aot-mac-release-arm64",
+        "vm-aot-mac-debug-arm64",
+        "vm-aot-win-debug-x64",
         "vm-aot-win-release-x64"
       ],
       "meta": {
@@ -1070,6 +1075,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
+            "--codesigning-identity=-",
             "runtime",
             "dartaotruntime"
           ]
@@ -1089,17 +1095,16 @@
     },
     {
       "builders": [
+        "vm-aot-linux-release-simriscv32",
         "vm-aot-linux-debug-simriscv32",
+        "vm-aot-linux-release-simriscv64",
         "vm-aot-linux-debug-simriscv64",
         "vm-aot-linux-debug-x64c",
         "vm-aot-linux-product-x64",
         "vm-aot-linux-release-simarm64",
-        "vm-aot-mac-debug-arm64",
         "vm-aot-mac-debug-x64",
-        "vm-aot-mac-product-arm64",
-        "vm-aot-mac-release-arm64",
         "vm-aot-mac-release-x64",
-        "vm-aot-win-debug-x64",
+        "vm-aot-mac-product-arm64",
         "vm-aot-win-debug-x64c",
         "vm-aot-win-product-x64"
       ],
@@ -1119,12 +1124,10 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-nvm-aot-${system}-${mode}-${arch}",
-            "--default-suites",
-            "co19"
+            "-nvm-aot-${system}-${mode}-${arch}"
           ],
           "fileset": "vm",
-          "shards": 20
+          "shards": 12
         }
       ]
     },
