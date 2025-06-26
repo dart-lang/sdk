@@ -896,6 +896,14 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   Constant visitDotShorthandConstructorInvocation(
     covariant DotShorthandConstructorInvocationImpl node,
   ) {
+    // This check is used by the [ConstantVerifier] to check for constant
+    // default parameters and other instances where the invocation must be
+    // constant.
+    if (!node.isConst) {
+      // TODO(kallentu): Use a specific error code.
+      // https://github.com/dart-lang/sdk/issues/47061
+      return InvalidConstant.genericError(node: node);
+    }
     var constructor = node.constructorName.element;
     if (constructor is ConstructorElementMixin2) {
       return _evaluationEngine.evaluateAndFormatErrorsInConstructorCall(
