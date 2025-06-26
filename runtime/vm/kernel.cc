@@ -81,42 +81,6 @@ void KernelTokenPositionCollector::RecordTokenPosition(TokenPosition position) {
   }
 }
 
-static int LowestFirst(const intptr_t* a, const intptr_t* b) {
-  return *a - *b;
-}
-
-/**
- * If index exists as sublist in list, sort the sublist from lowest to highest,
- * then copy it, as Smis and without duplicates,
- * to a new Array in Heap::kOld which is returned.
- * Note that the source list is both sorted and de-duplicated as well, but will
- * possibly contain duplicate and unsorted data at the end.
- * Otherwise (when sublist doesn't exist in list) return new empty array.
- */
-static ArrayPtr AsSortedDuplicateFreeArray(GrowableArray<intptr_t>* source) {
-  intptr_t size = source->length();
-  if (size == 0) {
-    return Object::empty_array().ptr();
-  }
-
-  source->Sort(LowestFirst);
-
-  intptr_t last = 0;
-  for (intptr_t current = 1; current < size; ++current) {
-    if (source->At(last) != source->At(current)) {
-      (*source)[++last] = source->At(current);
-    }
-  }
-  Array& array_object = Array::Handle();
-  array_object = Array::New(last + 1, Heap::kOld);
-  Smi& smi_value = Smi::Handle();
-  for (intptr_t i = 0; i <= last; ++i) {
-    smi_value = Smi::New(source->At(i));
-    array_object.SetAt(i, smi_value);
-  }
-  return array_object.ptr();
-}
-
 static void CollectKernelLibraryTokenPositions(
     const TypedDataView& kernel_data,
     const Script& script,
@@ -137,19 +101,17 @@ static void CollectKernelLibraryTokenPositions(
   token_position_collector.CollectTokenPositions(kernel_offset);
 }
 
-}  // namespace kernel
-
-void Script::CollectTokenPositionsFor() const {
+void CollectScriptTokenPositionsFromKernel(
+    const Script& interesting_script,
+    GrowableArray<intptr_t>* token_positions) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
 
   const auto& kernel_info =
-      KernelProgramInfo::Handle(zone, kernel_program_info());
+      KernelProgramInfo::Handle(zone, interesting_script.kernel_program_info());
 
-  kernel::TranslationHelper helper(thread);
+  TranslationHelper helper(thread);
   helper.InitFromKernelProgramInfo(kernel_info);
-
-  GrowableArray<intptr_t> token_positions(10);
 
   auto isolate_group = thread->isolate_group();
   const GrowableObjectArray& libs = GrowableObjectArray::Handle(
@@ -158,8 +120,6 @@ void Script::CollectTokenPositionsFor() const {
   Object& entry = Object::Handle(zone);
   Script& entry_script = Script::Handle(zone);
   auto& data = TypedDataView::Handle(zone);
-
-  auto& interesting_script = *this;
 
   auto& temp_array = Array::Handle(zone);
   auto& temp_field = Field::Handle(zone);
@@ -174,8 +134,8 @@ void Script::CollectTokenPositionsFor() const {
       if (entry.IsClass()) {
         const Class& klass = Class::Cast(entry);
         if (klass.script() == interesting_script.ptr()) {
-          token_positions.Add(klass.token_pos().Serialize());
-          token_positions.Add(klass.end_token_pos().Serialize());
+          token_positions->Add(klass.token_pos().Serialize());
+          token_positions->Add(klass.end_token_pos().Serialize());
         }
         if (klass.is_finalized()) {
           temp_array = klass.fields();
@@ -193,7 +153,7 @@ void Script::CollectTokenPositionsFor() const {
             CollectKernelLibraryTokenPositions(data, interesting_script,
                                                temp_field.kernel_offset(),
                                                temp_field.KernelLibraryOffset(),
-                                               zone, &helper, &token_positions);
+                                               zone, &helper, token_positions);
           }
           temp_array = klass.current_functions();
           for (intptr_t i = 0; i < temp_array.Length(); ++i) {
@@ -206,7 +166,7 @@ void Script::CollectTokenPositionsFor() const {
             CollectKernelLibraryTokenPositions(
                 data, interesting_script, temp_function.kernel_offset(),
                 temp_function.KernelLibraryOffset(), zone, &helper,
-                &token_positions);
+                token_positions);
           }
         } else {
           // Class isn't finalized yet: read the data attached to it.
@@ -223,7 +183,7 @@ void Script::CollectTokenPositionsFor() const {
           }
           CollectKernelLibraryTokenPositions(
               data, interesting_script, class_offset, library_kernel_offset,
-              zone, &helper, &token_positions);
+              zone, &helper, token_positions);
         }
       } else if (entry.IsFunction()) {
         temp_function ^= entry.ptr();
@@ -235,7 +195,7 @@ void Script::CollectTokenPositionsFor() const {
         CollectKernelLibraryTokenPositions(data, interesting_script,
                                            temp_function.kernel_offset(),
                                            temp_function.KernelLibraryOffset(),
-                                           zone, &helper, &token_positions);
+                                           zone, &helper, token_positions);
       } else if (entry.IsField()) {
         const Field& field = Field::Cast(entry);
         if (field.kernel_offset() <= 0) {
@@ -249,16 +209,13 @@ void Script::CollectTokenPositionsFor() const {
         data = field.KernelLibrary();
         CollectKernelLibraryTokenPositions(
             data, interesting_script, field.kernel_offset(),
-            field.KernelLibraryOffset(), zone, &helper, &token_positions);
+            field.KernelLibraryOffset(), zone, &helper, token_positions);
       }
     }
   }
-
-  Script& script = Script::Handle(zone, interesting_script.ptr());
-  Array& array_object = Array::Handle(zone);
-  array_object = kernel::AsSortedDuplicateFreeArray(&token_positions);
-  script.set_debug_positions(array_object);
 }
+
+}  // namespace kernel
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 ArrayPtr Script::CollectConstConstructorCoverageFrom() const {

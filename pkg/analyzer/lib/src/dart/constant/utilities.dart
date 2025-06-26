@@ -155,7 +155,7 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
     if (node.constKeyword != null) {
       var fragment = node.declaredFragment;
       if (fragment != null) {
-        constantsToCompute.add(fragment);
+        constantsToCompute.add(fragment.element);
         constantsToCompute.addAll(fragment.parameters);
       }
     }
@@ -228,7 +228,7 @@ class ReferenceFinder extends RecursiveAstVisitor<void> {
     if (node.isConst) {
       var constructor = node.constructorName.element?.baseElement;
       if (constructor != null && constructor.isConst) {
-        _callback(constructor.firstFragment);
+        _callback(constructor);
       }
     }
     super.visitInstanceCreationExpression(node);
@@ -250,7 +250,7 @@ class ReferenceFinder extends RecursiveAstVisitor<void> {
     super.visitRedirectingConstructorInvocation(node);
     var target = node.element?.baseElement;
     if (target != null) {
-      _callback(target.firstFragment);
+      _callback(target);
     }
   }
 
@@ -273,7 +273,7 @@ class ReferenceFinder extends RecursiveAstVisitor<void> {
     super.visitSuperConstructorInvocation(node);
     var constructor = node.element?.baseElement;
     if (constructor != null) {
-      _callback(constructor.firstFragment);
+      _callback(constructor);
     }
   }
 }

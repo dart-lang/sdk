@@ -39,6 +39,19 @@ class A {
     );
   }
 
+  test_dotShorthand_issue60962() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  const A();
+}
+
+void f([A a = .new()]) {}
+''',
+      [error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 40, 6)],
+    );
+  }
+
   test_enum_issue49097() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {

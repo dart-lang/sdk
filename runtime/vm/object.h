@@ -5010,6 +5010,10 @@ class Script : public Object {
                             intptr_t script_index,
                             const TypedData& line_starts,
                             const TypedDataView& constant_coverage) const;
+
+  KernelProgramInfoPtr kernel_program_info() const {
+    return untag()->kernel_program_info();
+  }
 #endif
 
   // The index of this script into the [KernelProgramInfo] object's source
@@ -5069,16 +5073,13 @@ class Script : public Object {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   void LoadSourceFromKernel(const uint8_t* kernel_buffer,
                             intptr_t kernel_buffer_len) const;
+
+  void CollectDebugTokenPositions() const;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-  void CollectTokenPositionsFor() const;
   ArrayPtr CollectConstConstructorCoverageFrom() const;
 
  private:
-  KernelProgramInfoPtr kernel_program_info() const {
-    return untag()->kernel_program_info();
-  }
-
   void set_debug_positions(const Array& value) const;
 
 #if !defined(DART_PRECOMPILED_RUNTIME)

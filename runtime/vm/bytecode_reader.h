@@ -469,6 +469,12 @@ class BytecodeReader : public AllStatic {
   static void ReadParameterCovariance(const Function& function,
                                       BitVector* is_covariant,
                                       BitVector* is_generic_covariant_impl);
+
+  // Fills [token_positions] array with all token positions for the given
+  // script. Resulting array may have duplicates.
+  static void CollectScriptTokenPositionsFromBytecode(
+      const Script& interesting_script,
+      GrowableArray<intptr_t>* token_positions);
 };
 
 class BytecodeSourcePositionsIterator : ValueObject {

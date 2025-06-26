@@ -5525,8 +5525,11 @@ class _FlowAnalysisImpl<
       _current.reachable,
     );
     _stack.add(context);
-    _current =
-        _current.conservativeJoin(this, info.written, info.captured).split();
+    _current = _current.split().conservativeJoin(
+      this,
+      info.written,
+      info.captured,
+    );
     _statementToContext[doStatement] = context;
   }
 
@@ -5667,8 +5670,11 @@ class _FlowAnalysisImpl<
   @override
   void for_conditionBegin(Node node) {
     AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(node);
-    _current =
-        _current.conservativeJoin(this, info.written, info.captured).split();
+    _current = _current.split().conservativeJoin(
+      this,
+      info.written,
+      info.captured,
+    );
   }
 
   @override
@@ -5694,8 +5700,11 @@ class _FlowAnalysisImpl<
   @override
   void forEach_bodyBegin(Node node) {
     AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(node);
-    _current =
-        _current.conservativeJoin(this, info.written, info.captured).split();
+    _current = _current.split().conservativeJoin(
+      this,
+      info.written,
+      info.captured,
+    );
     _SimpleStatementContext<Type> context = new _SimpleStatementContext<Type>(
       _current.reachable.parent!,
       _current,

@@ -155,6 +155,12 @@ TableSelectorMetadata* TableSelectorMetadataForProgram(
     const KernelProgramInfo& info,
     Zone* zone);
 
+// Fills [token_positions] array with all token positions for the given script.
+// Resulting array may have duplicates.
+void CollectScriptTokenPositionsFromKernel(
+    const Script& interesting_script,
+    GrowableArray<intptr_t>* token_positions);
+
 }  // namespace kernel
 }  // namespace dart
 

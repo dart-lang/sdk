@@ -33,7 +33,6 @@ import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/exhaustiveness.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Instances of the class `ConstantVerifier` traverse an AST structure looking
 /// for additional errors and warnings not covered by the parser and resolver.
@@ -207,6 +206,20 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitDotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocation node,
+  ) {
+    if (node.isConst) {
+      var constructor = node.constructorName.element;
+      if (constructor is ConstructorElementMixin2) {
+        _validateConstructorInvocation(node, constructor, node.argumentList);
+      }
+    } else {
+      super.visitDotShorthandConstructorInvocation(node);
+    }
+  }
+
+  @override
   visitEnumConstantDeclaration(covariant EnumConstantDeclarationImpl node) {
     super.visitEnumConstantDeclaration(node);
 
@@ -270,38 +283,9 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS,
       );
 
-      // We need to evaluate the constant to see if any errors occur during its
-      // evaluation.
-      var constructor = node.constructorName.element?.asElement;
+      var constructor = node.constructorName.element;
       if (constructor != null) {
-        var constantVisitor = ConstantVisitor(
-          _evaluationEngine,
-          _currentLibrary,
-          _diagnosticReporter,
-        );
-        var result = _evaluationEngine.evaluateAndFormatErrorsInConstructorCall(
-          _currentLibrary,
-          node,
-          constructor.returnType.typeArguments,
-          node.argumentList.arguments,
-          constructor,
-          constantVisitor,
-        );
-        switch (result) {
-          case InvalidConstant():
-            if (!result.avoidReporting) {
-              _diagnosticReporter.atOffset(
-                offset: result.offset,
-                length: result.length,
-                diagnosticCode: result.diagnosticCode,
-                arguments: result.arguments,
-                contextMessages: result.contextMessages,
-              );
-            }
-          case DartObjectImpl():
-            // Check for further errors in individual arguments.
-            node.argumentList.accept(this);
-        }
+        _validateConstructorInvocation(node, constructor, node.argumentList);
       }
     } else {
       super.visitInstanceCreationExpression(node);
@@ -920,6 +904,43 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       } else if (initializer is SuperConstructorInvocation) {
         _reportNotPotentialConstantsArguments(initializer.argumentList);
       }
+    }
+  }
+
+  /// Validates that the [constructor] invocation, its type arguments, and its
+  /// arguments are constant expressions.
+  void _validateConstructorInvocation(
+    AstNode node,
+    ConstructorElementMixin2 constructor,
+    ArgumentList argumentList,
+  ) {
+    var constantVisitor = ConstantVisitor(
+      _evaluationEngine,
+      _currentLibrary,
+      _diagnosticReporter,
+    );
+    var result = _evaluationEngine.evaluateAndFormatErrorsInConstructorCall(
+      _currentLibrary,
+      node,
+      constructor.returnType.typeArguments,
+      argumentList.arguments,
+      constructor,
+      constantVisitor,
+    );
+    switch (result) {
+      case InvalidConstant():
+        if (!result.avoidReporting) {
+          _diagnosticReporter.atOffset(
+            offset: result.offset,
+            length: result.length,
+            diagnosticCode: result.diagnosticCode,
+            arguments: result.arguments,
+            contextMessages: result.contextMessages,
+          );
+        }
+      case DartObjectImpl():
+        // Check for further errors in individual arguments.
+        argumentList.accept(this);
     }
   }
 

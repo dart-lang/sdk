@@ -87,6 +87,10 @@ class ConstantEvaluationEngine {
       constant = element.declaration as ConstantEvaluationTarget;
     }
 
+    if (constant case ConstructorElementMixin2 constructor) {
+      constant = constructor.baseElement;
+    }
+
     var library = constant.library as LibraryElementImpl;
     if (constant is FormalParameterFragmentImpl) {
       if (constant is ConstVariableFragment) {
@@ -166,13 +170,13 @@ class ConstantEvaluationEngine {
 
         constant.evaluationResult = dartConstant;
       }
-    } else if (constant is ConstructorFragmentImpl) {
+    } else if (constant is ConstructorElementImpl) {
       if (constant.isConst) {
         // No evaluation needs to be done; constructor declarations are only in
         // the dependency graph to ensure that any constants referred to in
         // initializer lists and parameter defaults are evaluated before
         // invocations of the constructor.
-        constant.isConstantEvaluated = true;
+        constant.firstFragment.isConstantEvaluated = true;
       }
     } else if (constant is ElementAnnotationImpl) {
       var constNode = constant.annotationAst;
@@ -210,7 +214,7 @@ class ConstantEvaluationEngine {
           constNode,
           element.returnType.typeArguments,
           constNode.arguments!.arguments,
-          element.asElement,
+          element,
           constantVisitor,
         );
         constant.evaluationResult = result;
@@ -258,20 +262,21 @@ class ConstantEvaluationEngine {
     }
 
     ReferenceFinder referenceFinder = ReferenceFinder(callback);
-    if (constant is ConstructorElementMixin) {
-      constant = constant.declaration;
+    if (constant case ConstructorElementMixin2 constructor) {
+      constant = constructor.baseElement;
     }
+
     if (constant is VariableElementOrMember) {
       var declaration = constant.declaration;
       var initializer = declaration.constantInitializer;
       if (initializer != null) {
         initializer.accept(referenceFinder);
       }
-    } else if (constant is ConstructorFragmentImpl) {
+    } else if (constant is ConstructorElementImpl) {
       if (constant.isConst) {
         var redirectedConstructor = getConstRedirectedConstructor(constant);
         if (redirectedConstructor != null) {
-          var redirectedConstructorBase = redirectedConstructor.declaration;
+          var redirectedConstructorBase = redirectedConstructor.baseElement;
           callback(redirectedConstructorBase);
           return;
         } else if (constant.isFactory) {
@@ -302,21 +307,21 @@ class ConstantEvaluationEngine {
             var unnamedConstructor =
                 superclass.element.unnamedConstructor2?.baseElement;
             if (unnamedConstructor != null && unnamedConstructor.isConst) {
-              callback(unnamedConstructor.asElement);
+              callback(unnamedConstructor);
             }
           }
         }
-        for (var field in constant.enclosingElement3.fields) {
+        for (var field in constant.enclosingElement.fields) {
           // Note: non-static const isn't allowed but we handle it anyway so
           // that we won't be confused by incorrect code.
           if ((field.isFinal || field.isConst) &&
               !field.isStatic &&
               field.hasInitializer) {
-            callback(field);
+            callback(field.firstFragment);
           }
         }
-        for (var parameterElement in constant.parameters) {
-          callback(parameterElement);
+        for (var parameterElement in constant.formalParameters) {
+          callback(parameterElement.firstFragment as ParameterElementMixin);
         }
       }
     } else if (constant is ElementAnnotationImpl) {
@@ -333,7 +338,7 @@ class ConstantEvaluationEngine {
         // The annotation is a constructor invocation, so it depends on the
         // constructor.
         var baseElement = element.baseElement;
-        callback(baseElement.firstFragment as ConstructorFragmentImpl);
+        callback(baseElement as ConstructorElementImpl);
       } else {
         // This could happen in the event of invalid code.  The error will be
         // reported at constant evaluation time.
@@ -363,7 +368,7 @@ class ConstantEvaluationEngine {
     AstNode node,
     List<TypeImpl>? typeArguments,
     List<Expression> arguments,
-    ConstructorElementMixin constructor,
+    ConstructorElementMixin2 constructor,
     ConstantVisitor constantVisitor, {
     ConstructorInvocation? invocation,
   }) {
@@ -412,7 +417,7 @@ class ConstantEvaluationEngine {
     AstNode node,
     List<TypeImpl>? typeArguments,
     List<Expression> arguments,
-    ConstructorElementMixin constructor,
+    ConstructorElementMixin2 constructor,
     ConstantVisitor constantVisitor, {
     ConstructorInvocation? invocation,
   }) {
@@ -453,7 +458,7 @@ class ConstantEvaluationEngine {
         element: constant.asElement2!,
         diagnosticCode: CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
       );
-    } else if (constant is ConstructorFragmentImpl) {
+    } else if (constant is ConstructorElementImpl) {
       // We don't report cycle errors on constructor declarations here since
       // there is nowhere to put the error information.
       //
@@ -472,15 +477,14 @@ class ConstantEvaluationEngine {
 
   /// If [constructor] redirects to another const constructor, return the
   /// const constructor it redirects to.  Otherwise return `null`.
-  static ConstructorElementMixin? getConstRedirectedConstructor(
-    ConstructorElementMixin constructor,
+  static ConstructorElementMixin2? getConstRedirectedConstructor(
+    ConstructorElementMixin2 constructor,
   ) {
     if (!constructor.isFactory) {
       return null;
     }
     var typeProvider = constructor.library.typeProvider;
-    if (constructor.asElement2.enclosingElement ==
-        typeProvider.symbolElement2) {
+    if (constructor.enclosingElement == typeProvider.symbolElement2) {
       // The dart:core.Symbol has a const factory constructor that redirects
       // to dart:_internal.Symbol.  That in turn redirects to an external
       // const constructor, which we won't be able to evaluate.
@@ -488,7 +492,7 @@ class ConstantEvaluationEngine {
       // let [evaluateInstanceCreationExpression] handle it specially.
       return null;
     }
-    var redirectedConstructor = constructor.asElement2.redirectedConstructor2;
+    var redirectedConstructor = constructor.redirectedConstructor2;
     if (redirectedConstructor == null) {
       // This can happen if constructor is an external factory constructor.
       return null;
@@ -499,7 +503,7 @@ class ConstantEvaluationEngine {
       // [ErrorVerifier.checkForRedirectToNonConstConstructor()]).
       return null;
     }
-    return redirectedConstructor.asElement as ConstructorElementMixin;
+    return redirectedConstructor;
   }
 
   static _EnumConstant? _enumConstant(VariableFragmentImpl element) {
@@ -896,6 +900,14 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   Constant visitDotShorthandConstructorInvocation(
     covariant DotShorthandConstructorInvocationImpl node,
   ) {
+    // This check is used by the [ConstantVerifier] to check for constant
+    // default parameters and other instances where the invocation must be
+    // constant.
+    if (!node.isConst) {
+      // TODO(kallentu): Use a specific error code.
+      // https://github.com/dart-lang/sdk/issues/47061
+      return InvalidConstant.genericError(node: node);
+    }
     var constructor = node.constructorName.element;
     if (constructor is ConstructorElementMixin2) {
       return _evaluationEngine.evaluateAndFormatErrorsInConstructorCall(
@@ -903,7 +915,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
         node,
         constructor.returnType.typeArguments,
         node.argumentList.arguments,
-        constructor.asElement,
+        constructor,
         this,
       );
     }
@@ -1031,7 +1043,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       // https://github.com/dart-lang/sdk/issues/47061
       return InvalidConstant.genericError(node: node);
     }
-    var constructor = node.constructorName.element?.asElement;
+    var constructor = node.constructorName.element;
     if (constructor == null) {
       // Couldn't resolve the constructor so we can't compute a value.  No
       // problem - the error has already been reported.
@@ -2826,7 +2838,10 @@ class _InstanceCreationEvaluator {
   /// because they usually happen in a different source. But they still should
   /// cause a constant evaluation error for the current node.
   late final DiagnosticReporter _externalDiagnosticReporter =
-      DiagnosticReporter(_externalDiagnosticListener, _constructor.source);
+      DiagnosticReporter(
+        _externalDiagnosticListener,
+        _constructor.firstFragment.libraryFragment.source,
+      );
 
   late final ConstantVisitor _initializerVisitor = ConstantVisitor(
     _evaluationEngine,
@@ -2840,7 +2855,7 @@ class _InstanceCreationEvaluator {
   /// The node used for most error reporting.
   final AstNode _errorNode;
 
-  final ConstructorElementMixin _constructor;
+  final ConstructorElementMixin2 _constructor;
 
   final List<TypeImpl>? _typeArguments;
 
@@ -2889,9 +2904,9 @@ class _InstanceCreationEvaluator {
 
   /// Evaluates this constructor call as a factory constructor call.
   Constant evaluateFactoryConstructorCall(List<Expression> arguments) {
-    var definingClass = _constructor.asElement2.enclosingElement;
+    var definingClass = _constructor.enclosingElement;
     var argumentCount = arguments.length;
-    if (_constructor.name2 == "fromEnvironment") {
+    if (_constructor.name3 == "fromEnvironment") {
       if (!_checkFromEnvironmentArguments(arguments, definingType)) {
         return InvalidConstant.forEntity(
           entity: _errorNode,
@@ -2912,26 +2927,26 @@ class _InstanceCreationEvaluator {
         return FromEnvironmentEvaluator(
           typeSystem,
           _declaredVariables,
-        ).getBool2(variableName, _namedValues, _constructor.asElement2);
+        ).getBool2(variableName, _namedValues, _constructor);
       } else if (definingClass == typeProvider.intElement2) {
         return FromEnvironmentEvaluator(
           typeSystem,
           _declaredVariables,
-        ).getInt2(variableName, _namedValues, _constructor.asElement2);
+        ).getInt2(variableName, _namedValues, _constructor);
       } else if (definingClass == typeProvider.stringElement2) {
         return FromEnvironmentEvaluator(
           typeSystem,
           _declaredVariables,
-        ).getString2(variableName, _namedValues, _constructor.asElement2);
+        ).getString2(variableName, _namedValues, _constructor);
       }
-    } else if (_constructor.name2 == 'hasEnvironment' &&
+    } else if (_constructor.name3 == 'hasEnvironment' &&
         definingClass == typeProvider.boolElement2) {
       var name = argumentCount < 1 ? null : firstArgument?.toStringValue();
       return FromEnvironmentEvaluator(
         typeSystem,
         _declaredVariables,
       ).hasEnvironment(name);
-    } else if (_constructor.name2 == 'new' &&
+    } else if (_constructor.name3 == 'new' &&
         definingClass == typeProvider.symbolElement2 &&
         argumentCount == 1) {
       if (!_checkSymbolArguments(arguments)) {
@@ -3003,17 +3018,17 @@ class _InstanceCreationEvaluator {
 
   void _addImplicitArgumentsFromSuperFormals(List<Expression> superArguments) {
     var positionalIndex = 0;
-    for (var parameter in _constructor.parameters) {
-      if (parameter is SuperFormalParameterElementOrMember) {
+    for (var parameter in _constructor.formalParameters) {
+      if (parameter is SuperFormalParameterElement) {
         var value =
             SimpleIdentifierImpl(
                 token: StringToken(
                   TokenType.STRING,
-                  parameter.name2 ?? '',
-                  parameter.nameOffset,
+                  parameter.name3 ?? '',
+                  parameter.firstFragment.nameOffset2 ?? -1,
                 ),
               )
-              ..element = parameter.asElement2
+              ..element = parameter
               ..setPseudoExpressionStaticType(parameter.type);
         if (parameter.isPositional) {
           superArguments.insert(positionalIndex++, value);
@@ -3024,10 +3039,10 @@ class _InstanceCreationEvaluator {
                 label: SimpleIdentifierImpl(
                   token: StringToken(
                     TokenType.STRING,
-                    parameter.name2 ?? '',
-                    parameter.nameOffset,
+                    parameter.name3 ?? '',
+                    parameter.firstFragment.nameOffset2 ?? -1,
                   ),
-                )..element = parameter.asElement2,
+                )..element = parameter,
                 colon: StringToken(TokenType.COLON, ':', -1),
               ),
               expression: value,
@@ -3043,10 +3058,10 @@ class _InstanceCreationEvaluator {
   /// Returns an [InvalidConstant] if one is found, or `null` otherwise.
   InvalidConstant? _checkFields() {
     var substitution = Substitution.fromInterfaceType(_constructor.returnType);
-    var fields = _constructor.declaration.enclosingElement3.fields;
+    var fields = _constructor.baseElement.enclosingElement.fields;
     for (var field in fields) {
       if ((field.isFinal || field.isConst) && !field.isStatic) {
-        var fieldValue = field.evaluationResult;
+        var fieldValue = field.firstFragment.evaluationResult;
 
         // It is possible that the evaluation result is null.
         // This happens for example when we have duplicate fields.
@@ -3058,20 +3073,20 @@ class _InstanceCreationEvaluator {
         var fieldType = substitution.substituteType(field.type);
         if (!typeSystem.runtimeTypeMatch(fieldValue, fieldType)) {
           var isRuntimeException = hasTypeParameterReference(field.type);
-          var errorNode = field.constantInitializer ?? _errorNode;
+          var errorNode = field.constantInitializer2?.expression ?? _errorNode;
           return InvalidConstant.forEntity(
             entity: errorNode,
             diagnosticCode:
                 CompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
             arguments: [
               fieldValue.type.getDisplayString(),
-              field.name2 ?? '',
+              field.name3 ?? '',
               fieldType.getDisplayString(),
             ],
             isRuntimeException: isRuntimeException,
           );
         }
-        _fieldMap[field.name2 ?? ''] = fieldValue;
+        _fieldMap[field.name3 ?? ''] = fieldValue;
       }
     }
     return null;
@@ -3121,7 +3136,7 @@ class _InstanceCreationEvaluator {
   /// redirecting constructor invocation, an [InvalidConstant], or an
   /// incomplete state for further evaluation.
   _InitializersEvaluationResult _checkInitializers() {
-    var constructorBase = _constructor.declaration;
+    var constructorBase = _constructor.baseElement;
     // If we encounter a superinitializer, store the name of the constructor,
     // and the arguments.
     String? superName;
@@ -3192,7 +3207,12 @@ class _InstanceCreationEvaluator {
             if (evaluationResult.contextMessages.isEmpty) {
               evaluationResult.contextMessages.add(
                 DiagnosticMessageImpl(
-                  filePath: _constructor.source.fullName,
+                  filePath:
+                      _constructor
+                          .firstFragment
+                          .libraryFragment
+                          .source
+                          .fullName,
                   length: evaluationResult.length,
                   message:
                       "The error is in the field initializer of "
@@ -3225,10 +3245,10 @@ class _InstanceCreationEvaluator {
       } else if (initializer is RedirectingConstructorInvocationImpl) {
         // This is a redirecting constructor, so just evaluate the constructor
         // it redirects to.
-        var baseElement = initializer.element?.lastFragment;
+        var baseElement = initializer.element;
         if (baseElement != null && baseElement.isConst) {
           // Instantiate the constructor with the in-scope type arguments.
-          var constructor = ConstructorMember.from(baseElement, definingType);
+          var constructor = ConstructorMember.from2(baseElement, definingType);
           var result = _evaluationEngine.evaluateConstructorCall(
             _library,
             _errorNode,
@@ -3288,7 +3308,12 @@ class _InstanceCreationEvaluator {
             if (evaluationResult.contextMessages.isEmpty) {
               evaluationResult.contextMessages.add(
                 DiagnosticMessageImpl(
-                  filePath: _constructor.source.fullName,
+                  filePath:
+                      _constructor
+                          .firstFragment
+                          .libraryFragment
+                          .source
+                          .fullName,
                   length: evaluationResult.length,
                   message:
                       "The error is in the assert initializer of "
@@ -3331,17 +3356,17 @@ class _InstanceCreationEvaluator {
   ///
   /// Returns an [InvalidConstant] if one is found, or `null` otherwise.
   InvalidConstant? _checkParameters(List<Expression> arguments) {
-    var parameters = _constructor.parameters;
+    var parameters = _constructor.formalParameters;
     var parameterCount = parameters.length;
 
     for (var i = 0; i < parameterCount; i++) {
       var parameter = parameters[i];
-      var baseParameter = parameter.declaration;
+      var baseParameter = parameter.baseElement;
       DartObjectImpl? argumentValue;
       AstNode? errorTarget;
       if (baseParameter.isNamed) {
-        argumentValue = _namedValues[baseParameter.name2 ?? ''];
-        errorTarget = _namedNodes[baseParameter.name2 ?? ''];
+        argumentValue = _namedValues[baseParameter.name3 ?? ''];
+        errorTarget = _namedNodes[baseParameter.name3 ?? ''];
       } else if (i < _argumentValues.length) {
         argumentValue = _argumentValues[i];
         errorTarget = arguments[i];
@@ -3353,7 +3378,7 @@ class _InstanceCreationEvaluator {
       if (argumentValue == null && baseParameter.isOptional) {
         // The parameter is an optional positional parameter for which no value
         // was provided, so use the default value.
-        var evaluationResult = baseParameter.evaluationResult;
+        var evaluationResult = baseParameter.firstFragment.evaluationResult;
         if (evaluationResult == null) {
           // No default was provided, so the default value is null.
           argumentValue = ConstantEvaluationEngine._nullObject(_library);
@@ -3385,9 +3410,9 @@ class _InstanceCreationEvaluator {
           );
         }
         if (baseParameter.isInitializingFormal) {
-          var field = (parameter as FieldFormalParameterElementOrMember).field;
+          var field = (parameter as FieldFormalParameterElement).field2;
           if (field != null) {
-            var fieldType = field.type;
+            var fieldType = field.type as TypeImpl;
             if (fieldType != parameter.type) {
               // We've already checked that the argument can be assigned to the
               // parameter; we also need to check that it can be assigned to
@@ -3406,7 +3431,7 @@ class _InstanceCreationEvaluator {
                 );
               }
             }
-            var fieldName = field.name2 ?? '';
+            var fieldName = field.name3 ?? '';
             if (_fieldMap.containsKey(fieldName)) {
               return InvalidConstant.forEntity(
                 entity: _errorNode,
@@ -3417,7 +3442,7 @@ class _InstanceCreationEvaluator {
             _fieldMap[fieldName] = argumentValue;
           }
         }
-        _parameterMap[baseParameter.name2 ?? ''] = argumentValue;
+        _parameterMap[baseParameter.name3 ?? ''] = argumentValue;
       }
     }
     return null;
@@ -3437,10 +3462,10 @@ class _InstanceCreationEvaluator {
   }) {
     var superclass = definingType.superclass;
     if (superclass != null && !superclass.isDartCoreObject) {
-      var superConstructor =
-          superclass
-              .lookUpConstructor(superName, _constructor.library)
-              ?.asElement;
+      var superConstructor = superclass.lookUpConstructor(
+        superName,
+        _constructor.library,
+      );
       if (superConstructor == null) {
         return null;
       }
@@ -3464,7 +3489,12 @@ class _InstanceCreationEvaluator {
             if (evaluationResult.contextMessages.isEmpty) {
               evaluationResult.contextMessages.add(
                 DiagnosticMessageImpl(
-                  filePath: _constructor.source.fullName,
+                  filePath:
+                      _constructor
+                          .firstFragment
+                          .libraryFragment
+                          .source
+                          .fullName,
                   length: evaluationResult.length,
                   message:
                       "The error is in the super constructor invocation "
@@ -3516,7 +3546,7 @@ class _InstanceCreationEvaluator {
 
   void _checkTypeParameters() {
     var typeParameters =
-        _constructor.declaration.enclosingElement3.typeParameters;
+        _constructor.baseElement.enclosingElement.typeParameters2;
     var typeArguments = _typeArguments;
     if (typeParameters.isNotEmpty &&
         typeArguments != null &&
@@ -3524,7 +3554,7 @@ class _InstanceCreationEvaluator {
       for (int i = 0; i < typeParameters.length; i++) {
         var typeParameter = typeParameters[i];
         var typeArgument = typeArguments[i];
-        _typeParameterMap[typeParameter.asElement2] = typeArgument;
+        _typeParameterMap[typeParameter] = typeArgument;
       }
     }
   }
@@ -3532,17 +3562,17 @@ class _InstanceCreationEvaluator {
   /// Returns a context message that mimics a stack trace where [superConstructor] is
   /// called by [constructor]
   DiagnosticMessageImpl _stackTraceContextMessage(
-    ConstructorElementMixin superConstructor,
-    ConstructorElementMixin constructor,
+    ConstructorElementMixin2 superConstructor,
+    ConstructorElementMixin2 constructor,
   ) {
     return DiagnosticMessageImpl(
-      filePath: constructor.source.fullName,
-      length: constructor.nameLength,
+      filePath: constructor.firstFragment.libraryFragment.source.fullName,
+      length: 1,
       message:
           "The evaluated constructor '${superConstructor.displayName}' "
           "is called by '${constructor.displayName}' and "
           "'${constructor.displayName}' is defined here.",
-      offset: constructor.nameOffset,
+      offset: constructor.firstFragment.offset,
       url: null,
     );
   }
@@ -3553,29 +3583,26 @@ class _InstanceCreationEvaluator {
     DeclaredVariables declaredVariables,
     LibraryElementImpl library,
     AstNode node,
-    ConstructorElementMixin constructor,
+    ConstructorElementMixin2 constructor,
     List<TypeImpl>? typeArguments,
     List<Expression> arguments,
     ConstantVisitor constantVisitor, {
     ConstructorInvocation? invocation,
   }) {
     if (!constructor.isConst) {
+      Token? keyword;
       if (node is InstanceCreationExpression) {
-        var newKeyword = node.keyword;
-        if (newKeyword != null) {
-          return InvalidConstant.forEntity(
-            entity: newKeyword,
-            diagnosticCode: CompileTimeErrorCode.CONST_WITH_NON_CONST,
-          );
-        }
+        keyword = node.keyword;
+      } else if (node is DotShorthandConstructorInvocation) {
+        keyword = node.constKeyword;
       }
       return InvalidConstant.forEntity(
-        entity: node,
+        entity: keyword ?? node,
         diagnosticCode: CompileTimeErrorCode.CONST_WITH_NON_CONST,
       );
     }
 
-    if (!constructor.declaration.isCycleFree) {
+    if (!constructor.baseElement.firstFragment.isCycleFree) {
       // It's not safe to evaluate this constructor, so bail out.
       //
       // Instead of reporting an error at the call-sites, we will report an
@@ -3611,8 +3638,8 @@ class _InstanceCreationEvaluator {
         namedValues[name] = argumentConstant;
       } else {
         var parameterType =
-            i < constructor.parameters.length
-                ? constructor.parameters[i].type
+            i < constructor.formalParameters.length
+                ? constructor.formalParameters[i].type
                 : InvalidTypeImpl.instance;
         var argumentConstant = constantVisitor._valueOf(
           argument,
@@ -3627,7 +3654,7 @@ class _InstanceCreationEvaluator {
     }
 
     invocation ??= ConstructorInvocation(
-      constructor.asElement2,
+      constructor,
       argumentValues,
       namedValues,
     );
@@ -3662,19 +3689,19 @@ class _InstanceCreationEvaluator {
   /// chain terminates. If there is a problem (e.g. a redirection can't be
   /// found, or a cycle is encountered), the chain will be followed as far as
   /// possible and then a const factory constructor will be returned.
-  static ConstructorElementMixin _followConstantRedirectionChain(
-    ConstructorElementMixin constructor,
+  static ConstructorElementMixin2 _followConstantRedirectionChain(
+    ConstructorElementMixin2 constructor,
   ) {
-    var constructorsVisited = <ConstructorElementMixin>{};
+    var constructorsVisited = <ConstructorElementMixin2>{};
     while (true) {
       var redirectedConstructor =
           ConstantEvaluationEngine.getConstRedirectedConstructor(constructor);
       if (redirectedConstructor == null) {
         break;
       } else {
-        var constructorBase = constructor.declaration;
+        var constructorBase = constructor.baseElement;
         constructorsVisited.add(constructorBase);
-        var redirectedConstructorBase = redirectedConstructor.declaration;
+        var redirectedConstructorBase = redirectedConstructor.baseElement;
         if (constructorsVisited.contains(redirectedConstructorBase)) {
           // Cycle in redirecting factory constructors--this is not allowed
           // and is checked elsewhere--see

@@ -432,7 +432,9 @@ abstract class ExecutableMember extends Member
 /// A parameter element defined in a parameterized type where the values of the
 /// type parameters are known.
 class FieldFormalParameterMember extends ParameterMember
-    implements FieldFormalParameterElementOrMember {
+    implements
+        FieldFormalParameterElementOrMember,
+        FieldFormalParameterElement {
   factory FieldFormalParameterMember({
     required FieldFormalParameterFragmentImpl declaration,
     required MapSubstitution substitution,
@@ -455,6 +457,10 @@ class FieldFormalParameterMember extends ParameterMember
   }) : super._();
 
   @override
+  FieldFormalParameterElementImpl get baseElement =>
+      super.baseElement as FieldFormalParameterElementImpl;
+
+  @override
   FieldFormalParameterFragmentImpl get declaration {
     return _declaration as FieldFormalParameterFragmentImpl;
   }
@@ -467,6 +473,24 @@ class FieldFormalParameterMember extends ParameterMember
     }
 
     return FieldMember(declaration: field, substitution: substitution);
+  }
+
+  @override
+  FieldElement? get field2 {
+    var field = baseElement.field2;
+    if (field == null) {
+      return null;
+    }
+
+    return FieldMember.from(field, substitution);
+  }
+
+  @override
+  FieldFormalParameterFragment get firstFragment => baseElement.firstFragment;
+
+  @override
+  List<FieldFormalParameterFragment> get fragments {
+    return baseElement.fragments;
   }
 
   @override
@@ -1340,7 +1364,9 @@ class SetterMember extends PropertyAccessorMember
 }
 
 class SuperFormalParameterMember extends ParameterMember
-    implements SuperFormalParameterElementOrMember {
+    implements
+        SuperFormalParameterElementOrMember,
+        SuperFormalParameterElement {
   factory SuperFormalParameterMember({
     required SuperFormalParameterFragmentImpl declaration,
     required MapSubstitution substitution,
@@ -1363,8 +1389,20 @@ class SuperFormalParameterMember extends ParameterMember
   }) : super._();
 
   @override
+  SuperFormalParameterElementImpl get baseElement =>
+      super.baseElement as SuperFormalParameterElementImpl;
+
+  @override
   SuperFormalParameterFragmentImpl get declaration {
     return _declaration as SuperFormalParameterFragmentImpl;
+  }
+
+  @override
+  SuperFormalParameterFragment get firstFragment => baseElement.firstFragment;
+
+  @override
+  List<SuperFormalParameterFragment> get fragments {
+    return baseElement.fragments;
   }
 
   @override
@@ -1383,6 +1421,7 @@ class SuperFormalParameterMember extends ParameterMember
     return ParameterMember.from2(superConstructorParameter, substitution);
   }
 
+  @override
   FormalParameterElement? get superConstructorParameter2 =>
       superConstructorParameter;
 }

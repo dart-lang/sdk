@@ -258,6 +258,18 @@ A f(List<int> l) => A(l);
 ''');
   }
 
+  test_cannotBeConst_dotShorthands_issue60963() async {
+    await assertNoDiagnostics(r'''
+class A {
+  int cannotBeConst;
+  A(): cannotBeConst = 0;
+}
+extension type const B(A a) {}
+
+B get b => .new(A());
+''');
+  }
+
   test_cannotBeConst_explicitTypeArgument_typeVariable() async {
     await assertNoDiagnostics(r'''
 class A<T> {

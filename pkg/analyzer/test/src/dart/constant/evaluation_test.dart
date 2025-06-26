@@ -6111,6 +6111,44 @@ bool true
     );
   }
 
+  test_dotShorthand_constantArgument_issue60963() async {
+    await assertNoErrorsInCode('''
+class A {
+  const A();
+}
+extension type const B(A a) {}
+
+const B b = .new(A());
+''');
+    var result = _topLevelVar('b');
+    assertDartObjectText(result, '''
+A
+  variable: <testLibrary>::@topLevelVariable::b
+''');
+  }
+
+  test_dotShorthand_nonConstantArgument_issue60963() async {
+    await assertErrorsInCode(
+      '''
+class A {
+  int cannotBeConst;
+  A(): cannotBeConst = 0;
+}
+extension type const B(A a) {}
+
+const B b = .new(A());
+''',
+      [
+        error(CompileTimeErrorCode.CONST_WITH_NON_CONST, 108, 3),
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          108,
+          3,
+        ),
+      ],
+    );
+  }
+
   test_field_deferred_issue48991() async {
     newFile('$testPackageLibPath/a.dart', '''
 class A {
