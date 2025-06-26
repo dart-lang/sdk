@@ -3560,17 +3560,14 @@ class _InstanceCreationEvaluator {
     ConstructorInvocation? invocation,
   }) {
     if (!constructor.isConst) {
+      Token? keyword;
       if (node is InstanceCreationExpression) {
-        var newKeyword = node.keyword;
-        if (newKeyword != null) {
-          return InvalidConstant.forEntity(
-            entity: newKeyword,
-            diagnosticCode: CompileTimeErrorCode.CONST_WITH_NON_CONST,
-          );
-        }
+        keyword = node.keyword;
+      } else if (node is DotShorthandConstructorInvocation) {
+        keyword = node.constKeyword;
       }
       return InvalidConstant.forEntity(
-        entity: node,
+        entity: keyword ?? node,
         diagnosticCode: CompileTimeErrorCode.CONST_WITH_NON_CONST,
       );
     }
