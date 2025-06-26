@@ -700,6 +700,13 @@ abstract class Element {
   ///
   /// Returns the value returned by the visitor as a result of visiting this
   /// element.
+  T? accept<T>(ElementVisitor2<T> visitor);
+
+  /// Uses the given [visitor] to visit this element.
+  ///
+  /// Returns the value returned by the visitor as a result of visiting this
+  /// element.
+  @Deprecated('Use accept instead')
   T? accept2<T>(ElementVisitor2<T> visitor);
 
   /// The presentation of this element as it should appear when presented to

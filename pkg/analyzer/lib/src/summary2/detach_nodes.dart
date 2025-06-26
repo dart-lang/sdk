@@ -14,7 +14,7 @@ import 'package:analyzer/src/utilities/extensions/collection.dart';
 /// the whole token stream for the file. We don't want all this data after
 /// linking. So, we need to detach these nodes.
 void detachElementsFromNodes(LibraryElementImpl element) {
-  element.accept2(_Visitor());
+  element.accept(_Visitor());
 }
 
 class _Visitor extends GeneralizingElementVisitor2<void> {

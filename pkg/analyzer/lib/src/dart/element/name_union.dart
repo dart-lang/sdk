@@ -92,7 +92,7 @@ class ElementNameUnion {
 
   static ElementNameUnion forLibrary(LibraryElement libraryElement) {
     var result = ElementNameUnion.empty();
-    libraryElement.accept2(_ElementVisitor2(result));
+    libraryElement.accept(_ElementVisitor2(result));
     return result;
   }
 

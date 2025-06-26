@@ -113,9 +113,13 @@ class ConstructorMember extends ExecutableMember
   ConstructorElementImpl get _element2 => declaration.asElement2;
 
   @override
-  T? accept2<T>(ElementVisitor2<T> visitor) {
+  T? accept<T>(ElementVisitor2<T> visitor) {
     return visitor.visitConstructorElement(this);
   }
+
+  @Deprecated('Use accept instead')
+  @override
+  T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
@@ -355,7 +359,7 @@ abstract class ExecutableMember extends Member
   @override
   void visitChildren2<T>(ElementVisitor2<T> visitor) {
     for (var child in children2) {
-      child.accept2(visitor);
+      child.accept(visitor);
     }
   }
 
@@ -601,9 +605,13 @@ class FieldMember extends VariableMember
   FieldElementImpl get _element2 => declaration.asElement2;
 
   @override
-  T? accept2<T>(ElementVisitor2<T> visitor) {
+  T? accept<T>(ElementVisitor2<T> visitor) {
     return visitor.visitFieldElement(this);
   }
+
+  @Deprecated('Use accept instead')
+  @override
+  T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   @override
   String displayString2({
@@ -714,9 +722,13 @@ class GetterMember extends PropertyAccessorMember
   }
 
   @override
-  T? accept2<T>(ElementVisitor2<T> visitor) {
+  T? accept<T>(ElementVisitor2<T> visitor) {
     return visitor.visitGetterElement(this);
   }
+
+  @Deprecated('Use accept instead')
+  @override
+  T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   static GetterElement2OrMember forSubstitution(
     GetterElement2OrMember element,
@@ -932,9 +944,13 @@ class MethodMember extends ExecutableMember implements MethodElement2OrMember {
   MethodElementImpl get _element2 => declaration.asElement2;
 
   @override
-  T? accept2<T>(ElementVisitor2<T> visitor) {
+  T? accept<T>(ElementVisitor2<T> visitor) {
     return visitor.visitMethodElement(this);
   }
+
+  @Deprecated('Use accept instead')
+  @override
+  T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   static MethodElement2OrMember forTargetType(
     MethodElement2OrMember element,
@@ -1096,9 +1112,13 @@ class ParameterMember extends VariableMember
   FormalParameterElementImpl get _element2 => declaration.asElement2;
 
   @override
-  T? accept2<T>(ElementVisitor2<T> visitor) {
+  T? accept<T>(ElementVisitor2<T> visitor) {
     return visitor.visitFormalParameterElement(this);
   }
+
+  @Deprecated('Use accept instead')
+  @override
+  T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
@@ -1322,9 +1342,13 @@ class SetterMember extends PropertyAccessorMember
   }
 
   @override
-  T? accept2<T>(ElementVisitor2<T> visitor) {
+  T? accept<T>(ElementVisitor2<T> visitor) {
     return visitor.visitSetterElement(this);
   }
+
+  @Deprecated('Use accept instead')
+  @override
+  T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   static SetterElement2OrMember forSubstitution(
     SetterElement2OrMember element,

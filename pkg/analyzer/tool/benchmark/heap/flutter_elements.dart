@@ -249,7 +249,7 @@ Future<void> _getAvailableLibraries(
       // }
       var result = await analysisDriver.getLibraryByUri(file.uriStr);
       if (result is LibraryElementResult) {
-        result.element2.accept2(_AllElementVisitor());
+        result.element2.accept(_AllElementVisitor());
       }
     }
   }

@@ -225,7 +225,7 @@ class CiderCompletionComputer {
     );
     var exportMap = element.exportNamespace.definedNames2;
     for (var definedElement in exportMap.values) {
-      definedElement.accept2(visitor);
+      definedElement.accept(visitor);
     }
     return suggestionBuilder.suggestions.toList();
   }
