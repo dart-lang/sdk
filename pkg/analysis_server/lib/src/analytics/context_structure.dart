@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/analytics/percentile_calculator.dart';
+
 /// Data about the structure of the contexts being analyzed.
 ///
 /// The descriptions of the fields below depend on the following terms.
@@ -45,6 +47,9 @@ class ContextStructure {
   /// [transitiveFileUniqueCount].
   final int transitiveFileUniqueLineCount;
 
+  final PercentileCalculator libraryCycleLibraryCounts;
+  final PercentileCalculator libraryCycleLineCounts;
+
   /// Initialize a newly created data holder.
   ContextStructure({
     required this.numberOfContexts,
@@ -54,5 +59,12 @@ class ContextStructure {
     required this.transitiveFileLineCount,
     required this.transitiveFileUniqueCount,
     required this.transitiveFileUniqueLineCount,
-  });
+    required List<int> libraryCycleLibraryCounts,
+    required List<int> libraryCycleLineCounts,
+  }) : libraryCycleLibraryCounts = PercentileCalculator.from(
+         libraryCycleLibraryCounts,
+       ),
+       libraryCycleLineCounts = PercentileCalculator.from(
+         libraryCycleLineCounts,
+       );
 }
