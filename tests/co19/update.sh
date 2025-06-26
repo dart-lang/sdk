@@ -31,7 +31,7 @@ git commit DEPS -m \
   && git log --date='format:%Y-%m-%d' --pretty='format:%ad %ae %s' $OLD..$NEW \
     | sed 's/\#/dart-lang\/co19\#/g')
 
-Cq-Include-Trybots: luci.dart.try:analyzer-linux-release-try"
+Cq-Include-Trybots: luci.dart.try:analyzer-linux-release-try,dart2js-minified-linux-d8-try"
 
 rm -rf tests/co19/src.git
 

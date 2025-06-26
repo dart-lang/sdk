@@ -311,7 +311,7 @@ class LibraryReader {
       return _readTemplateFragment(
         create: (name) {
           var fragment = ClassFragmentImpl(name2: name, nameOffset: -1);
-          ClassElementFlags.read(_reader, fragment);
+          fragment.readModifiers(_reader);
           fragment.typeParameters = _readTypeParameters();
 
           _lazyRead((membersOffset) {
@@ -518,7 +518,7 @@ class LibraryReader {
       return _readTemplateFragment(
         create: (name) {
           var fragment = EnumFragmentImpl(name2: name, nameOffset: -1);
-          EnumElementFlags.read(_reader, fragment);
+          fragment.readModifiers(_reader);
           fragment.typeParameters = _readTypeParameters();
 
           // TODO(scheglov): consider reading lazily
@@ -604,7 +604,7 @@ class LibraryReader {
       return _readTemplateFragment(
         create: (name) {
           var fragment = ExtensionFragmentImpl(name2: name, nameOffset: -1);
-          ExtensionElementFlags.read(_reader, fragment);
+          fragment.readModifiers(_reader);
           fragment.typeParameters = _readTypeParameters();
           _readFieldFragments(fragment);
           fragment.getters = _readGetterFragments();
@@ -658,7 +658,9 @@ class LibraryReader {
       return _readTemplateFragment(
         create: (name) {
           var fragment = ExtensionTypeFragmentImpl(name2: name, nameOffset: -1);
-          ExtensionTypeElementFlags.read(_reader, fragment);
+          fragment.readModifiers(_reader);
+          fragment.hasRepresentationSelfReference = _reader.readBool();
+          fragment.hasImplementsSelfReference = _reader.readBool();
           fragment.typeParameters = _readTypeParameters();
 
           // TODO(scheglov): consider reading lazily
@@ -997,7 +999,7 @@ class LibraryReader {
       return _readTemplateFragment(
         create: (name) {
           var fragment = MixinFragmentImpl(name2: name, nameOffset: -1);
-          MixinElementFlags.read(_reader, fragment);
+          fragment.readModifiers(_reader);
           fragment.superInvokedNames = _reader.readStringReferenceList();
           fragment.typeParameters = _readTypeParameters();
 

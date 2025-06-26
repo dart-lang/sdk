@@ -66,35 +66,15 @@ void main([List<String> args = const []]) async {
           final link = Link.fromUri(
               tempUri.resolve(OS.current.executableFileName('my_link')));
           await link.create(absoluteExeUri.toFilePath());
-          if (OS.current == OS.windows) {
-            for (final exeUri in [
-              removeDotExe(link.uri),
-              removeDotExe(absoluteExeUri),
-              removeDotExe(relativeExeUri),
-            ]) {
-              final result = await runProcess(
-                executable: exeUri,
-                arguments: [],
-                workingDirectory: dartAppUri,
-                logger: logger,
-              );
-              // TODO(https://dartbug.com/60946): Support PATHEXT.
-              expect(result.exitCode, isNot(0));
-              expect(
-                result.stderr,
-                stringContainsInOrder(
-                  [
-                    'Failed to canonicalize the script uri',
-                    'The system cannot find the file specified.',
-                  ],
-                ),
-              );
-            }
-          }
           for (final exeUri in [
             absoluteExeUri,
             relativeExeUri,
             link.uri,
+            if (OS.current == OS.windows) ...[
+              removeDotExe(absoluteExeUri),
+              removeDotExe(relativeExeUri),
+              removeDotExe(link.uri),
+            ]
           ]) {
             final result = await runProcess(
               executable: exeUri,

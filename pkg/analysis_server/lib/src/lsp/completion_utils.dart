@@ -165,7 +165,7 @@ Future<TypeImportData?> createTypedSuggestionData(
 
 // TODO(keertip): Move over completions for plugins and snippets to use
 // this function.
-Future<lsp.CompletionItem?> toLspCompletionItem(
+lsp.CompletionItem? toLspCompletionItem(
   LspClientCapabilities capabilities,
   server.LineInfo lineInfo,
   CandidateSuggestion suggestion, {
@@ -181,7 +181,7 @@ Future<lsp.CompletionItem?> toLspCompletionItem(
   required bool completeFunctionCalls,
   lsp.CompletionItemResolutionInfo? resolutionData,
   required DartCompletionRequest request,
-}) async {
+}) {
   // isCallable is used to suffix the label with parens so it's clear the item
   // is callable.
   //
@@ -757,6 +757,7 @@ String? _getDocumentation(
   DartCompletionRequest request,
   DocumentationPreference includeDocumentation,
 ) {
+  if (includeDocumentation == DocumentationPreference.none) return null;
   var docs = _getDocsFromComputer(element, request);
 
   var doc = removeDartDocDelimiters(docs?.full);

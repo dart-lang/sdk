@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <cerrno>
 #include <memory>
 #include <utility>
 
@@ -35,6 +36,7 @@
 #include "include/dart_api.h"
 #include "include/dart_embedder_api.h"
 #include "include/dart_tools_api.h"
+#include "platform/assert.h"
 #include "platform/globals.h"
 #include "platform/syslog.h"
 #include "platform/utils.h"
@@ -257,8 +259,8 @@ failed:
 static void* NativeAssetsDlopenRelative(const char* path, char** error) {
   auto isolate_group_data =
       reinterpret_cast<IsolateGroupData*>(Dart_CurrentIsolateGroupData());
-  const char* script_uri = isolate_group_data->script_url;
-  return NativeAssets::DlopenRelative(path, script_uri, error);
+  return NativeAssets::DlopenRelative(
+      path, isolate_group_data->asset_resolution_base, error);
 }
 
 static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
@@ -474,7 +476,8 @@ static Dart_Isolate CreateAndSetupKernelIsolate(const char* script_uri,
         &ignore_vm_snapshot_data, &ignore_vm_snapshot_instructions,
         &isolate_snapshot_data, &isolate_snapshot_instructions);
     isolate_group_data = new IsolateGroupData(
-        uri, packages_config, app_snapshot, isolate_run_app_snapshot);
+        uri, /*asset_resolution_base=*/nullptr, packages_config, app_snapshot,
+        isolate_run_app_snapshot);
     isolate_data = new IsolateData(isolate_group_data);
     isolate = Dart_CreateIsolateGroup(
         DART_KERNEL_ISOLATE_NAME, DART_KERNEL_ISOLATE_NAME,
@@ -492,8 +495,9 @@ static Dart_Isolate CreateAndSetupKernelIsolate(const char* script_uri,
     intptr_t kernel_service_buffer_size = 0;
     dfe.LoadKernelService(&kernel_service_buffer, &kernel_service_buffer_size);
     ASSERT(kernel_service_buffer != nullptr);
-    isolate_group_data = new IsolateGroupData(uri, packages_config, nullptr,
-                                              isolate_run_app_snapshot);
+    isolate_group_data = new IsolateGroupData(
+        uri, /*asset_resolution_base=*/nullptr, packages_config, nullptr,
+        isolate_run_app_snapshot);
     isolate_group_data->SetKernelBufferUnowned(
         const_cast<uint8_t*>(kernel_service_buffer),
         kernel_service_buffer_size);
@@ -529,7 +533,8 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   ASSERT(script_uri != nullptr);
   Dart_Isolate isolate = nullptr;
   auto isolate_group_data =
-      new IsolateGroupData(script_uri, packages_config, nullptr, false);
+      new IsolateGroupData(script_uri, /*asset_resolution_base=*/nullptr,
+                           packages_config, nullptr, false);
   ASSERT(flags != nullptr);
 
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -642,9 +647,9 @@ static Dart_Isolate CreateAndSetupDartDevIsolate(const char* script_uri,
     app_snapshot->SetBuffers(
         &ignore_vm_snapshot_data, &ignore_vm_snapshot_instructions,
         &isolate_snapshot_data, &isolate_snapshot_instructions);
-    isolate_group_data =
-        new IsolateGroupData(DART_DEV_ISOLATE_NAME, packages_config,
-                             app_snapshot, isolate_run_app_snapshot);
+    isolate_group_data = new IsolateGroupData(
+        DART_DEV_ISOLATE_NAME, /*asset_resolution_base=*/nullptr,
+        packages_config, app_snapshot, isolate_run_app_snapshot);
     isolate_data = new IsolateData(isolate_group_data);
     isolate = Dart_CreateIsolateGroup(
         DART_DEV_ISOLATE_NAME, DART_DEV_ISOLATE_NAME, isolate_snapshot_data,
@@ -664,8 +669,8 @@ static Dart_Isolate CreateAndSetupDartDevIsolate(const char* script_uri,
       delete app_snapshot;
     }
     isolate_group_data =
-        new IsolateGroupData(DART_DEV_ISOLATE_NAME, packages_config, nullptr,
-                             isolate_run_app_snapshot);
+        new IsolateGroupData(DART_DEV_ISOLATE_NAME, nullptr, packages_config,
+                             nullptr, isolate_run_app_snapshot);
     uint8_t* application_kernel_buffer = nullptr;
     intptr_t application_kernel_buffer_size = 0;
     dfe.ReadScript(dartdev_path.get(), nullptr, &application_kernel_buffer,
@@ -698,6 +703,7 @@ static Dart_Isolate CreateAndSetupDartDevIsolate(const char* script_uri,
 static Dart_Isolate CreateIsolateGroupAndSetupHelper(
     bool is_main_isolate,
     const char* script_uri,
+    const char* asset_resolution_base,
     const char* name,
     const char* packages_config,
     Dart_IsolateFlags* flags,
@@ -778,8 +784,9 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
   PathSanitizer packages_config_sanitizer(packages_config);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-  auto isolate_group_data = new IsolateGroupData(
-      script_uri, packages_config, app_snapshot, isolate_run_app_snapshot);
+  auto isolate_group_data =
+      new IsolateGroupData(script_uri, asset_resolution_base, packages_config,
+                           app_snapshot, isolate_run_app_snapshot);
   if (kernel_buffer != nullptr) {
     isolate_group_data->SetKernelBufferNewlyOwned(kernel_buffer,
                                                   kernel_buffer_size);
@@ -845,6 +852,74 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
 
 #undef CHECK_RESULT
 
+static CStringUniquePtr ResolveSymlinks(const char* path, char** error) {
+  auto file_type = File::GetType(nullptr, path, /*follow_links=*/true);
+  switch (file_type) {
+    case File::kIsLink:
+      UNREACHABLE();
+    case File::kIsSock:
+    case File::kIsPipe:
+      // Don't use pipes or sockets as base paths for assets resolution.
+      return CStringUniquePtr();
+    case File::kDoesNotExist:
+      // Don't try to resolve symlinks if the file doesn't exist.
+      // `dartdev` and `Isolate.spawnUri` will already issue an error.
+      return CStringUniquePtr();
+    case File::kIsFile:
+    case File::kIsDirectory:
+      break;
+  }
+
+  const size_t kPathBufSize = PATH_MAX + 1;
+  char canon_path[kPathBufSize];
+  auto result = File::GetCanonicalPath(nullptr, path, canon_path, kPathBufSize);
+  if (result == nullptr) {
+    OSError os_error;
+    *error = Utils::SCreate(
+        "Failed to canonicalize path '%s'. OS error: '%s' (%i).\n", path,
+        os_error.message(), os_error.code());
+    return CStringUniquePtr();
+  }
+  return CStringUniquePtr(Utils::StrDup(canon_path));
+}
+
+// Get a file path from the script uri if it is a file uri and resolve symlinks.
+static CStringUniquePtr FindAssetResolutionBase(const char* script_uri,
+                                                char** error) {
+  static const char* data_schema = "data:";
+  static const int data_schema_length = 5;
+  static const char* package_scheme = "package:";
+  static const int package_scheme_length = 8;
+  static const char* https_scheme = "https://";
+  static const int https_scheme_length = 8;
+  static const char* http_scheme = "http://";
+  static const int http_scheme_length = 7;
+  static const char* file_schema = "file://";
+  static const int file_schema_length = 7;
+
+  if ((strlen(script_uri) > data_schema_length &&
+       strncmp(script_uri, data_schema, data_schema_length) == 0) ||
+      (strlen(script_uri) > data_schema_length &&
+       strncmp(script_uri, package_scheme, package_scheme_length) == 0) ||
+      (strlen(script_uri) > package_scheme_length &&
+       strncmp(script_uri, https_scheme, https_scheme_length) == 0) ||
+      (strlen(script_uri) > http_scheme_length &&
+       strncmp(script_uri, http_scheme, http_scheme_length) == 0)) {
+    // No base path for assets.
+    return CStringUniquePtr();
+  }
+
+  if (strlen(script_uri) > file_schema_length &&
+      strncmp(script_uri, file_schema, file_schema_length) == 0) {
+    // Isolate.spawnUri sets a `source` including the file schema,
+    // e.g. Isolate.spawnUri may make the embedder pass a file:// uri.
+    return ResolveSymlinks(File::UriToPath(script_uri).get(), error);
+  }
+
+  // It's possible to spawn uri without a scheme, assume file path.
+  return ResolveSymlinks(script_uri, error);
+}
+
 static Dart_Isolate CreateIsolateGroupAndSetup(const char* script_uri,
                                                const char* main,
                                                const char* package_root,
@@ -895,9 +970,13 @@ static Dart_Isolate CreateIsolateGroupAndSetup(const char* script_uri,
   }
 
   bool is_main_isolate = false;
-  return CreateIsolateGroupAndSetupHelper(is_main_isolate, script_uri, main,
-                                          package_config, flags, callback_data,
-                                          error, &exit_code);
+  auto asset_resolution_base = FindAssetResolutionBase(script_uri, error);
+  if (*error != nullptr) {
+    return nullptr;
+  }
+  return CreateIsolateGroupAndSetupHelper(
+      is_main_isolate, script_uri, asset_resolution_base.get(), main,
+      package_config, flags, callback_data, error, &exit_code);
 }
 
 static void OnIsolateShutdown(void* isolate_group_data, void* isolate_data) {
@@ -985,6 +1064,7 @@ static void CompileAndSaveKernel(const char* script_name,
 }
 
 void RunMainIsolate(const char* script_name,
+                    const char* asset_resolution_base,
                     const char* package_config_override,
                     CommandLineOptions* dart_options) {
   if (script_name != nullptr) {
@@ -1021,7 +1101,7 @@ void RunMainIsolate(const char* script_name,
   flags.snapshot_is_dontneed_safe = dontneed_safe;
 
   Dart_Isolate isolate = CreateIsolateGroupAndSetupHelper(
-      /* is_main_isolate */ true, script_name, "main",
+      /* is_main_isolate */ true, script_name, asset_resolution_base, "main",
       Options::packages_file() == nullptr ? package_config_override
                                           : Options::packages_file(),
       &flags, nullptr /* callback_data */, &error, &exit_code);
@@ -1129,6 +1209,7 @@ void main(int argc, char** argv) {
 #endif
 
   char* script_name = nullptr;
+  CStringUniquePtr asset_resolution_base = CStringUniquePtr();
   // Allows the dartdev process to point to the desired package_config.
   char* package_config_override = nullptr;
   const int EXTRA_VM_ARGUMENTS = 10;
@@ -1214,6 +1295,15 @@ void main(int argc, char** argv) {
     app_snapshot = Snapshot::TryReadAppendedAppSnapshot(executable_path);
     if (app_snapshot != nullptr) {
       script_name = argv[0];
+
+      char* error = nullptr;
+      asset_resolution_base = ResolveSymlinks(executable_path, &error);
+      if (error != nullptr) {
+        Syslog::PrintErr("%s", error);
+        free(error);
+        delete app_snapshot;
+        Platform::Exit(kErrorExitCode);
+      }
 
       // Store the executable name.
       Platform::SetExecutableName(argv[0]);
@@ -1429,11 +1519,21 @@ void main(int argc, char** argv) {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   if (should_run_user_program) {
+    if (asset_resolution_base.get() == nullptr) {
+      asset_resolution_base = ResolveSymlinks(script_name, &error);
+      if (error != nullptr) {
+        Syslog::PrintErr("%s", error);
+        free(error);
+        delete app_snapshot;
+        Platform::Exit(kErrorExitCode);
+      }
+    }
     if (Options::gen_snapshot_kind() == kKernel) {
       CompileAndSaveKernel(script_name, package_config_override, &dart_options);
     } else {
       // Run the main isolate until we aren't told to restart.
-      RunMainIsolate(script_name, package_config_override, &dart_options);
+      RunMainIsolate(script_name, asset_resolution_base.get(),
+                     package_config_override, &dart_options);
     }
   }
 
@@ -1453,6 +1553,7 @@ void main(int argc, char** argv) {
   if (ran_dart_dev && script_name != nullptr) {
     free(script_name);
   }
+  asset_resolution_base.reset();
 
   // Free copied argument strings if converted.
   if (argv_converted) {

@@ -213,7 +213,7 @@ int RunAnalyzer(int argc, char** argv) {
   }
 
   auto isolate_group_data = std::unique_ptr<IsolateGroupData>(
-      new IsolateGroupData(nullptr, nullptr, nullptr, false));
+      new IsolateGroupData(nullptr, nullptr, nullptr, nullptr, false));
 
   Dart_IsolateFlags isolate_flags;
   Dart_IsolateFlagsInitialize(&isolate_flags);
