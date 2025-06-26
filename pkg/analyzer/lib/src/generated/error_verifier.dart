@@ -2321,14 +2321,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       String name = accessor.displayName;
 
       // find inherited method or property accessor
-      var inherited =
-          _inheritanceManager
-              .getInherited(enclosingClass, Name(libraryUri, name))
-              ?.asElement;
-      inherited ??=
-          _inheritanceManager
-              .getInherited(enclosingClass, Name(libraryUri, '$name='))
-              ?.asElement;
+      var inherited = _inheritanceManager.getInherited(
+        enclosingClass,
+        Name(libraryUri, name),
+      );
+      inherited ??= _inheritanceManager.getInherited(
+        enclosingClass,
+        Name(libraryUri, '$name='),
+      );
 
       if (accessor.isStatic && inherited != null) {
         diagnosticReporter.atElement2(
@@ -2337,11 +2337,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           arguments: [
             enclosingClass.displayName,
             name,
-            inherited.asElement2.enclosingElement!.displayName,
+            inherited.enclosingElement!.displayName,
           ],
         );
         conflictingDeclaredNames.add(name);
-      } else if (inherited is MethodElementOrMember) {
+      } else if (inherited is MethodElement2OrMember) {
         // Extension type accessors preclude inherited accessors/methods.
         if (enclosingClass is ExtensionTypeElementImpl) {
           continue;
@@ -2352,7 +2352,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           arguments: [
             enclosingClass.displayName,
             name,
-            inherited.asElement2.enclosingElement!.displayName,
+            inherited.enclosingElement!.displayName,
           ],
         );
         conflictingDeclaredNames.add(name);

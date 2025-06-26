@@ -7753,21 +7753,8 @@ class MethodElementImpl extends ExecutableElementImpl
   }
 }
 
-/// Common base class for all analyzer-internal classes that implement
-/// `MethodElement`.
-abstract class MethodElementOrMember implements ExecutableElementOrMember {
-  @override
-  TypeImpl get returnType;
-
-  @override
-  FunctionTypeImpl get type;
-
-  @override
-  List<TypeParameterFragmentImpl> get typeParameters;
-}
-
 class MethodFragmentImpl extends ExecutableFragmentImpl
-    implements MethodElementOrMember, MethodFragment {
+    implements MethodFragment {
   @override
   late final MethodElementImpl element;
 

@@ -404,16 +404,6 @@ extension MethodElementImplExtension on MethodFragmentImpl {
   }
 }
 
-extension MethodElementOrMemberExtension on MethodElementOrMember {
-  MethodElement2OrMember get asElement2 {
-    return switch (this) {
-      MethodFragmentImpl(:var element) => element,
-      MethodMember member => member,
-      _ => throw UnsupportedError('Unsupported type: $runtimeType'),
-    };
-  }
-}
-
 extension MixinElementImplExtension on MixinFragmentImpl {
   MixinElementImpl get asElement2 {
     return element;
