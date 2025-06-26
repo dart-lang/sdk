@@ -1574,7 +1574,8 @@
     ],
     "state": "experimental",
     "incompatible": [
-      "always_specify_types"
+      "always_specify_types",
+      "type_annotate_public_apis"
     ],
     "sets": [],
     "fixStatus": "hasFix",
@@ -2510,7 +2511,9 @@
       "publicInterface"
     ],
     "state": "stable",
-    "incompatible": [],
+    "incompatible": [
+      "omit_obvious_property_types"
+    ],
     "sets": [],
     "fixStatus": "hasFix",
     "details": "From [Effective Dart](https://dart.dev/effective-dart/design#do-type-annotate-fields-and-top-level-variables-if-the-type-isnt-obvious):\n\n**PREFER** type annotating public APIs.\n\nType annotations are important documentation for how a library should be used.\nAnnotating the parameter and return types of public methods and functions helps\nusers understand what the API expects and what it provides.\n\nNote that if a public API accepts a range of values that Dart's type system\ncannot express, then it is acceptable to leave that untyped.  In that case, the\nimplicit `dynamic` is the correct type for the API.\n\nFor code internal to a library (either private, or things like nested functions)\nannotate where you feel it helps, but don't feel that you *must* provide them.\n\n**BAD:**\n```dart\ninstall(id, destination) {\n  // ...\n}\n```\n\nHere, it's unclear what `id` is.  A string? And what is `destination`? A string\nor a `File` object? Is this method synchronous or asynchronous?\n\n**GOOD:**\n```dart\nFuture<bool> install(PackageId id, String destination) {\n  // ...\n}\n```\n\nWith types, all of this is clarified.",
@@ -2578,7 +2581,7 @@
     "state": "experimental",
     "incompatible": [],
     "sets": [],
-    "fixStatus": "needsFix",
+    "fixStatus": "hasFix",
     "details": "Functions that don't do `await` don't have to be `async`.\n\nUsually such functions also don't have to return a `Future`, which allows\nan invoker to avoid `await` in its code, etc. Synchronous code in\ngeneral runs faster, and is easier to reason about.\n\n**BAD:**\n```dart\nvoid f() async {\n  // await Future.delayed(const Duration(seconds: 2));\n  print(0);\n}\n```\n\n**GOOD:**\n```dart\nvoid f() {\n  // await Future.delayed(const Duration(seconds: 2));\n  print(0);\n}\n```",
     "sinceDartSdk": "3.7"
   },
