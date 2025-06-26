@@ -1684,16 +1684,10 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
       function.set_accessor_field(field);
       function.set_is_extension_member(is_extension_member);
       SetupFieldAccessorFunction(cls, function, type);
-      if (is_const && has_nontrivial_initializer) {
-        BytecodeLoader* loader = thread_->bytecode_loader();
-        ASSERT(loader != nullptr);
-        loader->SetOffset(function, loader->GetOffset(field));
+      if (is_static) {
+        function.AttachBytecode(Object::implicit_static_getter_bytecode());
       } else {
-        if (is_static) {
-          function.AttachBytecode(Object::implicit_static_getter_bytecode());
-        } else {
-          function.AttachBytecode(Object::implicit_getter_bytecode());
-        }
+        function.AttachBytecode(Object::implicit_getter_bytecode());
       }
       functions_->SetAt(function_index_++, function);
     }
