@@ -50,7 +50,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       } else if (staticType.isDartCoreString) {
         typeName = 'String';
       } else {
-        typeName = 'unknown';
+        throw StateError(
+          'Unexpected type for environment constructor: $staticType',
+        );
       }
       String fullMethodName = '$typeName.$constructorName';
       rule.reportAtNode(
