@@ -1067,11 +1067,14 @@ class LspAnalysisServer extends AnalysisServer {
     );
     result.ifError((error) => sendErrorResponse(message, error));
     result.ifResult(
-      (result) => sendResponse(
-        ResponseMessage(
-          id: message.id,
-          result: result,
-          jsonrpc: jsonRpcVersion,
+      (result) => messageInfo.performance.run(
+        'sendResponse',
+        (_) => sendResponse(
+          ResponseMessage(
+            id: message.id,
+            result: result,
+            jsonrpc: jsonRpcVersion,
+          ),
         ),
       ),
     );

@@ -549,7 +549,7 @@ class CompletionHandler
         );
       }
 
-      var rankedResults = await performance.run('mapSuggestions', (
+      var rankedResults = await performance.runAsync('mapSuggestions', (
         performance,
       ) async {
         var completionItems = <({CompletionItem item, double score})>[];
