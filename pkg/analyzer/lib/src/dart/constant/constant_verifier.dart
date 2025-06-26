@@ -33,7 +33,6 @@ import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/exhaustiveness.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Instances of the class `ConstantVerifier` traverse an AST structure looking
 /// for additional errors and warnings not covered by the parser and resolver.
@@ -213,11 +212,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     if (node.isConst) {
       var constructor = node.constructorName.element;
       if (constructor is ConstructorElementMixin2) {
-        _validateConstructorInvocation(
-          node,
-          constructor.asElement,
-          node.argumentList,
-        );
+        _validateConstructorInvocation(node, constructor, node.argumentList);
       }
     } else {
       super.visitDotShorthandConstructorInvocation(node);
@@ -288,7 +283,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS,
       );
 
-      var constructor = node.constructorName.element?.asElement;
+      var constructor = node.constructorName.element;
       if (constructor != null) {
         _validateConstructorInvocation(node, constructor, node.argumentList);
       }
@@ -916,7 +911,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   /// arguments are constant expressions.
   void _validateConstructorInvocation(
     AstNode node,
-    ConstructorElementMixin constructor,
+    ConstructorElementMixin2 constructor,
     ArgumentList argumentList,
   ) {
     var constantVisitor = ConstantVisitor(

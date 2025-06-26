@@ -788,6 +788,9 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
+  AnalysisContext get context => firstFragment.context;
+
+  @override
   String get displayName {
     var className = enclosingElement.name3 ?? '<null>';
     var name = name3 ?? '<null>';
@@ -828,6 +831,9 @@ class ConstructorElementImpl extends ExecutableElementImpl
   bool get isConst => firstFragment.isConst;
 
   @override
+  bool get isConstantEvaluated => firstFragment.isConstantEvaluated;
+
+  @override
   bool get isDefaultConstructor => firstFragment.isDefaultConstructor;
 
   @override
@@ -843,6 +849,9 @@ class ConstructorElementImpl extends ExecutableElementImpl
   ConstructorFragmentImpl get lastFragment {
     return super.lastFragment as ConstructorFragmentImpl;
   }
+
+  @override
+  Source? get librarySource => firstFragment.librarySource;
 
   @override
   Element get nonSynthetic {
@@ -867,6 +876,9 @@ class ConstructorElementImpl extends ExecutableElementImpl
   InterfaceTypeImpl get returnType {
     return firstFragment.returnType;
   }
+
+  @override
+  Source? get source => firstFragment.source;
 
   @override
   ConstructorElementMixin2? get superConstructor2 {
@@ -897,8 +909,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 }
 
-mixin ConstructorElementMixin
-    implements ConstantEvaluationTarget, ExecutableElementOrMember {
+mixin ConstructorElementMixin implements ExecutableElementOrMember {
   @override
   ConstructorFragmentImpl get declaration;
 
@@ -916,19 +927,15 @@ mixin ConstructorElementMixin
   bool get isGenerative;
 
   @override
-  LibraryElementImpl get library;
-
-  @Deprecated('Use library instead')
-  @override
-  LibraryElementImpl get library2;
-
-  @override
   InterfaceTypeImpl get returnType;
 }
 
 /// Common implementation for methods defined in [ConstructorElement].
 mixin ConstructorElementMixin2
-    implements ExecutableElement2OrMember, ConstructorElement {
+    implements
+        ConstantEvaluationTarget,
+        ExecutableElement2OrMember,
+        ConstructorElement {
   @override
   ConstructorElementImpl get baseElement;
 
@@ -936,7 +943,16 @@ mixin ConstructorElementMixin2
   InterfaceElementImpl get enclosingElement;
 
   @override
+  LibraryElementImpl get library;
+
+  @override
+  ConstructorElementMixin2? get redirectedConstructor2;
+
+  @override
   InterfaceTypeImpl get returnType;
+
+  @override
+  ConstructorElementMixin2? get superConstructor2;
 }
 
 /// A concrete implementation of a [ConstructorFragment].
@@ -977,7 +993,7 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
   /// is a part of a cycle.
   bool isCycleFree = true;
 
-  @override
+  /// Return whether this constant is evaluated.
   bool isConstantEvaluated = false;
 
   /// Initialize a newly created constructor element to have the given [name]
@@ -1061,10 +1077,6 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
   @override
   ElementKind get kind => ElementKind.CONSTRUCTOR;
 
-  @Deprecated('Use library instead')
-  @override
-  LibraryElementImpl get library2 => library;
-
   @override
   int get nameLength {
     var nameEnd = this.nameEnd;
@@ -1116,7 +1128,7 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
     if (!isConstantEvaluated) {
       computeConstants(
         declaredVariables: context.declaredVariables,
-        constants: [this],
+        constants: [element],
         featureSet: library.featureSet,
         configuration: ConstantEvaluationConfiguration(),
       );
@@ -2304,7 +2316,7 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
   }
 
   @override
-  LibraryElement get library {
+  LibraryElementImpl get library {
     var firstFragment = this.firstFragment as ExecutableFragmentImpl;
     return firstFragment.library;
   }
