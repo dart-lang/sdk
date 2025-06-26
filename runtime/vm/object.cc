@@ -13805,6 +13805,7 @@ GrowableObjectArrayPtr Script::GenerateLineNumberArray() const {
   const TypedData& line_starts_data = TypedData::Handle(zone, line_starts());
   intptr_t line_count = line_starts_data.Length();
   const Array& debug_positions_array = Array::Handle(debug_positions());
+  ASSERT(!debug_positions_array.IsNull());
   intptr_t token_count = debug_positions_array.Length();
   int token_index = 0;
 
@@ -13886,12 +13887,61 @@ void Script::set_line_starts(const TypedData& value) const {
   untag()->set_line_starts(value.ptr());
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
+static int LowestFirst(const intptr_t* a, const intptr_t* b) {
+  return *a - *b;
+}
+
+static ArrayPtr SortAndDeduplicate(GrowableArray<intptr_t>* source) {
+  intptr_t size = source->length();
+  if (size == 0) {
+    return Object::empty_array().ptr();
+  }
+
+  source->Sort(LowestFirst);
+
+  intptr_t last = 0;
+  for (intptr_t current = 1; current < size; ++current) {
+    if (source->At(last) != source->At(current)) {
+      (*source)[++last] = source->At(current);
+    }
+  }
+  Array& array_object = Array::Handle();
+  array_object = Array::New(last + 1, Heap::kOld);
+  Smi& smi_value = Smi::Handle();
+  for (intptr_t i = 0; i <= last; ++i) {
+    smi_value = Smi::New(source->At(i));
+    array_object.SetAt(i, smi_value);
+  }
+  return array_object.ptr();
+}
+
+void Script::CollectDebugTokenPositions() const {
+  GrowableArray<intptr_t> token_positions(10);
+  if (kernel_program_info() != Object::null()) {
+    kernel::CollectScriptTokenPositionsFromKernel(*this, &token_positions);
+  } else {
+#if defined(DART_DYNAMIC_MODULES)
+    bytecode::BytecodeReader::CollectScriptTokenPositionsFromBytecode(
+        *this, &token_positions);
+#else
+    UNREACHABLE();
+#endif
+  }
+  const auto& debug_positions =
+      Array::Handle(SortAndDeduplicate(&token_positions));
+  set_debug_positions(debug_positions);
+}
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
 ArrayPtr Script::debug_positions() const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   Array& debug_positions_array = Array::Handle(untag()->debug_positions());
   if (debug_positions_array.IsNull()) {
     // This is created lazily. Now we need it.
-    CollectTokenPositionsFor();
+    CollectDebugTokenPositions();
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   return untag()->debug_positions();
@@ -13966,7 +14016,7 @@ bool Script::GetTokenLocation(const TokenPosition& token_pos,
   if (line_starts_data.IsNull()) return false;
   LineStartsReader line_starts_reader(line_starts_data);
   return line_starts_reader.LocationForPosition(token_pos.Pos(), line, column);
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
+#endif  // defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
 }
 
 intptr_t Script::GetTokenLength(const TokenPosition& token_pos) const {
@@ -13994,7 +14044,7 @@ bool Script::TokenRangeAtLine(intptr_t line_number,
                               TokenPosition* first_token_index,
                               TokenPosition* last_token_index) const {
   ASSERT(first_token_index != nullptr && last_token_index != nullptr);
-#if defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
   // Scripts in the AOT snapshot do not have a line starts array.
   return false;
 #else
@@ -14002,6 +14052,7 @@ bool Script::TokenRangeAtLine(intptr_t line_number,
   if (line_number <= 0) return false;
   Zone* zone = Thread::Current()->zone();
   const TypedData& line_starts_data = TypedData::Handle(zone, line_starts());
+  if (line_starts_data.IsNull()) return false;
   LineStartsReader line_starts_reader(line_starts_data);
   if (!line_starts_reader.TokenRangeAtLine(line_number, first_token_index,
                                            last_token_index)) {
@@ -14012,6 +14063,7 @@ bool Script::TokenRangeAtLine(intptr_t line_number,
   if (!HasSource()) {
     Smi& value = Smi::Handle(zone);
     const Array& debug_positions_array = Array::Handle(zone, debug_positions());
+    ASSERT(!debug_positions_array.IsNull());
     value ^= debug_positions_array.At(debug_positions_array.Length() - 1);
     source_length = value.Value();
   } else {
@@ -14021,7 +14073,7 @@ bool Script::TokenRangeAtLine(intptr_t line_number,
   ASSERT(last_token_index->Serialize() <= source_length);
 #endif
   return true;
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
 }
 
 // Returns the index in the given source string for the given (1-based) absolute

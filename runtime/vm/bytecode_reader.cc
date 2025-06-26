@@ -2563,6 +2563,113 @@ void BytecodeReader::ReadParameterCovariance(
                                           is_generic_covariant_impl);
 }
 
+static void CollectTokenPosition(TokenPosition token_pos,
+                                 GrowableArray<intptr_t>* token_positions) {
+  if (!token_pos.IsReal()) {
+    return;
+  }
+  const intptr_t token_pos_value = token_pos.Serialize();
+  if (!token_positions->is_empty() &&
+      token_positions->Last() == token_pos_value) {
+    return;
+  }
+  token_positions->Add(token_pos_value);
+}
+
+static void CollectBytecodeFunctionTokenPositions(
+    Zone* zone,
+    const Function& function,
+    GrowableArray<intptr_t>* token_positions) {
+  ASSERT(function.is_declared_in_bytecode());
+  CollectTokenPosition(function.token_pos(), token_positions);
+  CollectTokenPosition(function.end_token_pos(), token_positions);
+  if (!function.HasBytecode()) {
+    return;
+  }
+  Bytecode& bytecode = Bytecode::Handle(zone, function.GetBytecode());
+  ASSERT(!bytecode.IsNull());
+  if (bytecode.HasSourcePositions()) {
+    BytecodeSourcePositionsIterator iter(zone, bytecode);
+    while (iter.MoveNext()) {
+      CollectTokenPosition(iter.TokenPos(), token_positions);
+    }
+    if (!function.IsNonImplicitClosureFunction()) {
+      // Find closure functions in the object pool.
+      const ObjectPool& pool = ObjectPool::Handle(zone, bytecode.object_pool());
+      Object& object = Object::Handle(zone);
+      for (intptr_t i = 0; i < pool.Length(); i++) {
+        ObjectPool::EntryType entry_type = pool.TypeAt(i);
+        if (entry_type != ObjectPool::EntryType::kTaggedObject) {
+          continue;
+        }
+        object = pool.ObjectAt(i);
+        if (object.IsFunction()) {
+          const auto& closure = Function::Cast(object);
+          if (closure.IsNonImplicitClosureFunction()) {
+            CollectBytecodeFunctionTokenPositions(zone, closure,
+                                                  token_positions);
+          }
+        }
+      }
+    }
+  }
+}
+
+void BytecodeReader::CollectScriptTokenPositionsFromBytecode(
+    const Script& interesting_script,
+    GrowableArray<intptr_t>* token_positions) {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+
+  const GrowableObjectArray& libs = GrowableObjectArray::Handle(
+      zone, thread->isolate_group()->object_store()->libraries());
+  auto& lib = Library::Handle(zone);
+  auto& cls = Class::Handle(zone);
+  auto& array = Array::Handle(zone);
+  auto& function = Function::Handle(zone);
+  auto& field = Field::Handle(zone);
+
+  for (intptr_t i = 0, n = libs.Length(); i < n; ++i) {
+    lib ^= libs.At(i);
+    cls = lib.toplevel_class();
+    if (!cls.is_declared_in_bytecode()) {
+      continue;
+    }
+    ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
+    while (it.HasNext()) {
+      cls = it.GetNextClass();
+      ASSERT(cls.is_declared_in_bytecode());
+      if (cls.script() == interesting_script.ptr()) {
+        CollectTokenPosition(cls.token_pos(), token_positions);
+        CollectTokenPosition(cls.end_token_pos(), token_positions);
+      }
+      array = cls.fields();
+      for (intptr_t i = 0, n = array.Length(); i < n; ++i) {
+        field ^= array.At(i);
+        if (field.Script() != interesting_script.ptr()) {
+          continue;
+        }
+        CollectTokenPosition(field.token_pos(), token_positions);
+        CollectTokenPosition(field.end_token_pos(), token_positions);
+        if ((field.is_static() || field.is_late()) &&
+            field.has_nontrivial_initializer()) {
+          function = field.EnsureInitializerFunction();
+          CollectBytecodeFunctionTokenPositions(zone, function,
+                                                token_positions);
+        }
+      }
+      array = cls.current_functions();
+      for (intptr_t i = 0, n = array.Length(); i < n; ++i) {
+        function ^= array.At(i);
+        if (function.script() != interesting_script.ptr()) {
+          continue;
+        }
+        CollectBytecodeFunctionTokenPositions(zone, function, token_positions);
+      }
+    }
+  }
+}
+
 }  // namespace bytecode
 }  // namespace dart
 
