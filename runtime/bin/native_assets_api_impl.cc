@@ -4,7 +4,8 @@
 
 #include "include/bin/native_assets_api.h"
 
-#include "bin/utils.h"
+#include <cstring>
+
 #include "platform/globals.h"
 #include "platform/utils.h"
 
@@ -20,7 +21,6 @@
 #include <dlfcn.h>
 #endif
 
-#include "bin/file.h"
 #include "bin/uri.h"
 
 namespace dart {
@@ -49,48 +49,6 @@ static void ReplaceForwardSlashes(char* cstr) {
   }
 }
 #endif
-
-const char* file_schema = "file://";
-const int file_schema_length = 7;
-
-// Get a file uri with only forward slashes from the script path.
-// Returned string must be freed by caller.
-CStringUniquePtr CleanScriptUri(const char* script_uri, char** error) {
-  CStringUniquePtr script_path;
-
-  if (strlen(script_uri) > file_schema_length &&
-      strncmp(script_uri, file_schema, file_schema_length) == 0) {
-    // Isolate.spawnUri sets a `source` including the file schema,
-    // e.g. Isolate.spawnUri may make the embedder pass a file:// uri.
-    script_path = File::UriToPath(script_uri);
-  } else {
-    // Dart and Flutter embedders set a source without a file schema.
-    script_path = CStringUniquePtr(strdup(script_uri));
-  }
-
-  // Resolve symlinks.
-  const char* canon_path = File::GetCanonicalPath(nullptr, script_path.get());
-  if (canon_path == nullptr) {
-    OSError os_error;
-    SET_ERROR_MSG(
-        error,
-        "Failed to canonicalize the script uri '%s'. OS error: '%s' (%i).",
-        script_path.get(), os_error.message(), os_error.code());
-    return CStringUniquePtr();
-  }
-
-  // Convert path to Uri. Inspired by sdk/lib/core/uri.dart _makeFileUri.
-  // Only has a single case, the path is always absolute and always a file.
-  const intptr_t len = strlen(canon_path);
-  char* path_copy =
-      reinterpret_cast<char*>(malloc(file_schema_length + len + 1));
-  snprintf(path_copy, len + 1, "%s%s", file_schema, canon_path);
-#if defined(DART_TARGET_OS_WINDOWS)
-  // Replace backward slashes with forward slashes.
-  ReplaceBackSlashes(path_copy);
-#endif
-  return CStringUniquePtr(path_copy);
-}
 
 // If an error occurs populates |error| (if provided) with an error message
 // (caller must free this message when it is no longer needed).
@@ -126,13 +84,13 @@ static void WrapError(const char* path, char** error) {
 }
 
 static void WrapErrorRelative(const char* path,
-                              const char* script_uri,
+                              const char* base_path,
                               char** error) {
   if (*error != nullptr) {
     char* inner_error = *error;
     SET_ERROR_MSG(error,
                   "Failed to load dynamic library '%s' relative to '%s': %s",
-                  path, script_uri, inner_error);
+                  path, base_path, inner_error);
     free(inner_error);
   }
 }
@@ -146,33 +104,38 @@ void* NativeAssets::DlopenAbsolute(const char* path, char** error) {
 }
 
 void* NativeAssets::DlopenRelative(const char* path,
-                                   const char* script_uri,
+                                   const char* base_path,
                                    char** error) {
-  void* handle = nullptr;
-  CStringUniquePtr platform_script_cstr = CleanScriptUri(script_uri, error);
-  if (*error != nullptr) {
+  if (base_path == nullptr) {
+    SET_ERROR_MSG(
+        error, "Failed to resolve relative path '%s', no base path provided.",
+        path);
     return nullptr;
   }
-  const intptr_t len = strlen(path);
-  char* path_copy = reinterpret_cast<char*>(malloc(len + 1));
-  snprintf(path_copy, len + 1, "%s", path);
+  void* handle = nullptr;
+
 #if defined(DART_TARGET_OS_WINDOWS)
+  char* path_copy = strdup(path);
+  char* base_path_copy = strdup(base_path);
   ReplaceBackSlashes(path_copy);
-#endif
-  auto target_uri = ResolveUri(path_copy, platform_script_cstr.get());
-  if (!target_uri) {
-    SET_ERROR_MSG(error, "Failed to resolve '%s' relative to '%s'.", path_copy,
-                  platform_script_cstr.get());
-  } else {
-    char* target_path = target_uri.get() + file_schema_length;
-#if defined(DART_TARGET_OS_WINDOWS)
-    ReplaceForwardSlashes(target_path);
-#endif
-    handle =
-        LoadDynamicLibrary(target_path, /* search_dll_load_dir= */ true, error);
-  }
+  ReplaceBackSlashes(base_path_copy);
+  auto target_path = ResolvePath(path_copy, base_path_copy);
   free(path_copy);
-  WrapErrorRelative(path, script_uri, error);
+  free(base_path_copy);
+#else
+  auto target_path = ResolvePath(path, base_path);
+#endif
+  if (!target_path) {
+    SET_ERROR_MSG(error, "Failed to resolve '%s' relative to '%s'.", path,
+                  base_path);
+  } else {
+#if defined(DART_TARGET_OS_WINDOWS)
+    ReplaceForwardSlashes(target_path.get());
+#endif
+    handle = LoadDynamicLibrary(target_path.get(),
+                                /* search_dll_load_dir= */ true, error);
+  }
+  WrapErrorRelative(path, base_path, error);
   return handle;
 }
 
