@@ -43,6 +43,7 @@ dependencies:
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
+  dart_mcp: any
   expect: any
   lints: any
   pub_semver: any
