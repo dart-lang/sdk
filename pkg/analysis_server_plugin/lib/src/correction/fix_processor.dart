@@ -64,20 +64,48 @@ class FixProcessor {
     return _fixes;
   }
 
-  void _addFixFromBuilder(ChangeBuilder builder, CorrectionProducer producer) {
-    var change = builder.sourceChange;
-    if (change.edits.isEmpty) {
-      return;
-    }
-
+  Future<void> _addFromProducer(CorrectionProducer producer) async {
     var kind = producer.fixKind;
+    // If this producer is not actually designed to work as an fix, ignore it.
     if (kind == null) {
       return;
     }
 
-    change.id = kind.id;
-    change.message = formatList(kind.message, producer.fixArguments);
-    _fixes.add(Fix(kind: kind, change: change));
+    var builder =
+        ChangeBuilder(workspace: _fixContext.workspace, eol: producer.eol);
+    try {
+      var fixKind = producer.fixKind;
+
+      if (_performance != null) {
+        var startTime = _timer.elapsedMilliseconds;
+        await producer.compute(builder);
+        _performance.producerTimings.add((
+          className: producer.runtimeType.toString(),
+          elapsedTime: _timer.elapsedMilliseconds - startTime,
+        ));
+      } else {
+        await producer.compute(builder);
+      }
+
+      assert(
+        !producer.canBeAppliedAcrossSingleFile || producer.fixKind == fixKind,
+        'Producers used in bulk fixes must not modify the FixKind during '
+        'computation. $producer changed from $fixKind to ${producer.fixKind}.',
+      );
+
+      var change = builder.sourceChange;
+      if (change.edits.isEmpty) {
+        return;
+      }
+
+      change.id = kind.id;
+      change.message = formatList(kind.message, producer.fixArguments);
+      _fixes.add(Fix(kind: kind, change: change));
+    } on ConflictingEditException catch (exception, stackTrace) {
+      // Handle the exception by (a) not adding a fix based on the producer
+      // and (b) logging the exception.
+      _fixContext.instrumentationService.logException(exception, stackTrace);
+    }
   }
 
   Future<void> _addFromProducers() async {
@@ -90,37 +118,6 @@ class FixProcessor {
       selectionOffset: _fixContext.diagnostic.offset,
       selectionLength: _fixContext.diagnostic.length,
     );
-
-    Future<void> compute(CorrectionProducer producer) async {
-      var builder =
-          ChangeBuilder(workspace: _fixContext.workspace, eol: producer.eol);
-      try {
-        var fixKind = producer.fixKind;
-
-        if (_performance != null) {
-          var startTime = _timer.elapsedMilliseconds;
-          await producer.compute(builder);
-          _performance.producerTimings.add((
-            className: producer.runtimeType.toString(),
-            elapsedTime: _timer.elapsedMilliseconds - startTime,
-          ));
-        } else {
-          await producer.compute(builder);
-        }
-
-        assert(
-          !producer.canBeAppliedAcrossSingleFile || producer.fixKind == fixKind,
-          'Producers used in bulk fixes must not modify the FixKind during '
-          'computation. $producer changed from $fixKind to ${producer.fixKind}.',
-        );
-
-        _addFixFromBuilder(builder, producer);
-      } on ConflictingEditException catch (exception, stackTrace) {
-        // Handle the exception by (a) not adding a fix based on the producer
-        // and (b) logging the exception.
-        _fixContext.instrumentationService.logException(exception, stackTrace);
-      }
-    }
 
     var diagnosticCode = diagnostic.diagnosticCode;
     List<ProducerGenerator>? generators;
@@ -137,14 +134,14 @@ class FixProcessor {
 
     if (generators != null) {
       for (var generator in generators) {
-        await compute(generator(context: context));
+        await _addFromProducer(generator(context: context));
       }
     }
     if (multiGenerators != null) {
       for (var multiGenerator in multiGenerators) {
         var multiProducer = multiGenerator(context: context);
         for (var producer in await multiProducer.producers) {
-          await compute(producer);
+          await _addFromProducer(producer);
         }
       }
     }
@@ -163,7 +160,7 @@ class FixProcessor {
             continue;
           }
         }
-        await compute(producer);
+        await _addFromProducer(generator(context: context));
       }
     }
   }
