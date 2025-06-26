@@ -20,7 +20,7 @@ import 'package:pub_semver/pub_semver.dart';
 /// A constructor element defined in a parameterized type where the values of
 /// the type parameters are known.
 class ConstructorMember extends ExecutableMember
-    with ConstructorElementMixin, ConstructorElementMixin2
+    with ConstructorElementMixin2
     implements ConstructorElement {
   /// Initialize a newly created element to represent a constructor, based on
   /// the [declaration], and applied [substitution].
@@ -141,25 +141,6 @@ class ConstructorMember extends ExecutableMember
       default:
         throw UnimplementedError('(${element.runtimeType}) $element');
     }
-  }
-
-  /// If the given [element]'s type is different when any type parameters
-  /// from the defining type's declaration are replaced with the actual type
-  /// arguments from the [definingType], create a constructor member
-  /// representing the given constructor. Return the member that was created, or
-  /// the original constructor if no member was created.
-  static ConstructorElementMixin from(
-    ConstructorFragmentImpl element,
-    InterfaceType definingType,
-  ) {
-    if (definingType.typeArguments.isEmpty) {
-      return element;
-    }
-
-    return ConstructorMember(
-      declaration: element,
-      substitution: Substitution.fromInterfaceType(definingType),
-    );
   }
 
   /// If the given [element]'s type is different when any type parameters

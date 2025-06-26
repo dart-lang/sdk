@@ -902,32 +902,25 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
+  String displayString2({
+    bool multiline = false,
+    bool preferTypeAlias = false,
+  }) {
+    // TODO(scheglov): de-duplicate
+    var builder = ElementDisplayStringBuilder(
+      multiline: multiline,
+      preferTypeAlias: preferTypeAlias,
+    );
+    builder.writeConstructorElement(this);
+    return builder.toString();
+  }
+
+  @override
   void visitChildren2<T>(ElementVisitor2<T> visitor) {
     for (var child in children2) {
       child.accept2(visitor);
     }
   }
-}
-
-mixin ConstructorElementMixin implements ExecutableElementOrMember {
-  @override
-  ConstructorFragmentImpl get declaration;
-
-  /// Whether the constructor is a const constructor.
-  bool get isConst;
-
-  /// Whether the constructor can be used as a default constructor - unnamed,
-  /// and has no required parameters.
-  bool get isDefaultConstructor;
-
-  /// Whether the constructor represents a factory constructor.
-  bool get isFactory;
-
-  /// Whether the constructor represents a generative constructor.
-  bool get isGenerative;
-
-  @override
-  InterfaceTypeImpl get returnType;
 }
 
 /// Common implementation for methods defined in [ConstructorElement].
@@ -957,7 +950,6 @@ mixin ConstructorElementMixin2
 
 /// A concrete implementation of a [ConstructorFragment].
 class ConstructorFragmentImpl extends ExecutableFragmentImpl
-    with ConstructorElementMixin
     implements ConstructorFragment {
   late final ConstructorElementImpl element;
 
@@ -1033,7 +1025,7 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
   InstanceFragment? get enclosingFragment =>
       enclosingElement3 as InstanceFragment;
 
-  @override
+  /// Whether the constructor is a const constructor.
   bool get isConst {
     return hasModifier(Modifier.CONST);
   }
@@ -1043,7 +1035,8 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
     setModifier(Modifier.CONST, isConst);
   }
 
-  @override
+  /// Whether the constructor can be used as a default constructor - unnamed,
+  /// and has no required parameters.
   bool get isDefaultConstructor {
     // unnamed
     if (name2 != 'new') {
@@ -1059,7 +1052,7 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
     return true;
   }
 
-  @override
+  /// Whether the constructor represents a factory constructor.
   bool get isFactory {
     return hasModifier(Modifier.FACTORY);
   }
@@ -1069,7 +1062,7 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
     setModifier(Modifier.FACTORY, isFactory);
   }
 
-  @override
+  /// Whether the constructor represents a generative constructor.
   bool get isGenerative {
     return !isFactory;
   }
@@ -1119,7 +1112,7 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
-    builder.writeConstructorElement(this);
+    builder.writeConstructorFragment(this);
   }
 
   /// Ensures that dependencies of this constructor, such as default values

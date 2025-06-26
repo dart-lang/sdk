@@ -90,25 +90,6 @@ extension ConstructorElementImplExtension on ConstructorFragmentImpl {
   }
 }
 
-extension ConstructorElementMixin2Extension on ConstructorElementMixin2 {
-  ConstructorElementMixin get asElement {
-    if (this case ConstructorMember member) {
-      return member;
-    }
-    return (this as ConstructorElementImpl).lastFragment;
-  }
-}
-
-extension ConstructorElementMixinExtension on ConstructorElementMixin {
-  ConstructorElementMixin2 get asElement2 {
-    return switch (this) {
-      ConstructorFragmentImpl(:var element) => element,
-      ConstructorMember member => member,
-      _ => throw UnsupportedError('Unsupported type: $runtimeType'),
-    };
-  }
-}
-
 extension Element2Extension on Element {
   /// Whether the element is effectively [internal].
   bool get isInternal {
