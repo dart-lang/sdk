@@ -164,7 +164,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
     if (!Identifier.isPrivateName(node.name.lexeme)) {
       var type = node.type.type;
       if (type is InterfaceTypeImpl) {
-        for (var constructor in type.constructors2) {
+        for (var constructor in type.constructors) {
           if (!Identifier.isPrivateName(constructor.name3!)) {
             usedElements.addElement(constructor);
           }

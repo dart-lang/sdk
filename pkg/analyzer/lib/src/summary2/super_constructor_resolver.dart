@@ -48,7 +48,7 @@ class SuperConstructorResolver {
             invokesDefaultSuperConstructor = false;
             var name = initializer.constructorName?.name ?? 'new';
             element.superConstructor2 =
-                classElement.supertype?.constructors2
+                classElement.supertype?.constructors
                     .where((element) => element.name3 == name)
                     .firstOrNull;
           }
@@ -58,7 +58,7 @@ class SuperConstructorResolver {
 
     if (invokesDefaultSuperConstructor) {
       element.superConstructor2 =
-          classElement.supertype?.constructors2
+          classElement.supertype?.constructors
               .where((element) => element.name3 == 'new')
               .firstOrNull;
     }

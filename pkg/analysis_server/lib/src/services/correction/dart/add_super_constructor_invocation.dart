@@ -43,7 +43,7 @@ class AddSuperConstructorInvocation extends MultiCorrectionProducer {
       prefix = ', ';
     }
     var producers = <ResolvedCorrectionProducer>[];
-    for (var constructor in superType.constructors2) {
+    for (var constructor in superType.constructors) {
       // Only propose public constructors.
       var name = constructor.name3;
       if (name != null && !Identifier.isPrivateName(name)) {

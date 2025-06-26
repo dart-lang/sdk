@@ -440,7 +440,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
     // Assign to break a possible infinite recursion during computing.
     _constructors = const <ConstructorElementImpl>[];
 
-    var superConstructors = superType.constructors2
+    var superConstructors = superType.constructors
         .where((constructor) => constructor.isAccessibleIn2(library))
         .where((constructor) => constructor.isGenerative)
         .toList(growable: false);

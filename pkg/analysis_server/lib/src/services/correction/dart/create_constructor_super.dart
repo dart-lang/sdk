@@ -28,7 +28,7 @@ class CreateConstructorSuper extends MultiCorrectionProducer {
 
     var producers = <ResolvedCorrectionProducer>[];
     // add proposals for all super constructors
-    for (var constructor in superType.constructors2) {
+    for (var constructor in superType.constructors) {
       // Only propose public constructors.
       var name = constructor.name3;
       if (name != null && !Identifier.isPrivateName(name)) {

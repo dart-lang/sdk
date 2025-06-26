@@ -182,7 +182,7 @@ class DeclarationHelper {
     required InterfaceType type,
     String? exclude,
   }) {
-    for (var constructor in type.constructors2) {
+    for (var constructor in type.constructors) {
       var name = constructor.name3;
       if (name != 'new' &&
           name != exclude &&

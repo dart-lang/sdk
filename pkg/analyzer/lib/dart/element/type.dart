@@ -279,6 +279,10 @@ abstract class InterfaceType implements ParameterizedType {
 
   /// Return a list containing all of the constructors declared in this type.
   @experimental
+  List<ConstructorElement> get constructors;
+
+  @Deprecated('Use constructors instead')
+  @experimental
   List<ConstructorElement> get constructors2;
 
   @experimental

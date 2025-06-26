@@ -665,12 +665,16 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  List<ConstructorElementMixin2> get constructors2 {
+  List<ConstructorElementMixin2> get constructors {
     return _constructors ??=
         element.constructors.map((constructor) {
           return ConstructorMember.from2(constructor, this);
         }).toFixedList();
   }
+
+  @Deprecated('Use constructors instead')
+  @override
+  List<ConstructorElementMixin2> get constructors2 => constructors;
 
   @Deprecated('Use element instead')
   @override
