@@ -1545,7 +1545,8 @@ class DynamicFragmentImpl extends FragmentImpl implements TypeDefiningFragment {
 }
 
 /// A concrete implementation of an [ElementAnnotation].
-class ElementAnnotationImpl implements ElementAnnotation {
+class ElementAnnotationImpl
+    implements ElementAnnotation, ConstantEvaluationTarget {
   /// The name of the top-level variable used to mark that a function always
   /// throws, for dead code purposes.
   static const String _alwaysThrowsVariableName = 'alwaysThrows';
@@ -1908,6 +1909,9 @@ class ElementAnnotationImpl implements ElementAnnotation {
   @Deprecated('Use library instead')
   @override
   LibraryElementImpl get library2 => compilationUnit.library;
+
+  @override
+  LibraryFragmentImpl get libraryFragment => compilationUnit;
 
   @override
   Source get librarySource => compilationUnit.librarySource;

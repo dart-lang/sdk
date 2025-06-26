@@ -117,7 +117,7 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
   ConstantFinder({required this.configuration});
 
   @override
-  void visitAnnotation(Annotation node) {
+  void visitAnnotation(covariant AnnotationImpl node) {
     super.visitAnnotation(node);
     var elementAnnotation = node.elementAnnotation;
     if (elementAnnotation == null) {
