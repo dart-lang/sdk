@@ -114,6 +114,88 @@ abstract class _Declaration {
       ProblemReporting problemReporting,
       List<_PreBuilder> nonConstructorPreBuilders,
       List<_PreBuilder> constructorPreBuilders);
+
+  /// Reports that [declaration] conflicts with this declaration.
+  void reportDuplicateDeclaration(
+      ProblemReporting problemReporting, _Declaration declaration);
+
+  void reportConstructorConflict(
+      ProblemReporting problemReporting, _Declaration declaration);
+}
+
+mixin _DeclarationReportingMixin implements _Declaration {
+  @override
+  void reportDuplicateDeclaration(
+      ProblemReporting problemReporting, _Declaration declaration) {
+    // TODO(johnniwinther): Mark [declaration] as a duplicate so we don't
+    //  report duplicates on duplicates.
+    _reportDuplicateDeclaration(problemReporting,
+        name: displayName,
+        existingUriOffset: uriOffset,
+        newUriOffset: declaration.uriOffset,
+        existingKind: _getExistingKindForDuplicate(declaration),
+        newIsSetter: declaration is _PropertyDeclaration &&
+            declaration.propertyKind == _PropertyKind.Setter);
+  }
+
+  _ExistingKind _getExistingKindForDuplicate(_Declaration declaration) =>
+      _ExistingKind.Getable;
+
+  void _reportDuplicateDeclaration(
+    ProblemReporting problemReporting, {
+    required String name,
+    required UriOffsetLength existingUriOffset,
+    required UriOffsetLength newUriOffset,
+    required _ExistingKind existingKind,
+    required bool newIsSetter,
+  }) {
+    switch (existingKind) {
+      case _ExistingKind.Getable:
+        if (newIsSetter) {
+          problemReporting.addProblem2(
+              templateSetterConflictsWithDeclaration.withArguments(name),
+              newUriOffset,
+              context: [
+                templateSetterConflictsWithDeclarationCause
+                    .withArguments(name)
+                    .withLocation2(existingUriOffset)
+              ]);
+          return;
+        }
+        break;
+      case _ExistingKind.ExplicitSetter:
+        if (!newIsSetter) {
+          problemReporting.addProblem2(
+              templateDeclarationConflictsWithSetter.withArguments(name),
+              newUriOffset,
+              context: <LocatedMessage>[
+                templateDeclarationConflictsWithSetterCause
+                    .withArguments(name)
+                    .withLocation2(existingUriOffset)
+              ]);
+          return;
+        }
+        break;
+      case _ExistingKind.ImplicitSetter:
+        problemReporting.addProblem2(
+            templateConflictsWithImplicitSetter.withArguments(name),
+            newUriOffset,
+            context: [
+              templateConflictsWithImplicitSetterCause
+                  .withArguments(name)
+                  .withLocation2(existingUriOffset)
+            ]);
+        return;
+    }
+
+    problemReporting.addProblem2(
+        templateDuplicatedDeclaration.withArguments(name), newUriOffset,
+        context: <LocatedMessage>[
+          templateDuplicatedDeclarationCause
+              .withArguments(name)
+              .withLocation2(existingUriOffset)
+        ]);
+  }
 }
 
 mixin _FragmentDeclarationMixin implements _Declaration {
@@ -142,6 +224,46 @@ abstract class _NonConstructorDeclaration extends _Declaration {
     _addPreBuilder(
         problemReporting, nonConstructorPreBuilders, constructorPreBuilders);
   }
+
+  @override
+  void reportConstructorConflict(
+      ProblemReporting problemReporting, _Declaration constructorDeclaration) {
+    if (constructorDeclaration.kind == _DeclarationKind.Constructor) {
+      // Example:
+      //
+      //    class A {
+      //      static int get foo => 42;
+      //      A.foo();
+      //    }
+      //
+      problemReporting.addProblem2(
+          templateConstructorConflictsWithMember.withArguments(displayName),
+          constructorDeclaration.uriOffset,
+          context: [
+            templateConstructorConflictsWithMemberCause
+                .withArguments(displayName)
+                .withLocation2(uriOffset)
+          ]);
+    } else {
+      assert(constructorDeclaration.kind == _DeclarationKind.Factory,
+          "Unexpected constructor kind $constructorDeclaration");
+      // Example:
+      //
+      //    class A {
+      //      static int get foo => 42;
+      //      factory A.foo() => throw '';
+      //    }
+      //
+      problemReporting.addProblem2(
+          templateFactoryConflictsWithMember.withArguments(displayName),
+          constructorDeclaration.uriOffset,
+          context: [
+            templateFactoryConflictsWithMemberCause
+                .withArguments(displayName)
+                .withLocation2(uriOffset)
+          ]);
+    }
+  }
 }
 
 abstract class _PropertyDeclaration extends _NonConstructorDeclaration {
@@ -161,9 +283,33 @@ abstract class _PropertyDeclaration extends _NonConstructorDeclaration {
       required this.uriOffset,
       super.isStatic})
       : super(_DeclarationKind.Property);
+
+  void reportStaticInstanceConflict(
+      ProblemReporting problemReporting, _PropertyDeclaration declaration) {
+    if (isStatic) {
+      problemReporting.addProblem2(
+          templateInstanceConflictsWithStatic.withArguments(displayName),
+          declaration.uriOffset,
+          context: [
+            templateInstanceConflictsWithStaticCause
+                .withArguments(displayName)
+                .withLocation2(uriOffset)
+          ]);
+    } else {
+      problemReporting.addProblem2(
+          templateStaticConflictsWithInstance.withArguments(displayName),
+          declaration.uriOffset,
+          context: [
+            templateStaticConflictsWithInstanceCause
+                .withArguments(displayName)
+                .withLocation2(uriOffset)
+          ]);
+    }
+  }
 }
 
-class _FieldDeclaration extends _PropertyDeclaration {
+class _FieldDeclaration extends _PropertyDeclaration
+    with _DeclarationReportingMixin {
   _FieldDeclaration(
       {required super.displayName,
       required super.isAugment,
@@ -176,9 +322,17 @@ class _FieldDeclaration extends _PropertyDeclaration {
 
   @override
   _PreBuilder _createPreBuilder() => new _PropertyPreBuilder.forField(this);
+
+  @override
+  _ExistingKind _getExistingKindForDuplicate(_Declaration declaration) {
+    bool newIsSetter = declaration is _PropertyDeclaration &&
+        declaration.propertyKind == _PropertyKind.Setter;
+    return newIsSetter ? _ExistingKind.ImplicitSetter : _ExistingKind.Getable;
+  }
 }
 
-class _GetterDeclaration extends _PropertyDeclaration {
+class _GetterDeclaration extends _PropertyDeclaration
+    with _DeclarationReportingMixin {
   _GetterDeclaration(
       {required super.displayName,
       required super.isAugment,
@@ -193,7 +347,8 @@ class _GetterDeclaration extends _PropertyDeclaration {
   _PreBuilder _createPreBuilder() => new _PropertyPreBuilder.forGetter(this);
 }
 
-class _SetterDeclaration extends _PropertyDeclaration {
+class _SetterDeclaration extends _PropertyDeclaration
+    with _DeclarationReportingMixin {
   _SetterDeclaration(
       {required super.displayName,
       required super.isAugment,
@@ -206,6 +361,11 @@ class _SetterDeclaration extends _PropertyDeclaration {
 
   @override
   _PreBuilder _createPreBuilder() => new _PropertyPreBuilder.forSetter(this);
+
+  @override
+  _ExistingKind _getExistingKindForDuplicate(_Declaration declaration) {
+    return _ExistingKind.ExplicitSetter;
+  }
 }
 
 mixin _StandardFragmentDeclarationMixin implements _StandardDeclaration {
@@ -226,7 +386,10 @@ abstract class _StandardDeclaration extends _NonConstructorDeclaration {
 }
 
 class _StandardFragmentDeclaration extends _StandardDeclaration
-    with _FragmentDeclarationMixin, _StandardFragmentDeclarationMixin {
+    with
+        _DeclarationReportingMixin,
+        _FragmentDeclarationMixin,
+        _StandardFragmentDeclarationMixin {
   @override
   final Fragment _fragment;
 
@@ -265,7 +428,8 @@ sealed class _ConstructorDeclaration extends _Declaration {
   }
 }
 
-class _GenerativeConstructorDeclaration extends _ConstructorDeclaration {
+class _GenerativeConstructorDeclaration extends _ConstructorDeclaration
+    with _DeclarationReportingMixin {
   final String _name;
   final ConstructorDeclaration _declaration;
 
@@ -283,9 +447,31 @@ class _GenerativeConstructorDeclaration extends _ConstructorDeclaration {
   @override
   _PreBuilder _createPreBuilder() =>
       new _GenerativeConstructorPreBuilder(_name, this);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void reportConstructorConflict(ProblemReporting problemReporting,
+      _Declaration nonConstructorDeclaration) {
+    // Example:
+    //
+    //    class A {
+    //      A.foo();
+    //      static void foo() {}
+    //    }
+    //
+    problemReporting.addProblem2(
+        templateMemberConflictsWithConstructor.withArguments(displayName),
+        nonConstructorDeclaration.uriOffset,
+        context: [
+          templateMemberConflictsWithConstructorCause
+              .withArguments(displayName)
+              .withLocation2(uriOffset)
+        ]);
+  }
 }
 
-class _FactoryConstructorDeclaration extends _ConstructorDeclaration {
+class _FactoryConstructorDeclaration extends _ConstructorDeclaration
+    with _DeclarationReportingMixin {
   final String _name;
   final FactoryDeclaration _declaration;
 
@@ -303,6 +489,27 @@ class _FactoryConstructorDeclaration extends _ConstructorDeclaration {
   @override
   _PreBuilder _createPreBuilder() =>
       new _FactoryConstructorPreBuilder(_name, this);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void reportConstructorConflict(ProblemReporting problemReporting,
+      _Declaration nonConstructorDeclaration) {
+    // Example:
+    //
+    //    class A {
+    //      factory A.foo() => throw '';
+    //      static void foo() {}
+    //    }
+    //
+    problemReporting.addProblem2(
+        templateMemberConflictsWithFactory.withArguments(displayName),
+        nonConstructorDeclaration.uriOffset,
+        context: [
+          templateMemberConflictsWithFactoryCause
+              .withArguments(displayName)
+              .withLocation2(uriOffset)
+        ]);
+  }
 }
 
 class _BuilderFactory {
@@ -1330,11 +1537,8 @@ class _PropertyPreBuilder extends _PreBuilder {
   final String name;
   final UriOffsetLength uriOffset;
   final bool isStatic;
-  FieldDeclaration? _field;
-  GetterDeclaration? _getter;
-  _PropertyKind? _getterPropertyKind;
-  SetterDeclaration? _setter;
-  _PropertyKind? _setterPropertyKind;
+  _PropertyDeclaration? _getterDeclaration;
+  _PropertyDeclaration? _setterDeclaration;
   List<GetterDeclaration> _getterAugmentations = [];
   List<SetterDeclaration> _setterAugmentations = [];
 
@@ -1344,7 +1548,7 @@ class _PropertyPreBuilder extends _PreBuilder {
         inPatch = getter.inPatch,
         name = getter.displayName,
         uriOffset = getter.uriOffset,
-        _getterPropertyKind = getter.propertyKind {
+        _getterDeclaration = getter {
     _PropertyDeclarations declarations = getter.declarations;
     assert(declarations.field == null,
         "Unexpected field declaration from getter ${getter}.");
@@ -1352,7 +1556,6 @@ class _PropertyPreBuilder extends _PreBuilder {
         "Unexpected getter declaration from getter ${getter}.");
     assert(declarations.setter == null,
         "Unexpected setter declaration from getter ${getter}.");
-    _getter = declarations.getter;
   }
 
   // TODO(johnniwinther): Report error if [setter] is augmenting.
@@ -1361,7 +1564,7 @@ class _PropertyPreBuilder extends _PreBuilder {
         inPatch = setter.inPatch,
         name = setter.displayName,
         uriOffset = setter.uriOffset,
-        _setterPropertyKind = setter.propertyKind {
+        _setterDeclaration = setter {
     _PropertyDeclarations declarations = setter.declarations;
     assert(declarations.field == null,
         "Unexpected field declaration from setter ${setter}.");
@@ -1369,7 +1572,6 @@ class _PropertyPreBuilder extends _PreBuilder {
         "Unexpected getter declaration from setter ${setter}.");
     assert(declarations.setter != null,
         "Unexpected setter declaration from setter ${setter}.");
-    _setter = declarations.setter;
   }
 
   // TODO(johnniwinther): Report error if [field] is augmenting.
@@ -1378,7 +1580,9 @@ class _PropertyPreBuilder extends _PreBuilder {
         inPatch = field.inPatch,
         name = field.displayName,
         uriOffset = field.uriOffset,
-        _getterPropertyKind = field.propertyKind {
+        _getterDeclaration = field,
+        _setterDeclaration =
+            field.propertyKind == _PropertyKind.Field ? field : null {
     _PropertyDeclarations declarations = field.declarations;
     assert(declarations.field != null,
         "Unexpected field declaration from field ${field}.");
@@ -1386,58 +1590,39 @@ class _PropertyPreBuilder extends _PreBuilder {
         "Unexpected getter declaration from field ${field}.");
     assert(
         (declarations.setter != null) ==
-            (_getterPropertyKind == _PropertyKind.Field),
+            (_getterDeclaration!.propertyKind == _PropertyKind.Field),
         "Unexpected setter declaration from field ${field}.");
-    _field = declarations.field;
-    _getter = declarations.getter;
-    _setter = declarations.setter;
-
-    if (_getterPropertyKind == _PropertyKind.Field) {
-      _setterPropertyKind = field.propertyKind;
-    }
   }
 
   @override
   bool absorbFragment(
       ProblemReporting problemReporting, _Declaration declaration) {
     if (declaration is! _PropertyDeclaration) {
-      if (_getter != null) {
+      if (_getterDeclaration != null) {
         // Example:
         //
         //    int get foo => 42;
         //    void foo() {}
         //
-        problemReporting.addProblem2(
-            templateDuplicatedDeclaration.withArguments(name),
-            declaration.uriOffset,
-            context: <LocatedMessage>[
-              templateDuplicatedDeclarationCause
-                  .withArguments(name)
-                  .withLocation2(_getter!.uriOffset)
-            ]);
+        _getterDeclaration!
+            .reportDuplicateDeclaration(problemReporting, declaration);
       } else {
-        assert(_setter != null);
+        assert(_setterDeclaration != null);
         // Example:
         //
         //    void set foo(_) {}
         //    void foo() {}
         //
-        problemReporting.addProblem2(
-            templateDeclarationConflictsWithSetter.withArguments(name),
-            declaration.uriOffset,
-            context: <LocatedMessage>[
-              templateDeclarationConflictsWithSetterCause
-                  .withArguments(name)
-                  .withLocation2(_setter!.uriOffset)
-            ]);
+        _setterDeclaration!
+            .reportDuplicateDeclaration(problemReporting, declaration);
       }
       return false;
     }
-    _PropertyKind? propertyKind = declaration.propertyKind;
 
+    _PropertyKind? propertyKind = declaration.propertyKind;
     switch (propertyKind) {
       case _PropertyKind.Getter:
-        if (_getter == null) {
+        if (_getterDeclaration == null) {
           // Example:
           //
           //    void set foo(_) {}
@@ -1452,40 +1637,22 @@ class _PropertyPreBuilder extends _PreBuilder {
             // TODO(johnniwinther): Report error.
           }
           if (declaration.isStatic != isStatic) {
-            if (declaration.isStatic) {
-              // Coverage-ignore-block(suite): Not run.
-              // Example:
-              //
-              //    class A {
-              //      void set foo(_) {}
-              //      static int get foo => 42;
-              //    }
-              //
-              problemReporting.addProblem2(
-                  templateStaticConflictsWithInstance.withArguments(name),
-                  declaration.uriOffset,
-                  context: [
-                    templateStaticConflictsWithInstanceCause
-                        .withArguments(name)
-                        .withLocation2(_setter!.uriOffset)
-                  ]);
-            } else {
-              // Example:
-              //
-              //    class A {
-              //      static void set foo(_) {}
-              //      int get foo => 42;
-              //    }
-              //
-              problemReporting.addProblem2(
-                  templateInstanceConflictsWithStatic.withArguments(name),
-                  declaration.uriOffset,
-                  context: [
-                    templateInstanceConflictsWithStaticCause
-                        .withArguments(name)
-                        .withLocation2(_setter!.uriOffset)
-                  ]);
-            }
+            // Examples:
+            //
+            //    class A {
+            //      void set foo(_) {}
+            //      static int get foo => 42;
+            //    }
+            //
+            // and
+            //
+            //    class A {
+            //      static void set foo(_) {}
+            //      int get foo => 42;
+            //    }
+            //
+            _setterDeclaration!
+                .reportStaticInstanceConflict(problemReporting, declaration);
             return false;
           } else {
             _PropertyDeclarations declarations = declaration.declarations;
@@ -1497,10 +1664,7 @@ class _PropertyPreBuilder extends _PreBuilder {
                 declarations.setter == null,
                 "Unexpected setter declaration from getter "
                 "${declaration}.");
-            _getter = declarations.getter;
-            assert(_getterPropertyKind == null,
-                "Unexpected setter property kind for $_setter");
-            _getterPropertyKind == propertyKind;
+            _getterDeclaration = declaration;
             return true;
           }
         } else {
@@ -1527,19 +1691,13 @@ class _PropertyPreBuilder extends _PreBuilder {
             //    int get foo => 42;
             //    int get foo => 87;
             //
-            problemReporting.addProblem2(
-                templateDuplicatedDeclaration.withArguments(name),
-                declaration.uriOffset,
-                context: <LocatedMessage>[
-                  templateDuplicatedDeclarationCause
-                      .withArguments(name)
-                      .withLocation2(_getter!.uriOffset)
-                ]);
+            _getterDeclaration!
+                .reportDuplicateDeclaration(problemReporting, declaration);
             return false;
           }
         }
       case _PropertyKind.Setter:
-        if (_setter == null) {
+        if (_setterDeclaration == null) {
           // Examples:
           //
           //    int get foo => 42;
@@ -1557,41 +1715,23 @@ class _PropertyPreBuilder extends _PreBuilder {
             // TODO(johnniwinther): Report error.
           }
           if (declaration.isStatic != isStatic) {
-            if (declaration.isStatic) {
-              // Example:
-              //
-              //    class A {
-              //      int get foo => 42;
-              //      static void set foo(_) {}
-              //    }
-              //
-              problemReporting.addProblem2(
-                  templateStaticConflictsWithInstance.withArguments(name),
-                  declaration.uriOffset,
-                  context: [
-                    templateStaticConflictsWithInstanceCause
-                        .withArguments(name)
-                        .withLocation2(_getter!.uriOffset)
-                  ]);
-              return false;
-            } else {
-              // Example:
-              //
-              //    class A {
-              //      static int get foo => 42;
-              //      void set foo(_) {}
-              //    }
-              //
-              problemReporting.addProblem2(
-                  templateInstanceConflictsWithStatic.withArguments(name),
-                  declaration.uriOffset,
-                  context: [
-                    templateInstanceConflictsWithStaticCause
-                        .withArguments(name)
-                        .withLocation2(_getter!.uriOffset)
-                  ]);
-              return false;
-            }
+            // Examples:
+            //
+            //    class A {
+            //      int get foo => 42;
+            //      static void set foo(_) {}
+            //    }
+            //
+            // and
+            //
+            //    class A {
+            //      static int get foo => 42;
+            //      void set foo(_) {}
+            //    }
+            //
+            _getterDeclaration!
+                .reportStaticInstanceConflict(problemReporting, declaration);
+            return false;
           } else {
             _PropertyDeclarations declarations = declaration.declarations;
             assert(
@@ -1602,10 +1742,7 @@ class _PropertyPreBuilder extends _PreBuilder {
                 declarations.getter == null,
                 "Unexpected getter declaration from setter "
                 "${declaration}.");
-            _setter = declarations.setter;
-            assert(_setterPropertyKind == null,
-                "Unexpected setter property kind for $_getter");
-            _setterPropertyKind == propertyKind;
+            _setterDeclaration = declaration;
             return true;
           }
         } else {
@@ -1627,58 +1764,34 @@ class _PropertyPreBuilder extends _PreBuilder {
             _setterAugmentations.add(declarations.setter!);
             return true;
           } else {
-            if (_setterPropertyKind == _PropertyKind.Field) {
-              // Example:
-              //
-              //    int? foo;
-              //    void set foo(_) {}
-              //
-              problemReporting.addProblem2(
-                  templateConflictsWithImplicitSetter.withArguments(name),
-                  declaration.uriOffset,
-                  context: [
-                    templateConflictsWithImplicitSetterCause
-                        .withArguments(name)
-                        .withLocation2(_setter!.uriOffset)
-                  ]);
-              return false;
-            } else {
-              // Example:
-              //
-              //    void set foo(_) {}
-              //    void set foo(_) {}
-              //
-              problemReporting.addProblem2(
-                  templateDuplicatedDeclaration.withArguments(name),
-                  declaration.uriOffset,
-                  context: <LocatedMessage>[
-                    templateDuplicatedDeclarationCause
-                        .withArguments(name)
-                        .withLocation2(_setter!.uriOffset)
-                  ]);
-              return false;
-            }
+            // Examples:
+            //
+            //    int? foo;
+            //    void set foo(_) {}
+            //
+            // and
+            //
+            //    void set foo(_) {}
+            //    void set foo(_) {}
+            //
+            _setterDeclaration!
+                .reportDuplicateDeclaration(problemReporting, declaration);
+            return false;
           }
         }
       case _PropertyKind.Field:
-        if (_getter == null) {
+        if (_getterDeclaration == null) {
           // Example:
           //
           //    void set foo(_) {}
           //    int? foo;
           //
-          assert(_getter == null && _setter != null);
+          assert(_getterDeclaration == null && _setterDeclaration != null);
           // We have an explicit setter.
-          problemReporting.addProblem2(
-              templateConflictsWithSetter.withArguments(name),
-              declaration.uriOffset,
-              context: [
-                templateConflictsWithSetterCause
-                    .withArguments(name)
-                    .withLocation2(_setter!.uriOffset)
-              ]);
+          _setterDeclaration!
+              .reportDuplicateDeclaration(problemReporting, declaration);
           return false;
-        } else if (_setter != null) {
+        } else if (_setterDeclaration != null) {
           // Examples:
           //
           //    int? foo;
@@ -1692,11 +1805,11 @@ class _PropertyPreBuilder extends _PreBuilder {
           //    void set baz(_) {}
           //    int baz = 87;
           //
-          assert(_getter != null && _setter != null);
+          assert(_getterDeclaration != null && _setterDeclaration != null);
           // We have both getter and setter
           if (declaration.isAugment) {
             // Coverage-ignore-block(suite): Not run.
-            if (_getterPropertyKind == declaration.propertyKind) {
+            if (_getterDeclaration!.propertyKind == declaration.propertyKind) {
               // Example:
               //
               //    int foo = 42;
@@ -1729,15 +1842,8 @@ class _PropertyPreBuilder extends _PreBuilder {
             //    void set bar(_) {}
             //    int? bar;
             //
-            problemReporting.addProblem2(
-                templateDuplicatedDeclaration.withArguments(name),
-                declaration.uriOffset,
-                context: <LocatedMessage>[
-                  templateDuplicatedDeclarationCause
-                      .withArguments(name)
-                      .withLocation2(_getter!.uriOffset)
-                ]);
-
+            _getterDeclaration!
+                .reportDuplicateDeclaration(problemReporting, declaration);
             return false;
           }
         } else {
@@ -1749,25 +1855,19 @@ class _PropertyPreBuilder extends _PreBuilder {
           //    final int bar = 42;
           //    int? bar;
           //
-          assert(_getter != null && _setter == null);
-          problemReporting.addProblem2(
-              templateDuplicatedDeclaration.withArguments(name),
-              declaration.uriOffset,
-              context: <LocatedMessage>[
-                templateDuplicatedDeclarationCause
-                    .withArguments(name)
-                    .withLocation2(_getter!.uriOffset)
-              ]);
+          assert(_getterDeclaration != null && _setterDeclaration == null);
+          _getterDeclaration!
+              .reportDuplicateDeclaration(problemReporting, declaration);
           return false;
         }
       case _PropertyKind.FinalField:
-        if (_getter == null) {
+        if (_getterDeclaration == null) {
           // Example:
           //
           //    void set foo(_) {}
           //    final int foo = 42;
           //
-          assert(_getter == null && _setter != null);
+          assert(_getterDeclaration == null && _setterDeclaration != null);
           // We have an explicit setter.
           if (declaration.isAugment) {
             // Example:
@@ -1779,54 +1879,30 @@ class _PropertyPreBuilder extends _PreBuilder {
           }
           if (declaration.isStatic != isStatic) {
             // Coverage-ignore-block(suite): Not run.
-            if (declaration.isStatic) {
-              // Example:
-              //
-              //    class A {
-              //      void set foo(_) {}
-              //      static final int foo = 42;
-              //    }
-              //
-              problemReporting.addProblem2(
-                  templateStaticConflictsWithInstance.withArguments(name),
-                  declaration.uriOffset,
-                  context: [
-                    templateStaticConflictsWithInstanceCause
-                        .withArguments(name)
-                        .withLocation2(_setter!.uriOffset)
-                  ]);
-              return false;
-            } else {
-              // Example:
-              //
-              //    class A {
-              //      static void set foo(_) {}
-              //      final int foo = 42;
-              //    }
-              //
-              problemReporting.addProblem2(
-                  templateInstanceConflictsWithStatic.withArguments(name),
-                  declaration.uriOffset,
-                  context: [
-                    templateInstanceConflictsWithStaticCause
-                        .withArguments(name)
-                        .withLocation2(_setter!.uriOffset)
-                  ]);
-              return false;
-            }
+            // Examples:
+            //
+            //    class A {
+            //      void set foo(_) {}
+            //      static final int foo = 42;
+            //    }
+            //
+            // and
+            //
+            //    class A {
+            //      static void set foo(_) {}
+            //      final int foo = 42;
+            //    }
+            //
+            _setterDeclaration!
+                .reportStaticInstanceConflict(problemReporting, declaration);
+            return false;
           } else {
             _PropertyDeclarations declarations = declaration.declarations;
             assert(
                 declarations.setter == null,
                 "Unexpected setter declaration from field "
                 "${declaration}.");
-            _field = declarations.field;
-            _getter = declarations.getter;
-            assert(
-                _getterPropertyKind == null,
-                "Unexpected getter property kind $_getterPropertyKind for "
-                "$_setter.");
-            _getterPropertyKind = propertyKind;
+            _getterDeclaration = declaration;
             return true;
           }
         } else {
@@ -1840,7 +1916,7 @@ class _PropertyPreBuilder extends _PreBuilder {
           //
           if (declaration.isAugment) {
             // Coverage-ignore-block(suite): Not run.
-            if (_getterPropertyKind == declaration.propertyKind) {
+            if (_getterDeclaration!.propertyKind == declaration.propertyKind) {
               // Example:
               //
               //    final int foo = 42;
@@ -1874,14 +1950,8 @@ class _PropertyPreBuilder extends _PreBuilder {
             //    int get bar => 42;
             //    final int bar = 87;
             //
-            problemReporting.addProblem2(
-                templateDuplicatedDeclaration.withArguments(name),
-                declaration.uriOffset,
-                context: <LocatedMessage>[
-                  templateDuplicatedDeclarationCause
-                      .withArguments(name)
-                      .withLocation2(_getter!.uriOffset)
-                ]);
+            _getterDeclaration!
+                .reportDuplicateDeclaration(problemReporting, declaration);
             return false;
           }
         }
@@ -1893,80 +1963,41 @@ class _PropertyPreBuilder extends _PreBuilder {
       ProblemReporting problemReporting, _Declaration constructorDeclaration) {
     // Check conflict with constructor.
     if (isStatic) {
-      if (_getter != null) {
-        if (constructorDeclaration.kind == _DeclarationKind.Constructor) {
-          // Example:
-          //
-          //    class A {
-          //      static int get foo => 42;
-          //      A.foo();
-          //    }
-          //
-          problemReporting.addProblem2(
-              templateConstructorConflictsWithMember.withArguments(name),
-              constructorDeclaration.uriOffset,
-              context: [
-                templateConstructorConflictsWithMemberCause
-                    .withArguments(name)
-                    .withLocation2(_getter!.uriOffset)
-              ]);
-        } else {
-          // Coverage-ignore-block(suite): Not run.
-          assert(constructorDeclaration.kind == _DeclarationKind.Factory,
-              "Unexpected constructor kind $constructorDeclaration");
-          // Example:
-          //
-          //    class A {
-          //      static int get foo => 42;
-          //      factory A.foo() => throw '';
-          //    }
-          //
-          problemReporting.addProblem2(
-              templateFactoryConflictsWithMember.withArguments(name),
-              constructorDeclaration.uriOffset,
-              context: [
-                templateFactoryConflictsWithMemberCause
-                    .withArguments(name)
-                    .withLocation2(_getter!.uriOffset)
-              ]);
-        }
+      if (_getterDeclaration != null) {
+        // Examples:
+        //
+        //    class A {
+        //      static int get foo => 42;
+        //      A.foo();
+        //    }
+        //
+        // and
+        //
+        //    class A {
+        //      static int get foo => 42;
+        //      factory A.foo() => throw '';
+        //    }
+        //
+        _getterDeclaration!.reportConstructorConflict(
+            problemReporting, constructorDeclaration);
       } else {
         // Coverage-ignore-block(suite): Not run.
-        if (constructorDeclaration.kind == _DeclarationKind.Constructor) {
-          // Example:
-          //
-          //    class A {
-          //      static void set foo(_) {}
-          //      A.foo();
-          //    }
-          //
-          problemReporting.addProblem2(
-              templateConstructorConflictsWithMember.withArguments(name),
-              constructorDeclaration.uriOffset,
-              context: [
-                templateConstructorConflictsWithMemberCause
-                    .withArguments(name)
-                    .withLocation2(_setter!.uriOffset)
-              ]);
-        } else {
-          assert(constructorDeclaration.kind == _DeclarationKind.Factory,
-              "Unexpected constructor kind $constructorDeclaration");
-          // Example:
-          //
-          //    class A {
-          //      static void set foo(_) {}
-          //      factory A.foo() => throw '';
-          //    }
-          //
-          problemReporting.addProblem2(
-              templateFactoryConflictsWithMember.withArguments(name),
-              constructorDeclaration.uriOffset,
-              context: [
-                templateFactoryConflictsWithMemberCause
-                    .withArguments(name)
-                    .withLocation2(_setter!.uriOffset)
-              ]);
-        }
+        // Examples:
+        //
+        //    class A {
+        //      static void set foo(_) {}
+        //      A.foo();
+        //    }
+        //
+        // and
+        //
+        //    class A {
+        //      static void set foo(_) {}
+        //      factory A.foo() => throw '';
+        //    }
+        //
+        _setterDeclaration!.reportConstructorConflict(
+            problemReporting, constructorDeclaration);
       }
     }
   }
@@ -1978,10 +2009,10 @@ class _PropertyPreBuilder extends _PreBuilder {
         inPatch: inPatch,
         isStatic: isStatic,
         uriOffset: uriOffset,
-        fieldDeclaration: _field,
-        getterDeclaration: _getter,
+        fieldDeclaration: _getterDeclaration?.declarations.field,
+        getterDeclaration: _getterDeclaration?.declarations.getter,
         getterAugmentationDeclarations: _getterAugmentations,
-        setterDeclaration: _setter,
+        setterDeclaration: _setterDeclaration?.declarations.setter,
         setterAugmentationDeclarations: _setterAugmentations);
   }
 }
@@ -2028,14 +2059,7 @@ sealed class _ConstructorPreBuilder<T extends _ConstructorDeclaration>
       //      A();
       //    }
       //
-      problemReporting.addProblem2(
-          templateDuplicatedDeclaration.withArguments(declaration.displayName),
-          declaration.uriOffset,
-          context: <LocatedMessage>[
-            templateDuplicatedDeclarationCause
-                .withArguments(_declaration.displayName)
-                .withLocation2(_declaration.uriOffset)
-          ]);
+      _declaration.reportDuplicateDeclaration(problemReporting, declaration);
       return false;
     }
   }
@@ -2046,43 +2070,22 @@ sealed class _ConstructorPreBuilder<T extends _ConstructorDeclaration>
     // Check conflict with non-constructor.
     if (nonConstructorDeclaration.isStatic) {
       // Coverage-ignore-block(suite): Not run.
-      if (_declaration.kind == _DeclarationKind.Constructor) {
-        // Example:
-        //
-        //    class A {
-        //      A.foo();
-        //      static void foo() {}
-        //    }
-        //
-        problemReporting.addProblem2(
-            templateMemberConflictsWithConstructor
-                .withArguments(_declaration.displayName),
-            nonConstructorDeclaration.uriOffset,
-            context: [
-              templateMemberConflictsWithConstructorCause
-                  .withArguments(_declaration.displayName)
-                  .withLocation2(_declaration.uriOffset)
-            ]);
-      } else {
-        assert(_declaration.kind == _DeclarationKind.Factory,
-            "Unexpected constructor kind $_declaration");
-        // Example:
-        //
-        //    class A {
-        //      factory A.foo() => throw '';
-        //      static void foo() {}
-        //    }
-        //
-        problemReporting.addProblem2(
-            templateMemberConflictsWithFactory
-                .withArguments(_declaration.displayName),
-            nonConstructorDeclaration.uriOffset,
-            context: [
-              templateMemberConflictsWithFactoryCause
-                  .withArguments(_declaration.displayName)
-                  .withLocation2(_declaration.uriOffset)
-            ]);
-      }
+      // Examples:
+      //
+      //    class A {
+      //      A.foo();
+      //      static void foo() {}
+      //    }
+      //
+      // and
+      //
+      //    class A {
+      //      factory A.foo() => throw '';
+      //      static void foo() {}
+      //    }
+      //
+      _declaration.reportConstructorConflict(
+          problemReporting, nonConstructorDeclaration);
     }
   }
 }
@@ -2153,38 +2156,17 @@ class _DeclarationPreBuilder extends _PreBuilder {
         return false;
       }
     } else {
-      if (declaration is _PropertyDeclaration &&
-          declaration.propertyKind == _PropertyKind.Setter) {
-        // Example:
-        //
-        //    class Foo {}
-        //    set Foo(_) {}
-        //
-        problemReporting.addProblem2(
-            templateSetterConflictsWithDeclaration
-                .withArguments(_declaration.displayName),
-            declaration.uriOffset,
-            context: [
-              templateSetterConflictsWithDeclarationCause
-                  .withArguments(_declaration.displayName)
-                  .withLocation2(_declaration.uriOffset)
-            ]);
-      } else {
-        // Example:
-        //
-        //    class Foo {}
-        //    class Foo {}
-        //
-        problemReporting.addProblem2(
-            templateDuplicatedDeclaration
-                .withArguments(declaration.displayName),
-            declaration.uriOffset,
-            context: <LocatedMessage>[
-              templateDuplicatedDeclarationCause
-                  .withArguments(_declaration.displayName)
-                  .withLocation2(_declaration.uriOffset)
-            ]);
-      }
+      // Examples:
+      //
+      //    class Foo {}
+      //    set Foo(_) {}
+      //
+      // and
+      //
+      //    class Foo {}
+      //    class Foo {}
+      //
+      _declaration.reportDuplicateDeclaration(problemReporting, declaration);
       return false;
     }
   }
@@ -2194,43 +2176,22 @@ class _DeclarationPreBuilder extends _PreBuilder {
       ProblemReporting problemReporting, _Declaration constructorDeclaration) {
     // Check conflict with constructor.
     if (_declaration.isStatic) {
-      if (constructorDeclaration.kind == _DeclarationKind.Constructor) {
-        // Example:
-        //
-        //    class A {
-        //      static void foo() {}
-        //      A.foo();
-        //    }
-        //
-        problemReporting.addProblem2(
-            templateConstructorConflictsWithMember
-                .withArguments(_declaration.displayName),
-            constructorDeclaration.uriOffset,
-            context: [
-              templateConstructorConflictsWithMemberCause
-                  .withArguments(_declaration.displayName)
-                  .withLocation2(_declaration.uriOffset)
-            ]);
-      } else {
-        assert(constructorDeclaration.kind == _DeclarationKind.Factory,
-            "Unexpected constructor kind $constructorDeclaration");
-        // Example:
-        //
-        //    class A {
-        //      static void foo() {}
-        //      factory A.foo() => throw '';
-        //    }
-        //
-        problemReporting.addProblem2(
-            templateFactoryConflictsWithMember
-                .withArguments(_declaration.displayName),
-            constructorDeclaration.uriOffset,
-            context: [
-              templateFactoryConflictsWithMemberCause
-                  .withArguments(_declaration.displayName)
-                  .withLocation2(_declaration.uriOffset)
-            ]);
-      }
+      // Examples:
+      //
+      //    class A {
+      //      static void foo() {}
+      //      A.foo();
+      //    }
+      //
+      // and
+      //
+      //    class A {
+      //      static void foo() {}
+      //      factory A.foo() => throw '';
+      //    }
+      //
+      _declaration.reportConstructorConflict(
+          problemReporting, constructorDeclaration);
     }
   }
 
@@ -2849,4 +2810,10 @@ class _PropertyDeclarations {
   final SetterDeclaration? setter;
 
   _PropertyDeclarations({this.field, this.getter, this.setter});
+}
+
+enum _ExistingKind {
+  Getable,
+  ExplicitSetter,
+  ImplicitSetter,
 }

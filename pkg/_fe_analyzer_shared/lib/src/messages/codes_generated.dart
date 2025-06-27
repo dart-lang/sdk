@@ -1587,62 +1587,6 @@ Message _withArgumentsConflictsWithImplicitSetterCause(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> templateConflictsWithSetter =
-    const Template<Message Function(String name)>(
-  "ConflictsWithSetter",
-  problemMessageTemplate: r"""Conflicts with setter '#name'.""",
-  withArguments: _withArgumentsConflictsWithSetter,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeConflictsWithSetter =
-    const Code<Message Function(String name)>(
-  "ConflictsWithSetter",
-  analyzerCodes: <String>["CONFLICTS_WITH_MEMBER"],
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConflictsWithSetter(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(
-    codeConflictsWithSetter,
-    problemMessage: """Conflicts with setter '${name}'.""",
-    arguments: {
-      'name': name,
-    },
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> templateConflictsWithSetterCause =
-    const Template<Message Function(String name)>(
-  "ConflictsWithSetterCause",
-  problemMessageTemplate: r"""Conflicting setter '#name'.""",
-  withArguments: _withArgumentsConflictsWithSetterCause,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeConflictsWithSetterCause =
-    const Code<Message Function(String name)>(
-  "ConflictsWithSetterCause",
-  severity: Severity.context,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConflictsWithSetterCause(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(
-    codeConflictsWithSetterCause,
-    problemMessage: """Conflicting setter '${name}'.""",
-    arguments: {
-      'name': name,
-    },
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateConflictsWithTypeParameter =
     const Template<Message Function(String name)>(

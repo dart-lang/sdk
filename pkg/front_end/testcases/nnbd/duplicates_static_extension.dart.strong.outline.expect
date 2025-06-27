@@ -37,7 +37,7 @@ library;
 //   static int staticFieldAndSetter1 = 1;
 //              ^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/duplicates_static_extension.dart:24:14: Error: Conflicts with setter 'staticFieldAndSetter2'.
+// pkg/front_end/testcases/nnbd/duplicates_static_extension.dart:24:14: Error: The declaration conflicts with setter 'staticFieldAndSetter2'.
 //   static int staticFieldAndSetter2 = 1;
 //              ^^^^^^^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/nnbd/duplicates_static_extension.dart:22:19: Context: Conflicting setter 'staticFieldAndSetter2'.
@@ -51,7 +51,7 @@ library;
 //   static late final int staticLateFinalFieldAndSetter1;
 //                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/duplicates_static_extension.dart:31:25: Error: Conflicts with setter 'staticLateFinalFieldAndSetter2'.
+// pkg/front_end/testcases/nnbd/duplicates_static_extension.dart:31:25: Error: The declaration conflicts with setter 'staticLateFinalFieldAndSetter2'.
 //   static late final int staticLateFinalFieldAndSetter2;
 //                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/nnbd/duplicates_static_extension.dart:29:19: Context: Conflicting setter 'staticLateFinalFieldAndSetter2'.

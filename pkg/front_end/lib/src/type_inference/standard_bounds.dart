@@ -25,8 +25,7 @@ mixin TypeSchemaStandardBounds on StandardBounds {
   }
 
   @override
-  DartType getStandardLowerBoundInternal(
-      DartType type1, DartType type2) {
+  DartType getStandardLowerBoundInternal(DartType type1, DartType type2) {
     //  - We add the axiom that `DOWN(T, _) == T` and the symmetric version.
     if (type1 is UnknownType) return type2;
     if (type2 is UnknownType) return type1;
@@ -35,8 +34,7 @@ mixin TypeSchemaStandardBounds on StandardBounds {
   }
 
   @override
-  DartType getStandardUpperBoundInternal(
-      DartType type1, DartType type2) {
+  DartType getStandardUpperBoundInternal(DartType type1, DartType type2) {
     //  - We add the axiom that `UP(T, _) == T` and the symmetric version.
     if (type1 is UnknownType) return type2;
     if (type2 is UnknownType) return type1;

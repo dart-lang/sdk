@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/static_vs_instance.dart:7:14: Error: Conflicts with setter 's5'.
+// pkg/front_end/testcases/general/static_vs_instance.dart:7:14: Error: The declaration conflicts with setter 's5'.
 //   static int s5 = 1;
 //              ^^
 // pkg/front_end/testcases/general/static_vs_instance.dart:6:7: Context: Conflicting setter 's5'.

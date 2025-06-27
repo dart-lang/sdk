@@ -37,4 +37,28 @@ abstract class A2 extends SuperclassWithHashCode implements Enum {} // Error.
 
 abstract class A3 extends SuperclassWithValues implements Enum {} // Error.
 
+enum E4 {
+  E4
+}
+
+enum E5 {
+  a;
+  get E5 => null;
+}
+
+enum E6 {
+  a;
+  set E6(_) {}
+}
+
+enum E7 {
+  a;
+  E7() {}
+}
+
+enum E8 {
+  a;
+  factory E8.values() => a;
+}
+
 main() {}

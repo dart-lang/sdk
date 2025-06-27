@@ -719,8 +719,7 @@ class OperationsCfe
   bool isAssignableTo(SharedTypeView fromType, SharedTypeView toType) {
     if (fromType is DynamicType) return true;
     return typeEnvironment
-        .performSubtypeCheck(
-            fromType.unwrapTypeView(), toType.unwrapTypeView())
+        .performSubtypeCheck(fromType.unwrapTypeView(), toType.unwrapTypeView())
         .isSuccess();
   }
 
@@ -981,16 +980,14 @@ class OperationsCfe
   @override
   DartType greatestClosureOfTypeInternal(
       DartType type, List<SharedTypeParameter> typeParametersToEliminate) {
-    return new FreeTypeParameterEliminator(
-            coreTypes: typeEnvironment.coreTypes)
+    return new FreeTypeParameterEliminator(coreTypes: typeEnvironment.coreTypes)
         .eliminateToGreatest(type);
   }
 
   @override
   DartType leastClosureOfTypeInternal(
       DartType type, List<SharedTypeParameter> typeParametersToEliminate) {
-    return new FreeTypeParameterEliminator(
-            coreTypes: typeEnvironment.coreTypes)
+    return new FreeTypeParameterEliminator(coreTypes: typeEnvironment.coreTypes)
         .eliminateToLeast(type);
   }
 

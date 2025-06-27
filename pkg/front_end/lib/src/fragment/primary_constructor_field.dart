@@ -98,6 +98,7 @@ class PrimaryConstructorFieldDeclaration
   TypeBuilder get type => _fragment.type;
 
   @override
+  // Coverage-ignore(suite): Not run.
   UriOffsetLength get uriOffset => _fragment.uriOffset;
 
   // Coverage-ignore(suite): Not run.
