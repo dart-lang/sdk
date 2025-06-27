@@ -94,7 +94,9 @@ abstract class MembersNodeBuilder {
             declarationBuilder.fileUri,
             context: _inheritedConflictContext(a, b));
       }
-    } else if (a.isStatic != b.isStatic) {
+    }
+    // Coverage-ignore(suite): Not run.
+    else if (a.isStatic != b.isStatic) {
       ClassMember staticMember;
       ClassMember instanceMember;
       if (a.isStatic) {

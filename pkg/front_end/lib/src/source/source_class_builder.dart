@@ -276,8 +276,11 @@ class SourceClassBuilder extends ClassBuilderImpl
         containerType: ContainerType.Class,
         containerName: new ClassName(name),
         constructorBuilders: _constructorBuilders,
-        memberBuilders: _memberBuilders);
+        memberBuilders: _memberBuilders,
+        syntheticDeclarations: createSyntheticDeclarations());
   }
+
+  Map<String, SyntheticDeclaration>? createSyntheticDeclarations() => null;
 
   bool _hasComputedSupertypes = false;
 

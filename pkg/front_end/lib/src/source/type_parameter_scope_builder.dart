@@ -46,6 +46,10 @@ import 'source_property_builder.dart';
 import 'source_type_alias_builder.dart';
 import 'source_type_parameter_builder.dart';
 
+abstract class SyntheticDeclaration {
+  _Declaration createDeclaration();
+}
+
 enum _PropertyKind {
   Getter,
   Setter,
@@ -551,17 +555,25 @@ class _BuilderFactory {
         _problemReporting = problemReporting,
         _inLibrary = declarationBuilder == null;
 
-  void computeBuildersFromFragments(String name, List<Fragment> fragments) {
+  void computeBuildersByName(String name,
+      {List<Fragment>? fragments, SyntheticDeclaration? syntheticDeclaration}) {
     List<_PreBuilder> nonConstructorPreBuilders = [];
     List<_PreBuilder> constructorPreBuilders = [];
     List<Fragment> unnamedFragments = [];
 
-    for (Fragment fragment in fragments) {
-      _Declaration? declaration = _createDeclarationFromFragment(fragment,
-          inLibrary: _inLibrary, unnamedFragments: unnamedFragments);
-
-      declaration?.registerPreBuilder(
+    if (syntheticDeclaration != null) {
+      syntheticDeclaration.createDeclaration().registerPreBuilder(
           _problemReporting, nonConstructorPreBuilders, constructorPreBuilders);
+    }
+
+    if (fragments != null) {
+      for (Fragment fragment in fragments) {
+        _Declaration? declaration = _createDeclarationFromFragment(fragment,
+            inLibrary: _inLibrary, unnamedFragments: unnamedFragments);
+
+        declaration?.registerPreBuilder(_problemReporting,
+            nonConstructorPreBuilders, constructorPreBuilders);
+      }
     }
 
     for (_PreBuilder preBuilder in nonConstructorPreBuilders) {
@@ -2300,7 +2312,7 @@ class LibraryNameSpaceBuilder {
         containerType: ContainerType.Library);
 
     for (MapEntry<String, List<Fragment>> entry in fragmentsByName.entries) {
-      builderFactory.computeBuildersFromFragments(entry.key, entry.value);
+      builderFactory.computeBuildersByName(entry.key, fragments: entry.value);
     }
     return new SourceLibraryNameSpace(
         content: builderRegistry.content,
@@ -2522,22 +2534,20 @@ abstract class DeclarationFragmentImpl implements DeclarationFragment {
 
   DeclarationNameSpaceBuilder toDeclarationNameSpaceBuilder() {
     return new DeclarationNameSpaceBuilder._(
-        name, nominalParameterNameSpace, _fragments);
+        nominalParameterNameSpace, _fragments);
   }
 }
 
 class DeclarationNameSpaceBuilder {
-  final String _name;
   final NominalParameterNameSpace? _nominalParameterNameSpace;
   final List<Fragment> _fragments;
 
   DeclarationNameSpaceBuilder.empty()
-      : _name = '',
-        _nominalParameterNameSpace = null,
+      : _nominalParameterNameSpace = null,
         _fragments = const [];
 
   DeclarationNameSpaceBuilder._(
-      this._name, this._nominalParameterNameSpace, this._fragments);
+      this._nominalParameterNameSpace, this._fragments);
 
   void includeBuilders(DeclarationNameSpaceBuilder other) {
     _fragments.addAll(other._fragments);
@@ -2573,14 +2583,15 @@ class DeclarationNameSpaceBuilder {
       required ContainerType containerType,
       required ContainerName containerName,
       required List<SourceMemberBuilder> constructorBuilders,
-      required List<SourceMemberBuilder> memberBuilders}) {
+      required List<SourceMemberBuilder> memberBuilders,
+      Map<String, SyntheticDeclaration>? syntheticDeclarations}) {
     List<NominalParameterBuilder> unboundNominalParameters = [];
 
     _DeclarationBuilderRegistry builderRegistry =
         new _DeclarationBuilderRegistry(
             problemReporting: problemReporting,
             enclosingLibraryBuilder: enclosingLibraryBuilder,
-            declarationName: _name,
+            declarationBuilder: declarationBuilder,
             constructorBuilders: constructorBuilders,
             memberBuilders: memberBuilders);
 
@@ -2603,7 +2614,18 @@ class DeclarationNameSpaceBuilder {
         containerType: containerType,
         containerName: containerName);
     for (MapEntry<String, List<Fragment>> entry in fragmentsByName.entries) {
-      builderFactory.computeBuildersFromFragments(entry.key, entry.value);
+      String name = entry.key;
+      builderFactory.computeBuildersByName(name,
+          fragments: entry.value,
+          syntheticDeclaration: syntheticDeclarations?.remove(name));
+    }
+    if (syntheticDeclarations != null) {
+      for (MapEntry<String, SyntheticDeclaration> entry
+          in syntheticDeclarations.entries) {
+        String name = entry.key;
+        builderFactory.computeBuildersByName(name,
+            syntheticDeclaration: entry.value);
+      }
     }
 
     void checkConflicts(String name, Builder member) {
@@ -2632,14 +2654,14 @@ class _DeclarationBuilderRegistry implements _BuilderRegistry {
   final Map<String, MemberBuilder> constructors = {};
   final ProblemReporting problemReporting;
   final SourceLibraryBuilder enclosingLibraryBuilder;
-  final String declarationName;
+  final DeclarationBuilder declarationBuilder;
   final List<SourceMemberBuilder> constructorBuilders;
   final List<SourceMemberBuilder> memberBuilders;
 
   _DeclarationBuilderRegistry(
       {required this.problemReporting,
       required this.enclosingLibraryBuilder,
-      required this.declarationName,
+      required this.declarationBuilder,
       required this.constructorBuilders,
       required this.memberBuilders});
 
@@ -2650,7 +2672,7 @@ class _DeclarationBuilderRegistry implements _BuilderRegistry {
       return true;
     }
     if (newBuilder.isStatic) {
-      return declarationName.startsWith('_');
+      return declarationBuilder.name.startsWith('_');
     }
     // TODO(johnniwinther): Restrict the use of injected public class members.
     return true;
@@ -2668,8 +2690,19 @@ class _DeclarationBuilderRegistry implements _BuilderRegistry {
 
     bool isConstructor =
         declaration is ConstructorBuilder || declaration is FactoryBuilder;
-    if (!isConstructor && name == declarationName) {
-      problemReporting.addProblem2(messageMemberWithSameNameAsClass, uriOffset);
+    if (!isConstructor && name == declarationBuilder.name) {
+      // TODO(johnniwinther): Check these closer to the member declaration to
+      // better specialize the message.
+      if (declarationBuilder.isEnum && name == 'values') {
+        problemReporting.addProblem(
+            messageEnumWithNameValues,
+            declarationBuilder.fileOffset,
+            name.length,
+            declarationBuilder.fileUri);
+      } else {
+        problemReporting.addProblem2(
+            messageMemberWithSameNameAsClass, uriOffset);
+      }
     }
     if (isConstructor) {
       constructorBuilders.add(declaration as SourceMemberBuilder);
@@ -2810,6 +2843,48 @@ class _PropertyDeclarations {
   final SetterDeclaration? setter;
 
   _PropertyDeclarations({this.field, this.getter, this.setter});
+}
+
+class EnumValuesDeclaration extends _PropertyDeclaration
+    implements SyntheticDeclaration {
+  EnumValuesDeclaration(
+      {required String name,
+      required UriOffsetLength uriOffset,
+      required FieldDeclaration field,
+      required GetterDeclaration getter})
+      : super(
+            propertyKind: _PropertyKind.FinalField,
+            displayName: name,
+            isAugment: false,
+            inPatch: false,
+            inLibrary: false,
+            uriOffset: uriOffset,
+            declarations:
+                new _PropertyDeclarations(field: field, getter: getter));
+  @override
+  _Declaration createDeclaration() {
+    return this;
+  }
+
+  @override
+  _PreBuilder _createPreBuilder() {
+    return new _PropertyPreBuilder.forField(this);
+  }
+
+  @override
+  void reportDuplicateDeclaration(
+      ProblemReporting problemReporting, _Declaration declaration) {
+    problemReporting.addProblem2(
+        messageEnumContainsValuesDeclaration, declaration.uriOffset);
+  }
+
+  @override
+  void reportStaticInstanceConflict(
+      ProblemReporting problemReporting, _PropertyDeclaration declaration) {
+    problemReporting.addProblem2(
+        templateInstanceAndSynthesizedStaticConflict.withArguments(displayName),
+        declaration.uriOffset);
+  }
 }
 
 enum _ExistingKind {

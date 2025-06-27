@@ -39,6 +39,13 @@ library;
 //   E7() {}
 //   ^
 //
+// pkg/front_end/testcases/enhanced_enums/missed_checks.dart:61:11: Error: The factory conflicts with member 'values'.
+//   factory E8.values() => a;
+//           ^^^^^^^^^
+// pkg/front_end/testcases/enhanced_enums/missed_checks.dart:59:6: Context: Conflicting member 'values'.
+// enum E8 {
+//      ^
+//
 // pkg/front_end/testcases/enhanced_enums/missed_checks.dart:34:16: Error: A concrete instance member named '==' can't be inherited from 'SuperclassWithEquals' in a class that implements 'Enum'.
 // abstract class A1 extends SuperclassWithEquals implements Enum {} // Error.
 //                ^
