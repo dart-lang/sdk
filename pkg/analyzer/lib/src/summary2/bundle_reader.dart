@@ -306,8 +306,8 @@ class LibraryReader {
     });
   }
 
-  void _readClassFragments(LibraryFragmentImpl libraryFragment) {
-    libraryFragment.classes = _reader.readTypedList(() {
+  List<ClassFragmentImpl> _readClassFragments() {
+    return _reader.readTypedList(() {
       return _readTemplateFragment(
         create: (name) {
           var fragment = ClassFragmentImpl(name2: name, nameOffset: -1);
@@ -317,12 +317,12 @@ class LibraryReader {
           _lazyRead((membersOffset) {
             fragment.deferReadMembers(() {
               _reader.runAtOffset(membersOffset, () {
-                _readFieldFragments(fragment);
+                fragment.fields = _readFieldFragments();
                 fragment.getters = _readGetterFragments();
                 fragment.setters = _readSetterFragments();
-                _readMethodFragments(fragment);
+                fragment.methods = _readMethodFragments();
                 if (!fragment.isMixinApplication) {
-                  _readConstructorFragments(fragment);
+                  fragment.constructors = _readConstructorFragments();
                 }
 
                 // TODO(scheglov): this is ugly
@@ -377,8 +377,8 @@ class LibraryReader {
     });
   }
 
-  void _readConstructorFragments(InterfaceFragmentImpl interfaceFragment) {
-    interfaceFragment.constructors = _reader.readTypedList(() {
+  List<ConstructorFragmentImpl> _readConstructorFragments() {
+    return _reader.readTypedList(() {
       return _readTemplateFragment(
         create: (name) {
           var fragment = ConstructorFragmentImpl(name2: name!, nameOffset: -1);
@@ -513,8 +513,8 @@ class LibraryReader {
     });
   }
 
-  void _readEnumFragments(LibraryFragmentImpl libraryFragment) {
-    libraryFragment.enums = _reader.readTypedList(() {
+  List<EnumFragmentImpl> _readEnumFragments() {
+    return _reader.readTypedList(() {
       return _readTemplateFragment(
         create: (name) {
           var fragment = EnumFragmentImpl(name2: name, nameOffset: -1);
@@ -522,11 +522,11 @@ class LibraryReader {
           fragment.typeParameters = _readTypeParameters();
 
           // TODO(scheglov): consider reading lazily
-          _readFieldFragments(fragment);
+          fragment.fields = _readFieldFragments();
           fragment.getters = _readGetterFragments();
           fragment.setters = _readSetterFragments();
-          _readConstructorFragments(fragment);
-          _readMethodFragments(fragment);
+          fragment.constructors = _readConstructorFragments();
+          fragment.methods = _readMethodFragments();
           return fragment;
         },
         readResolution: (fragment, reader) {
@@ -599,17 +599,17 @@ class LibraryReader {
     });
   }
 
-  void _readExtensionFragments(LibraryFragmentImpl libraryFragment) {
-    libraryFragment.extensions = _reader.readTypedList(() {
+  List<ExtensionFragmentImpl> _readExtensionFragments() {
+    return _reader.readTypedList(() {
       return _readTemplateFragment(
         create: (name) {
           var fragment = ExtensionFragmentImpl(name2: name, nameOffset: -1);
           fragment.readModifiers(_reader);
           fragment.typeParameters = _readTypeParameters();
-          _readFieldFragments(fragment);
+          fragment.fields = _readFieldFragments();
           fragment.getters = _readGetterFragments();
           fragment.setters = _readSetterFragments();
-          _readMethodFragments(fragment);
+          fragment.methods = _readMethodFragments();
           return fragment;
         },
         readResolution: (fragment, reader) {
@@ -653,8 +653,8 @@ class LibraryReader {
     });
   }
 
-  void _readExtensionTypeFragments(LibraryFragmentImpl libraryFragment) {
-    libraryFragment.extensionTypes = _reader.readTypedList(() {
+  List<ExtensionTypeFragmentImpl> _readExtensionTypeFragments() {
+    return _reader.readTypedList(() {
       return _readTemplateFragment(
         create: (name) {
           var fragment = ExtensionTypeFragmentImpl(name2: name, nameOffset: -1);
@@ -664,11 +664,11 @@ class LibraryReader {
           fragment.typeParameters = _readTypeParameters();
 
           // TODO(scheglov): consider reading lazily
-          _readFieldFragments(fragment);
+          fragment.fields = _readFieldFragments();
           fragment.getters = _readGetterFragments();
           fragment.setters = _readSetterFragments();
-          _readConstructorFragments(fragment);
-          _readMethodFragments(fragment);
+          fragment.constructors = _readConstructorFragments();
+          fragment.methods = _readMethodFragments();
           return fragment;
         },
         readResolution: (fragment, reader) {
@@ -702,12 +702,11 @@ class LibraryReader {
     });
   }
 
-  void _readFieldFragments(InstanceFragmentImpl instanceFragment) {
-    instanceFragment.fields = _reader.readTypedList(() {
+  List<FieldFragmentImpl> _readFieldFragments() {
+    return _reader.readTypedList(() {
       return _readTemplateFragment(
         create: (name) {
           var fragment = FieldFragmentImpl(name2: name, nameOffset: -1);
-
           fragment.readModifiers(_reader);
           return fragment;
         },
@@ -931,8 +930,8 @@ class LibraryReader {
     });
   }
 
-  void _readMethodFragments(InstanceFragmentImpl instanceFragment) {
-    instanceFragment.methods = _reader.readTypedList(() {
+  List<MethodFragmentImpl> _readMethodFragments() {
+    return _reader.readTypedList(() {
       return _readTemplateFragment(
         create: (name) {
           var fragment = MethodFragmentImpl(name2: name, nameOffset: -1);
@@ -994,8 +993,8 @@ class LibraryReader {
     });
   }
 
-  void _readMixinFragments(LibraryFragmentImpl libraryFragment) {
-    libraryFragment.mixins = _reader.readTypedList(() {
+  List<MixinFragmentImpl> _readMixinFragments() {
+    return _reader.readTypedList(() {
       return _readTemplateFragment(
         create: (name) {
           var fragment = MixinFragmentImpl(name2: name, nameOffset: -1);
@@ -1004,11 +1003,11 @@ class LibraryReader {
           fragment.typeParameters = _readTypeParameters();
 
           // TODO(scheglov): consider reading lazily
-          _readFieldFragments(fragment);
+          fragment.fields = _readFieldFragments();
           fragment.getters = _readGetterFragments();
           fragment.setters = _readSetterFragments();
-          _readConstructorFragments(fragment);
-          _readMethodFragments(fragment);
+          fragment.constructors = _readConstructorFragments();
+          fragment.methods = _readMethodFragments();
           return fragment;
         },
         readResolution: (fragment, reader) {
@@ -1238,8 +1237,8 @@ class LibraryReader {
     });
   }
 
-  void _readTopLevelFunctionFragments(LibraryFragmentImpl libraryFragment) {
-    libraryFragment.functions = _reader.readTypedList(() {
+  List<TopLevelFunctionFragmentImpl> _readTopLevelFunctionFragments() {
+    return _reader.readTypedList(() {
       return _readTemplateFragment(
         create: (name) {
           var fragment = TopLevelFunctionFragmentImpl(
@@ -1325,8 +1324,10 @@ class LibraryReader {
     });
   }
 
-  void _readTypeAliasFragments(LibraryFragmentImpl unitElement) {
-    unitElement.typeAliases = _reader.readTypedList(() {
+  List<TypeAliasFragmentImpl> _readTypeAliasFragments(
+    LibraryFragmentImpl unitElement,
+  ) {
+    return _reader.readTypedList(() {
       return _readTemplateFragment(
         create: (name) {
           var fragment = TypeAliasFragmentImpl(name2: name, nameOffset: -1);
@@ -1429,13 +1430,13 @@ class LibraryReader {
       return _readLibraryExport(containerUnit: unitElement);
     });
 
-    _readClassFragments(unitElement);
-    _readEnumFragments(unitElement);
-    _readExtensionFragments(unitElement);
-    _readExtensionTypeFragments(unitElement);
-    _readTopLevelFunctionFragments(unitElement);
-    _readMixinFragments(unitElement);
-    _readTypeAliasFragments(unitElement);
+    unitElement.classes = _readClassFragments();
+    unitElement.enums = _readEnumFragments();
+    unitElement.extensions = _readExtensionFragments();
+    unitElement.extensionTypes = _readExtensionTypeFragments();
+    unitElement.functions = _readTopLevelFunctionFragments();
+    unitElement.mixins = _readMixinFragments();
+    unitElement.typeAliases = _readTypeAliasFragments(unitElement);
 
     unitElement.topLevelVariables = _readTopLevelVariableFragments();
     unitElement.getters = _readGetterFragments();
