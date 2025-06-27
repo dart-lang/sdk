@@ -72,6 +72,7 @@
 * Deprecate `DartType.element3`, use `element` instead.
 * Deprecate `LibraryElement.loadLibraryFunction2`, use `loadLibraryFunction` instead.
 * Deprecate `InterfaceType.constructors2`, use `constructors` instead.
+* Deprecate `Element.accept2`, use `accept` instead.
 
 ## 7.4.1
 * Restore `InstanceElement.augmented` getter.

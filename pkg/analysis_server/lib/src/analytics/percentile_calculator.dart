@@ -17,6 +17,14 @@ class PercentileCalculator {
   /// Initialize a newly created percentile calculator.
   PercentileCalculator();
 
+  factory PercentileCalculator.from(List<int> values) {
+    var calculator = PercentileCalculator();
+    for (var value in values) {
+      calculator.addValue(value);
+    }
+    return calculator;
+  }
+
   /// The number of values recorded.
   int get valueCount => _valueCount;
 

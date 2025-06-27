@@ -1,4 +1,6 @@
-# 3.9.0-wip
+# 3.10.0-wip
+
+# 3.9.0
 
 - new lint: `switch_on_type`
 - new lint: `unnecessary_unawaited`

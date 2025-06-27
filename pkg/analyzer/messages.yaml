@@ -3878,7 +3878,7 @@ CompileTimeErrorCode:
   DOT_SHORTHAND_MISSING_CONTEXT:
     experiment: dot-shorthands
     problemMessage: "A dot shorthand can't be used where there is no context type."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -3929,7 +3929,7 @@ CompileTimeErrorCode:
     experiment: dot-shorthands
     problemMessage: "The static getter '{0}' isn't defined for the context type '{1}'."
     correctionMessage: "Try correcting the name to the name of an existing static getter, or defining a getter or field named '{0}'."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the static getter
@@ -3984,7 +3984,7 @@ CompileTimeErrorCode:
     experiment: dot-shorthands
     problemMessage: "The static method or constructor '{0}' isn't defined for the context type '{1}'."
     correctionMessage: "Try correcting the name to the name of an existing static method or constructor, or defining a static method or constructor named '{0}'."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the static method or constructor
@@ -24143,7 +24143,7 @@ WarningCode:
   DOC_IMPORT_CANNOT_BE_DEFERRED:
     problemMessage: "Doc imports can't be deferred."
     correctionMessage: Try removing the 'deferred' keyword.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -24175,7 +24175,7 @@ WarningCode:
   DOC_IMPORT_CANNOT_HAVE_COMBINATORS:
     problemMessage: "Doc imports can't have show or hide combinators."
     correctionMessage: Try removing the combinator.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -24205,7 +24205,7 @@ WarningCode:
   DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS:
     problemMessage: "Doc imports can't have configurations."
     correctionMessage: Try removing the configurations.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -24235,7 +24235,7 @@ WarningCode:
   DOC_IMPORT_CANNOT_HAVE_PREFIX:
     problemMessage: "Doc imports can't have prefixes."
     correctionMessage: Try removing the prefix.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -25338,7 +25338,7 @@ WarningCode:
       Remove the reference to the internal declaration.
   INVALID_USE_OF_PROTECTED_MEMBER:
     problemMessage: "The member '{0}' can only be used within instance members of subclasses of '{1}'."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       This warning is generated anywhere where a member annotated with
       `@protected` is used outside of an instance member of a subclass.
@@ -25356,7 +25356,7 @@ WarningCode:
 
       #### Example
 
-      Given a file `a.dart` that contains
+      Given a file `a.dart` that contains the following:
 
       ```dart
       %uri="lib/a.dart"
@@ -25719,7 +25719,7 @@ WarningCode:
   INVALID_REOPEN_ANNOTATION:
     problemMessage: "The annotation '@reopen' can only be applied to a class that opens capabilities that the supertype intentionally disallows."
     correctionMessage: Try removing the '@reopen' annotation.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       This warning is generated anywhere where `@reopen` annotates a class which
       did not reopen any type.
@@ -26416,7 +26416,7 @@ WarningCode:
   NON_NULLABLE_EQUALS_PARAMETER:
     problemMessage: "The parameter type of '==' operators should be non-nullable."
     correctionMessage: Try using a non-nullable type.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -28157,7 +28157,7 @@ WarningCode:
   UNNECESSARY_WILDCARD_PATTERN:
     problemMessage: Unnecessary wildcard pattern.
     correctionMessage: Try removing the wildcard pattern.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description

@@ -226,7 +226,7 @@ element will have exactly one fragment.
 
 Let's look at two examples of migrating some code. The examples are taken from
 the analysis_server package, so they’re real code, and should be fairly
-epresentative without being overly complex.
+representative without being overly complex.
 
 ### Add missing enum case clauses
 
@@ -235,7 +235,7 @@ uses the element model in a couple of ways.
 
 To start, we need to understand how the code works, which we’ll do by looking at
 the pre-migrated code. It starts by getting the type of the value being switched
-ver. If the type is an `InterfaceType` then it gets the element associated with
+over. If the type is an `InterfaceType` then it gets the element associated with
 the type.
 
 ```dart
@@ -248,7 +248,7 @@ It then checks to see whether the element is an `EnumElement`.
 if (enumElement is EnumElement) {
   // ...
 }
-  ```
+```
 
 If it is, the list of enum constants is iterated over and each constant is added
 to a collection.

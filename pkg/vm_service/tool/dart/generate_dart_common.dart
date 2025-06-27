@@ -759,12 +759,13 @@ class Type extends Member {
           }
         }
       } else {
-        String typesList = typeRefListToString(field.type.types);
-        String nullable = field.type.name != 'dynamic' ? '?' : '';
+        final typeName = field.type.name;
+        final typesList = typeRefListToString(field.type.types);
+        final cast = typeName == 'dynamic' ? '' : 'as $typeName?';
         gen.writeln(
           '${field.generatableName} = '
           "createServiceObject(json['${field.name}'], "
-          '$typesList) as ${field.type.name}$nullable',
+          '$typesList) $cast',
         );
       }
 

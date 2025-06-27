@@ -1396,6 +1396,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       CompileTimeErrorCode(
         'DOT_SHORTHAND_MISSING_CONTEXT',
         "A dot shorthand can't be used where there is no context type.",
+        hasPublishedDocs: true,
       );
 
   ///  Parameters:
@@ -1408,6 +1409,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
     correctionMessage:
         "Try correcting the name to the name of an existing static getter, or "
         "defining a getter or field named '{0}'.",
+    hasPublishedDocs: true,
     uniqueName: 'DOT_SHORTHAND_UNDEFINED_GETTER',
   );
 
@@ -1422,6 +1424,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
     correctionMessage:
         "Try correcting the name to the name of an existing static method or "
         "constructor, or defining a static method or constructor named '{0}'.",
+    hasPublishedDocs: true,
     uniqueName: 'DOT_SHORTHAND_UNDEFINED_INVOCATION',
   );
 
@@ -6506,24 +6509,28 @@ class WarningCode extends DiagnosticCode {
     'DOC_IMPORT_CANNOT_BE_DEFERRED',
     "Doc imports can't be deferred.",
     correctionMessage: "Try removing the 'deferred' keyword.",
+    hasPublishedDocs: true,
   );
 
   static const WarningCode DOC_IMPORT_CANNOT_HAVE_COMBINATORS = WarningCode(
     'DOC_IMPORT_CANNOT_HAVE_COMBINATORS',
     "Doc imports can't have show or hide combinators.",
     correctionMessage: "Try removing the combinator.",
+    hasPublishedDocs: true,
   );
 
   static const WarningCode DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS = WarningCode(
     'DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS',
     "Doc imports can't have configurations.",
     correctionMessage: "Try removing the configurations.",
+    hasPublishedDocs: true,
   );
 
   static const WarningCode DOC_IMPORT_CANNOT_HAVE_PREFIX = WarningCode(
     'DOC_IMPORT_CANNOT_HAVE_PREFIX',
     "Doc imports can't have prefixes.",
     correctionMessage: "Try removing the prefix.",
+    hasPublishedDocs: true,
   );
 
   ///  Duplicate exports.
@@ -6895,6 +6902,7 @@ class WarningCode extends DiagnosticCode {
     "The annotation '@reopen' can only be applied to a class that opens "
         "capabilities that the supertype intentionally disallows.",
     correctionMessage: "Try removing the '@reopen' annotation.",
+    hasPublishedDocs: true,
   );
 
   ///  This warning is generated anywhere where `@required` annotates a named
@@ -6961,6 +6969,7 @@ class WarningCode extends DiagnosticCode {
     'INVALID_USE_OF_PROTECTED_MEMBER',
     "The member '{0}' can only be used within instance members of subclasses "
         "of '{1}'.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -7197,6 +7206,7 @@ class WarningCode extends DiagnosticCode {
     'NON_NULLABLE_EQUALS_PARAMETER',
     "The parameter type of '==' operators should be non-nullable.",
     correctionMessage: "Try using a non-nullable type.",
+    hasPublishedDocs: true,
   );
 
   ///  No parameters.
@@ -7651,6 +7661,7 @@ class WarningCode extends DiagnosticCode {
     'UNNECESSARY_WILDCARD_PATTERN',
     "Unnecessary wildcard pattern.",
     correctionMessage: "Try removing the wildcard pattern.",
+    hasPublishedDocs: true,
   );
 
   ///  No parameters.

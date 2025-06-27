@@ -40,7 +40,7 @@ String decodeBase64(String str) => utf8.decode(base64.decode(str));
 bool _isNullInstance(Map json) =>
     ((json['type'] == '@Instance') && (json['kind'] == 'Null'));
 
-Object? createServiceObject(dynamic json, List<String> expectedTypes) {
+Object? createServiceObject(Object? json, List<String> expectedTypes) {
   if (json == null) return null;
 
   if (json is List) {
@@ -75,7 +75,7 @@ Object? createServiceObject(dynamic json, List<String> expectedTypes) {
 }
 
 dynamic _createSpecificObject(
-    dynamic json, dynamic Function(Map<String, dynamic> map) creator) {
+    Object? json, dynamic Function(Map<String, dynamic> map) creator) {
   if (json == null) return null;
 
   if (json is List) {
@@ -1981,8 +1981,8 @@ class VmService {
     _services[service] = cb;
   }
 
-  void _processMessage(dynamic message) {
-    // Expect a String, an int[], or a ByteData.
+  void _processMessage(Object? message) {
+    // Expect a String, a List<int>, or a ByteData.
     if (message is String) {
       _processMessageStr(message);
     } else if (message is Uint8List) {
@@ -2005,7 +2005,7 @@ class VmService {
     final dataLength = bytes.lengthInBytes - dataOffset;
     final decoder = (const Utf8Decoder()).fuse(const JsonDecoder());
     final map = decoder.convert(Uint8List.view(
-        bytes.buffer, bytes.offsetInBytes + metaOffset, metaLength)) as dynamic;
+        bytes.buffer, bytes.offsetInBytes + metaOffset, metaLength)) as Map;
     final data = ByteData.view(
         bytes.buffer, bytes.offsetInBytes + dataOffset, dataLength);
     if (map['method'] == 'streamNotify') {
@@ -2043,8 +2043,8 @@ class VmService {
     final request = _outstandingRequests.remove(json['id']);
     if (request == null) {
       _log.severe('unmatched request response: ${jsonEncode(json)}');
-    } else if (json['error'] != null) {
-      request.completeError(RPCError.parse(request.method, json['error']));
+    } else if (json['error'] case Map error) {
+      request.completeError(RPCError.parse(request.method, error));
     } else {
       final result = json['result'] as Map<String, dynamic>;
       final type = result['type'];
@@ -2059,7 +2059,7 @@ class VmService {
     }
   }
 
-  Future _processRequest(Map<String, dynamic> json) async {
+  Future<void> _processRequest(Map<String, dynamic> json) async {
     final result = await _routeRequest(
         json['method'], json['params'] ?? <String, dynamic>{});
     if (_disposed) {
@@ -2068,12 +2068,12 @@ class VmService {
     }
     result['id'] = json['id'];
     result['jsonrpc'] = '2.0';
-    String message = jsonEncode(result);
+    final message = jsonEncode(result);
     _onSend.add(message);
     _writeMessage(message);
   }
 
-  Future _processNotification(Map<String, dynamic> json) async {
+  Future<void> _processNotification(Map<String, dynamic> json) async {
     final method = json['method'];
     final params = json['params'] ?? <String, dynamic>{};
     if (method == 'streamNotify') {
@@ -2096,7 +2096,7 @@ class VmService {
     try {
       return await service(params);
     } catch (e, st) {
-      RPCError error = RPCError.withDetails(
+      final error = RPCError.withDetails(
         method,
         RPCErrorKind.kServerError.code,
         '$e',
@@ -2107,7 +2107,7 @@ class VmService {
   }
 }
 
-typedef DisposeHandler = Future Function();
+typedef DisposeHandler = Future<void> Function();
 
 // These error codes must be kept in sync with those in vm/json_stream.h and
 // vmservice.dart.
@@ -2214,7 +2214,7 @@ enum RPCErrorKind {
 }
 
 class RPCError implements Exception {
-  static RPCError parse(String callingMethod, dynamic json) {
+  static RPCError parse(String callingMethod, Map json) {
     return RPCError(callingMethod, json['code'], json['message'], json['data']);
   }
 
@@ -2734,10 +2734,9 @@ class BoundField {
   BoundField._fromJson(Map<String, dynamic> json)
       : decl =
             createServiceObject(json['decl'], const ['FieldRef']) as FieldRef?,
-        name = createServiceObject(json['name'], const ['String', 'int'])
-            as dynamic,
+        name = createServiceObject(json['name'], const ['String', 'int']),
         value = createServiceObject(
-            json['value'], const ['InstanceRef', 'Sentinel']) as dynamic;
+            json['value'], const ['InstanceRef', 'Sentinel']);
 
   Map<String, dynamic> toJson() => <String, Object?>{
         'decl': decl?.toJson(),
@@ -2786,7 +2785,7 @@ class BoundVariable extends Response {
   BoundVariable._fromJson(super.json)
       : name = json['name'] ?? '',
         value = createServiceObject(json['value'],
-            const ['InstanceRef', 'TypeArgumentsRef', 'Sentinel']) as dynamic,
+            const ['InstanceRef', 'TypeArgumentsRef', 'Sentinel']),
         declarationTokenPos = json['declarationTokenPos'] ?? -1,
         scopeStartTokenPos = json['scopeStartTokenPos'] ?? -1,
         scopeEndTokenPos = json['scopeEndTokenPos'] ?? -1,
@@ -2857,7 +2856,7 @@ class Breakpoint extends Obj {
         resolved = json['resolved'] ?? false,
         isSyntheticAsyncContinuation = json['isSyntheticAsyncContinuation'],
         location = createServiceObject(json['location'],
-            const ['SourceLocation', 'UnresolvedSourceLocation']) as dynamic,
+            const ['SourceLocation', 'UnresolvedSourceLocation']),
         super._fromJson();
 
   @override
@@ -3260,7 +3259,7 @@ class CodeRef extends ObjRef {
       : name = json['name'] ?? '',
         kind = json['kind'] ?? '',
         function = createServiceObject(
-            json['function'], const ['FuncRef', 'NativeFunction']) as dynamic,
+            json['function'], const ['FuncRef', 'NativeFunction']),
         super._fromJson();
 
   @override
@@ -3319,7 +3318,7 @@ class Code extends Obj implements CodeRef {
       : name = json['name'] ?? '',
         kind = json['kind'] ?? '',
         function = createServiceObject(
-            json['function'], const ['FuncRef', 'NativeFunction']) as dynamic,
+            json['function'], const ['FuncRef', 'NativeFunction']),
         super._fromJson();
 
   @override
@@ -3453,7 +3452,7 @@ class ContextElement {
 
   ContextElement._fromJson(Map<String, dynamic> json)
       : value = createServiceObject(
-            json['value'], const ['InstanceRef', 'Sentinel']) as dynamic;
+            json['value'], const ['InstanceRef', 'Sentinel']);
 
   Map<String, dynamic> toJson() => <String, Object?>{
         'value': value?.toJson(),
@@ -4371,7 +4370,7 @@ class Field extends Obj implements FieldRef {
             createServiceObject(json['location'], const ['SourceLocation'])
                 as SourceLocation?,
         staticValue = createServiceObject(
-            json['staticValue'], const ['InstanceRef', 'Sentinel']) as dynamic,
+            json['staticValue'], const ['InstanceRef', 'Sentinel']),
         super._fromJson();
 
   @override
@@ -4606,8 +4605,7 @@ class FuncRef extends ObjRef {
   FuncRef._fromJson(super.json)
       : name = json['name'] ?? '',
         owner = createServiceObject(
-                json['owner'], const ['LibraryRef', 'ClassRef', 'FuncRef'])
-            as dynamic,
+            json['owner'], const ['LibraryRef', 'ClassRef', 'FuncRef']),
         isStatic = json['static'] ?? false,
         isConst = json['const'] ?? false,
         implicit = json['implicit'] ?? false,
@@ -4727,8 +4725,7 @@ class Func extends Obj implements FuncRef {
   Func._fromJson(super.json)
       : name = json['name'] ?? '',
         owner = createServiceObject(
-                json['owner'], const ['LibraryRef', 'ClassRef', 'FuncRef'])
-            as dynamic,
+            json['owner'], const ['LibraryRef', 'ClassRef', 'FuncRef']),
         isStatic = json['static'] ?? false,
         isConst = json['const'] ?? false,
         implicit = json['implicit'] ?? false,
@@ -6171,8 +6168,7 @@ class InboundReference {
             createServiceObject(json['source'], const ['ObjRef']) as ObjRef?,
         parentListIndex = json['parentListIndex'],
         parentField = createServiceObject(
-                json['parentField'], const ['FieldRef', 'String', 'int'])
-            as dynamic;
+            json['parentField'], const ['FieldRef', 'String', 'int']);
 
   Map<String, dynamic> toJson() => <String, Object?>{
         'source': source?.toJson(),
@@ -6521,10 +6517,9 @@ class MapAssociation {
 
   MapAssociation._fromJson(Map<String, dynamic> json)
       : key =
-            createServiceObject(json['key'], const ['InstanceRef', 'Sentinel'])
-                as dynamic,
+            createServiceObject(json['key'], const ['InstanceRef', 'Sentinel']),
         value = createServiceObject(
-            json['value'], const ['InstanceRef', 'Sentinel']) as dynamic;
+            json['value'], const ['InstanceRef', 'Sentinel']);
 
   Map<String, dynamic> toJson() => <String, Object?>{
         'key': key?.toJson(),
@@ -7179,8 +7174,7 @@ class ProfileFunction {
         inclusiveTicks = json['inclusiveTicks'] ?? -1,
         exclusiveTicks = json['exclusiveTicks'] ?? -1,
         resolvedUrl = json['resolvedUrl'] ?? '',
-        function =
-            createServiceObject(json['function'], const ['dynamic']) as dynamic;
+        function = createServiceObject(json['function'], const ['dynamic']);
 
   Map<String, dynamic> toJson() => <String, Object?>{
         'kind': kind ?? '',
@@ -7449,8 +7443,7 @@ class RetainingObject {
             createServiceObject(json['parentMapKey'], const ['ObjRef'])
                 as ObjRef?,
         parentField =
-            createServiceObject(json['parentField'], const ['String', 'int'])
-                as dynamic;
+            createServiceObject(json['parentField'], const ['String', 'int']);
 
   Map<String, dynamic> toJson() => <String, Object?>{
         'value': value?.toJson(),

@@ -80,11 +80,20 @@ class ElementDisplayStringBuilder {
     _write(path);
   }
 
-  void writeConstructorElement(ConstructorElementMixin element) {
-    if (element.isAugmentation) {
-      _write('augment ');
-    }
+  void writeConstructorElement(ConstructorElementMixin2 element) {
+    _writeType(element.returnType);
+    _write(' ');
 
+    _write(element.displayName);
+
+    _writeFormalParameters2(
+      element.formalParameters,
+      forElement: true,
+      allowMultiline: true,
+    );
+  }
+
+  void writeConstructorFragment(ConstructorFragmentImpl element) {
     _writeType(element.returnType);
     _write(' ');
 
@@ -487,6 +496,65 @@ class ElementDisplayStringBuilder {
     _write(')');
   }
 
+  void _writeFormalParameters2(
+    List<FormalParameterElementMixin> parameters, {
+    required bool forElement,
+    bool allowMultiline = false,
+  }) {
+    // Assume the display string looks better wrapped when there are at least
+    // three parameters. This avoids having to pre-compute the single-line
+    // version and know the length of the function name/return type.
+    var multiline = allowMultiline && _multiline && parameters.length >= 3;
+
+    // The prefix for open groups is included in separator for single-line but
+    // not for multiline so must be added explicitly.
+    var openGroupPrefix = multiline ? ' ' : '';
+    var separator = multiline ? ',' : ', ';
+    var trailingComma = multiline ? ',\n' : '';
+    var parameterPrefix = multiline ? '\n  ' : '';
+
+    _write('(');
+
+    _WriteFormalParameterKind? lastKind;
+    var lastClose = '';
+
+    void openGroup(_WriteFormalParameterKind kind, String open, String close) {
+      if (lastKind != kind) {
+        _write(lastClose);
+        if (lastKind != null) {
+          // We only need to include the space before the open group if there
+          // was a previous parameter, otherwise it goes immediately after the
+          // open paren.
+          _write(openGroupPrefix);
+        }
+        _write(open);
+        lastKind = kind;
+        lastClose = close;
+      }
+    }
+
+    for (var i = 0; i < parameters.length; i++) {
+      if (i != 0) {
+        _write(separator);
+      }
+
+      var parameter = parameters[i];
+      if (parameter.isRequiredPositional) {
+        openGroup(_WriteFormalParameterKind.requiredPositional, '', '');
+      } else if (parameter.isOptionalPositional) {
+        openGroup(_WriteFormalParameterKind.optionalPositional, '[', ']');
+      } else if (parameter.isNamed) {
+        openGroup(_WriteFormalParameterKind.named, '{', '}');
+      }
+      _write(parameterPrefix);
+      _writeWithoutDelimiters2(parameter, forElement: forElement);
+    }
+
+    _write(trailingComma);
+    _write(lastClose);
+    _write(')');
+  }
+
   void _writeNullability(NullabilitySuffix nullabilitySuffix) {
     if (_withNullability) {
       switch (nullabilitySuffix) {
@@ -569,6 +637,30 @@ class ElementDisplayStringBuilder {
 
   void _writeWithoutDelimiters(
     ParameterElementMixin element, {
+    required bool forElement,
+  }) {
+    if (element.isRequiredNamed) {
+      _write('required ');
+    }
+
+    _writeType(element.type);
+
+    if (forElement || element.isNamed) {
+      _write(' ');
+      _write(element.displayName);
+    }
+
+    if (forElement) {
+      var defaultValueCode = element.defaultValueCode;
+      if (defaultValueCode != null) {
+        _write(' = ');
+        _write(defaultValueCode);
+      }
+    }
+  }
+
+  void _writeWithoutDelimiters2(
+    FormalParameterElementMixin element, {
     required bool forElement,
   }) {
     if (element.isRequiredNamed) {

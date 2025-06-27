@@ -20,7 +20,7 @@ import 'package:pub_semver/pub_semver.dart';
 /// A constructor element defined in a parameterized type where the values of
 /// the type parameters are known.
 class ConstructorMember extends ExecutableMember
-    with ConstructorElementMixin, ConstructorElementMixin2
+    with ConstructorElementMixin2
     implements ConstructorElement {
   /// Initialize a newly created element to represent a constructor, based on
   /// the [declaration], and applied [substitution].
@@ -113,9 +113,13 @@ class ConstructorMember extends ExecutableMember
   ConstructorElementImpl get _element2 => declaration.asElement2;
 
   @override
-  T? accept2<T>(ElementVisitor2<T> visitor) {
+  T? accept<T>(ElementVisitor2<T> visitor) {
     return visitor.visitConstructorElement(this);
   }
+
+  @Deprecated('Use accept instead')
+  @override
+  T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
@@ -141,25 +145,6 @@ class ConstructorMember extends ExecutableMember
       default:
         throw UnimplementedError('(${element.runtimeType}) $element');
     }
-  }
-
-  /// If the given [element]'s type is different when any type parameters
-  /// from the defining type's declaration are replaced with the actual type
-  /// arguments from the [definingType], create a constructor member
-  /// representing the given constructor. Return the member that was created, or
-  /// the original constructor if no member was created.
-  static ConstructorElementMixin from(
-    ConstructorFragmentImpl element,
-    InterfaceType definingType,
-  ) {
-    if (definingType.typeArguments.isEmpty) {
-      return element;
-    }
-
-    return ConstructorMember(
-      declaration: element,
-      substitution: Substitution.fromInterfaceType(definingType),
-    );
   }
 
   /// If the given [element]'s type is different when any type parameters
@@ -374,7 +359,7 @@ abstract class ExecutableMember extends Member
   @override
   void visitChildren2<T>(ElementVisitor2<T> visitor) {
     for (var child in children2) {
-      child.accept2(visitor);
+      child.accept(visitor);
     }
   }
 
@@ -620,9 +605,13 @@ class FieldMember extends VariableMember
   FieldElementImpl get _element2 => declaration.asElement2;
 
   @override
-  T? accept2<T>(ElementVisitor2<T> visitor) {
+  T? accept<T>(ElementVisitor2<T> visitor) {
     return visitor.visitFieldElement(this);
   }
+
+  @Deprecated('Use accept instead')
+  @override
+  T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   @override
   String displayString2({
@@ -733,9 +722,13 @@ class GetterMember extends PropertyAccessorMember
   }
 
   @override
-  T? accept2<T>(ElementVisitor2<T> visitor) {
+  T? accept<T>(ElementVisitor2<T> visitor) {
     return visitor.visitGetterElement(this);
   }
+
+  @Deprecated('Use accept instead')
+  @override
+  T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   static GetterElement2OrMember forSubstitution(
     GetterElement2OrMember element,
@@ -951,9 +944,13 @@ class MethodMember extends ExecutableMember implements MethodElement2OrMember {
   MethodElementImpl get _element2 => declaration.asElement2;
 
   @override
-  T? accept2<T>(ElementVisitor2<T> visitor) {
+  T? accept<T>(ElementVisitor2<T> visitor) {
     return visitor.visitMethodElement(this);
   }
+
+  @Deprecated('Use accept instead')
+  @override
+  T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   static MethodElement2OrMember forTargetType(
     MethodElement2OrMember element,
@@ -1115,9 +1112,13 @@ class ParameterMember extends VariableMember
   FormalParameterElementImpl get _element2 => declaration.asElement2;
 
   @override
-  T? accept2<T>(ElementVisitor2<T> visitor) {
+  T? accept<T>(ElementVisitor2<T> visitor) {
     return visitor.visitFormalParameterElement(this);
   }
+
+  @Deprecated('Use accept instead')
+  @override
+  T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
@@ -1341,9 +1342,13 @@ class SetterMember extends PropertyAccessorMember
   }
 
   @override
-  T? accept2<T>(ElementVisitor2<T> visitor) {
+  T? accept<T>(ElementVisitor2<T> visitor) {
     return visitor.visitSetterElement(this);
   }
+
+  @Deprecated('Use accept instead')
+  @override
+  T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   static SetterElement2OrMember forSubstitution(
     SetterElement2OrMember element,

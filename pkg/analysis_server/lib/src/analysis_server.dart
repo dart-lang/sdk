@@ -69,6 +69,7 @@ import 'package:analyzer/src/dart/analysis/file_byte_store.dart'
     show EvictingFileByteStore;
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
+import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
@@ -943,6 +944,7 @@ abstract class AnalysisServer {
     var transitiveFileLineCount = 0;
     var transitiveFilePaths = <String>{};
     var transitiveFileUniqueLineCount = 0;
+    var libraryCycles = <LibraryCycle>{};
     var driverMap = contextManager.driverMap;
     for (var entry in driverMap.entries) {
       var rootPath = entry.key.path;
@@ -952,11 +954,18 @@ abstract class AnalysisServer {
         packagesFileMap[rootPath] = contextRoot.packagesFile;
       }
       var fileSystemState = driver.fsState;
-      for (var fileState in fileSystemState.knownFiles) {
+      // Capture the known files before the loop to prevent a concurrent
+      // modification exception. The reason for the exception is unknown.
+      var knownFiles = fileSystemState.knownFiles.toList();
+      for (var fileState in knownFiles) {
         var isImmediate = fileState.path.startsWith(rootPath);
         if (isImmediate) {
           immediateFileCount++;
           immediateFileLineCount += fileState.lineInfo.lineCount;
+          var libraryKind = fileState.kind.library;
+          if (libraryKind != null) {
+            libraryCycles.add(libraryKind.libraryCycle);
+          }
         } else {
           var lineCount = fileState.lineInfo.lineCount;
           transitiveFileCount++;
@@ -969,8 +978,19 @@ abstract class AnalysisServer {
     }
     var transitiveFileUniqueCount = transitiveFilePaths.length;
 
-    var rootPaths = packagesFileMap.keys.toList();
-    rootPaths.sort((first, second) => first.length.compareTo(second.length));
+    var libraryCycleLibraryCounts = <int>[];
+    var libraryCycleLineCounts = <int>[];
+    for (var libraryCycle in libraryCycles) {
+      var libraries = libraryCycle.libraries;
+      var lineCount = 0;
+      for (var library in libraries) {
+        for (var file in library.files) {
+          lineCount += file.lineInfo.lineCount;
+        }
+      }
+      libraryCycleLibraryCounts.add(libraries.length);
+      libraryCycleLineCounts.add(lineCount);
+    }
 
     analyticsManager.analysisComplete(
       numberOfContexts: driverMap.length,
@@ -980,6 +1000,8 @@ abstract class AnalysisServer {
       transitiveFileLineCount: transitiveFileLineCount,
       transitiveFileUniqueCount: transitiveFileUniqueCount,
       transitiveFileUniqueLineCount: transitiveFileUniqueLineCount,
+      libraryCycleLibraryCounts: libraryCycleLibraryCounts,
+      libraryCycleLineCounts: libraryCycleLineCounts,
     );
   }
 

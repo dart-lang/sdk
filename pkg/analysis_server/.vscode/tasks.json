@@ -6,6 +6,24 @@
 			"type": "shell",
 			"command": "tool/spec/generate_files",
 			"problemMatcher": []
+		},
+		{
+			// This task compiles the analysis server to a kernel snapshot
+			// in the .dart_tool folder. It is used as a "preLaunchTask" for
+			// the "Dart - Integration Tests" template which is invoked when
+			// executing integration tests.
+			"type": "dart",
+			"command": "dart",
+			"args": [
+				"compile",
+				"kernel",
+				"bin/server.dart",
+				"-o",
+				".dart_tool/integration_tests_analysis_server.dart.snapshot"
+			],
+			"problemMatcher": [],
+			"label": "dart: compile analysis server",
+			"detail": "Compiles the analysis server into .dart_tool for use by integration tests"
 		}
 	]
 }
