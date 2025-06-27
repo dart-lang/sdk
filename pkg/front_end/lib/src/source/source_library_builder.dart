@@ -62,6 +62,7 @@ import 'class_declaration.dart';
 import 'fragment_factory.dart';
 import 'fragment_factory_impl.dart';
 import 'name_scheme.dart';
+import 'name_space_builder.dart';
 import 'offset_map.dart';
 import 'outline_builder.dart';
 import 'source_builder_mixins.dart';
@@ -75,7 +76,6 @@ import 'source_member_builder.dart';
 import 'source_property_builder.dart';
 import 'source_type_alias_builder.dart';
 import 'source_type_parameter_builder.dart';
-import 'type_parameter_scope_builder.dart';
 
 part 'source_compilation_unit.dart';
 

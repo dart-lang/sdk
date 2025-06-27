@@ -31,6 +31,7 @@ import '../kernel/kernel_helper.dart';
 import '../type_inference/type_inference_engine.dart';
 import 'class_declaration.dart';
 import 'name_scheme.dart';
+import 'name_space_builder.dart';
 import 'source_builder_mixins.dart';
 import 'source_constructor_builder.dart';
 import 'source_factory_builder.dart';
@@ -38,7 +39,6 @@ import 'source_library_builder.dart';
 import 'source_member_builder.dart';
 import 'source_property_builder.dart';
 import 'source_type_parameter_builder.dart';
-import 'type_parameter_scope_builder.dart';
 
 class SourceExtensionTypeDeclarationBuilder
     extends ExtensionTypeDeclarationBuilderImpl

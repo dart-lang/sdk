@@ -4,11 +4,6 @@
 
 import 'package:_fe_analyzer_shared/src/metadata/expressions.dart' as shared;
 import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
-import 'package:front_end/src/base/messages.dart';
-import 'package:front_end/src/builder/property_builder.dart';
-import 'package:front_end/src/fragment/constructor/encoding.dart';
-import 'package:front_end/src/fragment/method/encoding.dart';
-import 'package:front_end/src/source/source_method_builder.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/reference_from_index.dart' show IndexedClass;
@@ -16,6 +11,7 @@ import 'package:kernel/src/bounds_checks.dart';
 import 'package:kernel/transformations/flags.dart';
 import 'package:kernel/type_environment.dart';
 
+import '../base/messages.dart';
 import '../base/modifiers.dart' show Modifiers;
 import '../base/scope.dart';
 import '../base/uri_offset.dart';
@@ -30,12 +26,15 @@ import '../builder/metadata_builder.dart';
 import '../builder/method_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
+import '../builder/property_builder.dart';
 import '../builder/type_builder.dart';
 import '../fragment/constructor/declaration.dart';
+import '../fragment/constructor/encoding.dart';
 import '../fragment/field/declaration.dart';
 import '../fragment/fragment.dart';
 import '../fragment/getter/declaration.dart';
 import '../fragment/method/declaration.dart';
+import '../fragment/method/encoding.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/hierarchy/members_builder.dart';
@@ -43,14 +42,16 @@ import '../kernel/kernel_helper.dart';
 import '../kernel/member_covariance.dart';
 import '../kernel/type_algorithms.dart';
 import '../kernel/utils.dart';
+import 'builder_factory.dart';
 import 'name_scheme.dart';
+import 'name_space_builder.dart';
 import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_constructor_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 import 'source_member_builder.dart';
+import 'source_method_builder.dart';
 import 'source_property_builder.dart';
 import 'source_type_parameter_builder.dart';
-import 'type_parameter_scope_builder.dart';
 
 class SourceEnumBuilder extends SourceClassBuilder {
   final int startOffset;

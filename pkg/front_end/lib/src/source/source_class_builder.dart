@@ -47,9 +47,12 @@ import '../kernel/hierarchy/hierarchy_node.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/type_algorithms.dart';
 import '../kernel/utils.dart' show compareProcedures;
+import 'builder_factory.dart';
 import 'fragment_factory.dart';
 import 'class_declaration.dart';
 import 'name_scheme.dart';
+import 'name_space_builder.dart';
+import 'nominal_parameter_name_space.dart';
 import 'source_builder_mixins.dart';
 import 'source_constructor_builder.dart';
 import 'source_factory_builder.dart';
@@ -57,7 +60,6 @@ import 'source_library_builder.dart';
 import 'source_loader.dart';
 import 'source_member_builder.dart';
 import 'source_type_parameter_builder.dart';
-import 'type_parameter_scope_builder.dart';
 
 Class initializeClass(
     List<SourceNominalParameterBuilder>? typeParameters,

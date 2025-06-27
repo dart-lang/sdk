@@ -514,6 +514,11 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     missCount: 0,
   ),
   // 100.0%.
+  "package:front_end/src/fragment/declaration.dart": (
+    hitCount: 9,
+    missCount: 0,
+  ),
+  // 100.0%.
   "package:front_end/src/fragment/enum.dart": (
     hitCount: 17,
     missCount: 0,
@@ -899,6 +904,11 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     missCount: 0,
   ),
   // 100.0%.
+  "package:front_end/src/source/builder_factory.dart": (
+    hitCount: 1169,
+    missCount: 0,
+  ),
+  // 100.0%.
   "package:front_end/src/source/diet_listener.dart": (
     hitCount: 646,
     missCount: 0,
@@ -921,6 +931,16 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   // 100.0%.
   "package:front_end/src/source/name_scheme.dart": (
     hitCount: 212,
+    missCount: 0,
+  ),
+  // 100.0%.
+  "package:front_end/src/source/name_space_builder.dart": (
+    hitCount: 193,
+    missCount: 0,
+  ),
+  // 100.0%.
+  "package:front_end/src/source/nominal_parameter_name_space.dart": (
+    hitCount: 61,
     missCount: 0,
   ),
   // 100.0%.
@@ -1025,8 +1045,8 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     missCount: 0,
   ),
   // 100.0%.
-  "package:front_end/src/source/type_parameter_scope_builder.dart": (
-    hitCount: 1455,
+  "package:front_end/src/source/type_scope.dart": (
+    hitCount: 23,
     missCount: 0,
   ),
   // 100.0%.

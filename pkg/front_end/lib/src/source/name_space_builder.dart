@@ -1,0 +1,388 @@
+// Copyright (c) 2025, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:kernel/reference_from_index.dart';
+
+import '../base/lookup_result.dart';
+import '../base/messages.dart';
+import '../base/name_space.dart';
+import '../base/problems.dart';
+import '../base/uri_offset.dart';
+import '../builder/builder.dart';
+import '../builder/constructor_builder.dart';
+import '../builder/declaration_builders.dart';
+import '../builder/factory_builder.dart';
+import '../builder/function_builder.dart';
+import '../builder/member_builder.dart';
+import '../builder/prefix_builder.dart';
+import '../builder/type_builder.dart';
+import '../fragment/fragment.dart';
+import 'builder_factory.dart';
+import 'name_scheme.dart';
+import 'nominal_parameter_name_space.dart';
+import 'source_class_builder.dart';
+import 'source_extension_builder.dart';
+import 'source_library_builder.dart';
+import 'source_loader.dart';
+import 'source_member_builder.dart';
+
+class DeclarationNameSpaceBuilder {
+  final NominalParameterNameSpace? _nominalParameterNameSpace;
+  final List<Fragment> _fragments;
+
+  DeclarationNameSpaceBuilder(this._nominalParameterNameSpace, this._fragments);
+
+  DeclarationNameSpaceBuilder.empty()
+      : _nominalParameterNameSpace = null,
+        _fragments = const [];
+
+  MutableDeclarationNameSpace buildNameSpace(
+      {required SourceLoader loader,
+      required ProblemReporting problemReporting,
+      required SourceLibraryBuilder enclosingLibraryBuilder,
+      required DeclarationBuilder declarationBuilder,
+      required IndexedLibrary? indexedLibrary,
+      required IndexedContainer? indexedContainer,
+      required ContainerType containerType,
+      required ContainerName containerName,
+      required List<SourceMemberBuilder> constructorBuilders,
+      required List<SourceMemberBuilder> memberBuilders,
+      Map<String, SyntheticDeclaration>? syntheticDeclarations}) {
+    List<NominalParameterBuilder> unboundNominalParameters = [];
+
+    _DeclarationBuilderRegistry builderRegistry =
+        new _DeclarationBuilderRegistry(
+            problemReporting: problemReporting,
+            enclosingLibraryBuilder: enclosingLibraryBuilder,
+            declarationBuilder: declarationBuilder,
+            constructorBuilders: constructorBuilders,
+            memberBuilders: memberBuilders);
+
+    Map<String, List<Fragment>> fragmentsByName = {};
+    for (Fragment fragment in _fragments) {
+      (fragmentsByName[fragment.name] ??= []).add(fragment);
+    }
+
+    BuilderFactory builderFactory = new BuilderFactory(
+        loader: loader,
+        problemReporting: problemReporting,
+        enclosingLibraryBuilder: enclosingLibraryBuilder,
+        builderRegistry: builderRegistry,
+        declarationBuilder: declarationBuilder,
+        unboundNominalParameters: unboundNominalParameters,
+        // TODO(johnniwinther): Avoid passing this:
+        mixinApplications: const {},
+        indexedLibrary: indexedLibrary,
+        indexedContainer: indexedContainer,
+        containerType: containerType,
+        containerName: containerName);
+    for (MapEntry<String, List<Fragment>> entry in fragmentsByName.entries) {
+      String name = entry.key;
+      builderFactory.computeBuildersByName(name,
+          fragments: entry.value,
+          syntheticDeclaration: syntheticDeclarations?.remove(name));
+    }
+    if (syntheticDeclarations != null) {
+      for (MapEntry<String, SyntheticDeclaration> entry
+          in syntheticDeclarations.entries) {
+        String name = entry.key;
+        builderFactory.computeBuildersByName(name,
+            syntheticDeclaration: entry.value);
+      }
+    }
+
+    void checkConflicts(String name, Builder member) {
+      checkTypeParameterConflict(
+          problemReporting, name, member, member.fileUri!);
+    }
+
+    builderRegistry.content.forEach((String name, LookupResult lookupResult) {
+      NamedBuilder member = (lookupResult.getable ?? lookupResult.setable)!;
+      checkTypeParameterConflict(
+          problemReporting, name, member, member.fileUri!);
+    });
+    builderRegistry.constructors.forEach(checkConflicts);
+
+    enclosingLibraryBuilder
+        .registerUnboundNominalParameters(unboundNominalParameters);
+
+    return new SourceDeclarationNameSpace(
+        content: builderRegistry.content,
+        constructors: builderRegistry.constructors);
+  }
+
+  void checkTypeParameterConflict(ProblemReporting _problemReporting,
+      String name, Builder member, Uri fileUri) {
+    if (_nominalParameterNameSpace != null) {
+      NominalParameterBuilder? tv =
+          _nominalParameterNameSpace.getTypeParameter(name);
+      if (tv != null) {
+        _problemReporting.addProblem(
+            templateConflictsWithTypeParameter.withArguments(name),
+            member.fileOffset,
+            name.length,
+            fileUri,
+            context: [
+              messageConflictsWithTypeParameterCause.withLocation(
+                  tv.fileUri!, tv.fileOffset, name.length)
+            ]);
+      }
+    }
+  }
+
+  void includeBuilders(DeclarationNameSpaceBuilder other) {
+    _fragments.addAll(other._fragments);
+    other._fragments.clear();
+  }
+}
+
+class LibraryNameSpaceBuilder {
+  List<Fragment> _fragments = [];
+
+  void addFragment(Fragment fragment) {
+    _fragments.add(fragment);
+  }
+
+  void includeBuilders(LibraryNameSpaceBuilder other) {
+    _fragments.addAll(other._fragments);
+  }
+
+  MutableNameSpace toNameSpace({
+    required SourceLibraryBuilder enclosingLibraryBuilder,
+    required IndexedLibrary? indexedLibrary,
+    required ProblemReporting problemReporting,
+    required List<NominalParameterBuilder> unboundNominalParameters,
+    required Map<SourceClassBuilder, TypeBuilder> mixinApplications,
+    required List<NamedBuilder> memberBuilders,
+  }) {
+    _LibraryBuilderRegistry builderRegistry = new _LibraryBuilderRegistry(
+        problemReporting: problemReporting,
+        enclosingLibraryBuilder: enclosingLibraryBuilder,
+        memberBuilders: memberBuilders);
+
+    Map<String, List<Fragment>> fragmentsByName = {};
+    for (Fragment fragment in _fragments) {
+      (fragmentsByName[fragment.name] ??= []).add(fragment);
+    }
+
+    BuilderFactory builderFactory = new BuilderFactory(
+        loader: enclosingLibraryBuilder.loader,
+        builderRegistry: builderRegistry,
+        problemReporting: problemReporting,
+        enclosingLibraryBuilder: enclosingLibraryBuilder,
+        unboundNominalParameters: unboundNominalParameters,
+        mixinApplications: mixinApplications,
+        indexedLibrary: indexedLibrary,
+        containerType: ContainerType.Library);
+
+    for (MapEntry<String, List<Fragment>> entry in fragmentsByName.entries) {
+      builderFactory.computeBuildersByName(entry.key, fragments: entry.value);
+    }
+    return new SourceLibraryNameSpace(
+        content: builderRegistry.content,
+        extensions: builderRegistry.extensions);
+  }
+}
+
+class _DeclarationBuilderRegistry implements BuilderRegistry {
+  final Map<String, LookupResult> content = {};
+  final Map<String, MemberBuilder> constructors = {};
+  final ProblemReporting problemReporting;
+  final SourceLibraryBuilder enclosingLibraryBuilder;
+  final DeclarationBuilder declarationBuilder;
+  final List<SourceMemberBuilder> constructorBuilders;
+  final List<SourceMemberBuilder> memberBuilders;
+
+  _DeclarationBuilderRegistry(
+      {required this.problemReporting,
+      required this.enclosingLibraryBuilder,
+      required this.declarationBuilder,
+      required this.constructorBuilders,
+      required this.memberBuilders});
+
+  @override
+  void registerBuilder(
+      {required NamedBuilder declaration,
+      required UriOffsetLength uriOffset,
+      required bool inPatch}) {
+    String name = declaration.name;
+
+    assert(declaration.next == null,
+        "Unexpected declaration.next ${declaration.next} on $declaration");
+
+    bool isConstructor =
+        declaration is ConstructorBuilder || declaration is FactoryBuilder;
+    if (!isConstructor && name == declarationBuilder.name) {
+      // TODO(johnniwinther): Check these closer to the member declaration to
+      // better specialize the message.
+      if (declarationBuilder.isEnum && name == 'values') {
+        problemReporting.addProblem(
+            messageEnumWithNameValues,
+            declarationBuilder.fileOffset,
+            name.length,
+            declarationBuilder.fileUri);
+      } else {
+        problemReporting.addProblem2(
+            messageMemberWithSameNameAsClass, uriOffset);
+      }
+    }
+    if (isConstructor) {
+      constructorBuilders.add(declaration as SourceMemberBuilder);
+    } else {
+      memberBuilders.add(declaration as SourceMemberBuilder);
+    }
+
+    if (inPatch &&
+        !name.startsWith('_') &&
+        !_allowInjectedPublicMember(enclosingLibraryBuilder, declaration)) {
+      // TODO(johnniwinther): Test adding a no-name constructor in the
+      //  patch, either as an injected or duplicated constructor.
+      problemReporting.addProblem2(
+          templatePatchInjectionFailed.withArguments(
+              name, enclosingLibraryBuilder.importUri),
+          uriOffset);
+    }
+
+    if (isConstructor) {
+      NamedBuilder? existing = constructors[name];
+
+      assert(
+          existing != declaration, "Unexpected existing declaration $existing");
+
+      if (declaration.next != null &&
+          // Coverage-ignore(suite): Not run.
+          declaration.next != existing) {
+        unexpected(
+            "${declaration.next!.fileUri}@${declaration.next!.fileOffset}",
+            "${existing?.fileUri}@${existing?.fileOffset}",
+            declaration.fileOffset,
+            declaration.fileUri);
+      }
+      declaration.next = existing;
+      constructors[name] = declaration as MemberBuilder;
+    } else {
+      LookupResult? existingResult = content[name];
+      NamedBuilder? existing =
+          existingResult?.getable ?? existingResult?.setable;
+
+      assert(
+          existing != declaration, "Unexpected existing declaration $existing");
+
+      if (declaration.next != null &&
+          // Coverage-ignore(suite): Not run.
+          declaration.next != existing) {
+        unexpected(
+            "${declaration.next!.fileUri}@${declaration.next!.fileOffset}",
+            "${existing?.fileUri}@${existing?.fileOffset}",
+            declaration.fileOffset,
+            declaration.fileUri);
+      }
+      declaration.next = existing;
+      content[name] = declaration as LookupResult;
+    }
+  }
+
+  bool _allowInjectedPublicMember(
+      SourceLibraryBuilder enclosingLibraryBuilder, Builder newBuilder) {
+    if (enclosingLibraryBuilder.importUri.isScheme("dart") &&
+        enclosingLibraryBuilder.importUri.path.startsWith("_")) {
+      return true;
+    }
+    if (newBuilder.isStatic) {
+      return declarationBuilder.name.startsWith('_');
+    }
+    // TODO(johnniwinther): Restrict the use of injected public class members.
+    return true;
+  }
+}
+
+class _LibraryBuilderRegistry implements BuilderRegistry {
+  final Map<String, LookupResult> content = {};
+  final Set<ExtensionBuilder> extensions = {};
+  final ProblemReporting problemReporting;
+  final SourceLibraryBuilder enclosingLibraryBuilder;
+  final List<NamedBuilder> memberBuilders;
+
+  _LibraryBuilderRegistry(
+      {required this.problemReporting,
+      required this.enclosingLibraryBuilder,
+      required this.memberBuilders});
+
+  @override
+  void registerBuilder(
+      {required NamedBuilder declaration,
+      required UriOffsetLength uriOffset,
+      required bool inPatch}) {
+    String name = declaration.name;
+
+    assert(declaration.next == null,
+        "Unexpected declaration.next ${declaration.next} on $declaration");
+
+    memberBuilders.add(declaration);
+
+    if (declaration is SourceExtensionBuilder &&
+        declaration.isUnnamedExtension) {
+      extensions.add(declaration);
+      return;
+    }
+
+    if (declaration is MemberBuilder || declaration is TypeDeclarationBuilder) {
+      // Expected.
+    } else {
+      // Coverage-ignore-block(suite): Not run.
+      // Prefix builders are added when computing the import scope.
+      assert(declaration is! PrefixBuilder,
+          "Unexpected prefix builder $declaration.");
+      unhandled("${declaration.runtimeType}", "addBuilder",
+          uriOffset.fileOffset, uriOffset.fileUri);
+    }
+
+    assert(
+        !(declaration is FunctionBuilder &&
+            // Coverage-ignore(suite): Not run.
+            (declaration is ConstructorBuilder ||
+                declaration is FactoryBuilder)),
+        "Unexpected constructor in library: $declaration.");
+
+    if (inPatch &&
+        !name.startsWith('_') &&
+        !_allowInjectedPublicMember(enclosingLibraryBuilder, declaration)) {
+      problemReporting.addProblem2(
+          templatePatchInjectionFailed.withArguments(
+              name, enclosingLibraryBuilder.importUri),
+          uriOffset);
+    }
+
+    LookupResult? existingResult = content[name];
+    NamedBuilder? existing = existingResult?.getable ?? existingResult?.setable;
+
+    assert(
+        existing != declaration, "Unexpected existing declaration $existing");
+
+    if (declaration.next != null &&
+        // Coverage-ignore(suite): Not run.
+        declaration.next != existing) {
+      unexpected(
+          "${declaration.next!.fileUri}@${declaration.next!.fileOffset}",
+          "${existing?.fileUri}@${existing?.fileOffset}",
+          declaration.fileOffset,
+          declaration.fileUri);
+    }
+    declaration.next = existing;
+    if (declaration is SourceExtensionBuilder && !declaration.isDuplicate) {
+      // We add the extension declaration to the extension scope only if its
+      // name is unique. Only the first of duplicate extensions is accessible
+      // by name or by resolution and the remaining are dropped for the
+      // output.
+      extensions.add(declaration);
+    }
+    content[name] = declaration as LookupResult;
+  }
+
+  bool _allowInjectedPublicMember(
+      SourceLibraryBuilder enclosingLibraryBuilder, Builder newBuilder) {
+    return enclosingLibraryBuilder.importUri.isScheme("dart") &&
+        enclosingLibraryBuilder.importUri.path.startsWith("_");
+  }
+}
