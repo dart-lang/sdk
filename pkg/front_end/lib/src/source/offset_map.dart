@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
-import 'package:front_end/src/source/type_parameter_scope_builder.dart';
 import 'package:kernel/ast.dart';
 
 import '../base/export.dart';

@@ -398,8 +398,14 @@ class PrecedenceInfoTest {
   }
 
   void test_type() {
-    void assertLexeme(String source, TokenType tt) {
+    void assertLexeme(String source, TokenType tt,
+        {bool skipErrorTokens = false}) {
       var token = scanString(source, includeComments: true).tokens;
+      if (skipErrorTokens) {
+        while (token is ErrorToken) {
+          token = token.next!;
+        }
+      }
       expect(token.type, same(tt), reason: source);
     }
 
@@ -413,5 +419,9 @@ class PrecedenceInfoTest {
     assertLexeme('#!/', TokenType.SCRIPT_TAG);
     assertLexeme('foo', TokenType.IDENTIFIER);
     assertLexeme('"foo"', TokenType.STRING);
+
+    // Invalid but recovers nicely.
+    assertLexeme('1_e', TokenType.DOUBLE_WITH_SEPARATORS,
+        skipErrorTokens: true);
   }
 }

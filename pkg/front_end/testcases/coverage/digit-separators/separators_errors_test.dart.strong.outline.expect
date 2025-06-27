@@ -1,0 +1,18 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/coverage/digit-separators/separators_errors_test.dart:6:9: Error: Numbers in exponential notation should always contain an exponent (an integer number with an optional sign).
+// Make sure there is an exponent, and remove any whitespace before it.
+//   print(123_456e);
+//         ^
+//
+// pkg/front_end/testcases/coverage/digit-separators/separators_errors_test.dart:7:9: Error: Numbers in exponential notation should always contain an exponent (an integer number with an optional sign).
+// Make sure there is an exponent, and remove any whitespace before it.
+//   print(1.234_567e);
+//         ^
+//
+import self as self;
+
+static method foo() → void
+  ;

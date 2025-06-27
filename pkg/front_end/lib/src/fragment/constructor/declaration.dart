@@ -27,6 +27,7 @@ import '../../kernel/body_builder_context.dart';
 import '../../kernel/kernel_helper.dart';
 import '../../kernel/type_algorithms.dart';
 import '../../source/name_scheme.dart';
+import '../../source/nominal_parameter_name_space.dart';
 import '../../source/source_class_builder.dart';
 import '../../source/source_constructor_builder.dart';
 import '../../source/source_extension_type_declaration_builder.dart';
@@ -35,7 +36,6 @@ import '../../source/source_library_builder.dart';
 import '../../source/source_loader.dart';
 import '../../source/source_member_builder.dart';
 import '../../source/source_type_parameter_builder.dart';
-import '../../source/type_parameter_scope_builder.dart';
 import '../fragment.dart';
 import 'encoding.dart';
 

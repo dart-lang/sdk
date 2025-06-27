@@ -26,13 +26,13 @@ import 'package:front_end/src/kernel/expression_generator.dart';
 import 'package:front_end/src/kernel/expression_generator_helper.dart';
 import 'package:front_end/src/kernel/kernel_target.dart' show KernelTarget;
 import 'package:front_end/src/kernel/load_library_builder.dart';
+import 'package:front_end/src/source/name_space_builder.dart';
 import 'package:front_end/src/source/source_library_builder.dart'
     show
         ImplicitLanguageVersion,
         SourceCompilationUnitImpl,
         SourceLibraryBuilder;
 import 'package:front_end/src/source/source_loader.dart';
-import 'package:front_end/src/source/type_parameter_scope_builder.dart';
 import 'package:front_end/src/type_inference/type_inference_engine.dart';
 import 'package:kernel/ast.dart'
     show

@@ -37,12 +37,14 @@ import '../builder/void_type_builder.dart';
 import '../fragment/fragment.dart';
 import '../util/local_stack.dart';
 import 'fragment_factory.dart';
+import 'name_space_builder.dart';
+import 'nominal_parameter_name_space.dart';
 import 'offset_map.dart';
 import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_library_builder.dart';
 import 'source_loader.dart' show SourceLoader;
 import 'source_type_parameter_builder.dart';
-import 'type_parameter_scope_builder.dart';
+import 'type_scope.dart';
 
 class FragmentFactoryImpl implements FragmentFactory, FragmentFactoryResult {
   final SourceCompilationUnit _compilationUnit;

@@ -122,11 +122,7 @@ class ElementDisplayStringBuilder {
     _writeTypesIfNotEmpty(' implements ', element.interfaces);
   }
 
-  void writeExecutableElement(ExecutableElementOrMember element, String name) {
-    if (element.isAugmentation) {
-      _write('augment ');
-    }
-
+  void writeExecutableElement(ExecutableElement2OrMember element, String name) {
     if (element.kind != ElementKind.SETTER) {
       _writeType(element.returnType);
       _write(' ');
@@ -135,9 +131,31 @@ class ElementDisplayStringBuilder {
     _write(name);
 
     if (element.kind != ElementKind.GETTER) {
-      _writeTypeParameters(element.typeParameters);
+      _writeTypeParameters2(element.typeParameters2);
+      _writeFormalParameters2(
+        element.formalParameters,
+        forElement: true,
+        allowMultiline: true,
+      );
+    }
+  }
+
+  void writeExecutableFragment(ExecutableFragmentImpl fragment, String name) {
+    if (fragment.isAugmentation) {
+      _write('augment ');
+    }
+
+    if (fragment.kind != ElementKind.SETTER) {
+      _writeType(fragment.returnType);
+      _write(' ');
+    }
+
+    _write(name);
+
+    if (fragment.kind != ElementKind.GETTER) {
+      _writeTypeParameters(fragment.typeParameters);
       _writeFormalParameters(
-        element.parameters,
+        fragment.parameters,
         forElement: true,
         allowMultiline: true,
       );

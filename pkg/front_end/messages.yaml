@@ -2907,17 +2907,6 @@ ConflictsWithImplicitSetterCause:
   problemMessage: "Field '#name' with the implicit setter."
   severity: CONTEXT
 
-ConflictsWithSetter:
-  problemMessage: "Conflicts with setter '#name'."
-  analyzerCode: CONFLICTS_WITH_MEMBER
-  script: |
-    void set foo(_) {}
-    int? foo;
-
-ConflictsWithSetterCause:
-  problemMessage: "Conflicting setter '#name'."
-  severity: CONTEXT
-
 ConflictsWithTypeParameter:
   problemMessage: "Conflicts with type variable '#name'."
   analyzerCode: CONFLICTING_TYPE_VARIABLE_AND_MEMBER

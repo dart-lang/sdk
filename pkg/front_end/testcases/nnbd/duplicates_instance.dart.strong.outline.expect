@@ -37,7 +37,7 @@ library;
 //   int instanceFieldAndSetter1 = 1;
 //       ^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/duplicates_instance.dart:24:7: Error: Conflicts with setter 'instanceFieldAndSetter2'.
+// pkg/front_end/testcases/nnbd/duplicates_instance.dart:24:7: Error: The declaration conflicts with setter 'instanceFieldAndSetter2'.
 //   int instanceFieldAndSetter2 = 1;
 //       ^^^^^^^^^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/nnbd/duplicates_instance.dart:22:12: Context: Conflicting setter 'instanceFieldAndSetter2'.
@@ -51,7 +51,7 @@ library;
 //   late final int instanceLateFinalFieldAndSetter1;
 //                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/duplicates_instance.dart:31:18: Error: Conflicts with setter 'instanceLateFinalFieldAndSetter2'.
+// pkg/front_end/testcases/nnbd/duplicates_instance.dart:31:18: Error: The declaration conflicts with setter 'instanceLateFinalFieldAndSetter2'.
 //   late final int instanceLateFinalFieldAndSetter2;
 //                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/nnbd/duplicates_instance.dart:29:12: Context: Conflicting setter 'instanceLateFinalFieldAndSetter2'.

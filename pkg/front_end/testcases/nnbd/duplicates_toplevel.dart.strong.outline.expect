@@ -37,7 +37,7 @@ library;
 // int topLevelFieldAndSetter1 = 1;
 //     ^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:25:5: Error: Conflicts with setter 'topLevelFieldAndSetter2'.
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:25:5: Error: The declaration conflicts with setter 'topLevelFieldAndSetter2'.
 // int topLevelFieldAndSetter2 = 1;
 //     ^^^^^^^^^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:23:10: Context: Conflicting setter 'topLevelFieldAndSetter2'.
@@ -51,7 +51,7 @@ library;
 // late final int topLevelLateFinalFieldAndSetter1;
 //                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:32:16: Error: Conflicts with setter 'topLevelLateFinalFieldAndSetter2'.
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:32:16: Error: The declaration conflicts with setter 'topLevelLateFinalFieldAndSetter2'.
 // late final int topLevelLateFinalFieldAndSetter2;
 //                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:30:10: Context: Conflicting setter 'topLevelLateFinalFieldAndSetter2'.

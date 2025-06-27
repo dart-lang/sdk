@@ -692,6 +692,7 @@ import 'nullable_type_in_implements_clause_test.dart'
     as nullable_type_in_implements_clause;
 import 'nullable_type_in_on_clause_test.dart' as nullable_type_in_on_clause;
 import 'nullable_type_in_with_clause_test.dart' as nullable_type_in_with_clause;
+import 'number_literals_with_separators_test.dart' as number_literals_with_separators;
 import 'object_cannot_extend_another_class_test.dart'
     as object_cannot_extend_another_class;
 import 'obsolete_colon_for_default_value_test.dart'
@@ -1385,6 +1386,7 @@ main() {
     nullable_type_in_implements_clause.main();
     nullable_type_in_on_clause.main();
     nullable_type_in_with_clause.main();
+    number_literals_with_separators.main();
     object_cannot_extend_another_class.main();
     obsolete_colon_for_default_value.main();
     on_repeated.main();

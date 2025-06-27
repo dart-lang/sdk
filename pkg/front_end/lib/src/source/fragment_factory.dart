@@ -28,7 +28,7 @@ import 'offset_map.dart';
 import 'source_class_builder.dart';
 import 'source_library_builder.dart';
 import 'source_type_parameter_builder.dart';
-import 'type_parameter_scope_builder.dart';
+import 'type_scope.dart';
 
 abstract class FragmentFactoryResult {
   String? get name;

@@ -40,15 +40,17 @@ final class CorrectionUtils {
       return endOfLine;
     }
 
-    if (_buffer.contains('\r\n')) {
+    var indexOfNewline = _buffer.indexOf('\n');
+    if (indexOfNewline < 0) {
+      // No `\n` (and thus no `\r\n` either) found.
+      return Platform.lineTerminator;
+    }
+
+    if (indexOfNewline > 0 &&
+        _buffer.codeUnitAt(indexOfNewline - 1) == 13 /* \r */) {
       return _endOfLine = '\r\n';
     }
-
-    if (_buffer.contains('\n')) {
-      return _endOfLine = '\n';
-    }
-
-    return Platform.lineTerminator;
+    return _endOfLine = '\n';
   }
 
   String get oneIndent => _oneIndent;

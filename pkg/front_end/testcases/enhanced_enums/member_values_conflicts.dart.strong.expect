@@ -18,7 +18,6 @@ class E extends core::_Enum /*isEnum*/  {
     ;
   method core::_enumToString() → core::String
     return "E.${this.{core::_Enum::_name}{core::String}}";
-  set values(core::List<self::E> val) → void {}
 }
 static method main() → dynamic {}
 
