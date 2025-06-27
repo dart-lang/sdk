@@ -750,6 +750,10 @@ class BoolParameter : public MethodParameter {
     return (strcmp("true", value) == 0) || (strcmp("false", value) == 0);
   }
 
+  virtual bool ValidateObject(const Object& value) const {
+    return value.IsBool();
+  }
+
   static bool Parse(const char* value, bool default_value = false) {
     if (value == nullptr) {
       return default_value;
@@ -836,9 +840,15 @@ class RunnableIsolateParameter : public MethodParameter {
       : MethodParameter(name, true) {}
 
   virtual bool Validate(const char* value) const {
-    Isolate* isolate = Isolate::Current();
-    return (value != nullptr) && (isolate != nullptr) &&
-           (isolate->is_runnable());
+    // We assume the request has been forwarded to the current isolate and
+    // isolateId matches it.
+    return (value != nullptr) && ValidateCurrentIsolate();
+  }
+
+  virtual bool ValidateObject(const Object& value) const {
+    // We assume the request has been forwarded to the current isolate and
+    // isolateId matches it.
+    return value.IsString() && ValidateCurrentIsolate();
   }
 
   virtual void PrintError(const char* name,
@@ -846,6 +856,12 @@ class RunnableIsolateParameter : public MethodParameter {
                           JSONStream* js) const {
     js->PrintError(kIsolateMustBeRunnable,
                    "Isolate must be runnable before this request is made.");
+  }
+
+ private:
+  static bool ValidateCurrentIsolate() {
+    Isolate* isolate = Isolate::Current();
+    return (isolate != nullptr) && (isolate->is_runnable());
   }
 };
 
@@ -961,15 +977,13 @@ void Service::PostError(const String& method_name,
   js.PostReply();
 }
 
-ErrorPtr Service::InvokeMethod(Isolate* I,
-                               const Array& msg,
-                               bool parameters_are_dart_objects) {
+ErrorPtr Service::InvokeMethod(Isolate* I, const Array& msg) {
   Thread* T = Thread::Current();
   ASSERT(I == T->isolate());
   ASSERT(I != nullptr);
   ASSERT(T->execution_state() == Thread::kThreadInVM);
   ASSERT(!msg.IsNull());
-  ASSERT(msg.Length() == 6);
+  ASSERT(msg.Length() == 7);
 
   {
     StackZone zone(T);
@@ -978,13 +992,15 @@ ErrorPtr Service::InvokeMethod(Isolate* I,
     Instance& reply_port = Instance::Handle(Z);
     Instance& seq = String::Handle(Z);
     String& method_name = String::Handle(Z);
+    Bool& parameters_are_dart_objects = Bool::Handle(Z);
     Array& param_keys = Array::Handle(Z);
     Array& param_values = Array::Handle(Z);
     reply_port ^= msg.At(1);
     seq ^= msg.At(2);
     method_name ^= msg.At(3);
-    param_keys ^= msg.At(4);
-    param_values ^= msg.At(5);
+    parameters_are_dart_objects ^= msg.At(4);
+    param_keys ^= msg.At(5);
+    param_values ^= msg.At(6);
 
     ASSERT(!method_name.IsNull());
     ASSERT(seq.IsNull() || seq.IsString() || seq.IsNumber());
@@ -1003,7 +1019,7 @@ ErrorPtr Service::InvokeMethod(Isolate* I,
     Dart_Port reply_port_id =
         (reply_port.IsNull() ? ILLEGAL_PORT : SendPort::Cast(reply_port).Id());
     js.Setup(zone.GetZone(), reply_port_id, seq, method_name, param_keys,
-             param_values, parameters_are_dart_objects);
+             param_values, parameters_are_dart_objects.value());
 
     // |id_zone| is the zone that will be stored into the |JSONStream| that we
     // are about to create, meaning that it is where temporary Service IDs may
@@ -1069,11 +1085,6 @@ ErrorPtr Service::InvokeMethod(Isolate* I,
 ErrorPtr Service::HandleRootMessage(const Array& msg_instance) {
   Isolate* isolate = Isolate::Current();
   return InvokeMethod(isolate, msg_instance);
-}
-
-ErrorPtr Service::HandleObjectRootMessage(const Array& msg_instance) {
-  Isolate* isolate = Isolate::Current();
-  return InvokeMethod(isolate, msg_instance, true);
 }
 
 ErrorPtr Service::HandleIsolateMessage(Isolate* isolate, const Array& msg) {
@@ -3945,7 +3956,7 @@ static const MethodParameter* const reload_kernel_params[] = {
     RUNNABLE_ISOLATE_PARAMETER,
     new BoolParameter("force", false),
     new BoolParameter("pause", false),
-    new StringParameter("kernelFilePath", false),
+    new DartStringParameter("kernelFilePath", true),
     nullptr,
 };
 
@@ -3956,11 +3967,6 @@ static void ReloadKernel(Thread* thread, JSONStream* js) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   js->PrintError(kFeatureDisabled, "Compiler is disabled in AOT mode.");
 #else
-  if (!js->HasParam("kernelFilePath")) {
-    PrintMissingParamError(js, "kernelFilePath");
-    return;
-  }
-
   IsolateGroup* isolate_group = thread->isolate_group();
   if (isolate_group->library_tag_handler() == nullptr) {
     js->PrintError(kFeatureDisabled,
@@ -4000,7 +4006,9 @@ static void ReloadKernel(Thread* thread, JSONStream* js) {
     return;
   }
 
-  void* file = (*file_open)(js->LookupParam("kernelFilePath"), /*write=*/false);
+  const String& kernel_file_path = String::CheckedHandle(
+      thread->zone(), js->LookupObjectParam("kernelFilePath"));
+  void* file = (*file_open)(kernel_file_path.ToCString(), /*write=*/false);
   if (file == nullptr) {
     js->PrintError(kIsolateReloadBarred,
                    "The specified kernel file could not be read. Please ensure "
@@ -4013,7 +4021,7 @@ static void ReloadKernel(Thread* thread, JSONStream* js) {
   (*file_read)(&kernel_buffer, &kernel_buffer_size, file);
 
   const bool force_reload =
-      BoolParameter::Parse(js->LookupParam("force"), false);
+      js->LookupObjectParam("force") == Bool::True().ptr();
   isolate_group->ReloadKernel(js, force_reload, kernel_buffer,
                               kernel_buffer_size);
 
@@ -4027,8 +4035,8 @@ static const MethodParameter* const reload_sources_params[] = {
     RUNNABLE_ISOLATE_PARAMETER,
     new BoolParameter("force", false),
     new BoolParameter("pause", false),
-    new StringParameter("rootLibUri", false),
-    new StringParameter("packagesUri", false),
+    new DartStringParameter("rootLibUri", false),
+    new DartStringParameter("packagesUri", false),
     nullptr,
 };
 
@@ -4062,10 +4070,18 @@ static void ReloadSources(Thread* thread, JSONStream* js) {
     return;
   }
   const bool force_reload =
-      BoolParameter::Parse(js->LookupParam("force"), false);
+      js->LookupObjectParam("force") == Bool::True().ptr();
 
-  isolate_group->ReloadSources(js, force_reload, js->LookupParam("rootLibUri"),
-                               js->LookupParam("packagesUri"));
+  String& root_lib_uri = String::Handle(thread->zone());
+  root_lib_uri ^= js->LookupObjectParam("rootLibUri");
+
+  String& packages_uri = String::Handle(thread->zone());
+  packages_uri ^= js->LookupObjectParam("packagesUri");
+
+  isolate_group->ReloadSources(
+      js, force_reload,
+      root_lib_uri.IsNull() ? nullptr : root_lib_uri.ToCString(),
+      packages_uri.IsNull() ? nullptr : packages_uri.ToCString());
 
   Service::CheckForPause(isolate, js);
 
@@ -4075,7 +4091,7 @@ static void ReloadSources(Thread* thread, JSONStream* js) {
 void Service::CheckForPause(Isolate* isolate, JSONStream* stream) {
   // Should we pause?
   isolate->set_should_pause_post_service_request(
-      BoolParameter::Parse(stream->LookupParam("pause"), false));
+      stream->LookupObjectParam("pause") == Bool::True().ptr());
 }
 
 ErrorPtr Service::MaybePause(Isolate* isolate, const Error& error) {

@@ -131,10 +131,6 @@ class Service : public AllStatic {
   // Handles a message which is not directed to an isolate.
   static ErrorPtr HandleRootMessage(const Array& message);
 
-  // Handles a message which is not directed to an isolate and also
-  // expects the parameter keys and values to be actual dart objects.
-  static ErrorPtr HandleObjectRootMessage(const Array& message);
-
   // Handles a message which is directed to a particular isolate.
   static ErrorPtr HandleIsolateMessage(Isolate* isolate, const Array& message);
 
@@ -249,9 +245,7 @@ class Service : public AllStatic {
   }
 
  private:
-  static ErrorPtr InvokeMethod(Isolate* isolate,
-                               const Array& message,
-                               bool parameters_are_dart_objects = false);
+  static ErrorPtr InvokeMethod(Isolate* isolate, const Array& message);
 
   static void EmbedderHandleMessage(EmbedderServiceHandler* handler,
                                     JSONStream* js);

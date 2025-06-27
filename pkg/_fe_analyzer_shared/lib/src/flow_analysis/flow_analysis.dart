@@ -2708,7 +2708,11 @@ class FlowModel<Type extends Object> {
 
     // Code that follows the `try/finally` is reachable iff the end of the `try`
     // block is reachable _and_ the end of the `finally` block is reachable.
-    Reachability newReachable = afterFinally.reachable.rebaseForward(reachable);
+    assert(identical(reachable.parent, afterFinally.reachable.parent));
+    Reachability newReachable =
+        afterFinally.reachable.locallyReachable
+            ? reachable
+            : reachable.setUnreachable();
 
     // Consider each promotion key that is common to all three models.
     FlowModel<Type> result = setReachability(newReachable);

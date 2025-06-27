@@ -78,14 +78,6 @@ DEFINE_NATIVE_ENTRY(VMService_SendRootServiceMessage, 0, 1) {
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(VMService_SendObjectRootServiceMessage, 0, 1) {
-#ifndef PRODUCT
-  GET_NON_NULL_NATIVE_ARGUMENT(Array, message, arguments->NativeArgAt(0));
-  return Service::HandleObjectRootMessage(message);
-#endif
-  return Object::null();
-}
-
 DEFINE_NATIVE_ENTRY(VMService_OnStart, 0, 0) {
 #ifndef PRODUCT
   if (FLAG_trace_service) {
