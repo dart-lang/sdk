@@ -450,8 +450,7 @@ class FieldFormalParameterMember extends ParameterMember
 
 /// A field element defined in a parameterized type where the values of the type
 /// parameters are known.
-class FieldMember extends VariableMember
-    implements FieldElementOrMember, FieldElement2OrMember {
+class FieldMember extends VariableMember implements FieldElement2OrMember {
   /// Initialize a newly created element to represent a field, based on the
   /// [declaration], with applied [substitution].
   FieldMember({
@@ -616,16 +615,6 @@ class FieldMember extends VariableMember
       declaration: element.firstFragment,
       substitution: substitution,
     );
-  }
-
-  static FieldElementOrMember from2(
-    FieldFragmentImpl element,
-    MapSubstitution substitution,
-  ) {
-    if (substitution.map.isEmpty) {
-      return element;
-    }
-    return FieldMember(declaration: element, substitution: substitution);
   }
 }
 

@@ -2945,16 +2945,6 @@ class FieldElementImpl extends PropertyInducingElementImpl
   DartObject? computeConstantValue() => firstFragment.computeConstantValue();
 }
 
-/// Common base class for all analyzer-internal classes that implement
-/// `FieldElement`.
-abstract class FieldElementOrMember implements PropertyInducingElementOrMember {
-  @override
-  FieldFragmentImpl get declaration;
-
-  @override
-  TypeImpl get type;
-}
-
 class FieldFormalParameterElementImpl extends FormalParameterElementImpl
     implements FieldFormalParameterElement {
   FieldFormalParameterElementImpl(super.firstFragment);
@@ -3032,7 +3022,7 @@ class FieldFormalParameterFragmentImpl extends FormalParameterFragmentImpl
 
 class FieldFragmentImpl extends PropertyInducingFragmentImpl
     with ConstVariableFragment
-    implements FieldElementOrMember, FieldFragment {
+    implements FieldFragment {
   /// True if this field inherits from a covariant parameter. This happens
   /// when it overrides a field in a supertype that is covariant.
   bool inheritsCovariant = false;
