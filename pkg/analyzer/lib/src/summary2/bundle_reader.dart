@@ -1631,58 +1631,57 @@ class ResolutionReader {
   }
 
   TypeImpl? readType() {
-    var tag = _reader.readByte();
-    if (tag == Tag.NullType) {
-      return null;
-    } else if (tag == Tag.DynamicType) {
-      var type = DynamicTypeImpl.instance;
-      return _readAliasElementArguments(type);
-    } else if (tag == Tag.FunctionType) {
-      var type = _readFunctionType();
-      return _readAliasElementArguments(type);
-    } else if (tag == Tag.InterfaceType) {
-      var element = readElement() as InterfaceElementImpl;
-      var typeArguments = _readTypeList();
-      var nullability = _readNullability();
-      var type = element.instantiateImpl(
-        typeArguments: typeArguments,
-        nullabilitySuffix: nullability,
-      );
-      return _readAliasElementArguments(type);
-    } else if (tag == Tag.InterfaceType_noTypeArguments_none) {
-      var element = readElement() as InterfaceElementImpl;
-      var type = element.instantiateImpl(
-        typeArguments: const [],
-        nullabilitySuffix: NullabilitySuffix.none,
-      );
-      return _readAliasElementArguments(type);
-    } else if (tag == Tag.InterfaceType_noTypeArguments_question) {
-      var element = readElement() as InterfaceElementImpl;
-      var type = element.instantiateImpl(
-        typeArguments: const [],
-        nullabilitySuffix: NullabilitySuffix.question,
-      );
-      return _readAliasElementArguments(type);
-    } else if (tag == Tag.InvalidType) {
-      var type = InvalidTypeImpl.instance;
-      return _readAliasElementArguments(type);
-    } else if (tag == Tag.NeverType) {
-      var nullability = _readNullability();
-      var type = NeverTypeImpl.instance.withNullability(nullability);
-      return _readAliasElementArguments(type);
-    } else if (tag == Tag.RecordType) {
-      var type = _readRecordType();
-      return _readAliasElementArguments(type);
-    } else if (tag == Tag.TypeParameterType) {
-      var element = readElement() as TypeParameterElementImpl;
-      var nullability = _readNullability();
-      var type = element.instantiate(nullabilitySuffix: nullability);
-      return _readAliasElementArguments(type);
-    } else if (tag == Tag.VoidType) {
-      var type = VoidTypeImpl.instance;
-      return _readAliasElementArguments(type);
-    } else {
-      throw UnimplementedError('$tag');
+    var tag = readEnum(TypeTag.values);
+    switch (tag) {
+      case TypeTag.NullType:
+        return null;
+      case TypeTag.DynamicType:
+        var type = DynamicTypeImpl.instance;
+        return _readAliasElementArguments(type);
+      case TypeTag.FunctionType:
+        var type = _readFunctionType();
+        return _readAliasElementArguments(type);
+      case TypeTag.InterfaceType:
+        var element = readElement() as InterfaceElementImpl;
+        var typeArguments = _readTypeList();
+        var nullability = _readNullability();
+        var type = element.instantiateImpl(
+          typeArguments: typeArguments,
+          nullabilitySuffix: nullability,
+        );
+        return _readAliasElementArguments(type);
+      case TypeTag.InterfaceType_noTypeArguments_none:
+        var element = readElement() as InterfaceElementImpl;
+        var type = element.instantiateImpl(
+          typeArguments: const [],
+          nullabilitySuffix: NullabilitySuffix.none,
+        );
+        return _readAliasElementArguments(type);
+      case TypeTag.InterfaceType_noTypeArguments_question:
+        var element = readElement() as InterfaceElementImpl;
+        var type = element.instantiateImpl(
+          typeArguments: const [],
+          nullabilitySuffix: NullabilitySuffix.question,
+        );
+        return _readAliasElementArguments(type);
+      case TypeTag.InvalidType:
+        var type = InvalidTypeImpl.instance;
+        return _readAliasElementArguments(type);
+      case TypeTag.NeverType:
+        var nullability = _readNullability();
+        var type = NeverTypeImpl.instance.withNullability(nullability);
+        return _readAliasElementArguments(type);
+      case TypeTag.RecordType:
+        var type = _readRecordType();
+        return _readAliasElementArguments(type);
+      case TypeTag.TypeParameterType:
+        var element = readElement() as TypeParameterElementImpl;
+        var nullability = _readNullability();
+        var type = element.instantiate(nullabilitySuffix: nullability);
+        return _readAliasElementArguments(type);
+      case TypeTag.VoidType:
+        var type = VoidTypeImpl.instance;
+        return _readAliasElementArguments(type);
     }
   }
 
