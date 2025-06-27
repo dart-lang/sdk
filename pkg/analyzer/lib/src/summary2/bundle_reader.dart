@@ -1752,7 +1752,7 @@ class ResolutionReader {
           returnType: type.returnType,
           nullabilitySuffix: type.nullabilitySuffix,
           alias: InstantiatedTypeAliasElementImpl(
-            element2: aliasElement,
+            element: aliasElement,
             typeArguments: aliasArguments,
           ),
         );
@@ -1762,7 +1762,7 @@ class ResolutionReader {
           typeArguments: type.typeArguments,
           nullabilitySuffix: type.nullabilitySuffix,
           alias: InstantiatedTypeAliasElementImpl(
-            element2: aliasElement,
+            element: aliasElement,
             typeArguments: aliasArguments,
           ),
         );
@@ -1772,7 +1772,7 @@ class ResolutionReader {
           namedFields: type.namedFields,
           nullabilitySuffix: type.nullabilitySuffix,
           alias: InstantiatedTypeAliasElementImpl(
-            element2: aliasElement,
+            element: aliasElement,
             typeArguments: aliasArguments,
           ),
         );
@@ -1781,7 +1781,7 @@ class ResolutionReader {
           element: type.element,
           nullabilitySuffix: type.nullabilitySuffix,
           alias: InstantiatedTypeAliasElementImpl(
-            element2: aliasElement,
+            element: aliasElement,
             typeArguments: aliasArguments,
           ),
         );

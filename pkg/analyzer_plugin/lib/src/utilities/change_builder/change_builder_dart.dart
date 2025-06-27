@@ -1279,7 +1279,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     var alias = type.alias;
     if (alias != null) {
       _writeTypeElementArguments(
-        element: alias.element2,
+        element: alias.element,
         typeArguments: alias.typeArguments,
         methodBeingCopied: methodBeingCopied,
       );

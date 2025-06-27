@@ -617,7 +617,7 @@ abstract class _TypeSubstitutor
       return null;
     }
     return InstantiatedTypeAliasElementImpl(
-      element2: alias.element2,
+      element: alias.element,
       typeArguments: _mapList(alias.typeArguments),
     );
   }

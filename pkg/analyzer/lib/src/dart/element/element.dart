@@ -9801,7 +9801,7 @@ class TypeAliasElementImpl extends TypeDefiningElementImpl
         returnType: type.returnType,
         nullabilitySuffix: resultNullability,
         alias: InstantiatedTypeAliasElementImpl(
-          element2: this,
+          element: this,
           typeArguments: typeArguments,
         ),
       );
@@ -9811,7 +9811,7 @@ class TypeAliasElementImpl extends TypeDefiningElementImpl
         typeArguments: type.typeArguments,
         nullabilitySuffix: resultNullability,
         alias: InstantiatedTypeAliasElementImpl(
-          element2: this,
+          element: this,
           typeArguments: typeArguments,
         ),
       );
@@ -9821,7 +9821,7 @@ class TypeAliasElementImpl extends TypeDefiningElementImpl
         namedFields: type.namedFields,
         nullabilitySuffix: resultNullability,
         alias: InstantiatedTypeAliasElementImpl(
-          element2: this,
+          element: this,
           typeArguments: typeArguments,
         ),
       );
@@ -9830,7 +9830,7 @@ class TypeAliasElementImpl extends TypeDefiningElementImpl
         element: type.element,
         nullabilitySuffix: resultNullability,
         alias: InstantiatedTypeAliasElementImpl(
-          element2: this,
+          element: this,
           typeArguments: typeArguments,
         ),
       );

@@ -69,7 +69,7 @@ class ReplaceTopBottomVisitor {
     InstantiatedTypeAliasElementImpl alias,
     Variance variance,
   ) {
-    var aliasElement = alias.element2;
+    var aliasElement = alias.element;
     var aliasArguments = alias.typeArguments;
 
     var typeParameters = aliasElement.typeParameters2;

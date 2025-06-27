@@ -1086,7 +1086,7 @@ class ResolutionSink extends _SummaryDataWriter {
 
   void _writeTypeAliasElementArguments(TypeImpl type) {
     var alias = type.alias;
-    writeElement(alias?.element2);
+    writeElement(alias?.element);
     if (alias != null) {
       _writeTypeList(alias.typeArguments);
     }

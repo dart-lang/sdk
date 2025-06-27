@@ -1788,7 +1788,7 @@ extension on LibraryElement {
     if (alias != null) {
       return _getTypeCodeElementArguments(
         librariesToImport: librariesToImport,
-        element: alias.element2,
+        element: alias.element,
         isNullable: type.nullabilitySuffix == NullabilitySuffix.question,
         typeArguments: alias.typeArguments,
       );

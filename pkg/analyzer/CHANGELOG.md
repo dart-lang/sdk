@@ -73,6 +73,7 @@
 * Deprecate `LibraryElement.loadLibraryFunction2`, use `loadLibraryFunction` instead.
 * Deprecate `InterfaceType.constructors2`, use `constructors` instead.
 * Deprecate `Element.accept2`, use `accept` instead.
+* Deprecate `InstantiatedTypeAliasElement.element2`, use `element` instead.
 
 ## 7.4.1
 * Restore `InstanceElement.augmented` getter.
