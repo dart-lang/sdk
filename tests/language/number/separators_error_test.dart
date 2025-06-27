@@ -148,4 +148,10 @@ main() {
   //    ^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
   // [cfe] The getter '_0e' isn't defined for the type 'int'.
+
+  x = 1.234_456e;
+  //  ^
+  // [cfe] Numbers in exponential notation should always contain an exponent (an integer number with an optional sign).
+  //           ^
+  // [analyzer] SYNTACTIC_ERROR.MISSING_DIGIT
 }

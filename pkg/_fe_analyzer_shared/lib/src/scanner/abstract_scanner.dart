@@ -1696,7 +1696,9 @@ abstract class AbstractScanner implements Scanner {
           } else {
             if (!hasExponentDigits) {
               appendSyntheticSubstringToken(
-                TokenType.DOUBLE,
+                hasSeparators
+                    ? TokenType.DOUBLE_WITH_SEPARATORS
+                    : TokenType.DOUBLE,
                 start,
                 /* asciiOnly = */ true,
                 '0',
