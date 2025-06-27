@@ -2340,85 +2340,12 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
   }
 }
 
-/// Common base class for all analyzer-internal classes that implement
-/// `ExecutableElement`.
-abstract class ExecutableElementOrMember implements FragmentOrMember {
-  @override
-  ExecutableElementOrMember get declaration;
-
-  @override
-  String get displayName;
-
-  /// Whether the executable element did not have an explicit return type
-  /// specified for it in the original source.
-  bool get hasImplicitReturnType;
-
-  /// Whether the executable element is abstract.
-  ///
-  /// Executable elements are abstract if they are not external, and have no
-  /// body.
-  bool get isAbstract;
-
-  /// Whether the executable element has body marked as being asynchronous.
-  bool get isAsynchronous;
-
-  /// Whether the element is an augmentation.
-  ///
-  /// If `true`, declaration has the explicit `augment` modifier.
-  bool get isAugmentation;
-
-  /// Whether the executable element is an extension type member.
-  bool get isExtensionTypeMember;
-
-  /// Whether the executable element is external.
-  ///
-  /// Executable elements are external if they are explicitly marked as such
-  /// using the 'external' keyword.
-  bool get isExternal;
-
-  /// Whether the executable element has a body marked as being a generator.
-  bool get isGenerator;
-
-  /// Whether the executable element is an operator.
-  ///
-  /// The test may be based on the name of the executable element, in which
-  /// case the result will be correct when the name is legal.
-  bool get isOperator;
-
-  /// Whether the element is a static element.
-  ///
-  /// A static element is an element that is not associated with a particular
-  /// instance, but rather with an entire library or class.
-  bool get isStatic;
-
-  /// Whether the executable element has a body marked as being synchronous.
-  bool get isSynchronous;
-
-  /// The parameters defined by this executable element.
-  List<ParameterElementMixin> get parameters;
-
-  /// The return type defined by this element.
-  TypeImpl get returnType;
-
-  @override
-  Source get source;
-
-  /// The type defined by this element.
-  FunctionTypeImpl get type;
-
-  /// The type parameters declared by this element directly.
-  ///
-  /// This does not include type parameters that are declared by any enclosing
-  /// elements.
-  List<TypeParameterFragmentImpl> get typeParameters;
-}
-
 abstract class ExecutableFragmentImpl extends _ExistingFragmentImpl
     with
         AugmentableFragment,
         DeferredResolutionReadingMixin,
         TypeParameterizedFragmentMixin
-    implements ExecutableElementOrMember, ExecutableFragment {
+    implements ExecutableFragment {
   /// A list containing all of the parameters defined by this executable
   /// element.
   List<FormalParameterFragmentImpl> _parameters = const [];
@@ -2461,7 +2388,8 @@ abstract class ExecutableFragmentImpl extends _ExistingFragmentImpl
     setModifier(Modifier.NO_ENCLOSING_TYPE_PARAMETER_REFERENCE, !value);
   }
 
-  @override
+  /// Whether the executable element did not have an explicit return type
+  /// specified for it in the original source.
   bool get hasImplicitReturnType {
     return hasModifier(Modifier.IMPLICIT_TYPE);
   }
@@ -2479,7 +2407,10 @@ abstract class ExecutableFragmentImpl extends _ExistingFragmentImpl
     setModifier(Modifier.INVOKES_SUPER_SELF, value);
   }
 
-  @override
+  /// Whether the executable element is abstract.
+  ///
+  /// Executable elements are abstract if they are not external, and have no
+  /// body.
   bool get isAbstract {
     return hasModifier(Modifier.ABSTRACT);
   }
@@ -2494,7 +2425,7 @@ abstract class ExecutableFragmentImpl extends _ExistingFragmentImpl
     setModifier(Modifier.ASYNCHRONOUS, isAsynchronous);
   }
 
-  @override
+  /// Whether the executable element is an extension type member.
   bool get isExtensionTypeMember {
     return hasModifier(Modifier.EXTENSION_TYPE_MEMBER);
   }
@@ -2503,7 +2434,10 @@ abstract class ExecutableFragmentImpl extends _ExistingFragmentImpl
     setModifier(Modifier.EXTENSION_TYPE_MEMBER, value);
   }
 
-  @override
+  /// Whether the executable element is external.
+  ///
+  /// Executable elements are external if they are explicitly marked as such
+  /// using the 'external' keyword.
   bool get isExternal {
     return hasModifier(Modifier.EXTERNAL);
   }
@@ -2523,10 +2457,16 @@ abstract class ExecutableFragmentImpl extends _ExistingFragmentImpl
     setModifier(Modifier.GENERATOR, isGenerator);
   }
 
-  @override
+  /// Whether the executable element is an operator.
+  ///
+  /// The test may be based on the name of the executable element, in which
+  /// case the result will be correct when the name is legal.
   bool get isOperator => false;
 
-  @override
+  /// Whether the element is a static element.
+  ///
+  /// A static element is an element that is not associated with a particular
+  /// instance, but rather with an entire library or class.
   bool get isStatic {
     return hasModifier(Modifier.STATIC);
   }
@@ -2547,7 +2487,7 @@ abstract class ExecutableFragmentImpl extends _ExistingFragmentImpl
   @override
   int get offset => _nameOffset;
 
-  @override
+  /// The formal parameters defined by this executable fragment.
   List<FormalParameterFragmentImpl> get parameters {
     _ensureReadResolution();
     return _parameters;
@@ -2566,7 +2506,7 @@ abstract class ExecutableFragmentImpl extends _ExistingFragmentImpl
     return _parameters;
   }
 
-  @override
+  /// The return type specified by this fragment.
   TypeImpl get returnType {
     _ensureReadResolution();
 
@@ -2596,7 +2536,7 @@ abstract class ExecutableFragmentImpl extends _ExistingFragmentImpl
     _type = null;
   }
 
-  @override
+  /// The type defined by this element.
   FunctionTypeImpl get type {
     if (_type != null) return _type!;
 
@@ -2614,7 +2554,7 @@ abstract class ExecutableFragmentImpl extends _ExistingFragmentImpl
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
-    builder.writeExecutableElement(this, displayName);
+    builder.writeExecutableFragment(this, displayName);
   }
 }
 
@@ -4119,7 +4059,7 @@ abstract class FragmentOrMember implements Fragment {
 }
 
 sealed class FunctionFragmentImpl extends ExecutableFragmentImpl
-    implements FunctionTypedFragmentImpl, ExecutableElementOrMember {
+    implements FunctionTypedFragmentImpl {
   @override
   final String? name2;
 
@@ -4506,7 +4446,7 @@ class GetterFragmentImpl extends PropertyAccessorFragmentImpl
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
-    builder.writeExecutableElement(this, 'get $displayName');
+    builder.writeExecutableFragment(this, 'get $displayName');
   }
 }
 
@@ -9284,7 +9224,7 @@ class SetterFragmentImpl extends PropertyAccessorFragmentImpl
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
-    builder.writeExecutableElement(this, 'set $displayName');
+    builder.writeExecutableFragment(this, 'set $displayName');
   }
 }
 

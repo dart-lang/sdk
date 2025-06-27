@@ -200,15 +200,6 @@ extension EnumElementImplExtension on EnumFragmentImpl {
   }
 }
 
-extension ExecutableElement2Extension on ExecutableElement {
-  ExecutableElementOrMember get asElement {
-    if (this case ExecutableMember member) {
-      return member;
-    }
-    return firstFragment as ExecutableElementOrMember;
-  }
-}
-
 extension ExecutableElement2OrMemberExtension on ExecutableElement2OrMember {
   ExecutableFragmentImpl get declarationImpl =>
       baseElement.firstFragment as ExecutableFragmentImpl;
@@ -224,22 +215,6 @@ extension ExecutableElementImplExtension on ExecutableFragmentImpl {
   ExecutableElementImpl get asElement2 {
     return element;
   }
-}
-
-extension ExecutableElementOrMemberExtension on ExecutableElementOrMember {
-  ExecutableElement2OrMember get asElement2 {
-    return switch (this) {
-      ExecutableFragmentImpl(:var element) => element,
-      ExecutableMember member => member,
-      _ => throw UnsupportedError('Unsupported type: $runtimeType'),
-    };
-  }
-
-  ExecutableFragmentImpl get declarationImpl =>
-      asElement2.baseElement.firstFragment as ExecutableFragmentImpl;
-
-  FragmentImpl get enclosingElementImpl =>
-      asElement2.enclosingElement!.firstFragment as FragmentImpl;
 }
 
 extension ExtensionElementImpl2Extension on ExtensionElementImpl {

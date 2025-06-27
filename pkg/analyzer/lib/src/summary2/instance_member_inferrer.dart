@@ -439,7 +439,7 @@ class InstanceMemberInferrer {
       );
       if (combinedSignatureType != null) {
         combinedSignatureType = _toOverriddenFunctionType(
-          element,
+          element.element,
           combinedSignatureType,
         );
       } else {
@@ -743,10 +743,10 @@ class InstanceMemberInferrer {
   /// parameters. For example, given `m<T>(t)` overriding `m<S>(S s)` we
   /// should infer this as `m<T>(T t)`.
   FunctionTypeImpl? _toOverriddenFunctionType(
-    ExecutableElementOrMember element,
+    ExecutableElement2OrMember element,
     FunctionTypeImpl overriddenType,
   ) {
-    var elementTypeParameters = element.asElement2.typeParameters2;
+    var elementTypeParameters = element.typeParameters2;
     var overriddenTypeParameters = overriddenType.typeParameters;
 
     if (elementTypeParameters.length != overriddenTypeParameters.length) {
