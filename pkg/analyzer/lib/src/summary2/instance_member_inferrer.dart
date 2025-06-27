@@ -162,7 +162,7 @@ class InstanceMemberInferrer {
       return DynamicTypeImpl.instance;
     }
 
-    if (accessor != null && accessor.isGetter) {
+    if (accessor != null && accessor is GetterFragmentImpl) {
       if (!accessor.hasImplicitReturnType) {
         return;
       }
@@ -202,7 +202,7 @@ class InstanceMemberInferrer {
       return;
     }
 
-    if (accessor != null && accessor.isSetter) {
+    if (accessor != null && accessor is SetterFragmentImpl) {
       var parameters = accessor.parameters;
       if (parameters.isEmpty) {
         return;

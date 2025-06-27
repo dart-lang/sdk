@@ -4494,15 +4494,19 @@ class GetterFragmentImpl extends PropertyAccessorFragmentImpl
   GetterFragmentImpl.forVariable(super.variable) : super.forVariable();
 
   @override
-  bool get isGetter => true;
-
-  @override
-  bool get isSetter => false;
+  ElementKind get kind {
+    return ElementKind.GETTER;
+  }
 
   void addFragment(GetterFragmentImpl fragment) {
     fragment.element = element;
     fragment.previousFragment = this;
     nextFragment = fragment;
+  }
+
+  @override
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeExecutableElement(this, 'get $displayName');
   }
 }
 
@@ -5609,15 +5613,6 @@ abstract class InterfaceFragmentImpl extends InstanceFragmentImpl
     // TODO(scheglov): optimize
     _constructors = [..._constructors, fragment];
     fragment.enclosingElement3 = this;
-  }
-
-  static PropertyAccessorElementOrMember? getSetterFromAccessors(
-    String setterName,
-    List<PropertyAccessorElementOrMember> accessors,
-  ) {
-    return accessors.firstWhereOrNull(
-      (accessor) => accessor.isSetter && accessor.name2 == setterName,
-    );
   }
 }
 
@@ -8869,22 +8864,8 @@ abstract class PropertyAccessorElementImpl extends ExecutableElementImpl
   }
 }
 
-/// Common base class for all analyzer-internal classes that implement
-/// `PropertyAccessorElement`.
-abstract class PropertyAccessorElementOrMember
-    implements ExecutableElementOrMember {
-  /// Whether the accessor represents a getter.
-  bool get isGetter;
-
-  /// Whether the accessor represents a setter.
-  bool get isSetter;
-
-  @override
-  TypeImpl get returnType;
-}
-
 sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
-    implements PropertyAccessorElementOrMember, PropertyAccessorFragment {
+    implements PropertyAccessorFragment {
   @override
   final String? name2;
 
@@ -8932,14 +8913,6 @@ sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
   }
 
   @override
-  ElementKind get kind {
-    if (isGetter) {
-      return ElementKind.GETTER;
-    }
-    return ElementKind.SETTER;
-  }
-
-  @override
   MetadataImpl get metadata {
     _ensureReadResolution();
     return super.metadata;
@@ -8955,14 +8928,6 @@ sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
       return variable.firstFragment.offset;
     }
     return _nameOffset;
-  }
-
-  @override
-  void appendTo(ElementDisplayStringBuilder builder) {
-    builder.writeExecutableElement(
-      this,
-      (isGetter ? 'get ' : 'set ') + displayName,
-    );
   }
 }
 
@@ -9295,10 +9260,9 @@ class SetterFragmentImpl extends PropertyAccessorFragmentImpl
   SetterFragmentImpl.forVariable(super.variable) : super.forVariable();
 
   @override
-  bool get isGetter => false;
-
-  @override
-  bool get isSetter => true;
+  ElementKind get kind {
+    return ElementKind.SETTER;
+  }
 
   @override
   String? get lookupName {
@@ -9316,6 +9280,11 @@ class SetterFragmentImpl extends PropertyAccessorFragmentImpl
     fragment.element = element;
     fragment.previousFragment = this;
     nextFragment = fragment;
+  }
+
+  @override
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeExecutableElement(this, 'set $displayName');
   }
 }
 
