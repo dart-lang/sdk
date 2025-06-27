@@ -2982,18 +2982,11 @@ class FieldFormalParameterElementImpl extends FormalParameterElementImpl
   }
 }
 
-abstract class FieldFormalParameterElementOrMember
-    implements ParameterElementMixin {
+class FieldFormalParameterFragmentImpl extends FormalParameterFragmentImpl
+    implements FieldFormalParameterFragment {
   /// The field element associated with this field formal parameter, or `null`
   /// if the parameter references a field that doesn't exist.
-  FieldElementOrMember? get field;
-}
-
-class FieldFormalParameterFragmentImpl extends FormalParameterFragmentImpl
-    implements
-        FieldFormalParameterElementOrMember,
-        FieldFormalParameterFragment {
-  @override
+  // TODO(scheglov): move to element
   FieldFragmentImpl? field;
 
   /// Initialize a newly created parameter element to have the given [name] and
@@ -9288,21 +9281,8 @@ class SuperFormalParameterElementImpl extends FormalParameterElementImpl
   }
 }
 
-abstract class SuperFormalParameterElementOrMember
-    implements ParameterElementMixin {
-  /// The associated super-constructor parameter, from the super-constructor
-  /// that is referenced by the implicit or explicit super-constructor
-  /// invocation.
-  ///
-  /// Can be `null` for erroneous code - not existing super-constructor,
-  /// no corresponding parameter in the super-constructor.
-  FormalParameterElementMixin? get superConstructorParameter;
-}
-
 class SuperFormalParameterFragmentImpl extends FormalParameterFragmentImpl
-    implements
-        SuperFormalParameterElementOrMember,
-        SuperFormalParameterFragment {
+    implements SuperFormalParameterFragment {
   /// Initialize a newly created parameter element to have the given [name] and
   /// [nameOffset].
   SuperFormalParameterFragmentImpl({
@@ -9332,7 +9312,13 @@ class SuperFormalParameterFragmentImpl extends FormalParameterFragmentImpl
   SuperFormalParameterFragmentImpl? get previousFragment =>
       super.previousFragment as SuperFormalParameterFragmentImpl?;
 
-  @override
+  /// The associated super-constructor parameter, from the super-constructor
+  /// that is referenced by the implicit or explicit super-constructor
+  /// invocation.
+  ///
+  /// Can be `null` for erroneous code - not existing super-constructor,
+  /// no corresponding parameter in the super-constructor.
+  // TODO(scheglov): move to element
   FormalParameterElementMixin? get superConstructorParameter {
     var enclosingElement = enclosingElement3;
     if (enclosingElement is ConstructorFragmentImpl) {
