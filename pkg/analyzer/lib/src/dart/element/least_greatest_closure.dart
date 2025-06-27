@@ -72,7 +72,7 @@ class LeastGreatestClosureHelper extends ReplacementVisitor {
     //  - The greatest closure of `S` with respect to `L` is `Function`
     for (var typeParameter in node.typeParameters) {
       if (typeParameter.bound case TypeImpl bound?
-          when bound.referencesAny2(eliminationTargets)) {
+          when bound.referencesAny(eliminationTargets)) {
         return _functionReplacement;
       }
     }
