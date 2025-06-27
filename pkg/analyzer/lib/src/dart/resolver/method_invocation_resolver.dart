@@ -23,7 +23,6 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scope_helpers.dart';
 import 'package:analyzer/src/generated/super_context.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 
 class MethodInvocationResolver with ScopeHelpers {
   /// The resolver driving this participant.
@@ -567,7 +566,7 @@ class MethodInvocationResolver with ScopeHelpers {
     required TypeImpl contextType,
   }) {
     var result = _extensionResolver.getOverrideMember(override, name);
-    var member = result.getter2?.asElement;
+    var member = result.getter2;
 
     if (member == null) {
       _setInvalidTypeResolution(
@@ -600,9 +599,9 @@ class MethodInvocationResolver with ScopeHelpers {
       );
     }
 
-    nameNode.element = member.asElement2;
+    nameNode.element = member;
 
-    if (member is PropertyAccessorElementOrMember) {
+    if (member is PropertyAccessorElement2OrMember) {
       return _rewriteAsFunctionExpressionInvocation(
         node,
         node.target,

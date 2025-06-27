@@ -444,17 +444,6 @@ extension PropertyAccessorElementImplExtension on PropertyAccessorFragmentImpl {
   }
 }
 
-extension PropertyAccessorElementOrMemberExtension
-    on PropertyAccessorElementOrMember {
-  PropertyAccessorElement2OrMember get asElement2 {
-    return switch (this) {
-      PropertyAccessorFragmentImpl(:var element) => element,
-      PropertyAccessorMember member => member,
-      _ => throw UnsupportedError('Unsupported type: $runtimeType'),
-    };
-  }
-}
-
 extension PropertyInducingElementExtension on PropertyInducingElement {
   bool get definesSetter {
     if (isConst) {

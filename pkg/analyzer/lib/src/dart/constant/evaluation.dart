@@ -156,7 +156,10 @@ class ConstantEvaluationEngine {
             }
 
             // Associate with the variable.
-            dartConstant = DartObjectImpl.forVariable(dartConstant, constant);
+            dartConstant = DartObjectImpl.forVariable(
+              dartConstant,
+              constant.element,
+            );
           }
 
           var enumConstant = _enumConstant(constant);
@@ -2173,8 +2176,8 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     FunctionReferenceImpl node,
     DartObjectImpl value,
   ) {
-    var functionElement = value.toFunctionValue();
-    if (functionElement is! ExecutableElementOrMember) {
+    var functionElement = value.toFunctionValue2();
+    if (functionElement is! ExecutableElement2OrMember) {
       return value;
     }
     var valueType = functionElement.type;
@@ -2208,8 +2211,8 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   ) {
     // TODO(srawlins): When all code uses [FunctionReference]s generated via
     // generic function instantiation, remove this method and all call sites.
-    var functionElement = value.toFunctionValue();
-    if (functionElement is! ExecutableElementOrMember) {
+    var functionElement = value.toFunctionValue2();
+    if (functionElement is! ExecutableElement2OrMember) {
       return value;
     }
     var valueType = functionElement.type;

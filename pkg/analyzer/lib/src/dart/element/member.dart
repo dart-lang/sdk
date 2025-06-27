@@ -1223,7 +1223,7 @@ abstract class PropertyAccessorMember extends ExecutableMember
       declaration.typeParameters,
       substitution,
     );
-    if (declaration.isGetter) {
+    if (declaration is GetterFragmentImpl) {
       return GetterMember._(
         declaration: declaration,
         substitution: freshTypeParameters.substitution,

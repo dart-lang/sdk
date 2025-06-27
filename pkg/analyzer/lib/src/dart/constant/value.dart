@@ -24,7 +24,6 @@ import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:meta/meta.dart';
 
 /// The state of an object representing a boolean value.
@@ -183,24 +182,24 @@ class DartObjectImpl implements DartObject, Constant {
   /// The state of the object.
   final InstanceState state;
 
-  /// If this object is the value of a constant variable, the variable.
-  final VariableFragmentImpl? variable;
+  @override
+  final VariableElementImpl? variable2;
 
   /// Initialize a newly created object to have the given [type] and [state].
   factory DartObjectImpl(
     TypeSystemImpl typeSystem,
     TypeImpl type,
     InstanceState state, {
-    VariableFragmentImpl? variable,
+    VariableElementImpl? variable,
   }) {
     type = type.extensionTypeErasure;
-    return DartObjectImpl._(typeSystem, type, state, variable: variable);
+    return DartObjectImpl._(typeSystem, type, state, variable2: variable);
   }
 
   /// Creates a duplicate instance of [other], tied to [variable].
   factory DartObjectImpl.forVariable(
     DartObjectImpl other,
-    VariableFragmentImpl variable,
+    VariableElementImpl variable,
   ) {
     return DartObjectImpl(
       other._typeSystem,
@@ -249,7 +248,7 @@ class DartObjectImpl implements DartObject, Constant {
   }
 
   /// Initialize a newly created object to have the given [type] and [state].
-  DartObjectImpl._(this._typeSystem, this.type, this.state, {this.variable}) {
+  DartObjectImpl._(this._typeSystem, this.type, this.state, {this.variable2}) {
     if (state case GenericState state) {
       state._object = this;
     }
@@ -289,9 +288,6 @@ class DartObjectImpl implements DartObject, Constant {
 
   @visibleForTesting
   List<DartType>? get typeArguments => (state as FunctionState).typeArguments;
-
-  @override
-  VariableElement? get variable2 => variable.asElement2 as VariableElement?;
 
   @override
   bool operator ==(Object other) {
@@ -949,16 +945,6 @@ class DartObjectImpl implements DartObject, Constant {
       return state.value;
     }
     return null;
-  }
-
-  /// Return an element corresponding to the value of the object being
-  /// represented, or `null`
-  /// if
-  /// * this object is not of a function type,
-  /// * the value of the object being represented is not known, or
-  /// * the value of the object being represented is `null`.
-  ExecutableElementOrMember? toFunctionValue() {
-    return toFunctionValue2()?.asElement;
   }
 
   @override

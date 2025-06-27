@@ -528,7 +528,7 @@ class MemberDuplicateDefinitionVerifier {
           if (staticMember.isSynthetic) {
             errorCode =
                 CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD;
-          } else if (staticMember.isGetter) {
+          } else if (staticMember is GetterFragmentImpl) {
             errorCode =
                 CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER;
           } else {

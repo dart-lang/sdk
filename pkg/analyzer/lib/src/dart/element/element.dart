@@ -4,7 +4,6 @@
 
 import 'dart:collection';
 
-import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
@@ -2043,17 +2042,6 @@ abstract class ElementImpl implements Element {
     ];
   }
 
-  /// Return an identifier that uniquely identifies this element among the
-  /// children of this element's parent.
-  String get identifier {
-    var identifier = name3!;
-    // TODO(augmentations): Figure out how to get a unique identifier. In the
-    //  old model we sometimes used the offset of the name to disambiguate
-    //  between elements, but we can't do that anymore because the name can
-    //  appear at multiple offsets.
-    return considerCanonicalizeString(identifier);
-  }
-
   @override
   bool get isPrivate {
     var name3 = this.name3;
@@ -3884,18 +3872,6 @@ abstract class FragmentImpl implements FragmentOrMember {
     return enclosingElement3!.enclosingUnit;
   }
 
-  /// Return an identifier that uniquely identifies this element among the
-  /// children of this element's parent.
-  String get identifier {
-    var identifier = name2 ?? '';
-
-    if (_includeNameOffsetInIdentifier) {
-      identifier += "@$nameOffset";
-    }
-
-    return considerCanonicalizeString(identifier);
-  }
-
   bool get isNonFunctionTypeAliasesEnabled {
     return library!.featureSet.isEnabled(Feature.nonfunction_type_aliases);
   }
@@ -4344,9 +4320,6 @@ class GenericFunctionTypeFragmentImpl extends _ExistingFragmentImpl
   List<FormalParameterFragmentImpl> get formalParameters => parameters;
 
   @override
-  String get identifier => '-';
-
-  @override
   ElementKind get kind => ElementKind.GENERIC_FUNCTION_TYPE;
 
   @override
@@ -4521,15 +4494,19 @@ class GetterFragmentImpl extends PropertyAccessorFragmentImpl
   GetterFragmentImpl.forVariable(super.variable) : super.forVariable();
 
   @override
-  bool get isGetter => true;
-
-  @override
-  bool get isSetter => false;
+  ElementKind get kind {
+    return ElementKind.GETTER;
+  }
 
   void addFragment(GetterFragmentImpl fragment) {
     fragment.element = element;
     fragment.previousFragment = this;
     nextFragment = fragment;
+  }
+
+  @override
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeExecutableElement(this, 'get $displayName');
   }
 }
 
@@ -4624,9 +4601,6 @@ abstract class InstanceElementImpl extends ElementImpl
   @Deprecated('Use getters instead')
   @override
   List<GetterElementImpl> get getters2 => getters;
-
-  @override
-  String get identifier => name3 ?? firstFragment.identifier;
 
   @override
   bool get isPrivate => firstFragment.isPrivate;
@@ -5640,15 +5614,6 @@ abstract class InterfaceFragmentImpl extends InstanceFragmentImpl
     _constructors = [..._constructors, fragment];
     fragment.enclosingElement3 = this;
   }
-
-  static PropertyAccessorElementOrMember? getSetterFromAccessors(
-    String setterName,
-    List<PropertyAccessorElementOrMember> accessors,
-  ) {
-    return accessors.firstWhereOrNull(
-      (accessor) => accessor.isSetter && accessor.name2 == setterName,
-    );
-  }
 }
 
 class JoinPatternVariableElementImpl extends PatternVariableElementImpl
@@ -6123,7 +6088,7 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @override
-  String get identifier => '${definingCompilationUnit.source.uri}';
+  String get identifier => '$uri';
 
   @override
   bool get isDartAsync => name == "dart.async";
@@ -6651,9 +6616,6 @@ class LibraryFragmentImpl extends _ExistingFragmentImpl
 
   @override
   int get hashCode => source.hashCode;
-
-  @override
-  String get identifier => '${source.uri}';
 
   @override
   List<LibraryElement> get importedLibraries2 {
@@ -7284,11 +7246,6 @@ class LocalVariableFragmentImpl extends NonParameterVariableFragmentImpl
 
   set enclosingFragment(Fragment value) {
     enclosingElement3 = value as FragmentImpl;
-  }
-
-  @override
-  String get identifier {
-    return '$name2$nameOffset';
   }
 
   @override
@@ -8907,22 +8864,8 @@ abstract class PropertyAccessorElementImpl extends ExecutableElementImpl
   }
 }
 
-/// Common base class for all analyzer-internal classes that implement
-/// `PropertyAccessorElement`.
-abstract class PropertyAccessorElementOrMember
-    implements ExecutableElementOrMember {
-  /// Whether the accessor represents a getter.
-  bool get isGetter;
-
-  /// Whether the accessor represents a setter.
-  bool get isSetter;
-
-  @override
-  TypeImpl get returnType;
-}
-
 sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
-    implements PropertyAccessorElementOrMember, PropertyAccessorFragment {
+    implements PropertyAccessorFragment {
   @override
   final String? name2;
 
@@ -8964,24 +8907,9 @@ sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
     throw UnsupportedError('Not a fragment: ${enclosing.runtimeType}');
   }
 
-  @override
-  String get identifier {
-    String name = displayName;
-    String suffix = isGetter ? "?" : "=";
-    return considerCanonicalizeString("$name$suffix");
-  }
-
   /// Set whether this class is abstract.
   set isAbstract(bool isAbstract) {
     setModifier(Modifier.ABSTRACT, isAbstract);
-  }
-
-  @override
-  ElementKind get kind {
-    if (isGetter) {
-      return ElementKind.GETTER;
-    }
-    return ElementKind.SETTER;
   }
 
   @override
@@ -9000,14 +8928,6 @@ sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
       return variable.firstFragment.offset;
     }
     return _nameOffset;
-  }
-
-  @override
-  void appendTo(ElementDisplayStringBuilder builder) {
-    builder.writeExecutableElement(
-      this,
-      (isGetter ? 'get ' : 'set ') + displayName,
-    );
   }
 }
 
@@ -9340,10 +9260,9 @@ class SetterFragmentImpl extends PropertyAccessorFragmentImpl
   SetterFragmentImpl.forVariable(super.variable) : super.forVariable();
 
   @override
-  bool get isGetter => false;
-
-  @override
-  bool get isSetter => true;
+  ElementKind get kind {
+    return ElementKind.SETTER;
+  }
 
   @override
   String? get lookupName {
@@ -9361,6 +9280,11 @@ class SetterFragmentImpl extends PropertyAccessorFragmentImpl
     fragment.element = element;
     fragment.previousFragment = this;
     nextFragment = fragment;
+  }
+
+  @override
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeExecutableElement(this, 'set $displayName');
   }
 }
 

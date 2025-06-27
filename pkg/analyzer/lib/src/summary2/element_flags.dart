@@ -415,8 +415,8 @@ class PropertyAccessorElementFlags {
             : 0;
     result |= element.invokesSuperSelf ? _invokesSuperSelf : 0;
     result |= element.isAugmentation ? _isAugmentation : 0;
-    result |= element.isGetter ? _isGetter : 0;
-    result |= element.isSetter ? _isSetter : 0;
+    result |= element is GetterFragmentImpl ? _isGetter : 0;
+    result |= element is SetterFragmentImpl ? _isSetter : 0;
     result |= element.hasImplicitReturnType ? _hasImplicitReturnType : 0;
     result |= element.isAbstract ? _isAbstract : 0;
     result |= element.isAsynchronous ? _isAsynchronous : 0;

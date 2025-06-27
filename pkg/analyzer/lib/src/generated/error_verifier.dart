@@ -2255,24 +2255,24 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       String name = method.name2 ?? '';
 
       // find inherited property accessors
-      var getter =
-          _inheritanceManager
-              .getInherited(enclosingClass, Name(libraryUri, name))
-              ?.asElement;
-      var setter =
-          _inheritanceManager
-              .getInherited(enclosingClass, Name(libraryUri, '$name='))
-              ?.asElement;
+      var getter = _inheritanceManager.getInherited(
+        enclosingClass,
+        Name(libraryUri, name),
+      );
+      var setter = _inheritanceManager.getInherited(
+        enclosingClass,
+        Name(libraryUri, '$name='),
+      );
 
       if (method.isStatic) {
-        void reportStaticConflict(ExecutableElementOrMember inherited) {
+        void reportStaticConflict(ExecutableElement2OrMember inherited) {
           diagnosticReporter.atElement2(
             method.asElement2,
             CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
             arguments: [
               enclosingClass.displayName,
               name,
-              inherited.asElement2.enclosingElement!.displayName,
+              inherited.enclosingElement!.displayName,
             ],
           );
         }
@@ -2293,24 +2293,24 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         continue;
       }
 
-      void reportFieldConflict(PropertyAccessorElementOrMember inherited) {
+      void reportFieldConflict(PropertyAccessorElement2OrMember inherited) {
         diagnosticReporter.atElement2(
           method.asElement2,
           CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD,
           arguments: [
             enclosingClass.displayName,
             name,
-            inherited.asElement2.enclosingElement.displayName,
+            inherited.enclosingElement.displayName,
           ],
         );
       }
 
-      if (getter is PropertyAccessorElementOrMember) {
+      if (getter is GetterElement2OrMember) {
         reportFieldConflict(getter);
         continue;
       }
 
-      if (setter is PropertyAccessorElementOrMember) {
+      if (setter is SetterElement2OrMember) {
         reportFieldConflict(setter);
         continue;
       }
