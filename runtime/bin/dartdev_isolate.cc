@@ -81,6 +81,12 @@ bool DartDevIsolate::ShouldParseCommand(const char* script_uri) {
        (strncmp(script_uri, "google3://", 10) != 0)));
 }
 
+bool DartDevIsolate::ShouldParseVMOptions(const char* command) {
+  // If command is 'run' or 'test' parse the VM options as we need to pass
+  // it down to the VM that executes these commands.
+  return (strcmp(command, "run") == 0) || (strcmp(command, "test") == 0);
+}
+
 CStringUniquePtr DartDevIsolate::TryResolveArtifactPath(const char* filename) {
   auto try_resolve_path = [&](CStringUniquePtr dir_prefix) {
     // First assume we're in dart-sdk/bin.

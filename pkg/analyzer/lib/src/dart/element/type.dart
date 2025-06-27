@@ -339,11 +339,10 @@ class FunctionTypeImpl extends TypeImpl
     );
   }
 
-  @Deprecated('Use referencesAny2() instead')
   @override
-  bool referencesAny(Set<TypeParameterFragmentImpl> parameters) {
+  bool referencesAny(Set<TypeParameterElementImpl> parameters) {
     if (typeFormals.any((element) {
-      assert(!parameters.contains(element));
+      assert(!parameters.contains(element.asElement2));
 
       var bound = element.bound;
       if (bound != null && bound.referencesAny(parameters)) {
@@ -364,32 +363,6 @@ class FunctionTypeImpl extends TypeImpl
     }
 
     return returnType.referencesAny(parameters);
-  }
-
-  @override
-  bool referencesAny2(Set<TypeParameterElementImpl> parameters) {
-    if (typeFormals.any((element) {
-      assert(!parameters.contains(element.asElement2));
-
-      var bound = element.bound;
-      if (bound != null && bound.referencesAny2(parameters)) {
-        return true;
-      }
-
-      var defaultType = element.defaultType;
-      return defaultType != null && defaultType.referencesAny2(parameters);
-    })) {
-      return true;
-    }
-
-    if (this.parameters.any((element) {
-      var type = element.type;
-      return type.referencesAny2(parameters);
-    })) {
-      return true;
-    }
-
-    return returnType.referencesAny2(parameters);
   }
 
   @override
@@ -1130,15 +1103,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     );
   }
 
-  @Deprecated('Use referencesAny2() instead')
   @override
-  bool referencesAny(Set<TypeParameterFragmentImpl> parameters) {
+  bool referencesAny(Set<TypeParameterElementImpl> parameters) {
     return typeArguments.any((argument) => argument.referencesAny(parameters));
-  }
-
-  @override
-  bool referencesAny2(Set<TypeParameterElementImpl> parameters) {
-    return typeArguments.any((argument) => argument.referencesAny2(parameters));
   }
 
   @override
@@ -1612,13 +1579,7 @@ abstract class TypeImpl implements DartType, SharedType {
   @override
   bool isStructurallyEqualTo(Object other) => this == other;
 
-  /// Returns true if this type references any of the [parameters].
-  @Deprecated('Use referencesAny2() instead')
-  bool referencesAny(Set<TypeParameterFragmentImpl> parameters) {
-    return false;
-  }
-
-  bool referencesAny2(Set<TypeParameterElementImpl> parameters) {
+  bool referencesAny(Set<TypeParameterElementImpl> parameters) {
     return false;
   }
 
@@ -1763,7 +1724,7 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   }
 
   @override
-  bool referencesAny2(Set<TypeParameterElementImpl> parameters) {
+  bool referencesAny(Set<TypeParameterElementImpl> parameters) {
     return parameters.contains(element);
   }
 
