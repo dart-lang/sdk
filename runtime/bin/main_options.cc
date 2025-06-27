@@ -719,11 +719,14 @@ bool Options::ParseArguments(int argc,
     ASSERT(i == argc);
     return true;
   }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   // If running with dartdev, attempt to parse VM flags which are part of the
   // dartdev command (e.g., --enable-vm-service, --observe, etc).
-  if (!run_script) {
+  bool record_vm_options = false;
+  if ((i < argc) && DartDevIsolate::ShouldParseVMOptions(argv[i])) {
+    record_vm_options = true;
+  }
+  if (!run_script && record_vm_options) {
     // Skip the command.
     int tmp_i = i + 1;
     while (tmp_i < argc) {
@@ -736,14 +739,9 @@ bool Options::ParseArguments(int argc,
       OptionProcessor::TryProcess(argv[tmp_i], vm_options);
       tmp_i++;
     }
-#if !defined(DART_PRECOMPILED_RUNTIME)
-    if (Options::disable_dart_dev()) {
-      Syslog::PrintErr(
-          "Attempted to use --disable-dart-dev with a Dart CLI command.\n");
-      Platform::Exit(kErrorExitCode);
-    }
-#endif  // !defined(DART_PRECOMIPLED_RUNTIME)
   }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
   bool first_option = true;
   // Parse out options to be passed to dart main.
   while (i < argc) {
@@ -754,6 +752,13 @@ bool Options::ParseArguments(int argc,
         !IsOption(argv[i], "enable-vm-service")) {
       dart_options->AddArgument(argv[i]);
     }
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    if (IsOption(argv[i], "disable-dart-dev")) {
+      Syslog::PrintErr(
+          "Attempted to use --disable-dart-dev with a Dart CLI command.\n");
+      Platform::Exit(kErrorExitCode);
+    }
+#endif  // !defined(DART_PRECOMIPLED_RUNTIME)
     i++;
     // Add DDS specific flags immediately after the dartdev command.
     if (first_option) {
