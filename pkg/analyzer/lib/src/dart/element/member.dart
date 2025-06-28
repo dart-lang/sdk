@@ -392,9 +392,7 @@ abstract class ExecutableMember extends Member
 /// A parameter element defined in a parameterized type where the values of the
 /// type parameters are known.
 class FieldFormalParameterMember extends ParameterMember
-    implements
-        FieldFormalParameterElementOrMember,
-        FieldFormalParameterElement {
+    implements FieldFormalParameterElement {
   factory FieldFormalParameterMember({
     required FieldFormalParameterFragmentImpl declaration,
     required MapSubstitution substitution,
@@ -426,16 +424,6 @@ class FieldFormalParameterMember extends ParameterMember
   }
 
   @override
-  FieldElementOrMember? get field {
-    var field = declaration.field;
-    if (field == null) {
-      return null;
-    }
-
-    return FieldMember(declaration: field, substitution: substitution);
-  }
-
-  @override
   FieldElement? get field2 {
     var field = baseElement.field2;
     if (field == null) {
@@ -462,8 +450,7 @@ class FieldFormalParameterMember extends ParameterMember
 
 /// A field element defined in a parameterized type where the values of the type
 /// parameters are known.
-class FieldMember extends VariableMember
-    implements FieldElementOrMember, FieldElement2OrMember {
+class FieldMember extends VariableMember implements FieldElement2OrMember {
   /// Initialize a newly created element to represent a field, based on the
   /// [declaration], with applied [substitution].
   FieldMember({
@@ -628,16 +615,6 @@ class FieldMember extends VariableMember
       declaration: element.firstFragment,
       substitution: substitution,
     );
-  }
-
-  static FieldElementOrMember from2(
-    FieldFragmentImpl element,
-    MapSubstitution substitution,
-  ) {
-    if (substitution.map.isEmpty) {
-      return element;
-    }
-    return FieldMember(declaration: element, substitution: substitution);
   }
 }
 
@@ -1352,9 +1329,7 @@ class SetterMember extends PropertyAccessorMember
 }
 
 class SuperFormalParameterMember extends ParameterMember
-    implements
-        SuperFormalParameterElementOrMember,
-        SuperFormalParameterElement {
+    implements SuperFormalParameterElement {
   factory SuperFormalParameterMember({
     required SuperFormalParameterFragmentImpl declaration,
     required MapSubstitution substitution,
@@ -1400,7 +1375,7 @@ class SuperFormalParameterMember extends ParameterMember
   bool get isCovariant => declaration.isCovariant;
 
   @override
-  FormalParameterElementMixin? get superConstructorParameter {
+  FormalParameterElementMixin? get superConstructorParameter2 {
     var superConstructorParameter = declaration.superConstructorParameter;
     if (superConstructorParameter == null) {
       return null;
@@ -1408,10 +1383,6 @@ class SuperFormalParameterMember extends ParameterMember
 
     return ParameterMember.from2(superConstructorParameter, substitution);
   }
-
-  @override
-  FormalParameterElement? get superConstructorParameter2 =>
-      superConstructorParameter;
 }
 
 /// A variable element defined in a parameterized type where the values of the

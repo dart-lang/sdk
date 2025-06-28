@@ -261,10 +261,14 @@ abstract class FunctionType implements DartType {
 abstract class InstantiatedTypeAliasElement {
   /// The alias element that is instantiated to produce a [DartType].
   @experimental
+  TypeAliasElement get element;
+
+  @Deprecated('Use element instead.')
+  @experimental
   TypeAliasElement get element2;
 
-  /// The type arguments with which the [element2] was instantiated.
-  /// This list will be empty if the [element2] is not generic.
+  /// The type arguments with which the [element] was instantiated.
+  /// This list will be empty if the [element] is not generic.
   List<DartType> get typeArguments;
 }
 

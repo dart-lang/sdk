@@ -233,7 +233,7 @@ class ReplacementVisitor
       }
       if (newArguments != null) {
         newAlias = InstantiatedTypeAliasElementImpl(
-          element2: alias.element2,
+          element: alias.element,
           typeArguments: newArguments,
         );
       }
@@ -365,12 +365,12 @@ class ReplacementVisitor
     var alias = type.alias;
     if (alias != null) {
       var newArguments = _typeArguments(
-        alias.element2.typeParameters2,
+        alias.element.typeParameters2,
         alias.typeArguments,
       );
       if (newArguments != null) {
         newAlias = InstantiatedTypeAliasElementImpl(
-          element2: alias.element2,
+          element: alias.element,
           typeArguments: newArguments,
         );
       }
@@ -437,12 +437,12 @@ class ReplacementVisitor
     var alias = type.alias;
     if (alias != null) {
       var newArguments = _typeArguments(
-        alias.element2.typeParameters2,
+        alias.element.typeParameters2,
         alias.typeArguments,
       );
       if (newArguments != null) {
         newAlias = InstantiatedTypeAliasElementImpl(
-          element2: alias.element2,
+          element: alias.element,
           typeArguments: newArguments,
         );
       }

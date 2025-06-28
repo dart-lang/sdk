@@ -833,7 +833,7 @@ class GenericInferrer {
           if (typeElement != null && typeElement.metadata.hasOptionalTypeArgs) {
             return;
           }
-          var typeAliasElement = type.alias?.element2;
+          var typeAliasElement = type.alias?.element;
           if (typeAliasElement != null &&
               typeAliasElement.metadata.hasOptionalTypeArgs) {
             return;

@@ -234,7 +234,7 @@ class ElementPrinter {
       var alias = type.alias;
       if (alias != null) {
         _sink.withIndent(() {
-          writeNamedElement2('alias', alias.element2);
+          writeNamedElement2('alias', alias.element);
           _sink.withIndent(() {
             writeTypeList('typeArguments', alias.typeArguments);
           });

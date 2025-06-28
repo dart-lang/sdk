@@ -247,16 +247,6 @@ extension FieldElementImplExtension on FieldFragmentImpl {
   }
 }
 
-extension FieldElementOrMemberExtension on FieldElementOrMember {
-  FieldElement2OrMember get asElement2 {
-    return switch (this) {
-      FieldFragmentImpl(:var element) => element,
-      FieldMember member => member,
-      _ => throw UnsupportedError('Unsupported type: $runtimeType'),
-    };
-  }
-}
-
 extension FormalParameterElementExtension on FormalParameterElement {
   void appendToWithoutDelimiters(
     StringBuffer buffer, {

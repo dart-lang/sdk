@@ -432,7 +432,7 @@ class ElementDisplayStringBuilder {
   bool _maybeWriteTypeAlias(DartType type) {
     if (preferTypeAlias) {
       if (type.alias case var alias?) {
-        _write(alias.element2.name3 ?? '<null>');
+        _write(alias.element.name3 ?? '<null>');
         _writeTypeArguments(alias.typeArguments);
         _writeNullability(type.nullabilitySuffix);
         return true;

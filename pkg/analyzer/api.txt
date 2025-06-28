@@ -4390,7 +4390,8 @@ package:analyzer/dart/element/type.dart:
     instantiate (method: FunctionType Function(List<DartType>))
   InstantiatedTypeAliasElement (class extends Object):
     new (constructor: InstantiatedTypeAliasElement Function())
-    element2 (getter: TypeAliasElement, experimental)
+    element (getter: TypeAliasElement, experimental)
+    element2 (getter: TypeAliasElement, deprecated, experimental)
     typeArguments (getter: List<DartType>)
   InterfaceType (class extends Object implements ParameterizedType):
     new (constructor: InterfaceType Function())

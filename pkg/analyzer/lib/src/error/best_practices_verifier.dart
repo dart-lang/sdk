@@ -1023,7 +1023,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           ...element.typeParameters2.map((tp) => tp.bound),
         ];
         for (var type in signatureTypes) {
-          var aliasElement = type?.alias?.element2;
+          var aliasElement = type?.alias?.element;
           if (aliasElement != null && aliasElement.metadata.hasInternal) {
             _diagnosticReporter.atNode(
               node,
