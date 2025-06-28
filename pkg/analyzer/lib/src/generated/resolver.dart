@@ -568,7 +568,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         // TODO(srawlins): When this check is moved into the resolution stage,
         // use the result of that check to determine whether this check should
         // be done.
-        var lowerBound = typeProvider.futureElement2.instantiateImpl(
+        var lowerBound = typeProvider.futureElement.instantiateImpl(
           typeArguments: fixedTypeList(NeverTypeImpl.instance),
           nullabilitySuffix: NullabilitySuffix.none,
         );
@@ -4254,7 +4254,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     if (invocation.methodName.name == 'catchError' &&
         targetType is InterfaceTypeImpl) {
       var instanceOfFuture = targetType.asInstanceOf2(
-        typeProvider.futureElement2,
+        typeProvider.futureElement,
       );
       if (instanceOfFuture != null) {
         var targetFutureType = instanceOfFuture.typeArguments.first;

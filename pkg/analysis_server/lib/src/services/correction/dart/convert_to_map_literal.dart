@@ -84,7 +84,7 @@ class ConvertToMapLiteral extends ResolvedCorrectionProducer {
   /// Return `true` if the [element] represents either the class `Map` or
   /// `LinkedHashMap`.
   bool _isMapClass(InterfaceElement element) =>
-      element == typeProvider.mapElement2 ||
+      element == typeProvider.mapElement ||
       (element.name3 == 'LinkedHashMap' &&
           element.library.name3 == 'dart.collection');
 }

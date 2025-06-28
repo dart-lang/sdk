@@ -1142,11 +1142,7 @@ class _MockSdkElementsBuilder {
     return fragment;
   }
 
-  FormalParameterElement _namedParameter(
-    String name,
-    TypeImpl type, {
-    String? initializerCode,
-  }) {
+  FormalParameterElement _namedParameter(String name, TypeImpl type) {
     var fragment = DefaultParameterFragmentImpl(
       nameOffset: 0,
       name2: name,
@@ -1154,7 +1150,6 @@ class _MockSdkElementsBuilder {
       parameterKind: ParameterKind.NAMED,
     );
     fragment.type = type;
-    fragment.defaultValueCode = initializerCode;
     return FormalParameterElementImpl(fragment);
   }
 

@@ -3063,8 +3063,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     {
       var sequenceElement =
           awaitKeyword != null
-              ? _typeProvider.streamElement2
-              : _typeProvider.iterableElement2;
+              ? _typeProvider.streamElement
+              : _typeProvider.iterableElement;
       var sequenceType = iterableType.asInstanceOf2(sequenceElement);
       if (sequenceType != null) {
         sequenceElementType = sequenceType.typeArguments[0];

@@ -151,7 +151,7 @@ class SubtypeHelper {
       var S0 = T0.typeArguments[0];
       // * `T0 <: T1` iff `Future<S0> <: T1` and `S0 <: T1`
       if (isSubtypeOf(S0, T1)) {
-        var FutureS0 = _typeProvider.futureElement2.instantiateImpl(
+        var FutureS0 = _typeProvider.futureElement.instantiateImpl(
           typeArguments: fixedTypeList(S0),
           nullabilitySuffix: NullabilitySuffix.none,
         );
@@ -197,7 +197,7 @@ class SubtypeHelper {
       var S1 = T1.typeArguments[0];
       // `T0 <: T1` iff any of the following hold:
       // * either `T0 <: Future<S1>`
-      var FutureS1 = _typeProvider.futureElement2.instantiateImpl(
+      var FutureS1 = _typeProvider.futureElement.instantiateImpl(
         typeArguments: fixedTypeList(S1),
         nullabilitySuffix: NullabilitySuffix.none,
       );

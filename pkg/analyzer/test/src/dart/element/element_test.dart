@@ -484,7 +484,7 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
     var T = typeParameter('T', bound: listNone(intNone));
     _assert_asInstanceOf(
       typeParameterTypeNone(T),
-      typeProvider.iterableElement2,
+      typeProvider.iterableElement,
       'Iterable<int>',
     );
   }
@@ -493,7 +493,7 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
     var T = typeParameter('T', bound: numNone);
     _assert_asInstanceOf(
       typeParameterTypeNone(T),
-      typeProvider.iterableElement2,
+      typeProvider.iterableElement,
       null,
     );
   }
@@ -502,7 +502,7 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
     var T = typeParameter('T');
     _assert_asInstanceOf(
       typeParameterTypeNone(T, promotedBound: listNone(intNone)),
-      typeProvider.iterableElement2,
+      typeProvider.iterableElement,
       'Iterable<int>',
     );
   }
@@ -511,7 +511,7 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
     var T = typeParameter('T');
     _assert_asInstanceOf(
       typeParameterTypeNone(T, promotedBound: numNone),
-      typeProvider.iterableElement2,
+      typeProvider.iterableElement,
       null,
     );
   }
@@ -520,7 +520,7 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
     var T = typeParameter('T');
     _assert_asInstanceOf(
       typeParameterTypeNone(T),
-      typeProvider.iterableElement2,
+      typeProvider.iterableElement,
       null,
     );
   }

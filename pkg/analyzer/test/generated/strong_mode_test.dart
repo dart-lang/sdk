@@ -90,10 +90,10 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       _isMapOf = assertions.isMapOf;
       _isFunction2Of = assertions.isFunction2Of;
       _isFutureOf = _isInstantiationOf(
-        _hasElement(typeProvider.futureElement2),
+        _hasElement(typeProvider.futureElement),
       );
       _isFutureOrOf = _isInstantiationOf(
-        _hasElement(typeProvider.futureOrElement2),
+        _hasElement(typeProvider.futureOrElement),
       );
       _isFutureOfDynamic = _isFutureOf([_isDynamic]);
       _isFutureOfInt = _isFutureOf([_isInt]);

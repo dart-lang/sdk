@@ -116,7 +116,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
     required this.typeSystem,
     required this.inheritanceManager,
     required this.eventListener,
-  }) : coreLibrary = typeProvider.objectElement2.library;
+  }) : coreLibrary = typeProvider.objectElement.library;
 
   /// If [node] is used as the target of a [CompoundAssignmentExpression],
   /// returns the [CompoundAssignmentExpression].
@@ -212,7 +212,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
 
   MethodElement lookupToString(DartType? type) {
     var class_ =
-        type is InterfaceType ? type.element : typeProvider.objectElement2;
+        type is InterfaceType ? type.element : typeProvider.objectElement;
     return inheritanceManager.getMember(
           class_,
           Name.forLibrary(coreLibrary, 'toString'),

@@ -288,7 +288,7 @@ class AnalyzerTypeOperations implements TypeOperations<TypeImpl> {
 
   @override
   TypeImpl? getListElementType(TypeImpl type) {
-    var listType = type.asInstanceOf2(_typeSystem.typeProvider.listElement2);
+    var listType = type.asInstanceOf2(_typeSystem.typeProvider.listElement);
     if (listType != null) {
       return listType.typeArguments[0];
     }
@@ -297,12 +297,12 @@ class AnalyzerTypeOperations implements TypeOperations<TypeImpl> {
 
   @override
   TypeImpl? getListType(TypeImpl type) {
-    return type.asInstanceOf2(_typeSystem.typeProvider.listElement2);
+    return type.asInstanceOf2(_typeSystem.typeProvider.listElement);
   }
 
   @override
   TypeImpl? getMapValueType(TypeImpl type) {
-    var mapType = type.asInstanceOf2(_typeSystem.typeProvider.mapElement2);
+    var mapType = type.asInstanceOf2(_typeSystem.typeProvider.mapElement);
     if (mapType != null) {
       return mapType.typeArguments[1];
     }
@@ -677,7 +677,7 @@ class PatternConverter with SpaceCreator<DartPattern, TypeImpl> {
     } else if (pattern is ListPattern) {
       var type = pattern.requiredType as InterfaceTypeImpl;
       assert(
-        type.element == cache.typeSystem.typeProvider.listElement2 &&
+        type.element == cache.typeSystem.typeProvider.listElement &&
             type.typeArguments.length == 1,
       );
       var elementType = type.typeArguments[0];
@@ -708,7 +708,7 @@ class PatternConverter with SpaceCreator<DartPattern, TypeImpl> {
     } else if (pattern is MapPattern) {
       var type = pattern.requiredType as InterfaceTypeImpl;
       assert(
-        type.element == cache.typeSystem.typeProvider.mapElement2 &&
+        type.element == cache.typeSystem.typeProvider.mapElement &&
             type.typeArguments.length == 2,
       );
       var keyType = type.typeArguments[0];

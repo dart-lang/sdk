@@ -1561,7 +1561,7 @@ main() {
   MyEnum.B;
 }
 ''');
-    var index = typeProvider.enumElement2!.getField('index')!;
+    var index = typeProvider.enumElement!.getField('index')!;
     await assertElementReferencesText(index, r'''
 <testLibraryFragment> main@26
   46 5:12 |index| READ qualified

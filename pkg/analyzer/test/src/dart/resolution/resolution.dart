@@ -51,9 +51,9 @@ mixin ResolutionTest implements ResourceProviderMixin {
   final DartObjectPrinterConfiguration dartObjectPrinterConfiguration =
       DartObjectPrinterConfiguration();
 
-  ClassElement get boolElement => typeProvider.boolElement2;
+  ClassElement get boolElement => typeProvider.boolElement;
 
-  ClassElement get doubleElement => typeProvider.doubleElement2;
+  ClassElement get doubleElement => typeProvider.doubleElement;
 
   InterfaceType get doubleType => typeProvider.doubleType;
 
@@ -62,26 +62,26 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   FeatureSet get featureSet => result.libraryElement2.featureSet;
 
-  ClassElement get futureElement => typeProvider.futureElement2;
+  ClassElement get futureElement => typeProvider.futureElement;
 
   InheritanceManager3 get inheritanceManager {
     var library = result.libraryElement2;
     return library.session.inheritanceManager;
   }
 
-  ClassElement get intElement => typeProvider.intElement2;
+  ClassElement get intElement => typeProvider.intElement;
 
   InterfaceType get intType => typeProvider.intType;
 
-  ClassElement get listElement => typeProvider.listElement2;
+  ClassElement get listElement => typeProvider.listElement;
 
-  ClassElement get mapElement => typeProvider.mapElement2;
+  ClassElement get mapElement => typeProvider.mapElement;
 
   NeverElementImpl get neverElement => NeverElementImpl.instance;
 
-  ClassElement get numElement => typeProvider.numElement2;
+  ClassElement get numElement => typeProvider.numElement;
 
-  ClassElement get objectElement => typeProvider.objectElement2;
+  ClassElement get objectElement => typeProvider.objectElement;
 
   bool get strictCasts {
     var analysisOptions = result.session.analysisContext
@@ -89,7 +89,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     return analysisOptions.strictCasts;
   }
 
-  ClassElement get stringElement => typeProvider.stringElement2;
+  ClassElement get stringElement => typeProvider.stringElement;
 
   InterfaceType get stringType => typeProvider.stringType;
 

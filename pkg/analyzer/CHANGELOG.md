@@ -74,6 +74,23 @@
 * Deprecate `InterfaceType.constructors2`, use `constructors` instead.
 * Deprecate `Element.accept2`, use `accept` instead.
 * Deprecate `InstantiatedTypeAliasElement.element2`, use `element` instead.
+* Deprecate  `TypeProvider.boolElement2`, use `boolElement` instead.
+* Deprecate  `TypeProvider.doubleElement2`, use `doubleElement` instead.
+* Deprecate  `TypeProvider.enumElement2`, use `enumElement` instead.
+* Deprecate  `TypeProvider.futureElement2`, use `futureElement` instead.
+* Deprecate  `TypeProvider.futureOrElement2`, use `futureOrElement` instead.
+* Deprecate  `TypeProvider.intElement2`, use `intElement` instead.
+* Deprecate  `TypeProvider.iterableElement2`, use `iterableElement` instead.
+* Deprecate  `TypeProvider.listElement2`, use `listElement` instead.
+* Deprecate  `TypeProvider.mapElement2`, use `mapElement` instead.
+* Deprecate  `TypeProvider.nullElement2`, use `nullElement` instead.
+* Deprecate  `TypeProvider.numElement2`, use `numElement` instead.
+* Deprecate  `TypeProvider.objectElement2`, use `objectElement` instead.
+* Deprecate  `TypeProvider.recordElement2`, use `recordElement` instead.
+* Deprecate  `TypeProvider.setElement2`, use `setElement` instead.
+* Deprecate  `TypeProvider.streamElement2`, use `streamElement` instead.
+* Deprecate  `TypeProvider.stringElement2`, use `stringElement` instead.
+* Deprecate  `TypeProvider.symbolElement2`, use `symbolElement` instead.
 
 ## 7.4.1
 * Restore `InstanceElement.augmented` getter.

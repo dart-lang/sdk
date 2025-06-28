@@ -103,8 +103,8 @@ class YieldStatementResolver {
       } else {
         var imposedSequenceType = imposedReturnType.asInstanceOf2(
           bodyContext.isSynchronous
-              ? _typeProvider.iterableElement2
-              : _typeProvider.streamElement2,
+              ? _typeProvider.iterableElement
+              : _typeProvider.streamElement,
         );
         if (imposedSequenceType != null) {
           var imposedValueType = imposedSequenceType.typeArguments[0];

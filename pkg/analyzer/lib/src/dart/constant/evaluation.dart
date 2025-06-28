@@ -487,7 +487,7 @@ class ConstantEvaluationEngine {
       return null;
     }
     var typeProvider = constructor.library.typeProvider;
-    if (constructor.enclosingElement == typeProvider.symbolElement2) {
+    if (constructor.enclosingElement == typeProvider.symbolElement) {
       // The dart:core.Symbol has a const factory constructor that redirects
       // to dart:_internal.Symbol.  That in turn redirects to an external
       // const constructor, which we won't be able to evaluate.
@@ -2918,7 +2918,7 @@ class _InstanceCreationEvaluator {
       }
       String? variableName =
           argumentCount < 1 ? null : firstArgument?.toStringValue();
-      if (definingClass == typeProvider.boolElement2) {
+      if (definingClass == typeProvider.boolElement) {
         // Special case: https://github.com/dart-lang/sdk/issues/50045
         if (variableName == 'dart.library.js_util') {
           return DartObjectImpl(
@@ -2931,26 +2931,26 @@ class _InstanceCreationEvaluator {
           typeSystem,
           _declaredVariables,
         ).getBool2(variableName, _namedValues, _constructor);
-      } else if (definingClass == typeProvider.intElement2) {
+      } else if (definingClass == typeProvider.intElement) {
         return FromEnvironmentEvaluator(
           typeSystem,
           _declaredVariables,
         ).getInt2(variableName, _namedValues, _constructor);
-      } else if (definingClass == typeProvider.stringElement2) {
+      } else if (definingClass == typeProvider.stringElement) {
         return FromEnvironmentEvaluator(
           typeSystem,
           _declaredVariables,
         ).getString2(variableName, _namedValues, _constructor);
       }
     } else if (_constructor.name3 == 'hasEnvironment' &&
-        definingClass == typeProvider.boolElement2) {
+        definingClass == typeProvider.boolElement) {
       var name = argumentCount < 1 ? null : firstArgument?.toStringValue();
       return FromEnvironmentEvaluator(
         typeSystem,
         _declaredVariables,
       ).hasEnvironment(name);
     } else if (_constructor.name3 == 'new' &&
-        definingClass == typeProvider.symbolElement2 &&
+        definingClass == typeProvider.symbolElement &&
         argumentCount == 1) {
       if (!_checkSymbolArguments(arguments)) {
         return InvalidConstant.forEntity(

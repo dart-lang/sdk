@@ -3379,9 +3379,6 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
   @override
   final ParameterKind parameterKind;
 
-  @override
-  String? defaultValueCode;
-
   /// True if this parameter inherits from a covariant parameter. This happens
   /// when it overrides a method in a supertype that has a corresponding
   /// covariant parameter.
@@ -3425,6 +3422,9 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
 
   @override
   FormalParameterFragmentImpl get declaration => this;
+
+  @override
+  String? get defaultValueCode => null;
 
   @override
   FormalParameterElementImpl get element {

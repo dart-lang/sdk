@@ -150,10 +150,10 @@ class TypeAssertions {
   Asserter<DartType> get isInvalidType => isType(InvalidTypeImpl.instance);
 
   /// Primitive assertion for the list type.
-  Asserter<DartType> get isList => hasElement(_typeProvider.listElement2);
+  Asserter<DartType> get isList => hasElement(_typeProvider.listElement);
 
   /// Primitive assertion for the map type.
-  Asserter<DartType> get isMap => hasElement(_typeProvider.mapElement2);
+  Asserter<DartType> get isMap => hasElement(_typeProvider.mapElement);
 
   /// Primitive assertion for the Never type.
   Asserter<DartType> get isNever => isType(_typeProvider.neverType);

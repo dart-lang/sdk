@@ -161,7 +161,7 @@ class ReplaceWithVar extends ResolvedCorrectionProducer {
         }
         var iterableType = parent.iterable.typeOrThrow;
         var instantiatedType = iterableType.asInstanceOf2(
-          typeProvider.iterableElement2,
+          typeProvider.iterableElement,
         );
         if (instantiatedType?.typeArguments.first == staticType) {
           return true;

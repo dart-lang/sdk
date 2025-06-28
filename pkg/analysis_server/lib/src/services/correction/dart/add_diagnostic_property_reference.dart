@@ -429,7 +429,7 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
   }
 
   bool _isIterable(DartType type) {
-    return type.asInstanceOf2(typeProvider.iterableElement2) != null;
+    return type.asInstanceOf2(typeProvider.iterableElement) != null;
   }
 
   ({int offset, String prefix}) _offsetAndPrefixOfBlock(Block block) {

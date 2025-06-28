@@ -25,9 +25,9 @@ DynamicTypeImpl get dynamicType => DynamicTypeImpl.instance;
 class FunctionTypeTest extends AbstractTypeSystemTest {
   InterfaceType get intType => typeProvider.intType;
 
-  ClassElement get listElement => typeProvider.listElement2;
+  ClassElement get listElement => typeProvider.listElement;
 
-  ClassElement get mapElement => typeProvider.mapElement2;
+  ClassElement get mapElement => typeProvider.mapElement;
 
   InterfaceTypeImpl get objectType => typeProvider.objectType;
 

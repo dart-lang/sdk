@@ -121,7 +121,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   List<_MethodDefinition> get indexOperators => [
     // Argument to `Map<K, V>.[]` should be assignable to `K`.
     _MethodDefinitionForElement(
-      typeProvider.mapElement2,
+      typeProvider.mapElement,
       '[]',
       _ExpectedArgumentKind.assignableToCollectionTypeArgument,
     ),
@@ -130,32 +130,32 @@ class _Visitor extends SimpleAstVisitor<void> {
   List<_MethodDefinition> get methods => [
     // Argument to `Iterable<E>.contains` should be assignable to `E`.
     _MethodDefinitionForElement(
-      typeProvider.iterableElement2,
+      typeProvider.iterableElement,
       'contains',
       _ExpectedArgumentKind.assignableToCollectionTypeArgument,
     ),
     // Argument to `List<E>.remove` should be assignable to `E`.
     _MethodDefinitionForElement(
-      typeProvider.listElement2,
+      typeProvider.listElement,
       'remove',
       _ExpectedArgumentKind.assignableToCollectionTypeArgument,
     ),
     // Argument to `Map<K, V>.containsKey` should be assignable to `K`.
     _MethodDefinitionForElement(
-      typeProvider.mapElement2,
+      typeProvider.mapElement,
       'containsKey',
       _ExpectedArgumentKind.assignableToCollectionTypeArgument,
     ),
     // Argument to `Map<K, V>.containsValue` should be assignable to `V`.
     _MethodDefinitionForElement(
-      typeProvider.mapElement2,
+      typeProvider.mapElement,
       'containsValue',
       _ExpectedArgumentKind.assignableToCollectionTypeArgument,
       typeArgumentIndex: 1,
     ),
     // Argument to `Map<K, V>.remove` should be assignable to `K`.
     _MethodDefinitionForElement(
-      typeProvider.mapElement2,
+      typeProvider.mapElement,
       'remove',
       _ExpectedArgumentKind.assignableToCollectionTypeArgument,
     ),
@@ -168,13 +168,13 @@ class _Visitor extends SimpleAstVisitor<void> {
     ),
     // Argument to `Set<E>.lookup` should be assignable to `E`.
     _MethodDefinitionForElement(
-      typeProvider.setElement2,
+      typeProvider.setElement,
       'lookup',
       _ExpectedArgumentKind.assignableToCollectionTypeArgument,
     ),
     // Argument to `Set<E>.remove` should be assignable to `E`.
     _MethodDefinitionForElement(
-      typeProvider.setElement2,
+      typeProvider.setElement,
       'remove',
       _ExpectedArgumentKind.assignableToCollectionTypeArgument,
     ),
@@ -281,7 +281,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
       case _ExpectedArgumentKind.assignableToIterableOfTypeArgument:
         var iterableType = collectionType.asInstanceOf2(
-          typeProvider.iterableElement2,
+          typeProvider.iterableElement,
         );
         if (iterableType != null &&
             !typeSystem.isAssignableTo(argumentType, iterableType)) {

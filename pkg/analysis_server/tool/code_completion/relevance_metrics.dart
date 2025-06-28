@@ -2072,11 +2072,11 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
           argumentType is InterfaceType &&
           parameterType is InterfaceType) {
         int distance;
-        if (parameterType.element == typeProvider.futureOrElement2) {
+        if (parameterType.element == typeProvider.futureOrElement) {
           var typeArgument = parameterType.typeArguments[0];
           distance = featureComputer.inheritanceDistance(
             argumentType.element,
-            typeProvider.futureElement2,
+            typeProvider.futureElement,
           );
           if (typeArgument is InterfaceType) {
             var argDistance = featureComputer.inheritanceDistance(
