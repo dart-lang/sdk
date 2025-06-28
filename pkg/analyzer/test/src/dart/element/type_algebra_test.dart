@@ -247,7 +247,7 @@ class SubstituteTest extends _Base {
       A,
       typeArguments: [
         interfaceTypeNone(
-          typeProvider.listElement2,
+          typeProvider.listElement,
           typeArguments: [typeParameterTypeNone(U)],
         ),
       ],

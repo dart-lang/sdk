@@ -106,18 +106,18 @@ class ReturnTypeVerifier {
     if (enclosingExecutable.isAsynchronous) {
       if (enclosingExecutable.isGenerator) {
         checkElement(
-          _typeProvider.streamElement2,
+          _typeProvider.streamElement,
           CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE,
         );
       } else {
         checkElement(
-          _typeProvider.futureElement2,
+          _typeProvider.futureElement,
           CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE,
         );
       }
     } else if (enclosingExecutable.isGenerator) {
       checkElement(
-        _typeProvider.iterableElement2,
+        _typeProvider.iterableElement,
         CompileTimeErrorCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE,
       );
     }

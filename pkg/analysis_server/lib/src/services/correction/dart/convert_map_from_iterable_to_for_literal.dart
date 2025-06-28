@@ -42,7 +42,7 @@ class ConvertMapFromIterableToForLiteral extends ResolvedCorrectionProducer {
     var element = creation.constructorName.element;
     if (element == null ||
         element.name3 != 'fromIterable' ||
-        element.enclosingElement != typeProvider.mapElement2) {
+        element.enclosingElement != typeProvider.mapElement) {
       return;
     }
     //

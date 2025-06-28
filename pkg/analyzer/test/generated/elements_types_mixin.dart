@@ -21,44 +21,44 @@ import 'package:test/test.dart';
 
 mixin ElementsTypesMixin {
   InterfaceTypeImpl get boolNone {
-    var element = typeProvider.boolElement2;
+    var element = typeProvider.boolElement;
     return interfaceTypeNone(element);
   }
 
   InterfaceTypeImpl get boolQuestion {
-    var element = typeProvider.boolElement2;
+    var element = typeProvider.boolElement;
     return interfaceTypeQuestion(element);
   }
 
   InterfaceTypeImpl get doubleNone {
-    var element = typeProvider.doubleElement2;
+    var element = typeProvider.doubleElement;
     return interfaceTypeNone(element);
   }
 
   InterfaceTypeImpl get doubleQuestion {
-    var element = typeProvider.doubleElement2;
+    var element = typeProvider.doubleElement;
     return interfaceTypeQuestion(element);
   }
 
   TypeImpl get dynamicType => DynamicTypeImpl.instance;
 
   InterfaceTypeImpl get functionNone {
-    var element = typeProvider.functionElement2;
+    var element = typeProvider.functionElement;
     return interfaceTypeNone(element);
   }
 
   InterfaceTypeImpl get functionQuestion {
-    var element = typeProvider.functionElement2;
+    var element = typeProvider.functionElement;
     return interfaceTypeQuestion(element);
   }
 
   InterfaceTypeImpl get intNone {
-    var element = typeProvider.intElement2;
+    var element = typeProvider.intElement;
     return interfaceTypeNone(element);
   }
 
   InterfaceTypeImpl get intQuestion {
-    var element = typeProvider.intElement2;
+    var element = typeProvider.intElement;
     return interfaceTypeQuestion(element);
   }
 
@@ -69,42 +69,42 @@ mixin ElementsTypesMixin {
   NeverTypeImpl get neverQuestion => NeverTypeImpl.instanceNullable;
 
   InterfaceTypeImpl get nullNone {
-    var element = typeProvider.nullElement2;
+    var element = typeProvider.nullElement;
     return interfaceTypeNone(element);
   }
 
   InterfaceTypeImpl get numNone {
-    var element = typeProvider.numElement2;
+    var element = typeProvider.numElement;
     return interfaceTypeNone(element);
   }
 
   InterfaceTypeImpl get numQuestion {
-    var element = typeProvider.numElement2;
+    var element = typeProvider.numElement;
     return interfaceTypeQuestion(element);
   }
 
   InterfaceTypeImpl get objectNone {
-    var element = typeProvider.objectElement2;
+    var element = typeProvider.objectElement;
     return interfaceTypeNone(element);
   }
 
   InterfaceTypeImpl get objectQuestion {
-    var element = typeProvider.objectElement2;
+    var element = typeProvider.objectElement;
     return interfaceTypeQuestion(element);
   }
 
   InterfaceTypeImpl get recordNone {
-    var element = typeProvider.recordElement2;
+    var element = typeProvider.recordElement;
     return interfaceTypeNone(element);
   }
 
   InterfaceTypeImpl get stringNone {
-    var element = typeProvider.stringElement2;
+    var element = typeProvider.stringElement;
     return interfaceTypeNone(element);
   }
 
   InterfaceTypeImpl get stringQuestion {
-    var element = typeProvider.stringElement2;
+    var element = typeProvider.stringElement;
     return interfaceTypeQuestion(element);
   }
 
@@ -171,7 +171,7 @@ mixin ElementsTypesMixin {
   }
 
   InterfaceTypeImpl comparableNone(TypeImpl type) {
-    var coreLibrary = typeProvider.intElement2.library;
+    var coreLibrary = typeProvider.intElement.library;
     var element = coreLibrary.getClass2('Comparable')!;
     return element.instantiateImpl(
       typeArguments: [type],
@@ -180,7 +180,7 @@ mixin ElementsTypesMixin {
   }
 
   InterfaceTypeImpl comparableQuestion(TypeImpl type) {
-    var coreLibrary = typeProvider.intElement2.library;
+    var coreLibrary = typeProvider.intElement.library;
     var element = coreLibrary.getClass2('Comparable')!;
     return element.instantiateImpl(
       typeArguments: [type],
@@ -321,28 +321,28 @@ mixin ElementsTypesMixin {
   }
 
   InterfaceTypeImpl futureNone(TypeImpl type) {
-    return typeProvider.futureElement2.instantiateImpl(
+    return typeProvider.futureElement.instantiateImpl(
       typeArguments: <TypeImpl>[type],
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   InterfaceTypeImpl futureOrNone(TypeImpl type) {
-    return typeProvider.futureOrElement2.instantiateImpl(
+    return typeProvider.futureOrElement.instantiateImpl(
       typeArguments: <TypeImpl>[type],
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   InterfaceTypeImpl futureOrQuestion(TypeImpl type) {
-    return typeProvider.futureOrElement2.instantiateImpl(
+    return typeProvider.futureOrElement.instantiateImpl(
       typeArguments: <TypeImpl>[type],
       nullabilitySuffix: NullabilitySuffix.question,
     );
   }
 
   InterfaceTypeImpl futureQuestion(TypeImpl type) {
-    return typeProvider.futureElement2.instantiateImpl(
+    return typeProvider.futureElement.instantiateImpl(
       typeArguments: <TypeImpl>[type],
       nullabilitySuffix: NullabilitySuffix.question,
     );
@@ -369,14 +369,14 @@ mixin ElementsTypesMixin {
   }
 
   InterfaceTypeImpl iterableNone(TypeImpl type) {
-    return typeProvider.iterableElement2.instantiateImpl(
+    return typeProvider.iterableElement.instantiateImpl(
       typeArguments: <TypeImpl>[type],
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   InterfaceTypeImpl iterableQuestion(TypeImpl type) {
-    return typeProvider.iterableElement2.instantiateImpl(
+    return typeProvider.iterableElement.instantiateImpl(
       typeArguments: <TypeImpl>[type],
       nullabilitySuffix: NullabilitySuffix.question,
     );
@@ -414,28 +414,28 @@ mixin ElementsTypesMixin {
   }
 
   InterfaceTypeImpl listNone(TypeImpl type) {
-    return typeProvider.listElement2.instantiateImpl(
+    return typeProvider.listElement.instantiateImpl(
       typeArguments: <TypeImpl>[type],
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   InterfaceTypeImpl listQuestion(TypeImpl type) {
-    return typeProvider.listElement2.instantiateImpl(
+    return typeProvider.listElement.instantiateImpl(
       typeArguments: <TypeImpl>[type],
       nullabilitySuffix: NullabilitySuffix.question,
     );
   }
 
   InterfaceTypeImpl mapNone(TypeImpl key, TypeImpl value) {
-    return typeProvider.mapElement2.instantiateImpl(
+    return typeProvider.mapElement.instantiateImpl(
       typeArguments: [key, value],
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   InterfaceTypeImpl mapQuestion(TypeImpl key, TypeImpl value) {
-    return typeProvider.mapElement2.instantiateImpl(
+    return typeProvider.mapElement.instantiateImpl(
       typeArguments: [key, value],
       nullabilitySuffix: NullabilitySuffix.question,
     );

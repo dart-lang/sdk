@@ -786,14 +786,14 @@ class TypeSystemOperations
 
   @override
   TypeImpl? matchIterableTypeInternal(TypeImpl type) {
-    var iterableElement = typeSystem.typeProvider.iterableElement2;
+    var iterableElement = typeSystem.typeProvider.iterableElement;
     var listType = type.asInstanceOf2(iterableElement);
     return listType?.typeArguments[0];
   }
 
   @override
   SharedTypeView? matchListType(SharedTypeView type) {
-    var listElement = typeSystem.typeProvider.listElement2;
+    var listElement = typeSystem.typeProvider.listElement;
     var listType = type.unwrapTypeView<TypeImpl>().asInstanceOf2(listElement);
     return listType == null ? null : SharedTypeView(listType.typeArguments[0]);
   }
@@ -802,7 +802,7 @@ class TypeSystemOperations
   ({SharedTypeView keyType, SharedTypeView valueType})? matchMapType(
     SharedTypeView type,
   ) {
-    var mapElement = typeSystem.typeProvider.mapElement2;
+    var mapElement = typeSystem.typeProvider.mapElement;
     var mapType = type.unwrapTypeView<TypeImpl>().asInstanceOf2(mapElement);
     if (mapType != null) {
       return (
@@ -815,7 +815,7 @@ class TypeSystemOperations
 
   @override
   SharedTypeView? matchStreamType(SharedTypeView type) {
-    var streamElement = typeSystem.typeProvider.streamElement2;
+    var streamElement = typeSystem.typeProvider.streamElement;
     var listType = type.unwrapTypeView<TypeImpl>().asInstanceOf2(streamElement);
     return listType == null ? null : SharedTypeView(listType.typeArguments[0]);
   }

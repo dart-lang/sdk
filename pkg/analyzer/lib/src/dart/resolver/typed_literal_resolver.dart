@@ -145,7 +145,7 @@ class TypedLiteralResolver {
         );
         if (literalResolution.contextType != null) {
           var typeArguments = inferrer.choosePreliminaryTypes();
-          literalType = _typeProvider.setElement2.instantiateImpl(
+          literalType = _typeProvider.setElement.instantiateImpl(
             typeArguments: typeArguments,
             nullabilitySuffix: NullabilitySuffix.none,
           );
@@ -163,7 +163,7 @@ class TypedLiteralResolver {
         );
         if (literalResolution.contextType != null) {
           var typeArguments = inferrer.choosePreliminaryTypes();
-          literalType = _typeProvider.mapElement2.instantiateImpl(
+          literalType = _typeProvider.mapElement.instantiateImpl(
             typeArguments: typeArguments,
             nullabilitySuffix: NullabilitySuffix.none,
           );
@@ -231,7 +231,7 @@ class TypedLiteralResolver {
         var expressionType = element.expression.typeOrThrow;
 
         var iterableType = expressionType.asInstanceOf2(
-          _typeProvider.iterableElement2,
+          _typeProvider.iterableElement,
         );
         if (iterableType != null) {
           return iterableType.typeArguments[0];
@@ -329,10 +329,10 @@ class TypedLiteralResolver {
       // TODO(brianwilkerson): Find out what the "greatest closure" is and use that
       // where [unwrappedContextType] is used below.
       var iterableType = unwrappedContextType.asInstanceOf2(
-        _typeProvider.iterableElement2,
+        _typeProvider.iterableElement,
       );
       var mapType = unwrappedContextType.asInstanceOf2(
-        _typeProvider.mapElement2,
+        _typeProvider.mapElement,
       );
       var isIterable = iterableType != null;
       var isMap = mapType != null;
@@ -418,7 +418,7 @@ class TypedLiteralResolver {
         var expressionType = element.expression.typeOrThrow;
 
         var iterableType = expressionType.asInstanceOf2(
-          _typeProvider.iterableElement2,
+          _typeProvider.iterableElement,
         );
         if (iterableType != null) {
           return _InferredCollectionElementTypeInformation(
@@ -426,7 +426,7 @@ class TypedLiteralResolver {
           );
         }
 
-        var mapType = expressionType.asInstanceOf2(_typeProvider.mapElement2);
+        var mapType = expressionType.asInstanceOf2(_typeProvider.mapElement);
         if (mapType != null) {
           return _InferredCollectionElementTypeInformation(
             keyType: mapType.typeArguments[0],
@@ -472,7 +472,7 @@ class TypedLiteralResolver {
     ListLiteralImpl node, {
     required TypeImpl contextType,
   }) {
-    var element = _typeProvider.listElement2;
+    var element = _typeProvider.listElement;
     var typeParameters = element.typeParameters2;
     inferenceLogWriter?.enterGenericInference(
       // TODO(paulberry): make this cast unnecessary by changing
@@ -503,7 +503,7 @@ class TypedLiteralResolver {
     ListLiteralImpl node, {
     required DartType contextType,
   }) {
-    var element = _typeProvider.listElement2;
+    var element = _typeProvider.listElement;
     var typeParameters = element.typeParameters2;
     var genericElementType = typeParameters[0].instantiate(
       nullabilitySuffix: NullabilitySuffix.none,
@@ -550,7 +550,7 @@ class TypedLiteralResolver {
     SetOrMapLiteralImpl node,
     TypeImpl contextType,
   ) {
-    var element = _typeProvider.mapElement2;
+    var element = _typeProvider.mapElement;
     inferenceLogWriter?.enterGenericInference(
       // TODO(paulberry): make this cast unnecessary by changing
       // `TypeProviderImpl.mapElement2` to `ClassElementImpl2`.
@@ -613,9 +613,9 @@ class TypedLiteralResolver {
     // `Map<Object, Object>` is if the context type is `_`.
     if (contextType != null) {
       var contextIterableType = contextType.asInstanceOf2(
-        _typeProvider.iterableElement2,
+        _typeProvider.iterableElement,
       );
-      var contextMapType = contextType.asInstanceOf2(_typeProvider.mapElement2);
+      var contextMapType = contextType.asInstanceOf2(_typeProvider.mapElement);
       var contextIsIterable = contextIterableType != null;
       var contextIsMap = contextMapType != null;
 
@@ -663,7 +663,7 @@ class TypedLiteralResolver {
     SetOrMapLiteralImpl node,
     TypeImpl contextType,
   ) {
-    var element = _typeProvider.setElement2;
+    var element = _typeProvider.setElement;
     inferenceLogWriter?.enterGenericInference(
       // TODO(paulberry): make this cast unnecessary by changing
       // `TypeProviderImpl.setElement2` to `ClassElementImpl2`.
@@ -708,7 +708,7 @@ class TypedLiteralResolver {
       if (typeArguments.length == 1) {
         elementType = typeArguments[0].typeOrThrow;
       }
-      return _typeProvider.listElement2.instantiateImpl(
+      return _typeProvider.listElement.instantiateImpl(
         typeArguments: fixedTypeList(elementType),
         nullabilitySuffix: NullabilitySuffix.none,
       );
@@ -754,7 +754,7 @@ class TypedLiteralResolver {
         node.becomeSet();
         var elementType = typeArguments[0].typeOrThrow;
         node.recordStaticType(
-          _typeProvider.setElement2.instantiateImpl(
+          _typeProvider.setElement.instantiateImpl(
             typeArguments: fixedTypeList(elementType),
             nullabilitySuffix: NullabilitySuffix.none,
           ),
@@ -767,7 +767,7 @@ class TypedLiteralResolver {
         var keyType = typeArguments[0].typeOrThrow;
         var valueType = typeArguments[1].typeOrThrow;
         node.recordStaticType(
-          _typeProvider.mapElement2.instantiateImpl(
+          _typeProvider.mapElement.instantiateImpl(
             typeArguments: fixedTypeList(keyType, valueType),
             nullabilitySuffix: NullabilitySuffix.none,
           ),
@@ -787,12 +787,12 @@ class TypedLiteralResolver {
       // The literal is ambiguous, and further analysis won't resolve the
       // ambiguity.  Leave it as neither a set nor a map.
     } else if (literalType is InterfaceType &&
-        literalType.element == _typeProvider.mapElement2) {
+        literalType.element == _typeProvider.mapElement) {
       node.becomeMap();
     } else {
       assert(
         literalType is InterfaceType &&
-            literalType.element == _typeProvider.setElement2,
+            literalType.element == _typeProvider.setElement,
       );
       node.becomeSet();
     }
@@ -826,7 +826,7 @@ class TypedLiteralResolver {
     );
     TypeImpl dynamicType = _typeProvider.dynamicType;
 
-    var element = _typeProvider.mapElement2;
+    var element = _typeProvider.mapElement;
     var typeParameters = element.typeParameters2;
     var genericKeyType = typeParameters[0].instantiate(
       nullabilitySuffix: NullabilitySuffix.none,
@@ -888,7 +888,7 @@ class TypedLiteralResolver {
     );
     var dynamicType = _typeProvider.dynamicType;
 
-    var element = _typeProvider.setElement2;
+    var element = _typeProvider.setElement;
     var typeParameters = element.typeParameters2;
     var genericElementType = typeParameters[0].instantiate(
       nullabilitySuffix: NullabilitySuffix.none,

@@ -107,8 +107,8 @@ class ForResolver {
 
     ClassElement iteratedElement =
         isAsync
-            ? _resolver.typeProvider.streamElement2
-            : _resolver.typeProvider.iterableElement2;
+            ? _resolver.typeProvider.streamElement
+            : _resolver.typeProvider.iterableElement;
 
     var iteratedType = iterableType.asInstanceOf2(iteratedElement);
     if (iteratedType == null) {

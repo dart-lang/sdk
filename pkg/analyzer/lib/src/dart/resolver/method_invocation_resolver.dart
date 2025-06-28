@@ -631,7 +631,7 @@ class MethodInvocationResolver with ScopeHelpers {
   }) {
     var nameNode = node.methodName;
 
-    var objectElement = _typeSystem.typeProvider.objectElement2;
+    var objectElement = _typeSystem.typeProvider.objectElement;
     var target = objectElement.getMethod(nameNode.name);
 
     FunctionType? rawType;
@@ -687,7 +687,7 @@ class MethodInvocationResolver with ScopeHelpers {
 
     if (receiverType == NeverTypeImpl.instanceNullable) {
       var methodName = node.methodName;
-      var objectElement = _resolver.typeProvider.objectElement2;
+      var objectElement = _resolver.typeProvider.objectElement;
       var objectMember = objectElement.getMethod(methodName.name);
       if (objectMember != null) {
         methodName.element = objectMember;

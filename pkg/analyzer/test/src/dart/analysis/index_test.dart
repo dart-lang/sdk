@@ -1789,7 +1789,7 @@ void f() {
 52 5:16 |values| IS_REFERENCED_BY qualified
 ''');
 
-    var index = typeProvider.enumElement2!.getGetter('index')!;
+    var index = typeProvider.enumElement!.getGetter('index')!;
     assertElementIndexText(index, r'''
 78 6:18 |index| IS_REFERENCED_BY qualified
 ''');

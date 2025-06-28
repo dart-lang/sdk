@@ -462,7 +462,7 @@ class TypeSystemImpl implements TypeSystem {
   TypeImpl? futureType(TypeImpl T) {
     // T implements S, and there is a U such that S is Future<U>
     if (T.nullabilitySuffix != NullabilitySuffix.question) {
-      var result = T.asInstanceOf2(typeProvider.futureElement2);
+      var result = T.asInstanceOf2(typeProvider.futureElement);
       if (result != null) {
         return result;
       }

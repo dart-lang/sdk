@@ -2434,7 +2434,7 @@ import 'package:test/all.dart';
   Future<void> test_importElementLibrary_sdkElement() async {
     var resolvedUnit = await resolveContent('/home/test/lib/test.dart', '');
 
-    var futureOrElement = resolvedUnit.typeProvider.futureOrElement2;
+    var futureOrElement = resolvedUnit.typeProvider.futureOrElement;
     var cache = <Element, LibraryElement?>{};
     var builder = await newBuilder();
     await builder.addDartFileEdit(resolvedUnit.path, (builder) async {
@@ -2481,7 +2481,7 @@ import 'package:test/all.dart';
     // Create a fake file to put into the cache to verify it's being used.
     var resolvedFakeUnit = await resolveContent('/home/test/lib/fake.dart', '');
 
-    var futureOrElement = resolvedUnit.typeProvider.futureOrElement2;
+    var futureOrElement = resolvedUnit.typeProvider.futureOrElement;
     var cache = <Element, LibraryElement?>{
       futureOrElement: resolvedFakeUnit.libraryElement2,
     };
