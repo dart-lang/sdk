@@ -3,11 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/type_system_base.dart';
+import '../resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,68 +15,72 @@ main() {
 }
 
 @reflectiveTest
-class ElementDisplayStringTest extends AbstractTypeSystemTest {
-  void test_class() {
-    var classA = class_(
-      name: 'A',
-      isAbstract: true,
-      superType: stringNone,
-      typeParameters: [typeParameter('T')],
-    );
+class ElementDisplayStringTest extends PubPackageResolutionTest {
+  test_class() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+abstract class B<T> extends A {}
+''');
 
-    var displayString = classA.getDisplayString();
-    expect(displayString, 'abstract class A<T> extends String');
+    var B = findElement2.class_('B').firstFragment as ClassFragmentImpl;
+    var displayString = B.getDisplayString();
+    expect(displayString, 'abstract class B<T> extends A');
   }
 
-  void test_extension_named() {
-    var element = extension(name: 'StringExtension', extendedType: stringNone);
+  test_extension_named() async {
+    await assertNoErrorsInCode(r'''
+extension StringExtension on String {}
+''');
 
-    var displayString = element.getDisplayString();
+    var element = findElement2.extension_('StringExtension');
+    var fragment = element.firstFragment as ExtensionFragmentImpl;
+
+    var displayString = fragment.getDisplayString();
     expect(displayString, 'extension StringExtension on String');
   }
 
-  void test_extension_unnamed() {
-    var element = extension(extendedType: stringNone);
+  test_extension_unnamed() async {
+    await assertNoErrorsInCode(r'''
+extension on String {}
+''');
 
-    var displayString = element.getDisplayString();
+    var element = result.libraryElement2.extensions.single;
+    var fragment = element.firstFragment;
+
+    var displayString = fragment.getDisplayString();
     expect(displayString, 'extension on String');
   }
 
-  void test_extensionType() {
-    var element = extensionType(
-      'MyString',
-      representationType: stringNone,
-      interfaces: [stringNone],
-      typeParameters: [typeParameter('T')],
-    );
+  test_extensionType() async {
+    await assertNoErrorsInCode(r'''
+extension type MyString<T>(String it) implements String {}
+''');
 
-    var displayString = element.getDisplayString();
+    var element = findElement2.extensionType('MyString');
+    var fragment = element.firstFragment as ExtensionTypeFragmentImpl;
+
+    var displayString = fragment.getDisplayString();
     expect(
       displayString,
       'extension type MyString<T>(String it) implements String',
     );
   }
 
-  void test_longMethod() {
-    var methodA = method(
-      'longMethodName',
-      stringQuestion,
-      formalParameters: [
-        requiredParameter(name: 'aaa', type: stringQuestion),
-        positionalParameter(
-          name: 'bbb',
-          type: stringQuestion,
-          defaultValueCode: "'a'",
-        ),
-        positionalParameter(name: 'ccc', type: stringQuestion),
-      ],
-    );
+  test_longMethod() async {
+    await assertNoErrorsInCode(r'''
+abstract class A {
+  String? longMethodName(String? aaa, [String? bbb = 'a', String? ccc]);
+}
+''');
 
-    var singleLine = methodA.getDisplayString();
+    var methodElement = findElement2.method('longMethodName');
+    var methodFragment = methodElement.firstFragment as MethodFragmentImpl;
+
+    var singleLine = methodFragment.getDisplayString();
     expect(singleLine, '''
 String? longMethodName(String? aaa, [String? bbb = 'a', String? ccc])''');
 
-    var multiLine = methodA.getDisplayString(multiline: true);
+    var multiLine = methodFragment.getDisplayString(multiline: true);
     expect(multiLine, '''
 String? longMethodName(
   String? aaa, [
@@ -86,37 +89,28 @@ String? longMethodName(
 ])''');
   }
 
-  void test_longMethod_functionType() {
-    // Function types are always kept on one line, even nested within multiline
-    // signatures.
-    var methodA = method(
-      'longMethodName',
-      stringQuestion,
-      formalParameters: [
-        requiredParameter(name: 'aaa', type: stringQuestion),
-        positionalParameter(
-          name: 'bbb',
-          type: functionTypeNone(
-            formalParameters: [
-              requiredParameter(name: 'xxx', type: stringQuestion),
-              requiredParameter(name: 'yyy', type: stringQuestion),
-              requiredParameter(name: 'zzz', type: stringQuestion),
-            ],
-            returnType: stringQuestion,
-          ),
-        ),
-        positionalParameter(name: 'ccc', type: stringQuestion),
-      ],
-    );
+  test_longMethod_functionType() async {
+    await assertNoErrorsInCode(r'''
+abstract class A {
+  String? longMethodName(
+    String? aaa, 
+    [String? Function(String?, String?, String?) bbb,
+    String? ccc]
+  );
+}
+''');
 
-    var singleLine = methodA.getDisplayString();
+    var methodElement = findElement2.method('longMethodName');
+    var methodFragment = methodElement.firstFragment as MethodFragmentImpl;
+
+    var singleLine = methodFragment.getDisplayString();
     expect(
       singleLine,
       '''
 String? longMethodName(String? aaa, [String? Function(String?, String?, String?) bbb, String? ccc])''',
     );
 
-    var multiLine = methodA.getDisplayString(multiline: true);
+    var multiLine = methodFragment.getDisplayString(multiline: true);
     expect(multiLine, '''
 String? longMethodName(
   String? aaa, [
@@ -125,41 +119,42 @@ String? longMethodName(
 ])''');
   }
 
-  void test_property_getter() {
-    var getterA = GetterFragmentImpl.forVariable(
-      TopLevelVariableFragmentImpl(name2: 'a', nameOffset: 0),
-    )..returnType = stringNone;
+  test_property_getter() async {
+    await assertNoErrorsInCode(r'''
+String get a => '';
+''');
 
-    expect(getterA.getDisplayString(), 'String get a');
+    var element = findElement2.topGet('a');
+    var fragment = element.firstFragment as GetterFragmentImpl;
+
+    expect(fragment.getDisplayString(), 'String get a');
   }
 
-  void test_property_setter() {
-    var setterA =
-        SetterFragmentImpl.forVariable(
-            TopLevelVariableFragmentImpl(name2: 'a', nameOffset: 0),
-          )
-          ..returnType = voidNone
-          ..parameters = [
-            requiredParameter(name: 'value', type: stringNone).asElement,
-          ];
+  test_property_setter() async {
+    await assertNoErrorsInCode(r'''
+set a(String value) {}
+''');
 
-    expect(setterA.getDisplayString(), 'set a(String value)');
+    var element = findElement2.topSet('a');
+    var fragment = element.firstFragment as SetterFragmentImpl;
+
+    expect(fragment.getDisplayString(), 'set a(String value)');
   }
 
-  void test_shortMethod() {
-    var methodA = method(
-      'm',
-      stringQuestion,
-      formalParameters: [
-        requiredParameter(name: 'a', type: stringQuestion),
-        positionalParameter(name: 'b', type: stringQuestion),
-      ],
-    );
+  test_shortMethod() async {
+    await assertNoErrorsInCode(r'''
+abstract class A {
+  String? m(String? a, [String? b]);
+}
+''');
 
-    var singleLine = methodA.getDisplayString();
+    var element = findElement2.method('m');
+    var fragment = element.firstFragment as MethodFragmentImpl;
+
+    var singleLine = fragment.getDisplayString();
     expect(singleLine, 'String? m(String? a, [String? b])');
 
-    var multiLine = methodA.getDisplayString(multiline: true);
+    var multiLine = fragment.getDisplayString(multiline: true);
     // The signature is short enough that it remains on one line even for
     // multiline: true.
     expect(multiLine, 'String? m(String? a, [String? b])');

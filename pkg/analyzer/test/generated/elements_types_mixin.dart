@@ -536,7 +536,6 @@ mixin ElementsTypesMixin {
     String? name,
     required TypeImpl type,
     bool isCovariant = false,
-    String? defaultValueCode,
   }) {
     var fragment = FormalParameterFragmentImpl(
       nameOffset: 0,
@@ -546,7 +545,6 @@ mixin ElementsTypesMixin {
     );
     fragment.type = type;
     fragment.isExplicitlyCovariant = isCovariant;
-    fragment.defaultValueCode = defaultValueCode;
     return fragment.asElement2;
   }
 
