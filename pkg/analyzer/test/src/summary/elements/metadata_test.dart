@@ -1887,7 +1887,7 @@ library
               typeName: C
               typeNameOffset: 33
               formalParameters
-                #F4 default this.x @44
+                #F4 this.x @44
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
                   metadata
                     Annotation
@@ -2345,7 +2345,7 @@ library
         #F3 f @16
           element: <testLibrary>::@function::f
           formalParameters
-            #F4 default g @22
+            #F4 g @22
               element: <testLibrary>::@function::f::@formalParameter::g
               metadata
                 Annotation
@@ -4972,7 +4972,7 @@ library
                     staticType: null
                   element2: <testLibrary>::@getter::foo
           formalParameters
-            #F5 default a @47
+            #F5 a @47
               element: <testLibrary>::@function::f::@formalParameter::a
               metadata
                 Annotation
@@ -5950,7 +5950,7 @@ library
         #F3 f @16
           element: <testLibrary>::@function::f
           formalParameters
-            #F4 default x @22
+            #F4 x @22
               element: <testLibrary>::@function::f::@formalParameter::x
               metadata
                 Annotation

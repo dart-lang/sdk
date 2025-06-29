@@ -1792,15 +1792,15 @@ library
         #F1 main @0
           element: <testLibrary>::@function::main
           formalParameters
-            #F2 default a @10
+            #F2 a @10
               element: <testLibrary>::@function::main::@formalParameter::a
               initializer: expression_0
                 IntegerLiteral
                   literal: 1 @14
                   staticType: int
-            #F3 default b @21
+            #F3 b @21
               element: <testLibrary>::@function::main::@formalParameter::b
-            #F4 default c @28
+            #F4 c @28
               element: <testLibrary>::@function::main::@formalParameter::c
               initializer: expression_1
                 IntegerLiteral
@@ -3059,7 +3059,7 @@ library
         #F1 f @5
           element: <testLibrary>::@function::f
           formalParameters
-            #F2 default f @22
+            #F2 f @22
               element: <testLibrary>::@function::f::@formalParameter::f
   functions
     f

@@ -1570,7 +1570,7 @@ library
             #F4 foo @34
               element: <testLibrary>::@extensionType::A::@method::foo
               formalParameters
-                #F5 default a @43
+                #F5 a @43
                   element: <testLibrary>::@extensionType::A::@method::foo::@formalParameter::a
                   initializer: expression_0
                     IntegerLiteral

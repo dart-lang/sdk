@@ -825,7 +825,7 @@ library
           formalParameters
             #F2 p1 @37
               element: dart:foo::@function::f::@formalParameter::p1
-            #F3 default p2 @67
+            #F3 p2 @67
               element: dart:foo::@function::f::@formalParameter::p2
   functions
     f
@@ -865,7 +865,7 @@ library
           formalParameters
             #F2 p1 @37
               element: dart:foo::@function::f::@formalParameter::p1
-            #F3 default p2 @67
+            #F3 p2 @67
               element: dart:foo::@function::f::@formalParameter::p2
   functions
     f

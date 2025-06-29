@@ -42,7 +42,7 @@ library
             #F4 X @21
               element: <testLibrary>::@class::A::@method::X
               formalParameters
-                #F5 default a @32
+                #F5 a @32
                   element: <testLibrary>::@class::A::@method::X::@formalParameter::a
                   initializer: expression_0
                     ListLiteral
@@ -106,7 +106,7 @@ library
               typeName: X
               typeNameOffset: 82
               formalParameters
-                #F4 default this.f @90
+                #F4 this.f @90
                   element: <testLibrary>::@class::X::@constructor::new::@formalParameter::f
                   initializer: expression_0
                     FunctionReference
@@ -234,7 +234,7 @@ library
             #F6 foo @45
               element: <testLibrary>::@class::B::@method::foo
               formalParameters
-                #F7 default a @50
+                #F7 a @50
                   element: <testLibrary>::@class::B::@method::foo::@formalParameter::a
                   initializer: expression_0
                     InstanceCreationExpression
@@ -344,7 +344,7 @@ library
         #F1 f @5
           element: <testLibrary>::@function::f
           formalParameters
-            #F2 default compare @22
+            #F2 compare @22
               element: <testLibrary>::@function::f::@formalParameter::compare
               initializer: expression_0
                 PrefixedIdentifier
@@ -391,7 +391,7 @@ library
         #F1 f @5
           element: <testLibrary>::@function::f
           formalParameters
-            #F2 default x @28
+            #F2 x @28
               element: <testLibrary>::@function::f::@formalParameter::x
               initializer: expression_0
                 RecordLiteral
@@ -448,7 +448,7 @@ library
         #F1 f @5
           element: <testLibrary>::@function::f
           formalParameters
-            #F2 default x @28
+            #F2 x @28
               element: <testLibrary>::@function::f::@formalParameter::x
               initializer: expression_0
                 RecordLiteral
@@ -506,7 +506,7 @@ library
         #F1 f @5
           element: <testLibrary>::@function::f
           formalParameters
-            #F2 default x @20
+            #F2 x @20
               element: <testLibrary>::@function::f::@formalParameter::x
               initializer: expression_0
                 RecordLiteral
@@ -549,7 +549,7 @@ library
         #F1 f @5
           element: <testLibrary>::@function::f
           formalParameters
-            #F2 default x @20
+            #F2 x @20
               element: <testLibrary>::@function::f::@formalParameter::x
               initializer: expression_0
                 RecordLiteral
@@ -609,7 +609,7 @@ library
             #F5 g @65
               element: <testLibrary>::@extension::E::@method::g
               formalParameters
-                #F6 default p @75
+                #F6 p @75
                   element: <testLibrary>::@extension::E::@method::g::@formalParameter::p
                   initializer: expression_0
                     SimpleIdentifier
@@ -686,7 +686,7 @@ library
             #F7 foo @50
               element: <testLibrary>::@class::C::@method::foo
               formalParameters
-                #F8 default b @70
+                #F8 b @70
                   element: <testLibrary>::@class::C::@method::foo::@formalParameter::b
                   initializer: expression_0
                     InstanceCreationExpression
@@ -775,7 +775,7 @@ library
               typeName: C
               typeNameOffset: 49
               formalParameters
-                #F7 default b @57
+                #F7 b @57
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::b
                   initializer: expression_0
                     InstanceCreationExpression
@@ -870,7 +870,7 @@ library
               typeName: C
               typeNameOffset: 114
               formalParameters
-                #F10 default a @122
+                #F10 a @122
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::a
                   initializer: expression_0
                     InstanceCreationExpression
@@ -963,7 +963,7 @@ library
             #F5 T @37
               element: #E1 T
           formalParameters
-            #F6 default b @46
+            #F6 b @46
               element: <testLibrary>::@function::foo::@formalParameter::b
               initializer: expression_0
                 InstanceCreationExpression
@@ -1048,7 +1048,7 @@ library
                 #F7 T @49
                   element: #E1 T
               formalParameters
-                #F8 default b @58
+                #F8 b @58
                   element: <testLibrary>::@class::C::@method::foo::@formalParameter::b
                   initializer: expression_0
                     InstanceCreationExpression
@@ -1145,7 +1145,7 @@ library
                 #F9 E2 @58
                   element: #E3 E2
               formalParameters
-                #F10 default b @73
+                #F10 b @73
                   element: <testLibrary>::@class::C::@method::foo::@formalParameter::b
                   initializer: expression_0
                     InstanceCreationExpression
@@ -1243,7 +1243,7 @@ library
             #F7 foo @48
               element: <testLibrary>::@class::C::@method::foo
               formalParameters
-                #F8 default b @58
+                #F8 b @58
                   element: <testLibrary>::@class::C::@method::foo::@formalParameter::b
                   initializer: expression_0
                     InstanceCreationExpression

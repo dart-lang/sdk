@@ -291,7 +291,7 @@ library
         #F1 f @5
           element: <testLibrary>::@function::f
           formalParameters
-            #F2 default this.a @17
+            #F2 this.a @17
               element: <testLibrary>::@function::f::@formalParameter::a
               initializer: expression_0
                 IntegerLiteral
@@ -382,7 +382,7 @@ library
         #F1 f @0
           element: <testLibrary>::@function::f
           formalParameters
-            #F2 default x @3
+            #F2 x @3
               element: <testLibrary>::@function::f::@formalParameter::x
   functions
     f
@@ -408,7 +408,7 @@ library
         #F1 f @0
           element: <testLibrary>::@function::f
           formalParameters
-            #F2 default x @3
+            #F2 x @3
               element: <testLibrary>::@function::f::@formalParameter::x
   functions
     f

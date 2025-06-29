@@ -2758,7 +2758,7 @@ library
         #F5 f @0
           element: <testLibrary>::@function::f
           formalParameters
-            #F6 default g @8
+            #F6 g @8
               element: <testLibrary>::@function::f::@formalParameter::g
   topLevelVariables
     hasInitializer v

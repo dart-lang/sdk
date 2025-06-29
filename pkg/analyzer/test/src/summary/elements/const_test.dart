@@ -2815,9 +2815,9 @@ library
                   element: <testLibrary>::@class::C::@constructor::named::@formalParameter::b
                 #F5 c @45
                   element: <testLibrary>::@class::C::@constructor::named::@formalParameter::c
-                #F6 default d @56
+                #F6 d @56
                   element: <testLibrary>::@class::C::@constructor::named::@formalParameter::d
-                #F7 default e @66
+                #F7 e @66
                   element: <testLibrary>::@class::C::@constructor::named::@formalParameter::e
       topLevelVariables
         #F8 hasInitializer V @79
@@ -5090,7 +5090,7 @@ library
               typeName: C
               typeNameOffset: 29
               formalParameters
-                #F4 default this.x @37
+                #F4 this.x @37
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
                   initializer: expression_0
                     SimpleIdentifier
@@ -5164,7 +5164,7 @@ library
               typeName: C
               typeNameOffset: 29
               formalParameters
-                #F4 default this.x @37
+                #F4 this.x @37
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
                   initializer: expression_0
                     BinaryExpression
@@ -5237,7 +5237,7 @@ library
               typeName: C
               typeNameOffset: 29
               formalParameters
-                #F4 default this.x @37
+                #F4 this.x @37
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
                   initializer: expression_0
                     BinaryExpression
@@ -5312,7 +5312,7 @@ library
               typeNameOffset: 18
               periodOffset: 19
               formalParameters
-                #F3 default p @32
+                #F3 p @32
                   element: <testLibrary>::@class::C::@constructor::positional::@formalParameter::p
                   initializer: expression_0
                     BinaryExpression
@@ -5332,7 +5332,7 @@ library
               typeNameOffset: 53
               periodOffset: 54
               formalParameters
-                #F5 default p @62
+                #F5 p @62
                   element: <testLibrary>::@class::C::@constructor::named::@formalParameter::p
                   initializer: expression_1
                     BinaryExpression
@@ -5350,7 +5350,7 @@ library
             #F6 methodPositional @81
               element: <testLibrary>::@class::C::@method::methodPositional
               formalParameters
-                #F7 default p @99
+                #F7 p @99
                   element: <testLibrary>::@class::C::@method::methodPositional::@formalParameter::p
                   initializer: expression_2
                     BinaryExpression
@@ -5367,12 +5367,12 @@ library
             #F8 methodPositionalWithoutDefault @121
               element: <testLibrary>::@class::C::@method::methodPositionalWithoutDefault
               formalParameters
-                #F9 default p @153
+                #F9 p @153
                   element: <testLibrary>::@class::C::@method::methodPositionalWithoutDefault::@formalParameter::p
             #F10 methodNamed @167
               element: <testLibrary>::@class::C::@method::methodNamed
               formalParameters
-                #F11 default p @180
+                #F11 p @180
                   element: <testLibrary>::@class::C::@method::methodNamed::@formalParameter::p
                   initializer: expression_3
                     BinaryExpression
@@ -5389,7 +5389,7 @@ library
             #F12 methodNamedWithoutDefault @201
               element: <testLibrary>::@class::C::@method::methodNamedWithoutDefault
               formalParameters
-                #F13 default p @228
+                #F13 p @228
                   element: <testLibrary>::@class::C::@method::methodNamedWithoutDefault::@formalParameter::p
   classes
     class C
