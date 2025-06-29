@@ -62,8 +62,8 @@ import 'package:pub_semver/pub_semver.dart';
 
 // TODO(fshcheglov): Remove after third_party/pkg/dartdoc stops using it.
 // https://github.com/dart-lang/dartdoc/issues/4066
-@Deprecated('Use ConstVariableFragment instead')
-typedef ConstVariableElement = ConstVariableFragment;
+@Deprecated('Use VariableFragmentImpl instead')
+typedef ConstVariableElement = VariableFragmentImpl;
 
 abstract class AnnotatableElementImpl implements ElementImpl, Annotatable {
   @override
@@ -727,8 +727,7 @@ class ConstantInitializerImpl implements ConstantInitializer {
 
 /// A `LocalVariableElement` for a local 'const' variable that has an
 /// initializer.
-class ConstLocalVariableFragmentImpl extends LocalVariableFragmentImpl
-    with ConstVariableFragment {
+class ConstLocalVariableFragmentImpl extends LocalVariableFragmentImpl {
   /// Initialize a newly created local variable element to have the given [name]
   /// and [offset].
   ConstLocalVariableFragmentImpl({
@@ -1129,62 +1128,6 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
         configuration: ConstantEvaluationConfiguration(),
       );
     }
-  }
-}
-
-/// Mixin used by elements that represent constant variables and have
-/// initializers.
-///
-/// Note that in correct Dart code, all constant variables must have
-/// initializers.  However, analyzer also needs to handle incorrect Dart code,
-/// in which case there might be some constant variables that lack initializers.
-/// This interface is only used for constant variables that have initializers.
-///
-/// This class is not intended to be part of the public API for analyzer.
-mixin ConstVariableFragment implements FragmentImpl, ConstantEvaluationTarget {
-  /// If this element represents a constant variable, and it has an initializer,
-  /// a copy of the initializer for the constant.  Otherwise `null`.
-  ///
-  /// Note that in correct Dart code, all constant variables must have
-  /// initializers.  However, analyzer also needs to handle incorrect Dart code,
-  /// in which case there might be some constant variables that lack
-  /// initializers.
-  ExpressionImpl? constantInitializer;
-
-  Constant? _evaluationResult;
-
-  Constant? get evaluationResult => _evaluationResult;
-
-  set evaluationResult(Constant? evaluationResult) {
-    _evaluationResult = evaluationResult;
-  }
-
-  @override
-  bool get isConstantEvaluated => _evaluationResult != null;
-
-  /// Return a representation of the value of this variable, forcing the value
-  /// to be computed if it had not previously been computed, or `null` if either
-  /// this variable was not declared with the 'const' modifier or if the value
-  /// of this variable could not be computed because of errors.
-  DartObject? computeConstantValue() {
-    if (evaluationResult == null) {
-      var library = this.library;
-      // TODO(scheglov): https://github.com/dart-lang/sdk/issues/47915
-      if (library == null) {
-        return null;
-      }
-      computeConstants(
-        declaredVariables: context.declaredVariables,
-        constants: [this],
-        featureSet: library.featureSet,
-        configuration: ConstantEvaluationConfiguration(),
-      );
-    }
-
-    if (evaluationResult case DartObjectImpl result) {
-      return result;
-    }
-    return null;
   }
 }
 
@@ -2897,7 +2840,6 @@ class FieldFormalParameterFragmentImpl extends FormalParameterFragmentImpl
 }
 
 class FieldFragmentImpl extends PropertyInducingFragmentImpl
-    with ConstVariableFragment
     implements FieldFragment {
   /// True if this field inherits from a covariant parameter. This happens
   /// when it overrides a field in a supertype that is covariant.
@@ -8872,9 +8814,6 @@ abstract class PropertyInducingFragmentImpl
   }
 
   @override
-  bool get isConstantEvaluated => true;
-
-  @override
   bool get isLate {
     return hasModifier(Modifier.LATE);
   }
@@ -9491,7 +9430,6 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
 }
 
 class TopLevelVariableFragmentImpl extends PropertyInducingFragmentImpl
-    with ConstVariableFragment
     implements TopLevelVariableFragment {
   @override
   late TopLevelVariableElementImpl element;
@@ -10329,13 +10267,28 @@ abstract class VariableElementOrMember
 }
 
 abstract class VariableFragmentImpl extends FragmentImpl
-    with ConstVariableFragment
     implements
         VariableElementOrMember,
         AnnotatableFragmentImpl,
+        ConstantEvaluationTarget,
         VariableFragment {
   /// The type of this variable.
   TypeImpl? _type;
+
+  /// If this element represents a constant variable, and it has an initializer,
+  /// a copy of the initializer for the constant.  Otherwise `null`.
+  ///
+  /// Note that in correct Dart code, all constant variables must have
+  /// initializers.  However, analyzer also needs to handle incorrect Dart code,
+  /// in which case there might be some constant variables that lack
+  /// initializers.
+  ExpressionImpl? constantInitializer;
+
+  /// The result of evaluating [constantInitializer].
+  ///
+  /// Is `null` if [constantInitializer] is `null`, or if the value could not
+  /// be computed because of errors.
+  Constant? evaluationResult;
 
   /// Initialize a newly created variable element to have the given [name] and
   /// [offset].
@@ -10380,6 +10333,9 @@ abstract class VariableFragmentImpl extends FragmentImpl
     setModifier(Modifier.CONST, isConst);
   }
 
+  @override
+  bool get isConstantEvaluated => evaluationResult != null;
+
   /// Set whether this variable is external.
   set isExternal(bool isExternal) {
     setModifier(Modifier.EXTERNAL, isExternal);
@@ -10420,6 +10376,32 @@ abstract class VariableFragmentImpl extends FragmentImpl
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeVariableElement(this);
+  }
+
+  /// Return a representation of the value of this variable, forcing the value
+  /// to be computed if it had not previously been computed, or `null` if either
+  /// this variable was not declared with the 'const' modifier or if the value
+  /// of this variable could not be computed because of errors.
+  @override
+  DartObject? computeConstantValue() {
+    if (evaluationResult == null) {
+      var library = this.library;
+      // TODO(scheglov): https://github.com/dart-lang/sdk/issues/47915
+      if (library == null) {
+        return null;
+      }
+      computeConstants(
+        declaredVariables: context.declaredVariables,
+        constants: [this],
+        featureSet: library.featureSet,
+        configuration: ConstantEvaluationConfiguration(),
+      );
+    }
+
+    if (evaluationResult case DartObjectImpl result) {
+      return result;
+    }
+    return null;
   }
 }
 
