@@ -1143,7 +1143,7 @@ class _MockSdkElementsBuilder {
   }
 
   FormalParameterElement _namedParameter(String name, TypeImpl type) {
-    var fragment = DefaultParameterFragmentImpl(
+    var fragment = FormalParameterFragmentImpl(
       nameOffset: 0,
       name2: name,
       nameOffset2: 0,

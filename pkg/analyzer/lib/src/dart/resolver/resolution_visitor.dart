@@ -459,7 +459,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           nameOffset2: nameOffset2,
         )..constantInitializer = node.defaultValue;
       } else {
-        fragment = DefaultParameterFragmentImpl(
+        fragment = FormalParameterFragmentImpl(
           nameOffset: nameOffset2 ?? -1,
           parameterKind: node.kind,
           name2: name2,

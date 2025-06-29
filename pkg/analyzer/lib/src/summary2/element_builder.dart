@@ -1500,7 +1500,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     FormalParameterFragmentImpl fragment;
     var parent = node.parent;
     if (parent is DefaultFormalParameterImpl) {
-      fragment = DefaultParameterFragmentImpl(
+      fragment = FormalParameterFragmentImpl(
         nameOffset: nameOffset2 ?? -1,
         name2: name2,
         nameOffset2: nameOffset2,
@@ -1820,7 +1820,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     var parent = node.parent;
     if (parent is DefaultFormalParameterImpl &&
         _enclosingContext.hasDefaultFormalParameters) {
-      fragment = DefaultParameterFragmentImpl(
+      fragment = FormalParameterFragmentImpl(
         nameOffset: nameOffset2 ?? -1,
         name2: name2,
         nameOffset2: nameOffset2,
@@ -2205,8 +2205,8 @@ class _EnclosingContext {
 
   /// Not all optional formal parameters can have default values.
   /// For example, formal parameters of methods can, but formal parameters
-  /// of function types - not. This flag specifies if we should create
-  /// [FormalParameterFragmentImpl]s or [DefaultParameterFragmentImpl]s.
+  /// of function types - not. This flag specifies if we should store
+  /// the default value into [FormalParameterFragmentImpl]s.
   final bool hasDefaultFormalParameters;
 
   _EnclosingContext({

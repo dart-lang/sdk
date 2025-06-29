@@ -41,7 +41,7 @@ const a = const A();
     var aLib = findElement2.import('package:test/a.dart').importedLibrary2!;
     var aConstructor = aLib.getClass2('A')!.constructors.single;
     var p = aConstructor.formalParameters.single;
-    var pf = p.firstFragment as DefaultParameterFragmentImpl;
+    var pf = p.firstFragment as FormalParameterFragmentImpl;
 
     // To evaluate `const A()` we have to evaluate `{int p}`.
     // Even if its value is `null`.
