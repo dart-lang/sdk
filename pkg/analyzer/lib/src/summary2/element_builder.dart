@@ -1320,27 +1320,17 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     var name2 = _getFragmentName(nameToken);
     var nameOffset2 = nameToken.offset.nullIfNegative;
 
-    FormalParameterFragmentImpl fragment;
-    var parent = node.parent;
-    if (parent is DefaultFormalParameterImpl) {
-      fragment = DefaultFieldFormalParameterElementImpl(
-        nameOffset: nameOffset2 ?? -1,
-        name2: name2,
-        nameOffset2: nameOffset2,
-        parameterKind: node.kind,
-      )..constantInitializer = parent.defaultValue;
-      _linker.elementNodes[fragment] = parent;
-      var refName = node.isNamed ? name2 : null;
-      _enclosingContext.addParameter(refName, fragment);
-    } else {
-      fragment = FieldFormalParameterFragmentImpl(
-        nameOffset: nameOffset2 ?? -1,
-        name2: name2,
-        nameOffset2: nameOffset2,
-        parameterKind: node.kind,
-      );
-      _linker.elementNodes[fragment] = node;
-      _enclosingContext.addParameter(null, fragment);
+    var fragment = FieldFormalParameterFragmentImpl(
+      nameOffset: nameOffset2 ?? -1,
+      name2: name2,
+      nameOffset2: nameOffset2,
+      parameterKind: node.kind,
+    );
+    _linker.elementNodes[fragment] = node;
+    _enclosingContext.addParameter(null, fragment);
+
+    if (node.parent case DefaultFormalParameterImpl parent) {
+      fragment.constantInitializer = parent.defaultValue;
     }
 
     fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
@@ -1497,25 +1487,19 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     var name2 = _getFragmentName(nameToken);
     var nameOffset2 = nameToken.offset.nullIfNegative;
 
-    FormalParameterFragmentImpl fragment;
-    var parent = node.parent;
-    if (parent is DefaultFormalParameterImpl) {
-      fragment = FormalParameterFragmentImpl(
-        nameOffset: nameOffset2 ?? -1,
-        name2: name2,
-        nameOffset2: nameOffset2,
-        parameterKind: node.kind,
-      )..constantInitializer = parent.defaultValue;
-      _linker.elementNodes[fragment] = parent;
-    } else {
-      fragment = FormalParameterFragmentImpl(
-        nameOffset: nameOffset2 ?? -1,
-        name2: name2,
-        nameOffset2: nameOffset2,
-        parameterKind: node.kind,
-      );
-      _linker.elementNodes[fragment] = node;
+    var fragment = FormalParameterFragmentImpl(
+      nameOffset: nameOffset2 ?? -1,
+      name2: name2,
+      nameOffset2: nameOffset2,
+      parameterKind: node.kind,
+    );
+    _linker.elementNodes[fragment] = node;
+    _enclosingContext.addParameter(null, fragment);
+
+    if (node.parent case DefaultFormalParameterImpl parent) {
+      fragment.constantInitializer = parent.defaultValue;
     }
+
     fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
     fragment.isExplicitlyCovariant = node.covariantKeyword != null;
     fragment.isFinal = node.isFinal;
@@ -1523,9 +1507,6 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     _setCodeRange(fragment, node);
 
     node.declaredFragment = fragment;
-    _linker.elementNodes[fragment] = node;
-    var refName = node.isNamed ? name2 : null;
-    _enclosingContext.addParameter(refName, fragment);
 
     var holder = _EnclosingContext(
       instanceElementBuilder: null,
@@ -1816,28 +1797,19 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     var name2 = _getFragmentName(nameToken);
     var nameOffset2 = nameToken?.offset;
 
-    FormalParameterFragmentImpl fragment;
-    var parent = node.parent;
-    if (parent is DefaultFormalParameterImpl &&
-        _enclosingContext.hasDefaultFormalParameters) {
-      fragment = FormalParameterFragmentImpl(
-        nameOffset: nameOffset2 ?? -1,
-        name2: name2,
-        nameOffset2: nameOffset2,
-        parameterKind: node.kind,
-      )..constantInitializer = parent.defaultValue;
-      _linker.elementNodes[fragment] = parent;
-      var refName = node.isNamed ? name2 : null;
-      _enclosingContext.addParameter(refName, fragment);
-    } else {
-      fragment = FormalParameterFragmentImpl(
-        nameOffset: nameOffset2 ?? -1,
-        name2: name2,
-        nameOffset2: nameOffset2,
-        parameterKind: node.kind,
-      );
-      _linker.elementNodes[fragment] = node;
-      _enclosingContext.addParameter(null, fragment);
+    var fragment = FormalParameterFragmentImpl(
+      nameOffset: nameOffset2 ?? -1,
+      name2: name2,
+      nameOffset2: nameOffset2,
+      parameterKind: node.kind,
+    );
+    _linker.elementNodes[fragment] = node;
+    _enclosingContext.addParameter(null, fragment);
+
+    if (_enclosingContext.hasDefaultFormalParameters) {
+      if (node.parent case DefaultFormalParameterImpl parent) {
+        fragment.constantInitializer = parent.defaultValue;
+      }
     }
 
     fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
@@ -1858,28 +1830,19 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     var name2 = _getFragmentName(nameToken);
     var nameOffset2 = nameToken.offset.nullIfNegative;
 
-    SuperFormalParameterFragmentImpl fragment;
-    var parent = node.parent;
-    if (parent is DefaultFormalParameterImpl) {
-      fragment = DefaultSuperFormalParameterElementImpl(
-        nameOffset: nameOffset2 ?? -1,
-        name2: name2,
-        nameOffset2: nameOffset2,
-        parameterKind: node.kind,
-      )..constantInitializer = parent.defaultValue;
-      _linker.elementNodes[fragment] = parent;
-      var refName = node.isNamed ? name2 : null;
-      _enclosingContext.addParameter(refName, fragment);
-    } else {
-      fragment = SuperFormalParameterFragmentImpl(
-        nameOffset: nameOffset2 ?? -1,
-        name2: name2,
-        nameOffset2: nameOffset2,
-        parameterKind: node.kind,
-      );
-      _linker.elementNodes[fragment] = node;
-      _enclosingContext.addParameter(null, fragment);
+    var fragment = SuperFormalParameterFragmentImpl(
+      nameOffset: nameOffset2 ?? -1,
+      name2: name2,
+      nameOffset2: nameOffset2,
+      parameterKind: node.kind,
+    );
+    _linker.elementNodes[fragment] = node;
+    _enclosingContext.addParameter(null, fragment);
+
+    if (node.parent case DefaultFormalParameterImpl parent) {
+      fragment.constantInitializer = parent.defaultValue;
     }
+
     fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
     fragment.hasImplicitType = node.type == null && node.parameters == null;
     fragment.metadata = _buildMetadata(node.metadata);

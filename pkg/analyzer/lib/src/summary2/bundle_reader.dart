@@ -1052,14 +1052,14 @@ class LibraryReader {
 
       FormalParameterFragmentImpl element;
       if (isInitializingFormal) {
-        element = DefaultFieldFormalParameterElementImpl(
+        element = FieldFormalParameterFragmentImpl(
           nameOffset: -1,
           name2: fragmentName,
           nameOffset2: null,
           parameterKind: kind,
         );
       } else if (isSuperFormal) {
-        element = DefaultSuperFormalParameterElementImpl(
+        element = SuperFormalParameterFragmentImpl(
           nameOffset: -1,
           name2: fragmentName,
           nameOffset2: null,
@@ -1776,7 +1776,7 @@ class ResolutionReader {
       var name = _readFragmentName();
       FormalParameterFragmentImpl element;
       if (isInitializingFormal) {
-        element = DefaultFieldFormalParameterElementImpl(
+        element = FieldFormalParameterFragmentImpl(
           nameOffset: -1,
           name2: name,
           nameOffset2: null,

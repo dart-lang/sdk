@@ -1188,102 +1188,6 @@ mixin ConstVariableFragment implements FragmentImpl, ConstantEvaluationTarget {
   }
 }
 
-/// A [FieldFormalParameterFragmentImpl] for parameters that have an initializer.
-class DefaultFieldFormalParameterElementImpl
-    extends FieldFormalParameterFragmentImpl
-    with ConstVariableFragment {
-  /// Initialize a newly created parameter element to have the given [name] and
-  /// [nameOffset].
-  DefaultFieldFormalParameterElementImpl({
-    required super.nameOffset,
-    required super.name2,
-    required super.nameOffset2,
-    required super.parameterKind,
-  });
-
-  @override
-  String? get defaultValueCode {
-    return constantInitializer?.toSource();
-  }
-}
-
-class DefaultSuperFormalParameterElementImpl
-    extends SuperFormalParameterFragmentImpl
-    with ConstVariableFragment {
-  /// Initialize a newly created parameter element to have the given [name] and
-  /// [nameOffset].
-  DefaultSuperFormalParameterElementImpl({
-    required super.nameOffset,
-    required super.name2,
-    required super.nameOffset2,
-    required super.parameterKind,
-  });
-
-  @override
-  String? get defaultValueCode {
-    if (isRequired) {
-      return null;
-    }
-
-    var constantInitializer = this.constantInitializer;
-    if (constantInitializer != null) {
-      return constantInitializer.toSource();
-    }
-
-    if (_superConstructorParameterDefaultValue != null) {
-      return superConstructorParameter?.defaultValueCode;
-    }
-
-    return null;
-  }
-
-  @override
-  Constant? get evaluationResult {
-    if (constantInitializer != null) {
-      return super.evaluationResult;
-    }
-
-    var superConstructorParameter = this.superConstructorParameter?.baseElement;
-    if (superConstructorParameter is FormalParameterElementImpl) {
-      return superConstructorParameter.firstFragment.evaluationResult;
-    }
-
-    return null;
-  }
-
-  DartObject? get _superConstructorParameterDefaultValue {
-    var superDefault = superConstructorParameter?.computeConstantValue();
-    if (superDefault == null) {
-      return null;
-    }
-
-    // TODO(scheglov): eliminate this cast
-    superDefault as DartObjectImpl;
-    var superDefaultType = superDefault.type;
-
-    var typeSystem = library?.typeSystem;
-    if (typeSystem == null) {
-      return null;
-    }
-
-    var requiredType = type.extensionTypeErasure;
-    if (typeSystem.isSubtypeOf(superDefaultType, requiredType)) {
-      return superDefault;
-    }
-
-    return null;
-  }
-
-  @override
-  DartObject? computeConstantValue() {
-    if (constantInitializer != null) {
-      return super.computeConstantValue();
-    }
-
-    return _superConstructorParameterDefaultValue;
-  }
-}
-
 /// This mixin is used to set up loading class members from summaries only when
 /// they are requested. The summary reader uses [deferReadMembers], and
 /// getters invoke [ensureReadMembers].
@@ -9257,8 +9161,40 @@ class SuperFormalParameterFragmentImpl extends FormalParameterFragmentImpl
   });
 
   @override
+  String? get defaultValueCode {
+    if (isRequired) {
+      return null;
+    }
+
+    var constantInitializer = this.constantInitializer;
+    if (constantInitializer != null) {
+      return constantInitializer.toSource();
+    }
+
+    if (_superConstructorParameterDefaultValue != null) {
+      return superConstructorParameter?.defaultValueCode;
+    }
+
+    return null;
+  }
+
+  @override
   SuperFormalParameterElementImpl get element =>
       super.element as SuperFormalParameterElementImpl;
+
+  @override
+  Constant? get evaluationResult {
+    if (constantInitializer != null) {
+      return super.evaluationResult;
+    }
+
+    var superConstructorParameter = this.superConstructorParameter?.baseElement;
+    if (superConstructorParameter is FormalParameterElementImpl) {
+      return superConstructorParameter.firstFragment.evaluationResult;
+    }
+
+    return null;
+  }
 
   /// Super parameters are visible only in the initializer list scope,
   /// and introduce final variables.
@@ -9304,6 +9240,38 @@ class SuperFormalParameterFragmentImpl extends FormalParameterFragmentImpl
       }
     }
     return null;
+  }
+
+  DartObject? get _superConstructorParameterDefaultValue {
+    var superDefault = superConstructorParameter?.computeConstantValue();
+    if (superDefault == null) {
+      return null;
+    }
+
+    // TODO(scheglov): eliminate this cast
+    superDefault as DartObjectImpl;
+    var superDefaultType = superDefault.type;
+
+    var typeSystem = library?.typeSystem;
+    if (typeSystem == null) {
+      return null;
+    }
+
+    var requiredType = type.extensionTypeErasure;
+    if (typeSystem.isSubtypeOf(superDefaultType, requiredType)) {
+      return superDefault;
+    }
+
+    return null;
+  }
+
+  @override
+  DartObject? computeConstantValue() {
+    if (constantInitializer != null) {
+      return super.computeConstantValue();
+    }
+
+    return _superConstructorParameterDefaultValue;
   }
 
   /// Return the index of this super-formal parameter among other super-formals.
