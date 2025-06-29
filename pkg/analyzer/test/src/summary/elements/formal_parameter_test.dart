@@ -65,7 +65,7 @@ library
             #F3 m @17
               element: <testLibrary>::@class::A::@method::m
               formalParameters
-                #F4 default a @32
+                #F4 a @32
                   element: <testLibrary>::@class::A::@method::m::@formalParameter::a
   classes
     class A
@@ -110,7 +110,7 @@ library
             #F3 m @17
               element: <testLibrary>::@class::A::@method::m
               formalParameters
-                #F4 default a @32
+                #F4 a @32
                   element: <testLibrary>::@class::A::@method::m::@formalParameter::a
   classes
     class A
@@ -297,7 +297,7 @@ library
             #F3 m @17
               element: <testLibrary>::@class::A::@method::m
               formalParameters
-                #F4 default a @32
+                #F4 a @32
                   element: <testLibrary>::@class::A::@method::m::@formalParameter::a
         #F5 class B @47
           element: <testLibrary>::@class::B
@@ -309,7 +309,7 @@ library
             #F7 m @68
               element: <testLibrary>::@class::B::@method::m
               formalParameters
-                #F8 default a @73
+                #F8 a @73
                   element: <testLibrary>::@class::B::@method::m::@formalParameter::a
   classes
     class A
@@ -592,7 +592,7 @@ library
               typeNameOffset: 12
               periodOffset: 13
               formalParameters
-                #F3 default x @26
+                #F3 x @26
                   element: <testLibrary>::@class::C::@constructor::positional::@formalParameter::x
                   initializer: expression_0
                     IntegerLiteral
@@ -604,7 +604,7 @@ library
               typeNameOffset: 37
               periodOffset: 38
               formalParameters
-                #F5 default x @46
+                #F5 x @46
                   element: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
                   initializer: expression_1
                     IntegerLiteral
@@ -667,7 +667,7 @@ library
               typeNameOffset: 21
               periodOffset: 22
               formalParameters
-                #F4 default this.x @40
+                #F4 this.x @40
                   element: <testLibrary>::@class::C::@constructor::positional::@formalParameter::x
                   initializer: expression_0
                     IntegerLiteral
@@ -679,7 +679,7 @@ library
               typeNameOffset: 51
               periodOffset: 52
               formalParameters
-                #F6 default this.x @65
+                #F6 this.x @65
                   element: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
                   initializer: expression_1
                     IntegerLiteral
@@ -771,7 +771,7 @@ library
             #F3 positional @24
               element: <testLibrary>::@class::C::@method::positional
               formalParameters
-                #F4 default x @36
+                #F4 x @36
                   element: <testLibrary>::@class::C::@method::positional::@formalParameter::x
                   initializer: expression_0
                     IntegerLiteral
@@ -780,7 +780,7 @@ library
             #F5 named @61
               element: <testLibrary>::@class::C::@method::named
               formalParameters
-                #F6 default x @68
+                #F6 x @68
                   element: <testLibrary>::@class::C::@method::named::@formalParameter::x
                   initializer: expression_1
                     IntegerLiteral
@@ -838,7 +838,7 @@ library
         #F1 positional @5
           element: <testLibrary>::@function::positional
           formalParameters
-            #F2 default x @17
+            #F2 x @17
               element: <testLibrary>::@function::positional::@formalParameter::x
               initializer: expression_0
                 IntegerLiteral
@@ -847,7 +847,7 @@ library
         #F3 named @33
           element: <testLibrary>::@function::named
           formalParameters
-            #F4 default x @40
+            #F4 x @40
               element: <testLibrary>::@function::named::@formalParameter::x
               initializer: expression_1
                 IntegerLiteral

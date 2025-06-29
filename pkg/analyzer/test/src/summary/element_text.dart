@@ -679,10 +679,6 @@ class _Element2Writer extends _AbstractElementWriter {
         _sink.write('optionalNamed ');
       }
 
-      if (e is ConstVariableFragment) {
-        _sink.write('default ');
-      }
-
       _sink.writeIf(e.isConst, 'const ');
       _sink.writeIf(e.isCovariant, 'covariant ');
       _sink.writeIf(e.isFinal, 'final ');
@@ -741,10 +737,6 @@ class _Element2Writer extends _AbstractElementWriter {
       // } else if (f.isOptionalNamed) {
       //   _sink.write('optionalNamed ');
       // }
-
-      if (f is ConstVariableFragment) {
-        _sink.write('default ');
-      }
 
       // _sink.writeIf(f.isConst, 'const ');
       // _sink.writeIf(f.isCovariant, 'covariant ');

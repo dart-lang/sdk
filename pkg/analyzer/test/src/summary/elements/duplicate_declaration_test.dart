@@ -1025,9 +1025,9 @@ library
         #F4 f @34
           element: <testLibrary>::@function::f::@def::2
           formalParameters
-            #F5 default b @41
+            #F5 b @41
               element: <testLibrary>::@function::f::@def::2::@formalParameter::b
-            #F6 default c @51
+            #F6 c @51
               element: <testLibrary>::@function::f::@def::2::@formalParameter::c
   functions
     f
@@ -1071,9 +1071,9 @@ library
         #F1 f @5
           element: <testLibrary>::@function::f
           formalParameters
-            #F2 default a @12
+            #F2 a @12
               element: <testLibrary>::@function::f::@formalParameter::a
-            #F3 default a @22
+            #F3 a @22
               element: <testLibrary>::@function::f::@formalParameter::a
   functions
     f

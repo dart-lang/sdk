@@ -1251,7 +1251,7 @@ library
               typeName: E
               typeNameOffset: 37
               formalParameters
-                #F6 default this.x @45
+                #F6 this.x @45
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
                   initializer: expression_2
                     BinaryExpression

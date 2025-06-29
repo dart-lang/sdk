@@ -1757,7 +1757,7 @@ library
         #F1 foo @34
           element: <testLibrary>::@function::foo
           formalParameters
-            #F2 default p @39
+            #F2 p @39
               element: <testLibrary>::@function::foo::@formalParameter::p
               initializer: expression_0
                 SimpleIdentifier
@@ -1804,7 +1804,7 @@ library
         #F1 foo @17
           element: <testLibrary>::@function::foo
           formalParameters
-            #F2 default p @22
+            #F2 p @22
               element: <testLibrary>::@function::foo::@formalParameter::p
               initializer: expression_0
                 SimpleIdentifier
@@ -1855,7 +1855,7 @@ library
         #F5 foo @0
           element: <testLibrary>::@function::foo
           formalParameters
-            #F6 default p @5
+            #F6 p @5
               element: <testLibrary>::@function::foo::@formalParameter::p
               initializer: expression_0
                 SimpleIdentifier
