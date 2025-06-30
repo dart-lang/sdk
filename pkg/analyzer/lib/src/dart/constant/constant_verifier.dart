@@ -228,7 +228,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       _validateConstantArguments(argumentList);
     }
 
-    var element = node.declaredFragment!;
+    var element = node.declaredFragment!.element;
     var result = element.evaluationResult;
     if (result is InvalidConstant) {
       _reportError(result, null);
@@ -487,11 +487,11 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     super.visitVariableDeclaration(node);
     var initializer = node.initializer;
     if (initializer != null && (node.isConst || node.isFinal)) {
-      var element = node.declaredFragment!;
-      if (element is FieldFragmentImpl && !element.isStatic) {
-        var enclosingFragment = element.enclosingFragment;
-        if (enclosingFragment is ClassFragmentImpl &&
-            !enclosingFragment.hasGenerativeConstConstructor) {
+      var element = node.declaredFragment!.element;
+      if (element is FieldElementImpl && !element.isStatic) {
+        var enclosingElement = element.enclosingElement;
+        if (enclosingElement is ClassElementImpl &&
+            !enclosingElement.hasGenerativeConstConstructor) {
           // TODO(kallentu): Evaluate if we need to do this check for inline
           // classes.
           //
@@ -968,7 +968,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
             CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE,
           );
         }
-        var element = parameter.declaredFragment!;
+        var element = parameter.declaredFragment!.element;
         element.evaluationResult = result;
       }
     }

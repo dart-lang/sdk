@@ -669,7 +669,7 @@ class ElementDisplayStringBuilder {
     }
 
     if (forElement) {
-      var defaultValueCode = element.defaultValueCode;
+      var defaultValueCode = element.element.defaultValueCode;
       if (defaultValueCode != null) {
         _write(' = ');
         _write(defaultValueCode);

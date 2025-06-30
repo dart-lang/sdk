@@ -388,7 +388,7 @@ class InstanceMemberInferrer {
             parameter.type = field.type;
           }
         } else if (parameter is SuperFormalParameterFragmentImpl) {
-          var superParameter = parameter.superConstructorParameter;
+          var superParameter = parameter.element.superConstructorParameter2;
           if (superParameter != null) {
             parameter.type = superParameter.type;
           } else {

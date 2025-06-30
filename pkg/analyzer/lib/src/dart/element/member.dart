@@ -442,7 +442,7 @@ class FieldFormalParameterMember extends ParameterMember
   }
 
   @override
-  bool get hasDefaultValue => declaration.hasDefaultValue;
+  bool get hasDefaultValue => baseElement.hasDefaultValue;
 
   @override
   bool get isCovariant => declaration.isCovariant;
@@ -574,6 +574,11 @@ class FieldMember extends VariableMember implements FieldElement2OrMember {
   @Deprecated('Use accept instead')
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
+
+  @override
+  DartObject? computeConstantValue() {
+    return baseElement.computeConstantValue();
+  }
 
   @override
   String displayString2({
@@ -967,7 +972,7 @@ class ParameterMember extends VariableMember
       _declaration as FormalParameterFragmentImpl;
 
   @override
-  String? get defaultValueCode => declaration.defaultValueCode;
+  String? get defaultValueCode => baseElement.defaultValueCode;
 
   @override
   FormalParameterElementImpl get element => declaration.element;
@@ -999,7 +1004,7 @@ class ParameterMember extends VariableMember
   }
 
   @override
-  bool get hasDefaultValue => declaration.hasDefaultValue;
+  bool get hasDefaultValue => baseElement.hasDefaultValue;
 
   @override
   bool get isCovariant => declaration.isCovariant;
@@ -1079,6 +1084,11 @@ class ParameterMember extends VariableMember
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeFormalParameter(this);
+  }
+
+  @override
+  DartObject? computeConstantValue() {
+    return baseElement.computeConstantValue();
   }
 
   @override
@@ -1369,14 +1379,14 @@ class SuperFormalParameterMember extends ParameterMember
   }
 
   @override
-  bool get hasDefaultValue => declaration.hasDefaultValue;
+  bool get hasDefaultValue => baseElement.hasDefaultValue;
 
   @override
   bool get isCovariant => declaration.isCovariant;
 
   @override
   FormalParameterElementMixin? get superConstructorParameter2 {
-    var superConstructorParameter = declaration.superConstructorParameter;
+    var superConstructorParameter = baseElement.superConstructorParameter2;
     if (superConstructorParameter == null) {
       return null;
     }
@@ -1408,9 +1418,6 @@ abstract class VariableMember extends Member
   bool get isConst => declaration.isConst;
 
   @override
-  bool get isConstantEvaluated => declaration.isConstantEvaluated;
-
-  @override
   bool get isFinal => declaration.isFinal;
 
   @override
@@ -1432,9 +1439,6 @@ abstract class VariableMember extends Member
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeVariableElement(this);
   }
-
-  @override
-  DartObject? computeConstantValue() => declaration.computeConstantValue();
 }
 
 class _SubstitutedTypeParameters {
