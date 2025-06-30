@@ -62,8 +62,8 @@ import 'package:pub_semver/pub_semver.dart';
 
 // TODO(fshcheglov): Remove after third_party/pkg/dartdoc stops using it.
 // https://github.com/dart-lang/dartdoc/issues/4066
-@Deprecated('Use ConstVariableFragment instead')
-typedef ConstVariableElement = ConstVariableFragment;
+@Deprecated('Use VariableFragmentImpl instead')
+typedef ConstVariableElement = VariableFragmentImpl;
 
 abstract class AnnotatableElementImpl implements ElementImpl, Annotatable {
   @override
@@ -481,24 +481,17 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
           var formalParameterElements = <FormalParameterElementImpl>[];
           var superInvocationArguments = <ExpressionImpl>[];
           for (var superFormalParameter in superConstructor.formalParameters) {
-            FormalParameterFragmentImpl formalParameterFragment;
-            if (superFormalParameter.firstFragment
-                case ConstVariableFragment constVariable) {
-              // TODO(scheglov): Maybe stop making this distinction
-              formalParameterFragment = DefaultParameterFragmentImpl(
+            var formalParameterFragment = FormalParameterFragmentImpl(
                 nameOffset: -1,
                 name2: superFormalParameter.name3,
                 nameOffset2: null,
                 parameterKind: superFormalParameter.parameterKind,
-              )..constantInitializer = constVariable.constantInitializer;
-            } else {
-              formalParameterFragment = FormalParameterFragmentImpl(
-                nameOffset: -1,
-                name2: superFormalParameter.name3,
-                nameOffset2: null,
-                parameterKind: superFormalParameter.parameterKind,
-              );
-            }
+              )
+              ..constantInitializer =
+                  superFormalParameter
+                      .baseElement
+                      .firstFragment
+                      .constantInitializer;
 
             formalParameterFragment.isConst = superFormalParameter.isConst;
             formalParameterFragment.isFinal = superFormalParameter.isFinal;
@@ -734,8 +727,7 @@ class ConstantInitializerImpl implements ConstantInitializer {
 
 /// A `LocalVariableElement` for a local 'const' variable that has an
 /// initializer.
-class ConstLocalVariableFragmentImpl extends LocalVariableFragmentImpl
-    with ConstVariableFragment {
+class ConstLocalVariableFragmentImpl extends LocalVariableFragmentImpl {
   /// Initialize a newly created local variable element to have the given [name]
   /// and [offset].
   ConstLocalVariableFragmentImpl({
@@ -1136,179 +1128,6 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
         configuration: ConstantEvaluationConfiguration(),
       );
     }
-  }
-}
-
-/// Mixin used by elements that represent constant variables and have
-/// initializers.
-///
-/// Note that in correct Dart code, all constant variables must have
-/// initializers.  However, analyzer also needs to handle incorrect Dart code,
-/// in which case there might be some constant variables that lack initializers.
-/// This interface is only used for constant variables that have initializers.
-///
-/// This class is not intended to be part of the public API for analyzer.
-mixin ConstVariableFragment implements FragmentImpl, ConstantEvaluationTarget {
-  /// If this element represents a constant variable, and it has an initializer,
-  /// a copy of the initializer for the constant.  Otherwise `null`.
-  ///
-  /// Note that in correct Dart code, all constant variables must have
-  /// initializers.  However, analyzer also needs to handle incorrect Dart code,
-  /// in which case there might be some constant variables that lack
-  /// initializers.
-  ExpressionImpl? constantInitializer;
-
-  Constant? _evaluationResult;
-
-  Constant? get evaluationResult => _evaluationResult;
-
-  set evaluationResult(Constant? evaluationResult) {
-    _evaluationResult = evaluationResult;
-  }
-
-  @override
-  bool get isConstantEvaluated => _evaluationResult != null;
-
-  /// Return a representation of the value of this variable, forcing the value
-  /// to be computed if it had not previously been computed, or `null` if either
-  /// this variable was not declared with the 'const' modifier or if the value
-  /// of this variable could not be computed because of errors.
-  DartObject? computeConstantValue() {
-    if (evaluationResult == null) {
-      var library = this.library;
-      // TODO(scheglov): https://github.com/dart-lang/sdk/issues/47915
-      if (library == null) {
-        throw StateError(
-          '[library: null][this: ($runtimeType) $this]'
-          '[enclosingElement: $enclosingElement3]',
-        );
-      }
-      computeConstants(
-        declaredVariables: context.declaredVariables,
-        constants: [this],
-        featureSet: library.featureSet,
-        configuration: ConstantEvaluationConfiguration(),
-      );
-    }
-
-    if (evaluationResult case DartObjectImpl result) {
-      return result;
-    }
-    return null;
-  }
-}
-
-/// A [FieldFormalParameterFragmentImpl] for parameters that have an initializer.
-class DefaultFieldFormalParameterElementImpl
-    extends FieldFormalParameterFragmentImpl
-    with ConstVariableFragment {
-  /// Initialize a newly created parameter element to have the given [name] and
-  /// [nameOffset].
-  DefaultFieldFormalParameterElementImpl({
-    required super.nameOffset,
-    required super.name2,
-    required super.nameOffset2,
-    required super.parameterKind,
-  });
-
-  @override
-  String? get defaultValueCode {
-    return constantInitializer?.toSource();
-  }
-}
-
-/// A [FormalParameterFragmentImpl] for parameters that have an initializer.
-class DefaultParameterFragmentImpl extends FormalParameterFragmentImpl
-    with ConstVariableFragment {
-  /// Initialize a newly created parameter element to have the given [name] and
-  /// [nameOffset].
-  DefaultParameterFragmentImpl({
-    required super.nameOffset,
-    required super.name2,
-    required super.nameOffset2,
-    required super.parameterKind,
-  });
-
-  @override
-  String? get defaultValueCode {
-    return constantInitializer?.toSource();
-  }
-}
-
-class DefaultSuperFormalParameterElementImpl
-    extends SuperFormalParameterFragmentImpl
-    with ConstVariableFragment {
-  /// Initialize a newly created parameter element to have the given [name] and
-  /// [nameOffset].
-  DefaultSuperFormalParameterElementImpl({
-    required super.nameOffset,
-    required super.name2,
-    required super.nameOffset2,
-    required super.parameterKind,
-  });
-
-  @override
-  String? get defaultValueCode {
-    if (isRequired) {
-      return null;
-    }
-
-    var constantInitializer = this.constantInitializer;
-    if (constantInitializer != null) {
-      return constantInitializer.toSource();
-    }
-
-    if (_superConstructorParameterDefaultValue != null) {
-      return superConstructorParameter?.defaultValueCode;
-    }
-
-    return null;
-  }
-
-  @override
-  Constant? get evaluationResult {
-    if (constantInitializer != null) {
-      return super.evaluationResult;
-    }
-
-    var superConstructorParameter = this.superConstructorParameter?.baseElement;
-    if (superConstructorParameter is FormalParameterElementImpl) {
-      return superConstructorParameter.firstFragment.evaluationResult;
-    }
-
-    return null;
-  }
-
-  DartObject? get _superConstructorParameterDefaultValue {
-    var superDefault = superConstructorParameter?.computeConstantValue();
-    if (superDefault == null) {
-      return null;
-    }
-
-    // TODO(scheglov): eliminate this cast
-    superDefault as DartObjectImpl;
-    var superDefaultType = superDefault.type;
-
-    var typeSystem = library?.typeSystem;
-    if (typeSystem == null) {
-      return null;
-    }
-
-    var requiredType = type.extensionTypeErasure;
-    if (typeSystem.isSubtypeOf(superDefaultType, requiredType)) {
-      return superDefault;
-    }
-
-    return null;
-  }
-
-  @override
-  DartObject? computeConstantValue() {
-    if (constantInitializer != null) {
-      return super.computeConstantValue();
-    }
-
-    return _superConstructorParameterDefaultValue;
   }
 }
 
@@ -3021,7 +2840,6 @@ class FieldFormalParameterFragmentImpl extends FormalParameterFragmentImpl
 }
 
 class FieldFragmentImpl extends PropertyInducingFragmentImpl
-    with ConstVariableFragment
     implements FieldFragment {
   /// True if this field inherits from a covariant parameter. This happens
   /// when it overrides a field in a supertype that is covariant.
@@ -3424,7 +3242,9 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
   FormalParameterFragmentImpl get declaration => this;
 
   @override
-  String? get defaultValueCode => null;
+  String? get defaultValueCode {
+    return constantInitializer?.toSource();
+  }
 
   @override
   FormalParameterElementImpl get element {
@@ -8994,9 +8814,6 @@ abstract class PropertyInducingFragmentImpl
   }
 
   @override
-  bool get isConstantEvaluated => true;
-
-  @override
   bool get isLate {
     return hasModifier(Modifier.LATE);
   }
@@ -9283,8 +9100,40 @@ class SuperFormalParameterFragmentImpl extends FormalParameterFragmentImpl
   });
 
   @override
+  String? get defaultValueCode {
+    if (isRequired) {
+      return null;
+    }
+
+    var constantInitializer = this.constantInitializer;
+    if (constantInitializer != null) {
+      return constantInitializer.toSource();
+    }
+
+    if (_superConstructorParameterDefaultValue != null) {
+      return superConstructorParameter?.defaultValueCode;
+    }
+
+    return null;
+  }
+
+  @override
   SuperFormalParameterElementImpl get element =>
       super.element as SuperFormalParameterElementImpl;
+
+  @override
+  Constant? get evaluationResult {
+    if (constantInitializer != null) {
+      return super.evaluationResult;
+    }
+
+    var superConstructorParameter = this.superConstructorParameter?.baseElement;
+    if (superConstructorParameter is FormalParameterElementImpl) {
+      return superConstructorParameter.firstFragment.evaluationResult;
+    }
+
+    return null;
+  }
 
   /// Super parameters are visible only in the initializer list scope,
   /// and introduce final variables.
@@ -9330,6 +9179,38 @@ class SuperFormalParameterFragmentImpl extends FormalParameterFragmentImpl
       }
     }
     return null;
+  }
+
+  DartObject? get _superConstructorParameterDefaultValue {
+    var superDefault = superConstructorParameter?.computeConstantValue();
+    if (superDefault == null) {
+      return null;
+    }
+
+    // TODO(scheglov): eliminate this cast
+    superDefault as DartObjectImpl;
+    var superDefaultType = superDefault.type;
+
+    var typeSystem = library?.typeSystem;
+    if (typeSystem == null) {
+      return null;
+    }
+
+    var requiredType = type.extensionTypeErasure;
+    if (typeSystem.isSubtypeOf(superDefaultType, requiredType)) {
+      return superDefault;
+    }
+
+    return null;
+  }
+
+  @override
+  DartObject? computeConstantValue() {
+    if (constantInitializer != null) {
+      return super.computeConstantValue();
+    }
+
+    return _superConstructorParameterDefaultValue;
   }
 
   /// Return the index of this super-formal parameter among other super-formals.
@@ -9549,7 +9430,6 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
 }
 
 class TopLevelVariableFragmentImpl extends PropertyInducingFragmentImpl
-    with ConstVariableFragment
     implements TopLevelVariableFragment {
   @override
   late TopLevelVariableElementImpl element;
@@ -10390,13 +10270,10 @@ abstract class VariableFragmentImpl extends FragmentImpl
     implements
         VariableElementOrMember,
         AnnotatableFragmentImpl,
+        ConstantEvaluationTarget,
         VariableFragment {
   /// The type of this variable.
   TypeImpl? _type;
-
-  /// Initialize a newly created variable element to have the given [name] and
-  /// [offset].
-  VariableFragmentImpl({required super.nameOffset});
 
   /// If this element represents a constant variable, and it has an initializer,
   /// a copy of the initializer for the constant.  Otherwise `null`.
@@ -10405,7 +10282,17 @@ abstract class VariableFragmentImpl extends FragmentImpl
   /// initializers.  However, analyzer also needs to handle incorrect Dart code,
   /// in which case there might be some constant variables that lack
   /// initializers.
-  ExpressionImpl? get constantInitializer => null;
+  ExpressionImpl? constantInitializer;
+
+  /// The result of evaluating [constantInitializer].
+  ///
+  /// Is `null` if [constantInitializer] is `null`, or if the value could not
+  /// be computed because of errors.
+  Constant? evaluationResult;
+
+  /// Initialize a newly created variable element to have the given [name] and
+  /// [offset].
+  VariableFragmentImpl({required super.nameOffset});
 
   @override
   VariableFragmentImpl get declaration => this;
@@ -10415,18 +10302,6 @@ abstract class VariableFragmentImpl extends FragmentImpl
 
   @override
   VariableElementImpl get element;
-
-  /// Return the result of evaluating this variable's initializer as a
-  /// compile-time constant expression, or `null` if this variable is not a
-  /// 'const' variable, if it does not have an initializer, or if the
-  /// compilation unit containing the variable has not been resolved.
-  Constant? get evaluationResult => null;
-
-  /// Set the result of evaluating this variable's initializer as a compile-time
-  /// constant expression to the given [result].
-  set evaluationResult(Constant? result) {
-    throw StateError("Invalid attempt to set a compile-time constant result");
-  }
 
   @override
   bool get hasImplicitType {
@@ -10459,7 +10334,7 @@ abstract class VariableFragmentImpl extends FragmentImpl
   }
 
   @override
-  bool get isConstantEvaluated => true;
+  bool get isConstantEvaluated => evaluationResult != null;
 
   /// Set whether this variable is external.
   set isExternal(bool isExternal) {
@@ -10503,8 +10378,31 @@ abstract class VariableFragmentImpl extends FragmentImpl
     builder.writeVariableElement(this);
   }
 
+  /// Return a representation of the value of this variable, forcing the value
+  /// to be computed if it had not previously been computed, or `null` if either
+  /// this variable was not declared with the 'const' modifier or if the value
+  /// of this variable could not be computed because of errors.
   @override
-  DartObject? computeConstantValue() => null;
+  DartObject? computeConstantValue() {
+    if (evaluationResult == null) {
+      var library = this.library;
+      // TODO(scheglov): https://github.com/dart-lang/sdk/issues/47915
+      if (library == null) {
+        return null;
+      }
+      computeConstants(
+        declaredVariables: context.declaredVariables,
+        constants: [this],
+        featureSet: library.featureSet,
+        configuration: ConstantEvaluationConfiguration(),
+      );
+    }
+
+    if (evaluationResult case DartObjectImpl result) {
+      return result;
+    }
+    return null;
+  }
 }
 
 mixin WrappedElementMixin implements ElementImpl {

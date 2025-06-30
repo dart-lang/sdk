@@ -5406,7 +5406,7 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
     return result;
   }
 
-  DartObjectImpl? _evaluationResult(ConstVariableFragment element) {
+  DartObjectImpl? _evaluationResult(VariableFragmentImpl element) {
     var evaluationResult = element.evaluationResult;
     switch (evaluationResult) {
       case null:
@@ -5420,19 +5420,19 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
 
   DartObjectImpl? _field(String variableName) {
     var element = findElement2.field(variableName);
-    var constFragment = element.firstFragment as ConstVariableFragment;
+    var constFragment = element.firstFragment as VariableFragmentImpl;
     return _evaluationResult(constFragment);
   }
 
   DartObjectImpl? _localVar(String variableName) {
     var element = findElement2.localVar(variableName);
-    var constFragment = element.firstFragment as ConstVariableFragment;
+    var constFragment = element.firstFragment as VariableFragmentImpl;
     return _evaluationResult(constFragment);
   }
 
   DartObjectImpl? _topLevelVar(String variableName) {
     var element = findElement2.topVar(variableName);
-    var constFragment = element.firstFragment as ConstVariableFragment;
+    var constFragment = element.firstFragment as VariableFragmentImpl;
     return _evaluationResult(constFragment);
   }
 }

@@ -65,9 +65,7 @@ class ConstantInitializersResolver {
       return;
     }
 
-    var constElement = element.ifTypeOrNull<ConstVariableFragment>();
-    if (constElement == null) return;
-    if (constElement.constantInitializer == null) return;
+    if (element.constantInitializer == null) return;
 
     var variable = linker.getLinkingNode(element);
     if (variable is! VariableDeclarationImpl) return;
@@ -86,7 +84,7 @@ class ConstantInitializersResolver {
     );
 
     // We could have rewritten the initializer.
-    constElement.constantInitializer = variable.initializer;
+    element.constantInitializer = variable.initializer;
   }
 }
 

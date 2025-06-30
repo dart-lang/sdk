@@ -629,7 +629,6 @@ class BundleWriter {
   void _writeParameterElement(FormalParameterFragmentImpl element) {
     _writeFragmentId(element);
     _writeFragmentName(element);
-    _sink.writeBool(element is ConstVariableFragment);
     _sink.writeBool(element.isInitializingFormal);
     _sink.writeBool(element.isSuperFormal);
     _sink._writeFormalParameterKind(element);
@@ -640,11 +639,8 @@ class BundleWriter {
     _writeTypeParameters(element.typeParameters, () {
       _writeList(element.parameters, _writeParameterElement);
       _resolutionSink.writeType(element.type);
+      _resolutionSink._writeOptionalNode(element.constantInitializer);
 
-      if (element is ConstVariableFragment) {
-        var constElement = element as ConstVariableFragment;
-        _resolutionSink._writeOptionalNode(constElement.constantInitializer);
-      }
       if (element is FieldFormalParameterFragmentImpl) {
         // TODO(scheglov): formal parameter types? Anything else?
         // _resolutionSink.writeFragmentOrMember(element.field);
@@ -1002,7 +998,6 @@ class ResolutionSink extends _SummaryDataWriter {
     writeUInt30(parameters.length);
     for (var parameter in parameters) {
       _writeFormalParameterKind(parameter);
-      writeBool(parameter is ConstVariableFragment);
       writeBool(parameter.hasImplicitType);
       writeBool(parameter.isInitializingFormal);
       _writeTypeParameters(parameter.typeParameters, () {

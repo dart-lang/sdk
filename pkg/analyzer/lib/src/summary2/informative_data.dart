@@ -1935,7 +1935,7 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
   void applyToConstantInitializer(FragmentImpl element) {
     if (element is FieldFragmentImpl && element.isEnumConstant) {
       _applyToEnumConstantInitializer(element);
-    } else if (element is ConstVariableFragment) {
+    } else if (element is VariableFragmentImpl) {
       element.constantInitializer?.accept(this);
     }
   }

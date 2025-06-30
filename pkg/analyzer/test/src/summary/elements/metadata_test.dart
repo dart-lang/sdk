@@ -2358,7 +2358,7 @@ library
               initializer: expression_1
                 NullLiteral
                   literal: null @28
-                  staticType: null
+                  staticType: Null
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a

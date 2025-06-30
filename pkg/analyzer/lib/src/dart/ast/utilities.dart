@@ -10,7 +10,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 
 export 'package:analyzer/src/dart/ast/constant_evaluator.dart';
@@ -546,11 +545,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
     } else if (identical(node.defaultValue, _oldNode)) {
       node.defaultValue = _newNode as ExpressionImpl;
       var parameterElement = node.declaredFragment;
-      if (parameterElement is DefaultParameterFragmentImpl) {
-        parameterElement.constantInitializer = _newNode;
-      } else if (parameterElement is DefaultFieldFormalParameterElementImpl) {
-        parameterElement.constantInitializer = _newNode;
-      }
+      parameterElement?.constantInitializer = _newNode;
       return true;
     }
     return visitNode(node);

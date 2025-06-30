@@ -41,11 +41,12 @@ class DefaultValueResolver {
     FormalParameterFragmentImpl element,
   ) {
     var node = _linker.getLinkingNode(element);
-    if (node is DefaultFormalParameterImpl && node.defaultValue != null) {
-      return node;
-    } else {
-      return null;
+    if (node?.parent case DefaultFormalParameterImpl defaultParent) {
+      if (defaultParent.defaultValue != null) {
+        return defaultParent;
+      }
     }
+    return null;
   }
 
   void _executable(_Context context, ExecutableFragmentImpl element) {

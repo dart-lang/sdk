@@ -41,7 +41,7 @@ const a = const A();
     var aLib = findElement2.import('package:test/a.dart').importedLibrary2!;
     var aConstructor = aLib.getClass2('A')!.constructors.single;
     var p = aConstructor.formalParameters.single;
-    var pf = p.firstFragment as DefaultParameterFragmentImpl;
+    var pf = p.firstFragment as FormalParameterFragmentImpl;
 
     // To evaluate `const A()` we have to evaluate `{int p}`.
     // Even if its value is `null`.
@@ -281,7 +281,7 @@ class B extends A {
     assertErrorsInResolvedUnit(result, []);
 
     var bElement = findElement2.field('b');
-    var bFragment = bElement.firstFragment as ConstVariableFragment;
+    var bFragment = bElement.firstFragment as VariableFragmentImpl;
     var bValue = bFragment.evaluationResult as DartObjectImpl;
     var superFields = bValue.getField(GenericState.SUPERCLASS_FIELD);
     expect(superFields!.getField('f1')!.toBoolValue(), false);

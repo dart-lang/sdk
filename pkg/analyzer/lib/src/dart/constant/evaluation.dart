@@ -93,24 +93,22 @@ class ConstantEvaluationEngine {
 
     var library = constant.library as LibraryElementImpl;
     if (constant is FormalParameterFragmentImpl) {
-      if (constant is ConstVariableFragment) {
-        var defaultValue = constant.constantInitializer;
-        if (defaultValue != null) {
-          var diagnosticListener = RecordingDiagnosticListener();
-          var diagnosticReporter = DiagnosticReporter(
-            diagnosticListener,
-            constant.source!,
-          );
-          var constantVisitor = ConstantVisitor(
-            this,
-            library,
-            diagnosticReporter,
-          );
-          var dartConstant = constantVisitor.evaluateConstant(defaultValue);
-          constant.evaluationResult = dartConstant;
-        } else {
-          constant.evaluationResult = _nullObject(library);
-        }
+      var defaultValue = constant.constantInitializer;
+      if (defaultValue != null) {
+        var diagnosticListener = RecordingDiagnosticListener();
+        var diagnosticReporter = DiagnosticReporter(
+          diagnosticListener,
+          constant.source!,
+        );
+        var constantVisitor = ConstantVisitor(
+          this,
+          library,
+          diagnosticReporter,
+        );
+        var dartConstant = constantVisitor.evaluateConstant(defaultValue);
+        constant.evaluationResult = dartConstant;
+      } else {
+        constant.evaluationResult = _nullObject(library);
       }
     } else if (constant is VariableFragmentImpl) {
       var constantInitializer = constant.constantInitializer;

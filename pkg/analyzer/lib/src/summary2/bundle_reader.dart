@@ -736,13 +736,7 @@ class LibraryReader {
       _readTypeParameters2(unitElement, reader, parameter.typeParameters);
       _readFormalParameters2(unitElement, reader, parameter.parameters);
       parameter.type = reader.readRequiredType();
-      if (parameter is ConstVariableFragment) {
-        var defaultParameter = parameter as ConstVariableFragment;
-        var initializer = reader.readOptionalExpression();
-        if (initializer != null) {
-          defaultParameter.constantInitializer = initializer;
-        }
-      }
+      parameter.constantInitializer = reader.readOptionalExpression();
       if (parameter is FieldFormalParameterFragmentImpl) {
         // TODO(scheglov): use element
         parameter.field =
@@ -1050,7 +1044,6 @@ class LibraryReader {
     return _reader.readTypedList(() {
       var id = _readFragmentId();
       var fragmentName = _readFragmentName();
-      var isDefault = _reader.readBool();
       var isInitializingFormal = _reader.readBool();
       var isSuperFormal = _reader.readBool();
 
@@ -1058,52 +1051,27 @@ class LibraryReader {
       var kind = ResolutionReader._formalParameterKind(kindIndex);
 
       FormalParameterFragmentImpl element;
-      if (!isDefault) {
-        if (isInitializingFormal) {
-          element = FieldFormalParameterFragmentImpl(
-            nameOffset: -1,
-            name2: fragmentName,
-            nameOffset2: null,
-            parameterKind: kind,
-          );
-        } else if (isSuperFormal) {
-          element = SuperFormalParameterFragmentImpl(
-            nameOffset: -1,
-            name2: fragmentName,
-            nameOffset2: null,
-            parameterKind: kind,
-          );
-        } else {
-          element = FormalParameterFragmentImpl(
-            nameOffset: -1,
-            name2: fragmentName,
-            nameOffset2: null,
-            parameterKind: kind,
-          );
-        }
+      if (isInitializingFormal) {
+        element = FieldFormalParameterFragmentImpl(
+          nameOffset: -1,
+          name2: fragmentName,
+          nameOffset2: null,
+          parameterKind: kind,
+        );
+      } else if (isSuperFormal) {
+        element = SuperFormalParameterFragmentImpl(
+          nameOffset: -1,
+          name2: fragmentName,
+          nameOffset2: null,
+          parameterKind: kind,
+        );
       } else {
-        if (isInitializingFormal) {
-          element = DefaultFieldFormalParameterElementImpl(
-            nameOffset: -1,
-            name2: fragmentName,
-            nameOffset2: null,
-            parameterKind: kind,
-          );
-        } else if (isSuperFormal) {
-          element = DefaultSuperFormalParameterElementImpl(
-            nameOffset: -1,
-            name2: fragmentName,
-            nameOffset2: null,
-            parameterKind: kind,
-          );
-        } else {
-          element = DefaultParameterFragmentImpl(
-            nameOffset: -1,
-            name2: fragmentName,
-            nameOffset2: null,
-            parameterKind: kind,
-          );
-        }
+        element = FormalParameterFragmentImpl(
+          nameOffset: -1,
+          name2: fragmentName,
+          nameOffset2: null,
+          parameterKind: kind,
+        );
       }
       idFragmentMap[id] = element;
       ParameterElementFlags.read(_reader, element);
@@ -1801,55 +1769,36 @@ class ResolutionReader {
     return readTypedList(() {
       var kindIndex = _reader.readByte();
       var kind = _formalParameterKind(kindIndex);
-      var isDefault = _reader.readBool();
       var hasImplicitType = _reader.readBool();
       var isInitializingFormal = _reader.readBool();
       var typeParameters = _readTypeParameters(unitElement);
       var type = readRequiredType();
       var name = _readFragmentName();
-      if (!isDefault) {
-        FormalParameterFragmentImpl element;
-        if (isInitializingFormal) {
-          element = FieldFormalParameterFragmentImpl(
-            nameOffset: -1,
-            name2: name,
-            nameOffset2: null,
-            parameterKind: kind,
-          )..type = type;
-        } else {
-          element = FormalParameterFragmentImpl(
-            nameOffset: -1,
-            name2: name,
-            nameOffset2: null,
-            parameterKind: kind,
-          )..type = type;
-        }
-        element.hasImplicitType = hasImplicitType;
-        element.typeParameters = typeParameters;
-        element.parameters = _readFormalParameters(unitElement);
-        // TODO(scheglov): reuse for formal parameters
-        _localElements.length -= typeParameters.length;
-        if (unitElement != null) {
-          element.metadata = _readMetadata(unitElement: unitElement);
-        }
-        return element;
-      } else {
-        var element = DefaultParameterFragmentImpl(
+      FormalParameterFragmentImpl element;
+      if (isInitializingFormal) {
+        element = FieldFormalParameterFragmentImpl(
           nameOffset: -1,
           name2: name,
           nameOffset2: null,
           parameterKind: kind,
         )..type = type;
-        element.hasImplicitType = hasImplicitType;
-        element.typeParameters = typeParameters;
-        element.parameters = _readFormalParameters(unitElement);
-        // TODO(scheglov): reuse for formal parameters
-        _localElements.length -= typeParameters.length;
-        if (unitElement != null) {
-          element.metadata = _readMetadata(unitElement: unitElement);
-        }
-        return element;
+      } else {
+        element = FormalParameterFragmentImpl(
+          nameOffset: -1,
+          name2: name,
+          nameOffset2: null,
+          parameterKind: kind,
+        )..type = type;
       }
+      element.hasImplicitType = hasImplicitType;
+      element.typeParameters = typeParameters;
+      element.parameters = _readFormalParameters(unitElement);
+      // TODO(scheglov): reuse for formal parameters
+      _localElements.length -= typeParameters.length;
+      if (unitElement != null) {
+        element.metadata = _readMetadata(unitElement: unitElement);
+      }
+      return element;
     });
   }
 

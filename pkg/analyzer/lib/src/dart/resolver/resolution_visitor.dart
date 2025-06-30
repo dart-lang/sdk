@@ -444,7 +444,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       var nameOffset2 = nameToken?.offset;
       if (node.parameter is FieldFormalParameter) {
         // Only for recovery, this should not happen in valid code.
-        fragment = DefaultFieldFormalParameterElementImpl(
+        fragment = FieldFormalParameterFragmentImpl(
           nameOffset: nameOffset2 ?? -1,
           parameterKind: node.kind,
           name2: name2,
@@ -452,14 +452,14 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         )..constantInitializer = node.defaultValue;
       } else if (node.parameter is SuperFormalParameter) {
         // Only for recovery, this should not happen in valid code.
-        fragment = DefaultSuperFormalParameterElementImpl(
+        fragment = SuperFormalParameterFragmentImpl(
           nameOffset: nameOffset2 ?? -1,
           parameterKind: node.kind,
           name2: name2,
           nameOffset2: nameOffset2,
         )..constantInitializer = node.defaultValue;
       } else {
-        fragment = DefaultParameterFragmentImpl(
+        fragment = FormalParameterFragmentImpl(
           nameOffset: nameOffset2 ?? -1,
           parameterKind: node.kind,
           name2: name2,
