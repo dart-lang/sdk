@@ -2909,37 +2909,27 @@ Isolate* IsolateGroup::FirstIsolateLocked() const {
   return isolates_.IsEmpty() ? nullptr : isolates_.First();
 }
 
-void IsolateGroup::RunWithStoppedMutatorsCallable(
-    Callable* single_current_mutator,
-    Callable* otherwise,
-    bool use_force_growth_in_otherwise) {
+void IsolateGroup::RunWithStoppedMutatorsCallable(Callable* callable,
+                                                  bool use_force_growth) {
   auto thread = Thread::Current();
   StoppedMutatorsScope stopped_mutators_scope(thread);
 
   if (thread->OwnsSafepoint()) {
     RELEASE_ASSERT(thread->OwnsSafepoint());
-    single_current_mutator->Call();
+    callable->Call();
     return;
-  }
-
-  {
-    SafepointReadRwLocker ml(thread, isolates_lock_.get());
-    if (thread->IsDartMutatorThread() && ContainsOnlyOneIsolate()) {
-      single_current_mutator->Call();
-      return;
-    }
   }
 
   // We use the more strict safepoint operation scope here (which ensures that
   // all other threads, including auxiliary threads are at a safepoint), even
   // though we only need to ensure that the mutator threads are stopped.
-  if (use_force_growth_in_otherwise) {
+  if (use_force_growth) {
     ForceGrowthSafepointOperationScope safepoint_scope(
         thread, SafepointLevel::kGCAndDeopt);
-    otherwise->Call();
+    callable->Call();
   } else {
     DeoptSafepointOperationScope safepoint_scope(thread);
-    otherwise->Call();
+    callable->Call();
   }
 }
 

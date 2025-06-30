@@ -61,7 +61,6 @@ class IsolateProfilerData;
 class Log;
 class Message;
 class MessageHandler;
-class MonitorLocker;
 class Mutex;
 class Object;
 class ObjectIdRing;
@@ -599,32 +598,20 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   // Ensures mutators are stopped during execution of the provided function.
   //
   // If the current thread is the only mutator in the isolate group,
-  // [single_current_mutator] will be called. Otherwise [otherwise] will be
+  // [callable] will be called directly. Otherwise [callable] will be
   // called inside a [SafepointOperationsScope] (or
-  // [ForceGrowthSafepointOperationScope] if [use_force_growth_in_otherwise]
+  // [ForceGrowthSafepointOperationScope] if [use_force_growth]
   // is set).
   //
   // During the duration of this function, no new isolates can be added to the
   // isolate group.
-  void RunWithStoppedMutatorsCallable(
-      Callable* single_current_mutator,
-      Callable* otherwise,
-      bool use_force_growth_in_otherwise = false);
-
-  template <typename T, typename S>
-  void RunWithStoppedMutators(T single_current_mutator,
-                              S otherwise,
-                              bool use_force_growth_in_otherwise = false) {
-    LambdaCallable<T> single_callable(single_current_mutator);
-    LambdaCallable<S> otherwise_callable(otherwise);
-    RunWithStoppedMutatorsCallable(&single_callable, &otherwise_callable,
-                                   use_force_growth_in_otherwise);
-  }
+  void RunWithStoppedMutatorsCallable(Callable* callable,
+                                      bool use_force_growth = false);
 
   template <typename T>
   void RunWithStoppedMutators(T function, bool use_force_growth = false) {
     LambdaCallable<T> callable(function);
-    RunWithStoppedMutatorsCallable(&callable, &callable, use_force_growth);
+    RunWithStoppedMutatorsCallable(&callable, use_force_growth);
   }
 
 #ifndef PRODUCT

@@ -1554,8 +1554,8 @@ DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate) {
   // TransitionXXX scope objects as the reverse transition happens
   // outside this scope in Dart_ExitIsolate/Dart_ShutdownIsolate.
   Thread* T = Thread::Current();
-  T->EnterSafepointToNative();
   T->set_execution_state(Thread::kThreadInNative);
+  T->EnterSafepointToNative();
 }
 
 DART_EXPORT void Dart_StartProfiling() {
