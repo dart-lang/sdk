@@ -559,9 +559,14 @@ library
         requiredPositional a
           firstFragment: #F2
           type: T Function<T, U>(U)
+          typeParameters
+            #E0 T
+              firstFragment: #F3
+            #E1 U
+              firstFragment: #F4
           formalParameters
             requiredPositional u
-              firstFragment: #F3
+              firstFragment: #F5
               type: U
       returnType: void
 ''');

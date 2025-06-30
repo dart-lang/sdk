@@ -155,8 +155,10 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
     if (node.constKeyword != null) {
       var fragment = node.declaredFragment;
       if (fragment != null) {
-        constantsToCompute.add(fragment.element);
-        constantsToCompute.addAll(fragment.parameters);
+        var element = fragment.element;
+        constantsToCompute.add(element);
+        // TODO(scheglov): remove cast
+        constantsToCompute.addAll(element.baseElement.formalParameters.cast());
       }
     }
   }
@@ -166,7 +168,7 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
     super.visitDefaultFormalParameter(node);
     var defaultValue = node.defaultValue;
     if (defaultValue != null && node.declaredFragment != null) {
-      constantsToCompute.add(node.declaredFragment!);
+      constantsToCompute.add(node.declaredFragment!.element);
     }
   }
 
@@ -176,11 +178,11 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
   ) {
     super.visitEnumConstantDeclaration(node);
 
-    var element = node.declaredFragment!;
+    var element = node.declaredFragment!.element;
     constantsToCompute.add(element);
 
     configuration.addErrorNode(
-      fromElement: element.constantInitializer,
+      fromElement: element.constantInitializer2?.expression,
       fromAst: node,
     );
   }
@@ -189,18 +191,18 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
   void visitVariableDeclaration(covariant VariableDeclarationImpl node) {
     super.visitVariableDeclaration(node);
     var initializer = node.initializer;
-    var element = node.declaredFragment!;
+    var element = node.declaredFragment!.element;
     if (initializer != null &&
         (node.isConst ||
             treatFinalInstanceVarAsConst &&
-                element is FieldFragmentImpl &&
+                element is FieldElementImpl &&
                 node.isFinal &&
                 !element.isStatic)) {
       constantsToCompute.add(element);
       // Fill error nodes.
-      if (element.constantInitializer case var constantInitializer?) {
+      if (element.constantInitializer2 case var constantInitializer?) {
         configuration.addErrorNode(
-          fromElement: constantInitializer,
+          fromElement: constantInitializer.expression,
           fromAst: node.initializer,
         );
       }
@@ -261,7 +263,7 @@ class ReferenceFinder extends RecursiveAstVisitor<void> {
     }
 
     if (element is VariableElementImpl && element.isConst) {
-      _callback(element.firstFragment as VariableFragmentImpl);
+      _callback(element);
     }
   }
 

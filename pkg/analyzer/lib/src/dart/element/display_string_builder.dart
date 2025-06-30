@@ -209,6 +209,20 @@ class ElementDisplayStringBuilder {
     }
   }
 
+  void writeFormalParameter2(FormalParameterElementMixin element) {
+    if (element.isRequiredPositional) {
+      _writeWithoutDelimiters2(element, forElement: true);
+    } else if (element.isOptionalPositional) {
+      _write('[');
+      _writeWithoutDelimiters2(element, forElement: true);
+      _write(']');
+    } else if (element.isNamed) {
+      _write('{');
+      _writeWithoutDelimiters2(element, forElement: true);
+      _write('}');
+    }
+  }
+
   void writeFunctionType(FunctionTypeImpl type) {
     if (_maybeWriteTypeAlias(type)) {
       return;
@@ -219,10 +233,7 @@ class ElementDisplayStringBuilder {
     _writeType(type.returnType);
     _write(' Function');
     _writeTypeParameters2(type.typeParameters);
-    _writeFormalParameters(
-      type.parameters.map((e) => e.asElement).toList(),
-      forElement: false,
-    );
+    _writeFormalParameters2(type.parameters, forElement: false);
     _writeNullability(type.nullabilitySuffix);
   }
 
@@ -420,6 +431,12 @@ class ElementDisplayStringBuilder {
   }
 
   void writeVariableElement(VariableElementOrMember element) {
+    _writeType(element.type);
+    _write(' ');
+    _write(element.displayName);
+  }
+
+  void writeVariableElement2(VariableElement2OrMember element) {
     _writeType(element.type);
     _write(' ');
     _write(element.displayName);
@@ -669,7 +686,7 @@ class ElementDisplayStringBuilder {
     }
 
     if (forElement) {
-      var defaultValueCode = element.defaultValueCode;
+      var defaultValueCode = element.element.defaultValueCode;
       if (defaultValueCode != null) {
         _write(' = ');
         _write(defaultValueCode);

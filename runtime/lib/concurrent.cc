@@ -145,8 +145,8 @@ DEFINE_FFI_NATIVE_ENTRY(IsolateGroup_runSync,
   Thread::EnterIsolate(saved_isolate);
 
   Thread* T = Thread::Current();
-  T->EnterSafepointToNative();
   T->set_execution_state(Thread::kThreadInNative);
+  T->EnterSafepoint();
 
   Dart_Handle local_handle = Dart_HandleFromPersistent(persistent_result);
   Dart_DeletePersistentHandle(persistent_result);

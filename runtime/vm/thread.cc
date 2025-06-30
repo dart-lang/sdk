@@ -520,6 +520,10 @@ void Thread::ExitIsolateGroupAsHelper(bool bypass_safepoint) {
 
 void Thread::EnterIsolateGroupAsMutator(IsolateGroup* isolate_group,
                                         bool bypass_safepoint) {
+  isolate_group->IncreaseMutatorCount(/*thread=*/nullptr,
+                                      /*is_nested_reenter=*/true,
+                                      /*was_stolen=*/false);
+
   Thread* thread = AddActiveThread(isolate_group, /*isolate=*/nullptr,
                                    kMutatorTask, bypass_safepoint);
   RELEASE_ASSERT(thread != nullptr);
@@ -542,10 +546,6 @@ void Thread::EnterIsolateGroupAsMutator(IsolateGroup* isolate_group,
   thread->SetStackLimit(OSThread::Current()->overflow_stack_limit());
 #endif
 
-  isolate_group->IncreaseMutatorCount(/*thread=*/thread,
-                                      /*is_nested_reenter=*/false,
-                                      /*was_stolen=*/true);
-
   thread->AssertDartMutatorInvariants();
 }
 
@@ -559,8 +559,9 @@ void Thread::ExitIsolateGroupAsMutator(bool bypass_safepoint) {
   thread->ResetMutatorState();
   thread->ClearStackLimit();
   SuspendThreadInternal(thread, VMTag::kInvalidTagId);
-  thread->isolate_group()->DecreaseMutatorCount(/*is_nested_exit=*/true);
+  auto group = thread->isolate_group();
   FreeActiveThread(thread, /*isolate=*/nullptr, bypass_safepoint);
+  group->DecreaseMutatorCount(/*is_nested_exit=*/true);
 }
 
 void Thread::EnterIsolateGroupAsNonMutator(IsolateGroup* isolate_group,

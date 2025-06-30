@@ -442,7 +442,7 @@ class FieldFormalParameterMember extends ParameterMember
   }
 
   @override
-  bool get hasDefaultValue => declaration.hasDefaultValue;
+  bool get hasDefaultValue => baseElement.hasDefaultValue;
 
   @override
   bool get isCovariant => declaration.isCovariant;
@@ -574,6 +574,11 @@ class FieldMember extends VariableMember implements FieldElement2OrMember {
   @Deprecated('Use accept instead')
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
+
+  @override
+  DartObject? computeConstantValue() {
+    return baseElement.computeConstantValue();
+  }
 
   @override
   String displayString2({
@@ -921,9 +926,8 @@ class MethodMember extends ExecutableMember implements MethodElement2OrMember {
 
 /// A parameter element defined in a parameterized type where the values of the
 /// type parameters are known.
-class ParameterMember extends VariableMember
-    with ParameterElementMixin, FormalParameterElementMixin {
-  @override
+class ParameterMember extends VariableMember with FormalParameterElementMixin {
+  // TODO(scheglov): replace with TypeParameterElementImpl(s)
   final List<TypeParameterFragmentImpl> typeParameters;
 
   factory ParameterMember({
@@ -967,7 +971,7 @@ class ParameterMember extends VariableMember
       _declaration as FormalParameterFragmentImpl;
 
   @override
-  String? get defaultValueCode => declaration.defaultValueCode;
+  String? get defaultValueCode => baseElement.defaultValueCode;
 
   @override
   FormalParameterElementImpl get element => declaration.element;
@@ -999,13 +1003,37 @@ class ParameterMember extends VariableMember
   }
 
   @override
-  bool get hasDefaultValue => declaration.hasDefaultValue;
+  bool get hasDefaultValue => baseElement.hasDefaultValue;
 
   @override
   bool get isCovariant => declaration.isCovariant;
 
   @override
   bool get isInitializingFormal => declaration.isInitializingFormal;
+
+  @override
+  bool get isNamed => baseElement.isNamed;
+
+  @override
+  bool get isOptional => baseElement.isOptional;
+
+  @override
+  bool get isOptionalNamed => baseElement.isOptionalNamed;
+
+  @override
+  bool get isOptionalPositional => baseElement.isOptionalPositional;
+
+  @override
+  bool get isPositional => baseElement.isPositional;
+
+  @override
+  bool get isRequired => baseElement.isRequired;
+
+  @override
+  bool get isRequiredNamed => baseElement.isRequiredNamed;
+
+  @override
+  bool get isRequiredPositional => baseElement.isRequiredPositional;
 
   @override
   bool get isSuperFormal => declaration.isSuperFormal;
@@ -1047,15 +1075,6 @@ class ParameterMember extends VariableMember
   }
 
   @override
-  List<ParameterElementMixin> get parameters {
-    var type = this.type;
-    if (type is FunctionTypeImpl) {
-      return type.parameters.map((element) => element.asElement).toList();
-    }
-    return const <ParameterElementMixin>[];
-  }
-
-  @override
   Source? get source => _declaration.source;
 
   @override
@@ -1078,7 +1097,12 @@ class ParameterMember extends VariableMember
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
-    builder.writeFormalParameter(this);
+    builder.writeFormalParameter2(this);
+  }
+
+  @override
+  DartObject? computeConstantValue() {
+    return baseElement.computeConstantValue();
   }
 
   @override
@@ -1109,32 +1133,6 @@ class ParameterMember extends VariableMember
   @override
   void visitChildren2<T>(ElementVisitor2<T> visitor) {
     _element2.visitChildren2(visitor);
-  }
-
-  static ParameterElementMixin from(
-    ParameterElementMixin element,
-    MapSubstitution substitution,
-  ) {
-    FormalParameterFragmentImpl declaration;
-    var combined = substitution;
-    if (element is ParameterMember) {
-      var member = element;
-      declaration = member.declaration;
-
-      var map = <TypeParameterElement, DartType>{
-        for (var MapEntry(:key, :value) in member.substitution.map.entries)
-          key: substitution.substituteType(value),
-      };
-      combined = Substitution.fromMap2(map);
-    } else {
-      declaration = element as FormalParameterFragmentImpl;
-    }
-
-    if (combined.map.isEmpty) {
-      return element;
-    }
-
-    return ParameterMember(declaration: declaration, substitution: combined);
   }
 
   static FormalParameterElementMixin from2(
@@ -1369,14 +1367,14 @@ class SuperFormalParameterMember extends ParameterMember
   }
 
   @override
-  bool get hasDefaultValue => declaration.hasDefaultValue;
+  bool get hasDefaultValue => baseElement.hasDefaultValue;
 
   @override
   bool get isCovariant => declaration.isCovariant;
 
   @override
   FormalParameterElementMixin? get superConstructorParameter2 {
-    var superConstructorParameter = declaration.superConstructorParameter;
+    var superConstructorParameter = baseElement.superConstructorParameter2;
     if (superConstructorParameter == null) {
       return null;
     }
@@ -1388,7 +1386,7 @@ class SuperFormalParameterMember extends ParameterMember
 /// A variable element defined in a parameterized type where the values of the
 /// type parameters are known.
 abstract class VariableMember extends Member
-    implements VariableElementOrMember {
+    implements VariableElement2OrMember {
   TypeImpl? _type;
 
   /// Initialize a newly created element to represent a variable, based on the
@@ -1406,9 +1404,6 @@ abstract class VariableMember extends Member
 
   @override
   bool get isConst => declaration.isConst;
-
-  @override
-  bool get isConstantEvaluated => declaration.isConstantEvaluated;
 
   @override
   bool get isFinal => declaration.isFinal;
@@ -1430,11 +1425,8 @@ abstract class VariableMember extends Member
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
-    builder.writeVariableElement(this);
+    builder.writeVariableElement2(this);
   }
-
-  @override
-  DartObject? computeConstantValue() => declaration.computeConstantValue();
 }
 
 class _SubstitutedTypeParameters {

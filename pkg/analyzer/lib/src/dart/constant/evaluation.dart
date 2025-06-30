@@ -33,7 +33,6 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 
 class ConstantEvaluationConfiguration {
@@ -92,8 +91,8 @@ class ConstantEvaluationEngine {
     }
 
     var library = constant.library as LibraryElementImpl;
-    if (constant is FormalParameterFragmentImpl) {
-      var defaultValue = constant.constantInitializer;
+    if (constant is FormalParameterElementImpl) {
+      var defaultValue = constant.constantInitializer2?.expression;
       if (defaultValue != null) {
         var diagnosticListener = RecordingDiagnosticListener();
         var diagnosticReporter = DiagnosticReporter(
@@ -110,8 +109,8 @@ class ConstantEvaluationEngine {
       } else {
         constant.evaluationResult = _nullObject(library);
       }
-    } else if (constant is VariableFragmentImpl) {
-      var constantInitializer = constant.constantInitializer;
+    } else if (constant is VariableElementImpl) {
+      var constantInitializer = constant.constantInitializer2?.expression;
       if (constantInitializer != null) {
         var diagnosticReporter = DiagnosticReporter(
           RecordingDiagnosticListener(),
@@ -154,10 +153,7 @@ class ConstantEvaluationEngine {
             }
 
             // Associate with the variable.
-            dartConstant = DartObjectImpl.forVariable(
-              dartConstant,
-              constant.element,
-            );
+            dartConstant = DartObjectImpl.forVariable(dartConstant, constant);
           }
 
           var enumConstant = _enumConstant(constant);
@@ -185,10 +181,9 @@ class ConstantEvaluationEngine {
       if (element is PropertyAccessorElement) {
         // The annotation is a reference to a compile-time constant variable.
         // Just copy the evaluation result.
-        var variableElement = element.variable3?.baseElement;
-        var firstFragment =
-            variableElement?.firstFragment as VariableFragmentImpl?;
-        var evaluationResult = firstFragment?.evaluationResult;
+        var variableElement =
+            element.variable3?.baseElement as VariableElementImpl?;
+        var evaluationResult = variableElement?.evaluationResult;
         if (evaluationResult != null) {
           constant.evaluationResult = evaluationResult;
         } else {
@@ -250,13 +245,13 @@ class ConstantEvaluationEngine {
     ConstantEvaluationTarget constant,
     ReferenceFinderCallback callback,
   ) {
-    if (constant is FieldFragmentImpl && constant.isEnumConstant) {
-      var enclosing = constant.enclosingElement3;
-      if (enclosing is EnumFragmentImpl) {
-        if (enclosing.name2 == 'values') {
+    if (constant is FieldElementImpl && constant.isEnumConstant) {
+      var enclosing = constant.enclosingElement;
+      if (enclosing is EnumElementImpl) {
+        if (enclosing.name3 == 'values') {
           return;
         }
-        if (constant.name2 == enclosing.name2) {
+        if (constant.name3 == enclosing.name3) {
           return;
         }
       }
@@ -267,9 +262,9 @@ class ConstantEvaluationEngine {
       constant = constructor.baseElement;
     }
 
-    if (constant is VariableElementOrMember) {
-      var declaration = constant.declaration;
-      var initializer = declaration.constantInitializer;
+    if (constant is VariableElementImpl) {
+      var declaration = constant;
+      var initializer = declaration.constantInitializer2?.expression;
       if (initializer != null) {
         initializer.accept(referenceFinder);
       }
@@ -318,11 +313,11 @@ class ConstantEvaluationEngine {
           if ((field.isFinal || field.isConst) &&
               !field.isStatic &&
               field.hasInitializer) {
-            callback(field.firstFragment);
+            callback(field);
           }
         }
         for (var parameterElement in constant.formalParameters) {
-          callback(parameterElement.firstFragment as ParameterElementMixin);
+          callback(parameterElement.baseElement);
         }
       }
     } else if (constant is ElementAnnotationImpl) {
@@ -333,7 +328,7 @@ class ConstantEvaluationEngine {
         // so it depends on the variable.
         if (element.variable3 case var variable?) {
           var baseElement = variable.baseElement as VariableElementImpl;
-          callback(baseElement.firstFragment as VariableFragmentImpl);
+          callback(baseElement);
         }
       } else if (element is ConstructorElement) {
         // The annotation is a constructor invocation, so it depends on the
@@ -443,7 +438,7 @@ class ConstantEvaluationEngine {
     Iterable<ConstantEvaluationTarget> cycle,
     ConstantEvaluationTarget constant,
   ) {
-    if (constant is VariableFragmentImpl) {
+    if (constant is VariableElementImpl) {
       DiagnosticReporter diagnosticReporter = DiagnosticReporter(
         RecordingDiagnosticListener(),
         constant.source!,
@@ -452,11 +447,11 @@ class ConstantEvaluationEngine {
       // information from the 'cycle' argument to provide the user with a
       // description of the cycle.
       diagnosticReporter.atElement2(
-        constant.asElement2!,
+        constant,
         CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
       );
       constant.evaluationResult = InvalidConstant.forElement(
-        element: constant.asElement2!,
+        element: constant,
         diagnosticCode: CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
       );
     } else if (constant is ConstructorElementImpl) {
@@ -507,13 +502,13 @@ class ConstantEvaluationEngine {
     return redirectedConstructor;
   }
 
-  static _EnumConstant? _enumConstant(VariableFragmentImpl element) {
-    if (element is FieldFragmentImpl && element.isEnumConstant) {
-      var enum_ = element.enclosingElement3;
-      if (enum_ is EnumFragmentImpl) {
-        var index = enum_.constants.indexOf(element);
+  static _EnumConstant? _enumConstant(VariableElementImpl element) {
+    if (element is FieldElementImpl && element.isEnumConstant) {
+      var enum_ = element.enclosingElement;
+      if (enum_ is EnumElementImpl) {
+        var index = enum_.constants2.indexOf(element);
         assert(index >= 0);
-        return _EnumConstant(index: index, name: element.name2 ?? '');
+        return _EnumConstant(index: index, name: element.name3 ?? '');
       }
     }
     return null;
@@ -1969,8 +1964,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       // and errors for other constant expressions. In either case we have
       // already computed values of all dependencies first (or detect a cycle),
       // so the value has already been computed and we can just return it.
-      var firstFragment = variableElement.firstFragment as VariableFragmentImpl;
-      var evaluationResult = firstFragment.evaluationResult;
+      var evaluationResult = variableElement.evaluationResult;
       if (variableElement.isConst) {
         switch (evaluationResult) {
           case null:
@@ -3062,7 +3056,7 @@ class _InstanceCreationEvaluator {
     var fields = _constructor.baseElement.enclosingElement.fields;
     for (var field in fields) {
       if ((field.isFinal || field.isConst) && !field.isStatic) {
-        var fieldValue = field.firstFragment.evaluationResult;
+        var fieldValue = field.evaluationResult;
 
         // It is possible that the evaluation result is null.
         // This happens for example when we have duplicate fields.
@@ -3379,7 +3373,7 @@ class _InstanceCreationEvaluator {
       if (argumentValue == null && baseParameter.isOptional) {
         // The parameter is an optional positional parameter for which no value
         // was provided, so use the default value.
-        var evaluationResult = baseParameter.firstFragment.evaluationResult;
+        var evaluationResult = baseParameter.evaluationResult;
         if (evaluationResult == null) {
           // No default was provided, so the default value is null.
           argumentValue = ConstantEvaluationEngine._nullObject(_library);
