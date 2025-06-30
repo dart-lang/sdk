@@ -107,6 +107,7 @@ class Flags {
   static const String verbosity = '--verbosity';
   static const String progress = '--show-internal-progress';
   static const String version = '--version';
+  static const String omitMemorySummary = '--omit-memory-summary';
   static const String reportMetrics = '--report-metrics';
   static const String reportAllMetrics = '--report-all-metrics';
 
