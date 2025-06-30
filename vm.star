@@ -141,11 +141,6 @@ _vm_builder(
     properties = no_android,
 )
 _vm_builder(
-    "vm-checked-mac-release-arm64",
-    category = "vm|jit|mc",
-    dimensions = [mac, arm64],
-)
-_vm_builder(
     "vm-win-debug-x64",
     category = "vm|jit|wd",
     properties = slow_shards,
