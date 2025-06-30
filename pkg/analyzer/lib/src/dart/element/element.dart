@@ -3111,7 +3111,8 @@ class FormalParameterElementImpl extends PromotableElementImpl
 
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
-  List<TypeParameterElement> get typeParameters2 => const [];
+  List<TypeParameterElement> get typeParameters2 =>
+      firstFragment.typeParameters.map((fragment) => fragment.element).toList();
 
   @override
   TypeImpl get typeShared => type;

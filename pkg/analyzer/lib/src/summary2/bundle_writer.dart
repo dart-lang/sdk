@@ -991,6 +991,10 @@ class ResolutionSink extends _SummaryDataWriter {
     }
   }
 
+  void _writeElementName(Element element) {
+    _writeOptionalStringReference(element.name3);
+  }
+
   void _writeFormalParameters(
     List<ParameterElementMixin> parameters, {
     required bool withAnnotations,
@@ -1014,6 +1018,29 @@ class ResolutionSink extends _SummaryDataWriter {
     }
   }
 
+  void _writeFormalParameters2(
+    List<FormalParameterElementMixin> parameters, {
+    required bool withAnnotations,
+  }) {
+    writeUInt30(parameters.length);
+    for (var parameter in parameters) {
+      _writeFormalParameterKind2(parameter);
+      writeBool(parameter.hasImplicitType);
+      writeBool(parameter.isInitializingFormal);
+      _writeTypeParameters2(parameter.typeParameters2.cast(), () {
+        writeType(parameter.type);
+        _writeElementName(parameter);
+        _writeFormalParameters2(
+          parameter.formalParameters.cast(),
+          withAnnotations: withAnnotations,
+        );
+      }, withAnnotations: withAnnotations);
+      if (withAnnotations) {
+        _writeMetadata(parameter.metadata as MetadataImpl);
+      }
+    }
+  }
+
   void _writeFragmentName(Fragment fragment) {
     _writeOptionalStringReference(fragment.name2);
   }
@@ -1025,10 +1052,7 @@ class ResolutionSink extends _SummaryDataWriter {
 
     _writeTypeParameters(type.typeFormals, () {
       writeType(type.returnType);
-      _writeFormalParameters(
-        type.parameters.map((e) => e.asElement).toList(),
-        withAnnotations: false,
-      );
+      _writeFormalParameters2(type.formalParameters, withAnnotations: false);
     }, withAnnotations: false);
     _writeNullabilitySuffix(type.nullabilitySuffix);
   }
@@ -1106,6 +1130,26 @@ class ResolutionSink extends _SummaryDataWriter {
         _writeFragmentName(typeParameter);
       }
       for (var typeParameter in typeParameterFragments) {
+        writeType(typeParameter.bound);
+        if (withAnnotations) {
+          _writeMetadata(typeParameter.metadata);
+        }
+      }
+      f();
+    });
+  }
+
+  void _writeTypeParameters2(
+    List<TypeParameterElementImpl> typeParameters,
+    void Function() f, {
+    required bool withAnnotations,
+  }) {
+    localElements.withElements(typeParameters, () {
+      writeUInt30(typeParameters.length);
+      for (var typeParameter in typeParameters) {
+        _writeElementName(typeParameter);
+      }
+      for (var typeParameter in typeParameters) {
         writeType(typeParameter.bound);
         if (withAnnotations) {
           _writeMetadata(typeParameter.metadata);
@@ -1307,6 +1351,20 @@ class _SummaryDataWriter extends BufferedSink {
   }
 
   void _writeFormalParameterKind(ParameterElementMixin p) {
+    if (p.isRequiredPositional) {
+      writeByte(Tag.ParameterKindRequiredPositional);
+    } else if (p.isOptionalPositional) {
+      writeByte(Tag.ParameterKindOptionalPositional);
+    } else if (p.isRequiredNamed) {
+      writeByte(Tag.ParameterKindRequiredNamed);
+    } else if (p.isOptionalNamed) {
+      writeByte(Tag.ParameterKindOptionalNamed);
+    } else {
+      throw StateError('Unexpected parameter kind: $p');
+    }
+  }
+
+  void _writeFormalParameterKind2(FormalParameterElementMixin p) {
     if (p.isRequiredPositional) {
       writeByte(Tag.ParameterKindRequiredPositional);
     } else if (p.isOptionalPositional) {

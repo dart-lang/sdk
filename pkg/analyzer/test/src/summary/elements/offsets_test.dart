@@ -3037,9 +3037,12 @@ library
         requiredPositional f
           firstFragment: #F2
           type: void Function<U>(int)
+          typeParameters
+            #E0 U
+              firstFragment: #F3
           formalParameters
             requiredPositional a
-              firstFragment: #F3
+              firstFragment: #F4
               type: int
       returnType: void
 ''');
@@ -3069,9 +3072,12 @@ library
         requiredNamed f
           firstFragment: #F2
           type: void Function<U>(int)
+          typeParameters
+            #E0 U
+              firstFragment: #F3
           formalParameters
             requiredPositional a
-              firstFragment: #F3
+              firstFragment: #F4
               type: int
       returnType: void
 ''');

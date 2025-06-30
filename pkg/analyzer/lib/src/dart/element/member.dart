@@ -926,9 +926,8 @@ class MethodMember extends ExecutableMember implements MethodElement2OrMember {
 
 /// A parameter element defined in a parameterized type where the values of the
 /// type parameters are known.
-class ParameterMember extends VariableMember
-    with ParameterElementMixin, FormalParameterElementMixin {
-  @override
+class ParameterMember extends VariableMember with FormalParameterElementMixin {
+  // TODO(scheglov): replace with TypeParameterElementImpl(s)
   final List<TypeParameterFragmentImpl> typeParameters;
 
   factory ParameterMember({
@@ -1013,6 +1012,30 @@ class ParameterMember extends VariableMember
   bool get isInitializingFormal => declaration.isInitializingFormal;
 
   @override
+  bool get isNamed => baseElement.isNamed;
+
+  @override
+  bool get isOptional => baseElement.isOptional;
+
+  @override
+  bool get isOptionalNamed => baseElement.isOptionalNamed;
+
+  @override
+  bool get isOptionalPositional => baseElement.isOptionalPositional;
+
+  @override
+  bool get isPositional => baseElement.isPositional;
+
+  @override
+  bool get isRequired => baseElement.isRequired;
+
+  @override
+  bool get isRequiredNamed => baseElement.isRequiredNamed;
+
+  @override
+  bool get isRequiredPositional => baseElement.isRequiredPositional;
+
+  @override
   bool get isSuperFormal => declaration.isSuperFormal;
 
   @override
@@ -1052,15 +1075,6 @@ class ParameterMember extends VariableMember
   }
 
   @override
-  List<ParameterElementMixin> get parameters {
-    var type = this.type;
-    if (type is FunctionTypeImpl) {
-      return type.parameters.map((element) => element.asElement).toList();
-    }
-    return const <ParameterElementMixin>[];
-  }
-
-  @override
   Source? get source => _declaration.source;
 
   @override
@@ -1083,7 +1097,7 @@ class ParameterMember extends VariableMember
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
-    builder.writeFormalParameter(this);
+    builder.writeFormalParameter2(this);
   }
 
   @override
@@ -1119,32 +1133,6 @@ class ParameterMember extends VariableMember
   @override
   void visitChildren2<T>(ElementVisitor2<T> visitor) {
     _element2.visitChildren2(visitor);
-  }
-
-  static ParameterElementMixin from(
-    ParameterElementMixin element,
-    MapSubstitution substitution,
-  ) {
-    FormalParameterFragmentImpl declaration;
-    var combined = substitution;
-    if (element is ParameterMember) {
-      var member = element;
-      declaration = member.declaration;
-
-      var map = <TypeParameterElement, DartType>{
-        for (var MapEntry(:key, :value) in member.substitution.map.entries)
-          key: substitution.substituteType(value),
-      };
-      combined = Substitution.fromMap2(map);
-    } else {
-      declaration = element as FormalParameterFragmentImpl;
-    }
-
-    if (combined.map.isEmpty) {
-      return element;
-    }
-
-    return ParameterMember(declaration: declaration, substitution: combined);
   }
 
   static FormalParameterElementMixin from2(
@@ -1398,7 +1386,7 @@ class SuperFormalParameterMember extends ParameterMember
 /// A variable element defined in a parameterized type where the values of the
 /// type parameters are known.
 abstract class VariableMember extends Member
-    implements VariableElementOrMember {
+    implements VariableElement2OrMember {
   TypeImpl? _type;
 
   /// Initialize a newly created element to represent a variable, based on the
@@ -1437,7 +1425,7 @@ abstract class VariableMember extends Member
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
-    builder.writeVariableElement(this);
+    builder.writeVariableElement2(this);
   }
 }
 

@@ -274,16 +274,6 @@ extension FormalParameterElementImplExtension on FormalParameterElementImpl {
   }
 }
 
-extension FormalParameterElementMixinExtension on FormalParameterElementMixin {
-  ParameterElementMixin get asElement {
-    return switch (this) {
-      FormalParameterElementImpl(:var firstFragment) => firstFragment,
-      ParameterMember member => member,
-      _ => throw UnsupportedError('Unsupported type: $runtimeType'),
-    };
-  }
-}
-
 extension GetterElementImplExtension on GetterElementImpl {
   PropertyAccessorFragmentImpl get asElement {
     return lastFragment;

@@ -728,9 +728,14 @@ library
             requiredPositional final f
               firstFragment: #F4
               type: List<U> Function<T, U>(T)
+              typeParameters
+                #E0 T
+                  firstFragment: #F8
+                #E1 U
+                  firstFragment: #F9
               formalParameters
                 requiredPositional t
-                  firstFragment: #F8
+                  firstFragment: #F10
                   type: T
       getters
         synthetic f
@@ -2917,9 +2922,13 @@ library
             requiredPositional final a
               firstFragment: #F6
               type: int Function<T extends num>(T)?
+              typeParameters
+                #E0 T
+                  firstFragment: #F7
+                  bound: num
               formalParameters
                 requiredPositional d
-                  firstFragment: #F7
+                  firstFragment: #F8
                   type: T
           superConstructor: <testLibrary>::@class::A::@constructor::new
 ''');
