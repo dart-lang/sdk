@@ -265,14 +265,24 @@ _vm_builder(
 )
 
 # vm|aot|android
+_nightly_builder(
+    "vm-aot-android-debug-arm_x64",
+    category = "vm|aot|android|d3",
+    properties = [android_deps, slow_shards],
+)
 _vm_builder(
     "vm-aot-android-release-arm_x64",
-    category = "vm|aot|android|a32",
+    category = "vm|aot|android|r3",
+    properties = [android_deps, slow_shards],
+)
+_nightly_builder(
+    "vm-aot-android-debug-arm64c",
+    category = "vm|aot|android|d6",
     properties = [android_deps, slow_shards],
 )
 _vm_builder(
     "vm-aot-android-release-arm64c",
-    category = "vm|aot|android|a64",
+    category = "vm|aot|android|r6",
     properties = [android_deps, slow_shards],
 )
 
