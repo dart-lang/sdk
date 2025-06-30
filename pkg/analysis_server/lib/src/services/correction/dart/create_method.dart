@@ -100,7 +100,7 @@ class CreateMethod extends ResolvedCorrectionProducer {
     CompilationUnitMember? targetNode;
     var target = invocation.realTarget;
     if (target is ExtensionOverride) {
-      targetFragment = target.element2.firstFragment;
+      targetFragment = target.element.firstFragment;
       if (targetFragment is ExtensionFragment) {
         targetNode = await getExtensionDeclaration(targetFragment);
         if (targetNode == null) {

@@ -39,7 +39,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
-    if (node.writeElement2 is SetterElement) return;
+    if (node.writeElement is SetterElement) return;
 
     if (node.operator.type == TokenType.QUESTION_QUESTION_EQ &&
         node.rightHandSide.isNullLiteral) {

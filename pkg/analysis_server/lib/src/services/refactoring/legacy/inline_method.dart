@@ -362,7 +362,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
       element = selectedNode.declaredFragment?.element;
       isDeclaration = true;
     } else if (selectedNode is SimpleIdentifier) {
-      element = selectedNode.writeOrReadElement2;
+      element = selectedNode.writeOrReadElement;
     } else {
       return fatalStatus;
     }
@@ -418,7 +418,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
       isDeclaration = true;
     } else if (selectedNode is SimpleIdentifier &&
         selectedNode.parent is! Combinator) {
-      element = selectedNode.writeOrReadElement2;
+      element = selectedNode.writeOrReadElement;
     } else {
       return fatalStatus;
     }
@@ -980,7 +980,7 @@ class _VariablesVisitor extends GeneralizingAstVisitor<void> {
       return;
     }
     // should be a method or field reference
-    var element = node.writeOrReadElement2;
+    var element = node.writeOrReadElement;
     if (element is ExecutableElement) {
       if (element is MethodElement || element is PropertyAccessorElement) {
         // OK

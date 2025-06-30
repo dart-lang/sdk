@@ -56,13 +56,13 @@ class DartUnitHoverComputer {
         node is VariablePattern ||
         node is PatternFieldName ||
         node is DartPattern ||
-        (node is LibraryDirective && node.name2 == null) ||
+        (node is LibraryDirective && node.name == null) ||
         (node is SimpleIdentifier && node.parent is ImportDirective) ||
         node is ImportPrefixReference) {
       var range = _hoverRange(node, locationEntity);
       var hover = HoverInformation(range.offset, range.length);
       // element
-      var element = ElementLocator.locate2(node);
+      var element = ElementLocator.locate(node);
       if (element != null) {
         // short code that illustrates the element meaning.
         hover.elementDescription = _elementDisplayString(node, element);

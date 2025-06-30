@@ -222,7 +222,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       if (name != null) {
         constructor = name.element;
       } else {
-        var classElem = parent.constructorName.type.element2;
+        var classElem = parent.constructorName.type.element;
         if (classElem is ClassElement) {
           constructor = classElem.unnamedConstructor2;
         }
@@ -249,7 +249,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
     } else if (parent is RedirectingConstructorInvocation) {
       parameters = parent.element?.formalParameters;
     } else if (parent is Annotation) {
-      var constructor = parent.element2;
+      var constructor = parent.element;
       if (constructor is ConstructorElement) {
         parameters = constructor.formalParameters;
       } else if (constructor == null) {

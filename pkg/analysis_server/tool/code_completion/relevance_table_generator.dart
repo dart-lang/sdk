@@ -1556,7 +1556,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     if (element is InterfaceElement) {
       var parent = node.parent;
       if (parent is Annotation && parent.arguments != null) {
-        element = parent.element2!;
+        element = parent.element!;
       }
     }
     return featureComputer.computeElementKind2(element);

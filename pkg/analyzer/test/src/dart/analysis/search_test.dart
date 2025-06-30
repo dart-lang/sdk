@@ -1032,7 +1032,7 @@ main(A p) {
   A v;
 }
 ''');
-    var element = findNode.namedType('A p').element2!;
+    var element = findNode.namedType('A p').element!;
     await assertElementReferencesText(element, r'''
 <testLibraryFragment> p@26
   24 2:6 |A| REFERENCE

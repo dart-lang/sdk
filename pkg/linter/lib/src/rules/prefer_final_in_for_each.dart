@@ -45,10 +45,10 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (loopVariable.isFinal) return;
 
     var function = node.thisOrAncestorOfType<FunctionBody>();
-    var loopVariableElement = loopVariable.declaredElement2;
+    var loopVariableElement = loopVariable.declaredElement;
     if (function != null &&
         loopVariableElement != null &&
-        !function.isPotentiallyMutatedInScope2(loopVariableElement)) {
+        !function.isPotentiallyMutatedInScope(loopVariableElement)) {
       var name = loopVariable.name;
       rule.reportAtToken(
         name,
@@ -103,9 +103,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 extension on FunctionBody {
   bool potentiallyMutates(Object pattern) {
     if (pattern is! DeclaredVariablePattern) return true;
-    var element = pattern.declaredElement2;
+    var element = pattern.declaredElement;
     if (element == null) return true;
-    return isPotentiallyMutatedInScope2(element.baseElement);
+    return isPotentiallyMutatedInScope(element.baseElement);
   }
 
   bool potentiallyMutatesAnyField(List<PatternField> fields) =>

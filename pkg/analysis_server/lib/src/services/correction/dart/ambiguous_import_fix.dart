@@ -24,7 +24,7 @@ class AmbiguousImportFix extends MultiCorrectionProducer {
     Element? element;
     String? prefix;
     if (node is NamedType) {
-      element = node.element2;
+      element = node.element;
       prefix = node.importPrefix?.name.lexeme;
     } else if (node is SimpleIdentifier) {
       element = node.element;

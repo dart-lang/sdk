@@ -202,7 +202,7 @@ String? _getBaseNameFromUnwrappedExpression(Expression expression) {
       return namedType.name.lexeme;
     }
     // new prefix.ClassName()
-    if (importPrefix.element2 is PrefixElement) {
+    if (importPrefix.element is PrefixElement) {
       return namedType.name.lexeme;
     }
     // new ClassName.constructorName()

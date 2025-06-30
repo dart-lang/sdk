@@ -561,7 +561,7 @@ class PatternConverter with SpaceCreator<DartPattern, TypeImpl> {
       return createVariableSpace(
         path,
         contextType,
-        pattern.declaredElement2!.type,
+        pattern.declaredElement!.type,
         nonNull: nonNull,
       );
     } else if (pattern is ObjectPattern) {
@@ -574,7 +574,7 @@ class PatternConverter with SpaceCreator<DartPattern, TypeImpl> {
           continue;
         }
         properties[name] = field.pattern;
-        var element = field.element2;
+        var element = field.element;
         TypeImpl? extensionPropertyType;
         if (element is PropertyAccessorElement2OrMember &&
             (element.enclosingElement is ExtensionElementImpl ||

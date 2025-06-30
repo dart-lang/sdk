@@ -160,7 +160,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     for (var parameter in parameterList.parameters) {
       var declaredElement = parameter.declaredFragment?.element;
       if (declaredElement != null &&
-          body.isPotentiallyMutatedInScope2(declaredElement)) {
+          body.isPotentiallyMutatedInScope(declaredElement)) {
         var paramIsNotNullByDefault =
             parameter is SimpleFormalParameter ||
             _isDefaultFormalParameterWithDefaultValue(parameter);
@@ -184,7 +184,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
 extension on AstNode {
   Element? get element => switch (this) {
-    AssignedVariablePattern(:var element2) => element2,
+    AssignedVariablePattern(:var element) => element,
     _ => null,
   };
 }

@@ -30,9 +30,9 @@ Element? getElementOfNode2(AstNode? node) {
     case ImportDirective():
       return MockLibraryImportElement(node.libraryImport!);
     case ImportPrefixReference():
-      element = node.element2;
+      element = node.element;
     default:
-      element = ElementLocator.locate2(node);
+      element = ElementLocator.locate(node);
   }
 
   if (node is SimpleIdentifier && element is PrefixElement) {
@@ -131,9 +131,9 @@ MockLibraryImportElement? _getImportElementInfoFromReference(
   Element? usedElement;
   var parent = prefixNode.parent;
   if (parent is ExtensionOverride) {
-    usedElement = parent.element2;
+    usedElement = parent.element;
   } else if (parent is NamedType) {
-    usedElement = parent.element2;
+    usedElement = parent.element;
   }
   if (usedElement == null) {
     return null;
@@ -277,7 +277,7 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
-    var writeElement = node.writeElement2;
+    var writeElement = node.writeElement;
     if (writeElement is PropertyAccessorElement) {
       var kind = MatchKind.WRITE;
       if (writeElement.variable3 == element || writeElement == element) {
@@ -303,7 +303,7 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
       }
     }
 
-    var readElement = node.readElement2;
+    var readElement = node.readElement;
     if (readElement is PropertyAccessorElement) {
       if (readElement.variable3 == element) {
         references.add(
@@ -398,7 +398,7 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
 
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
-    var constructorElement = node.constructorElement2;
+    var constructorElement = node.constructorElement;
     if (constructorElement != null && constructorElement == element) {
       int offset;
       int length;
@@ -420,7 +420,7 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    if (node.element2 == element) {
+    if (node.element == element) {
       references.add(
         MatchInfo(node.name.offset, node.name.length, MatchKind.REFERENCE),
       );

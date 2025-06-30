@@ -694,7 +694,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   /// Record a relation between a super [namedType] and its [Element].
   void recordSuperType(NamedType namedType, IndexRelationKind kind) {
     var isQualified = namedType.importPrefix != null;
-    var element = namedType.element2;
+    var element = namedType.element;
     recordRelation(element, kind, namedType.name, isQualified);
   }
 
@@ -897,7 +897,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
-    var constructorElement = node.constructorElement2;
+    var constructorElement = node.constructorElement;
     if (constructorElement != null) {
       int offset;
       int length;
@@ -978,7 +978,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     _recordImportPrefixedElement(
       importPrefix: node.importPrefix,
       name: node.name,
-      element: node.element2,
+      element: node.element,
     );
 
     node.typeArguments?.accept(this);
@@ -1035,7 +1035,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   @override
   void visitIndexExpression(IndexExpression node) {
-    var element = node.writeOrReadElement2;
+    var element = node.writeOrReadElement;
     if (element is MethodElement) {
       Token operator = node.leftBracket;
       recordRelationToken(element, IndexRelationKind.IS_INVOKED_BY, operator);
@@ -1086,7 +1086,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     _recordImportPrefixedElement(
       importPrefix: node.importPrefix,
       name: node.name,
-      element: node.element2,
+      element: node.element,
     );
 
     node.typeArguments?.accept(this);
@@ -1122,7 +1122,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
         length = 0;
       }
       recordRelationOffset(
-        node.element2,
+        node.element,
         IndexRelationKind.IS_REFERENCED_BY,
         offset,
         length,
@@ -1189,7 +1189,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
       return;
     }
 
-    var element = node.writeOrReadElement2;
+    var element = node.writeOrReadElement;
     if (element is FormalParameterElementImpl) {
       element = declaredParameterElement(node, element);
     }
@@ -1303,7 +1303,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     }
 
     void addSupertype(NamedType? type) {
-      var element = type?.element2;
+      var element = type?.element;
       if (element is InterfaceElement) {
         String id = getInterfaceElementId(element);
         supertypes.add(id);
@@ -1418,10 +1418,10 @@ class _IndexContributor extends GeneralizingAstVisitor {
     }
 
     if (importPrefix != null) {
-      var prefixElement = importPrefix.element2;
+      var prefixElement = importPrefix.element;
       if (prefixElement is PrefixElement) {
         recordRelationToken(
-          importPrefix.element2,
+          importPrefix.element,
           IndexRelationKind.IS_REFERENCED_BY,
           importPrefix.name,
           isQualified: false,

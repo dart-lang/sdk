@@ -44,7 +44,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   void check(AstNode node) {
     if (node is! DeclaredVariablePattern) return;
-    var type = node.declaredElement2?.type;
+    var type = node.declaredElement?.type;
     if (type == null) return;
     if (type is DynamicType) return;
     var valueType = node.matchedValueType;
@@ -97,7 +97,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (initializerType == null) return;
 
     var declaredElement =
-        variable.declaredElement2 ?? variable.declaredFragment?.element;
+        variable.declaredElement ?? variable.declaredFragment?.element;
     if (declaredElement == null || declaredElement.type is DynamicType) {
       return;
     }

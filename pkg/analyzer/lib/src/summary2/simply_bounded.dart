@@ -287,7 +287,7 @@ class SimplyBoundedNode extends graph.Node<SimplyBoundedNode> {
     bool allowTypeParameters,
   ) {
     if (type is NamedType) {
-      var element = type.element2;
+      var element = type.element;
 
       if (element is TypeParameterElement) {
         return allowTypeParameters;

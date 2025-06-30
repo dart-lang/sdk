@@ -51,7 +51,7 @@ class ConstructorReferenceResolver {
       //
       // Only report errors when the constructor tearoff feature is enabled,
       // to avoid reporting redundant errors.
-      var enclosingElement = node.constructorName.type.element2;
+      var enclosingElement = node.constructorName.type.element;
       if (enclosingElement is TypeAliasElement) {
         var aliasedType = enclosingElement.aliasedType;
         enclosingElement =
@@ -95,7 +95,7 @@ class ConstructorReferenceResolver {
   }) {
     var constructorName = node.constructorName;
     var elementToInfer = _resolver.inferenceHelper.constructorElementToInfer(
-      typeElement: constructorName.type.element2,
+      typeElement: constructorName.type.element,
       constructorName: constructorName.name,
       definingLibrary: _resolver.definingLibrary,
     );

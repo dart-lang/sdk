@@ -799,7 +799,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     var libraryDirective =
         unit.directives.whereType<LibraryDirectiveImpl>().firstOrNull;
     if (libraryDirective != null) {
-      libraryDirective.element2 = libraryElement;
+      libraryDirective.element = libraryElement;
       libraryElement.documentationComment = getCommentNodeRawText(
         libraryDirective.documentationComment,
       );

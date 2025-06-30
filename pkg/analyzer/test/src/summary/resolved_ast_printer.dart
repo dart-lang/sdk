@@ -58,7 +58,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _sink.writeln('Annotation');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
-      _writeElement2('element2', node.element2);
+      _writeElement2('element2', node.element);
     });
   }
 
@@ -104,7 +104,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement2('element2', node.element2);
+        _writeElement2('element2', node.element);
         _writePatternMatchedValueType(node);
       }
     });
@@ -116,9 +116,9 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       _writeParameterElement(node);
-      _writeElement2('readElement2', node.readElement2);
+      _writeElement2('readElement2', node.readElement);
       _writeType('readType', node.readType);
-      _writeElement2('writeElement2', node.writeElement2);
+      _writeElement2('writeElement2', node.writeElement);
       _writeType('writeType', node.writeType);
       _writeElement2('element', node.element);
       _writeType('staticType', node.staticType);
@@ -541,7 +541,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement2('constructorElement2', node.constructorElement2);
+        _writeElement2('constructorElement2', node.constructorElement);
         _writeDeclaredFragment(node.declaredFragment);
       }
     });
@@ -613,7 +613,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _sink.writeln('ExtensionOverride');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
-      _writeElement2('element2', node.element2);
+      _writeElement2('element2', node.element);
       _writeType('extendedType', node.extendedType);
       _writeType('staticType', node.staticType);
       _writeTypeList('typeArgumentTypes', node.typeArgumentTypes);
@@ -882,7 +882,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _sink.writeln('ImportPrefixReference');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
-      _writeElement2('element2', node.element2);
+      _writeElement2('element2', node.element);
     });
   }
 
@@ -964,7 +964,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _sink.writeln('LibraryDirective');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
-      _writeElement2('element2', node.element2);
+      _writeElement2('element2', node.element);
     });
   }
 
@@ -1104,7 +1104,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _sink.writeln('NamedType');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
-      _writeElement2('element2', node.element2);
+      _writeElement2('element2', node.element);
       _writeType('type', node.type);
     });
   }
@@ -1207,7 +1207,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _sink.writeln('PatternField');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
-      _writeElement2('element2', node.element2);
+      _writeElement2('element2', node.element);
     });
   }
 
@@ -1247,9 +1247,9 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       _writeNamedChildEntities(node);
       _writeParameterElement(node);
       if (node.operator.type.isIncrementOperator) {
-        _writeElement2('readElement2', node.readElement2);
+        _writeElement2('readElement2', node.readElement);
         _writeType('readType', node.readType);
-        _writeElement2('writeElement2', node.writeElement2);
+        _writeElement2('writeElement2', node.writeElement);
         _writeType('writeType', node.writeType);
       }
       _writeElement2('element', node.element);
@@ -1275,9 +1275,9 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       _writeNamedChildEntities(node);
       _writeParameterElement(node);
       if (node.operator.type.isIncrementOperator) {
-        _writeElement2('readElement2', node.readElement2);
+        _writeElement2('readElement2', node.readElement);
         _writeType('readType', node.readType);
-        _writeElement2('writeElement2', node.writeElement2);
+        _writeElement2('writeElement2', node.writeElement);
         _writeType('writeType', node.writeType);
       }
       _writeElement2('element', node.element);
@@ -1368,7 +1368,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _sink.writeln('RelationalPattern');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
-      _writeElement2('element2', node.element2);
+      _writeElement2('element2', node.element);
       _writePatternMatchedValueType(node);
     });
   }

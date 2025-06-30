@@ -313,7 +313,7 @@ class _UnnecessarySetterOverrideVisitor
             node.rightHandSide.canonicalElement) {
       var leftPart = node.leftHandSide.unParenthesized;
       if (leftPart is PropertyAccess) {
-        if (node.writeElement2?.name3 == _inheritedMethod.name3) {
+        if (node.writeElement?.name3 == _inheritedMethod.name3) {
           leftPart.target?.accept(this);
         }
       }

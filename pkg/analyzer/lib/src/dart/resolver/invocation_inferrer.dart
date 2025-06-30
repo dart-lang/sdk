@@ -96,13 +96,13 @@ class AnnotationInferrer extends FullInvocationInferrer<AnnotationImpl> {
     FunctionType? invokeType,
   ) {
     if (invokeType != null) {
-      var elementOrMember = node.element2 as ConstructorElementMixin2;
+      var elementOrMember = node.element as ConstructorElementMixin2;
       var constructorElement = ConstructorMember.from2(
         elementOrMember.baseElement,
         invokeType.returnType as InterfaceType,
       );
       constructorName?.element = constructorElement;
-      node.element2 = constructorElement;
+      node.element = constructorElement;
       return constructorElement.formalParameters;
     }
     return null;
@@ -379,7 +379,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
 
     var parameters = _storeResult(typeArgumentTypes, invokeType);
     if (parameters != null) {
-      argumentList.correspondingStaticParameters2 =
+      argumentList.correspondingStaticParameters =
           ResolverVisitor.resolveArgumentsToParameters(
             argumentList: argumentList,
             formalParameters: parameters,

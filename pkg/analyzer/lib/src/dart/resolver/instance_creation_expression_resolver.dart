@@ -167,7 +167,7 @@ class InstanceCreationExpressionResolver {
     constructorName = node.constructorName;
     _resolver.elementResolver.visitInstanceCreationExpression(node);
     var elementToInfer = _resolver.inferenceHelper.constructorElementToInfer(
-      typeElement: constructorName.type.element2,
+      typeElement: constructorName.type.element,
       constructorName: node.constructorName.name,
       definingLibrary: _resolver.definingLibrary,
     );

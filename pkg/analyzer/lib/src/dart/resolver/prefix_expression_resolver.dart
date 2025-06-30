@@ -155,7 +155,7 @@ class PrefixExpressionResolver {
       ExpressionImpl operand = node.operand;
       String methodName = _getPrefixOperator(node);
       if (operand is ExtensionOverrideImpl) {
-        var element = operand.element2;
+        var element = operand.element;
         var member = element.getMethod(methodName);
         if (member == null) {
           // Extension overrides always refer to named extensions, so we can

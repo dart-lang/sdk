@@ -160,7 +160,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
     // No classes from the FFI may be explicitly implemented.
     void checkSupertype(NamedType typename, FfiCode subtypeOfStructCode) {
-      var superName = typename.element2?.name3;
+      var superName = typename.element?.name3;
       if (superName == _allocatorClassName ||
           superName == _finalizableClassName) {
         return;
@@ -305,7 +305,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     // Ensure there is at most one @DefaultAsset annotation per library
     var hasDefaultAsset = false;
 
-    if (node.element2 case LibraryElementImpl library) {
+    if (node.element case LibraryElementImpl library) {
       for (var annotation in library.metadata.annotations) {
         var annotationValue = annotation.computeConstantValue();
         if (annotationValue != null && annotationValue.isDefaultAsset) {
@@ -783,7 +783,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       return false;
     }
     for (var arg in args) {
-      if (arg is! NamedExpression || arg.element2?.name3 != _isLeafParamName) {
+      if (arg is! NamedExpression || arg.element?.name3 != _isLeafParamName) {
         continue;
       }
       return _maybeGetBoolConstValue(arg.expression) ?? false;
@@ -989,7 +989,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
   /// Return an indication of the Dart type associated with the [annotation].
   _PrimitiveDartType _typeForAnnotation(Annotation annotation) {
-    var element = annotation.element2;
+    var element = annotation.element;
     if (element is ConstructorElement) {
       var name = element.enclosingElement.name3;
       if (_primitiveIntegerNativeTypes.contains(name)) {
@@ -1205,8 +1205,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     bool requiredFound = false;
     List<Annotation> extraAnnotations = [];
     for (Annotation annotation in annotations) {
-      if (annotation.element2.ffiClass != null ||
-          annotation.element2?.enclosingElement.isAbiSpecificIntegerSubclass ==
+      if (annotation.element.ffiClass != null ||
+          annotation.element?.enclosingElement.isAbiSpecificIntegerSubclass ==
               true) {
         if (requiredFound) {
           extraAnnotations.add(annotation);
@@ -1673,7 +1673,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     if (args.isNotEmpty) {
       for (var arg in args) {
         if (arg is NamedExpression) {
-          if (arg.element2?.name3 == _isLeafParamName) {
+          if (arg.element?.name3 == _isLeafParamName) {
             if (!_isConst(arg.expression)) {
               _diagnosticReporter.atNode(
                 arg.expression,
@@ -1941,7 +1941,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   /// Validate that none of the [annotations] are from `dart:ffi`.
   void _validateNoAnnotations(NodeList<Annotation> annotations) {
     for (Annotation annotation in annotations) {
-      if (annotation.element2.ffiClass != null) {
+      if (annotation.element.ffiClass != null) {
         _diagnosticReporter.atNode(
           annotation,
           FfiCode.ANNOTATION_ON_POINTER_FIELD,
@@ -2202,7 +2202,7 @@ enum _PrimitiveDartType { double, int, bool, void_, handle, none }
 
 extension on Annotation {
   bool get isAbiSpecificIntegerMapping {
-    var element = element2;
+    var element = this.element;
     return element is ConstructorElement &&
         element.ffiClass != null &&
         element.enclosingElement.name3 ==
@@ -2210,14 +2210,14 @@ extension on Annotation {
   }
 
   bool get isArray {
-    var element = element2;
+    var element = this.element;
     return element is ConstructorElement &&
         element.ffiClass != null &&
         element.enclosingElement.name3 == 'Array';
   }
 
   bool get isPacked {
-    var element = element2;
+    var element = this.element;
     return element is ConstructorElement &&
         element.ffiClass != null &&
         element.enclosingElement.name3 == 'Packed';
@@ -2729,12 +2729,12 @@ extension on DartType {
 extension on NamedType {
   /// If this is a name of class from `dart:ffi`, return it.
   ClassElement? get ffiClass {
-    return element2.ffiClass;
+    return element.ffiClass;
   }
 
   /// Return `true` if this represents a subtype of `Struct` or `Union`.
   bool get isAbiSpecificIntegerSubtype {
-    var element = element2;
+    var element = this.element;
     if (element is ClassElement) {
       return element.allSupertypes.any((e) => e.isAbiSpecificInteger);
     }
@@ -2743,7 +2743,7 @@ extension on NamedType {
 
   /// Return `true` if this represents a subtype of `Struct` or `Union`.
   bool get isCompoundSubtype {
-    var element = element2;
+    var element = this.element;
     if (element is ClassElement) {
       return element.allSupertypes.any((e) => e.isCompound);
     }

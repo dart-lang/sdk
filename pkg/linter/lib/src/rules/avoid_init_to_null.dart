@@ -58,7 +58,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
     var declaredElement =
-        node.declaredElement2 ?? node.declaredFragment?.element;
+        node.declaredElement ?? node.declaredFragment?.element;
     if (declaredElement != null &&
         !node.isConst &&
         !node.isFinal &&

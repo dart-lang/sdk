@@ -853,7 +853,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }) {
     var typeNode = pattern.type;
     if (typeNode.typeArguments == null) {
-      var typeNameElement = typeNode.element2;
+      var typeNameElement = typeNode.element;
       if (typeNameElement is InterfaceElementImpl) {
         var typeParameters = typeNameElement.typeParameters2;
         if (typeParameters.isNotEmpty) {
@@ -1408,7 +1408,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     required AssignedVariablePatternImpl node,
     required SharedMatchContext context,
   }) {
-    var element = node.element2;
+    var element = node.element;
     if (element is! PromotableElementImpl) {
       return PatternResult(
         matchedValueType: SharedTypeView(InvalidTypeImpl.instance),
@@ -1634,7 +1634,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     var getter = result.getter2;
     if (getter != null) {
-      fieldNode.element2 = getter;
+      fieldNode.element = getter;
       if (getter is PropertyAccessorElement2OrMember) {
         return (getter, SharedTypeView(getter.returnType));
       } else {
@@ -1689,7 +1689,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
 
     var element = result.getter2 as MethodElement2OrMember?;
-    node.element2 = element;
+    node.element = element;
     if (element == null) {
       return null;
     }
@@ -1732,15 +1732,15 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     var parent = node.parent;
     if (parent is AssignmentExpressionImpl && parent.leftHandSide == node) {
-      parent.readElement2 = element;
+      parent.readElement = element;
       parent.readType = readType;
     } else if (parent is PostfixExpressionImpl &&
         parent.operator.type.isIncrementOperator) {
-      parent.readElement2 = element;
+      parent.readElement = element;
       parent.readType = readType;
     } else if (parent is PrefixExpressionImpl &&
         parent.operator.type.isIncrementOperator) {
-      parent.readElement2 = element;
+      parent.readElement = element;
       parent.readType = readType;
     }
   }
@@ -1796,15 +1796,15 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     var parent = node.parent;
     if (parent is AssignmentExpressionImpl && parent.leftHandSide == node) {
-      parent.writeElement2 = element;
+      parent.writeElement = element;
       parent.writeType = writeType;
     } else if (parent is PostfixExpressionImpl &&
         parent.operator.type.isIncrementOperator) {
-      parent.writeElement2 = element;
+      parent.writeElement = element;
       parent.writeType = writeType;
     } else if (parent is PrefixExpressionImpl &&
         parent.operator.type.isIncrementOperator) {
-      parent.writeElement2 = element;
+      parent.writeElement = element;
       parent.writeType = writeType;
     }
   }
@@ -2583,7 +2583,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       var constructorName = initializer.constructorName;
       var constructorElement = constructorName.element;
       if (constructorElement != null) {
-        node.constructorElement2 = constructorElement;
+        node.constructorElement = constructorElement;
         if (constructorElement.isFactory) {
           var constructorName = node.arguments?.constructorSelector?.name;
           var errorTarget = constructorName ?? node.name;
@@ -2593,7 +2593,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           );
         }
       } else {
-        if (constructorName.type.element2 is EnumElementImpl) {
+        if (constructorName.type.element is EnumElementImpl) {
           var nameNode = node.arguments?.constructorSelector?.name;
           if (nameNode != null) {
             diagnosticReporter.atNode(
@@ -2613,7 +2613,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         var arguments = node.arguments;
         if (arguments != null) {
           var argumentList = arguments.argumentList;
-          argumentList.correspondingStaticParameters2 =
+          argumentList.correspondingStaticParameters =
               ResolverVisitor.resolveArgumentsToParameters(
                 argumentList: argumentList,
                 formalParameters: constructorElement.formalParameters,
@@ -4101,9 +4101,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         // TODO(paulberry): try to remove these casts by changing `node` to a
         // `TryStatementImpl`
         flow.tryCatchStatement_catchBegin(
-          catchClause.exceptionParameter?.declaredElement2
+          catchClause.exceptionParameter?.declaredElement
               as PromotableElementImpl?,
-          catchClause.stackTraceParameter?.declaredElement2
+          catchClause.stackTraceParameter?.declaredElement
               as PromotableElementImpl?,
         );
         catchClause.accept(this);
@@ -4169,7 +4169,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       var declaredType = parent.type;
       var initializerStaticType = initializer.typeOrThrow;
       flowAnalysis.flow?.initialize(
-        node.declaredElement2 as PromotableElementImpl,
+        node.declaredElement as PromotableElementImpl,
         SharedTypeView(initializerStaticType),
         initializer,
         isFinal: parent.isFinal,
@@ -4884,7 +4884,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitAssignedVariablePattern(AssignedVariablePattern node) {
-    var element = node.element2;
+    var element = node.element;
     if (element is PromotableElement) {
       _localVariableInfo.potentiallyMutatedInScope.add(element);
     }
@@ -4920,10 +4920,10 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       Scope outerScope = nameScope;
       try {
         nameScope = LocalScope(nameScope);
-        _define(exception.declaredElement2!);
+        _define(exception.declaredElement!);
         var stackTrace = node.stackTraceParameter;
         if (stackTrace != null) {
-          _define(stackTrace.declaredElement2!);
+          _define(stackTrace.declaredElement!);
         }
         super.visitCatchClause(node);
       } finally {
@@ -5616,7 +5616,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     super.visitVariableDeclaration(node);
 
     if (node.parent!.parent is ForParts) {
-      _define(node.declaredElement2!);
+      _define(node.declaredElement!);
     }
   }
 

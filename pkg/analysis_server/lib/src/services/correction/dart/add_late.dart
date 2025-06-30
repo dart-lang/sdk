@@ -63,7 +63,7 @@ class AddLate extends ResolvedCorrectionProducer {
         }
       }
     } else if (node is SimpleIdentifier) {
-      var getter = node.writeOrReadElement2;
+      var getter = node.writeOrReadElement;
       if (getter is GetterElement &&
           getter.isSynthetic &&
           getter.enclosingElement is InterfaceElement) {

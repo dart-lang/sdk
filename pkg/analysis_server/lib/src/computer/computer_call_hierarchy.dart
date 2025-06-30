@@ -377,7 +377,7 @@ class DartCallHierarchyComputer {
       node = node.propertyName;
     }
 
-    var element = ElementLocator.locate2(node);
+    var element = ElementLocator.locate(node);
 
     // Don't consider synthetic getter/setter for a field to be executable
     // since they don't contain any executable code.

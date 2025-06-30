@@ -71,7 +71,7 @@ class SimpleParserTest extends FastaParserTestCase {
     expect(unit, isNotNull);
     expect(unit.directives, hasLength(1));
     var directive = unit.directives[0] as LibraryDirective;
-    return directive.name2;
+    return directive.name;
   }
 
   /// Parses the given [content] as a sequence of statements by enclosing it in

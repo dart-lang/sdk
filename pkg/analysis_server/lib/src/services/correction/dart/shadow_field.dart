@@ -30,7 +30,7 @@ class ShadowField extends ResolvedCorrectionProducer {
       return;
     }
 
-    var accessor = node.writeOrReadElement2;
+    var accessor = node.writeOrReadElement;
     if (accessor is! GetterElement) {
       return;
     }
@@ -139,7 +139,7 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (node.writeOrReadElement2 == setter) {
+    if (node.writeOrReadElement == setter) {
       hasSetterReference = true;
     }
   }

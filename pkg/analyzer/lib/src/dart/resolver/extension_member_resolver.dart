@@ -42,7 +42,7 @@ class ExtensionMemberResolver {
   /// The context of the invocation that is made through the override does
   /// not affect the type inference of the override and the receiver.
   TypeImpl? computeOverrideReceiverContextType(ExtensionOverride node) {
-    var element = node.element2;
+    var element = node.element;
     var typeParameters = element.typeParameters2;
 
     var arguments = node.argumentList.arguments;
@@ -155,7 +155,7 @@ class ExtensionMemberResolver {
     ExtensionOverrideImpl node,
     String name,
   ) {
-    var element = node.element2;
+    var element = node.element;
 
     ExecutableElementImpl? getter;
     ExecutableElementImpl? setter;
@@ -193,7 +193,7 @@ class ExtensionMemberResolver {
     List<WhyNotPromotedGetter> whyNotPromotedArguments,
   ) {
     var nodeImpl = node as ExtensionOverrideImpl;
-    var element = node.element2;
+    var element = node.element;
     // TODO(paulberry): make this cast unnecessary by changing the type of
     // `ExtensionOverrideImpl.element2`.
     var typeParameters =
@@ -360,7 +360,7 @@ class ExtensionMemberResolver {
     required TypeConstraintGenerationDataForTesting? dataForTesting,
     required AstNodeImpl? nodeForTesting,
   }) {
-    var element = node.element2;
+    var element = node.element;
     var typeParameters = element.typeParameters2;
     var typeArguments = node.typeArguments;
 

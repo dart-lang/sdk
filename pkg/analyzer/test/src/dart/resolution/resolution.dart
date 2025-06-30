@@ -381,7 +381,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   Element? getNodeElement2(AstNode node) {
     if (node is Annotation) {
-      return node.element2;
+      return node.element;
     } else if (node is AssignmentExpression) {
       return node.element;
     } else if (node is BinaryExpression) {
@@ -391,7 +391,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     } else if (node is Declaration) {
       return node.declaredFragment?.element;
     } else if (node is ExtensionOverride) {
-      return node.element2;
+      return node.element;
     } else if (node is FormalParameter) {
       return node.declaredFragment?.element;
     } else if (node is FunctionExpressionInvocation) {
@@ -424,7 +424,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     } else if (node is PropertyAccess) {
       return node.propertyName.element;
     } else if (node is NamedType) {
-      return node.element2;
+      return node.element;
     } else {
       fail('Unsupported node: (${node.runtimeType}) $node');
     }

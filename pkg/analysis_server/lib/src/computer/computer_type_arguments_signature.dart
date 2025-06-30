@@ -44,9 +44,9 @@ class DartTypeArgumentsSignatureComputer {
     var parent = argumentList.parent;
     Element? element;
     if (parent is NamedType) {
-      element = parent.element2;
+      element = parent.element;
     } else if (parent is MethodInvocation) {
-      element = ElementLocator.locate2(parent.methodName);
+      element = ElementLocator.locate(parent.methodName);
     }
     if (element is! TypeParameterizedElement ||
         element.typeParameters2.isEmpty) {

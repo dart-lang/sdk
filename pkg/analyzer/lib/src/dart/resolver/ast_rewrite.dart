@@ -143,7 +143,7 @@ class AstRewriter {
         var extensionOverride = ExtensionOverrideImpl(
           importPrefix: null,
           name: methodName.token,
-          element2: element,
+          element: element,
           typeArguments: node.typeArguments,
           argumentList: node.argumentList,
         );
@@ -183,9 +183,9 @@ class AstRewriter {
             importPrefix: ImportPrefixReferenceImpl(
               name: target.token,
               period: operator,
-            )..element2 = element,
+            )..element = element,
             name: node.methodName.token,
-            element2: prefixedElement,
+            element: prefixedElement,
             typeArguments: node.typeArguments,
             argumentList: node.argumentList,
           );

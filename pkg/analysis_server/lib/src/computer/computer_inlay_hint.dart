@@ -271,7 +271,7 @@ class _DartInlayHintComputerVisitor extends GeneralizingAstVisitor<void> {
       return;
     }
 
-    var declaration = node.declaredElement2;
+    var declaration = node.declaredElement;
     if (declaration is LocalVariableElement) {
       _computer._addTypePrefix(node.name, declaration.type);
     }
@@ -286,7 +286,7 @@ class _DartInlayHintComputerVisitor extends GeneralizingAstVisitor<void> {
       return;
     }
 
-    var declaration = node.declaredElement2;
+    var declaration = node.declaredElement;
     if (declaration != null) {
       _computer._addTypePrefix(node.name, declaration.type);
     }

@@ -83,7 +83,7 @@ class ConvertToFunctionDeclaration extends ResolvedCorrectionProducer {
       DartType? returnType;
       List<FormalParameterElement?>? parameterList;
       if (type case NamedType(
-        element2: TypeAliasElement(:GenericFunctionTypeElement aliasedElement2),
+        element: TypeAliasElement(:GenericFunctionTypeElement aliasedElement2),
       )) {
         returnType = aliasedElement2.returnType;
         parameterList = aliasedElement2.formalParameters;
@@ -177,6 +177,7 @@ class ConvertToFunctionDeclaration extends ResolvedCorrectionProducer {
 
 class _ReturnVisitor extends RecursiveAstVisitor<void> {
   int _count = 0;
+
   bool get noReturnFounds => _count == 0;
 
   @override

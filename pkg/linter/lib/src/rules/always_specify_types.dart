@@ -66,7 +66,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitDeclaredIdentifier(DeclaredIdentifier node) {
     var keyword = node.keyword;
     if (node.type == null && keyword != null) {
-      var element = node.declaredElement2;
+      var element = node.declaredElement;
       if (element is VariableElement) {
         if (keyword.keyword == Keyword.VAR) {
           rule.reportAtToken(
@@ -116,7 +116,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitNamedType(NamedType namedType) {
     var type = namedType.type;
     if (type is InterfaceType) {
-      var element = namedType.element2;
+      var element = namedType.element;
       if (element is TypeParameterizedElement &&
           element.typeParameters2.isNotEmpty &&
           namedType.typeArguments == null &&

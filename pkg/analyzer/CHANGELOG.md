@@ -91,6 +91,24 @@
 * Deprecate  `TypeProvider.streamElement2`, use `streamElement` instead.
 * Deprecate  `TypeProvider.stringElement2`, use `stringElement` instead.
 * Deprecate  `TypeProvider.symbolElement2`, use `symbolElement` instead.
+* Deprecated `Annotation.element2`, use `element` instead.
+* Deprecated `LibraryDirective.name2`, use `name` instead.
+* Deprecated `CatchClauseParameter.declaredElement2`, use `declaredElement` instead.
+* Deprecated `CompoundAssignmentExpression.readElement2`, use `readElement` instead.
+* Deprecated `CompoundAssignmentExpression.writeElement2`, use `writeElement` instead.
+* Deprecated `DeclaredIdentifier.declaredElement2`, use `declaredElement` instead.
+* Deprecated `DeclaredVariablePattern.declaredElement2`, use `declaredElement` instead.
+* Deprecated `EnumConstantDeclaration.constructorElement2`, use `constructorElement` instead.
+* Deprecated `ExtensionOverride.element2`, use `element` instead.
+* Deprecated `FunctionBody.isPotentiallyMutatedInScope2`, use `isPotentiallyMutatedInScope` instead.
+* Deprecated `ImportPrefixReference.element2`, use `element` instead.
+* Deprecated `LibraryDirective.element2, use `element` instead.
+* Deprecated `LibraryDirective.name2, use `name` instead.
+* Deprecated `NamedExpression.element2, use `element` instead.
+* Deprecated `NamedType.element2, use `element` instead.
+* Deprecated `PatternField.element2, use `element` instead.
+* Deprecated `RelationalPattern.element2, use `element` instead.
+* Deprecated `VariableDeclaration.declaredElement2, use `declaredElement` instead.
 
 ## 7.4.1
 * Restore `InstanceElement.augmented` getter.

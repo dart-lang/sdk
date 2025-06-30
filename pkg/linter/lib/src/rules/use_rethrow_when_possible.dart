@@ -38,8 +38,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var element = node.expression.canonicalElement;
     if (element != null) {
       var catchClause = node.thisOrAncestorOfType<CatchClause>();
-      var exceptionParameter =
-          catchClause?.exceptionParameter?.declaredElement2;
+      var exceptionParameter = catchClause?.exceptionParameter?.declaredElement;
       if (element == exceptionParameter) {
         rule.reportAtNode(node);
       }

@@ -1106,7 +1106,7 @@ library foo;
     _assertReplacementForChildren<LibraryDirective>(
       destination: node,
       source: node,
-      childAccessors: [(node) => node.name2!],
+      childAccessors: [(node) => node.name!],
     );
   }
 

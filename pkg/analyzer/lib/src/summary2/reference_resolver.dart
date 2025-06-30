@@ -441,7 +441,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
       var prefixToken = importPrefix.name;
       var prefixName = prefixToken.lexeme;
       var prefixElement = scope.lookup(prefixName).getter2;
-      importPrefix.element2 = prefixElement;
+      importPrefix.element = prefixElement;
 
       if (prefixElement is PrefixElement) {
         var name = node.name.lexeme;
@@ -457,7 +457,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
       element = scope.lookup(name).getter2;
     }
-    node.element2 = element;
+    node.element = element;
 
     node.typeArguments?.accept(this);
 

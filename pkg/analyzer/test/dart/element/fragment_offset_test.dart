@@ -182,9 +182,9 @@ dynamic d;
     var namedType =
         findNode.topLevelVariableDeclaration('dynamic d').variables.type
             as NamedType;
-    expect(namedType.element2!.kind, ElementKind.DYNAMIC);
+    expect(namedType.element!.kind, ElementKind.DYNAMIC);
     // `dynamic` isn't defined in the source code anywhere, so its offset is 0.
-    expect(namedType.element2!.firstFragment.offset, 0);
+    expect(namedType.element!.firstFragment.offset, 0);
   }
 
   test_enumFragment() async {
@@ -611,7 +611,7 @@ class C {}
     checkOffset<LibraryFragment>(
       unit,
       unit.declaredFragment!,
-      findNode.library('L').name2!.offset,
+      findNode.library('L').name!.offset,
     );
   }
 
@@ -780,9 +780,9 @@ Never n = throw '';
     var namedType =
         findNode.topLevelVariableDeclaration('Never n').variables.type
             as NamedType;
-    expect(namedType.element2!.kind, ElementKind.NEVER);
+    expect(namedType.element!.kind, ElementKind.NEVER);
     // `Never` isn't defined in the source code anywhere, so its offset is 0.
-    expect(namedType.element2!.firstFragment.offset, 0);
+    expect(namedType.element!.firstFragment.offset, 0);
   }
 
   test_prefixFragment() async {

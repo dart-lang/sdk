@@ -49,7 +49,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           node.inSetterContext()
               ? node
                   .thisOrAncestorOfType<AssignmentExpression>()
-                  ?.writeElement2
+                  ?.writeElement
                   ?.enclosingElement
               : node.element?.enclosingElement,
         )) {
@@ -75,7 +75,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       );
       if (_isExtensionOnNullableType(
         realParent is AssignmentExpression
-            ? realParent.writeElement2?.enclosingElement
+            ? realParent.writeElement?.enclosingElement
             : node.propertyName.element?.enclosingElement,
       )) {
         rule.reportAtToken(node.operator);

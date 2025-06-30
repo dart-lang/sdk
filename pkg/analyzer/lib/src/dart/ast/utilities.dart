@@ -1081,8 +1081,8 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitLibraryDirective(covariant LibraryDirectiveImpl node) {
-    if (identical(node.name2, _oldNode)) {
-      node.name2 = _newNode as LibraryIdentifierImpl;
+    if (identical(node.name, _oldNode)) {
+      node.name = _newNode as LibraryIdentifierImpl;
       return true;
     }
     return visitAnnotatedNode(node);

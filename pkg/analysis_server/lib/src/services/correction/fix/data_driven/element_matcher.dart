@@ -582,7 +582,7 @@ class _MatcherBuilder {
     if (element == null) {
       var parent = identifier.parent;
       if (parent is AssignmentExpression && identifier == parent.leftHandSide) {
-        element = parent.writeElement2;
+        element = parent.writeElement;
       }
     }
     if (element != null) {

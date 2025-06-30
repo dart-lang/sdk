@@ -1128,7 +1128,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitImportPrefixReference(ImportPrefixReference node) {
     _checkForReferenceBeforeDeclaration(
       nameToken: node.name,
-      element: node.element2,
+      element: node.element,
     );
   }
 
@@ -1318,10 +1318,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitNamedType(covariant NamedTypeImpl node) {
-    _checkForAmbiguousImport(name: node.name, element: node.element2);
+    _checkForAmbiguousImport(name: node.name, element: node.element);
     _checkForTypeParameterReferencedByStatic(
       name: node.name,
-      element: node.element2,
+      element: node.element,
     );
     _typeArgumentsVerifier.checkNamedType(node);
     super.visitNamedType(node);
@@ -1475,7 +1475,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitSimpleIdentifier(SimpleIdentifier node) {
     _checkForAmbiguousImport(
       name: node.token,
-      element: node.writeOrReadElement2,
+      element: node.writeOrReadElement,
     );
     _checkForReferenceBeforeDeclaration(
       nameToken: node.token,
@@ -3770,7 +3770,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
     // prepare member Element
-    var element = name.writeOrReadElement2;
+    var element = name.writeOrReadElement;
     if (element is ExecutableElement) {
       if (!element.isStatic) {
         // OK, instance member
@@ -3932,7 +3932,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
     // prepare element
-    var element = identifier.writeOrReadElement2;
+    var element = identifier.writeOrReadElement;
     if (!(element is MethodElement || element is PropertyAccessorElement)) {
       return;
     }
@@ -5641,7 +5641,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    var element = name.writeOrReadElement2;
+    var element = name.writeOrReadElement;
     if (element == null || element is TypeParameterElement) {
       return;
     }
@@ -6613,7 +6613,7 @@ class _UninstantiatedBoundChecker extends RecursiveAstVisitor<void> {
       return;
     }
 
-    var element = node.element2;
+    var element = node.element;
     if (element is TypeParameterizedElement && !element.isSimplyBounded) {
       // TODO(srawlins): Don't report this if TYPE_ALIAS_CANNOT_REFERENCE_ITSELF
       //  has been reported.

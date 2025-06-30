@@ -78,7 +78,7 @@ class ExecutableParameters {
     Element? element;
     // This doesn't handle FunctionExpressionInvocation.
     if (invocation is Annotation) {
-      element = invocation.element2;
+      element = invocation.element;
     } else if (invocation is InstanceCreationExpression) {
       element = invocation.constructorName.element;
     } else if (invocation is MethodInvocation) {

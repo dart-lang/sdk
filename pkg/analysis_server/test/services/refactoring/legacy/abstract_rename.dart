@@ -46,7 +46,7 @@ class RenameRefactoringTest extends RefactoringTest {
       case ImportDirective():
         element = MockLibraryImportElement(node.libraryImport!);
       default:
-        element = ElementLocator.locate2(node);
+        element = ElementLocator.locate(node);
     }
 
     if (node is SimpleIdentifier && element is PrefixElement) {

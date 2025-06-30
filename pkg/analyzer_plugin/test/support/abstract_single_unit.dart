@@ -65,7 +65,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     if (node == null) {
       return null;
     }
-    return ElementLocator.locate2(node);
+    return ElementLocator.locate(node);
   }
 
   int findOffset(String search) {

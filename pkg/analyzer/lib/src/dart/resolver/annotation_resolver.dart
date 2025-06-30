@@ -82,7 +82,7 @@ class AnnotationResolver {
     }
 
     getterName?.element = getter;
-    node.element2 = getter;
+    node.element = getter;
 
     if (getterName != null && getter is PropertyAccessorElement) {
       _propertyAccessorElement(
@@ -114,7 +114,7 @@ class AnnotationResolver {
     List<WhyNotPromotedGetter> whyNotPromotedArguments,
   ) {
     constructorName?.element = constructorElement;
-    node.element2 = constructorElement;
+    node.element = constructorElement;
 
     if (constructorElement == null) {
       _diagnosticReporter.atNode(node, CompileTimeErrorCode.INVALID_ANNOTATION);
@@ -161,7 +161,7 @@ class AnnotationResolver {
     }
 
     getterName?.element = getter;
-    node.element2 = getter;
+    node.element = getter;
 
     if (getterName != null && getter is PropertyAccessorElement) {
       _propertyAccessorElement(
@@ -205,7 +205,7 @@ class AnnotationResolver {
     List<WhyNotPromotedGetter> whyNotPromotedArguments,
   ) {
     name.element = element;
-    node.element2 = element;
+    node.element = element;
 
     _resolveAnnotationElementGetter(node, element);
     _visitArguments(
@@ -453,7 +453,7 @@ class AnnotationResolver {
     }
 
     getterName?.element = getter;
-    node.element2 = getter;
+    node.element = getter;
 
     if (getterName != null && getter is PropertyAccessorElement) {
       _propertyAccessorElement(

@@ -67,8 +67,8 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
-    _addImplicitExtensionName(node.readElement2?.enclosingElement);
-    _addImplicitExtensionName(node.writeElement2?.enclosingElement);
+    _addImplicitExtensionName(node.readElement?.enclosingElement);
+    _addImplicitExtensionName(node.writeElement?.enclosingElement);
     super.visitAssignmentExpression(node);
   }
 
@@ -98,13 +98,13 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    _addName(node.name, node.element2);
+    _addName(node.name, node.element);
     super.visitNamedType(node);
   }
 
   @override
   void visitPatternField(PatternField node) {
-    _addImplicitExtensionName(node.element2?.enclosingElement);
+    _addImplicitExtensionName(node.element?.enclosingElement);
     super.visitPatternField(node);
   }
 
@@ -128,7 +128,7 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    var element = node.writeOrReadElement2;
+    var element = node.writeOrReadElement;
     _addName(node.token, element);
   }
 

@@ -38,10 +38,10 @@ class RemoveLeadingUnderscore extends ResolvedCorrectionProducer {
       element = node.declaredFragment?.element;
     } else if (node is VariableDeclaration) {
       nameToken = node.name;
-      element = node.declaredElement2 ?? node.declaredFragment?.element;
+      element = node.declaredElement ?? node.declaredFragment?.element;
     } else if (node is DeclaredVariablePattern) {
       nameToken = node.name;
-      element = node.declaredElement2;
+      element = node.declaredElement;
     } else if (node is FunctionDeclaration) {
       nameToken = node.name;
       element = node.declaredFragment?.element;

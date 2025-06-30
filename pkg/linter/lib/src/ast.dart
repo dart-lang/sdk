@@ -282,7 +282,7 @@ bool _checkForSimpleSetter(MethodDeclaration setter, Expression expression) {
   var leftHandSide = expression.leftHandSide;
   var rightHandSide = expression.rightHandSide;
   if (leftHandSide is SimpleIdentifier && rightHandSide is SimpleIdentifier) {
-    var leftElement = expression.writeElement2;
+    var leftElement = expression.writeElement;
     if (leftElement is! SetterElement || !leftElement.isSynthetic) {
       return false;
     }
@@ -329,13 +329,13 @@ int? _getIntValue(
 Element? _getWriteElement(AstNode node) {
   var parent = node.parent;
   if (parent is AssignmentExpression && parent.leftHandSide == node) {
-    return parent.writeElement2;
+    return parent.writeElement;
   }
   if (parent is PostfixExpression) {
-    return parent.writeElement2;
+    return parent.writeElement;
   }
   if (parent is PrefixExpression) {
-    return parent.writeElement2;
+    return parent.writeElement;
   }
 
   if (parent is PrefixedIdentifier && parent.identifier == node) {
