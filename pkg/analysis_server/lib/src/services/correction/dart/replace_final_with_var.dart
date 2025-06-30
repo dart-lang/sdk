@@ -26,37 +26,17 @@ class ReplaceFinalWithVar extends ResolvedCorrectionProducer {
       );
     }
 
-    var removeFinal = false;
-    Token? finalKeyword;
-
-    // Ensure we have set `removeFinal` so that fixKind is accurate after
-    // configure is completed.
-    if (context.node case VariableDeclarationList(
-      keyword: var keywordToken?,
-      type: var type,
-    )) {
-      if (type != null) {
-        // If a type and keyword is present, the keyword is `final`.
-        finalKeyword = keywordToken;
-        removeFinal = true;
-      } else if (keywordToken.keyword == Keyword.FINAL) {
-        finalKeyword = keywordToken;
-      }
-    } else if (context.node case PatternVariableDeclaration(
-      keyword: var keywordToken,
-    )) {
-      finalKeyword = keywordToken;
-    } else if (context.node case DeclaredIdentifier(
-      keyword: var keywordToken?,
-    )) {
-      assert(keywordToken.keyword == Keyword.FINAL);
-      finalKeyword = keywordToken;
-    }
+    var (finalKeyword, type) = switch (context.node) {
+      VariableDeclarationList node => (node.keyword, node.type),
+      PatternVariableDeclaration node => (node.keyword, null),
+      DeclaredIdentifier node => (node.keyword, node.type),
+      _ => (null, null),
+    };
 
     return ReplaceFinalWithVar._(
       context: context,
       finalKeyword: finalKeyword,
-      removeFinal: removeFinal,
+      removeFinal: type != null,
     );
   }
 
@@ -86,6 +66,7 @@ class ReplaceFinalWithVar extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     if (_finalKeyword case var finalKeyword?) {
+      assert(finalKeyword.keyword == Keyword.FINAL);
       if (_removeFinal) {
         await builder.addDartFileEdit(file, (builder) {
           builder.addDeletion(
