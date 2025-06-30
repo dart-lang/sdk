@@ -599,19 +599,16 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   //
   // If the current thread is the only mutator in the isolate group,
   // [callable] will be called directly. Otherwise [callable] will be
-  // called inside a [SafepointOperationsScope] (or
-  // [ForceGrowthSafepointOperationScope] if [use_force_growth]
-  // is set).
+  // called inside a [SafepointOperationsScope].
   //
   // During the duration of this function, no new isolates can be added to the
   // isolate group.
-  void RunWithStoppedMutatorsCallable(Callable* callable,
-                                      bool use_force_growth = false);
+  void RunWithStoppedMutatorsCallable(Callable* callable);
 
   template <typename T>
-  void RunWithStoppedMutators(T function, bool use_force_growth = false) {
+  void RunWithStoppedMutators(T function) {
     LambdaCallable<T> callable(function);
-    RunWithStoppedMutatorsCallable(&callable, use_force_growth);
+    RunWithStoppedMutatorsCallable(&callable);
   }
 
 #ifndef PRODUCT

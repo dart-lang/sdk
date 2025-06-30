@@ -296,9 +296,7 @@ CodePtr TypeTestingStubGenerator::BuildCodeForType(const AbstractType& type) {
             //
             SafepointWriteRwLocker ml(thread,
                                       thread->isolate_group()->program_lock());
-            thread->isolate_group()->RunWithStoppedMutators(
-                install_code_fun,
-                /*use_force_growth=*/true);
+            thread->isolate_group()->RunWithStoppedMutators(install_code_fun);
 
             Code::NotifyCodeObservers(name, code, /*optimized=*/false);
 

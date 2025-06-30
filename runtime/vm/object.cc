@@ -19743,12 +19743,10 @@ void MegamorphicCache::InsertLocked(const Smi& class_id,
   // NOTE: In the future we might change the megamorphic cache insertions to
   // carefully use store-release barriers on the writer as well as
   // load-acquire barriers on the reader, ...
-  isolate_group->RunWithStoppedMutators(
-      [&]() {
-        EnsureCapacityLocked();
-        InsertEntryLocked(class_id, target);
-      },
-      /*use_force_growth=*/true);
+  isolate_group->RunWithStoppedMutators([&]() {
+    EnsureCapacityLocked();
+    InsertEntryLocked(class_id, target);
+  });
 }
 
 void MegamorphicCache::EnsureCapacityLocked() const {

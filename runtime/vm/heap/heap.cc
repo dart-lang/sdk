@@ -153,7 +153,7 @@ uword Heap::AllocateOld(Thread* thread, intptr_t size, bool is_exec) {
       return addr;
     }
     // Wait for all of the concurrent tasks to finish before giving up.
-    WaitForSweeperTasksAtSafepoint(thread);
+    WaitForSweeperTasks(thread);
     addr = old_space_.TryAllocate(size, is_exec);
     if (addr != 0) {
       return addr;
@@ -165,7 +165,7 @@ uword Heap::AllocateOld(Thread* thread, intptr_t size, bool is_exec) {
     }
     // Before throwing an out-of-memory error try a synchronous GC.
     CollectOldSpaceGarbage(thread, GCType::kMarkCompact, GCReason::kOldSpace);
-    WaitForSweeperTasksAtSafepoint(thread);
+    WaitForSweeperTasks(thread);
     addr = old_space_.TryAllocate(size, is_exec, PageSpace::kForceGrowth);
     if (addr != 0) {
       return addr;
@@ -669,20 +669,14 @@ void Heap::WaitForMarkerTasks(Thread* thread) {
 }
 
 void Heap::WaitForSweeperTasks(Thread* thread) {
-  ASSERT(!thread->OwnsGCSafepoint());
   MonitorLocker ml(old_space_.tasks_lock());
   while ((old_space_.phase() == PageSpace::kSweepingLarge) ||
          (old_space_.phase() == PageSpace::kSweepingRegular)) {
-    ml.WaitWithSafepointCheck(thread);
-  }
-}
-
-void Heap::WaitForSweeperTasksAtSafepoint(Thread* thread) {
-  ASSERT(thread->OwnsGCSafepoint());
-  MonitorLocker ml(old_space_.tasks_lock());
-  while ((old_space_.phase() == PageSpace::kSweepingLarge) ||
-         (old_space_.phase() == PageSpace::kSweepingRegular)) {
-    ml.Wait();
+    if (thread->OwnsSafepoint()) {
+      ml.Wait();
+    } else {
+      ml.WaitWithSafepointCheck(thread);
+    }
   }
 }
 

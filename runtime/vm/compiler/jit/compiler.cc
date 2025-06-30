@@ -597,8 +597,7 @@ CodePtr CompileParsedFunctionHelper::Compile() {
         //      requires updating several pointers: We have to ensure all of
         //      those writes are observed atomically.
         //
-        thread()->isolate_group()->RunWithStoppedMutators(
-            install_code_fun, /*use_force_growth=*/true);
+        thread()->isolate_group()->RunWithStoppedMutators(install_code_fun);
       }
       if (!result->IsNull()) {
         // Must be called outside of safepoint.

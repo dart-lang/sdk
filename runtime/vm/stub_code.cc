@@ -282,8 +282,7 @@ CodePtr StubCode::GetAllocationStubForClass(const Class& cls) {
     //
     //   a) We allocate an instructions object, which might cause us to
     //      temporarily flip page protections from (RX -> RW -> RX).
-    thread->isolate_group()->RunWithStoppedMutators(mutator_fun,
-                                                    /*use_force_growth=*/true);
+    thread->isolate_group()->RunWithStoppedMutators(mutator_fun);
 
     // We notify code observers after finalizing the code in order to be
     // outside a [SafepointOperationScope].
