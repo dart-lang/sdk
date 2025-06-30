@@ -8839,7 +8839,10 @@ class TypeArguments : public Instance {
 
   // Check if the vectors are equal (they may be null).
   bool Equals(const TypeArguments& other) const {
-    return IsSubvectorEquivalent(other, 0, IsNull() ? 0 : Length(),
+    if (ptr() == other.ptr()) {
+      return true;
+    }
+    return IsSubvectorEquivalent(other, 0, IsNull() ? other.Length() : Length(),
                                  TypeEquality::kCanonical);
   }
 
@@ -8847,6 +8850,9 @@ class TypeArguments : public Instance {
       const TypeArguments& other,
       TypeEquality kind,
       FunctionTypeMapping* function_type_equivalence = nullptr) const {
+    if (ptr() == other.ptr()) {
+      return true;
+    }
     // Make a null vector a vector of dynamic as long as the other vector.
     return IsSubvectorEquivalent(other, 0, IsNull() ? other.Length() : Length(),
                                  kind, function_type_equivalence);

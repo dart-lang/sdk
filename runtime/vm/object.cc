@@ -7449,8 +7449,10 @@ bool TypeArguments::IsSubvectorEquivalent(
     return true;
   }
   if (kind == TypeEquality::kCanonical) {
-    if (IsNull() || other.IsNull()) {
-      return false;
+    if (IsNull()) {
+      return other.IsRaw(from_index, len);
+    } else if (other.IsNull()) {
+      return IsRaw(from_index, len);
     }
     if (Length() != other.Length()) {
       return false;
@@ -10597,16 +10599,12 @@ bool FunctionType::HasSameTypeParametersAndBounds(
             TypeArguments::Handle(zone, type_params.defaults());
         const TypeArguments& other_defaults =
             TypeArguments::Handle(zone, other_type_params.defaults());
-        if (defaults.IsNull()) {
-          if (!other_defaults.IsNull()) {
-            TRACE_TYPE_CHECKS_VERBOSE(
-                "   - result: false (mismatch in defaults)\n");
-            return false;
-          }
-        } else if (!defaults.IsEquivalent(other_defaults, kind,
-                                          function_type_equivalence)) {
+        if (!defaults.IsEquivalent(other_defaults, kind,
+                                   function_type_equivalence)) {
           TRACE_TYPE_CHECKS_VERBOSE(
-              "   - result: false (default types are not equivalent)\n");
+              "   - result: false (default types are not equivalent,"
+              " %s - %s)\n",
+              defaults.ToCString(), other_defaults.ToCString());
           return false;
         }
       }
