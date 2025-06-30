@@ -55,10 +55,22 @@ void IOServiceCallback(Dart_Port dest_port_id, Dart_CObject* message) {
 }
 
 intptr_t IOService::max_concurrency_ = 32;
+std::atomic<Dart_Port> IOService::port_ = ILLEGAL_PORT;
 
 Dart_Port IOService::GetServicePort() {
-  return Dart_NewConcurrentNativePort("IOService", IOServiceCallback,
-                                      max_concurrency_);
+  Dart_Port port = port_;
+  if (port == ILLEGAL_PORT) {
+    port = Dart_NewConcurrentNativePort("IOService", IOServiceCallback,
+                                        max_concurrency_);
+    Dart_Port expected = ILLEGAL_PORT;
+    if (!port_.compare_exchange_strong(expected, port)) {
+      // Lost the initialization race. Use the winner's port and close our port.
+      // The winner's port is eventually implicitly closed by VM shutdown.
+      Dart_CloseNativePort(port);
+      return expected;
+    }
+  }
+  return port;
 }
 
 void FUNCTION_NAME(IOService_NewServicePort)(Dart_NativeArguments args) {
