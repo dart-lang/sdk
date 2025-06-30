@@ -537,6 +537,7 @@ Future<api.CompilationResult> compile(
     _OneOption('${Flags.verbosity}=.+', passThrough),
     _OneOption(Flags.disableDiagnosticByteCache, passThrough),
     _OneOption(Flags.enableDeferredLoadingEventLog, passThrough),
+    _OneOption(Flags.omitMemorySummary, passThrough),
 
     // Experimental features.
     // We don't provide documentation for these yet.
@@ -925,7 +926,9 @@ Future<api.CompilationResult> compile(
         break;
     }
 
-    final memoryUsed = await currentHeapCapacityInMb();
+    final memoryUsed = compilerOptions.omitMemorySummary
+        ? null
+        : await currentHeapCapacityInMb();
     final memoryUsedString = memoryUsed != null
         ? ' using $memoryUsed of memory'
         : '';
