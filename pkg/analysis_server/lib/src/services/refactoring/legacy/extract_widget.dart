@@ -622,7 +622,7 @@ class _ParametersCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    var element = node.writeOrReadElement2;
+    var element = node.writeOrReadElement;
     if (element == null) {
       return;
     }

@@ -151,7 +151,7 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitAnnotation(Annotation node) {
-    var e = node.element2;
+    var e = node.element;
     if (e != null) {
       _addDeclaration(e);
     }
@@ -233,7 +233,7 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
     var e = node.element;
     if (e != null && _patternLevel == 0) {
       _addDeclaration(e);
-      var type = node.type.element2;
+      var type = node.type.element;
       if (type != null) {
         _addDeclaration(type);
       }
@@ -264,7 +264,7 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    var element = node.element2;
+    var element = node.element;
     if (element == null) {
       return;
     }
@@ -303,7 +303,7 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitPatternField(PatternField node) {
-    var e = node.element2;
+    var e = node.element;
     if (e != null) {
       _addDeclaration(e);
     }
@@ -418,7 +418,7 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
       return;
     }
 
-    var element = node.element2;
+    var element = node.element;
     if (element == null) {
       return;
     }
@@ -436,11 +436,11 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
   }
 
   void _visitCompoundAssignmentExpression(CompoundAssignmentExpression node) {
-    var readElement = node.readElement2;
+    var readElement = node.readElement;
     if (readElement != null) {
       _addDeclaration(readElement);
     }
-    var writeElement = node.writeElement2;
+    var writeElement = node.writeElement;
     if (writeElement != null) {
       _addDeclaration(writeElement);
     }

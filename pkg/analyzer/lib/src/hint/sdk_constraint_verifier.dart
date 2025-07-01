@@ -70,8 +70,8 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
-    _checkSinceSdkVersion(node.readElement2, node);
-    _checkSinceSdkVersion(node.writeElement2, node);
+    _checkSinceSdkVersion(node.readElement, node);
+    _checkSinceSdkVersion(node.writeElement, node);
     super.visitAssignmentExpression(node);
   }
 
@@ -131,7 +131,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    _checkSinceSdkVersion(node.element2, node);
+    _checkSinceSdkVersion(node.element, node);
     super.visitNamedType(node);
   }
 

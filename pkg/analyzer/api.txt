@@ -581,7 +581,8 @@ package:analyzer/dart/ast/ast.dart:
     arguments (getter: ArgumentList?)
     atSign (getter: Token)
     constructorName (getter: SimpleIdentifier?)
-    element2 (getter: Element?, experimental)
+    element (getter: Element?, experimental)
+    element2 (getter: Element?, deprecated, experimental)
     elementAnnotation (getter: ElementAnnotation?)
     name (getter: Identifier)
     parent (getter: AstNode)
@@ -606,7 +607,8 @@ package:analyzer/dart/ast/ast.dart:
     message (getter: Expression?)
     rightParenthesis (getter: Token)
   AssignedVariablePattern (class extends Object implements VariablePattern):
-    element2 (getter: Element?, experimental)
+    element (getter: Element?, experimental)
+    element2 (getter: Element?, deprecated, experimental)
   AssignmentExpression (class extends Object implements NullShortableExpression, MethodReferenceExpression, CompoundAssignmentExpression):
     leftHandSide (getter: Expression)
     operator (getter: Token)
@@ -859,7 +861,8 @@ package:analyzer/dart/ast/ast.dart:
     rightParenthesis (getter: Token?)
     stackTraceParameter (getter: CatchClauseParameter?)
   CatchClauseParameter (class extends AstNode):
-    declaredElement2 (getter: LocalVariableElement?, experimental)
+    declaredElement (getter: LocalVariableElement?, experimental)
+    declaredElement2 (getter: LocalVariableElement?, deprecated, experimental)
     declaredFragment (getter: LocalVariableFragment?, experimental)
     name (getter: Token)
   ClassDeclaration (class extends Object implements NamedCompilationUnitMember):
@@ -924,9 +927,11 @@ package:analyzer/dart/ast/ast.dart:
     nodeCovering (method: AstNode? Function({int length, required int offset}))
   CompilationUnitMember (class extends Object implements Declaration)
   CompoundAssignmentExpression (class extends Object implements Expression):
-    readElement2 (getter: Element?, experimental)
+    readElement (getter: Element?, experimental)
+    readElement2 (getter: Element?, deprecated, experimental)
     readType (getter: DartType?)
-    writeElement2 (getter: Element?, experimental)
+    writeElement (getter: Element?, experimental)
+    writeElement2 (getter: Element?, deprecated, experimental)
     writeType (getter: DartType?)
   ConditionalExpression (class extends Object implements Expression):
     colon (getter: Token)
@@ -990,7 +995,8 @@ package:analyzer/dart/ast/ast.dart:
   Declaration (class extends Object implements AnnotatedNode):
     declaredFragment (getter: Fragment?, experimental)
   DeclaredIdentifier (class extends Object implements Declaration):
-    declaredElement2 (getter: LocalVariableElement?, experimental)
+    declaredElement (getter: LocalVariableElement?, experimental)
+    declaredElement2 (getter: LocalVariableElement?, deprecated, experimental)
     declaredFragment (getter: LocalVariableFragment?)
     isConst (getter: bool)
     isFinal (getter: bool)
@@ -998,7 +1004,8 @@ package:analyzer/dart/ast/ast.dart:
     name (getter: Token)
     type (getter: TypeAnnotation?)
   DeclaredVariablePattern (class extends Object implements VariablePattern, sealed (immediate subtypes: DeclaredVariablePatternImpl)):
-    declaredElement2 (getter: BindPatternVariableElement?, experimental)
+    declaredElement (getter: BindPatternVariableElement?, experimental)
+    declaredElement2 (getter: BindPatternVariableElement?, deprecated, experimental)
     declaredFragment (getter: BindPatternVariableFragment?)
     keyword (getter: Token?)
     type (getter: TypeAnnotation?)
@@ -1042,7 +1049,8 @@ package:analyzer/dart/ast/ast.dart:
   EnumConstantDeclaration (class extends Object implements Declaration):
     arguments (getter: EnumConstantArguments?)
     augmentKeyword (getter: Token?, experimental)
-    constructorElement2 (getter: ConstructorElement?, experimental)
+    constructorElement (getter: ConstructorElement?, experimental)
+    constructorElement2 (getter: ConstructorElement?, deprecated, experimental)
     declaredFragment (getter: FieldFragment?, experimental)
     name (getter: Token)
   EnumDeclaration (class extends Object implements NamedCompilationUnitMember):
@@ -1097,7 +1105,8 @@ package:analyzer/dart/ast/ast.dart:
     onKeyword (getter: Token)
   ExtensionOverride (class extends Object implements Expression):
     argumentList (getter: ArgumentList)
-    element2 (getter: ExtensionElement, experimental)
+    element (getter: ExtensionElement, experimental)
+    element2 (getter: ExtensionElement, deprecated, experimental)
     extendedType (getter: DartType?)
     importPrefix (getter: ImportPrefixReference?)
     isNullAware (getter: bool)
@@ -1198,7 +1207,8 @@ package:analyzer/dart/ast/ast.dart:
     isSynchronous (getter: bool)
     keyword (getter: Token?)
     star (getter: Token?)
-    isPotentiallyMutatedInScope2 (method: bool Function(VariableElement), experimental)
+    isPotentiallyMutatedInScope (method: bool Function(VariableElement), experimental)
+    isPotentiallyMutatedInScope2 (method: bool Function(VariableElement), deprecated, experimental)
   FunctionDeclaration (class extends Object implements NamedCompilationUnitMember):
     augmentKeyword (getter: Token?, experimental)
     declaredFragment (getter: ExecutableFragment?, experimental)
@@ -1285,7 +1295,8 @@ package:analyzer/dart/ast/ast.dart:
     libraryImport (getter: LibraryImport?, experimental)
     prefix (getter: SimpleIdentifier?)
   ImportPrefixReference (class extends Object implements AstNode):
-    element2 (getter: Element?, experimental)
+    element (getter: Element?, experimental)
+    element2 (getter: Element?, deprecated, experimental)
     name (getter: Token)
     period (getter: Token)
   IndexExpression (class extends Object implements NullShortableExpression, MethodReferenceExpression):
@@ -1337,9 +1348,11 @@ package:analyzer/dart/ast/ast.dart:
     labels (getter: NodeList<Label>)
     statement (getter: Statement)
   LibraryDirective (class extends Object implements Directive):
-    element2 (getter: LibraryElement?, experimental)
+    element (getter: LibraryElement?, experimental)
+    element2 (getter: LibraryElement?, deprecated, experimental)
     libraryKeyword (getter: Token)
-    name2 (getter: LibraryIdentifier?)
+    name (getter: LibraryIdentifier?)
+    name2 (getter: LibraryIdentifier?, deprecated)
     semicolon (getter: Token)
   LibraryIdentifier (class extends Object implements Identifier):
     components (getter: NodeList<SimpleIdentifier>)
@@ -1423,11 +1436,13 @@ package:analyzer/dart/ast/ast.dart:
   NamedCompilationUnitMember (class extends Object implements CompilationUnitMember):
     name (getter: Token)
   NamedExpression (class extends Object implements Expression):
-    element2 (getter: FormalParameterElement?, experimental)
+    element (getter: FormalParameterElement?, experimental)
+    element2 (getter: FormalParameterElement?, deprecated, experimental)
     expression (getter: Expression)
     name (getter: Label)
   NamedType (class extends Object implements TypeAnnotation):
-    element2 (getter: Element?, experimental)
+    element (getter: Element?, experimental)
+    element2 (getter: Element?, deprecated, experimental)
     importPrefix (getter: ImportPrefixReference?)
     isDeferred (getter: bool)
     name (getter: Token)
@@ -1501,7 +1516,8 @@ package:analyzer/dart/ast/ast.dart:
     pattern (getter: DartPattern)
   PatternField (class extends Object implements AstNode):
     effectiveName (getter: String?)
-    element2 (getter: Element?, experimental)
+    element (getter: Element?, experimental)
+    element2 (getter: Element?, deprecated, experimental)
     name (getter: PatternFieldName?)
     pattern (getter: DartPattern)
   PatternFieldName (class extends Object implements AstNode):
@@ -1567,7 +1583,8 @@ package:analyzer/dart/ast/ast.dart:
     period (getter: Token?)
     thisKeyword (getter: Token)
   RelationalPattern (class extends Object implements DartPattern):
-    element2 (getter: MethodElement?, experimental)
+    element (getter: MethodElement?, experimental)
+    element2 (getter: MethodElement?, deprecated, experimental)
     operand (getter: Expression)
     operator (getter: Token)
   RepresentationConstructorName (class extends Object implements AstNode, experimental):
@@ -1726,7 +1743,8 @@ package:analyzer/dart/ast/ast.dart:
   UriBasedDirective (class extends Object implements Directive, sealed (immediate subtypes: NamespaceDirective, PartDirective, UriBasedDirectiveImpl)):
     uri (getter: StringLiteral)
   VariableDeclaration (class extends Object implements Declaration):
-    declaredElement2 (getter: LocalVariableElement?, experimental)
+    declaredElement (getter: LocalVariableElement?, experimental)
+    declaredElement2 (getter: LocalVariableElement?, deprecated, experimental)
     declaredFragment (getter: VariableFragment?, experimental)
     equals (getter: Token?)
     initializer (getter: Expression?)

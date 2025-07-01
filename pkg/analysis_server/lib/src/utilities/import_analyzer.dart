@@ -190,8 +190,8 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
-    _recordReference(node.writeElement2, node, node.leftHandSide);
-    _recordReference(node.readElement2, node, node.leftHandSide);
+    _recordReference(node.writeElement, node, node.leftHandSide);
+    _recordReference(node.readElement, node, node.leftHandSide);
     super.visitAssignmentExpression(node);
   }
 
@@ -274,21 +274,21 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    _recordReference(node.element2, node, node);
+    _recordReference(node.element, node, node);
     super.visitNamedType(node);
   }
 
   @override
   void visitPostfixExpression(PostfixExpression node) {
-    _recordReference(node.writeElement2, node, node.operand);
-    _recordReference(node.readElement2, node, node.operand);
+    _recordReference(node.writeElement, node, node.operand);
+    _recordReference(node.readElement, node, node.operand);
     super.visitPostfixExpression(node);
   }
 
   @override
   void visitPrefixExpression(PrefixExpression node) {
-    _recordReference(node.writeElement2, node, node.operand);
-    _recordReference(node.readElement2, node, node.operand);
+    _recordReference(node.writeElement, node, node.operand);
+    _recordReference(node.readElement, node, node.operand);
     super.visitPrefixExpression(node);
   }
 
@@ -388,7 +388,7 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
         }
       }
     } else if (node is NamedType) {
-      return node.importPrefix?.element2.ifTypeOrNull();
+      return node.importPrefix?.element.ifTypeOrNull();
     }
     return null;
   }

@@ -846,7 +846,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   void visitLibraryDirective(LibraryDirective node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     sink.write('library ');
-    _visitNode(node.name2);
+    _visitNode(node.name);
     sink.write(';');
   }
 

@@ -299,7 +299,7 @@ class _FieldFinder extends RecursiveAstVisitor<void> {
       }
     }
     if (node.inSetterContext()) {
-      var element = node.writeOrReadElement2;
+      var element = node.writeOrReadElement;
       var field = switch (element) {
         PropertyAccessorElement(:var variable3) => variable3,
         _ => null,

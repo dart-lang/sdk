@@ -35,7 +35,7 @@ _getConstructorFieldInitializersInInitializers(ConstructorDeclaration node) =>
     node.initializers.whereType<ConstructorFieldInitializer>();
 
 Element? _getLeftElement(AssignmentExpression assignment) =>
-    assignment.writeElement2?.canonicalElement2;
+    assignment.writeElement?.canonicalElement2;
 
 Iterable<FormalParameterElement?> _getParameters(ConstructorDeclaration node) =>
     node.parameters.parameters.map((e) => e.declaredFragment?.element);

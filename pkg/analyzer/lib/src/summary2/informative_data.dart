@@ -1617,7 +1617,7 @@ class _InformativeDataWriter {
     for (var directive in unit.directives) {
       firstDirective ??= directive;
       if (directive is LibraryDirective) {
-        var libraryName = directive.name2;
+        var libraryName = directive.name;
         if (libraryName != null) {
           nameOffset = libraryName.offset;
           nameLength = libraryName.length;

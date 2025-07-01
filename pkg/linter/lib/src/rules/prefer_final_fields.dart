@@ -92,7 +92,7 @@ class _FieldMutationFinder extends RecursiveAstVisitor<void> {
   }
 
   void _addMutatedFieldElement(CompoundAssignmentExpression assignment) {
-    var element = assignment.writeElement2?.canonicalElement2;
+    var element = assignment.writeElement?.canonicalElement2;
     element = element?.baseElement;
 
     if (element is FieldElement) {

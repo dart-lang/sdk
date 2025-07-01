@@ -193,7 +193,7 @@ extension AstNodeExtension on AstNode {
     if (useMockForImport && node is ImportDirective) {
       element = MockLibraryImportElement(node.libraryImport!);
     } else {
-      element = ElementLocator.locate2(node);
+      element = ElementLocator.locate(node);
     }
     if (useMockForImport &&
         node is SimpleIdentifier &&

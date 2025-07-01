@@ -193,7 +193,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   ) {
     var name = node.name.lexeme;
     var element = _nameScope.lookup(name).getter2;
-    node.element2 = element;
+    node.element = element;
 
     if (element == null) {
       _diagnosticReporter.atToken(
@@ -1017,7 +1017,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitLibraryDirective(covariant LibraryDirectiveImpl node) {
     ++_libraryDirectiveIndex;
-    var element = node.element2;
+    var element = node.element;
     if (element is LibraryElementImpl && _libraryDirectiveIndex == 1) {
       _setElementAnnotations(node.metadata, element.metadata.annotations);
     }

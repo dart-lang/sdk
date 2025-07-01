@@ -20,7 +20,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
 
   @override
   void visitAnnotation(Annotation node) {
-    var element = node.element2;
+    var element = node.element;
     var argumentList = node.arguments;
     if (element is ConstructorElement && argumentList != null) {
       var errorNode = node.constructorIdentifier ?? node.classIdentifier;
@@ -60,7 +60,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     _check(
-      parameters: node.constructorElement2?.formalParameters,
+      parameters: node.constructorElement?.formalParameters,
       arguments: node.arguments?.argumentList.arguments ?? <Expression>[],
       errorEntity: node.name,
     );

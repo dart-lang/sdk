@@ -33,7 +33,7 @@ class ReplaceNullWithClosure extends ResolvedCorrectionProducer {
     if (coveringNode is NamedExpression) {
       var expression = coveringNode.expression;
       if (expression is NullLiteral) {
-        var element = coveringNode.element2;
+        var element = coveringNode.element;
         if (element is FormalParameterElement) {
           var type = element.type;
           if (type is FunctionType) {

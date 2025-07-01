@@ -45,7 +45,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     }
     _writeOptionalNode(arguments);
 
-    _sink.writeElement(node.element2);
+    _sink.writeElement(node.element);
   }
 
   @override
@@ -84,9 +84,9 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeByte(binaryToken.index);
 
     _sink.writeElement(node.element);
-    _sink.writeElement(node.readElement2);
+    _sink.writeElement(node.readElement);
     _sink.writeType(node.readType);
-    _sink.writeElement(node.writeElement2);
+    _sink.writeElement(node.writeElement);
     _sink.writeType(node.writeType);
     _storeExpression(node);
   }
@@ -268,7 +268,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeOptionalNode(node.typeArguments);
     _writeNode(node.argumentList);
 
-    _sink.writeElement(node.element2);
+    _sink.writeElement(node.element);
     _sink.writeType(node.extendedType);
 
     // TODO(scheglov): typeArgumentTypes?
@@ -395,7 +395,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   void visitImportPrefixReference(ImportPrefixReference node) {
     _writeByte(Tag.ImportPrefixReference);
     _writeStringReference(node.name.lexeme);
-    _sink.writeElement(node.element2);
+    _sink.writeElement(node.element);
   }
 
   @override
@@ -572,7 +572,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeStringReference(node.name.lexeme);
     _writeOptionalNode(node.typeArguments);
 
-    _sink.writeElement(node.element2);
+    _sink.writeElement(node.element);
     _sink.writeType(node.type);
   }
 
@@ -607,9 +607,9 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
 
     _sink.writeElement(node.element);
     if (operatorToken.isIncrementOperator) {
-      _sink.writeElement(node.readElement2);
+      _sink.writeElement(node.readElement);
       _sink.writeType(node.readType);
-      _sink.writeElement(node.writeElement2);
+      _sink.writeElement(node.writeElement);
       _sink.writeType(node.writeType);
     }
     _storeExpression(node);
@@ -637,9 +637,9 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
 
     _sink.writeElement(node.element);
     if (operatorToken.isIncrementOperator) {
-      _sink.writeElement(node.readElement2);
+      _sink.writeElement(node.readElement);
       _sink.writeType(node.readType);
-      _sink.writeElement(node.writeElement2);
+      _sink.writeElement(node.writeElement);
       _sink.writeType(node.writeType);
     }
 

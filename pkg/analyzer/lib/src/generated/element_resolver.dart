@@ -175,7 +175,7 @@ class ElementResolver {
       invokedConstructor,
     );
     if (parameters != null) {
-      argumentList.correspondingStaticParameters2 = parameters;
+      argumentList.correspondingStaticParameters = parameters;
     }
   }
 
@@ -283,7 +283,7 @@ class ElementResolver {
       invokedConstructor,
     );
     if (parameters != null) {
-      argumentList.correspondingStaticParameters2 = parameters;
+      argumentList.correspondingStaticParameters = parameters;
     }
   }
 
@@ -363,7 +363,7 @@ class ElementResolver {
     var argumentList = node.argumentList;
     var parameters = _resolveArgumentsToFunction(argumentList, element);
     if (parameters != null) {
-      argumentList.correspondingStaticParameters2 = parameters;
+      argumentList.correspondingStaticParameters = parameters;
     }
   }
 
@@ -440,7 +440,7 @@ class ElementResolver {
       enclosingConstructor: node.thisOrAncestorOfType<ConstructorDeclaration>(),
     );
     if (parameters != null) {
-      argumentList.correspondingStaticParameters2 = parameters;
+      argumentList.correspondingStaticParameters = parameters;
     }
   }
 
@@ -551,7 +551,7 @@ class ElementResolver {
       var elementAnnotation =
           annotation.elementAnnotation as ElementAnnotationImpl?;
       if (elementAnnotation != null) {
-        elementAnnotation.element2 = annotation.element2;
+        elementAnnotation.element2 = annotation.element;
       }
     }
   }

@@ -50,7 +50,7 @@ class SuperHandler
         return success(null);
       }
 
-      var element = ElementLocator.locate2(node);
+      var element = ElementLocator.locate(node);
       if (element == null) {
         return success(null);
       }

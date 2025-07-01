@@ -436,7 +436,7 @@ class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitImportPrefixReference(ImportPrefixReference node) {
-    if (node.element2 == element) {
+    if (node.element == element) {
       references.add(SimpleIdentifierImpl(token: node.name));
     }
   }
@@ -445,7 +445,7 @@ class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
   void visitListPattern(ListPattern node) {
     for (var item in node.elements) {
       if (item is AssignedVariablePattern) {
-        if (item.element2 == element) {
+        if (item.element == element) {
           references.add(item);
         }
       }
@@ -457,7 +457,7 @@ class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
     for (var field in node.fields) {
       var pattern = field.pattern.unparenthesized;
       if (pattern is AssignedVariablePattern) {
-        if (pattern.element2 == element) {
+        if (pattern.element == element) {
           references.add(field.pattern);
         }
       }

@@ -579,7 +579,7 @@ class MethodInvocationResolver with ScopeHelpers {
       _resolver.diagnosticReporter.atNode(
         nameNode,
         CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD,
-        arguments: [name, override.element2.name3!],
+        arguments: [name, override.element.name3!],
       );
       return null;
     }

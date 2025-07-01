@@ -951,7 +951,7 @@ var b = 1 + 2;
 ''');
     assertType(findElement2.topVar('a').type, 'int');
     assertElement(
-      findNode.namedType('int a').element2,
+      findNode.namedType('int a').element,
       declaration: intElement,
     );
 

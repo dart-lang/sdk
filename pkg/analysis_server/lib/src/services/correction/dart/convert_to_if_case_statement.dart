@@ -239,7 +239,7 @@ extension on Statement {
       return null;
     }
 
-    var declaredElement = declaration.declaredElement2;
+    var declaredElement = declaration.declaredElement;
     if (declaredElement is! LocalVariableElement) {
       return null;
     }

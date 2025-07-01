@@ -83,7 +83,7 @@ class TypeDefinitionHandler
         DartType? type;
         if (node is NamedType) {
           originEntity = node.name;
-          var element = node.element2;
+          var element = node.element;
           if (element case analyzer.InterfaceElement element) {
             type = element.thisType;
           }
@@ -213,7 +213,7 @@ class TypeDefinitionHandler
           return element.type;
         }
       } else if (node.inSetterContext()) {
-        var writeElement = node.writeOrReadElement2;
+        var writeElement = node.writeOrReadElement;
         if (writeElement
             case analyzer.GetterElement(:var variable3) ||
                 analyzer.SetterElement(:var variable3)) {

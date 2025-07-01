@@ -60,14 +60,14 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
     var exceptionParameter = node.exceptionParameter;
     var stackTraceParameter = node.stackTraceParameter;
     if (exceptionParameter != null) {
-      var element = exceptionParameter.declaredElement2;
+      var element = exceptionParameter.declaredElement;
       usedElements.addCatchException(element);
       if (stackTraceParameter != null || node.onKeyword == null) {
         usedElements.addElement(element);
       }
     }
     if (stackTraceParameter != null) {
-      var element = stackTraceParameter.declaredElement2;
+      var element = stackTraceParameter.declaredElement;
       usedElements.addCatchStackTrace(element);
     }
     super.visitCatchClause(node);
@@ -124,7 +124,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
-    usedElements.addElement(node.constructorElement2?.baseElement);
+    usedElements.addElement(node.constructorElement?.baseElement);
 
     var argumentList = node.arguments?.argumentList;
     if (argumentList != null) {
@@ -176,7 +176,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitIndexExpression(IndexExpression node) {
-    var element = node.writeOrReadElement2;
+    var element = node.writeOrReadElement;
     usedElements.addMember(element);
     super.visitIndexExpression(node);
   }
@@ -223,14 +223,14 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    _useIdentifierElement(node.element2, parent: node);
+    _useIdentifierElement(node.element, parent: node);
     super.visitNamedType(node);
   }
 
   @override
   void visitPatternField(PatternField node) {
-    usedElements.addMember(node.element2);
-    usedElements.addReadMember(node.element2);
+    usedElements.addMember(node.element);
+    usedElements.addReadMember(node.element);
     super.visitPatternField(node);
   }
 
@@ -250,8 +250,8 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitRelationalPattern(RelationalPattern node) {
-    usedElements.addMember(node.element2);
-    usedElements.addReadMember(node.element2);
+    usedElements.addMember(node.element);
+    usedElements.addReadMember(node.element);
     super.visitRelationalPattern(node);
   }
 
@@ -263,7 +263,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
     if (_inCommentReference(node)) {
       return;
     }
-    var element = node.writeOrReadElement2;
+    var element = node.writeOrReadElement;
     // Store un-parameterized members.
     if (element is ExecutableMember) {
       element = element.baseElement;
@@ -285,8 +285,8 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
       }
     } else {
       var parent = node.parent!;
-      _useIdentifierElement(node.readElement2, parent: parent);
-      _useIdentifierElement(node.writeElement2, parent: parent);
+      _useIdentifierElement(node.readElement, parent: parent);
+      _useIdentifierElement(node.writeElement, parent: parent);
       _useIdentifierElement(node.element, parent: parent);
       var grandparent = parent.parent;
       // If [node] is a tear-off, assume all parameters are used.
@@ -520,7 +520,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitCatchClauseParameter(CatchClauseParameter node) {
-    _visitLocalVariableElement(node.declaredElement2!);
+    _visitLocalVariableElement(node.declaredElement!);
     super.visitCatchClauseParameter(node);
   }
 
@@ -552,7 +552,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   void visitDeclaredVariablePattern(
     covariant DeclaredVariablePatternImpl node,
   ) {
-    var declaredElement = node.declaredElement2!;
+    var declaredElement = node.declaredElement!;
     if (!declaredElement.isDuplicate) {
       var patternVariableElements = _patternVariableElements;
       if (patternVariableElements != null) {
@@ -617,7 +617,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
     for (var variable in node.variables.variables) {
       _visitLocalVariableElement(
-        variable.declaredElement2 as LocalVariableElement,
+        variable.declaredElement as LocalVariableElement,
       );
     }
 
@@ -747,7 +747,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     for (var variable in node.variables.variables) {
       _visitLocalVariableElement(
-        variable.declaredElement2 as LocalVariableElement,
+        variable.declaredElement as LocalVariableElement,
       );
     }
 

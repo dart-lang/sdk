@@ -246,7 +246,7 @@ void test(List<A> listA, List<B> listB) {
     ) {
       var node = findNode.declaredIdentifier(vSearch);
 
-      var element = node.declaredElement2 as LocalVariableElement;
+      var element = node.declaredElement as LocalVariableElement;
       assertType(element.type, vType);
 
       var invocation = findNode.methodInvocation(fSearch);

@@ -776,7 +776,7 @@ class LibraryAnalyzer {
         );
       } else if (directive is LibraryDirectiveImpl) {
         if (fileKind == _library) {
-          directive.element2 = _libraryElement;
+          directive.element = _libraryElement;
         }
       } else if (directive is PartDirectiveImpl) {
         var index = partIndex++;

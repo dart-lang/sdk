@@ -146,7 +146,7 @@ class UseResultVerifier {
     }
 
     var argumentList = node.argumentList as ArgumentListImpl;
-    var parameters = argumentList.correspondingStaticParameters2;
+    var parameters = argumentList.correspondingStaticParameters;
     if (parameters == null) {
       return false;
     }

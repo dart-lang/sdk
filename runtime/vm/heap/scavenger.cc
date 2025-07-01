@@ -1015,7 +1015,7 @@ SemiSpace* Scavenger::Prologue(GCReason reason) {
   heap_->isolate_group()->FlushMarkingStacks();
 
   if (FLAG_verify_store_buffer) {
-    heap_->WaitForSweeperTasksAtSafepoint(Thread::Current());
+    heap_->WaitForSweeperTasks(Thread::Current());
     VerifyStoreBuffers("Verifying remembered set before Scavenge");
   }
 
@@ -1118,7 +1118,7 @@ void Scavenger::Epilogue(SemiSpace* from) {
     // are very rare.
     heap_->isolate_group()->ReleaseStoreBuffers();
 
-    heap_->WaitForSweeperTasksAtSafepoint(Thread::Current());
+    heap_->WaitForSweeperTasks(Thread::Current());
     VerifyStoreBuffers("Verifying remembered set after Scavenge");
   }
 
@@ -1854,7 +1854,7 @@ void Scavenger::Scavenge(Thread* thread, GCType type, GCReason reason) {
   }
 
   if (FLAG_verify_before_gc) {
-    heap_->WaitForSweeperTasksAtSafepoint(thread);
+    heap_->WaitForSweeperTasks(thread);
     heap_->VerifyGC("Verifying before Scavenge",
                     thread->is_marking() ? kAllowMarked : kForbidMarked);
   }
@@ -1928,7 +1928,7 @@ void Scavenger::Scavenge(Thread* thread, GCType type, GCReason reason) {
   heap_->old_space()->ResumeConcurrentMarking();
 
   if (FLAG_verify_after_gc) {
-    heap_->WaitForSweeperTasksAtSafepoint(thread);
+    heap_->WaitForSweeperTasks(thread);
     heap_->VerifyGC("Verifying after Scavenge...",
                     thread->is_marking() ? kAllowMarked : kForbidMarked);
   }
@@ -2030,7 +2030,7 @@ void Scavenger::ReverseScavenge(SemiSpace** from) {
 
   // Reverse the partial forwarding from the aborted scavenge. This also
   // rebuilds the remembered set.
-  heap_->WaitForSweeperTasksAtSafepoint(thread);
+  heap_->WaitForSweeperTasks(thread);
   Become::FollowForwardingPointers(thread);
 
   heap_->old_space()->ResetProgressBars();

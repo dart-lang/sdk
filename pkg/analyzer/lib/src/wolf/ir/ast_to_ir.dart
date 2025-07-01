@@ -932,7 +932,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
     var staticElement = node.element;
     if (staticElement == null) {
       if (assignmentTargeting(node) case var assignment?) {
-        staticElement = assignment.readElement2 ?? assignment.writeElement2;
+        staticElement = assignment.readElement ?? assignment.writeElement;
       }
     }
     switch (staticElement) {
@@ -1165,7 +1165,7 @@ class _PropertyAccessTemplates extends _LValueTemplates {
   void read(_AstToIRVisitor visitor) {
     // Stack: target
     visitor.instanceGet(
-      (property.element ?? visitor.assignmentTargeting(property)?.readElement2)
+      (property.element ?? visitor.assignmentTargeting(property)?.readElement)
           as PropertyAccessorElement?,
       property.name,
     );
@@ -1205,7 +1205,7 @@ class _PropertyAccessTemplates extends _LValueTemplates {
     visitor.ir.shuffle(2, visitor.stackIndices101);
     // Stack: value target value
     visitor.instanceSet(
-      visitor.assignmentTargeting(property)!.writeElement2
+      visitor.assignmentTargeting(property)!.writeElement
           as PropertyAccessorElement?,
       property.name,
     );

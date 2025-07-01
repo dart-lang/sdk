@@ -24,7 +24,7 @@ class CreateMixin extends MultiCorrectionProducer {
     if (node is NamedType) {
       var importPrefix = node.importPrefix;
       if (importPrefix != null) {
-        prefixElement = importPrefix.element2;
+        prefixElement = importPrefix.element;
         if (prefixElement == null) {
           return const [];
         }

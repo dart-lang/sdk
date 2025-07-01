@@ -1700,7 +1700,7 @@ class _InvalidAccessVerifier {
     var element =
         grandparent is ConstructorName
             ? grandparent.element
-            : identifier.writeOrReadElement2;
+            : identifier.writeOrReadElement;
 
     if (element == null) {
       return;
@@ -1763,7 +1763,7 @@ class _InvalidAccessVerifier {
   }
 
   void verifyNamedType(NamedType node) {
-    var element = node.element2;
+    var element = node.element;
 
     var parent = node.parent;
     if (parent is ConstructorName) {
@@ -1790,7 +1790,7 @@ class _InvalidAccessVerifier {
   }
 
   void verifyPatternField(PatternFieldImpl node) {
-    var element = node.element2;
+    var element = node.element;
     if (element == null) {
       return;
     }

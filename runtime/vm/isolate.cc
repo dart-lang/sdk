@@ -2909,8 +2909,7 @@ Isolate* IsolateGroup::FirstIsolateLocked() const {
   return isolates_.IsEmpty() ? nullptr : isolates_.First();
 }
 
-void IsolateGroup::RunWithStoppedMutatorsCallable(Callable* callable,
-                                                  bool use_force_growth) {
+void IsolateGroup::RunWithStoppedMutatorsCallable(Callable* callable) {
   auto thread = Thread::Current();
   StoppedMutatorsScope stopped_mutators_scope(thread);
 
@@ -2923,14 +2922,8 @@ void IsolateGroup::RunWithStoppedMutatorsCallable(Callable* callable,
   // We use the more strict safepoint operation scope here (which ensures that
   // all other threads, including auxiliary threads are at a safepoint), even
   // though we only need to ensure that the mutator threads are stopped.
-  if (use_force_growth) {
-    ForceGrowthSafepointOperationScope safepoint_scope(
-        thread, SafepointLevel::kGCAndDeopt);
-    callable->Call();
-  } else {
-    DeoptSafepointOperationScope safepoint_scope(thread);
-    callable->Call();
-  }
+  DeoptSafepointOperationScope safepoint_scope(thread);
+  callable->Call();
 }
 
 void IsolateGroup::VisitObjectPointers(ObjectPointerVisitor* visitor,

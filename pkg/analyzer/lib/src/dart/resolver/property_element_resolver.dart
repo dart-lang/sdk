@@ -151,7 +151,7 @@ class PropertyElementResolver with ScopeHelpers {
         _reportUnresolvedIndex(
           node,
           CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR,
-          ['[]', target.element2.name3!],
+          ['[]', target.element.name3!],
         );
       }
 
@@ -163,7 +163,7 @@ class PropertyElementResolver with ScopeHelpers {
         _reportUnresolvedIndex(
           node,
           CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR,
-          ['[]=', target.element2.name3!],
+          ['[]=', target.element.name3!],
         );
       }
 
@@ -723,7 +723,7 @@ class PropertyElementResolver with ScopeHelpers {
       );
     }
 
-    var element = target.element2;
+    var element = target.element;
     var memberName = propertyName.name;
 
     var result = _extensionResolver.getOverrideMember(target, memberName);

@@ -224,7 +224,7 @@ class AstBinaryReader {
       constructorName: constructorName,
       arguments: arguments,
     );
-    node.element2 = _reader.readElement();
+    node.element = _reader.readElement();
     return node;
   }
 
@@ -273,9 +273,9 @@ class AstBinaryReader {
       rightHandSide: rightHandSide,
     );
     node.element = _reader.readElement() as MethodElement2OrMember?;
-    node.readElement2 = _reader.readElement();
+    node.readElement = _reader.readElement();
     node.readType = _reader.readType();
-    node.writeElement2 = _reader.readElement();
+    node.writeElement = _reader.readElement();
     node.writeType = _reader.readType();
     _readExpressionResolution(node);
     return node;
@@ -524,7 +524,7 @@ class AstBinaryReader {
     var node = ExtensionOverrideImpl(
       importPrefix: importPrefix,
       name: StringToken(TokenType.STRING, extensionName, -1),
-      element2: element,
+      element: element,
       argumentList: argumentList,
       typeArguments: typeArguments,
     );
@@ -755,7 +755,7 @@ class AstBinaryReader {
       name: StringToken(TokenType.STRING, name, -1),
       period: Tokens.period(),
     );
-    node.element2 = _reader.readElement();
+    node.element = _reader.readElement();
     return node;
   }
 
@@ -963,7 +963,7 @@ class AstBinaryReader {
       typeArguments: typeArguments,
       question: AstBinaryFlags.hasQuestion(flags) ? Tokens.question() : null,
     );
-    node.element2 = _reader.readElement();
+    node.element = _reader.readElement();
     node.type = _reader.readType();
     return node;
   }
@@ -1023,9 +1023,9 @@ class AstBinaryReader {
     );
     node.element = _reader.readElement() as MethodElement?;
     if (node.operator.type.isIncrementOperator) {
-      node.readElement2 = _reader.readElement();
+      node.readElement = _reader.readElement();
       node.readType = _reader.readType();
-      node.writeElement2 = _reader.readElement();
+      node.writeElement = _reader.readElement();
       node.writeType = _reader.readType();
     }
     _readExpressionResolution(node);
@@ -1053,9 +1053,9 @@ class AstBinaryReader {
     );
     node.element = _reader.readElement() as MethodElement?;
     if (node.operator.type.isIncrementOperator) {
-      node.readElement2 = _reader.readElement();
+      node.readElement = _reader.readElement();
       node.readType = _reader.readType();
-      node.writeElement2 = _reader.readElement();
+      node.writeElement = _reader.readElement();
       node.writeType = _reader.readType();
     }
     _readExpressionResolution(node);

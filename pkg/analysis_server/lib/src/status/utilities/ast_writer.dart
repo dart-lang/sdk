@@ -35,9 +35,9 @@ class AstWriter extends UnifyingAstVisitor<void> with TreeWriter {
     properties['name'] = _getName(node);
     if (node is ArgumentListImpl) {
       properties['corresponding static parameters'] =
-          node.correspondingStaticParameters2;
+          node.correspondingStaticParameters;
     } else if (node is Annotation) {
-      properties['element'] = node.element2;
+      properties['element'] = node.element;
       properties['element annotation'] = node.elementAnnotation;
     } else if (node is BinaryExpression) {
       properties['element'] = node.element;
@@ -55,7 +55,7 @@ class AstWriter extends UnifyingAstVisitor<void> with TreeWriter {
     } else if (node is ConstructorName) {
       properties['element'] = node.element;
     } else if (node is DeclaredIdentifier) {
-      properties['element'] = node.declaredElement2;
+      properties['element'] = node.declaredElement;
       properties['keyword'] = node.keyword;
     } else if (node is ExportDirective) {
       properties['library export'] = node.libraryExport;
@@ -92,7 +92,7 @@ class AstWriter extends UnifyingAstVisitor<void> with TreeWriter {
     } else if (node is InstanceCreationExpression) {
       properties['static type'] = node.staticType;
     } else if (node is LibraryDirective) {
-      properties['element'] = node.element2;
+      properties['element'] = node.element;
     } else if (node is MethodDeclaration) {
       properties['declared fragment'] = node.declaredFragment;
       properties['external keyword'] = node.externalKeyword;

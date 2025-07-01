@@ -783,7 +783,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   @override
   void visitConstructorName(ConstructorName node) {
     if (node.parent is ConstructorReference) {
-      var element = node.type.element2;
+      var element = node.type.element;
       if (element is InterfaceElement) {
         declarationHelper(
           preferNonInvocation: true,
@@ -1695,7 +1695,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void visitImportPrefixReference(ImportPrefixReference node) {
     var parent = node.parent;
     if (parent is NamedType && offset <= parent.name.offset) {
-      var element = node.element2;
+      var element = node.element;
       DartType type;
       collector.completionLocation = 'PropertyAccess_propertyName';
       if (element is FunctionTypedElement) {
@@ -2081,7 +2081,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         collector.completionLocation = 'ArgumentList_method_named';
       }
       _forExpression(node, mustBeNonVoid: inArgumentList);
-      var parameterType = node.element2?.type;
+      var parameterType = node.element?.type;
       if (parameterType is FunctionType) {
         var includeTrailingComma = !node.isFollowedByComma;
         _addClosureSuggestion(parameterType, includeTrailingComma);
@@ -2092,7 +2092,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   @override
   void visitNamedType(NamedType node) {
     var importPrefix = node.importPrefix;
-    var prefixElement = importPrefix?.element2;
+    var prefixElement = importPrefix?.element;
 
     // `prefix.x^ print(0);` is recovered as `prefix.x print; (0);`.
     if (prefixElement is PrefixElement) {
@@ -2388,7 +2388,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       }
       if (type == null && target is ExtensionOverride) {
         declarationHelper().addMembersFromExtensionElement(
-          target.element2,
+          target.element,
           excludedGetters: {},
           includeMethods: true,
           includeSetters: true,
@@ -2643,7 +2643,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       collector.completionLocation = 'FormalParameterList_parameter';
       if (type is NamedType) {
         if (type.importPrefix case var importPrefix?) {
-          var prefixElement = importPrefix.element2;
+          var prefixElement = importPrefix.element;
           if (prefixElement is PrefixElement) {
             if (type.name.coversOffset(offset)) {
               declarationHelper(
@@ -3854,7 +3854,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
     if (node is NamedType) {
       if (node.importPrefix case var importPrefix?) {
-        var prefixElement = importPrefix.element2;
+        var prefixElement = importPrefix.element;
         if (prefixElement is PrefixElement) {
           declarationHelper(
             mustBeExtensible: mustBeExtensible,
@@ -4336,11 +4336,11 @@ extension on ArgumentList {
   Element? get invokedElement {
     switch (parent) {
       case Annotation invocation:
-        return invocation.element2;
+        return invocation.element;
       case EnumConstantArguments invocation:
         var grandParent = invocation.parent;
         if (grandParent is EnumConstantDeclaration) {
-          return grandParent.constructorElement2;
+          return grandParent.constructorElement;
         }
       case FunctionExpressionInvocation invocation:
         var element = invocation.element;

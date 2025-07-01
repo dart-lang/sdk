@@ -38,7 +38,7 @@ class CreateClass extends MultiCorrectionProducer {
     if (targetNode is NamedType) {
       var importPrefix = targetNode.importPrefix;
       if (importPrefix != null) {
-        prefixElement = importPrefix.element2;
+        prefixElement = importPrefix.element;
         if (prefixElement == null) {
           return const [];
         }

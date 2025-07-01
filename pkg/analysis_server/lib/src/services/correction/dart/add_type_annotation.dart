@@ -114,7 +114,7 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
     if (declaredIdentifier.type != null) {
       return;
     }
-    var type = declaredIdentifier.declaredElement2!.type;
+    var type = declaredIdentifier.declaredElement!.type;
     if (type is! InterfaceType &&
         type is! FunctionType &&
         type is! RecordType &&
@@ -225,7 +225,7 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
     if (statement is! VariableDeclarationStatement || block is! Block) {
       return null;
     }
-    var element = variable.declaredElement2;
+    var element = variable.declaredElement;
     if (element == null) {
       return null;
     }

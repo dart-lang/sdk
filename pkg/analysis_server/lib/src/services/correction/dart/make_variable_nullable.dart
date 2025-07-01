@@ -67,7 +67,7 @@ class MakeVariableNullable extends ResolvedCorrectionProducer {
         if (statement is VariableDeclarationStatement) {
           var variableList = statement.variables;
           for (var declaration in variableList.variables) {
-            if (declaration.declaredElement2 == variable) {
+            if (declaration.declaredElement == variable) {
               return variableList;
             }
           }

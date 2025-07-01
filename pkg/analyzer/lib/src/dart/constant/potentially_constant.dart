@@ -411,7 +411,7 @@ class _ConstantTypeChecker {
     }
     if (potentially &&
         node is NamedType &&
-        node.element2 is TypeParameterElement) {
+        node.element is TypeParameterElement) {
       return true;
     }
 
@@ -476,8 +476,8 @@ class _ConstantTypeChecker {
 
 extension on NamedType {
   bool get isConstantNamedType {
-    var element2 = this.element2;
-    if (element2 is InterfaceElement || element2 is TypeAliasElement) {
+    var element = this.element;
+    if (element is InterfaceElement || element is TypeAliasElement) {
       return !isDeferred;
     }
     return false;

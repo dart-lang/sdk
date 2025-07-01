@@ -362,10 +362,10 @@ class _LocalElementsCollector extends GeneralizingAstVisitor<void> {
   void visitSimpleIdentifier(SimpleIdentifier node) {
     var element = node.element;
     if (node.parent case AssignmentExpression(
-      :var writeElement2,
+      :var writeElement,
       :var leftHandSide,
     ) when node == leftHandSide) {
-      element = writeElement2;
+      element = writeElement;
     }
     if (element is! PropertyAccessorElement) {
       return;

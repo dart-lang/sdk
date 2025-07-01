@@ -555,7 +555,7 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
           }
           if (argument.contains(offset)) {
             if (offset >= argument.name.end) {
-              return argument.element2?.type;
+              return argument.element?.type;
             }
             return null;
           }
@@ -1251,9 +1251,9 @@ parent3: ${node.parent?.parent?.parent}
     pattern = pattern.unParenthesized;
     Element? element;
     if (pattern is AssignedVariablePattern) {
-      element = pattern.element2;
+      element = pattern.element;
     } else if (pattern is DeclaredVariablePattern) {
-      element = pattern.declaredElement2;
+      element = pattern.declaredElement;
       // } else if (pattern is RecordPattern) {
       //   pattern.fields.map((e) => _requiredTypeOfPattern(e.pattern)).toList();
     } else if (pattern is ListPattern) {
@@ -1281,7 +1281,7 @@ parent3: ${node.parent?.parent?.parent}
     if (type is! InterfaceType) {
       return null;
     }
-    var declaredElement = field.element2?.library;
+    var declaredElement = field.element?.library;
     var uri = declaredElement?.uri;
     var member = type.element.getInterfaceMember(Name(uri, name));
     if (member is GetterElement) {

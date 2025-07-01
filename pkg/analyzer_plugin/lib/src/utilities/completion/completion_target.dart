@@ -282,7 +282,7 @@ class CompletionTarget {
       var importPrefix = node.importPrefix;
       if (importPrefix != null && identical(node.name, entity)) {
         return SimpleIdentifierImpl(token: importPrefix.name)
-          ..element = importPrefix.element2;
+          ..element = importPrefix.element;
       }
     }
     if (node is PropertyAccess) {
@@ -316,13 +316,13 @@ class CompletionTarget {
 
       Element? executable;
       if (invocation is Annotation) {
-        executable = invocation.element2;
+        executable = invocation.element;
       } else if (invocation is EnumConstantArguments) {
         var enumConstant = invocation.parent;
         if (enumConstant is! EnumConstantDeclaration) {
           return null;
         }
-        executable = enumConstant.constructorElement2;
+        executable = enumConstant.constructorElement;
       } else if (invocation is InstanceCreationExpression) {
         executable = invocation.constructorName.element;
       } else if (invocation is MethodInvocation) {

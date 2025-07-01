@@ -210,7 +210,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (!typeSystem.isSubtypeOf(tearoffType, argType)) return;
       } else if (parent is VariableDeclaration) {
         var variableElement =
-            parent.declaredElement2 ?? parent.declaredFragment?.element;
+            parent.declaredElement ?? parent.declaredFragment?.element;
         var variableType = variableElement?.type;
         if (variableType == null) return;
         if (!typeSystem.isSubtypeOf(tearoffType, variableType)) return;

@@ -229,7 +229,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitAnnotation(Annotation node) {
-    var element = node.element2;
+    var element = node.element;
     if (element is ConstructorElement && element.isSynthetic) {
       element = element.enclosingElement;
     }
@@ -344,11 +344,11 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     {
       var importPrefix = namedType.importPrefix;
       if (importPrefix != null) {
-        computer._addRegionForElement(importPrefix.name, importPrefix.element2);
+        computer._addRegionForElement(importPrefix.name, importPrefix.element);
       }
       // For a named constructor, the class name points at the class.
       var classNameTargetElement =
-          node.name != null ? namedType.element2 : element;
+          node.name != null ? namedType.element : element;
       computer._addRegionForElement(namedType.name, classNameTargetElement);
     }
     // <TypeA, TypeB>
@@ -375,25 +375,25 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
-    if (node.declaredElement2 case BindPatternVariableElement(:var join2?)) {
+    if (node.declaredElement case BindPatternVariableElement(:var join2?)) {
       for (var variable in join2.variables) {
         computer._addRegionForElement(node.name, variable);
       }
     } else {
-      computer._addRegionForElement(node.name, node.declaredElement2);
+      computer._addRegionForElement(node.name, node.declaredElement);
     }
     super.visitDeclaredVariablePattern(node);
   }
 
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
-    computer._addRegionForElement(node.name, node.constructorElement2);
+    computer._addRegionForElement(node.name, node.constructorElement);
 
     var arguments = node.arguments;
     if (arguments != null) {
       computer._addRegionForElement(
         arguments.constructorSelector?.name,
-        node.constructorElement2,
+        node.constructorElement,
       );
       arguments.typeArguments?.accept(this);
       arguments.argumentList.accept(this);
@@ -439,7 +439,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitImportPrefixReference(ImportPrefixReference node) {
-    var element = node.element2;
+    var element = node.element;
     if (element == null) return;
     for (var fragment in element.fragments) {
       computer._addRegionForFragment(node.name, fragment);
@@ -449,7 +449,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitIndexExpression(IndexExpression node) {
     super.visitIndexExpression(node);
-    var element = node.writeOrReadElement2;
+    var element = node.writeOrReadElement;
     computer._addRegionForElement(node.leftBracket, element);
     computer._addRegionForElement(node.rightBracket, element);
   }
@@ -459,7 +459,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     if (node.constructorName.element == null) {
       computer._addRegionForElement(
         node.constructorName,
-        node.constructorName.type.element2,
+        node.constructorName.type.element,
       );
     }
     super.visitInstanceCreationExpression(node);
@@ -467,7 +467,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitLibraryDirective(LibraryDirective node) {
-    computer._addRegionForElement(node.name2, node.element2);
+    computer._addRegionForElement(node.name, node.element);
     super.visitLibraryDirective(node);
   }
 
@@ -480,7 +480,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitNamedType(NamedType node) {
     node.importPrefix?.accept(this);
-    computer._addRegionForElement(node.name, node.element2);
+    computer._addRegionForElement(node.name, node.element);
     node.typeArguments?.accept(this);
   }
 
@@ -532,7 +532,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     if (nameNode != null) {
       var nameToken = nameNode.name ?? node.pattern.variablePattern?.name;
       if (nameToken != null) {
-        computer._addRegionForElement(nameToken, node.element2);
+        computer._addRegionForElement(nameToken, node.element);
       }
     }
 
@@ -588,7 +588,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    var element = node.writeOrReadElement2;
+    var element = node.writeOrReadElement;
     if (element case PrefixElement(:var fragments, :var name3)) {
       for (var fragment in fragments) {
         computer._addRegionForFragmentRange(

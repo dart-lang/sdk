@@ -1839,7 +1839,7 @@ class ResolutionReader {
       var ast = _readRequiredNode() as AnnotationImpl;
       return ElementAnnotationImpl(unitElement)
         ..annotationAst = ast
-        ..element2 = ast.element2;
+        ..element2 = ast.element;
     });
 
     return MetadataImpl(annotations);

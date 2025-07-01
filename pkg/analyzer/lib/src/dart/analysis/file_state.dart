@@ -979,7 +979,7 @@ class FileState {
       } else if (directive is LibraryDirective) {
         libraryDirective = UnlinkedLibraryDirective(
           docImports: buildDocImports(directive),
-          name: directive.name2?.name,
+          name: directive.name?.name,
         );
       } else if (directive is PartDirective) {
         var unlinked = _serializePart(directive);

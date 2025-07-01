@@ -107,8 +107,7 @@ InstructionsPtr BuildInstructions(
                               /*optimized=*/false, /*stats=*/nullptr);
   };
   SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
-  thread->isolate_group()->RunWithStoppedMutators(install_code_fun,
-                                                  /*use_force_growth=*/true);
+  thread->isolate_group()->RunWithStoppedMutators(install_code_fun);
   return code.instructions();
 }
 

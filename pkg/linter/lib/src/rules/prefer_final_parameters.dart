@@ -77,7 +77,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (declaredElement != null &&
             !declaredElement.isInitializingFormal &&
             !declaredElement.isWildcardVariable &&
-            !body.isPotentiallyMutatedInScope2(declaredElement)) {
+            !body.isPotentiallyMutatedInScope(declaredElement)) {
           rule.reportAtNode(param, arguments: [param.name!.lexeme]);
         }
       }

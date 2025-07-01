@@ -40,7 +40,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     var constructorName = node.constructorName.name?.name;
 
-    if (node.constructorName.type.element2 is TypeAliasElement) {
+    if (node.constructorName.type.element is TypeAliasElement) {
       // Allow the use of typedef constructors.
       return;
     }

@@ -93,7 +93,7 @@ class NamedTypeResolver with ScopeHelpers {
       var prefixToken = importPrefix.name;
       var prefixName = prefixToken.lexeme;
       var prefixElement = nameScope.lookup(prefixName).getter2;
-      importPrefix.element2 = prefixElement;
+      importPrefix.element = prefixElement;
 
       if (prefixElement == null) {
         _resolveToElement(node, null, dataForTesting: dataForTesting);
@@ -319,7 +319,7 @@ class NamedTypeResolver with ScopeHelpers {
     Element? element, {
     required TypeConstraintGenerationDataForTesting? dataForTesting,
   }) {
-    node.element2 = element;
+    node.element = element;
 
     if (element == null) {
       node.type = InvalidTypeImpl.instance;
@@ -373,7 +373,7 @@ class NamedTypeResolver with ScopeHelpers {
         name: importPrefix.name,
         typeArguments: null,
         question: null,
-      )..element2 = importPrefixElement;
+      )..element = importPrefixElement;
       if (identical(node, redirectedConstructor_namedType)) {
         redirectedConstructor_namedType = namedType;
       }
@@ -717,7 +717,7 @@ class _ErrorHelper {
     var firstToken = node.name;
     var importPrefix = node.importPrefix;
     if (importPrefix != null) {
-      if (!skipImportPrefix || importPrefix.element2 is! PrefixElement) {
+      if (!skipImportPrefix || importPrefix.element is! PrefixElement) {
         firstToken = importPrefix.name;
       }
     }

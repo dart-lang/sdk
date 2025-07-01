@@ -97,7 +97,7 @@ class _UseStringBufferVisitor extends SimpleAstVisitor<void> {
         writeType is InterfaceType &&
         writeType.isDartCoreString) {
       if (node.operator.type == TokenType.PLUS_EQ &&
-          !localElements.contains(node.writeElement2)) {
+          !localElements.contains(node.writeElement)) {
         rule.reportAtNode(node);
       }
       if (node.operator.type == TokenType.EQ) {
@@ -125,7 +125,7 @@ class _UseStringBufferVisitor extends SimpleAstVisitor<void> {
   @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     for (var variable in node.variables.variables) {
-      localElements.add(variable.declaredElement2);
+      localElements.add(variable.declaredElement);
     }
   }
 }

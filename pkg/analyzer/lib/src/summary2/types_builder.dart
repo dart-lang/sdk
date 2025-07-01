@@ -536,7 +536,7 @@ class _MixinInference {
     List<TypeParameterElementImpl>? typeParameters;
     List<InterfaceTypeImpl>? supertypeConstraints;
     InterfaceTypeImpl Function(List<TypeImpl> typeArguments)? instantiate;
-    var mixinElement = mixinNode.element2;
+    var mixinElement = mixinNode.element;
     if (mixinElement is InterfaceElementImpl) {
       typeParameters = mixinElement.typeParameters2;
       if (typeParameters.isNotEmpty) {

@@ -144,7 +144,7 @@ class CreateGetter extends CreateFieldOrGetter {
     var staticModifier = false;
     InstanceElement? targetElement;
     if (target is ExtensionOverride) {
-      targetElement = target.element2;
+      targetElement = target.element;
     } else if (target case Identifier(element: InstanceElement element)) {
       targetElement = element;
       staticModifier = true;

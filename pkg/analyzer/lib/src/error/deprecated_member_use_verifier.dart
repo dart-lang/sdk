@@ -23,8 +23,8 @@ abstract class BaseDeprecatedMemberUseVerifier {
     : _strictCasts = strictCasts;
 
   void assignmentExpression(AssignmentExpression node) {
-    _checkForDeprecated(node.readElement2, node.leftHandSide);
-    _checkForDeprecated(node.writeElement2, node.leftHandSide);
+    _checkForDeprecated(node.readElement, node.leftHandSide);
+    _checkForDeprecated(node.writeElement, node.leftHandSide);
     _checkForDeprecated(node.element, node);
   }
 
@@ -47,7 +47,7 @@ abstract class BaseDeprecatedMemberUseVerifier {
   }
 
   void extensionOverride(ExtensionOverride node) {
-    _checkForDeprecated(node.element2, node);
+    _checkForDeprecated(node.element, node);
   }
 
   void functionExpressionInvocation(FunctionExpressionInvocation node) {
@@ -75,11 +75,11 @@ abstract class BaseDeprecatedMemberUseVerifier {
   }
 
   void namedType(NamedType node) {
-    _checkForDeprecated(node.element2, node);
+    _checkForDeprecated(node.element, node);
   }
 
   void patternField(PatternField node) {
-    _checkForDeprecated(node.element2, node);
+    _checkForDeprecated(node.element, node);
   }
 
   void popInDeprecated() {
@@ -87,14 +87,14 @@ abstract class BaseDeprecatedMemberUseVerifier {
   }
 
   void postfixExpression(PostfixExpression node) {
-    _checkForDeprecated(node.readElement2, node.operand);
-    _checkForDeprecated(node.writeElement2, node.operand);
+    _checkForDeprecated(node.readElement, node.operand);
+    _checkForDeprecated(node.writeElement, node.operand);
     _checkForDeprecated(node.element, node);
   }
 
   void prefixExpression(PrefixExpression node) {
-    _checkForDeprecated(node.readElement2, node.operand);
-    _checkForDeprecated(node.writeElement2, node.operand);
+    _checkForDeprecated(node.readElement, node.operand);
+    _checkForDeprecated(node.writeElement, node.operand);
     _checkForDeprecated(node.element, node);
   }
 

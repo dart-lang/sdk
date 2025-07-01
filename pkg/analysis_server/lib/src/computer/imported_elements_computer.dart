@@ -71,8 +71,8 @@ class _Visitor extends UnifyingAstVisitor<void> {
   void visitNamedType(NamedType node) {
     if (node.offset <= endOffset && node.end >= startOffset) {
       var importPrefix = node.importPrefix;
-      var prefix = importPrefix?.element2?.name3 ?? '';
-      _addElement(prefix, node.element2);
+      var prefix = importPrefix?.element?.name3 ?? '';
+      _addElement(prefix, node.element);
     }
 
     super.visitNamedType(node);
@@ -91,7 +91,7 @@ class _Visitor extends UnifyingAstVisitor<void> {
         node.offset <= endOffset &&
         node.end >= startOffset &&
         !_isConstructorDeclarationReturnType(node)) {
-      var nodeElement = node.writeOrReadElement2;
+      var nodeElement = node.writeOrReadElement;
 
       var prefix = '';
       var parent = node.parent;

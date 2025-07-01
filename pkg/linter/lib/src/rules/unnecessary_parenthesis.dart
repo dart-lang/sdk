@@ -66,7 +66,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     // Don't over-report on records missing trailing commas.
     // `(int,) r = (3);` is OK.
     if (parent is VariableDeclaration &&
-        parent.declaredElement2?.type is RecordType) {
+        parent.declaredElement?.type is RecordType) {
       if (expression is! RecordLiteral) return;
     }
 

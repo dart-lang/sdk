@@ -11,47 +11,47 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:collection/collection.dart';
 
 // TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
-Element? _readElement2(AstNode node) {
+Element? _readElement(AstNode node) {
   var parent = node.parent;
 
   if (parent is AssignmentExpression && parent.leftHandSide == node) {
-    return parent.readElement2;
+    return parent.readElement;
   }
   if (parent is PostfixExpression && parent.operand == node) {
-    return parent.readElement2;
+    return parent.readElement;
   }
   if (parent is PrefixExpression && parent.operand == node) {
-    return parent.readElement2;
+    return parent.readElement;
   }
 
   if (parent is PrefixedIdentifier && parent.identifier == node) {
-    return _readElement2(parent);
+    return _readElement(parent);
   }
   if (parent is PropertyAccess && parent.propertyName == node) {
-    return _readElement2(parent);
+    return _readElement(parent);
   }
   return null;
 }
 
 // TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
-Element? _writeElement2(AstNode node) {
+Element? _writeElement(AstNode node) {
   var parent = node.parent;
 
   if (parent is AssignmentExpression && parent.leftHandSide == node) {
-    return parent.writeElement2;
+    return parent.writeElement;
   }
   if (parent is PostfixExpression && parent.operand == node) {
-    return parent.writeElement2;
+    return parent.writeElement;
   }
   if (parent is PrefixExpression && parent.operand == node) {
-    return parent.writeElement2;
+    return parent.writeElement;
   }
 
   if (parent is PrefixedIdentifier && parent.identifier == node) {
-    return _writeElement2(parent);
+    return _writeElement(parent);
   }
   if (parent is PropertyAccess && parent.propertyName == node) {
-    return _writeElement2(parent);
+    return _writeElement(parent);
   }
   return null;
 }
@@ -199,8 +199,8 @@ extension FormalParameterExtension on FormalParameter {
 
 // TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
 extension IdentifierExtension on Identifier {
-  Element? get readElement2 {
-    return _readElement2(this);
+  Element? get readElement {
+    return _readElement(this);
   }
 
   SimpleIdentifier get simpleName {
@@ -212,12 +212,12 @@ extension IdentifierExtension on Identifier {
     }
   }
 
-  Element? get writeElement2 {
-    return _writeElement2(this);
+  Element? get writeElement {
+    return _writeElement(this);
   }
 
-  Element? get writeOrReadElement2 {
-    return _writeElement2(this) ?? element;
+  Element? get writeOrReadElement {
+    return _writeElement(this) ?? element;
   }
 
   DartType? get writeOrReadType {
@@ -236,18 +236,18 @@ extension IdentifierImplExtension on IdentifierImpl {
         importPrefix: ImportPrefixReferenceImpl(
           name: self.prefix.token,
           period: self.period,
-        )..element2 = self.prefix.element,
+        )..element = self.prefix.element,
         name: self.identifier.token,
         typeArguments: typeArguments,
         question: question,
-      )..element2 = self.identifier.element;
+      )..element = self.identifier.element;
     } else if (self is SimpleIdentifierImpl) {
       return NamedTypeImpl(
         importPrefix: null,
         name: self.token,
         typeArguments: typeArguments,
         question: question,
-      )..element2 = self.element;
+      )..element = self.element;
     } else {
       throw UnimplementedError('(${self.runtimeType}) $self');
     }
@@ -256,8 +256,8 @@ extension IdentifierImplExtension on IdentifierImpl {
 
 // TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
 extension IndexExpressionExtension on IndexExpression {
-  Element? get writeOrReadElement2 {
-    return _writeElement2(this) ?? element;
+  Element? get writeOrReadElement {
+    return _writeElement(this) ?? element;
   }
 }
 

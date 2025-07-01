@@ -79,7 +79,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
-    var element = node.writeElement2?.canonicalElement2;
+    var element = node.writeElement?.canonicalElement2;
     if (element != null) {
       var assignee = node.leftHandSide;
       var rhsType = node.rightHandSide.staticType;

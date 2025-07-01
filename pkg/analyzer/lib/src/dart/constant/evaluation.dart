@@ -858,7 +858,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     var typeArguments = classType.typeArguments;
     // The result is already instantiated during resolution;
     // [_dartObjectComputer.typeInstantiate] is unnecessary.
-    var typeElement = node.constructorName.type.element2;
+    var typeElement = node.constructorName.type.element;
 
     TypeAliasElement? viaTypeAlias;
     if (typeElement is TypeAliasElementImpl) {
@@ -1196,7 +1196,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       errorNode: node,
       expression: null,
       identifier: null,
-      element: node.element2,
+      element: node.element,
       givenType: type,
     );
   }
@@ -3619,7 +3619,7 @@ class _InstanceCreationEvaluator {
       // an unresolved expression is evaluated. We do this to continue the
       // rest of the evaluation without producing unrelated errors.
       if (argument is NamedExpressionImpl) {
-        var parameterType = argument.element2?.type ?? InvalidTypeImpl.instance;
+        var parameterType = argument.element?.type ?? InvalidTypeImpl.instance;
         var argumentConstant = constantVisitor._valueOf(
           argument.expression,
           parameterType,

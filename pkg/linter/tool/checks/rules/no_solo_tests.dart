@@ -58,7 +58,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
 extension on Annotation {
   bool get isSoloTest {
-    var element = element2;
+    var element = this.element;
     return element is GetterElement &&
         element.name3 == 'soloTest' &&
         element.library.name3 == 'test_reflective_loader';

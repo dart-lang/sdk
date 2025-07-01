@@ -347,7 +347,7 @@ class FlowAnalysisHelper {
       for (var i = 0; i < variables.length; ++i) {
         var variable = variables[i];
         var declaredElement =
-            variable.declaredElement2 as PromotableElementImpl;
+            variable.declaredElement as PromotableElementImpl;
         flow!.declare(
           declaredElement,
           SharedTypeView(declaredElement.type),
@@ -952,7 +952,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitAssignedVariablePattern(AssignedVariablePattern node) {
-    var element = node.element2;
+    var element = node.element;
     if (element is PromotableElement) {
       assignedVariables.write(element);
     }
@@ -991,7 +991,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
       node.stackTraceParameter,
     ]) {
       if (identifier != null) {
-        assignedVariables.declare(identifier.declaredElement2!);
+        assignedVariables.declare(identifier.declaredElement!);
       }
     }
     super.visitCatchClause(node);
@@ -1182,7 +1182,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
         grandParent is FieldDeclaration) {
       throw StateError('Should not visit top level declarations');
     }
-    var declaredElement = node.declaredElement2 as PromotableElement;
+    var declaredElement = node.declaredElement as PromotableElement;
     assignedVariables.declare(declaredElement);
     if (declaredElement.isLate && node.initializer != null) {
       assignedVariables.beginNode();
@@ -1235,7 +1235,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
           assignedVariables.write(element);
         }
       } else if (forLoopParts is ForEachPartsWithDeclaration) {
-        var variable = forLoopParts.loopVariable.declaredElement2!;
+        var variable = forLoopParts.loopVariable.declaredElement!;
         assignedVariables.declare(variable);
       } else if (forLoopParts is ForEachPartsWithPatternImpl) {
         for (var variable in forLoopParts.variables) {

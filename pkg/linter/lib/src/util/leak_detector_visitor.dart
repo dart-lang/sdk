@@ -200,7 +200,7 @@ class _ValidUseVisitor extends RecursiveAstVisitor<void> {
     // Being assigned another reference.
     if (node.rightHandSide is SimpleIdentifier) {
       if (_isElementEqualToVariable(
-        node.writeElement2,
+        node.writeElement,
         variable.declaredFragment?.element,
       )) {
         containsValidUse = true;

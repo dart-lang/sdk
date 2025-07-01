@@ -36,7 +36,7 @@ class TypeArgumentsVerifier {
       _libraryElement.typeSystem as TypeSystemImpl;
 
   void checkConstructorReference(ConstructorReferenceImpl node) {
-    var classElement = node.constructorName.type.element2;
+    var classElement = node.constructorName.type.element;
     List<TypeParameterElementImpl> typeParameters;
     if (classElement is TypeAliasElementImpl) {
       typeParameters = classElement.typeParameters2;
@@ -101,7 +101,7 @@ class TypeArgumentsVerifier {
   }
 
   void checkEnumConstantDeclaration(EnumConstantDeclarationImpl node) {
-    var constructorElement = node.constructorElement2;
+    var constructorElement = node.constructorElement;
     if (constructorElement == null) {
       return;
     }
@@ -277,7 +277,7 @@ class TypeArgumentsVerifier {
       return;
     }
     var type = node.typeOrThrow;
-    if (_isMissingTypeArguments(node, type, node.element2)) {
+    if (_isMissingTypeArguments(node, type, node.element)) {
       AstNode unwrappedParent = parentEscapingTypeArguments(node);
       if (unwrappedParent is AsExpression ||
           unwrappedParent is CastPattern ||

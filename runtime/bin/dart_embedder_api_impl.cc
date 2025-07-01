@@ -6,6 +6,7 @@
 
 #include "bin/dartutils.h"
 #include "bin/eventhandler.h"
+#include "bin/io_service.h"
 #include "bin/isolate_data.h"
 #include "bin/process.h"
 #include "bin/secure_socket_filter.h"
@@ -54,6 +55,7 @@ void Cleanup() {
   bin::SSLFilter::Cleanup();
 #endif
   bin::Process::Cleanup();
+  bin::IOService::Cleanup();
 }
 
 Dart_Isolate CreateKernelServiceIsolate(const IsolateCreationData& data,

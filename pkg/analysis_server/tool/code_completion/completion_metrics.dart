@@ -1793,16 +1793,16 @@ class CompletionResult {
         var parent = node.parent;
         if (parent is AssignmentExpression) {
           if (node == parent.leftHandSide) {
-            return parent.readElement2 ?? parent.writeElement2;
+            return parent.readElement ?? parent.writeElement;
           }
           return null;
         } else if (parent is PrefixExpression) {
           if (parent.operator.type == TokenType.PLUS_PLUS ||
               parent.operator.type == TokenType.MINUS_MINUS) {
-            return parent.readElement2 ?? parent.writeElement2;
+            return parent.readElement ?? parent.writeElement;
           }
         } else if (parent is PostfixExpression) {
-          return parent.readElement2 ?? parent.writeElement2;
+          return parent.readElement ?? parent.writeElement;
         }
         node = parent;
       }

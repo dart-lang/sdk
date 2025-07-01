@@ -216,7 +216,7 @@ bool isLocalElement(Element? element) {
 }
 
 Element? _getLocalElement(SimpleIdentifier node) {
-  var element = node.writeOrReadElement2;
+  var element = node.writeOrReadElement;
   if (isLocalElement(element)) {
     return element;
   }
@@ -1339,7 +1339,7 @@ class _ExtractMethodAnalyzer extends StatementAnalyzer {
         invalidSelection('Cannot extract the name part of a declaration.');
       }
       // method name
-      var element = node.writeOrReadElement2;
+      var element = node.writeOrReadElement;
       if (element is LocalFunctionElement ||
           element is MethodElement ||
           element is TopLevelFunctionElement) {
@@ -1729,7 +1729,7 @@ class _IsUsedAfterSelectionVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    var nodeElement = node.writeOrReadElement2;
+    var nodeElement = node.writeOrReadElement;
     if (identical(nodeElement, element)) {
       var nodeOffset = node.offset;
       if (nodeOffset > ref._selectionRange.end) {

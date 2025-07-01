@@ -43,7 +43,7 @@ abstract class VarianceChecker {
       case NamedType():
         var arguments = typeAnnotation.typeArguments?.arguments;
         if (arguments != null) {
-          var element = typeAnnotation.element2?.baseElement;
+          var element = typeAnnotation.element?.baseElement;
           List<TypeParameterElement>? typeParameterList;
           if (element != null) {
             switch (element) {

@@ -196,7 +196,7 @@ class _ElementCollector extends ThrowingAstVisitor<void> {
   @override
   void visitAnnotation(Annotation node) {
     node.visitChildren(this);
-    _addElement(node.element2);
+    _addElement(node.element);
   }
 
   @override
@@ -296,7 +296,7 @@ class _ElementCollector extends ThrowingAstVisitor<void> {
   @override
   void visitNamedType(NamedType node) {
     node.visitChildren(this);
-    _addElement(node.element2);
+    _addElement(node.element);
   }
 
   @override

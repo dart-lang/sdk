@@ -240,7 +240,7 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    if (importedElements.contains(node.element2)) {
+    if (importedElements.contains(node.element)) {
       var prefixFragment = import.prefix2;
       var importPrefix = node.importPrefix;
       if (prefixFragment == null) {
@@ -249,7 +249,7 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
         }
       } else {
         if (importPrefix != null &&
-            importPrefix.element2 == prefixFragment.element) {
+            importPrefix.element == prefixFragment.element) {
           var offset = importPrefix.offset;
           var end = importPrefix.period.end;
           _addResult(offset, end - offset);
@@ -270,7 +270,7 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
       if (node.element == import.prefix2?.element) {
         var parent = node.parent;
         if (parent is PrefixedIdentifier && parent.prefix == node) {
-          var element = parent.writeOrReadElement2?.baseElement;
+          var element = parent.writeOrReadElement?.baseElement;
           if (importedElements.contains(element)) {
             _addResultForPrefix(node, parent.identifier);
           }
@@ -283,7 +283,7 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
         }
       }
     } else {
-      var element = node.writeOrReadElement2?.baseElement;
+      var element = node.writeOrReadElement?.baseElement;
       if (importedElements.contains(element)) {
         _addResult(node.offset, 0);
       }
@@ -1683,7 +1683,7 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitAssignedVariablePattern(AssignedVariablePattern node) {
-    if (elements.contains(node.element2)) {
+    if (elements.contains(node.element)) {
       _addResult(node, SearchResultKind.WRITE);
     }
 
@@ -1699,7 +1699,7 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitImportPrefixReference(ImportPrefixReference node) {
-    var element = node.element2;
+    var element = node.element;
     if (elements.contains(element)) {
       _addResult(node.name, SearchResultKind.REFERENCE);
     }
@@ -1707,7 +1707,7 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    var element = node.element2;
+    var element = node.element;
     if (elements.contains(element)) {
       _addResult(node.name, SearchResultKind.REFERENCE);
     }

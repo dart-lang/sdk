@@ -168,7 +168,7 @@ class _UsageFinder extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (node.writeOrReadElement2 == element) {
+    if (node.writeOrReadElement == element) {
       used = true;
     }
   }

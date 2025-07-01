@@ -68,7 +68,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitAssignedVariablePattern(AssignedVariablePattern node) {
     var valueType = node.matchedValueType;
-    var element = node.element2;
+    var element = node.element;
     if (element is! VariableElement) return;
     _check(element.type, valueType, node);
   }
