@@ -418,7 +418,7 @@ class AnalyzerTypeOperations implements TypeOperations<TypeImpl> {
           fieldTypes[NameKey(name)] = getter.type.returnType;
         }
       }
-      for (var method in type.methods2) {
+      for (var method in type.methods) {
         if (method.isPrivate && method.library != _enclosingLibrary) {
           continue;
         }

@@ -109,6 +109,7 @@
 * Deprecated `PatternField.element2, use `element` instead.
 * Deprecated `RelationalPattern.element2, use `element` instead.
 * Deprecated `VariableDeclaration.declaredElement2, use `declaredElement` instead.
+* Deprecate `InterfaceType.methods2`, use `methods` instead.
 
 ## 7.4.1
 * Restore `InstanceElement.augmented` getter.

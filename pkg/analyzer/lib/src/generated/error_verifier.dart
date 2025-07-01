@@ -4534,7 +4534,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
               return;
             }
           }
-          for (var method in type.methods2) {
+          for (var method in type.methods) {
             if (method.isStatic) {
               continue;
             }

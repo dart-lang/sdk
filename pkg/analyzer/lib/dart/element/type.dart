@@ -310,6 +310,11 @@ abstract class InterfaceType implements ParameterizedType {
 
   /// Return a list containing all of the methods declared in this type.
   @experimental
+  List<MethodElement> get methods;
+
+  /// Return a list containing all of the methods declared in this type.
+  @Deprecated('Use methods instead')
+  @experimental
   List<MethodElement> get methods2;
 
   /// Return a list containing all of the mixins that are applied to the class

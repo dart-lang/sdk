@@ -762,12 +762,16 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  List<MethodElement2OrMember> get methods2 {
+  List<MethodElement2OrMember> get methods {
     return _methods ??=
         element.methods.map((e) {
           return MethodMember.forTargetType(e, this);
         }).toFixedList();
   }
+
+  @Deprecated('Use methods instead')
+  @override
+  List<MethodElement2OrMember> get methods2 => methods;
 
   @override
   List<InterfaceTypeImpl> get mixins {
