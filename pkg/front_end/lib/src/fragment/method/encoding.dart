@@ -25,6 +25,7 @@ import '../../source/source_loader.dart';
 import '../../source/source_member_builder.dart';
 import '../../source/source_method_builder.dart';
 import '../../source/source_type_parameter_builder.dart';
+import '../../source/type_parameter_factory.dart';
 import '../fragment.dart';
 
 sealed class MethodEncoding implements InferredTypeListener {
@@ -97,10 +98,8 @@ sealed class MethodEncodingStrategy {
     }
   }
 
-  MethodEncoding createMethodEncoding(
-      SourceMethodBuilder builder,
-      MethodFragment fragment,
-      List<NominalParameterBuilder> unboundNominalParameters);
+  MethodEncoding createMethodEncoding(SourceMethodBuilder builder,
+      MethodFragment fragment, TypeParameterFactory typeParameterFactory);
 }
 
 mixin _DirectMethodEncodingMixin implements MethodEncoding {
@@ -212,7 +211,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
     List<SourceNominalParameterBuilder>? typeParameters =
         _fragment.declaredTypeParameters?.builders;
     if (typeParameters != null && typeParameters.isNotEmpty) {
-      libraryBuilder.checkTypeParameterDependencies(typeParameters);
+      checkTypeParameterDependencies(libraryBuilder, typeParameters);
     }
     libraryBuilder.checkInitializersInFormals(
         _fragment.declaredFormals, typeEnvironment,
@@ -481,7 +480,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
     List<SourceNominalParameterBuilder>? typeParameters =
         _fragment.declaredTypeParameters?.builders;
     if (typeParameters != null && typeParameters.isNotEmpty) {
-      libraryBuilder.checkTypeParameterDependencies(typeParameters);
+      checkTypeParameterDependencies(libraryBuilder, typeParameters);
     }
     libraryBuilder.checkInitializersInFormals(
         _fragment.declaredFormals, typeEnvironment,
@@ -749,17 +748,15 @@ class _ExtensionInstanceMethodStrategy implements MethodEncodingStrategy {
   const _ExtensionInstanceMethodStrategy();
 
   @override
-  MethodEncoding createMethodEncoding(
-      SourceMethodBuilder builder,
-      MethodFragment fragment,
-      List<NominalParameterBuilder> unboundNominalParameters) {
+  MethodEncoding createMethodEncoding(SourceMethodBuilder builder,
+      MethodFragment fragment, TypeParameterFactory typeParameterFactory) {
     ExtensionBuilder declarationBuilder =
         builder.declarationBuilder as ExtensionBuilder;
     SynthesizedExtensionSignature signature = new SynthesizedExtensionSignature(
         declarationBuilder: declarationBuilder,
         extensionTypeParameterFragments:
             fragment.enclosingDeclaration!.typeParameters,
-        unboundNominalParameters: unboundNominalParameters,
+        typeParameterFactory: typeParameterFactory,
         onTypeBuilder: declarationBuilder.onType,
         fileUri: fragment.fileUri,
         fileOffset: fragment.nameOffset);
@@ -827,10 +824,8 @@ class _ExtensionStaticMethodStrategy implements MethodEncodingStrategy {
   const _ExtensionStaticMethodStrategy();
 
   @override
-  MethodEncoding createMethodEncoding(
-      SourceMethodBuilder builder,
-      MethodFragment fragment,
-      List<NominalParameterBuilder> unboundNominalParameters) {
+  MethodEncoding createMethodEncoding(SourceMethodBuilder builder,
+      MethodFragment fragment, TypeParameterFactory typeParameterFactory) {
     return new _ExtensionStaticMethodEncoding(fragment);
   }
 }
@@ -867,10 +862,8 @@ class _ExtensionTypeInstanceMethodStrategy implements MethodEncodingStrategy {
   const _ExtensionTypeInstanceMethodStrategy();
 
   @override
-  MethodEncoding createMethodEncoding(
-      SourceMethodBuilder builder,
-      MethodFragment fragment,
-      List<NominalParameterBuilder> unboundNominalParameters) {
+  MethodEncoding createMethodEncoding(SourceMethodBuilder builder,
+      MethodFragment fragment, TypeParameterFactory typeParameterFactory) {
     ExtensionTypeDeclarationBuilder declarationBuilder =
         builder.declarationBuilder as ExtensionTypeDeclarationBuilder;
     SynthesizedExtensionTypeSignature signature =
@@ -878,7 +871,7 @@ class _ExtensionTypeInstanceMethodStrategy implements MethodEncodingStrategy {
             extensionTypeDeclarationBuilder: declarationBuilder,
             extensionTypeTypeParameters:
                 fragment.enclosingDeclaration!.typeParameters,
-            unboundNominalParameters: unboundNominalParameters,
+            typeParameterFactory: typeParameterFactory,
             fileUri: fragment.fileUri,
             fileOffset: fragment.nameOffset);
     return fragment.isOperator
@@ -945,10 +938,8 @@ class _ExtensionTypeStaticMethodStrategy implements MethodEncodingStrategy {
   const _ExtensionTypeStaticMethodStrategy();
 
   @override
-  MethodEncoding createMethodEncoding(
-      SourceMethodBuilder builder,
-      MethodFragment fragment,
-      List<NominalParameterBuilder> unboundNominalParameters) {
+  MethodEncoding createMethodEncoding(SourceMethodBuilder builder,
+      MethodFragment fragment, TypeParameterFactory typeParameterFactory) {
     return new _ExtensionTypeStaticMethodEncoding(fragment);
   }
 }
@@ -980,10 +971,8 @@ class _RegularMethodStrategy implements MethodEncodingStrategy {
   const _RegularMethodStrategy();
 
   @override
-  MethodEncoding createMethodEncoding(
-      SourceMethodBuilder builder,
-      MethodFragment fragment,
-      List<NominalParameterBuilder> unboundNominalParameters) {
+  MethodEncoding createMethodEncoding(SourceMethodBuilder builder,
+      MethodFragment fragment, TypeParameterFactory typeParameterFactory) {
     return fragment.isOperator
         ? new _RegularOperatorEncoding(fragment)
         : new _RegularMethodEncoding(fragment);

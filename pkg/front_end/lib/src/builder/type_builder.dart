@@ -11,6 +11,7 @@ import '../base/messages.dart';
 import '../base/scope.dart';
 import '../kernel/type_algorithms.dart';
 import '../source/source_loader.dart';
+import '../source/type_parameter_factory.dart';
 import 'declaration_builders.dart';
 import 'formal_parameter_builder.dart';
 import 'library_builder.dart';
@@ -334,43 +335,38 @@ sealed class TypeBuilder {
   /// Returns the [TypeBuilder] for this type in which [TypeParameterBuilder]s
   /// in [substitution] have been replaced by the corresponding [TypeBuilder]s.
   ///
-  /// If [unboundTypes] is provided, created type builders that are not bound
-  /// are added to [unboundTypes]. Otherwise, creating an unbound type builder
-  /// results in an assertion error.
-  ///
-  /// If [unboundTypeParameters] is provided, created type parameter builders
-  /// are added to [unboundTypeParameters]. Otherwise, creating a
+  /// If [typeParameterFactory] is provided, created type parameter builders
+  /// are registered with [typeParameterFactory]. Otherwise, creating a
   /// type parameter builder result in an assertion error.
   ///
-  /// The [unboundTypes] and [unboundTypeParameters] must be processed by the
-  /// call, unless the created [TypeBuilder]s and [TypeParameterBuilder]s are
-  /// not part of the generated AST.
+  /// The type parameter builders registered with [typeParameterFactory] must be
+  /// processed by the caller, unless the created [TypeBuilder]s and
+  /// [TypeParameterBuilder]s are not part of the generated AST.
   // TODO(johnniwinther): Change [NamedTypeBuilder] to hold the
   // [TypeParameterScopeBuilder] should resolve it, so that we cannot create
   // [NamedTypeBuilder]s that are orphaned.
   TypeBuilder subst(Map<NominalParameterBuilder, TypeBuilder> substitution,
-      {List<StructuralParameterBuilder>? unboundTypeParameters}) {
+      {TypeParameterFactory? typeParameterFactory}) {
     if (substitution.isEmpty) {
       return this;
     }
-    List<StructuralParameterBuilder> unboundTypeParametersInternal =
-        unboundTypeParameters ?? [];
+    TypeParameterFactory typeParameterFactoryInternal =
+        typeParameterFactory ?? new TypeParameterFactory();
     TypeBuilder result = substituteRange(
-            substitution, substitution, unboundTypeParametersInternal,
+            substitution, substitution, typeParameterFactoryInternal,
             variance: Variance.covariant) ??
         this;
-    assert(
-        unboundTypeParameters != null || unboundTypeParametersInternal.isEmpty,
-        "Non-empty unbound type parameters: $unboundTypeParameters.");
+    assert(typeParameterFactory != null || typeParameterFactoryInternal.isEmpty,
+        "Non-empty unbound type parameters: $typeParameterFactoryInternal.");
     return result;
   }
 
   // Coverage-ignore(suite): Not run.
   TypeBuilder substitute(
       TypeBuilder type, Map<NominalParameterBuilder, TypeBuilder> substitution,
-      {required List<StructuralParameterBuilder> unboundTypeParameters}) {
+      {required TypeParameterFactory typeParameterFactory}) {
     return type.substituteRange(
-            substitution, substitution, unboundTypeParameters,
+            substitution, substitution, typeParameterFactory,
             variance: Variance.covariant) ??
         type;
   }
@@ -441,21 +437,14 @@ sealed class TypeBuilder {
   /// If [usedTypeAliasBuilders] is supplied, the [TypeAliasBuilder]s used
   /// during unaliasing are added to [usedTypeAliasBuilders].
   ///
-  /// If [unboundTypes] is provided, created type builders that are not bound
-  /// are added to [unboundTypes]. Otherwise, creating an unbound type builder
-  /// results in an assertion error.
+  /// If [typeParameterFactory] is provided, created type builders that are
+  /// not bound are register with [typeParameterFactory]. Otherwise, creating an
+  /// unbound type builder results in an assertion error.
   ///
-  /// If [unboundTypeParameters] is provided, created type parameter builders
-  /// are added to [unboundTypeParameters]. Otherwise, creating a
-  /// type parameter builder result in an assertion error.
-  ///
-  /// The [unboundTypes] and [unboundTypeParameters] must be processed by the
-  /// call, unless the created [TypeBuilder]s and [TypeParameterBuilder]s are
-  /// not part of the generated AST.
-  TypeBuilder? unalias(
-          {Set<TypeAliasBuilder>? usedTypeAliasBuilders,
-          List<StructuralParameterBuilder>? unboundTypeParameters}) =>
-      this;
+  /// The type parameter builders registered with [typeParameterFactory] must be
+  /// processed by the caller, unless the created [TypeBuilder]s and
+  /// [TypeParameterBuilder]s are not part of the generated AST.
+  TypeBuilder? unalias({Set<TypeAliasBuilder>? usedTypeAliasBuilders}) => this;
 
   /// Computes the nullability of this type.
   ///
@@ -484,7 +473,7 @@ sealed class TypeBuilder {
   TypeBuilder? substituteRange(
       Map<TypeParameterBuilder, TypeBuilder> upperSubstitution,
       Map<TypeParameterBuilder, TypeBuilder> lowerSubstitution,
-      List<StructuralParameterBuilder> unboundTypeParameters,
+      TypeParameterFactory typeParameterFactory,
       {final Variance variance = Variance.covariant});
 
   TypeBuilder? unaliasAndErase();

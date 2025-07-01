@@ -2,7 +2,49 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of 'source_library_builder.dart';
+import 'package:_fe_analyzer_shared/src/parser/class_member_parser.dart'
+    show ClassMemberParser;
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
+import 'package:kernel/ast.dart' hide Combinator, MapLiteralEntry;
+import 'package:kernel/reference_from_index.dart' show IndexedLibrary;
+
+import '../api_prototype/experimental_flags.dart';
+import '../base/combinator.dart' show CombinatorBuilder;
+import '../base/export.dart' show Export;
+import '../base/import.dart' show Import;
+import '../base/lookup_result.dart';
+import '../base/messages.dart';
+import '../base/name_space.dart';
+import '../base/scope.dart';
+import '../base/uri_offset.dart';
+import '../base/uris.dart';
+import '../builder/builder.dart';
+import '../builder/compilation_unit.dart';
+import '../builder/constructor_builder.dart';
+import '../builder/declaration_builders.dart';
+import '../builder/dynamic_type_declaration_builder.dart';
+import '../builder/library_builder.dart';
+import '../builder/member_builder.dart';
+import '../builder/metadata_builder.dart';
+import '../builder/never_type_declaration_builder.dart';
+import '../builder/prefix_builder.dart';
+import '../builder/property_builder.dart';
+import '../builder/type_builder.dart';
+import '../kernel/body_builder_context.dart';
+import '../kernel/type_algorithms.dart' show ComputeDefaultTypeContext;
+import '../kernel/utils.dart' show toCombinators;
+import 'fragment_factory.dart';
+import 'fragment_factory_impl.dart';
+import 'name_space_builder.dart';
+import 'offset_map.dart';
+import 'outline_builder.dart';
+import 'source_builder_mixins.dart';
+import 'source_class_builder.dart' show SourceClassBuilder;
+import 'source_library_builder.dart';
+import 'source_loader.dart' show SourceLoader;
+import 'source_member_builder.dart';
+import 'source_type_alias_builder.dart';
+import 'type_parameter_factory.dart';
 
 /// Enum that define what state a source compilation unit is in, in terms of how
 /// far in the compilation it has progressed. This is used to document and
@@ -90,6 +132,8 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   late final FragmentFactoryImpl _fragmentFactory;
 
   late final FragmentFactoryResult _fragmentFactoryResult;
+
+  final TypeParameterFactory _typeParameterFactory = new TypeParameterFactory();
 
   final LibraryNameSpaceBuilder _libraryNameSpaceBuilder;
 
@@ -214,7 +258,8 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         libraryNameSpaceBuilder: libraryNameSpaceBuilder,
         problemReporting: _problemReporting,
         scope: _compilationUnitScope,
-        indexedLibrary: indexedLibrary);
+        indexedLibrary: indexedLibrary,
+        typeParameterFactory: _typeParameterFactory);
   }
 
   SourceCompilationUnitState get state => _state;
@@ -465,10 +510,15 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   }
 
   @override
-  OutlineBuilder createOutlineBuilder() {
+  void buildOutline(Token tokens) {
     assert(_offsetMap == null, "OffsetMap has already been set for $this");
-    return new OutlineBuilder(
+    OutlineBuilder listener = new OutlineBuilder(
         this, _fragmentFactory, _offsetMap = new OffsetMap(fileUri));
+
+    new ClassMemberParser(listener,
+            allowPatterns: libraryFeatures.patterns.isEnabled,
+            enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled)
+        .parseUnit(tokens);
   }
 
   @override
@@ -898,13 +948,8 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   }
 
   @override
-  void collectUnboundTypeParameters(
-      SourceLibraryBuilder libraryBuilder,
-      Map<NominalParameterBuilder, SourceLibraryBuilder> nominalVariables,
-      Map<StructuralParameterBuilder, SourceLibraryBuilder>
-          structuralVariables) {
-    _fragmentFactoryResult.collectUnboundTypeParameters(
-        libraryBuilder, nominalVariables, structuralVariables);
+  List<TypeParameterBuilder> collectUnboundTypeParameters() {
+    return _typeParameterFactory.collectTypeParameters();
   }
 
   @override
@@ -1034,9 +1079,8 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       TypeBuilder bottomType, ClassBuilder objectClass) {
     int count = 0;
 
-    List<StructuralParameterBuilder> unboundTypeParameters = [];
     ComputeDefaultTypeContext context = new ComputeDefaultTypeContext(
-        _problemReporting, libraryFeatures, unboundTypeParameters,
+        _problemReporting, libraryFeatures, _typeParameterFactory,
         dynamicType: dynamicType, bottomType: bottomType);
 
     Iterator<NamedBuilder> iterator = libraryBuilder.unfilteredMembersIterator;
@@ -1059,9 +1103,6 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
             "(${declaration.runtimeType}).");
       }
     }
-
-    _fragmentFactoryResult
-        .registerUnresolvedStructuralParameters(unboundTypeParameters);
 
     return count;
   }

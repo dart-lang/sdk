@@ -20,12 +20,12 @@ import '../../kernel/hierarchy/class_member.dart';
 import '../../kernel/hierarchy/members_builder.dart';
 import '../../kernel/type_algorithms.dart';
 import '../../source/name_scheme.dart';
-import '../../source/nominal_parameter_name_space.dart';
 import '../../source/source_class_builder.dart';
 import '../../source/source_library_builder.dart';
 import '../../source/source_loader.dart';
 import '../../source/source_member_builder.dart';
 import '../../source/source_property_builder.dart';
+import '../../source/type_parameter_factory.dart';
 import '../fragment.dart';
 import 'body_builder_context.dart';
 import 'encoding.dart';
@@ -70,7 +70,7 @@ abstract class GetterDeclaration {
       ProblemReporting problemReporting,
       SourcePropertyBuilder builder,
       PropertyEncodingStrategy encodingStrategy,
-      List<NominalParameterBuilder> unboundNominalParameters);
+      TypeParameterFactory typeParameterFactory);
 
   void ensureGetterTypes(
       {required SourceLibraryBuilder libraryBuilder,
@@ -215,13 +215,13 @@ class RegularGetterDeclaration
       ProblemReporting problemReporting,
       SourcePropertyBuilder builder,
       PropertyEncodingStrategy encodingStrategy,
-      List<NominalParameterBuilder> unboundNominalParameters) {
+      TypeParameterFactory typeParameterFactory) {
     _fragment.builder = builder;
-    createNominalParameterBuilders(
-        _fragment.declaredTypeParameters, unboundNominalParameters);
+    typeParameterFactory
+        .createNominalParameterBuilders(_fragment.declaredTypeParameters);
 
     _encoding = encodingStrategy.createGetterEncoding(
-        builder, _fragment, unboundNominalParameters);
+        builder, _fragment, typeParameterFactory);
     _fragment.typeParameterNameSpace.addTypeParameters(
         problemReporting, _encoding.clonedAndDeclaredTypeParameters,
         ownerName: _fragment.name, allowNameConflict: true);

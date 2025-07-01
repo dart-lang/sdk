@@ -27,7 +27,6 @@ import '../../kernel/body_builder_context.dart';
 import '../../kernel/kernel_helper.dart';
 import '../../kernel/type_algorithms.dart';
 import '../../source/name_scheme.dart';
-import '../../source/nominal_parameter_name_space.dart';
 import '../../source/source_class_builder.dart';
 import '../../source/source_constructor_builder.dart';
 import '../../source/source_extension_type_declaration_builder.dart';
@@ -36,6 +35,7 @@ import '../../source/source_library_builder.dart';
 import '../../source/source_loader.dart';
 import '../../source/source_member_builder.dart';
 import '../../source/source_type_parameter_builder.dart';
+import '../../source/type_parameter_factory.dart';
 import '../fragment.dart';
 import 'encoding.dart';
 
@@ -60,7 +60,7 @@ abstract class ConstructorDeclaration {
     required SourceLoader loader,
     required DeclarationBuilder declarationBuilder,
     required SourceConstructorBuilder constructorBuilder,
-    required List<NominalParameterBuilder> unboundNominalParameters,
+    required TypeParameterFactory typeParameterFactory,
     required ConstructorEncodingStrategy encodingStrategy,
   });
 
@@ -806,7 +806,7 @@ class RegularConstructorDeclaration
     required SourceLoader loader,
     required DeclarationBuilder declarationBuilder,
     required SourceConstructorBuilder constructorBuilder,
-    required List<NominalParameterBuilder> unboundNominalParameters,
+    required TypeParameterFactory typeParameterFactory,
     required ConstructorEncodingStrategy encodingStrategy,
   }) {
     _fragment.builder = constructorBuilder;
@@ -814,9 +814,9 @@ class RegularConstructorDeclaration
         declarationBuilder: declarationBuilder,
         declarationTypeParameterFragments:
             _fragment.enclosingDeclaration.typeParameters,
-        typeParameters: createNominalParameterBuilders(
-            _fragment.typeParameters, unboundNominalParameters),
-        unboundNominalParameters: unboundNominalParameters);
+        typeParameters: typeParameterFactory
+            .createNominalParameterBuilders(_fragment.typeParameters),
+        typeParameterFactory: typeParameterFactory);
     _fragment.typeParameterNameSpace.addTypeParameters(
         problemReporting, _typeParameters,
         ownerName: _fragment.name, allowNameConflict: true);
@@ -943,7 +943,7 @@ class DefaultEnumConstructorDeclaration
     required SourceLoader loader,
     required DeclarationBuilder declarationBuilder,
     required SourceConstructorBuilder constructorBuilder,
-    required List<NominalParameterBuilder> unboundNominalParameters,
+    required TypeParameterFactory typeParameterFactory,
     required ConstructorEncodingStrategy encodingStrategy,
   }) {
     _encoding = encodingStrategy.createEncoding(isExternal: false);
@@ -1072,7 +1072,7 @@ class PrimaryConstructorDeclaration
     required SourceLoader loader,
     required DeclarationBuilder declarationBuilder,
     required SourceConstructorBuilder constructorBuilder,
-    required List<NominalParameterBuilder> unboundNominalParameters,
+    required TypeParameterFactory typeParameterFactory,
     required ConstructorEncodingStrategy encodingStrategy,
   }) {
     _fragment.builder = constructorBuilder;
@@ -1081,7 +1081,7 @@ class PrimaryConstructorDeclaration
         declarationTypeParameterFragments:
             _fragment.enclosingDeclaration.typeParameters,
         typeParameters: null,
-        unboundNominalParameters: unboundNominalParameters);
+        typeParameterFactory: typeParameterFactory);
     _fragment.typeParameterNameSpace.addTypeParameters(
         problemReporting, _typeParameters,
         ownerName: _fragment.name, allowNameConflict: true);
@@ -1391,7 +1391,7 @@ class DefaultConstructorDeclaration
     required SourceLoader loader,
     required DeclarationBuilder declarationBuilder,
     required SourceConstructorBuilder constructorBuilder,
-    required List<NominalParameterBuilder> unboundNominalParameters,
+    required TypeParameterFactory typeParameterFactory,
     required ConstructorEncodingStrategy encodingStrategy,
   }) {}
 
@@ -1460,7 +1460,7 @@ class ForwardingConstructorDeclaration
     required SourceLoader loader,
     required DeclarationBuilder declarationBuilder,
     required SourceConstructorBuilder constructorBuilder,
-    required List<NominalParameterBuilder> unboundNominalParameters,
+    required TypeParameterFactory typeParameterFactory,
     required ConstructorEncodingStrategy encodingStrategy,
   }) {}
 

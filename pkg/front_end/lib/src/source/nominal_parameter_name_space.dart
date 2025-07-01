@@ -5,32 +5,7 @@
 import '../base/messages.dart';
 import '../base/scope.dart';
 import '../builder/declaration_builders.dart';
-import '../fragment/fragment.dart';
 import 'source_type_parameter_builder.dart';
-
-SourceNominalParameterBuilder createNominalParameterBuilder(
-    TypeParameterFragment fragment,
-    List<NominalParameterBuilder> unboundNominalParameters) {
-  SourceNominalParameterBuilder builder = new SourceNominalParameterBuilder(
-      new RegularNominalParameterDeclaration(fragment),
-      bound: fragment.bound,
-      variableVariance: fragment.variance);
-
-  unboundNominalParameters.add(builder);
-  fragment.builder = builder;
-  return builder;
-}
-
-List<SourceNominalParameterBuilder>? createNominalParameterBuilders(
-    List<TypeParameterFragment>? fragments,
-    List<NominalParameterBuilder> unboundNominalParameters) {
-  if (fragments == null) return null;
-  List<SourceNominalParameterBuilder> list = [];
-  for (TypeParameterFragment fragment in fragments) {
-    list.add(createNominalParameterBuilder(fragment, unboundNominalParameters));
-  }
-  return list;
-}
 
 class NominalParameterNameSpace {
   Map<String, SourceNominalParameterBuilder> _typeParametersByName = {};

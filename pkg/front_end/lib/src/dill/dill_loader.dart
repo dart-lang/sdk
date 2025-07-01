@@ -23,6 +23,7 @@ import '../base/messages.dart'
 import '../base/problems.dart' show internalProblem;
 import '../base/ticker.dart' show Ticker;
 import '../base/uris.dart';
+import '../builder/compilation_unit.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/type_builder.dart';

@@ -260,7 +260,7 @@ import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
 import 'package:analysis_server_plugin/src/correction/fix_processor.dart';
 import 'package:analysis_server_plugin/src/correction/ignore_diagnostic.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/dart/error/ffi_code.g.dart';
+import 'package:analyzer/src/dart/error/ffi_code.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:linter/src/lint_codes.dart';

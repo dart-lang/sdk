@@ -6,7 +6,7 @@ import 'dart:math' as math;
 
 import 'package:analyzer/dart/ast/doc_comment.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/error/codes.g.dart';
+import 'package:analyzer/src/error/codes.dart';
 
 /// Verifies various data parsed in doc comments.
 class DocCommentVerifier {

@@ -22,27 +22,21 @@ import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
 import '../api_prototype/experimental_flags.dart';
-import '../base/combinator.dart' show CombinatorBuilder;
 import '../base/export.dart' show Export;
-import '../base/import.dart' show Import;
 import '../base/lookup_result.dart';
 import '../base/messages.dart';
 import '../base/name_space.dart';
 import '../base/problems.dart' show unexpected, unhandled;
 import '../base/scope.dart';
 import '../base/uri_offset.dart';
-import '../base/uris.dart';
 import '../builder/builder.dart';
-import '../builder/constructor_builder.dart';
+import '../builder/compilation_unit.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/dynamic_type_declaration_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
-import '../builder/metadata_builder.dart';
-import '../builder/named_type_builder.dart';
 import '../builder/never_type_declaration_builder.dart';
-import '../builder/nullability_builder.dart';
 import '../builder/prefix_builder.dart';
 import '../builder/property_builder.dart';
 import '../builder/type_builder.dart';
@@ -50,21 +44,15 @@ import '../kernel/body_builder_context.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/load_library_builder.dart';
-import '../kernel/type_algorithms.dart' show ComputeDefaultTypeContext;
 import '../kernel/utils.dart'
     show
         compareProcedures,
         exportDynamicSentinel,
         exportNeverSentinel,
-        toCombinators,
         unserializableExportName;
 import 'class_declaration.dart';
-import 'fragment_factory.dart';
-import 'fragment_factory_impl.dart';
 import 'name_scheme.dart';
 import 'name_space_builder.dart';
-import 'offset_map.dart';
-import 'outline_builder.dart';
 import 'source_builder_mixins.dart';
 import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_extension_builder.dart';
@@ -76,8 +64,7 @@ import 'source_member_builder.dart';
 import 'source_property_builder.dart';
 import 'source_type_alias_builder.dart';
 import 'source_type_parameter_builder.dart';
-
-part 'source_compilation_unit.dart';
+import 'type_parameter_factory.dart';
 
 /// Enum that define what state a source library is in, in terms of how far
 /// in the compilation it has progressed. This is used to document and assert
@@ -641,7 +628,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         problemReporting: this,
         enclosingLibraryBuilder: this,
         mixinApplications: _mixinApplications!,
-        unboundNominalParameters: _unboundNominalParameters,
+        typeParameterFactory: typeParameterFactory,
         indexedLibrary: indexedLibrary,
         memberBuilders: _memberBuilders);
 
@@ -655,7 +642,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     classBuilder.computeSupertypeBuilder(
         loader: loader,
         problemReporting: this,
-        unboundNominalParameters: _unboundNominalParameters,
+        typeParameterFactory: typeParameterFactory,
         indexedLibrary: indexedLibrary,
         mixinApplications: _mixinApplications!,
         addAnonymousMixinClassBuilder: (SourceClassBuilder classBuilder) {
@@ -1133,7 +1120,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return count;
   }
 
-  final List<NominalParameterBuilder> _unboundNominalParameters = [];
+  final TypeParameterFactory typeParameterFactory = new TypeParameterFactory();
 
   /// Adds all unbound nominal parameters to [nominalParameters] and unbound
   /// structural parameters to [structuralParameters], mapping them to this
@@ -1142,26 +1129,24 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// This is used to compute the bounds of type parameter while taking the
   /// bound dependencies, which might span multiple libraries, into account.
   void collectUnboundTypeParameters(
-      Map<NominalParameterBuilder, SourceLibraryBuilder> nominalParameters,
-      Map<StructuralParameterBuilder, SourceLibraryBuilder>
-          structuralParameters) {
-    compilationUnit.collectUnboundTypeParameters(
-        this, nominalParameters, structuralParameters);
+      Map<TypeParameterBuilder, SourceLibraryBuilder> typeParameterBuilders) {
+    for (TypeParameterBuilder builder
+        in compilationUnit.collectUnboundTypeParameters()) {
+      typeParameterBuilders[builder] = this;
+    }
     for (SourceCompilationUnit part in parts) {
-      part.collectUnboundTypeParameters(
-          this, nominalParameters, structuralParameters);
+      for (TypeParameterBuilder builder
+          in part.collectUnboundTypeParameters()) {
+        // Coverage-ignore-block(suite): Not run.
+        typeParameterBuilders[builder] = this;
+      }
     }
-    for (NominalParameterBuilder builder in _unboundNominalParameters) {
-      nominalParameters[builder] = this;
+    for (TypeParameterBuilder builder
+        in typeParameterFactory.collectTypeParameters()) {
+      typeParameterBuilders[builder] = this;
     }
-    _unboundNominalParameters.clear();
 
     state = SourceLibraryBuilderState.unboundTypeParametersCollected;
-  }
-
-  void registerUnboundNominalParameters(
-      List<NominalParameterBuilder> unboundNominalParameters) {
-    _unboundNominalParameters.addAll(unboundNominalParameters);
   }
 
   /// Computes variances of type parameters on typedefs.
@@ -1651,28 +1636,28 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         List<SourceNominalParameterBuilder>? typeParameters =
             declaration.typeParameters;
         if (typeParameters != null && typeParameters.isNotEmpty) {
-          checkTypeParameterDependencies(typeParameters);
+          checkTypeParameterDependencies(this, typeParameters);
         }
         declaration.checkTypesInOutline(typeEnvironment);
       } else if (declaration is SourceExtensionBuilder) {
         List<SourceNominalParameterBuilder>? typeParameters =
             declaration.typeParameters;
         if (typeParameters != null && typeParameters.isNotEmpty) {
-          checkTypeParameterDependencies(typeParameters);
+          checkTypeParameterDependencies(this, typeParameters);
         }
         declaration.checkTypesInOutline(typeEnvironment);
       } else if (declaration is SourceExtensionTypeDeclarationBuilder) {
         List<SourceNominalParameterBuilder>? typeParameters =
             declaration.typeParameters;
         if (typeParameters != null && typeParameters.isNotEmpty) {
-          checkTypeParameterDependencies(typeParameters);
+          checkTypeParameterDependencies(this, typeParameters);
         }
         declaration.checkTypesInOutline(typeEnvironment);
       } else if (declaration is SourceTypeAliasBuilder) {
         List<SourceNominalParameterBuilder>? typeParameters =
             declaration.typeParameters;
         if (typeParameters != null && typeParameters.isNotEmpty) {
-          checkTypeParameterDependencies(typeParameters);
+          checkTypeParameterDependencies(this, typeParameters);
         }
       } else {
         // Coverage-ignore-block(suite): Not run.
@@ -1683,71 +1668,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
     checkPendingBoundsChecks(typeEnvironment);
-  }
-
-  void checkTypeParameterDependencies(
-      List<TypeParameterBuilder> typeParameters) {
-    Map<TypeParameterBuilder, TraversalState> typeParametersTraversalState =
-        <TypeParameterBuilder, TraversalState>{};
-    for (TypeParameterBuilder typeParameter in typeParameters) {
-      if ((typeParametersTraversalState[typeParameter] ??=
-              TraversalState.unvisited) ==
-          TraversalState.unvisited) {
-        TypeParameterCyclicDependency? dependency =
-            typeParameter.findCyclicDependency(
-                typeParametersTraversalState: typeParametersTraversalState);
-        if (dependency != null) {
-          Message message;
-          if (dependency.viaTypeParameters != null) {
-            message = templateCycleInTypeParameters.withArguments(
-                dependency.typeParameterBoundOfItself.name,
-                dependency.viaTypeParameters!.map((v) => v.name).join("', '"));
-          } else {
-            message = templateDirectCycleInTypeParameters
-                .withArguments(dependency.typeParameterBoundOfItself.name);
-          }
-          addProblem(
-              message,
-              dependency.typeParameterBoundOfItself.fileOffset,
-              dependency.typeParameterBoundOfItself.name.length,
-              dependency.typeParameterBoundOfItself.fileUri);
-
-          typeParameter.bound = new NamedTypeBuilderImpl(
-              new SyntheticTypeName(
-                  typeParameter.name, typeParameter.fileOffset),
-              const NullabilityBuilder.omitted(),
-              fileUri: typeParameter.fileUri,
-              charOffset: typeParameter.fileOffset,
-              instanceTypeParameterAccess:
-                  InstanceTypeParameterAccessState.Unexpected)
-            ..bind(
-                this,
-                new InvalidTypeDeclarationBuilder(
-                    typeParameter.name,
-                    message.withLocation(
-                        dependency.typeParameterBoundOfItself
-                                .fileUri ?? // Coverage-ignore(suite): Not run.
-                            fileUri,
-                        dependency.typeParameterBoundOfItself.fileOffset,
-                        dependency.typeParameterBoundOfItself.name.length)));
-        }
-      }
-    }
-    _computeTypeParameterNullabilities(typeParameters);
-  }
-
-  void _computeTypeParameterNullabilities(
-      List<TypeParameterBuilder> typeParameters) {
-    Map<TypeParameterBuilder, TraversalState> typeParametersTraversalState =
-        <TypeParameterBuilder, TraversalState>{};
-    for (TypeParameterBuilder typeParameter in typeParameters) {
-      if ((typeParametersTraversalState[typeParameter] ??=
-              TraversalState.unvisited) ==
-          TraversalState.unvisited) {
-        typeParameter.computeNullability(
-            typeParametersTraversalState: typeParametersTraversalState);
-      }
-    }
   }
 
   void registerBoundsCheck(

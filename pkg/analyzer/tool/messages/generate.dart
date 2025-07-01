@@ -41,15 +41,16 @@ final List<GeneratedContent> allTargets = _analyzerGeneratedFiles();
 /// Generates a list of [GeneratedContent] objects describing all the analyzer
 /// files that need to be generated.
 List<GeneratedContent> _analyzerGeneratedFiles() {
-  var classesByFile = <String, List<ErrorClassInfo>>{};
+  var classesByFile = <GeneratedErrorCodeFile, List<ErrorClassInfo>>{};
   for (var errorClassInfo in errorClasses) {
-    (classesByFile[errorClassInfo.filePath] ??= []).add(errorClassInfo);
+    (classesByFile[errorClassInfo.file] ??= []).add(errorClassInfo);
   }
   var generatedCodes = <String>[];
   return [
     for (var entry in classesByFile.entries)
-      GeneratedFile(entry.key, (String pkgPath) async {
+      GeneratedFile(entry.key.path, (String pkgPath) async {
         var codeGenerator = _AnalyzerErrorGenerator(
+          entry.key,
           entry.value,
           generatedCodes,
         );
@@ -68,6 +69,8 @@ List<GeneratedContent> _analyzerGeneratedFiles() {
 
 /// Code generator for analyzer error classes.
 class _AnalyzerErrorGenerator {
+  final GeneratedErrorCodeFile file;
+
   final List<ErrorClassInfo> errorClasses;
 
   final List<String> generatedCodes;
@@ -88,15 +91,23 @@ class _AnalyzerErrorGenerator {
 // 
 // Generated comments don't quite align with flutter style.
 // ignore_for_file: flutter_style_todos
-
-/// @docImport 'package:analyzer/src/dart/error/syntactic_errors.g.dart';
-/// @docImport 'package:analyzer/src/error/inference_error.dart';
-library;
 ''');
 
-  _AnalyzerErrorGenerator(this.errorClasses, this.generatedCodes);
+  _AnalyzerErrorGenerator(this.file, this.errorClasses, this.generatedCodes);
 
   void generate() {
+    out.writeln();
+    out.write('''
+/// @docImport 'package:analyzer/src/dart/error/syntactic_errors.g.dart';
+/// @docImport 'package:analyzer/src/error/inference_error.dart';
+@Deprecated(
+  // This library is deprecated to prevent it from being accidentally imported
+  // It should only be imported by the corresponding non-code-generated library
+  // (which suppresses the deprecation warning using an "ignore" comment).
+  'Use ${file.preferredImportUri} instead',
+)
+library;
+''');
     var imports = {'package:analyzer/error/error.dart'};
     bool shouldGenerateFastaAnalyzerErrorCodes = false;
     for (var errorClass in errorClasses) {

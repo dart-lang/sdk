@@ -6,8 +6,6 @@ import 'dart:collection' show Queue;
 import 'dart:convert' show utf8;
 import 'dart:typed_data' show Uint8List;
 
-import 'package:_fe_analyzer_shared/src/parser/class_member_parser.dart'
-    show ClassMemberParser;
 import 'package:_fe_analyzer_shared/src/parser/forwarding_listener.dart'
     show ForwardingListener;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
@@ -46,6 +44,7 @@ import '../base/ticker.dart' show Ticker;
 import '../base/uri_offset.dart';
 import '../base/uris.dart';
 import '../builder/builder.dart';
+import '../builder/compilation_unit.dart';
 import '../builder/constructor_builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
@@ -76,6 +75,7 @@ import 'diet_parser.dart' show DietParser, useImplicitCreationExpressionInCfe;
 import 'offset_map.dart';
 import 'outline_builder.dart' show OutlineBuilder;
 import 'source_class_builder.dart' show SourceClassBuilder;
+import 'source_compilation_unit.dart' show SourceCompilationUnitImpl;
 import 'source_enum_builder.dart';
 import 'source_extension_type_declaration_builder.dart';
 import 'source_factory_builder.dart';
@@ -85,9 +85,9 @@ import 'source_library_builder.dart'
         InvalidLanguageVersion,
         LanguageVersion,
         LibraryAccess,
-        SourceCompilationUnitImpl,
         SourceLibraryBuilder;
 import 'stack_listener_impl.dart' show offsetForToken;
+import 'type_parameter_factory.dart';
 
 class SourceLoader extends Loader {
   /// The [FileSystem] which should be used to access files.
@@ -1179,12 +1179,7 @@ severity: $severity
 
   Future<Null> buildOutline(SourceCompilationUnit compilationUnit) async {
     Token tokens = await tokenize(compilationUnit);
-    OutlineBuilder listener = compilationUnit.createOutlineBuilder();
-    new ClassMemberParser(listener,
-            allowPatterns: compilationUnit.libraryFeatures.patterns.isEnabled,
-            enableFeatureEnhancedParts:
-                compilationUnit.libraryFeatures.enhancedParts.isEnabled)
-        .parseUnit(tokens);
+    compilationUnit.buildOutline(tokens);
   }
 
   /// Builds all the method bodies found in the given [library].
@@ -1522,46 +1517,25 @@ severity: $severity
 
   void finishTypeParameters(Iterable<SourceLibraryBuilder> libraryBuilders,
       ClassBuilder object, TypeBuilder dynamicType) {
-    Map<NominalParameterBuilder, SourceLibraryBuilder>
-        unboundNominalParameterBuilders = new Map.identity();
-    Map<StructuralParameterBuilder, SourceLibraryBuilder>
-        unboundStructuralParameterBuilders = new Map.identity();
+    Map<TypeParameterBuilder, SourceLibraryBuilder>
+        unboundTypeParameterBuilders = {};
     for (SourceLibraryBuilder library in libraryBuilders) {
-      library.collectUnboundTypeParameters(
-          unboundNominalParameterBuilders, unboundStructuralParameterBuilders);
+      library.collectUnboundTypeParameters(unboundTypeParameterBuilders);
     }
 
     // Ensure that type parameters are built after their dependencies by sorting
     // them topologically using references in bounds.
     List<TypeParameterBuilder> sortedTypeParameters =
-        sortAllTypeParametersTopologically([
-      ...unboundStructuralParameterBuilders.keys,
-      ...unboundNominalParameterBuilders.keys
-    ]);
+        sortAllTypeParametersTopologically(unboundTypeParameterBuilders.keys);
 
     for (TypeParameterBuilder builder in sortedTypeParameters) {
-      switch (builder) {
-        case NominalParameterBuilder():
-          SourceLibraryBuilder? libraryBuilder =
-              unboundNominalParameterBuilders[builder]!;
-          libraryBuilder.checkTypeParameterDependencies([builder]);
-        case StructuralParameterBuilder():
-          SourceLibraryBuilder? libraryBuilder =
-              unboundStructuralParameterBuilders[builder]!;
-          libraryBuilder.checkTypeParameterDependencies([builder]);
-      }
+      checkTypeParameterDependencies(
+          unboundTypeParameterBuilders[builder]!, [builder]);
     }
+
     for (TypeParameterBuilder builder in sortedTypeParameters) {
-      switch (builder) {
-        case NominalParameterBuilder():
-          SourceLibraryBuilder? libraryBuilder =
-              unboundNominalParameterBuilders[builder]!;
-          builder.finish(libraryBuilder, object, dynamicType);
-        case StructuralParameterBuilder():
-          SourceLibraryBuilder? libraryBuilder =
-              unboundStructuralParameterBuilders[builder]!;
-          builder.finish(libraryBuilder, object, dynamicType);
-      }
+      builder.finish(
+          unboundTypeParameterBuilders[builder]!, object, dynamicType);
     }
 
     ticker

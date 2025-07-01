@@ -28,7 +28,6 @@ import '../../fragment/fragment.dart';
 import '../../kernel/body_builder_context.dart';
 import '../../kernel/constructor_tearoff_lowering.dart';
 import '../../kernel/kernel_helper.dart';
-import '../../source/fragment_factory.dart';
 import '../../source/name_scheme.dart';
 import '../../source/redirecting_factory_body.dart';
 import '../../source/source_factory_builder.dart';
@@ -38,6 +37,7 @@ import '../../source/source_loader.dart'
     show CompilationPhaseForProblemReporting, SourceLoader;
 import '../../source/source_member_builder.dart';
 import '../../source/source_type_parameter_builder.dart';
+import '../../source/type_parameter_factory.dart';
 import '../../type_inference/inference_helper.dart';
 import '../../type_inference/type_inferrer.dart';
 import '../../type_inference/type_schema.dart';
@@ -763,7 +763,7 @@ abstract class FactoryEncodingStrategy {
       createTypeParametersAndReturnType({
     required DeclarationBuilder declarationBuilder,
     required List<TypeParameterFragment>? declarationTypeParameterFragments,
-    required List<NominalParameterBuilder> unboundNominalParameters,
+    required TypeParameterFactory typeParameterFactory,
     required String fullName,
     required Uri fileUri,
     required int fullNameOffset,
@@ -779,15 +779,14 @@ class RegularFactoryEncodingStrategy implements FactoryEncodingStrategy {
       createTypeParametersAndReturnType({
     required DeclarationBuilder declarationBuilder,
     required List<TypeParameterFragment>? declarationTypeParameterFragments,
-    required List<NominalParameterBuilder> unboundNominalParameters,
+    required TypeParameterFactory typeParameterFactory,
     required String fullName,
     required Uri fileUri,
     required int fullNameOffset,
     required int fullNameLength,
   }) {
     NominalParameterCopy? nominalParameterCopy =
-        NominalParameterCopy.copyTypeParameters(
-            unboundNominalParameters: unboundNominalParameters,
+        typeParameterFactory.copyTypeParameters(
             oldParameterBuilders: declarationBuilder.typeParameters,
             oldParameterFragments: declarationTypeParameterFragments,
             kind: TypeParameterKind.function,
@@ -815,15 +814,14 @@ class ExtensionFactoryEncodingStrategy implements FactoryEncodingStrategy {
       createTypeParametersAndReturnType({
     required DeclarationBuilder declarationBuilder,
     required List<TypeParameterFragment>? declarationTypeParameterFragments,
-    required List<NominalParameterBuilder> unboundNominalParameters,
+    required TypeParameterFactory typeParameterFactory,
     required String fullName,
     required Uri fileUri,
     required int fullNameOffset,
     required int fullNameLength,
   }) {
     NominalParameterCopy? nominalParameterCopy =
-        NominalParameterCopy.copyTypeParameters(
-            unboundNominalParameters: unboundNominalParameters,
+        typeParameterFactory.copyTypeParameters(
             oldParameterBuilders: declarationBuilder.typeParameters,
             oldParameterFragments: declarationTypeParameterFragments,
             kind: TypeParameterKind.function,

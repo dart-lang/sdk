@@ -107,6 +107,7 @@ import '../source/source_property_builder.dart';
 import '../source/source_type_parameter_builder.dart';
 import '../source/stack_listener_impl.dart'
     show StackListenerImpl, offsetForToken;
+import '../source/type_parameter_factory.dart';
 import '../source/value_kinds.dart';
 import '../type_inference/inference_results.dart'
     show InitializerInferenceResult;
@@ -8992,14 +8993,14 @@ class BodyBuilder extends StackListenerImpl
     // Peek to leave type parameters on top of stack.
     List<TypeParameterBuilder> typeParameters =
         peek() as List<TypeParameterBuilder>;
-    libraryBuilder.checkTypeParameterDependencies(typeParameters);
+    checkTypeParameterDependencies(libraryBuilder, typeParameters);
 
-    List<StructuralParameterBuilder> unboundTypeParameters = [];
+    TypeParameterFactory typeParameterFactory = new TypeParameterFactory();
     List<TypeBuilder> calculatedBounds = calculateBounds(
         typeParameters,
         libraryBuilder.loader.target.dynamicType,
         libraryBuilder.loader.target.nullType,
-        unboundTypeParameters: unboundTypeParameters);
+        typeParameterFactory: typeParameterFactory);
     for (int i = 0; i < typeParameters.length; ++i) {
       typeParameters[i].defaultType = calculatedBounds[i];
       typeParameters[i].finish(
@@ -9007,12 +9008,10 @@ class BodyBuilder extends StackListenerImpl
           libraryBuilder.loader.target.objectClassBuilder,
           libraryBuilder.loader.target.dynamicType);
     }
-    for (int i = 0;
-        i < unboundTypeParameters.length;
-        // Coverage-ignore(suite): Not run.
-        ++i) {
+    for (TypeParameterBuilder builder
+        in typeParameterFactory.collectTypeParameters()) {
       // Coverage-ignore-block(suite): Not run.
-      unboundTypeParameters[i].finish(
+      builder.finish(
           libraryBuilder,
           libraryBuilder.loader.target.objectClassBuilder,
           libraryBuilder.loader.target.dynamicType);

@@ -150,7 +150,8 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
         containerType: ContainerType.Extension,
         containerName: extensionName,
         constructorBuilders: _constructorBuilders,
-        memberBuilders: _memberBuilders);
+        memberBuilders: _memberBuilders,
+        typeParameterFactory: libraryBuilder.typeParameterFactory);
   }
 
   @override

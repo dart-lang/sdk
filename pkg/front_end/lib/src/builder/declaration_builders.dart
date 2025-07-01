@@ -15,6 +15,7 @@ import '../base/scope.dart';
 import '../base/uris.dart';
 import '../codes/cfe_codes.dart';
 import '../source/source_library_builder.dart';
+import '../source/type_parameter_factory.dart';
 import '../type_inference/type_schema.dart' show UnknownType;
 import '../util/helpers.dart';
 import 'builder.dart';

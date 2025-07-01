@@ -21,13 +21,13 @@ import '../builder/metadata_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/omitted_type_builder.dart';
-import '../builder/synthesized_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../fragment/fragment.dart';
 import 'offset_map.dart';
 import 'source_class_builder.dart';
 import 'source_library_builder.dart';
 import 'source_type_parameter_builder.dart';
+import 'type_parameter_factory.dart';
 import 'type_scope.dart';
 
 abstract class FragmentFactoryResult {
@@ -53,16 +53,7 @@ abstract class FragmentFactoryResult {
   void takeMixinApplications(
       Map<SourceClassBuilder, TypeBuilder> mixinApplications);
 
-  void collectUnboundTypeParameters(
-      SourceLibraryBuilder libraryBuilder,
-      Map<NominalParameterBuilder, SourceLibraryBuilder> nominalParameters,
-      Map<StructuralParameterBuilder, SourceLibraryBuilder>
-          structuralParameters);
-
   int finishNativeMethods();
-
-  void registerUnresolvedStructuralParameters(
-      List<StructuralParameterBuilder> unboundTypeParameters);
 
   List<LibraryPart> get libraryParts;
 }
@@ -489,94 +480,6 @@ abstract class FragmentFactory {
       required String name,
       required int nameOffset,
       required Uri fileUri});
-
-  void registerUnboundStructuralParameters(
-      List<StructuralParameterBuilder> parameterBuilders);
-}
-
-class NominalParameterCopy {
-  final List<SourceNominalParameterBuilder> newParameterBuilders;
-  final List<TypeBuilder> newTypeArguments;
-  final Map<NominalParameterBuilder, TypeBuilder> substitutionMap;
-  final Map<SourceNominalParameterBuilder, NominalParameterBuilder>
-      newToOldParameterMap;
-
-  NominalParameterCopy(this.newParameterBuilders, this.newTypeArguments,
-      this.substitutionMap, this.newToOldParameterMap);
-
-  /// Creates a [NominalParameterCopy] object containing a copy of
-  /// [oldParameterBuilders], adding any newly created parameters in
-  /// [unboundNominalParameters] for later processing.
-  ///
-  /// This is used for adding copies of class type parameters to factory
-  /// methods and unnamed mixin applications, and for adding copies of
-  /// extension type parameters to extension instance methods.
-  static NominalParameterCopy? copyTypeParameters(
-      {required List<NominalParameterBuilder> unboundNominalParameters,
-      required List<NominalParameterBuilder>? oldParameterBuilders,
-      List<TypeParameterFragment>? oldParameterFragments,
-      required TypeParameterKind kind,
-      required InstanceTypeParameterAccessState instanceTypeParameterAccess}) {
-    assert(
-        oldParameterFragments == null ||
-            oldParameterBuilders?.length == oldParameterFragments.length,
-        "Invalid type parameter fragment count. "
-        "Expected ${oldParameterBuilders?.length}, "
-        "found ${oldParameterFragments.length}.");
-    if (oldParameterBuilders == null || oldParameterBuilders.isEmpty) {
-      return null;
-    }
-
-    List<TypeBuilder> newTypeArguments = [];
-    Map<NominalParameterBuilder, TypeBuilder> substitutionMap =
-        new Map.identity();
-    Map<SourceNominalParameterBuilder, NominalParameterBuilder>
-        newToOldVariableMap = new Map.identity();
-
-    List<SourceNominalParameterBuilder> newVariableBuilders =
-        <SourceNominalParameterBuilder>[];
-    for (int index = 0; index < oldParameterBuilders.length; index++) {
-      NominalParameterBuilder oldVariable = oldParameterBuilders[index];
-      TypeParameterFragment? oldFragment = oldParameterFragments?[index];
-      Uri fileUri = (oldFragment?.fileUri ?? oldVariable.fileUri)!;
-      int fileOffset = oldFragment?.nameOffset ?? oldVariable.fileOffset;
-      SourceNominalParameterBuilder newVariable =
-          new SourceNominalParameterBuilder(
-              new SyntheticNominalParameterDeclaration(oldVariable,
-                  kind: kind, fileUri: fileUri, fileOffset: fileOffset),
-              variableVariance: oldVariable.parameter.isLegacyCovariant
-                  ? null
-                  :
-                  // Coverage-ignore(suite): Not run.
-                  oldVariable.variance);
-      newVariableBuilders.add(newVariable);
-      newToOldVariableMap[newVariable] = oldVariable;
-      unboundNominalParameters.add(newVariable);
-    }
-    for (int i = 0; i < newVariableBuilders.length; i++) {
-      NominalParameterBuilder oldVariableBuilder = oldParameterBuilders[i];
-      TypeBuilder newTypeArgument =
-          new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
-              newVariableBuilders[i], const NullabilityBuilder.omitted(),
-              instanceTypeParameterAccess: instanceTypeParameterAccess);
-      substitutionMap[oldVariableBuilder] = newTypeArgument;
-      newTypeArguments.add(newTypeArgument);
-
-      if (oldVariableBuilder.bound != null) {
-        newVariableBuilders[i].bound = new SynthesizedTypeBuilder(
-            oldVariableBuilder.bound!, newToOldVariableMap, substitutionMap);
-      }
-    }
-    return new NominalParameterCopy(newVariableBuilders, newTypeArguments,
-        substitutionMap, newToOldVariableMap);
-  }
-
-  /// Creates a [SynthesizedTypeBuilder] for [typeBuilder] in the context of
-  /// [newParameterBuilders].
-  TypeBuilder createInContext(TypeBuilder typeBuilder) {
-    return new SynthesizedTypeBuilder(
-        typeBuilder, newToOldParameterMap, substitutionMap);
-  }
 }
 
 /// The synthesized type parameters and this formal for an extension instance
@@ -592,12 +495,11 @@ class SynthesizedExtensionSignature {
       {required ExtensionBuilder declarationBuilder,
       required List<TypeParameterFragment>? extensionTypeParameterFragments,
       required TypeBuilder onTypeBuilder,
-      required List<NominalParameterBuilder> unboundNominalParameters,
+      required TypeParameterFactory typeParameterFactory,
       required Uri fileUri,
       required int fileOffset}) {
     NominalParameterCopy? nominalVariableCopy =
-        NominalParameterCopy.copyTypeParameters(
-            unboundNominalParameters: unboundNominalParameters,
+        typeParameterFactory.copyTypeParameters(
             oldParameterBuilders: declarationBuilder.typeParameters,
             oldParameterFragments: extensionTypeParameterFragments,
             kind: TypeParameterKind.extensionSynthesized,
@@ -638,12 +540,11 @@ class SynthesizedExtensionTypeSignature {
   factory SynthesizedExtensionTypeSignature(
       {required ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder,
       required List<TypeParameterFragment>? extensionTypeTypeParameters,
-      required List<NominalParameterBuilder> unboundNominalParameters,
+      required TypeParameterFactory typeParameterFactory,
       required Uri fileUri,
       required int fileOffset}) {
     NominalParameterCopy? nominalVariableCopy =
-        NominalParameterCopy.copyTypeParameters(
-            unboundNominalParameters: unboundNominalParameters,
+        typeParameterFactory.copyTypeParameters(
             oldParameterBuilders:
                 extensionTypeDeclarationBuilder.typeParameters,
             oldParameterFragments: extensionTypeTypeParameters,
