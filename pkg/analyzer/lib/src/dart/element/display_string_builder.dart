@@ -430,7 +430,7 @@ class ElementDisplayStringBuilder {
     _write('_');
   }
 
-  void writeVariableElement(VariableElementOrMember element) {
+  void writeVariableElement(VariableFragmentImpl element) {
     _writeType(element.type);
     _write(' ');
     _write(element.displayName);

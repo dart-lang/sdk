@@ -3280,9 +3280,6 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
   /// Whether the parameter is an initializing formal parameter.
   bool get isInitializingFormal => false;
 
-  @override
-  bool get isLate => false;
-
   /// Whether the parameter is a named parameter.
   ///
   /// Named parameters that are annotated with the `@required` annotation are
@@ -6991,7 +6988,7 @@ class LocalVariableElementImpl extends PromotableElementImpl
 }
 
 class LocalVariableFragmentImpl extends NonParameterVariableFragmentImpl
-    implements LocalVariableFragment, VariableElementOrMember {
+    implements LocalVariableFragment {
   late LocalVariableElementImpl _element2 = switch (this) {
     BindPatternVariableFragmentImpl() => BindPatternVariableElementImpl(this),
     JoinPatternVariableFragmentImpl() => JoinPatternVariableElementImpl(this),
@@ -7023,11 +7020,6 @@ class LocalVariableFragmentImpl extends NonParameterVariableFragmentImpl
 
   set enclosingFragment(Fragment value) {
     enclosingElement3 = value as FragmentImpl;
-  }
-
-  @override
-  bool get isLate {
-    return hasModifier(Modifier.LATE);
   }
 
   @override
@@ -8726,11 +8718,6 @@ abstract class PropertyInducingFragmentImpl
   }
 
   @override
-  bool get isLate {
-    return hasModifier(Modifier.LATE);
-  }
-
-  @override
   LibraryFragment get libraryFragment {
     return enclosingFragment.libraryFragment!;
   }
@@ -10159,52 +10146,8 @@ abstract class VariableElementImpl extends ElementImpl
   }
 }
 
-/// Common base class for all analyzer-internal classes that implement
-/// `VariableElement`.
-abstract class VariableElementOrMember
-    implements FragmentOrMember, Annotatable {
-  @override
-  VariableFragmentImpl get declaration;
-
-  /// Whether the variable element did not have an explicit type specified
-  /// for it.
-  bool get hasImplicitType;
-
-  /// Whether the variable was declared with the 'const' modifier.
-  bool get isConst;
-
-  /// Whether the variable was declared with the 'final' modifier.
-  ///
-  /// Variables that are declared with the 'const' modifier will return `false`
-  /// even though they are implicitly final.
-  bool get isFinal;
-
-  /// Whether the variable uses late evaluation semantics.
-  ///
-  /// This will always return `false` unless the experiment 'non-nullable' is
-  /// enabled.
-  bool get isLate;
-
-  /// Whether the element is a static variable, as per section 8 of the Dart
-  /// Language Specification:
-  ///
-  /// > A static variable is a variable that is not associated with a particular
-  /// > instance, but rather with an entire library or class. Static variables
-  /// > include library variables and class variables. Class variables are
-  /// > variables whose declaration is immediately nested inside a class
-  /// > declaration and includes the modifier static. A library variable is
-  /// > implicitly static.
-  bool get isStatic;
-
-  /// The declared type of this variable.
-  TypeImpl get type;
-}
-
 abstract class VariableFragmentImpl extends FragmentImpl
-    implements
-        VariableElementOrMember,
-        AnnotatableFragmentImpl,
-        VariableFragment {
+    implements AnnotatableFragmentImpl, VariableFragment {
   /// The type of this variable.
   TypeImpl? _type;
 
@@ -10230,7 +10173,8 @@ abstract class VariableFragmentImpl extends FragmentImpl
   @override
   VariableElementImpl get element;
 
-  @override
+  /// Whether the variable element did not have an explicit type specified
+  /// for it.
   bool get hasImplicitType {
     return hasModifier(Modifier.IMPLICIT_TYPE);
   }
@@ -10250,7 +10194,7 @@ abstract class VariableFragmentImpl extends FragmentImpl
     setModifier(Modifier.ABSTRACT, isAbstract);
   }
 
-  @override
+  /// Whether the variable was declared with the 'const' modifier.
   bool get isConst {
     return hasModifier(Modifier.CONST);
   }
@@ -10265,7 +10209,10 @@ abstract class VariableFragmentImpl extends FragmentImpl
     setModifier(Modifier.EXTERNAL, isExternal);
   }
 
-  @override
+  /// Whether the variable was declared with the 'final' modifier.
+  ///
+  /// Variables that are declared with the 'const' modifier will return `false`
+  /// even though they are implicitly final.
   bool get isFinal {
     return hasModifier(Modifier.FINAL);
   }
@@ -10275,12 +10222,28 @@ abstract class VariableFragmentImpl extends FragmentImpl
     setModifier(Modifier.FINAL, isFinal);
   }
 
+  /// Whether the variable uses late evaluation semantics.
+  ///
+  /// This will always return `false` unless the experiment 'non-nullable' is
+  /// enabled.
+  bool get isLate {
+    return hasModifier(Modifier.LATE);
+  }
+
   /// Set whether this variable is late.
   set isLate(bool isLate) {
     setModifier(Modifier.LATE, isLate);
   }
 
-  @override
+  /// Whether the element is a static variable, as per section 8 of the Dart
+  /// Language Specification:
+  ///
+  /// > A static variable is a variable that is not associated with a particular
+  /// > instance, but rather with an entire library or class. Static variables
+  /// > include library variables and class variables. Class variables are
+  /// > variables whose declaration is immediately nested inside a class
+  /// > declaration and includes the modifier static. A library variable is
+  /// > implicitly static.
   bool get isStatic => hasModifier(Modifier.STATIC);
 
   set isStatic(bool isStatic) {
@@ -10290,7 +10253,8 @@ abstract class VariableFragmentImpl extends FragmentImpl
   @override
   int get offset => nameOffset;
 
-  @override
+  /// The declared type of this variable.
+  // TODO(scheglov): make it nullable and turn into field
   TypeImpl get type => _type!;
 
   set type(TypeImpl type) {
