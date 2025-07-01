@@ -8661,14 +8661,6 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
   List<PropertyInducingFragmentImpl> get _fragments;
 }
 
-/// Common base class for all analyzer-internal classes that implement
-/// `PropertyInducingElement`.
-abstract class PropertyInducingElementOrMember
-    implements VariableElementOrMember {
-  @override
-  TypeImpl get type;
-}
-
 /// Instances of this class are set for fields and top-level variables
 /// to perform top-level type inference during linking.
 abstract class PropertyInducingElementTypeInference {
@@ -8678,7 +8670,7 @@ abstract class PropertyInducingElementTypeInference {
 abstract class PropertyInducingFragmentImpl
     extends NonParameterVariableFragmentImpl
     with AugmentableFragment, DeferredResolutionReadingMixin
-    implements PropertyInducingElementOrMember, PropertyInducingFragment {
+    implements PropertyInducingFragment {
   @override
   final String? name2;
 

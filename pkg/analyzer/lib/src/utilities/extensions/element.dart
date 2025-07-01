@@ -402,17 +402,6 @@ extension PropertyInducingElementExtension on PropertyInducingElement {
   }
 }
 
-extension PropertyInducingElementOrMemberExtension
-    on PropertyInducingElementOrMember {
-  PropertyInducingElement2OrMember get asElement2 {
-    return switch (this) {
-      PropertyInducingFragmentImpl(:var element) => element,
-      FieldMember member => member,
-      _ => throw UnsupportedError('Unsupported type: $runtimeType'),
-    };
-  }
-}
-
 extension SetterElementImplExtension on SetterElementImpl {
   PropertyAccessorFragmentImpl get asElement {
     return lastFragment;
