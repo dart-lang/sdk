@@ -195,7 +195,7 @@ class ElementDisplayStringBuilder {
     _writeTypesIfNotEmpty(' implements ', element.interfaces);
   }
 
-  void writeFormalParameter(ParameterElementMixin element) {
+  void writeFormalParameter(FormalParameterFragmentImpl element) {
     if (element.isRequiredPositional) {
       _writeWithoutDelimiters(element, forElement: true);
     } else if (element.isOptionalPositional) {
@@ -473,7 +473,7 @@ class ElementDisplayStringBuilder {
   }
 
   void _writeFormalParameters(
-    List<ParameterElementMixin> parameters, {
+    List<FormalParameterFragmentImpl> parameters, {
     required bool forElement,
     bool allowMultiline = false,
   }) {
@@ -671,7 +671,7 @@ class ElementDisplayStringBuilder {
   }
 
   void _writeWithoutDelimiters(
-    ParameterElementMixin element, {
+    FormalParameterFragmentImpl element, {
     required bool forElement,
   }) {
     if (element.isRequiredNamed) {
