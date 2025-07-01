@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:kernel/ast.dart' show Annotatable, Library, Version;
 import 'package:kernel/reference_from_index.dart';
 
@@ -18,7 +19,6 @@ import '../fragment/fragment.dart';
 import '../kernel/body_builder_context.dart';
 import '../source/name_space_builder.dart';
 import '../source/offset_map.dart';
-import '../source/outline_builder.dart';
 import '../source/source_class_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_loader.dart';
@@ -87,7 +87,7 @@ abstract class DillCompilationUnit implements CompilationUnit {}
 
 abstract class SourceCompilationUnit
     implements CompilationUnit, LibraryFragment {
-  OutlineBuilder createOutlineBuilder();
+  void buildOutline(Token tokens);
 
   /// Creates a [SourceLibraryBuilder] for with this [SourceCompilationUnit] as
   /// the main compilation unit.
@@ -288,11 +288,7 @@ abstract class SourceCompilationUnit
   ///
   /// This is used to compute the bounds of type parameters while taking the
   /// bound dependencies, which might span multiple libraries, into account.
-  void collectUnboundTypeParameters(
-      SourceLibraryBuilder libraryBuilder,
-      Map<NominalParameterBuilder, SourceLibraryBuilder> nominalParameters,
-      Map<StructuralParameterBuilder, SourceLibraryBuilder>
-          structuralParameters);
+  List<TypeParameterBuilder> collectUnboundTypeParameters();
 
   /// Adds [prefixFragment] to library name space.
   ///

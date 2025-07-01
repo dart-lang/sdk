@@ -52,6 +52,7 @@ import 'source_member_builder.dart';
 import 'source_method_builder.dart';
 import 'source_property_builder.dart';
 import 'source_type_parameter_builder.dart';
+import 'type_parameter_factory.dart';
 
 class SourceEnumBuilder extends SourceClassBuilder {
   final int startOffset;
@@ -314,7 +315,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
           loader: libraryBuilder.loader,
           declarationBuilder: this,
           constructorBuilder: constructorBuilder,
-          unboundNominalParameters: const [],
+          typeParameterFactory: libraryBuilder.typeParameterFactory,
           encodingStrategy: encodingStrategy);
 
       addConstructorInternal(constructorBuilder, addToNameSpace: true);
@@ -542,7 +543,7 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
       ProblemReporting problemReporting,
       SourceMethodBuilder builder,
       MethodEncodingStrategy encodingStrategy,
-      List<NominalParameterBuilder> unboundNominalParameters) {
+      TypeParameterFactory typeParameterFactory) {
     throw new UnsupportedError("$runtimeType.createEncoding");
   }
 
@@ -799,7 +800,7 @@ class _EnumValuesFieldDeclaration
       ProblemReporting problemReporting,
       SourcePropertyBuilder builder,
       PropertyEncodingStrategy encodingStrategy,
-      List<NominalParameterBuilder> unboundNominalParameters) {}
+      TypeParameterFactory typeParameterFactory) {}
 
   @override
   // Coverage-ignore(suite): Not run.

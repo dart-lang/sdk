@@ -122,33 +122,25 @@ sealed class PropertyEncodingStrategy {
     }
   }
 
-  GetterEncoding createGetterEncoding(
-      SourcePropertyBuilder builder,
-      GetterFragment fragment,
-      List<NominalParameterBuilder> unboundNominalParameters);
+  GetterEncoding createGetterEncoding(SourcePropertyBuilder builder,
+      GetterFragment fragment, TypeParameterFactory typeParameterFactory);
 
-  SetterEncoding createSetterEncoding(
-      SourcePropertyBuilder builder,
-      SetterFragment fragment,
-      List<NominalParameterBuilder> unboundNominalParameters);
+  SetterEncoding createSetterEncoding(SourcePropertyBuilder builder,
+      SetterFragment fragment, TypeParameterFactory typeParameterFactory);
 }
 
 class RegularPropertyEncodingStrategy implements PropertyEncodingStrategy {
   const RegularPropertyEncodingStrategy();
 
   @override
-  GetterEncoding createGetterEncoding(
-      SourcePropertyBuilder builder,
-      GetterFragment fragment,
-      List<NominalParameterBuilder> unboundNominalParameters) {
+  GetterEncoding createGetterEncoding(SourcePropertyBuilder builder,
+      GetterFragment fragment, TypeParameterFactory typeParameterFactory) {
     return new RegularGetterEncoding(fragment);
   }
 
   @override
-  SetterEncoding createSetterEncoding(
-      SourcePropertyBuilder builder,
-      SetterFragment fragment,
-      List<NominalParameterBuilder> unboundNominalParameters) {
+  SetterEncoding createSetterEncoding(SourcePropertyBuilder builder,
+      SetterFragment fragment, TypeParameterFactory typeParameterFactory) {
     return new RegularSetterEncoding(fragment);
   }
 }
@@ -158,17 +150,15 @@ class ExtensionInstancePropertyEncodingStrategy
   const ExtensionInstancePropertyEncodingStrategy();
 
   @override
-  GetterEncoding createGetterEncoding(
-      SourcePropertyBuilder builder,
-      GetterFragment fragment,
-      List<NominalParameterBuilder> unboundNominalParameters) {
+  GetterEncoding createGetterEncoding(SourcePropertyBuilder builder,
+      GetterFragment fragment, TypeParameterFactory typeParameterFactory) {
     ExtensionBuilder declarationBuilder =
         builder.declarationBuilder as ExtensionBuilder;
     SynthesizedExtensionSignature signature = new SynthesizedExtensionSignature(
         declarationBuilder: declarationBuilder,
         extensionTypeParameterFragments:
             fragment.enclosingDeclaration!.typeParameters,
-        unboundNominalParameters: unboundNominalParameters,
+        typeParameterFactory: typeParameterFactory,
         onTypeBuilder: declarationBuilder.onType,
         fileUri: fragment.fileUri,
         fileOffset: fragment.nameOffset);
@@ -177,17 +167,15 @@ class ExtensionInstancePropertyEncodingStrategy
   }
 
   @override
-  SetterEncoding createSetterEncoding(
-      SourcePropertyBuilder builder,
-      SetterFragment fragment,
-      List<NominalParameterBuilder> unboundNominalParameters) {
+  SetterEncoding createSetterEncoding(SourcePropertyBuilder builder,
+      SetterFragment fragment, TypeParameterFactory typeParameterFactory) {
     ExtensionBuilder declarationBuilder =
         builder.declarationBuilder as ExtensionBuilder;
     SynthesizedExtensionSignature signature = new SynthesizedExtensionSignature(
         declarationBuilder: declarationBuilder,
         extensionTypeParameterFragments:
             fragment.enclosingDeclaration!.typeParameters,
-        unboundNominalParameters: unboundNominalParameters,
+        typeParameterFactory: typeParameterFactory,
         onTypeBuilder: declarationBuilder.onType,
         fileUri: fragment.fileUri,
         fileOffset: fragment.nameOffset);
@@ -201,18 +189,14 @@ class ExtensionStaticPropertyEncodingStrategy
   const ExtensionStaticPropertyEncodingStrategy();
 
   @override
-  GetterEncoding createGetterEncoding(
-      SourcePropertyBuilder builder,
-      GetterFragment fragment,
-      List<NominalParameterBuilder> unboundNominalParameters) {
+  GetterEncoding createGetterEncoding(SourcePropertyBuilder builder,
+      GetterFragment fragment, TypeParameterFactory typeParameterFactory) {
     return new ExtensionStaticGetterEncoding(fragment);
   }
 
   @override
-  SetterEncoding createSetterEncoding(
-      SourcePropertyBuilder builder,
-      SetterFragment fragment,
-      List<NominalParameterBuilder> unboundNominalParameters) {
+  SetterEncoding createSetterEncoding(SourcePropertyBuilder builder,
+      SetterFragment fragment, TypeParameterFactory typeParameterFactory) {
     return new ExtensionStaticSetterEncoding(fragment);
   }
 }
@@ -222,10 +206,8 @@ class ExtensionTypeInstancePropertyEncodingStrategy
   const ExtensionTypeInstancePropertyEncodingStrategy();
 
   @override
-  GetterEncoding createGetterEncoding(
-      SourcePropertyBuilder builder,
-      GetterFragment fragment,
-      List<NominalParameterBuilder> unboundNominalParameters) {
+  GetterEncoding createGetterEncoding(SourcePropertyBuilder builder,
+      GetterFragment fragment, TypeParameterFactory typeParameterFactory) {
     ExtensionTypeDeclarationBuilder declarationBuilder =
         builder.declarationBuilder as ExtensionTypeDeclarationBuilder;
     SynthesizedExtensionTypeSignature signature =
@@ -233,7 +215,7 @@ class ExtensionTypeInstancePropertyEncodingStrategy
             extensionTypeDeclarationBuilder: declarationBuilder,
             extensionTypeTypeParameters:
                 fragment.enclosingDeclaration!.typeParameters,
-            unboundNominalParameters: unboundNominalParameters,
+            typeParameterFactory: typeParameterFactory,
             fileUri: fragment.fileUri,
             fileOffset: fragment.nameOffset);
     return new ExtensionTypeInstanceGetterEncoding(fragment,
@@ -241,10 +223,8 @@ class ExtensionTypeInstancePropertyEncodingStrategy
   }
 
   @override
-  SetterEncoding createSetterEncoding(
-      SourcePropertyBuilder builder,
-      SetterFragment fragment,
-      List<NominalParameterBuilder> unboundNominalParameters) {
+  SetterEncoding createSetterEncoding(SourcePropertyBuilder builder,
+      SetterFragment fragment, TypeParameterFactory typeParameterFactory) {
     ExtensionTypeDeclarationBuilder declarationBuilder =
         builder.declarationBuilder as ExtensionTypeDeclarationBuilder;
     SynthesizedExtensionTypeSignature signature =
@@ -252,7 +232,7 @@ class ExtensionTypeInstancePropertyEncodingStrategy
             extensionTypeDeclarationBuilder: declarationBuilder,
             extensionTypeTypeParameters:
                 fragment.enclosingDeclaration!.typeParameters,
-            unboundNominalParameters: unboundNominalParameters,
+            typeParameterFactory: typeParameterFactory,
             fileUri: fragment.fileUri,
             fileOffset: fragment.nameOffset);
     return new ExtensionTypeInstanceSetterEncoding(fragment,
@@ -265,18 +245,14 @@ class ExtensionTypeStaticPropertyEncodingStrategy
   const ExtensionTypeStaticPropertyEncodingStrategy();
 
   @override
-  GetterEncoding createGetterEncoding(
-      SourcePropertyBuilder builder,
-      GetterFragment fragment,
-      List<NominalParameterBuilder> unboundNominalParameters) {
+  GetterEncoding createGetterEncoding(SourcePropertyBuilder builder,
+      GetterFragment fragment, TypeParameterFactory typeParameterFactory) {
     return new ExtensionTypeStaticGetterEncoding(fragment);
   }
 
   @override
-  SetterEncoding createSetterEncoding(
-      SourcePropertyBuilder builder,
-      SetterFragment fragment,
-      List<NominalParameterBuilder> unboundNominalParameters) {
+  SetterEncoding createSetterEncoding(SourcePropertyBuilder builder,
+      SetterFragment fragment, TypeParameterFactory typeParameterFactory) {
     return new ExtensionTypeStaticSetterEncoding(fragment);
   }
 }

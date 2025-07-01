@@ -26,7 +26,6 @@ import '../fragment/method/encoding.dart';
 import '../fragment/setter/declaration.dart';
 import 'name_scheme.dart';
 import 'name_space_builder.dart';
-import 'nominal_parameter_name_space.dart';
 import 'source_class_builder.dart';
 import 'source_constructor_builder.dart';
 import 'source_enum_builder.dart';
@@ -39,6 +38,7 @@ import 'source_method_builder.dart';
 import 'source_property_builder.dart';
 import 'source_type_alias_builder.dart';
 import 'source_type_parameter_builder.dart';
+import 'type_parameter_factory.dart';
 
 /// Reports an error if [declaration] is augmenting.
 ///
@@ -104,7 +104,7 @@ class BuilderFactory {
   final BuilderRegistry _builderRegistry;
   final SourceLibraryBuilder _enclosingLibraryBuilder;
   final DeclarationBuilder? _declarationBuilder;
-  final List<NominalParameterBuilder> _unboundNominalParameters;
+  final TypeParameterFactory _typeParameterFactory;
   final Map<SourceClassBuilder, TypeBuilder> _mixinApplications;
   final IndexedLibrary? _indexedLibrary;
   final ContainerType _containerType;
@@ -118,7 +118,7 @@ class BuilderFactory {
       required BuilderRegistry builderRegistry,
       required SourceLibraryBuilder enclosingLibraryBuilder,
       DeclarationBuilder? declarationBuilder,
-      required List<NominalParameterBuilder> unboundNominalParameters,
+      required TypeParameterFactory typeParameterFactory,
       required Map<SourceClassBuilder, TypeBuilder> mixinApplications,
       required IndexedLibrary? indexedLibrary,
       required ContainerType containerType,
@@ -129,7 +129,7 @@ class BuilderFactory {
         _containerType = containerType,
         _indexedLibrary = indexedLibrary,
         _mixinApplications = mixinApplications,
-        _unboundNominalParameters = unboundNominalParameters,
+        _typeParameterFactory = typeParameterFactory,
         _declarationBuilder = declarationBuilder,
         _enclosingLibraryBuilder = enclosingLibraryBuilder,
         _builderRegistry = builderRegistry,
@@ -214,8 +214,8 @@ class BuilderFactory {
     ClassDeclaration introductoryDeclaration =
         new RegularClassDeclaration(fragment);
     List<SourceNominalParameterBuilder>? nominalParameters =
-        createNominalParameterBuilders(
-            fragment.typeParameters, _unboundNominalParameters);
+        _typeParameterFactory
+            .createNominalParameterBuilders(fragment.typeParameters);
     fragment.nominalParameterNameSpace.addTypeParameters(
         _problemReporting, nominalParameters,
         ownerName: fragment.name, allowNameConflict: false);
@@ -250,8 +250,8 @@ class BuilderFactory {
           // augmentation.
           augmentation.nominalParameterNameSpace.addTypeParameters(
               _problemReporting,
-              createNominalParameterBuilders(
-                  augmentation.typeParameters, _unboundNominalParameters),
+              _typeParameterFactory
+                  .createNominalParameterBuilders(augmentation.typeParameters),
               ownerName: augmentation.name,
               allowNameConflict: false);
         } else if (augmentation.typeParameters != null) {
@@ -346,7 +346,7 @@ class BuilderFactory {
         loader: _loader,
         declarationBuilder: _declarationBuilder,
         constructorBuilder: constructorBuilder,
-        unboundNominalParameters: _unboundNominalParameters,
+        typeParameterFactory: _typeParameterFactory,
         encodingStrategy: encodingStrategy);
     for (ConstructorDeclaration augmentation in augmentationDeclarations) {
       augmentation.createEncoding(
@@ -354,7 +354,7 @@ class BuilderFactory {
           loader: _loader,
           declarationBuilder: _declarationBuilder,
           constructorBuilder: constructorBuilder,
-          unboundNominalParameters: _unboundNominalParameters,
+          typeParameterFactory: _typeParameterFactory,
           encodingStrategy: encodingStrategy);
     }
     _builderRegistry.registerBuilder(
@@ -557,10 +557,8 @@ class BuilderFactory {
   void _createEnumBuilder(EnumFragment fragment) {
     IndexedClass? indexedClass =
         _indexedLibrary?.lookupIndexedClass(fragment.name);
-    createNominalParameterBuilders(
-        fragment.typeParameters, _unboundNominalParameters);
-    List<SourceNominalParameterBuilder>? typeParameters =
-        fragment.typeParameters?.builders;
+    List<SourceNominalParameterBuilder>? typeParameters = _typeParameterFactory
+        .createNominalParameterBuilders(fragment.typeParameters);
     fragment.nominalParameterNameSpace.addTypeParameters(
         _problemReporting, typeParameters,
         ownerName: fragment.name, allowNameConflict: false);
@@ -597,8 +595,8 @@ class BuilderFactory {
     DeclarationNameSpaceBuilder nameSpaceBuilder =
         fragment.toDeclarationNameSpaceBuilder();
     List<SourceNominalParameterBuilder>? nominalParameters =
-        createNominalParameterBuilders(
-            fragment.typeParameters, _unboundNominalParameters);
+        _typeParameterFactory
+            .createNominalParameterBuilders(fragment.typeParameters);
     fragment.nominalParameterNameSpace.addTypeParameters(
         _problemReporting, nominalParameters,
         ownerName: fragment.name, allowNameConflict: false);
@@ -633,8 +631,8 @@ class BuilderFactory {
           // augmentation.
           augmentation.nominalParameterNameSpace.addTypeParameters(
               _problemReporting,
-              createNominalParameterBuilders(
-                  augmentation.typeParameters, _unboundNominalParameters),
+              _typeParameterFactory
+                  .createNominalParameterBuilders(augmentation.typeParameters),
               ownerName: augmentation.name,
               allowNameConflict: false);
         } else if (augmentation.typeParameters != null) {
@@ -686,8 +684,8 @@ class BuilderFactory {
     if (primaryConstructorFields.isNotEmpty) {
       representationFieldFragment = primaryConstructorFields.first;
     }
-    createNominalParameterBuilders(
-        fragment.typeParameters, _unboundNominalParameters);
+    _typeParameterFactory
+        .createNominalParameterBuilders(fragment.typeParameters);
     fragment.nominalParameterNameSpace.addTypeParameters(
         _problemReporting, fragment.typeParameters?.builders,
         ownerName: fragment.name, allowNameConflict: false);
@@ -763,14 +761,14 @@ class BuilderFactory {
         problemReporting: _problemReporting,
         declarationBuilder: _declarationBuilder,
         factoryBuilder: factoryBuilder,
-        unboundNominalParameters: _unboundNominalParameters,
+        typeParameterFactory: _typeParameterFactory,
         encodingStrategy: encodingStrategy);
     for (FactoryDeclaration augmentation in augmentations) {
       augmentation.createEncoding(
           problemReporting: _problemReporting,
           declarationBuilder: _declarationBuilder,
           factoryBuilder: factoryBuilder,
-          unboundNominalParameters: _unboundNominalParameters,
+          typeParameterFactory: _typeParameterFactory,
           encodingStrategy: encodingStrategy);
     }
 
@@ -785,8 +783,8 @@ class BuilderFactory {
     final bool isInstanceMember =
         _containerType != ContainerType.Library && !fragment.modifiers.isStatic;
 
-    createNominalParameterBuilders(
-        fragment.declaredTypeParameters, _unboundNominalParameters);
+    _typeParameterFactory
+        .createNominalParameterBuilders(fragment.declaredTypeParameters);
 
     MethodEncodingStrategy encodingStrategy = new MethodEncodingStrategy(
         _declarationBuilder,
@@ -833,8 +831,8 @@ class BuilderFactory {
 
         augmentationDeclarations.add(new MethodDeclarationImpl(augmentation));
 
-        createNominalParameterBuilders(
-            augmentation.declaredTypeParameters, _unboundNominalParameters);
+        _typeParameterFactory.createNominalParameterBuilders(
+            augmentation.declaredTypeParameters);
 
         if (!(augmentation.modifiers.isAbstract ||
             augmentation.modifiers.isExternal)) {
@@ -868,10 +866,10 @@ class BuilderFactory {
       augmentations.clear();
     }
     introductoryDeclaration.createEncoding(_problemReporting, methodBuilder,
-        encodingStrategy, _unboundNominalParameters);
+        encodingStrategy, _typeParameterFactory);
     for (MethodDeclaration augmentation in augmentationDeclarations) {
       augmentation.createEncoding(_problemReporting, methodBuilder,
-          encodingStrategy, _unboundNominalParameters);
+          encodingStrategy, _typeParameterFactory);
     }
 
     if (procedureReference != null) {
@@ -887,8 +885,8 @@ class BuilderFactory {
   void _createMixinBuilder(MixinFragment fragment) {
     IndexedClass? indexedClass =
         _indexedLibrary?.lookupIndexedClass(fragment.name);
-    createNominalParameterBuilders(
-        fragment.typeParameters, _unboundNominalParameters);
+    _typeParameterFactory
+        .createNominalParameterBuilders(fragment.typeParameters);
     List<SourceNominalParameterBuilder>? typeParameters =
         fragment.typeParameters?.builders;
     fragment.nominalParameterNameSpace.addTypeParameters(
@@ -929,8 +927,8 @@ class BuilderFactory {
     IndexedClass? referencesFromIndexedClass =
         _indexedLibrary?.lookupIndexedClass(name);
 
-    createNominalParameterBuilders(
-        fragment.typeParameters, _unboundNominalParameters);
+    _typeParameterFactory
+        .createNominalParameterBuilders(fragment.typeParameters);
     fragment.nominalParameterNameSpace.addTypeParameters(
         _problemReporting, fragment.typeParameters?.builders,
         ownerName: name, allowNameConflict: false);
@@ -1044,17 +1042,17 @@ class BuilderFactory {
     fieldDeclaration?.createFieldEncoding(propertyBuilder);
 
     getterDeclaration?.createGetterEncoding(_problemReporting, propertyBuilder,
-        propertyEncodingStrategy, _unboundNominalParameters);
+        propertyEncodingStrategy, _typeParameterFactory);
     for (GetterDeclaration augmentation in getterAugmentations) {
       augmentation.createGetterEncoding(_problemReporting, propertyBuilder,
-          propertyEncodingStrategy, _unboundNominalParameters);
+          propertyEncodingStrategy, _typeParameterFactory);
     }
 
     setterDeclaration?.createSetterEncoding(_problemReporting, propertyBuilder,
-        propertyEncodingStrategy, _unboundNominalParameters);
+        propertyEncodingStrategy, _typeParameterFactory);
     for (SetterDeclaration augmentation in setterAugmentations) {
       augmentation.createSetterEncoding(_problemReporting, propertyBuilder,
-          propertyEncodingStrategy, _unboundNominalParameters);
+          propertyEncodingStrategy, _typeParameterFactory);
     }
 
     references.registerReference(_loader, propertyBuilder);
@@ -1065,8 +1063,8 @@ class BuilderFactory {
 
   void _createTypedefBuilder(TypedefFragment fragment) {
     List<SourceNominalParameterBuilder>? nominalParameters =
-        createNominalParameterBuilders(
-            fragment.typeParameters, _unboundNominalParameters);
+        _typeParameterFactory
+            .createNominalParameterBuilders(fragment.typeParameters);
     if (nominalParameters != null) {
       for (SourceNominalParameterBuilder typeParameter in nominalParameters) {
         typeParameter.varianceCalculationValue =

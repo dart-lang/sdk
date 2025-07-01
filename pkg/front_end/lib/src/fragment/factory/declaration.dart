@@ -25,6 +25,7 @@ import '../../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../../source/source_loader.dart' show SourceLoader;
 import '../../source/source_member_builder.dart';
 import '../../source/source_type_parameter_builder.dart';
+import '../../source/type_parameter_factory.dart';
 import 'body_builder_context.dart';
 import 'encoding.dart';
 
@@ -47,7 +48,7 @@ abstract class FactoryDeclaration {
       {required ProblemReporting problemReporting,
       required DeclarationBuilder declarationBuilder,
       required SourceFactoryBuilder factoryBuilder,
-      required List<NominalParameterBuilder> unboundNominalParameters,
+      required TypeParameterFactory typeParameterFactory,
       required FactoryEncodingStrategy encodingStrategy});
 
   void buildOutlineExpressions(
@@ -106,7 +107,7 @@ class FactoryDeclarationImpl
       {required ProblemReporting problemReporting,
       required DeclarationBuilder declarationBuilder,
       required SourceFactoryBuilder factoryBuilder,
-      required List<NominalParameterBuilder> unboundNominalParameters,
+      required TypeParameterFactory typeParameterFactory,
       required FactoryEncodingStrategy encodingStrategy}) {
     _fragment.builder = factoryBuilder;
     var (typeParameters, returnType) =
@@ -114,7 +115,7 @@ class FactoryDeclarationImpl
             declarationBuilder: declarationBuilder,
             declarationTypeParameterFragments:
                 _fragment.enclosingDeclaration.typeParameters,
-            unboundNominalParameters: unboundNominalParameters,
+            typeParameterFactory: typeParameterFactory,
             fullName: _fragment.constructorName.fullName,
             fileUri: _fragment.fileUri,
             fullNameOffset: _fragment.constructorName.fullNameOffset,

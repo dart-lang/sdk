@@ -19,6 +19,7 @@ import '../source/source_extension_builder.dart';
 import '../source/source_extension_type_declaration_builder.dart';
 import '../source/source_type_alias_builder.dart';
 import '../source/source_type_parameter_builder.dart';
+import '../source/type_parameter_factory.dart';
 
 /// Combines syntactic nullabilities on types for performing type substitution.
 ///
@@ -46,7 +47,7 @@ NullabilityBuilder combineNullabilityBuildersForSubstitution(
 /// of the algorithm for details.
 List<TypeBuilder> calculateBounds(List<TypeParameterBuilder> parameters,
     TypeBuilder dynamicType, TypeBuilder bottomType,
-    {required List<StructuralParameterBuilder> unboundTypeParameters}) {
+    {required TypeParameterFactory typeParameterFactory}) {
   List<TypeBuilder> bounds = new List<TypeBuilder>.generate(
       parameters.length, (int i) => parameters[i].bound ?? dynamicType,
       growable: false);
@@ -65,7 +66,7 @@ List<TypeBuilder> calculateBounds(List<TypeParameterBuilder> parameters,
     for (int parameterIndex in component) {
       TypeParameterBuilder parameter = parameters[parameterIndex];
       bounds[parameterIndex] = bounds[parameterIndex].substituteRange(
-              dynamicSubstitution, nullSubstitution, unboundTypeParameters,
+              dynamicSubstitution, nullSubstitution, typeParameterFactory,
               variance: parameter.variance) ??
           bounds[parameterIndex];
     }
@@ -81,7 +82,7 @@ List<TypeBuilder> calculateBounds(List<TypeParameterBuilder> parameters,
     for (int j = 0; j < parameters.length; j++) {
       TypeParameterBuilder parameter = parameters[j];
       bounds[j] = bounds[j].substituteRange(
-              substitution, nullSubstitution, unboundTypeParameters,
+              substitution, nullSubstitution, typeParameterFactory,
               variance: parameter.variance) ??
           bounds[j];
     }
@@ -744,10 +745,10 @@ class ComputeDefaultTypeContext {
   final LibraryFeatures libraryFeatures;
   final TypeBuilder dynamicType;
   final TypeBuilder bottomType;
-  final List<StructuralParameterBuilder> unboundTypeParameters;
+  final TypeParameterFactory typeParameterFactory;
 
   ComputeDefaultTypeContext(
-      this._problemReporting, this.libraryFeatures, this.unboundTypeParameters,
+      this._problemReporting, this.libraryFeatures, this.typeParameterFactory,
       {required TypeBuilder dynamicType, required TypeBuilder bottomType})
       : dynamicType = dynamicType,
         bottomType = bottomType;
@@ -870,7 +871,7 @@ class ComputeDefaultTypeContext {
       if (!haveErroneousBounds) {
         List<TypeBuilder> calculatedBounds = calculateBounds(
             variables, dynamicType, bottomType,
-            unboundTypeParameters: unboundTypeParameters);
+            typeParameterFactory: typeParameterFactory);
         for (int i = 0; i < variables.length; ++i) {
           variables[i].defaultType = calculatedBounds[i];
         }

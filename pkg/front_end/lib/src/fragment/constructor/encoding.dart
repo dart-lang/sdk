@@ -17,7 +17,6 @@ import '../../kernel/body_builder_context.dart';
 import '../../kernel/constructor_tearoff_lowering.dart';
 import '../../kernel/internal_ast.dart';
 import '../../kernel/kernel_helper.dart';
-import '../../source/fragment_factory.dart';
 import '../../source/name_scheme.dart';
 import '../../source/source_class_builder.dart';
 import '../../source/source_constructor_builder.dart';
@@ -28,6 +27,7 @@ import '../../source/source_library_builder.dart';
 import '../../source/source_loader.dart';
 import '../../source/source_member_builder.dart';
 import '../../source/source_type_parameter_builder.dart';
+import '../../source/type_parameter_factory.dart';
 import '../../type_inference/type_schema.dart';
 import '../fragment.dart';
 import 'body_builder_context.dart';
@@ -1002,7 +1002,7 @@ abstract class ConstructorEncodingStrategy {
     required DeclarationBuilder declarationBuilder,
     required List<TypeParameterFragment>? declarationTypeParameterFragments,
     required List<SourceNominalParameterBuilder>? typeParameters,
-    required List<NominalParameterBuilder> unboundNominalParameters,
+    required TypeParameterFactory typeParameterFactory,
   });
 
   ConstructorEncoding createEncoding({required bool isExternal});
@@ -1032,7 +1032,7 @@ class RegularConstructorEncodingStrategy
       {required DeclarationBuilder declarationBuilder,
       required List<TypeParameterFragment>? declarationTypeParameterFragments,
       required List<SourceNominalParameterBuilder>? typeParameters,
-      required List<NominalParameterBuilder> unboundNominalParameters}) {
+      required TypeParameterFactory typeParameterFactory}) {
     return typeParameters;
   }
 }
@@ -1069,7 +1069,7 @@ class EnumConstructorEncodingStrategy implements ConstructorEncodingStrategy {
       {required DeclarationBuilder declarationBuilder,
       required List<TypeParameterFragment>? declarationTypeParameterFragments,
       required List<SourceNominalParameterBuilder>? typeParameters,
-      required List<NominalParameterBuilder> unboundNominalParameters}) {
+      required TypeParameterFactory typeParameterFactory}) {
     return typeParameters;
   }
 }
@@ -1097,10 +1097,9 @@ class ExtensionConstructorEncodingStrategy
       {required DeclarationBuilder declarationBuilder,
       required List<TypeParameterFragment>? declarationTypeParameterFragments,
       required List<SourceNominalParameterBuilder>? typeParameters,
-      required List<NominalParameterBuilder> unboundNominalParameters}) {
+      required TypeParameterFactory typeParameterFactory}) {
     NominalParameterCopy? nominalVariableCopy =
-        NominalParameterCopy.copyTypeParameters(
-            unboundNominalParameters: unboundNominalParameters,
+        typeParameterFactory.copyTypeParameters(
             oldParameterBuilders: declarationBuilder.typeParameters,
             oldParameterFragments: declarationTypeParameterFragments,
             kind: TypeParameterKind.extensionSynthesized,
@@ -1137,11 +1136,10 @@ class ExtensionTypeConstructorEncodingStrategy
     required DeclarationBuilder declarationBuilder,
     required List<TypeParameterFragment>? declarationTypeParameterFragments,
     required List<SourceNominalParameterBuilder>? typeParameters,
-    required List<NominalParameterBuilder> unboundNominalParameters,
+    required TypeParameterFactory typeParameterFactory,
   }) {
     NominalParameterCopy? nominalVariableCopy =
-        NominalParameterCopy.copyTypeParameters(
-            unboundNominalParameters: unboundNominalParameters,
+        typeParameterFactory.copyTypeParameters(
             oldParameterBuilders: declarationBuilder.typeParameters,
             oldParameterFragments: declarationTypeParameterFragments,
             kind: TypeParameterKind.extensionSynthesized,

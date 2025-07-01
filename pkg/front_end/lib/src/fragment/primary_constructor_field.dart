@@ -304,7 +304,7 @@ class PrimaryConstructorFieldDeclaration
       ProblemReporting problemReporting,
       SourcePropertyBuilder builder,
       PropertyEncodingStrategy encodingStrategy,
-      List<NominalParameterBuilder> unboundNominalParameters) {}
+      TypeParameterFactory typeParameterFactory) {}
 
   @override
   // Coverage-ignore(suite): Not run.

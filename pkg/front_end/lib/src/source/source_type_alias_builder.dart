@@ -140,12 +140,10 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
 
   @override
   TypeBuilder? unalias(List<TypeBuilder>? typeArguments,
-      {Set<TypeAliasBuilder>? usedTypeAliasBuilders,
-      List<StructuralParameterBuilder>? unboundTypeParameters}) {
+      {Set<TypeAliasBuilder>? usedTypeAliasBuilders}) {
     _breakCyclicDependency();
-    return super.unalias(typeArguments,
-        usedTypeAliasBuilders: usedTypeAliasBuilders,
-        unboundTypeParameters: unboundTypeParameters);
+    return super
+        .unalias(typeArguments, usedTypeAliasBuilders: usedTypeAliasBuilders);
   }
 
   bool _checkCyclicTypedefDependency(

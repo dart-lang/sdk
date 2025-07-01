@@ -184,7 +184,8 @@ class SourceExtensionTypeDeclarationBuilder
         containerType: ContainerType.ExtensionType,
         containerName: new ClassName(name),
         constructorBuilders: _constructorBuilders,
-        memberBuilders: _memberBuilders);
+        memberBuilders: _memberBuilders,
+        typeParameterFactory: libraryBuilder.typeParameterFactory);
   }
 
   @override
@@ -409,11 +410,8 @@ class SourceExtensionTypeDeclarationBuilder
     if (typeBuilder != null) {
       typeBuilder.build(
           libraryBuilder, TypeUse.extensionTypeRepresentationType);
-      unaliased = typeBuilder.unalias(
-          usedTypeAliasBuilders: usedTypeAliasBuilders,
-          // We allow creating new type parameters during unaliasing. This type
-          // variables are short-lived and therefore don't need to be bound.
-          unboundTypeParameters: []);
+      unaliased =
+          typeBuilder.unalias(usedTypeAliasBuilders: usedTypeAliasBuilders);
     }
     switch (unaliased) {
       case NamedTypeBuilder(
@@ -660,8 +658,7 @@ class SourceExtensionTypeDeclarationBuilder
       case TypeAliasBuilder():
         return combineNullabilitiesForSubstitution(
             inner: _computeNullabilityFromType(
-                declaration.unalias(typeBuilder.typeArguments,
-                    unboundTypeParameters: [])!,
+                declaration.unalias(typeBuilder.typeArguments)!,
                 traversalState: traversalState),
             outer: nullability);
       case ExtensionTypeDeclarationBuilder():

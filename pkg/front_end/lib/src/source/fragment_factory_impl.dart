@@ -44,6 +44,7 @@ import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_library_builder.dart';
 import 'source_loader.dart' show SourceLoader;
 import 'source_type_parameter_builder.dart';
+import 'type_parameter_factory.dart';
 import 'type_scope.dart';
 
 class FragmentFactoryImpl implements FragmentFactory, FragmentFactoryResult {
@@ -58,7 +59,7 @@ class FragmentFactoryImpl implements FragmentFactory, FragmentFactoryResult {
   final LibraryNameSpaceBuilder _libraryNameSpaceBuilder;
 
   /// Index of the library we use references for.
-  final IndexedLibrary? indexedLibrary;
+  final IndexedLibrary? _indexedLibrary;
 
   String? _name;
 
@@ -85,9 +86,7 @@ class FragmentFactoryImpl implements FragmentFactory, FragmentFactoryResult {
   /// concrete target.
   Map<SourceClassBuilder, TypeBuilder>? _mixinApplications = {};
 
-  final List<NominalParameterBuilder> _unboundNominalParameters = [];
-
-  final List<StructuralParameterBuilder> _unboundStructuralVariables = [];
+  final TypeParameterFactory _typeParameterFactory;
 
   final List<FactoryFragment> _nativeFactoryFragments = [];
 
@@ -121,13 +120,15 @@ class FragmentFactoryImpl implements FragmentFactory, FragmentFactoryResult {
       required LibraryNameSpaceBuilder libraryNameSpaceBuilder,
       required ProblemReporting problemReporting,
       required LookupScope scope,
-      required IndexedLibrary? indexedLibrary})
+      required IndexedLibrary? indexedLibrary,
+      required TypeParameterFactory typeParameterFactory})
       : _compilationUnit = compilationUnit,
         _augmentationRoot = augmentationRoot,
         _libraryNameSpaceBuilder = libraryNameSpaceBuilder,
         _problemReporting = problemReporting,
         _compilationUnitScope = scope,
-        indexedLibrary = indexedLibrary,
+        _typeParameterFactory = typeParameterFactory,
+        _indexedLibrary = indexedLibrary,
         _typeScopes =
             new LocalStack([new TypeScope(TypeScopeKind.library, scope)]);
 
@@ -185,9 +186,8 @@ class FragmentFactoryImpl implements FragmentFactory, FragmentFactoryResult {
 
   void _popNominalParametersForRecovery(
       List<TypeParameterFragment>? typeParameters) {
-    createNominalParameterBuilders(typeParameters, _unboundNominalParameters);
-    _nominalParameterNameSpaces.pop().addTypeParameters(
-        _problemReporting, typeParameters?.builders,
+    _nominalParameterNameSpaces.pop().addTypeParameters(_problemReporting,
+        _typeParameterFactory.createNominalParameterBuilders(typeParameters),
         ownerName: null, allowNameConflict: true);
   }
 
@@ -592,13 +592,6 @@ class FragmentFactoryImpl implements FragmentFactory, FragmentFactoryResult {
         "$_structuralParameterScopes.");
   }
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  void registerUnboundStructuralParameters(
-      List<StructuralParameterBuilder> variableBuilders) {
-    _unboundStructuralVariables.addAll(variableBuilders);
-  }
-
   Uri _resolve(Uri baseUri, String? uri, int uriOffset, {isPart = false}) {
     if (uri == null) {
       // Coverage-ignore-block(suite): Not run.
@@ -649,8 +642,8 @@ class FragmentFactoryImpl implements FragmentFactory, FragmentFactoryResult {
         fileUri: newFileUri,
         accessor: _compilationUnit,
         isPatch: _compilationUnit.isAugmenting,
-        referencesFromIndex: indexedLibrary,
-        referenceIsPartOwner: indexedLibrary != null);
+        referencesFromIndex: _indexedLibrary,
+        referenceIsPartOwner: _indexedLibrary != null);
     _parts.add(new Part(
         fileUri: _compilationUnit.fileUri,
         fileOffset: charOffset,
@@ -747,7 +740,7 @@ class FragmentFactoryImpl implements FragmentFactory, FragmentFactoryResult {
           referencesFromIndex: isAugmentationImport
               ?
               // Coverage-ignore(suite): Not run.
-              indexedLibrary
+              _indexedLibrary
               : null);
     }
 
@@ -2034,7 +2027,7 @@ class FragmentFactoryImpl implements FragmentFactory, FragmentFactoryResult {
       variableName = createWildcardTypeParameterName(wildcardVariableIndex);
       wildcardVariableIndex++;
     }
-    StructuralParameterBuilder builder = new SourceStructuralParameterBuilder(
+    return _typeParameterFactory.createStructuralParameterBuilder(
         new RegularStructuralParameterDeclaration(
             metadata: metadata,
             name: variableName,
@@ -2042,9 +2035,6 @@ class FragmentFactoryImpl implements FragmentFactory, FragmentFactoryResult {
             fileUri: fileUri,
             isWildcard: isWildcard),
         metadata: metadata);
-
-    _unboundStructuralVariables.add(builder);
-    return builder;
   }
 
   @override
@@ -2079,22 +2069,6 @@ class FragmentFactoryImpl implements FragmentFactory, FragmentFactoryResult {
   }
 
   @override
-  void collectUnboundTypeParameters(
-      SourceLibraryBuilder libraryBuilder,
-      Map<NominalParameterBuilder, SourceLibraryBuilder> nominalVariables,
-      Map<StructuralParameterBuilder, SourceLibraryBuilder>
-          structuralVariables) {
-    for (NominalParameterBuilder builder in _unboundNominalParameters) {
-      nominalVariables[builder] = libraryBuilder;
-    }
-    for (StructuralParameterBuilder builder in _unboundStructuralVariables) {
-      structuralVariables[builder] = libraryBuilder;
-    }
-    _unboundStructuralVariables.clear();
-    _unboundNominalParameters.clear();
-  }
-
-  @override
   TypeScope get typeScope => _typeScopes.current;
 
   @override
@@ -2114,12 +2088,6 @@ class FragmentFactoryImpl implements FragmentFactory, FragmentFactoryResult {
 
   @override
   List<Part> get parts => _parts;
-
-  @override
-  void registerUnresolvedStructuralParameters(
-      List<StructuralParameterBuilder> unboundTypeParameters) {
-    this._unboundStructuralVariables.addAll(unboundTypeParameters);
-  }
 
   @override
   int finishNativeMethods() {

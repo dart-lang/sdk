@@ -48,7 +48,6 @@ import '../kernel/kernel_helper.dart';
 import '../kernel/type_algorithms.dart';
 import '../kernel/utils.dart' show compareProcedures;
 import 'builder_factory.dart';
-import 'fragment_factory.dart';
 import 'class_declaration.dart';
 import 'name_scheme.dart';
 import 'name_space_builder.dart';
@@ -60,6 +59,7 @@ import 'source_library_builder.dart';
 import 'source_loader.dart';
 import 'source_member_builder.dart';
 import 'source_type_parameter_builder.dart';
+import 'type_parameter_factory.dart';
 
 Class initializeClass(
     List<SourceNominalParameterBuilder>? typeParameters,
@@ -279,6 +279,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         containerName: new ClassName(name),
         constructorBuilders: _constructorBuilders,
         memberBuilders: _memberBuilders,
+        typeParameterFactory: libraryBuilder.typeParameterFactory,
         syntheticDeclarations: createSyntheticDeclarations());
   }
 
@@ -289,7 +290,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   void computeSupertypeBuilder({
     required SourceLoader loader,
     required ProblemReporting problemReporting,
-    required List<NominalParameterBuilder> unboundNominalParameters,
+    required TypeParameterFactory typeParameterFactory,
     required IndexedLibrary? indexedLibrary,
     required Map<SourceClassBuilder, TypeBuilder> mixinApplications,
     required void Function(SourceClassBuilder) addAnonymousMixinClassBuilder,
@@ -297,7 +298,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     assert(!_hasComputedSupertypes, "Supertypes have already been computed.");
     _hasComputedSupertypes = true;
     _supertypeBuilder = _applyMixins(
-        unboundNominalParameters: unboundNominalParameters,
+        typeParameterFactory: typeParameterFactory,
         compilationUnitScope: _introductory.compilationUnitScope,
         problemReporting: problemReporting,
         objectTypeBuilder: loader.target.objectType,
@@ -2158,7 +2159,7 @@ int? getOverlookedOverrideProblemChoice(DeclarationBuilder declarationBuilder) {
 TypeBuilder? _applyMixins(
     {required ProblemReporting problemReporting,
     required SourceLibraryBuilder enclosingLibraryBuilder,
-    required List<NominalParameterBuilder> unboundNominalParameters,
+    required TypeParameterFactory typeParameterFactory,
     required TypeBuilder? supertype,
     required List<TypeBuilder>? mixins,
     required int startOffset,
@@ -2268,8 +2269,7 @@ TypeBuilder? _applyMixins(
           new NominalParameterNameSpace();
 
       NominalParameterCopy nominalVariableCopy =
-          NominalParameterCopy.copyTypeParameters(
-              unboundNominalParameters: unboundNominalParameters,
+          typeParameterFactory.copyTypeParameters(
               oldParameterBuilders: typeParameters,
               kind: TypeParameterKind.extensionSynthesized,
               instanceTypeParameterAccess:

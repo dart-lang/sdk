@@ -26,6 +26,7 @@ import 'source_extension_builder.dart';
 import 'source_library_builder.dart';
 import 'source_loader.dart';
 import 'source_member_builder.dart';
+import 'type_parameter_factory.dart';
 
 class DeclarationNameSpaceBuilder {
   final NominalParameterNameSpace? _nominalParameterNameSpace;
@@ -48,9 +49,8 @@ class DeclarationNameSpaceBuilder {
       required ContainerName containerName,
       required List<SourceMemberBuilder> constructorBuilders,
       required List<SourceMemberBuilder> memberBuilders,
+      required TypeParameterFactory typeParameterFactory,
       Map<String, SyntheticDeclaration>? syntheticDeclarations}) {
-    List<NominalParameterBuilder> unboundNominalParameters = [];
-
     _DeclarationBuilderRegistry builderRegistry =
         new _DeclarationBuilderRegistry(
             problemReporting: problemReporting,
@@ -70,7 +70,7 @@ class DeclarationNameSpaceBuilder {
         enclosingLibraryBuilder: enclosingLibraryBuilder,
         builderRegistry: builderRegistry,
         declarationBuilder: declarationBuilder,
-        unboundNominalParameters: unboundNominalParameters,
+        typeParameterFactory: typeParameterFactory,
         // TODO(johnniwinther): Avoid passing this:
         mixinApplications: const {},
         indexedLibrary: indexedLibrary,
@@ -103,9 +103,6 @@ class DeclarationNameSpaceBuilder {
           problemReporting, name, member, member.fileUri!);
     });
     builderRegistry.constructors.forEach(checkConflicts);
-
-    enclosingLibraryBuilder
-        .registerUnboundNominalParameters(unboundNominalParameters);
 
     return new SourceDeclarationNameSpace(
         content: builderRegistry.content,
@@ -152,7 +149,7 @@ class LibraryNameSpaceBuilder {
     required SourceLibraryBuilder enclosingLibraryBuilder,
     required IndexedLibrary? indexedLibrary,
     required ProblemReporting problemReporting,
-    required List<NominalParameterBuilder> unboundNominalParameters,
+    required TypeParameterFactory typeParameterFactory,
     required Map<SourceClassBuilder, TypeBuilder> mixinApplications,
     required List<NamedBuilder> memberBuilders,
   }) {
@@ -171,7 +168,7 @@ class LibraryNameSpaceBuilder {
         builderRegistry: builderRegistry,
         problemReporting: problemReporting,
         enclosingLibraryBuilder: enclosingLibraryBuilder,
-        unboundNominalParameters: unboundNominalParameters,
+        typeParameterFactory: typeParameterFactory,
         mixinApplications: mixinApplications,
         indexedLibrary: indexedLibrary,
         containerType: ContainerType.Library);
