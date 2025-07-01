@@ -38,16 +38,26 @@ import '../fragment/fragment.dart';
 import '../util/local_stack.dart';
 import 'fragment_factory.dart';
 import 'name_space_builder.dart';
+import 'native_method_registry.dart';
 import 'nominal_parameter_name_space.dart';
 import 'offset_map.dart';
-import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_library_builder.dart';
 import 'source_loader.dart' show SourceLoader;
 import 'source_type_parameter_builder.dart';
 import 'type_parameter_factory.dart';
 import 'type_scope.dart';
 
-class FragmentFactoryImpl implements FragmentFactory, FragmentFactoryResult {
+abstract class CompilationUnitRegistry {
+  void registerLibraryDirective(
+      {required String? libraryName, required List<MetadataBuilder>? metadata});
+  void registerPartOf({required String? name, required Uri? resolvedUri});
+  void registerPart(Part part);
+  void registerLibraryPart(LibraryPart libraryPart);
+  void registerImport(Import import);
+  void registerExport(Export export);
+}
+
+class FragmentFactoryImpl implements FragmentFactory {
   final SourceCompilationUnit _compilationUnit;
 
   final ProblemReporting _problemReporting;
@@ -61,42 +71,7 @@ class FragmentFactoryImpl implements FragmentFactory, FragmentFactoryResult {
   /// Index of the library we use references for.
   final IndexedLibrary? _indexedLibrary;
 
-  String? _name;
-
-  Uri? _partOfUri;
-
-  String? _partOfName;
-
-  List<MetadataBuilder>? _metadata;
-
-  /// The part directives in this compilation unit.
-  final List<Part> _parts = [];
-
-  final List<LibraryPart> _libraryParts = [];
-
-  @override
-  final List<Import> imports = <Import>[];
-
-  @override
-  final List<Export> exports = <Export>[];
-
-  /// Map from mixin application classes to their mixin types.
-  ///
-  /// This is used to check that super access in mixin declarations have a
-  /// concrete target.
-  Map<SourceClassBuilder, TypeBuilder>? _mixinApplications = {};
-
   final TypeParameterFactory _typeParameterFactory;
-
-  final List<FactoryFragment> _nativeFactoryFragments = [];
-
-  final List<GetterFragment> _nativeGetterFragments = [];
-
-  final List<SetterFragment> _nativeSetterFragments = [];
-
-  final List<MethodFragment> _nativeMethodFragments = [];
-
-  final List<ConstructorFragment> _nativeConstructorFragments = [];
 
   final LookupScope _compilationUnitScope;
 
@@ -114,23 +89,31 @@ class FragmentFactoryImpl implements FragmentFactory, FragmentFactoryResult {
   final LocalStack<DeclarationFragmentImpl> _declarationFragments =
       new LocalStack([]);
 
-  FragmentFactoryImpl(
-      {required SourceCompilationUnit compilationUnit,
-      required SourceCompilationUnit augmentationRoot,
-      required LibraryNameSpaceBuilder libraryNameSpaceBuilder,
-      required ProblemReporting problemReporting,
-      required LookupScope scope,
-      required IndexedLibrary? indexedLibrary,
-      required TypeParameterFactory typeParameterFactory})
-      : _compilationUnit = compilationUnit,
+  final CompilationUnitRegistry _compilationUnitRegistry;
+
+  final NativeMethodRegistry _nativeMethodRegistry;
+
+  FragmentFactoryImpl({
+    required SourceCompilationUnit compilationUnit,
+    required SourceCompilationUnit augmentationRoot,
+    required LibraryNameSpaceBuilder libraryNameSpaceBuilder,
+    required ProblemReporting problemReporting,
+    required LookupScope scope,
+    required IndexedLibrary? indexedLibrary,
+    required TypeParameterFactory typeParameterFactory,
+    required TypeScope typeScope,
+    required CompilationUnitRegistry compilationUnitRegistry,
+    required NativeMethodRegistry nativeMethodRegistry,
+  })  : _compilationUnit = compilationUnit,
         _augmentationRoot = augmentationRoot,
         _libraryNameSpaceBuilder = libraryNameSpaceBuilder,
         _problemReporting = problemReporting,
         _compilationUnitScope = scope,
         _typeParameterFactory = typeParameterFactory,
         _indexedLibrary = indexedLibrary,
-        _typeScopes =
-            new LocalStack([new TypeScope(TypeScopeKind.library, scope)]);
+        _typeScopes = new LocalStack([typeScope]),
+        _compilationUnitRegistry = compilationUnitRegistry,
+        _nativeMethodRegistry = nativeMethodRegistry;
 
   SourceLoader get loader => _compilationUnit.loader;
 
@@ -644,7 +627,7 @@ class FragmentFactoryImpl implements FragmentFactory, FragmentFactoryResult {
         isPatch: _compilationUnit.isAugmenting,
         referencesFromIndex: _indexedLibrary,
         referenceIsPartOwner: _indexedLibrary != null);
-    _parts.add(new Part(
+    _compilationUnitRegistry.registerPart(new Part(
         fileUri: _compilationUnit.fileUri,
         fileOffset: charOffset,
         compilationUnit: compilationUnit));
@@ -652,25 +635,26 @@ class FragmentFactoryImpl implements FragmentFactory, FragmentFactoryResult {
     // TODO(ahe): [metadata] should be stored, evaluated, and added to [part].
     LibraryPart part = new LibraryPart(<Expression>[], uri)
       ..fileOffset = charOffset;
-    _libraryParts.add(part);
+    _compilationUnitRegistry.registerLibraryPart(part);
     offsetMap.registerPart(partKeyword, part);
   }
 
   @override
   void addPartOf(List<MetadataBuilder>? metadata, String? name, String? uri,
       int uriOffset) {
-    _partOfName = name;
+    Uri? resolvedUri;
     if (uri != null) {
-      Uri resolvedUri =
-          _partOfUri = _resolve(_compilationUnit.importUri, uri, uriOffset);
+      resolvedUri = _resolve(_compilationUnit.importUri, uri, uriOffset);
       // To support absolute paths from within packages in the part of uri, we
       // try to translate the file uri from the resolved import uri before
       // resolving through the file uri of this library. See issue #52964.
       Uri newFileUri = loader.target.uriTranslator.translate(resolvedUri) ??
           _resolve(_compilationUnit.fileUri, uri, uriOffset);
-      loader.read(partOfUri!, uriOffset,
+      loader.read(resolvedUri, uriOffset,
           fileUri: newFileUri, accessor: _compilationUnit);
     }
+    _compilationUnitRegistry.registerPartOf(
+        name: name, resolvedUri: resolvedUri);
     if (_scriptTokenOffset != null) {
       _problemReporting.addProblem(messageScriptTagInPartFile,
           _scriptTokenOffset!, noLength, _compilationUnit.fileUri);
@@ -756,7 +740,7 @@ class FragmentFactoryImpl implements FragmentFactory, FragmentFactoryResult {
         charOffset,
         prefixCharOffset,
         nativeImportPath: nativePath);
-    imports.add(import);
+    _compilationUnitRegistry.registerImport(import);
     offsetMap?.registerImport(importKeyword!, import);
   }
 
@@ -787,7 +771,7 @@ class FragmentFactoryImpl implements FragmentFactory, FragmentFactoryResult {
     exportedLibrary.addExporter(_compilationUnit, combinators, charOffset);
     Export export =
         new Export(_compilationUnit, exportedLibrary, combinators, charOffset);
-    exports.add(export);
+    _compilationUnitRegistry.registerExport(export);
     offsetMap.registerExport(exportKeyword, export);
   }
 
@@ -942,9 +926,6 @@ class FragmentFactoryImpl implements FragmentFactory, FragmentFactoryResult {
       required int nameOffset,
       required int endOffset}) {
     LookupScope typeParameterScope = endNamedMixinApplication(name);
-
-    assert(
-        _mixinApplications != null, "Late registration of mixin application.");
 
     NominalParameterNameSpace nominalParameterNameSpace =
         _nominalParameterNameSpaces.pop();
@@ -1327,7 +1308,7 @@ class FragmentFactoryImpl implements FragmentFactory, FragmentFactoryResult {
 
     _addFragment(fragment);
     if (nativeMethodName != null) {
-      _addNativeConstructorFragment(fragment);
+      _nativeMethodRegistry.registerNativeConstructorFragment(fragment);
     }
     if (modifiers.isConst) {
       enclosingDeclaration.declaresConstConstructor = true;
@@ -1403,7 +1384,7 @@ class FragmentFactoryImpl implements FragmentFactory, FragmentFactoryResult {
 
     _addFragment(fragment);
     if (nativeMethodName != null) {
-      _addNativeFactoryFragment(fragment);
+      _nativeMethodRegistry.registerNativeFactoryFragment(fragment);
     }
     offsetMap.registerFactoryFragment(identifier, fragment);
   }
@@ -1532,26 +1513,6 @@ class FragmentFactoryImpl implements FragmentFactory, FragmentFactoryResult {
         fullNameLength: fullNameLength);
   }
 
-  void _addNativeGetterFragment(GetterFragment fragment) {
-    _nativeGetterFragments.add(fragment);
-  }
-
-  void _addNativeSetterFragment(SetterFragment fragment) {
-    _nativeSetterFragments.add(fragment);
-  }
-
-  void _addNativeMethodFragment(MethodFragment fragment) {
-    _nativeMethodFragments.add(fragment);
-  }
-
-  void _addNativeConstructorFragment(ConstructorFragment fragment) {
-    _nativeConstructorFragments.add(fragment);
-  }
-
-  void _addNativeFactoryFragment(FactoryFragment method) {
-    _nativeFactoryFragments.add(method);
-  }
-
   @override
   void addGetter(
       {required OffsetMap offsetMap,
@@ -1615,7 +1576,7 @@ class FragmentFactoryImpl implements FragmentFactory, FragmentFactoryResult {
         enclosingDeclaration: enclosingDeclaration);
     _addFragment(fragment);
     if (nativeMethodName != null) {
-      _addNativeGetterFragment(fragment);
+      _nativeMethodRegistry.registerNativeGetterFragment(fragment);
     }
     offsetMap.registerGetter(identifier, fragment);
   }
@@ -1687,7 +1648,7 @@ class FragmentFactoryImpl implements FragmentFactory, FragmentFactoryResult {
     );
     _addFragment(fragment);
     if (nativeMethodName != null) {
-      _addNativeSetterFragment(fragment);
+      _nativeMethodRegistry.registerNativeSetterFragment(fragment);
     }
     offsetMap.registerSetter(identifier, fragment);
   }
@@ -1763,7 +1724,7 @@ class FragmentFactoryImpl implements FragmentFactory, FragmentFactoryResult {
     );
     _addFragment(fragment);
     if (nativeMethodName != null) {
-      _addNativeMethodFragment(fragment);
+      _nativeMethodRegistry.registerNativeMethodFragment(fragment);
     }
     offsetMap.registerMethod(identifier, fragment);
   }
@@ -2042,8 +2003,8 @@ class FragmentFactoryImpl implements FragmentFactory, FragmentFactoryResult {
       {required String? libraryName,
       required List<MetadataBuilder>? metadata,
       required bool isAugment}) {
-    _name = libraryName;
-    _metadata = metadata;
+    _compilationUnitRegistry.registerLibraryDirective(
+        libraryName: libraryName, metadata: metadata);
   }
 
   @override
@@ -2058,59 +2019,6 @@ class FragmentFactoryImpl implements FragmentFactory, FragmentFactoryResult {
       _declarationFragments.current.addFragment(fragment);
     }
   }
-
-  @override
-  void takeMixinApplications(
-      Map<SourceClassBuilder, TypeBuilder> mixinApplications) {
-    assert(_mixinApplications != null,
-        "Mixin applications have already been processed.");
-    mixinApplications.addAll(_mixinApplications!);
-    _mixinApplications = null;
-  }
-
-  @override
-  TypeScope get typeScope => _typeScopes.current;
-
-  @override
-  String? get name => _name;
-
-  @override
-  List<MetadataBuilder>? get metadata => _metadata;
-
-  @override
-  bool get isPart => _partOfName != null || _partOfUri != null;
-
-  @override
-  String? get partOfName => _partOfName;
-
-  @override
-  Uri? get partOfUri => _partOfUri;
-
-  @override
-  List<Part> get parts => _parts;
-
-  @override
-  int finishNativeMethods() {
-    for (FactoryFragment fragment in _nativeFactoryFragments) {
-      fragment.declaration.becomeNative(loader);
-    }
-    for (GetterFragment fragment in _nativeGetterFragments) {
-      fragment.declaration.becomeNative(loader);
-    }
-    for (SetterFragment fragment in _nativeSetterFragments) {
-      fragment.declaration.becomeNative(loader);
-    }
-    for (MethodFragment fragment in _nativeMethodFragments) {
-      fragment.declaration.becomeNative(loader);
-    }
-    for (ConstructorFragment fragment in _nativeConstructorFragments) {
-      fragment.declaration.becomeNative(loader);
-    }
-    return _nativeFactoryFragments.length;
-  }
-
-  @override
-  List<LibraryPart> get libraryParts => _libraryParts;
 }
 
 bool _hasPatchAnnotation(Iterable<MetadataBuilder>? metadata) {

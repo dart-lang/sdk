@@ -902,11 +902,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         "Mixin applications have already been processed.");
     mixinApplications.addAll(_mixinApplications!);
     _mixinApplications = null;
-
-    compilationUnit.takeMixinApplications(mixinApplications);
-    for (SourceCompilationUnit part in parts) {
-      part.takeMixinApplications(mixinApplications);
-    }
   }
 
   BodyBuilderContext createBodyBuilderContext() {
@@ -1111,10 +1106,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return count;
   }
 
-  int finishNativeMethods() {
-    int count = compilationUnit.finishNativeMethods();
+  int finishNativeMethods(SourceLoader loader) {
+    int count = compilationUnit.finishNativeMethods(loader);
     for (SourceCompilationUnit part in parts) {
-      count += part.finishNativeMethods();
+      count += part.finishNativeMethods(loader);
     }
 
     return count;

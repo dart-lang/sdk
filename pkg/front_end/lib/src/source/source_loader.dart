@@ -1568,7 +1568,7 @@ severity: $severity
   void finishNativeMethods() {
     int count = 0;
     for (SourceLibraryBuilder library in sourceLibraryBuilders) {
-      count += library.finishNativeMethods();
+      count += library.finishNativeMethods(this);
     }
     ticker.logMs("Finished $count native methods");
   }
