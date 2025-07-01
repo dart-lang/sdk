@@ -149,6 +149,26 @@ config("dart_linux_x64_config") {
   ]
 }
 
+# We need to build gen_snapshot targeting Linux ARM during a build
+# of the SDK. This configuration is used to unconditionally target
+# Linux ARM. It should not be combined with dart_os_config and dart_arch_config.
+config("dart_linux_arm_config") {
+  defines = [
+    "DART_TARGET_OS_LINUX",
+    "TARGET_ARCH_ARM",
+  ]
+}
+
+# We need to build gen_snapshot targeting Linux RISCV64 during a build
+# of the SDK. This configuration is used to unconditionally target
+# Linux RISCV64. It should not be combined with dart_os_config and dart_arch_config.
+config("dart_linux_riscv64_config") {
+  defines = [
+    "DART_TARGET_OS_LINUX",
+    "TARGET_ARCH_RISCV64",
+  ]
+}
+
 config("dart_arch_config") {
   defines = []
 

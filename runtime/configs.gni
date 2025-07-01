@@ -63,6 +63,18 @@ _precompiler_product_linux_arm64_config =
       "$_dart_runtime:dart_linux_arm64_config",
     ] + _product + _precompiler_base
 
+_precompiler_product_linux_arm_config =
+    [
+      "$_dart_runtime:dart_config",
+      "$_dart_runtime:dart_linux_arm_config",
+    ] + _product + _precompiler_base
+
+_precompiler_product_linux_riscv64_config =
+    [
+      "$_dart_runtime:dart_config",
+      "$_dart_runtime:dart_linux_riscv64_config",
+    ] + _product + _precompiler_base
+
 _all_configs = [
   {
     suffix = "_jit"
@@ -144,6 +156,20 @@ _all_configs = [
   {
     suffix = "_precompiler_product_linux_arm64"
     configs = _precompiler_product_linux_arm64_config
+    snapshot = false
+    compiler = true
+    is_product = true
+  },
+  {
+    suffix = "_precompiler_product_linux_arm"
+    configs = _precompiler_product_linux_arm_config
+    snapshot = false
+    compiler = true
+    is_product = true
+  },
+  {
+    suffix = "_precompiler_product_linux_riscv64"
+    configs = _precompiler_product_linux_riscv64_config
     snapshot = false
     compiler = true
     is_product = true

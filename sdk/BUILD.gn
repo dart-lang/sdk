@@ -880,8 +880,14 @@ group("create_full_sdk") {
     # SDK, but add them as a dependency, so that they are built.
     public_deps += [
       "../runtime/bin:gen_snapshot_product_linux_arm64",
+      "../runtime/bin:gen_snapshot_product_linux_riscv64",
       "../runtime/bin:gen_snapshot_product_linux_x64",
     ]
+
+    # assembler_arm.cc disallows ARM cross-compilation on Windows.
+    if (!is_win) {
+      public_deps += [ "../runtime/bin:gen_snapshot_product_linux_arm" ]
+    }
   }
 }
 
