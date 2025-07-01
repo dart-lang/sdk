@@ -23,13 +23,13 @@ class ConstructorMember extends ExecutableMember
   /// Initialize a newly created element to represent a constructor, based on
   /// the [declaration], and applied [substitution].
   ConstructorMember({
-    required ConstructorFragmentImpl super.declaration,
+    required ConstructorElementImpl super.baseElement,
     required super.substitution,
   }) : super(typeParameters2: const <TypeParameterElementImpl>[]);
 
   @override
   ConstructorElementImpl get baseElement =>
-      super._declaration.element as ConstructorElementImpl;
+      super.baseElement as ConstructorElementImpl;
 
   @override
   String get displayName => baseElement.displayName;
@@ -69,11 +69,11 @@ class ConstructorMember extends ExecutableMember
   bool get isGenerative => baseElement.isGenerative;
 
   @override
-  LibraryElementImpl get library => _declaration.library!;
+  LibraryElementImpl get library => baseElement.library;
 
   @Deprecated('Use library instead')
   @override
-  LibraryElementImpl get library2 => _declaration.library!;
+  LibraryElementImpl get library2 => library;
 
   @override
   String? get lookupName => _element2.lookupName;
@@ -131,7 +131,7 @@ class ConstructorMember extends ExecutableMember
             key: substitution.substituteType(value),
         };
         return ConstructorMember(
-          declaration: element.baseElement.firstFragment,
+          baseElement: element.baseElement,
           substitution: Substitution.fromMap2(map),
         );
       default:
@@ -153,7 +153,7 @@ class ConstructorMember extends ExecutableMember
     }
 
     return ConstructorMember(
-      declaration: element.asElement,
+      baseElement: element,
       substitution: Substitution.fromInterfaceType(definingType),
     );
   }
@@ -176,7 +176,7 @@ abstract class ExecutableMember extends Member
   /// their bounds.  The [substitution] includes replacing [declaration] type
   /// parameters with the provided fresh [typeParameters].
   ExecutableMember({
-    required ExecutableFragmentImpl super.declaration,
+    required ExecutableElementImpl super.baseElement,
     required super.substitution,
     required this.typeParameters2,
   });
@@ -210,17 +210,17 @@ abstract class ExecutableMember extends Member
       switch (element) {
         case FieldFormalParameterElementImpl():
           return FieldFormalParameterMember(
-            declaration: element.firstFragment,
+            baseElement: element,
             substitution: substitution,
           );
         case SuperFormalParameterElementImpl():
           return SuperFormalParameterMember(
-            declaration: element.firstFragment,
+            baseElement: element,
             substitution: substitution,
           );
         default:
           return ParameterMember(
-            declaration: element.firstFragment as FormalParameterFragmentImpl,
+            baseElement: element as FormalParameterElementImpl,
             substitution: substitution,
           );
       }
@@ -358,7 +358,7 @@ abstract class ExecutableMember extends Member
     switch (baseElement) {
       case ConstructorElementImpl():
         return ConstructorMember(
-          declaration: baseElement.firstFragment,
+          baseElement: baseElement,
           substitution: combined,
         );
       case MethodElementImpl():
@@ -379,24 +379,24 @@ abstract class ExecutableMember extends Member
 class FieldFormalParameterMember extends ParameterMember
     implements FieldFormalParameterElement {
   factory FieldFormalParameterMember({
-    required FieldFormalParameterFragmentImpl declaration,
+    required FieldFormalParameterElementImpl baseElement,
     required MapSubstitution substitution,
   }) {
     var freshTypeParameters = _SubstitutedTypeParameters(
-      declaration.typeParameters,
+      baseElement.typeParameters2.cast(),
       substitution,
     );
     return FieldFormalParameterMember._(
-      declaration: declaration,
+      baseElement: baseElement,
       substitution: freshTypeParameters.substitution,
-      typeParameters: freshTypeParameters.elements,
+      typeParameters2: freshTypeParameters.elements,
     );
   }
 
   FieldFormalParameterMember._({
-    required FieldFormalParameterFragmentImpl super.declaration,
+    required FieldFormalParameterElementImpl super.baseElement,
     required super.substitution,
-    required super.typeParameters,
+    required super.typeParameters2,
   }) : super._();
 
   @override
@@ -434,7 +434,7 @@ class FieldMember extends VariableMember implements FieldElement2OrMember {
   /// Initialize a newly created element to represent a field, based on the
   /// [declaration], with applied [substitution].
   FieldMember({
-    required FieldFragmentImpl super.declaration,
+    required FieldElementImpl super.baseElement,
     required super.substitution,
   });
 
@@ -541,7 +541,7 @@ class FieldMember extends VariableMember implements FieldElement2OrMember {
   }
 
   @override
-  Version? get sinceSdkVersion => _declaration.sinceSdkVersion;
+  Version? get sinceSdkVersion => baseElement.sinceSdkVersion;
 
   @override
   FieldElementImpl get _element2 => baseElement;
@@ -596,10 +596,7 @@ class FieldMember extends VariableMember implements FieldElement2OrMember {
     if (substitution.map.isEmpty) {
       return element;
     }
-    return FieldMember(
-      declaration: element.firstFragment,
-      substitution: substitution,
-    );
+    return FieldMember(baseElement: element, substitution: substitution);
   }
 }
 
@@ -608,7 +605,7 @@ class FieldMember extends VariableMember implements FieldElement2OrMember {
 class GetterMember extends PropertyAccessorMember
     implements GetterElement2OrMember {
   GetterMember._({
-    required super.declaration,
+    required super.baseElement,
     required super.substitution,
     required super.typeParameters2,
   }) : super._();
@@ -688,44 +685,33 @@ class GetterMember extends PropertyAccessorMember
 /// An element defined in a parameterized type where the values of the type
 /// parameters are known.
 abstract class Member implements Element {
-  /// The element on which the parameterized element was created.
-  final FragmentImpl _declaration;
+  @override
+  final ElementImpl baseElement;
 
   /// The substitution for type parameters referenced in the base element.
   final MapSubstitution substitution;
 
   /// Initialize a newly created element to represent a member, based on the
   /// [declaration], and applied [substitution].
-  Member({required FragmentImpl declaration, required this.substitution})
-    : _declaration = declaration {
-    if (_declaration is Member) {
-      throw StateError(
-        'Members must be created from a declaration, but is '
-        '(${_declaration.runtimeType}) "$_declaration".',
-      );
-    }
-  }
+  Member({required this.baseElement, required this.substitution});
 
   @override
-  ElementImpl get baseElement => _declaration.element as ElementImpl;
+  int get id => baseElement.id;
 
   @override
-  int get id => _declaration.id;
+  bool get isPrivate => baseElement.isPrivate;
 
   @override
-  bool get isPrivate => _declaration.isPrivate;
+  bool get isPublic => baseElement.isPublic;
 
   @override
-  bool get isPublic => _declaration.isPublic;
+  bool get isSynthetic => baseElement.isSynthetic;
 
   @override
-  bool get isSynthetic => _declaration.isSynthetic;
+  ElementKind get kind => baseElement.kind;
 
   @override
-  ElementKind get kind => _declaration.kind;
-
-  @override
-  AnalysisSession? get session => _declaration.session;
+  AnalysisSession? get session => baseElement.session;
 
   Element get _element2;
 
@@ -752,20 +738,20 @@ class MethodMember extends ExecutableMember implements MethodElement2OrMember {
     required MethodElementImpl baseElement,
     required MapSubstitution substitution,
   }) {
-    var freshTypeParameters = _SubstitutedTypeParameters2(
+    var freshTypeParameters = _SubstitutedTypeParameters(
       // TODO(scheglov): avoid the cast
       baseElement.typeParameters2.cast(),
       substitution,
     );
     return MethodMember._(
-      declaration: baseElement.firstFragment,
+      baseElement: baseElement,
       substitution: freshTypeParameters.substitution,
       typeParameters2: freshTypeParameters.elements,
     );
   }
 
   MethodMember._({
-    required MethodFragmentImpl super.declaration,
+    required MethodElementImpl super.baseElement,
     required super.substitution,
     required super.typeParameters2,
   });
@@ -805,7 +791,7 @@ class MethodMember extends ExecutableMember implements MethodElement2OrMember {
   String? get name3 => _element2.name3;
 
   @override
-  Version? get sinceSdkVersion => _declaration.sinceSdkVersion;
+  Version? get sinceSdkVersion => baseElement.sinceSdkVersion;
 
   @override
   MethodElementImpl get _element2 => baseElement;
@@ -833,30 +819,30 @@ class MethodMember extends ExecutableMember implements MethodElement2OrMember {
 /// A parameter element defined in a parameterized type where the values of the
 /// type parameters are known.
 class ParameterMember extends VariableMember with FormalParameterElementMixin {
-  // TODO(scheglov): replace with TypeParameterElementImpl(s)
-  final List<TypeParameterFragmentImpl> typeParameters;
+  @override
+  final List<TypeParameterElementImpl> typeParameters2;
 
   factory ParameterMember({
-    required FormalParameterFragmentImpl declaration,
+    required FormalParameterElementImpl baseElement,
     required MapSubstitution substitution,
   }) {
     var freshTypeParameters = _SubstitutedTypeParameters(
-      declaration.typeParameters,
+      baseElement.typeParameters2.cast(),
       substitution,
     );
     return ParameterMember._(
-      declaration: declaration,
+      baseElement: baseElement,
       substitution: freshTypeParameters.substitution,
-      typeParameters: freshTypeParameters.elements,
+      typeParameters2: freshTypeParameters.elements,
     );
   }
 
   /// Initialize a newly created element to represent a parameter, based on the
   /// [declaration], with applied [substitution].
   ParameterMember._({
-    required FormalParameterFragmentImpl super.declaration,
+    required FormalParameterElementImpl super.baseElement,
     required super.substitution,
-    required this.typeParameters,
+    required this.typeParameters2,
   });
 
   @override
@@ -981,10 +967,7 @@ class ParameterMember extends VariableMember with FormalParameterElementMixin {
   }
 
   @override
-  Version? get sinceSdkVersion => _declaration.sinceSdkVersion;
-
-  @override
-  List<TypeParameterElement> get typeParameters2 => _element2.typeParameters2;
+  Version? get sinceSdkVersion => baseElement.sinceSdkVersion;
 
   @override
   TypeImpl get typeShared => type;
@@ -1064,10 +1047,7 @@ class ParameterMember extends VariableMember with FormalParameterElementMixin {
       return element;
     }
 
-    return ParameterMember(
-      declaration: baseElement.asElement,
-      substitution: combined,
-    );
+    return ParameterMember(baseElement: baseElement, substitution: combined);
   }
 }
 
@@ -1079,20 +1059,20 @@ abstract class PropertyAccessorMember extends ExecutableMember
     required PropertyAccessorElementImpl baseElement,
     required MapSubstitution substitution,
   }) {
-    var freshTypeParameters = _SubstitutedTypeParameters2(
+    var freshTypeParameters = _SubstitutedTypeParameters(
       // TODO(scheglov): avoid the cast
       baseElement.typeParameters2.cast(),
       substitution,
     );
     if (baseElement is GetterElementImpl) {
       return GetterMember._(
-        declaration: baseElement.firstFragment,
+        baseElement: baseElement,
         substitution: freshTypeParameters.substitution,
         typeParameters2: freshTypeParameters.elements,
       );
     } else {
       return SetterMember._(
-        declaration: baseElement.firstFragment,
+        baseElement: baseElement,
         substitution: freshTypeParameters.substitution,
         typeParameters2: freshTypeParameters.elements,
       );
@@ -1100,7 +1080,7 @@ abstract class PropertyAccessorMember extends ExecutableMember
   }
 
   PropertyAccessorMember._({
-    required PropertyAccessorFragmentImpl super.declaration,
+    required PropertyAccessorElementImpl super.baseElement,
     required super.substitution,
     required super.typeParameters2,
   });
@@ -1125,10 +1105,7 @@ abstract class PropertyAccessorMember extends ExecutableMember
     var variable = baseElement.variable3;
     switch (variable) {
       case FieldElementImpl():
-        return FieldMember(
-          declaration: variable.firstFragment,
-          substitution: substitution,
-        );
+        return FieldMember(baseElement: variable, substitution: substitution);
       default:
         return variable;
     }
@@ -1148,7 +1125,7 @@ abstract class PropertyAccessorMember extends ExecutableMember
 class SetterMember extends PropertyAccessorMember
     implements SetterElement2OrMember {
   SetterMember._({
-    required super.declaration,
+    required super.baseElement,
     required super.substitution,
     required super.typeParameters2,
   }) : super._();
@@ -1228,24 +1205,24 @@ class SetterMember extends PropertyAccessorMember
 class SuperFormalParameterMember extends ParameterMember
     implements SuperFormalParameterElement {
   factory SuperFormalParameterMember({
-    required SuperFormalParameterFragmentImpl declaration,
+    required SuperFormalParameterElementImpl baseElement,
     required MapSubstitution substitution,
   }) {
     var freshTypeParameters = _SubstitutedTypeParameters(
-      declaration.typeParameters,
+      baseElement.typeParameters2.cast(),
       substitution,
     );
     return SuperFormalParameterMember._(
-      declaration: declaration,
+      baseElement: baseElement,
       substitution: freshTypeParameters.substitution,
-      typeParameters: freshTypeParameters.elements,
+      typeParameters2: freshTypeParameters.elements,
     );
   }
 
   SuperFormalParameterMember._({
-    required SuperFormalParameterFragmentImpl super.declaration,
+    required SuperFormalParameterElementImpl super.baseElement,
     required super.substitution,
-    required super.typeParameters,
+    required super.typeParameters2,
   }) : super._();
 
   @override
@@ -1283,13 +1260,13 @@ abstract class VariableMember extends Member
   /// Initialize a newly created element to represent a variable, based on the
   /// [declaration], with applied [substitution].
   VariableMember({
-    required VariableFragmentImpl super.declaration,
+    required VariableElementImpl super.baseElement,
     required super.substitution,
   });
 
   @override
   VariableElementImpl get baseElement =>
-      super._declaration.element as VariableElementImpl;
+      super.baseElement as VariableElementImpl;
 
   @override
   bool get hasImplicitType => baseElement.hasImplicitType;
@@ -1322,68 +1299,15 @@ abstract class VariableMember extends Member
 }
 
 class _SubstitutedTypeParameters {
-  final List<TypeParameterFragmentImpl> elements;
-  final MapSubstitution substitution;
-
-  factory _SubstitutedTypeParameters(
-    List<TypeParameterFragmentImpl> elements,
-    MapSubstitution substitution,
-  ) {
-    if (elements.isEmpty) {
-      return _SubstitutedTypeParameters._(const [], substitution);
-    }
-
-    // Create type formals with specialized bounds.
-    // For example `<U extends T>` where T comes from an outer scope.
-    var newElements = <TypeParameterFragmentImpl>[];
-    var newTypes = <TypeParameterType>[];
-    for (int i = 0; i < elements.length; i++) {
-      var element = elements[i];
-      var newElement = TypeParameterFragmentImpl.synthetic(
-        name2: element.name2,
-      );
-      newElements.add(newElement);
-      newTypes.add(
-        newElement.instantiate(nullabilitySuffix: NullabilitySuffix.none),
-      );
-    }
-
-    // Update bounds to reference new TypeParameterElement(s).
-    var substitution2 = Substitution.fromPairs(elements, newTypes);
-    for (int i = 0; i < newElements.length; i++) {
-      var element = elements[i];
-      var newElement = newElements[i];
-      var bound = element.bound;
-      if (bound != null) {
-        var newBound = substitution2.substituteType(bound);
-        newBound = substitution.substituteType(newBound);
-        newElement.bound = newBound;
-      }
-    }
-
-    if (substitution.map.isEmpty) {
-      return _SubstitutedTypeParameters._(newElements, substitution2);
-    }
-
-    return _SubstitutedTypeParameters._(
-      newElements,
-      Substitution.fromMap2({...substitution.map, ...substitution2.map}),
-    );
-  }
-
-  _SubstitutedTypeParameters._(this.elements, this.substitution);
-}
-
-class _SubstitutedTypeParameters2 {
   final List<TypeParameterElementImpl> elements;
   final MapSubstitution substitution;
 
-  factory _SubstitutedTypeParameters2(
+  factory _SubstitutedTypeParameters(
     List<TypeParameterElementImpl> elements,
     MapSubstitution substitution,
   ) {
     if (elements.isEmpty) {
-      return _SubstitutedTypeParameters2._(const [], substitution);
+      return _SubstitutedTypeParameters._(const [], substitution);
     }
 
     // Create type formals with specialized bounds.
@@ -1412,14 +1336,14 @@ class _SubstitutedTypeParameters2 {
     }
 
     if (substitution.map.isEmpty) {
-      return _SubstitutedTypeParameters2._(newElements, substitution2);
+      return _SubstitutedTypeParameters._(newElements, substitution2);
     }
 
-    return _SubstitutedTypeParameters2._(
+    return _SubstitutedTypeParameters._(
       newElements,
       Substitution.fromMap2({...substitution.map, ...substitution2.map}),
     );
   }
 
-  _SubstitutedTypeParameters2._(this.elements, this.substitution);
+  _SubstitutedTypeParameters._(this.elements, this.substitution);
 }
