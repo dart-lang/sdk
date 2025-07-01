@@ -35,14 +35,14 @@ class ConstructorMember extends ExecutableMember
   String get displayName => baseElement.displayName;
 
   @override
-  InterfaceElementImpl get enclosingElement => _element2.enclosingElement;
+  InterfaceElementImpl get enclosingElement => baseElement.enclosingElement;
 
   @Deprecated('Use enclosingElement instead')
   @override
   InterfaceElementImpl get enclosingElement2 => enclosingElement;
 
   @override
-  ConstructorFragment get firstFragment => _element2.firstFragment;
+  ConstructorFragment get firstFragment => baseElement.firstFragment;
 
   @override
   List<ConstructorFragment> get fragments {
@@ -76,10 +76,10 @@ class ConstructorMember extends ExecutableMember
   LibraryElementImpl get library2 => library;
 
   @override
-  String? get lookupName => _element2.lookupName;
+  String? get lookupName => baseElement.lookupName;
 
   @override
-  String? get name3 => _element2.name3;
+  String? get name3 => baseElement.name3;
 
   @override
   ConstructorElementMixin2? get redirectedConstructor2 {
@@ -100,9 +100,6 @@ class ConstructorMember extends ExecutableMember
   ConstructorElementMixin2? get superConstructor2 {
     return _redirect(baseElement.superConstructor2);
   }
-
-  @override
-  ConstructorElementImpl get _element2 => baseElement;
 
   @override
   T? accept<T>(ElementVisitor2<T> visitor) {
@@ -193,7 +190,7 @@ abstract class ExecutableMember extends Member
   String? get documentationComment => baseElement.documentationComment;
 
   @override
-  Element? get enclosingElement => _element2.enclosingElement;
+  Element? get enclosingElement => baseElement.enclosingElement;
 
   @Deprecated('Use enclosingElement instead')
   @override
@@ -258,7 +255,7 @@ abstract class ExecutableMember extends Member
   bool get isStatic => baseElement.isStatic;
 
   @override
-  LibraryElement get library => _element2.library;
+  LibraryElement get library => baseElement.library;
 
   @Deprecated('Use library instead')
   @override
@@ -272,7 +269,7 @@ abstract class ExecutableMember extends Member
   MetadataImpl get metadata2 => metadata;
 
   @override
-  Element get nonSynthetic => _element2;
+  Element get nonSynthetic => baseElement;
 
   @Deprecated('Use nonSynthetic instead')
   @override
@@ -289,9 +286,6 @@ abstract class ExecutableMember extends Member
   FunctionTypeImpl get type {
     return _type ??= substitution.mapFunctionType(baseElement.type);
   }
-
-  @override
-  ExecutableElement get _element2 => baseElement;
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
@@ -313,15 +307,15 @@ abstract class ExecutableMember extends Member
 
   @override
   bool isAccessibleIn2(LibraryElement library) =>
-      _element2.isAccessibleIn2(library);
+      baseElement.isAccessibleIn2(library);
 
   @override
   Element? thisOrAncestorMatching2(bool Function(Element p1) predicate) =>
-      _element2.thisOrAncestorMatching2(predicate);
+      baseElement.thisOrAncestorMatching2(predicate);
 
   @override
   E? thisOrAncestorOfType2<E extends Element>() =>
-      _element2.thisOrAncestorOfType2();
+      baseElement.thisOrAncestorOfType2();
 
   @override
   void visitChildren2<T>(ElementVisitor2<T> visitor) {
@@ -456,14 +450,14 @@ class FieldMember extends VariableMember implements FieldElement2OrMember {
   String? get documentationComment => baseElement.documentationComment;
 
   @override
-  InstanceElement get enclosingElement => _element2.enclosingElement;
+  InstanceElement get enclosingElement => baseElement.enclosingElement;
 
   @Deprecated('Use enclosingElement instead')
   @override
   InstanceElement get enclosingElement2 => enclosingElement;
 
   @override
-  FieldFragment get firstFragment => _element2.firstFragment;
+  FieldFragment get firstFragment => baseElement.firstFragment;
 
   @override
   List<FieldFragment> get fragments {
@@ -505,14 +499,14 @@ class FieldMember extends VariableMember implements FieldElement2OrMember {
   bool get isPromotable => baseElement.isPromotable;
 
   @override
-  LibraryElement get library => _element2.library;
+  LibraryElement get library => baseElement.library;
 
   @Deprecated('Use library instead')
   @override
   LibraryElement get library2 => library;
 
   @override
-  String? get lookupName => _element2.lookupName;
+  String? get lookupName => baseElement.lookupName;
 
   @override
   MetadataImpl get metadata => baseElement.metadata;
@@ -522,10 +516,10 @@ class FieldMember extends VariableMember implements FieldElement2OrMember {
   MetadataImpl get metadata2 => metadata;
 
   @override
-  String? get name3 => _element2.name3;
+  String? get name3 => baseElement.name3;
 
   @override
-  Element get nonSynthetic => _element2.nonSynthetic;
+  Element get nonSynthetic => baseElement.nonSynthetic;
 
   @Deprecated('Use nonSynthetic instead')
   @override
@@ -542,9 +536,6 @@ class FieldMember extends VariableMember implements FieldElement2OrMember {
 
   @override
   Version? get sinceSdkVersion => baseElement.sinceSdkVersion;
-
-  @override
-  FieldElementImpl get _element2 => baseElement;
 
   @override
   T? accept<T>(ElementVisitor2<T> visitor) {
@@ -565,7 +556,7 @@ class FieldMember extends VariableMember implements FieldElement2OrMember {
     bool multiline = false,
     bool preferTypeAlias = false,
   }) {
-    return _element2.displayString2(
+    return baseElement.displayString2(
       multiline: multiline,
       preferTypeAlias: preferTypeAlias,
     );
@@ -573,17 +564,17 @@ class FieldMember extends VariableMember implements FieldElement2OrMember {
 
   @override
   bool isAccessibleIn2(LibraryElement library) {
-    return _element2.isAccessibleIn2(library);
+    return baseElement.isAccessibleIn2(library);
   }
 
   @override
   Element? thisOrAncestorMatching2(bool Function(Element e) predicate) {
-    return _element2.thisOrAncestorMatching2(predicate);
+    return baseElement.thisOrAncestorMatching2(predicate);
   }
 
   @override
   E? thisOrAncestorOfType2<E extends Element>() {
-    return _element2.thisOrAncestorOfType2<E>();
+    return baseElement.thisOrAncestorOfType2<E>();
   }
 
   @override
@@ -623,7 +614,7 @@ class GetterMember extends PropertyAccessorMember
   }
 
   @override
-  GetterFragment get firstFragment => _element2.firstFragment;
+  GetterFragment get firstFragment => baseElement.firstFragment;
 
   @override
   List<GetterFragment> get fragments {
@@ -638,7 +629,7 @@ class GetterMember extends PropertyAccessorMember
   }
 
   @override
-  String? get lookupName => _element2.lookupName;
+  String? get lookupName => baseElement.lookupName;
 
   @override
   Element get nonSynthetic {
@@ -648,11 +639,6 @@ class GetterMember extends PropertyAccessorMember
       return variable.nonSynthetic;
     }
     throw StateError('Synthetic getter has no variable');
-  }
-
-  @override
-  GetterElementImpl get _element2 {
-    return baseElement;
   }
 
   @override
@@ -713,14 +699,12 @@ abstract class Member implements Element {
   @override
   AnalysisSession? get session => baseElement.session;
 
-  Element get _element2;
-
   /// Append a textual representation of this element to the given [builder].
   void appendTo(ElementDisplayStringBuilder builder);
 
   @override
   String getExtendedDisplayName2({String? shortName}) {
-    return _element2.getExtendedDisplayName2(shortName: shortName);
+    return baseElement.getExtendedDisplayName2(shortName: shortName);
   }
 
   @override
@@ -760,7 +744,7 @@ class MethodMember extends ExecutableMember implements MethodElement2OrMember {
   MethodElementImpl get baseElement => super.baseElement as MethodElementImpl;
 
   @override
-  MethodFragment get firstFragment => _element2.firstFragment;
+  MethodFragment get firstFragment => baseElement.firstFragment;
 
   @override
   List<MethodFragment> get fragments {
@@ -778,7 +762,7 @@ class MethodMember extends ExecutableMember implements MethodElement2OrMember {
   bool get isOperator => baseElement.isOperator;
 
   @override
-  LibraryElement get library => _element2.library;
+  LibraryElement get library => baseElement.library;
 
   @Deprecated('Use library instead')
   @override
@@ -788,13 +772,10 @@ class MethodMember extends ExecutableMember implements MethodElement2OrMember {
   String? get lookupName => name3;
 
   @override
-  String? get name3 => _element2.name3;
+  String? get name3 => baseElement.name3;
 
   @override
   Version? get sinceSdkVersion => baseElement.sinceSdkVersion;
-
-  @override
-  MethodElementImpl get _element2 => baseElement;
 
   @override
   T? accept<T>(ElementVisitor2<T> visitor) {
@@ -869,18 +850,18 @@ class ParameterMember extends VariableMember with FormalParameterElementMixin {
   String? get documentationComment => baseElement.documentationComment;
 
   @override
-  Element? get enclosingElement => _element2.enclosingElement;
+  Element? get enclosingElement => baseElement.enclosingElement;
 
   @Deprecated('Use enclosingElement instead')
   @override
   Element? get enclosingElement2 => enclosingElement;
 
   @override
-  FormalParameterFragment get firstFragment => _element2.firstFragment;
+  FormalParameterFragment get firstFragment => baseElement.firstFragment;
 
   @override
   List<FormalParameterElementImpl> get formalParameters =>
-      _element2.formalParameters;
+      baseElement.formalParameters;
 
   @override
   List<FormalParameterFragment> get fragments {
@@ -931,14 +912,14 @@ class ParameterMember extends VariableMember with FormalParameterElementMixin {
   bool get isSuperFormal => baseElement.isSuperFormal;
 
   @override
-  LibraryElement? get library => _element2.library;
+  LibraryElement? get library => baseElement.library;
 
   @Deprecated('Use library instead')
   @override
   LibraryElement? get library2 => library;
 
   @override
-  String? get lookupName => _element2.lookupName;
+  String? get lookupName => baseElement.lookupName;
 
   @override
   MetadataImpl get metadata => baseElement.metadata;
@@ -948,13 +929,13 @@ class ParameterMember extends VariableMember with FormalParameterElementMixin {
   MetadataImpl get metadata2 => metadata;
 
   @override
-  String? get name3 => _element2.name3;
+  String? get name3 => baseElement.name3;
 
   @override
   String get nameShared => name3!;
 
   @override
-  Element get nonSynthetic => _element2;
+  Element get nonSynthetic => baseElement;
 
   @Deprecated('Use nonSynthetic instead')
   @override
@@ -971,9 +952,6 @@ class ParameterMember extends VariableMember with FormalParameterElementMixin {
 
   @override
   TypeImpl get typeShared => type;
-
-  @override
-  FormalParameterElementImpl get _element2 => baseElement;
 
   @override
   T? accept<T>(ElementVisitor2<T> visitor) {
@@ -999,7 +977,7 @@ class ParameterMember extends VariableMember with FormalParameterElementMixin {
     bool multiline = false,
     bool preferTypeAlias = false,
   }) {
-    return _element2.displayString2(
+    return baseElement.displayString2(
       multiline: multiline,
       preferTypeAlias: preferTypeAlias,
     );
@@ -1007,21 +985,21 @@ class ParameterMember extends VariableMember with FormalParameterElementMixin {
 
   @override
   bool isAccessibleIn2(LibraryElement library) =>
-      _element2.isAccessibleIn2(library);
+      baseElement.isAccessibleIn2(library);
 
   @override
   Element? thisOrAncestorMatching2(bool Function(Element p1) predicate) {
-    return _element2.thisOrAncestorMatching2(predicate);
+    return baseElement.thisOrAncestorMatching2(predicate);
   }
 
   @override
   E? thisOrAncestorOfType2<E extends Element>() {
-    return _element2.thisOrAncestorOfType2();
+    return baseElement.thisOrAncestorOfType2();
   }
 
   @override
   void visitChildren2<T>(ElementVisitor2<T> visitor) {
-    _element2.visitChildren2(visitor);
+    baseElement.visitChildren2(visitor);
   }
 
   static FormalParameterElementMixin from2(
@@ -1098,7 +1076,7 @@ abstract class PropertyAccessorMember extends ExecutableMember
   PropertyAccessorFragment get firstFragment;
 
   @override
-  String? get name3 => _element2.name3;
+  String? get name3 => baseElement.name3;
 
   @override
   PropertyInducingElement2OrMember? get variable3 {
@@ -1143,7 +1121,7 @@ class SetterMember extends PropertyAccessorMember
   }
 
   @override
-  SetterFragment get firstFragment => _element2.firstFragment;
+  SetterFragment get firstFragment => baseElement.firstFragment;
 
   @override
   List<SetterFragment> get fragments {
@@ -1158,7 +1136,7 @@ class SetterMember extends PropertyAccessorMember
   }
 
   @override
-  String? get lookupName => _element2.lookupName;
+  String? get lookupName => baseElement.lookupName;
 
   @override
   Element get nonSynthetic {
@@ -1168,11 +1146,6 @@ class SetterMember extends PropertyAccessorMember
       return variable.nonSynthetic;
     }
     throw StateError('Synthetic setter has no variable');
-  }
-
-  @override
-  SetterElementImpl get _element2 {
-    return baseElement;
   }
 
   @override
