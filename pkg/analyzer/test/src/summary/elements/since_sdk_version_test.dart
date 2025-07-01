@@ -140,7 +140,7 @@ library
           firstFragment: #F4
           sinceSdkVersion: 2.15.0
           formalParameters
-            requiredPositional _foo
+            #E0 requiredPositional _foo
               firstFragment: #F5
               type: int
           returnType: void
@@ -351,7 +351,7 @@ library
           firstFragment: #F3
           sinceSdkVersion: 2.15.0
           formalParameters
-            requiredPositional _
+            #E0 requiredPositional _
               firstFragment: #F4
               type: int
           returnType: void
@@ -832,10 +832,10 @@ library
       reference: dart:foo::@function::f
       firstFragment: #F1
       formalParameters
-        requiredPositional p1
+        #E0 requiredPositional p1
           firstFragment: #F2
           type: int
-        optionalNamed p2
+        #E1 optionalNamed p2
           firstFragment: #F3
           type: int?
           sinceSdkVersion: 2.15.0
@@ -872,10 +872,10 @@ library
       reference: dart:foo::@function::f
       firstFragment: #F1
       formalParameters
-        requiredPositional p1
+        #E0 requiredPositional p1
           firstFragment: #F2
           type: int
-        optionalPositional p2
+        #E1 optionalPositional p2
           firstFragment: #F3
           type: int?
           sinceSdkVersion: 2.15.0

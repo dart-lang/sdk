@@ -187,7 +187,7 @@ library
           firstFragment: #F17
           hasEnclosingTypeParameterReference: true
           formalParameters
-            requiredPositional _f
+            #E2 requiredPositional _f
               firstFragment: #F18
               type: T
           returnType: void
@@ -195,7 +195,7 @@ library
           reference: <testLibrary>::@mixin::M::@setter::s
           firstFragment: #F19
           formalParameters
-            requiredPositional v
+            #E3 requiredPositional v
               firstFragment: #F20
               type: int
           returnType: void
@@ -204,7 +204,7 @@ library
           reference: <testLibrary>::@mixin::M::@method::m
           firstFragment: #F21
           formalParameters
-            requiredPositional v
+            #E4 requiredPositional v
               firstFragment: #F22
               type: double
           returnType: int
@@ -1415,7 +1415,7 @@ library
           firstFragment: #F3
           hasEnclosingTypeParameterReference: true
           formalParameters
-            requiredPositional _
+            #E1 requiredPositional _
               firstFragment: #F4
               type: T
           returnType: void
@@ -1487,7 +1487,7 @@ library
           reference: <testLibrary>::@mixin::M::@setter::foo
           firstFragment: #F3
           formalParameters
-            requiredPositional _
+            #E0 requiredPositional _
               firstFragment: #F4
               type: int
           returnType: void
@@ -1537,7 +1537,7 @@ library
           reference: <testLibrary>::@mixin::M::@setter::foo
           firstFragment: #F3
           formalParameters
-            requiredPositional _
+            #E0 requiredPositional _
               firstFragment: #F4
               type: int
           returnType: void

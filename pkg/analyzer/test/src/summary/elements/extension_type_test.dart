@@ -148,7 +148,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
-            requiredPositional final hasImplicitType it
+            #E0 requiredPositional final hasImplicitType it
               firstFragment: #F4
               type: int
       getters
@@ -211,7 +211,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::named
           firstFragment: #F3
           formalParameters
-            requiredPositional final hasImplicitType it
+            #E0 requiredPositional final hasImplicitType it
               firstFragment: #F4
               type: int
       getters
@@ -280,14 +280,14 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
-            requiredPositional final hasImplicitType it
+            #E0 requiredPositional final hasImplicitType it
               firstFragment: #F4
               type: num
         named
           reference: <testLibrary>::@extensionType::A::@constructor::named
           firstFragment: #F5
           formalParameters
-            requiredPositional final hasImplicitType it
+            #E1 requiredPositional final hasImplicitType it
               firstFragment: #F6
               type: num
       getters
@@ -356,14 +356,14 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
-            requiredPositional final hasImplicitType it
+            #E0 requiredPositional final hasImplicitType it
               firstFragment: #F4
               type: num
         named
           reference: <testLibrary>::@extensionType::A::@constructor::named
           firstFragment: #F5
           formalParameters
-            requiredPositional final it
+            #E1 requiredPositional final it
               firstFragment: #F6
               type: int
       getters
@@ -432,14 +432,14 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
-            requiredPositional final hasImplicitType it
+            #E0 requiredPositional final hasImplicitType it
               firstFragment: #F4
               type: num
         const named
           reference: <testLibrary>::@extensionType::A::@constructor::named
           firstFragment: #F5
           formalParameters
-            requiredPositional a
+            #E1 requiredPositional a
               firstFragment: #F6
               type: int
           constantInitializers
@@ -512,7 +512,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
-            requiredPositional final hasImplicitType it
+            #E0 requiredPositional final hasImplicitType it
               firstFragment: #F4
               type: int
       getters
@@ -574,7 +574,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
-            requiredPositional final hasImplicitType it
+            #E0 requiredPositional final hasImplicitType it
               firstFragment: #F4
               type: int
       getters
@@ -837,7 +837,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
-            requiredPositional final hasImplicitType it
+            #E0 requiredPositional final hasImplicitType it
               firstFragment: #F4
               type: int
       getters
@@ -1469,7 +1469,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
-            requiredPositional final hasImplicitType it
+            #E0 requiredPositional final hasImplicitType it
               firstFragment: #F4
               type: int
       getters
@@ -1535,7 +1535,7 @@ library
           reference: <testLibrary>::@extensionType::A::@method::foo
           firstFragment: #F4
           formalParameters
-            requiredPositional a
+            #E0 requiredPositional a
               firstFragment: #F5
               type: int
           returnType: void
@@ -1600,7 +1600,7 @@ library
           reference: <testLibrary>::@extensionType::A::@method::foo
           firstFragment: #F4
           formalParameters
-            optionalNamed a
+            #E0 optionalNamed a
               firstFragment: #F5
               type: int
               constantInitializer
@@ -1704,7 +1704,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
-            requiredPositional final hasImplicitType <null-name>
+            #E0 requiredPositional final hasImplicitType <null-name>
               firstFragment: #F4
               type: InvalidType
       getters
@@ -1828,7 +1828,7 @@ library
           reference: <testLibrary>::@extensionType::A::@setter::foo
           firstFragment: #F5
           formalParameters
-            requiredPositional _
+            #E0 requiredPositional _
               firstFragment: #F6
               type: double
           returnType: void
@@ -2355,7 +2355,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F5
           formalParameters
-            requiredPositional final hasImplicitType it
+            #E2 requiredPositional final hasImplicitType it
               firstFragment: #F6
               type: Map<T, U>
       getters

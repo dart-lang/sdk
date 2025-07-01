@@ -1022,7 +1022,7 @@ library
           reference: <testLibrary>::@class::C::@setter::withInit
           firstFragment: #F13
           formalParameters
-            requiredPositional _withInit
+            #E0 requiredPositional _withInit
               firstFragment: #F14
               type: int
           returnType: void
@@ -1030,7 +1030,7 @@ library
           reference: <testLibrary>::@class::C::@setter::withoutInit
           firstFragment: #F15
           formalParameters
-            requiredPositional _withoutInit
+            #E1 requiredPositional _withoutInit
               firstFragment: #F16
               type: int
           returnType: void
@@ -1038,7 +1038,7 @@ library
           reference: <testLibrary>::@class::C::@setter::multiWithInit
           firstFragment: #F17
           formalParameters
-            requiredPositional _multiWithInit
+            #E2 requiredPositional _multiWithInit
               firstFragment: #F18
               type: int
           returnType: void
@@ -1046,7 +1046,7 @@ library
           reference: <testLibrary>::@class::C::@setter::multiWithoutInit
           firstFragment: #F19
           formalParameters
-            requiredPositional _multiWithoutInit
+            #E3 requiredPositional _multiWithoutInit
               firstFragment: #F20
               type: int
           returnType: void
@@ -1054,7 +1054,7 @@ library
           reference: <testLibrary>::@class::C::@setter::multiWithInit2
           firstFragment: #F21
           formalParameters
-            requiredPositional _multiWithInit2
+            #E4 requiredPositional _multiWithInit2
               firstFragment: #F22
               type: int
           returnType: void
@@ -1329,7 +1329,7 @@ library
           reference: <testLibrary>::@class::C::@setter::hasDocComment
           firstFragment: #F23
           formalParameters
-            requiredPositional _hasDocComment
+            #E0 requiredPositional _hasDocComment
               firstFragment: #F24
               type: int
           returnType: void
@@ -1337,7 +1337,7 @@ library
           reference: <testLibrary>::@class::C::@setter::hasDocComment2
           firstFragment: #F25
           formalParameters
-            requiredPositional _hasDocComment2
+            #E1 requiredPositional _hasDocComment2
               firstFragment: #F26
               type: int
           returnType: void
@@ -1345,7 +1345,7 @@ library
           reference: <testLibrary>::@class::C::@setter::hasAnnotation
           firstFragment: #F27
           formalParameters
-            requiredPositional _hasAnnotation
+            #E2 requiredPositional _hasAnnotation
               firstFragment: #F28
               type: int
           returnType: void
@@ -1353,7 +1353,7 @@ library
           reference: <testLibrary>::@class::C::@setter::hasAnnotation2
           firstFragment: #F29
           formalParameters
-            requiredPositional _hasAnnotation2
+            #E3 requiredPositional _hasAnnotation2
               firstFragment: #F30
               type: int
           returnType: void
@@ -1361,7 +1361,7 @@ library
           reference: <testLibrary>::@class::C::@setter::annotationThenComment
           firstFragment: #F31
           formalParameters
-            requiredPositional _annotationThenComment
+            #E4 requiredPositional _annotationThenComment
               firstFragment: #F32
               type: int
           returnType: void
@@ -1369,7 +1369,7 @@ library
           reference: <testLibrary>::@class::C::@setter::annotationThenComment2
           firstFragment: #F33
           formalParameters
-            requiredPositional _annotationThenComment2
+            #E5 requiredPositional _annotationThenComment2
               firstFragment: #F34
               type: int
           returnType: void
@@ -1377,7 +1377,7 @@ library
           reference: <testLibrary>::@class::C::@setter::commentThenAnnotation
           firstFragment: #F35
           formalParameters
-            requiredPositional _commentThenAnnotation
+            #E6 requiredPositional _commentThenAnnotation
               firstFragment: #F36
               type: int
           returnType: void
@@ -1385,7 +1385,7 @@ library
           reference: <testLibrary>::@class::C::@setter::commentThenAnnotation2
           firstFragment: #F37
           formalParameters
-            requiredPositional _commentThenAnnotation2
+            #E7 requiredPositional _commentThenAnnotation2
               firstFragment: #F38
               type: int
           returnType: void
@@ -1393,7 +1393,7 @@ library
           reference: <testLibrary>::@class::C::@setter::commentAroundAnnotation
           firstFragment: #F39
           formalParameters
-            requiredPositional _commentAroundAnnotation
+            #E8 requiredPositional _commentAroundAnnotation
               firstFragment: #F40
               type: int
           returnType: void
@@ -1401,7 +1401,7 @@ library
           reference: <testLibrary>::@class::C::@setter::commentAroundAnnotation2
           firstFragment: #F41
           formalParameters
-            requiredPositional _commentAroundAnnotation2
+            #E9 requiredPositional _commentAroundAnnotation2
               firstFragment: #F42
               type: int
           returnType: void
@@ -1811,16 +1811,16 @@ library
       reference: <testLibrary>::@function::main
       firstFragment: #F1
       formalParameters
-        optionalNamed a
+        #E0 optionalNamed a
           firstFragment: #F2
           type: int
           constantInitializer
             fragment: #F2
             expression: expression_0
-        optionalNamed b
+        #E1 optionalNamed b
           firstFragment: #F3
           type: int
-        optionalNamed c
+        #E2 optionalNamed c
           firstFragment: #F4
           type: int
           constantInitializer
@@ -1878,7 +1878,7 @@ library
       reference: <testLibrary>::@function::main
       firstFragment: #F1
       formalParameters
-        requiredPositional a
+        #E0 requiredPositional a
           firstFragment: #F2
           type: int
           metadata
@@ -1892,10 +1892,10 @@ library
                 leftParenthesis: ( @12
                 rightParenthesis: ) @13
               element2: dart:core::@class::Object::@constructor::new
-        requiredPositional b
+        #E1 requiredPositional b
           firstFragment: #F3
           type: int
-        requiredPositional c
+        #E2 requiredPositional c
           firstFragment: #F4
           type: int
           metadata
@@ -2043,7 +2043,7 @@ library
       reference: <testLibrary>::@setter::withInit
       firstFragment: #F11
       formalParameters
-        requiredPositional _withInit
+        #E0 requiredPositional _withInit
           firstFragment: #F12
           type: int
       returnType: void
@@ -2051,7 +2051,7 @@ library
       reference: <testLibrary>::@setter::withoutInit
       firstFragment: #F13
       formalParameters
-        requiredPositional _withoutInit
+        #E1 requiredPositional _withoutInit
           firstFragment: #F14
           type: int
       returnType: void
@@ -2059,7 +2059,7 @@ library
       reference: <testLibrary>::@setter::multiWithInit
       firstFragment: #F15
       formalParameters
-        requiredPositional _multiWithInit
+        #E2 requiredPositional _multiWithInit
           firstFragment: #F16
           type: int
       returnType: void
@@ -2067,7 +2067,7 @@ library
       reference: <testLibrary>::@setter::multiWithoutInit
       firstFragment: #F17
       formalParameters
-        requiredPositional _multiWithoutInit
+        #E3 requiredPositional _multiWithoutInit
           firstFragment: #F18
           type: int
       returnType: void
@@ -2075,7 +2075,7 @@ library
       reference: <testLibrary>::@setter::multiWithInit2
       firstFragment: #F19
       formalParameters
-        requiredPositional _multiWithInit2
+        #E4 requiredPositional _multiWithInit2
           firstFragment: #F20
           type: int
       returnType: void
@@ -2525,7 +2525,7 @@ library
       reference: <testLibrary>::@setter::hasDocComment
       firstFragment: #F21
       formalParameters
-        requiredPositional _hasDocComment
+        #E0 requiredPositional _hasDocComment
           firstFragment: #F22
           type: int
       returnType: void
@@ -2533,7 +2533,7 @@ library
       reference: <testLibrary>::@setter::hasDocComment2
       firstFragment: #F23
       formalParameters
-        requiredPositional _hasDocComment2
+        #E1 requiredPositional _hasDocComment2
           firstFragment: #F24
           type: int
       returnType: void
@@ -2541,7 +2541,7 @@ library
       reference: <testLibrary>::@setter::hasAnnotation
       firstFragment: #F25
       formalParameters
-        requiredPositional _hasAnnotation
+        #E2 requiredPositional _hasAnnotation
           firstFragment: #F26
           type: int
       returnType: void
@@ -2549,7 +2549,7 @@ library
       reference: <testLibrary>::@setter::hasAnnotation2
       firstFragment: #F27
       formalParameters
-        requiredPositional _hasAnnotation2
+        #E3 requiredPositional _hasAnnotation2
           firstFragment: #F28
           type: int
       returnType: void
@@ -2557,7 +2557,7 @@ library
       reference: <testLibrary>::@setter::annotationThenComment
       firstFragment: #F29
       formalParameters
-        requiredPositional _annotationThenComment
+        #E4 requiredPositional _annotationThenComment
           firstFragment: #F30
           type: int
       returnType: void
@@ -2565,7 +2565,7 @@ library
       reference: <testLibrary>::@setter::annotationThenComment2
       firstFragment: #F31
       formalParameters
-        requiredPositional _annotationThenComment2
+        #E5 requiredPositional _annotationThenComment2
           firstFragment: #F32
           type: int
       returnType: void
@@ -2573,7 +2573,7 @@ library
       reference: <testLibrary>::@setter::commentThenAnnotation
       firstFragment: #F33
       formalParameters
-        requiredPositional _commentThenAnnotation
+        #E6 requiredPositional _commentThenAnnotation
           firstFragment: #F34
           type: int
       returnType: void
@@ -2581,7 +2581,7 @@ library
       reference: <testLibrary>::@setter::commentThenAnnotation2
       firstFragment: #F35
       formalParameters
-        requiredPositional _commentThenAnnotation2
+        #E7 requiredPositional _commentThenAnnotation2
           firstFragment: #F36
           type: int
       returnType: void
@@ -2589,7 +2589,7 @@ library
       reference: <testLibrary>::@setter::commentAroundAnnotation
       firstFragment: #F37
       formalParameters
-        requiredPositional _commentAroundAnnotation
+        #E8 requiredPositional _commentAroundAnnotation
           firstFragment: #F38
           type: int
       returnType: void
@@ -2597,7 +2597,7 @@ library
       reference: <testLibrary>::@setter::commentAroundAnnotation2
       firstFragment: #F39
       formalParameters
-        requiredPositional _commentAroundAnnotation2
+        #E9 requiredPositional _commentAroundAnnotation2
           firstFragment: #F40
           type: int
       returnType: void
@@ -2727,7 +2727,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
           formalParameters
-            requiredPositional a
+            #E0 requiredPositional a
               firstFragment: #F3
               type: int
 ''');
@@ -2791,7 +2791,7 @@ library
           reference: <testLibrary>::@class::A::@setter::foo
           firstFragment: #F5
           formalParameters
-            requiredPositional _foo
+            #E0 requiredPositional _foo
               firstFragment: #F6
               type: int
           returnType: void
@@ -2891,7 +2891,7 @@ library
             #E0 T
               firstFragment: #F4
           formalParameters
-            requiredPositional a
+            #E1 requiredPositional a
               firstFragment: #F5
               type: int
           returnType: void
@@ -2945,7 +2945,7 @@ library
           reference: <testLibrary>::@class::A::@setter::foo
           firstFragment: #F4
           formalParameters
-            requiredPositional x
+            #E0 requiredPositional x
               firstFragment: #F5
               type: int
           returnType: void
@@ -3034,14 +3034,14 @@ library
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       formalParameters
-        requiredPositional f
+        #E0 requiredPositional f
           firstFragment: #F2
           type: void Function<U>(int)
           typeParameters
-            #E0 U
+            #E1 U
               firstFragment: #F3
           formalParameters
-            requiredPositional a
+            #E2 requiredPositional a
               firstFragment: #F4
               type: int
       returnType: void
@@ -3069,14 +3069,14 @@ library
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       formalParameters
-        requiredNamed f
+        #E0 requiredNamed f
           firstFragment: #F2
           type: void Function<U>(int)
           typeParameters
-            #E0 U
+            #E1 U
               firstFragment: #F3
           formalParameters
-            requiredPositional a
+            #E2 requiredPositional a
               firstFragment: #F4
               type: int
       returnType: void

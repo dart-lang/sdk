@@ -67,7 +67,7 @@ library
           firstFragment: #F4
           hasEnclosingTypeParameterReference: true
           formalParameters
-            optionalNamed a
+            #E1 optionalNamed a
               firstFragment: #F5
               type: List<T>
               constantInitializer
@@ -157,7 +157,7 @@ library
           reference: <testLibrary>::@class::X::@constructor::new
           firstFragment: #F3
           formalParameters
-            optionalNamed final hasImplicitType f
+            #E2 optionalNamed final hasImplicitType f
               firstFragment: #F4
               type: void Function(dynamic)
                 alias: <testLibrary>::@typeAlias::F
@@ -191,7 +191,7 @@ library
         #E1 T
           firstFragment: #F9
       formalParameters
-        requiredPositional v
+        #E3 requiredPositional v
           firstFragment: #F10
           type: T
       returnType: void
@@ -288,7 +288,7 @@ library
           reference: <testLibrary>::@class::B::@method::foo
           firstFragment: #F6
           formalParameters
-            optionalNamed hasImplicitType a
+            #E1 optionalNamed hasImplicitType a
               firstFragment: #F7
               type: dynamic
               constantInitializer
@@ -319,11 +319,11 @@ library
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       formalParameters
-        requiredPositional g
+        #E0 requiredPositional g
           firstFragment: #F2
           type: dynamic Function({dynamic a})
           formalParameters
-            optionalNamed hasImplicitType a
+            #E1 optionalNamed hasImplicitType a
               firstFragment: #F3
               type: dynamic
       returnType: void
@@ -364,7 +364,7 @@ library
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       formalParameters
-        optionalPositional compare
+        #E0 optionalPositional compare
           firstFragment: #F2
           type: int Function(InvalidType, InvalidType)
             alias: dart:core::@typeAlias::Comparator
@@ -424,7 +424,7 @@ library
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       formalParameters
-        optionalNamed x
+        #E0 optionalNamed x
           firstFragment: #F2
           type: ({int f1, bool f2})
           constantInitializer
@@ -482,7 +482,7 @@ library
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       formalParameters
-        optionalNamed x
+        #E0 optionalNamed x
           firstFragment: #F2
           type: ({int f1, bool f2})
           constantInitializer
@@ -525,7 +525,7 @@ library
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       formalParameters
-        optionalNamed x
+        #E0 optionalNamed x
           firstFragment: #F2
           type: (int, bool)
           constantInitializer
@@ -569,7 +569,7 @@ library
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       formalParameters
-        optionalNamed x
+        #E0 optionalNamed x
           firstFragment: #F2
           type: (int, bool)
           constantInitializer
@@ -638,7 +638,7 @@ library
           reference: <testLibrary>::@extension::E::@method::g
           firstFragment: #F5
           formalParameters
-            optionalPositional p
+            #E0 optionalPositional p
               firstFragment: #F6
               type: Object
               constantInitializer
@@ -728,7 +728,7 @@ library
           reference: <testLibrary>::@class::C::@method::foo
           firstFragment: #F7
           formalParameters
-            optionalPositional b
+            #E2 optionalPositional b
               firstFragment: #F8
               type: B<int, double>
               constantInitializer
@@ -814,7 +814,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F6
           formalParameters
-            optionalPositional b
+            #E2 optionalPositional b
               firstFragment: #F7
               type: B<T>
               constantInitializer
@@ -923,7 +923,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F9
           formalParameters
-            optionalPositional a
+            #E3 optionalPositional a
               firstFragment: #F10
               type: A<T>
               constantInitializer
@@ -999,7 +999,7 @@ library
         #E1 T
           firstFragment: #F5
       formalParameters
-        optionalPositional b
+        #E2 optionalPositional b
           firstFragment: #F6
           type: B<T>
           constantInitializer
@@ -1091,7 +1091,7 @@ library
             #E1 T
               firstFragment: #F7
           formalParameters
-            optionalPositional b
+            #E2 optionalPositional b
               firstFragment: #F8
               type: B<T>
               constantInitializer
@@ -1194,7 +1194,7 @@ library
             #E3 E2
               firstFragment: #F9
           formalParameters
-            optionalPositional b
+            #E4 optionalPositional b
               firstFragment: #F10
               type: B<E1, E2>
               constantInitializer
@@ -1287,7 +1287,7 @@ library
           firstFragment: #F7
           hasEnclosingTypeParameterReference: true
           formalParameters
-            optionalPositional b
+            #E2 optionalPositional b
               firstFragment: #F8
               type: B<T>
               constantInitializer

@@ -667,8 +667,7 @@ class _Element2Writer extends _AbstractElementWriter {
     // }
 
     _sink.writeIndentedLine(() {
-      // TODO(scheglov): restore after merging element model rewrite
-      // _writeObjectId(e);
+      _writeObjectId(e);
       if (e.isRequiredPositional) {
         _sink.write('requiredPositional ');
       } else if (e.isOptionalPositional) {

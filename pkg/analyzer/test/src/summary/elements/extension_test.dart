@@ -566,7 +566,7 @@ library
           firstFragment: #F3
           hasEnclosingTypeParameterReference: true
           formalParameters
-            requiredPositional _
+            #E1 requiredPositional _
               firstFragment: #F4
               type: T
           returnType: void
@@ -657,7 +657,7 @@ library
           reference: <testLibrary>::@extension::E::@setter::foo
           firstFragment: #F3
           formalParameters
-            requiredPositional value
+            #E0 requiredPositional value
               firstFragment: #F4
               type: int
           returnType: void
