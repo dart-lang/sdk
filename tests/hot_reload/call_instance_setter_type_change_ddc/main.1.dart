@@ -5,12 +5,13 @@
 import 'package:expect/expect.dart';
 import 'package:reload_test/reload_test_utils.dart';
 
-int Function()? retained;
+var retained;
 C? c;
 
 class C {
-  double get returnChange {
-    return 3.14;
+  int _i = 0;
+  set typeChange(String s) {
+    _i = s.length;
   }
 }
 
@@ -23,25 +24,25 @@ Future<void> main() async {
   await hotReload();
   Expect.throws<TypeError>(
     helper,
-    (error) => '$error'.contains("'double' is not a subtype of type 'String'"),
+    (error) => '$error'.contains("'int' is not a subtype of type 'String'"),
   );
 }
 
 /** DIFF **/
 /*
- C? c;
  
  class C {
--  String get returnChange {
--    return 'hello';
-+  double get returnChange {
-+    return 3.14;
+   int _i = 0;
+-  set typeChange(int i) {
+-    _i = i;
++  set typeChange(String s) {
++    _i = s.length;
    }
  }
  
  helper() {
 -  c = C();
--  retained = () => c!.returnChange.length;
+-  retained = () => c!.typeChange = 99;
    return retained!();
  }
  

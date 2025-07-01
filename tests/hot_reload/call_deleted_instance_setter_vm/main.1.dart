@@ -5,44 +5,38 @@
 import 'package:expect/expect.dart';
 import 'package:reload_test/reload_test_utils.dart';
 
-int Function()? retained;
+var retained;
 C? c;
 
-class C {
-  double get returnChange {
-    return 3.14;
-  }
-}
+class C {}
 
 helper() {
-  return retained!();
+  return retained();
 }
 
 Future<void> main() async {
   helper();
   await hotReload();
-  Expect.throws<TypeError>(
+  Expect.throws(
     helper,
-    (error) => '$error'.contains("'double' is not a subtype of type 'String'"),
+    (error) => '$error'.contains('Lookup failed: deleted in @setters in C'),
   );
 }
 
 /** DIFF **/
 /*
+ var retained;
  C? c;
  
- class C {
--  String get returnChange {
--    return 'hello';
-+  double get returnChange {
-+    return 3.14;
-   }
- }
+-class C {
+-  set deleted(String s) {}
+-}
++class C {}
  
  helper() {
 -  c = C();
--  retained = () => c!.returnChange.length;
-   return retained!();
+-  retained = () => c!.deleted = 'hello';
+   return retained();
  }
  
 */
