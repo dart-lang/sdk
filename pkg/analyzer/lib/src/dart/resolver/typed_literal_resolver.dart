@@ -512,15 +512,12 @@ class TypedLiteralResolver {
     // Also use upwards information to infer the type.
     List<TypeImpl> elementTypes =
         node.elements.map(_computeElementType).toList();
-    var syntheticParameter = FormalParameterFragmentImpl.synthetic(
+    var syntheticParameter = FormalParameterElementImpl.synthetic(
       'element',
       genericElementType,
       ParameterKind.POSITIONAL,
     );
-    List<ParameterElementMixin> parameters = List.filled(
-      elementTypes.length,
-      syntheticParameter,
-    );
+    var parameters = List.filled(elementTypes.length, syntheticParameter);
     if (_strictInference &&
         parameters.isEmpty &&
         contextType is UnknownInferredType) {
@@ -835,18 +832,18 @@ class TypedLiteralResolver {
       nullabilitySuffix: NullabilitySuffix.none,
     );
 
-    var parameters = <ParameterElementMixin>[];
+    var parameters = <FormalParameterElementImpl>[];
     var argumentTypes = <TypeImpl>[];
     for (var i = 0; i < inferredTypes.length; i++) {
       parameters.add(
-        FormalParameterFragmentImpl.synthetic(
+        FormalParameterElementImpl.synthetic(
           'key',
           genericKeyType,
           ParameterKind.POSITIONAL,
         ),
       );
       parameters.add(
-        FormalParameterFragmentImpl.synthetic(
+        FormalParameterElementImpl.synthetic(
           'value',
           genericValueType,
           ParameterKind.POSITIONAL,
@@ -894,11 +891,11 @@ class TypedLiteralResolver {
       nullabilitySuffix: NullabilitySuffix.none,
     );
 
-    var parameters = <ParameterElementMixin>[];
+    var parameters = <FormalParameterElementImpl>[];
     var argumentTypes = <TypeImpl>[];
     for (var i = 0; i < inferredTypes.length; i++) {
       parameters.add(
-        FormalParameterFragmentImpl.synthetic(
+        FormalParameterElementImpl.synthetic(
           'element',
           genericElementType,
           ParameterKind.POSITIONAL,
