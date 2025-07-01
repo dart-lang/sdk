@@ -568,6 +568,9 @@ static BytecodePtr CreateVMInternalBytecode(KernelBytecode::Opcode opcode) {
                     -1, TypedDataBase::Handle(), Object::empty_object_pool()));
   bytecode.set_pc_descriptors(Object::empty_descriptors());
   bytecode.set_exception_handlers(Object::empty_exception_handlers());
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  bytecode.set_var_descriptors(Object::empty_var_descriptors());
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   return bytecode.ptr();
 }
 #endif  // defined(DART_DYNAMIC_MODULES)
@@ -19328,6 +19331,26 @@ uword Bytecode::GetDebugCheckedOpcodeReturnAddress(uword from_offset,
   UNREACHABLE();
 #endif
 }
+
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+LocalVarDescriptorsPtr Bytecode::GetLocalVarDescriptors() const {
+#if defined(DART_DYNAMIC_MODULES)
+  Zone* zone = Thread::Current()->zone();
+  auto& var_descs = LocalVarDescriptors::Handle(zone, var_descriptors());
+  if (var_descs.IsNull()) {
+    const auto& func = Function::Handle(zone, function());
+    ASSERT(!func.IsNull());
+    var_descs =
+        bytecode::BytecodeReader::ComputeLocalVarDescriptors(zone, func, *this);
+    ASSERT(!var_descs.IsNull());
+    set_var_descriptors(var_descs);
+  }
+  return var_descs.ptr();
+#else
+  UNREACHABLE();
+#endif
+}
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
 const char* Bytecode::ToCString() const {
   return Thread::Current()->zone()->PrintToString("Bytecode(%s)",

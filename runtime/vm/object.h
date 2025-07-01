@@ -7547,6 +7547,29 @@ class Bytecode : public Object {
     return (source_positions_binary_offset() != 0);
   }
 
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  intptr_t local_variables_binary_offset() const {
+    return untag()->local_variables_binary_offset_;
+  }
+  void set_local_variables_binary_offset(intptr_t value) const {
+    StoreNonPointer(&untag()->local_variables_binary_offset_, value);
+  }
+  bool HasLocalVariablesInfo() const {
+    return (local_variables_binary_offset() != 0);
+  }
+
+  LocalVarDescriptorsPtr var_descriptors() const {
+    return untag()->var_descriptors<std::memory_order_acquire>();
+  }
+  void set_var_descriptors(const LocalVarDescriptors& value) const {
+    ASSERT(value.IsOld());
+    untag()->set_var_descriptors<std::memory_order_release>(value.ptr());
+  }
+
+  // Will compute local var descriptors if necessary.
+  LocalVarDescriptorsPtr GetLocalVarDescriptors() const;
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+
   const char* Name() const;
   const char* QualifiedName() const;
   const char* FullyQualifiedName() const;

@@ -29,7 +29,9 @@ Uint8List _generateBytecode(
       hierarchy: hierarchy,
       target: target,
       options: BytecodeOptions(
-          enableAsserts: enableAsserts, emitSourcePositions: true));
+          enableAsserts: enableAsserts,
+          emitSourcePositions: true,
+          emitLocalVarInfo: true));
   return byteSink.builder.takeBytes();
 }
 

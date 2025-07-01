@@ -1971,6 +1971,9 @@ class UntaggedBytecode : public UntaggedObject {
   COMPRESSED_POINTER_FIELD(ArrayPtr, closures);
   COMPRESSED_POINTER_FIELD(TypedDataBasePtr, binary);
   COMPRESSED_POINTER_FIELD(ExceptionHandlersPtr, exception_handlers);
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  COMPRESSED_POINTER_FIELD(LocalVarDescriptorsPtr, var_descriptors);
+#endif
   COMPRESSED_POINTER_FIELD(PcDescriptorsPtr, pc_descriptors);
   VISIT_TO(pc_descriptors);
 
@@ -1981,6 +1984,9 @@ class UntaggedBytecode : public UntaggedObject {
   int32_t instructions_binary_offset_;
   int32_t code_offset_;
   int32_t source_positions_binary_offset_;
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  int32_t local_variables_binary_offset_;
+#endif
 
   static bool ContainsPC(ObjectPtr raw_obj, uword pc);
 

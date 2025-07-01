@@ -24,6 +24,7 @@
 #include "vm/object_store.h"
 #include "vm/resolver.h"
 #include "vm/reusable_handles.h"
+#include "vm/scopes.h"
 #include "vm/stack_frame_kbc.h"
 #include "vm/symbols.h"
 #include "vm/timeline.h"
@@ -728,7 +729,13 @@ void BytecodeReaderHelper::ReadLocalVariables(const Bytecode& bytecode,
     return;
   }
 
-  reader_.ReadUInt();  // Skip local variables offset.
+  const intptr_t offset = reader_.ReadUInt();
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  bytecode.set_local_variables_binary_offset(
+      bytecode_component_->GetLocalVariablesOffset() + offset);
+#else
+  USE(offset);
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 ArrayPtr BytecodeReaderHelper::ReadBytecodeComponent() {
@@ -2663,6 +2670,99 @@ void BytecodeReader::CollectScriptTokenPositionsFromBytecode(
     }
   }
 }
+
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+
+LocalVarDescriptorsPtr BytecodeReader::ComputeLocalVarDescriptors(
+    Zone* zone,
+    const Function& function,
+    const Bytecode& bytecode) {
+  ASSERT(function.is_declared_in_bytecode());
+  ASSERT(function.HasBytecode());
+  ASSERT(!bytecode.IsNull());
+  ASSERT(function.GetBytecode() == bytecode.ptr());
+
+  LocalVarDescriptorsBuilder vars;
+
+  if (function.IsLocalFunction()) {
+    const auto& parent = Function::Handle(zone, function.parent_function());
+    ASSERT(parent.is_declared_in_bytecode() && parent.HasBytecode());
+    const auto& parent_bytecode = Bytecode::Handle(zone, parent.GetBytecode());
+    const auto& parent_vars = LocalVarDescriptors::Handle(
+        zone, parent_bytecode.GetLocalVarDescriptors());
+    for (intptr_t i = 0; i < parent_vars.Length(); ++i) {
+      UntaggedLocalVarDescriptors::VarInfo var_info;
+      parent_vars.GetInfo(i, &var_info);
+      // Include parent's context variable if variable's scope
+      // intersects with the local function range.
+      // It is not enough to check if local function is declared within the
+      // scope of variable, because in case of async functions closure has
+      // the same range as original function.
+      if (var_info.kind() == UntaggedLocalVarDescriptors::kContextVar &&
+          ((var_info.begin_pos <= function.token_pos() &&
+            function.token_pos() <= var_info.end_pos) ||
+           (function.token_pos() <= var_info.begin_pos &&
+            var_info.begin_pos <= function.end_token_pos()))) {
+        vars.Add(LocalVarDescriptorsBuilder::VarDesc{
+            &String::Handle(zone, parent_vars.GetName(i)), var_info});
+      }
+    }
+  }
+
+  if (bytecode.HasLocalVariablesInfo()) {
+    intptr_t scope_id = 0;
+    intptr_t context_level = -1;
+    BytecodeLocalVariablesIterator local_vars(zone, bytecode);
+    while (local_vars.MoveNext()) {
+      switch (local_vars.Kind()) {
+        case BytecodeLocalVariablesIterator::kScope: {
+          ++scope_id;
+          context_level = local_vars.ContextLevel();
+        } break;
+        case BytecodeLocalVariablesIterator::kVariableDeclaration: {
+          LocalVarDescriptorsBuilder::VarDesc desc;
+          desc.name = &String::Handle(zone, local_vars.Name());
+          if (local_vars.IsCaptured()) {
+            desc.info.set_kind(UntaggedLocalVarDescriptors::kContextVar);
+            desc.info.scope_id = context_level;
+            desc.info.set_index(local_vars.Index());
+          } else {
+            desc.info.set_kind(UntaggedLocalVarDescriptors::kStackVar);
+            desc.info.scope_id = scope_id;
+            if (local_vars.Index() < 0) {
+              // Parameter
+              ASSERT(local_vars.Index() < -kKBCParamEndSlotFromFp);
+              desc.info.set_index(-local_vars.Index() - kKBCParamEndSlotFromFp);
+            } else {
+              desc.info.set_index(-local_vars.Index());
+            }
+          }
+          desc.info.declaration_pos = local_vars.DeclarationTokenPos();
+          desc.info.begin_pos = local_vars.StartTokenPos();
+          desc.info.end_pos = local_vars.EndTokenPos();
+          vars.Add(desc);
+        } break;
+        case BytecodeLocalVariablesIterator::kContextVariable: {
+          ASSERT(local_vars.Index() >= 0);
+          const intptr_t context_variable_index = -local_vars.Index();
+          LocalVarDescriptorsBuilder::VarDesc desc;
+          desc.name = &Symbols::CurrentContextVar();
+          desc.info.set_kind(UntaggedLocalVarDescriptors::kSavedCurrentContext);
+          desc.info.scope_id = 0;
+          desc.info.declaration_pos = TokenPosition::kMinSource;
+          desc.info.begin_pos = TokenPosition::kMinSource;
+          desc.info.end_pos = TokenPosition::kMinSource;
+          desc.info.set_index(context_variable_index);
+          vars.Add(desc);
+        } break;
+      }
+    }
+  }
+
+  return vars.Done();
+}
+
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace bytecode
 }  // namespace dart
