@@ -32,9 +32,6 @@ class ConstructorMember extends ExecutableMember
       super.baseElement as ConstructorElementImpl;
 
   @override
-  String get displayName => baseElement.displayName;
-
-  @override
   InterfaceElementImpl get enclosingElement => baseElement.enclosingElement;
 
   @Deprecated('Use enclosingElement instead')
@@ -74,12 +71,6 @@ class ConstructorMember extends ExecutableMember
   @Deprecated('Use library instead')
   @override
   LibraryElementImpl get library2 => library;
-
-  @override
-  String? get lookupName => baseElement.lookupName;
-
-  @override
-  String? get name3 => baseElement.name3;
 
   @override
   ConstructorElementMixin2? get redirectedConstructor2 {
@@ -184,9 +175,6 @@ abstract class ExecutableMember extends Member
   }
 
   @override
-  String get displayName => baseElement.displayName;
-
-  @override
   String? get documentationComment => baseElement.documentationComment;
 
   @override
@@ -269,13 +257,6 @@ abstract class ExecutableMember extends Member
   MetadataImpl get metadata2 => metadata;
 
   @override
-  Element get nonSynthetic => baseElement;
-
-  @Deprecated('Use nonSynthetic instead')
-  @override
-  Element get nonSynthetic2 => nonSynthetic;
-
-  @override
   TypeImpl get returnType {
     var result = baseElement.returnType;
     result = substitution.substituteType(result);
@@ -304,18 +285,6 @@ abstract class ExecutableMember extends Member
     appendTo(builder);
     return builder.toString();
   }
-
-  @override
-  bool isAccessibleIn2(LibraryElement library) =>
-      baseElement.isAccessibleIn2(library);
-
-  @override
-  Element? thisOrAncestorMatching2(bool Function(Element p1) predicate) =>
-      baseElement.thisOrAncestorMatching2(predicate);
-
-  @override
-  E? thisOrAncestorOfType2<E extends Element>() =>
-      baseElement.thisOrAncestorOfType2();
 
   @override
   void visitChildren2<T>(ElementVisitor2<T> visitor) {
@@ -439,14 +408,6 @@ class FieldMember extends VariableMember implements FieldElement2OrMember {
   List<Element> get children2 => const [];
 
   @override
-  ConstantInitializer? get constantInitializer2 {
-    return baseElement.constantInitializer2;
-  }
-
-  @override
-  String get displayName => baseElement.displayName;
-
-  @override
   String? get documentationComment => baseElement.documentationComment;
 
   @override
@@ -506,24 +467,11 @@ class FieldMember extends VariableMember implements FieldElement2OrMember {
   LibraryElement get library2 => library;
 
   @override
-  String? get lookupName => baseElement.lookupName;
-
-  @override
   MetadataImpl get metadata => baseElement.metadata;
 
   @Deprecated('Use metadata instead')
   @override
   MetadataImpl get metadata2 => metadata;
-
-  @override
-  String? get name3 => baseElement.name3;
-
-  @override
-  Element get nonSynthetic => baseElement.nonSynthetic;
-
-  @Deprecated('Use nonSynthetic instead')
-  @override
-  Element get nonSynthetic2 => nonSynthetic;
 
   @override
   SetterElement2OrMember? get setter2 {
@@ -545,37 +493,6 @@ class FieldMember extends VariableMember implements FieldElement2OrMember {
   @Deprecated('Use accept instead')
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
-
-  @override
-  DartObject? computeConstantValue() {
-    return baseElement.computeConstantValue();
-  }
-
-  @override
-  String displayString2({
-    bool multiline = false,
-    bool preferTypeAlias = false,
-  }) {
-    return baseElement.displayString2(
-      multiline: multiline,
-      preferTypeAlias: preferTypeAlias,
-    );
-  }
-
-  @override
-  bool isAccessibleIn2(LibraryElement library) {
-    return baseElement.isAccessibleIn2(library);
-  }
-
-  @override
-  Element? thisOrAncestorMatching2(bool Function(Element e) predicate) {
-    return baseElement.thisOrAncestorMatching2(predicate);
-  }
-
-  @override
-  E? thisOrAncestorOfType2<E extends Element>() {
-    return baseElement.thisOrAncestorOfType2<E>();
-  }
 
   @override
   void visitChildren2<T>(ElementVisitor2<T> visitor) {}
@@ -629,9 +546,6 @@ class GetterMember extends PropertyAccessorMember
   }
 
   @override
-  String? get lookupName => baseElement.lookupName;
-
-  @override
   Element get nonSynthetic {
     if (!isSynthetic) {
       return this;
@@ -682,6 +596,9 @@ abstract class Member implements Element {
   Member({required this.baseElement, required this.substitution});
 
   @override
+  String get displayName => baseElement.displayName;
+
+  @override
   int get id => baseElement.id;
 
   @override
@@ -697,6 +614,19 @@ abstract class Member implements Element {
   ElementKind get kind => baseElement.kind;
 
   @override
+  String? get lookupName => baseElement.lookupName;
+
+  @override
+  String? get name3 => baseElement.name3;
+
+  @override
+  Element get nonSynthetic => baseElement;
+
+  @Deprecated('Use nonSynthetic instead')
+  @override
+  Element get nonSynthetic2 => nonSynthetic;
+
+  @override
   AnalysisSession? get session => baseElement.session;
 
   /// Append a textual representation of this element to the given [builder].
@@ -705,6 +635,21 @@ abstract class Member implements Element {
   @override
   String getExtendedDisplayName2({String? shortName}) {
     return baseElement.getExtendedDisplayName2(shortName: shortName);
+  }
+
+  @override
+  bool isAccessibleIn2(LibraryElement library) {
+    return baseElement.isAccessibleIn2(library);
+  }
+
+  @override
+  Element? thisOrAncestorMatching2(bool Function(Element e) predicate) {
+    return baseElement.thisOrAncestorMatching2(predicate);
+  }
+
+  @override
+  E? thisOrAncestorOfType2<E extends Element>() {
+    return baseElement.thisOrAncestorOfType2<E>();
   }
 
   @override
@@ -769,12 +714,6 @@ class MethodMember extends ExecutableMember implements MethodElement2OrMember {
   LibraryElement get library2 => library;
 
   @override
-  String? get lookupName => name3;
-
-  @override
-  String? get name3 => baseElement.name3;
-
-  @override
   Version? get sinceSdkVersion => baseElement.sinceSdkVersion;
 
   @override
@@ -836,15 +775,7 @@ class ParameterMember extends VariableMember with FormalParameterElementMixin {
   }
 
   @override
-  ConstantInitializer? get constantInitializer2 {
-    return baseElement.constantInitializer2;
-  }
-
-  @override
   String? get defaultValueCode => baseElement.defaultValueCode;
-
-  @override
-  String get displayName => baseElement.displayName;
 
   @override
   String? get documentationComment => baseElement.documentationComment;
@@ -919,9 +850,6 @@ class ParameterMember extends VariableMember with FormalParameterElementMixin {
   LibraryElement? get library2 => library;
 
   @override
-  String? get lookupName => baseElement.lookupName;
-
-  @override
   MetadataImpl get metadata => baseElement.metadata;
 
   @Deprecated('Use metadata instead')
@@ -929,17 +857,7 @@ class ParameterMember extends VariableMember with FormalParameterElementMixin {
   MetadataImpl get metadata2 => metadata;
 
   @override
-  String? get name3 => baseElement.name3;
-
-  @override
   String get nameShared => name3!;
-
-  @override
-  Element get nonSynthetic => baseElement;
-
-  @Deprecated('Use nonSynthetic instead')
-  @override
-  Element get nonSynthetic2 => nonSynthetic;
 
   @deprecated
   @override
@@ -965,36 +883,6 @@ class ParameterMember extends VariableMember with FormalParameterElementMixin {
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeFormalParameter2(this);
-  }
-
-  @override
-  DartObject? computeConstantValue() {
-    return baseElement.computeConstantValue();
-  }
-
-  @override
-  String displayString2({
-    bool multiline = false,
-    bool preferTypeAlias = false,
-  }) {
-    return baseElement.displayString2(
-      multiline: multiline,
-      preferTypeAlias: preferTypeAlias,
-    );
-  }
-
-  @override
-  bool isAccessibleIn2(LibraryElement library) =>
-      baseElement.isAccessibleIn2(library);
-
-  @override
-  Element? thisOrAncestorMatching2(bool Function(Element p1) predicate) {
-    return baseElement.thisOrAncestorMatching2(predicate);
-  }
-
-  @override
-  E? thisOrAncestorOfType2<E extends Element>() {
-    return baseElement.thisOrAncestorOfType2();
   }
 
   @override
@@ -1076,9 +964,6 @@ abstract class PropertyAccessorMember extends ExecutableMember
   PropertyAccessorFragment get firstFragment;
 
   @override
-  String? get name3 => baseElement.name3;
-
-  @override
   PropertyInducingElement2OrMember? get variable3 {
     var variable = baseElement.variable3;
     switch (variable) {
@@ -1134,9 +1019,6 @@ class SetterMember extends PropertyAccessorMember
         fragment,
     ];
   }
-
-  @override
-  String? get lookupName => baseElement.lookupName;
 
   @override
   Element get nonSynthetic {
@@ -1242,6 +1124,11 @@ abstract class VariableMember extends Member
       super.baseElement as VariableElementImpl;
 
   @override
+  ConstantInitializer? get constantInitializer2 {
+    return baseElement.constantInitializer2;
+  }
+
+  @override
   bool get hasImplicitType => baseElement.hasImplicitType;
 
   @override
@@ -1268,6 +1155,22 @@ abstract class VariableMember extends Member
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeVariableElement2(this);
+  }
+
+  @override
+  DartObject? computeConstantValue() {
+    return baseElement.computeConstantValue();
+  }
+
+  @override
+  String displayString2({
+    bool multiline = false,
+    bool preferTypeAlias = false,
+  }) {
+    return baseElement.displayString2(
+      multiline: multiline,
+      preferTypeAlias: preferTypeAlias,
+    );
   }
 }
 
