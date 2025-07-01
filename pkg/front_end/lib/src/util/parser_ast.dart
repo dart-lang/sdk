@@ -57,7 +57,6 @@ CompilationUnitEnd getAST(
   ParserASTListener listener = new ParserASTListener();
   Parser parser;
   if (includeBody) {
-    // Coverage-ignore-block(suite): Not run.
     parser = new Parser(
       listener,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
@@ -1027,7 +1026,6 @@ extension CompilationUnitExtension on CompilationUnitEnd {
   }
 }
 
-// Coverage-ignore(suite): Not run.
 extension TopLevelDeclarationExtension on TopLevelDeclarationEnd {
   IdentifierHandle getIdentifier() {
     for (ParserAstNode child in children!) {
@@ -1036,6 +1034,7 @@ extension TopLevelDeclarationExtension on TopLevelDeclarationEnd {
     throw "Not found.";
   }
 
+  // Coverage-ignore(suite): Not run.
   ClassDeclarationEnd getClassDeclaration() {
     if (!isClass()) {
       throw "Not a class";
@@ -1076,8 +1075,8 @@ extension NamedMixinApplicationExtension on NamedMixinApplicationEnd {
   }
 }
 
-// Coverage-ignore(suite): Not run.
 extension ClassDeclarationExtension on ClassDeclarationEnd {
+  // Coverage-ignore(suite): Not run.
   ClassOrMixinOrExtensionBodyEnd getClassOrMixinOrExtensionBody() {
     for (ParserAstNode child in children!) {
       if (child is ClassOrMixinOrExtensionBodyEnd) {
@@ -1087,6 +1086,7 @@ extension ClassDeclarationExtension on ClassDeclarationEnd {
     throw "Not found.";
   }
 
+  // Coverage-ignore(suite): Not run.
   ClassExtendsHandle getClassExtends() {
     for (ParserAstNode child in children!) {
       if (child is ClassExtendsHandle) return child;
@@ -1094,6 +1094,7 @@ extension ClassDeclarationExtension on ClassDeclarationEnd {
     throw "Not found.";
   }
 
+  // Coverage-ignore(suite): Not run.
   ImplementsHandle getClassImplements() {
     for (ParserAstNode child in children!) {
       if (child is ImplementsHandle) {
@@ -1103,6 +1104,7 @@ extension ClassDeclarationExtension on ClassDeclarationEnd {
     throw "Not found.";
   }
 
+  // Coverage-ignore(suite): Not run.
   ClassWithClauseHandle? getClassWithClause() {
     for (ParserAstNode child in children!) {
       if (child is ClassWithClauseHandle) {
@@ -1630,7 +1632,6 @@ extension ExtensionTypeDeclarationExtension on ExtensionTypeDeclarationEnd {
   }
 }
 
-// Coverage-ignore(suite): Not run.
 extension TopLevelMethodExtension on TopLevelMethodEnd {
   IdentifierHandle getNameIdentifier() {
     for (ParserAstNode child in children!) {
@@ -1643,6 +1644,7 @@ extension TopLevelMethodExtension on TopLevelMethodEnd {
     throw "Didn't find the name identifier!";
   }
 
+  // Coverage-ignore(suite): Not run.
   Token getNameIdentifierToken() {
     return getNameIdentifier().token;
   }
@@ -1838,7 +1840,6 @@ extension TopLevelFieldsExtension on TopLevelFieldsEnd {
   }
 }
 
-// Coverage-ignore(suite): Not run.
 bool _isTypeOrNoType(ParserAstNode node) {
   return node is TypeHandle ||
       node is RecordTypeEnd ||
@@ -1847,8 +1848,8 @@ bool _isTypeOrNoType(ParserAstNode node) {
       node is FunctionTypeEnd;
 }
 
-// Coverage-ignore(suite): Not run.
 extension ClassMethodExtension on ClassMethodEnd {
+  // Coverage-ignore(suite): Not run.
   BlockFunctionBodyEnd? getBlockFunctionBody() {
     for (ParserAstNode child in children!) {
       if (child is BlockFunctionBodyEnd) {
@@ -1867,9 +1868,11 @@ extension ClassMethodExtension on ClassMethodEnd {
       if (foundType && child is IdentifierHandle) {
         return child.token;
       } else if (foundType && child is OperatorNameHandle) {
+        // Coverage-ignore-block(suite): Not run.
         return child.token;
       }
     }
+    // Coverage-ignore-block(suite): Not run.
     throw "No identifier found: $children";
   }
 
@@ -2288,9 +2291,7 @@ class ParserASTListener extends AbstractParserAstListener {
                 end == "EnumFields")) {
           // beginFields is ended by one of endTopLevelFields, endMixinFields,
           // endEnumFields or endExtensionFields.
-        } else if (begin == "ForStatement" &&
-            // Coverage-ignore(suite): Not run.
-            end == "ForIn") {
+        } else if (begin == "ForStatement" && end == "ForIn") {
           // beginForStatement is ended by either endForStatement or endForIn.
         } else if (begin == "FactoryMethod" &&
             (end == "ClassFactoryMethod" ||
@@ -2301,9 +2302,7 @@ class ParserASTListener extends AbstractParserAstListener {
           // beginFactoryMethod is ended by either endClassFactoryMethod,
           // endMixinFactoryMethod, endExtensionFactoryMethod, or
           // endEnumFactoryMethod.
-        }
-        // Coverage-ignore(suite): Not run.
-        else if (begin == "ForControlFlow" && (end == "ForInControlFlow")) {
+        } else if (begin == "ForControlFlow" && (end == "ForInControlFlow")) {
           // beginForControlFlow is ended by either endForControlFlow or
           // endForInControlFlow.
         } else if (begin == "IfControlFlow" && (end == "IfElseControlFlow")) {
@@ -2322,6 +2321,7 @@ class ParserASTListener extends AbstractParserAstListener {
           // beginParenthesizedExpressionOrRecordLiteral is ended by either
           // endParenthesizedExpression or endRecordLiteral.
         } else {
+          // Coverage-ignore-block(suite): Not run.
           throw "Unknown combination: begin$begin and end$end";
         }
         List<ParserAstNode> children = data.sublist(beginIndex);

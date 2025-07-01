@@ -651,6 +651,9 @@ class _GenericTypeHandle extends _TypeHandle {
       : super(TypeTag.kGenericType, nullability);
 
   @override
+  bool get isCacheable => typeArgs?.isCacheable ?? true;
+
+  @override
   void writeContents(BufferedWriter writer) {
     writer.writePackedObject(class_);
     writer.writePackedObject(typeArgs);

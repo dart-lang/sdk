@@ -7547,6 +7547,29 @@ class Bytecode : public Object {
     return (source_positions_binary_offset() != 0);
   }
 
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  intptr_t local_variables_binary_offset() const {
+    return untag()->local_variables_binary_offset_;
+  }
+  void set_local_variables_binary_offset(intptr_t value) const {
+    StoreNonPointer(&untag()->local_variables_binary_offset_, value);
+  }
+  bool HasLocalVariablesInfo() const {
+    return (local_variables_binary_offset() != 0);
+  }
+
+  LocalVarDescriptorsPtr var_descriptors() const {
+    return untag()->var_descriptors<std::memory_order_acquire>();
+  }
+  void set_var_descriptors(const LocalVarDescriptors& value) const {
+    ASSERT(value.IsOld());
+    untag()->set_var_descriptors<std::memory_order_release>(value.ptr());
+  }
+
+  // Will compute local var descriptors if necessary.
+  LocalVarDescriptorsPtr GetLocalVarDescriptors() const;
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+
   const char* Name() const;
   const char* QualifiedName() const;
   const char* FullyQualifiedName() const;
@@ -8839,7 +8862,10 @@ class TypeArguments : public Instance {
 
   // Check if the vectors are equal (they may be null).
   bool Equals(const TypeArguments& other) const {
-    return IsSubvectorEquivalent(other, 0, IsNull() ? 0 : Length(),
+    if (ptr() == other.ptr()) {
+      return true;
+    }
+    return IsSubvectorEquivalent(other, 0, IsNull() ? other.Length() : Length(),
                                  TypeEquality::kCanonical);
   }
 
@@ -8847,6 +8873,9 @@ class TypeArguments : public Instance {
       const TypeArguments& other,
       TypeEquality kind,
       FunctionTypeMapping* function_type_equivalence = nullptr) const {
+    if (ptr() == other.ptr()) {
+      return true;
+    }
     // Make a null vector a vector of dynamic as long as the other vector.
     return IsSubvectorEquivalent(other, 0, IsNull() ? other.Length() : Length(),
                                  kind, function_type_equivalence);

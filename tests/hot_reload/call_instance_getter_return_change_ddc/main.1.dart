@@ -21,7 +21,10 @@ helper() {
 Future<void> main() async {
   helper();
   await hotReload();
-  Expect.throws<TypeError>(helper);
+  Expect.throws<TypeError>(
+    helper,
+    (error) => '$error'.contains("'double' is not a subtype of type 'String'"),
+  );
 }
 
 /** DIFF **/
@@ -42,13 +45,4 @@ Future<void> main() async {
    return retained!();
  }
  
- Future<void> main() async {
-   helper();
-   await hotReload();
--  Expect.throws<TypeError>(
--    helper,
--    (error) => '$error'.contains("'double' is not a subtype of type 'String'"),
--  );
-+  Expect.throws<TypeError>(helper);
- }
 */

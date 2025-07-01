@@ -1,0 +1,7 @@
+NOTICE: Stream was rewritten by parser!
+
+void foo() {
+print("${()}");}
+
+[UnmatchedToken][UnmatchedToken][UnterminatedString][UnmatchedToken][UnmatchedToken]void[KeywordToken] foo[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+print[StringToken]([BeginToken]"[StringToken]${[BeginToken]([BeginToken])[SyntheticToken]}[SyntheticToken]"[SyntheticStringToken])[SyntheticToken];[SyntheticToken]}[SyntheticToken][SimpleToken]

@@ -1,0 +1,2 @@
+#!æbler
+void foo() {}

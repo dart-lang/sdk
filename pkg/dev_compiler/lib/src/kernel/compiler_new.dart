@@ -6171,6 +6171,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     );
     var instanceGet = js_ast.PropertyAccess(jsReceiver, jsMemberName);
     if (_shouldRewriteInvocationWithHotReloadChecks(node.interfaceTarget)) {
+      // TODO(nshahan): Add a runtime helper to perform the checks only so the
+      // call site can be monomorphic.
       instanceGet.sourceInformation = _nodeStart(node);
       // Since there are no arguments (unlike methods) the dynamic get path can
       // be reused for the hot reload checks on a getter.
@@ -6245,23 +6247,43 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       member.name.text == 'call' && isNonStaticJsInterop(member);
 
   @override
-  js_ast.Expression visitDynamicSet(DynamicSet node) {
-    return _runtimeCall('dput$_replSuffix(#, #, #)', [
-      _visitExpression(node.receiver),
-      _emitMemberName(node.name.text),
-      _visitExpression(node.value),
-    ]);
-  }
+  js_ast.Expression visitDynamicSet(DynamicSet node) => _emitDynamicSet(
+    _visitExpression(node.receiver),
+    _emitMemberName(node.name.text),
+    _visitExpression(node.value),
+  );
+
+  js_ast.Expression _emitDynamicSet(
+    js_ast.Expression receiver,
+    js_ast.Expression memberName,
+    js_ast.Expression value,
+  ) => _runtimeCall('dput$_replSuffix(#, #, #)', [receiver, memberName, value]);
 
   @override
   js_ast.Expression visitInstanceSet(InstanceSet node) {
     var target = node.interfaceTarget;
-    var value = isJsMember(target) ? _assertInterop(node.value) : node.value;
-    return js.call('#.# = #', [
-      _visitExpression(node.receiver),
-      _emitMemberName(node.name.text, member: target),
-      _visitExpression(value),
-    ]);
+    var receiver = _visitExpression(node.receiver);
+    var memberName = _emitMemberName(node.name.text, member: target);
+    var value = _visitExpression(
+      isJsMember(target) ? _assertInterop(node.value) : node.value,
+    );
+    var uncheckedSet = js.call('#.# = #', [receiver, memberName, value]);
+    if (_shouldRewriteInvocationWithHotReloadChecks(target)) {
+      // TODO(nshahan): Add a runtime helper to perform the checks only so the
+      // call site can be monomorphic.
+      var checkedSet = _emitDynamicSet(receiver, memberName, value);
+      // Dart setters can contain a return statement but that value doesn't get
+      // returned anywhere. Instead, the result of an assignment expression is
+      // the RHS. DDC relies on the same behavior in the JavaScript
+      // representation to carry the value through as the result of the
+      // assignment expression. It is then sufficient to check the type of the
+      // argument as it flows into the setter. If it is still valid, then it
+      // should also be valid to flow through to the context where the
+      // assignment appears. No extra cast on the assignment expression is
+      // needed.
+      return _emitHotReloadSafeInvocation(uncheckedSet, checkedSet);
+    }
+    return uncheckedSet;
   }
 
   /// True when the result of evaluating [e] is not known to have the Object
