@@ -9,34 +9,33 @@ import 'package:test/test.dart';
 
 void main() {
   group('dart mcp-server', () {
-    test('can be connected with a client', () async {
-      final client = TestMCPClient();
-      addTearDown(client.shutdown);
-      final serverConnection = await client.connectStdioServer(
-          Platform.resolvedExecutable,
-          ['mcp-server', '--experimental-mcp-server']);
-      final initializeResult = await serverConnection.initialize(
-          InitializeRequest(
-              protocolVersion: ProtocolVersion.latestSupported,
-              capabilities: client.capabilities,
-              clientInfo: client.implementation));
+    for (var withExperiment in const [true, false]) {
+      test(
+          'can be connected with a client with${withExperiment ? '' : 'out'} the experiment flag',
+          () async {
+        final client = TestMCPClient();
+        addTearDown(client.shutdown);
+        final serverConnection =
+            await client.connectStdioServer(Platform.resolvedExecutable, [
+          'mcp-server',
+          if (withExperiment) '--experimental-mcp-server',
+        ]);
+        final initializeResult = await serverConnection.initialize(
+            InitializeRequest(
+                protocolVersion: ProtocolVersion.latestSupported,
+                capabilities: client.capabilities,
+                clientInfo: client.implementation));
 
-      expect(initializeResult.protocolVersion, ProtocolVersion.latestSupported);
-      serverConnection.notifyInitialized();
+        expect(
+            initializeResult.protocolVersion, ProtocolVersion.latestSupported);
+        serverConnection.notifyInitialized();
 
-      expect(
-        await serverConnection.listTools(ListToolsRequest()),
-        isNotEmpty,
-      );
-    });
-
-    test('requires the --experimental-mcp-server flag', () async {
-      final processResult =
-          await Process.run(Platform.resolvedExecutable, ['mcp-server']);
-      expect(processResult.exitCode, isNot(0));
-      expect(processResult.stderr,
-          contains('Missing required flag --experimental-mcp-server'));
-    });
+        expect(
+          await serverConnection.listTools(ListToolsRequest()),
+          isNotEmpty,
+        );
+      });
+    }
   });
 }
 

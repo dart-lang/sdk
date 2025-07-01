@@ -24,9 +24,7 @@ class FunctionExpressionResolver {
 
   void resolve(FunctionExpressionImpl node, {required DartType contextType}) {
     var parent = node.parent;
-    // Note: `isFunctionDeclaration` must have an explicit type to work around
-    // https://github.com/dart-lang/language/issues/1785.
-    bool isFunctionDeclaration = parent is FunctionDeclaration;
+    var isFunctionDeclaration = parent is FunctionDeclaration;
     var body = node.body;
 
     if (_resolver.flowAnalysis.flow != null && !isFunctionDeclaration) {

@@ -12,9 +12,7 @@ class DartMCPServerCommand extends DartdevCommand {
   static const String cmdName = 'mcp-server';
 
   static const String cmdDescription = '''
-A stdio based Model Context Protocol (MCP) server to aid in Dart and Flutter development.
-
-EXPERIMENTAL: This tool may change dramatically or disappear at any time.''';
+A stdio based Model Context Protocol (MCP) server to aid in Dart and Flutter development.''';
 
   static const _forceRootsFallbackFlag = 'force-roots-fallback';
   static const _experimentFlag = 'experimental-mcp-server';
@@ -33,6 +31,9 @@ EXPERIMENTAL: This tool may change dramatically or disappear at any time.''';
             'support it.',
       )
       ..addFlag(_experimentFlag,
+          // This flag is no longer required but we are leaving it in for
+          // backwards compatibility.
+          hide: true,
           defaultsTo: false,
           help: 'A required flag in order to use this command. Passing this '
               'flag is an acknowledgement that you understand it is an '
@@ -45,10 +46,6 @@ EXPERIMENTAL: This tool may change dramatically or disappear at any time.''';
   @override
   Future<int> run() async {
     final args = argResults!;
-    if (!args.flag(_experimentFlag)) {
-      log.stderr('Missing required flag --$_experimentFlag\n\n$usage');
-      return 64;
-    }
     try {
       VmInteropHandler.run(
         sdk.dartAotRuntime,

@@ -349,7 +349,14 @@ void Platform::SetProcessName(const char* name) {
 
   _LSSetApplicationLaunchServicesServerConnectionStatus(0, nullptr);
 
-  _LSApplicationCheckIn(-2, CFBundleGetInfoDictionary(CFBundleGetMainBundle()));
+  CFMutableDictionaryRef dictionary = CFDictionaryCreateMutableCopy(
+      kCFAllocatorDefault, /*capacity=*/0,
+      CFBundleGetInfoDictionary(CFBundleGetMainBundle()));
+  if (dictionary == nullptr) return;
+  ScopedCFStringRef _kLSUIElement("LSUIElement");
+  CFDictionarySetValue(dictionary, _kLSUIElement.get(), kCFBooleanTrue);
+  _LSApplicationCheckIn(-2, dictionary);
+  CFRelease(dictionary);
 
   CFTypeRef asn;
   asn = _LSGetCurrentApplicationASN();
