@@ -65,9 +65,6 @@ class ConstructorMember extends ExecutableMember
   bool get isConst => declaration.isConst;
 
   @override
-  bool get isConstantEvaluated => declaration.isConstantEvaluated;
-
-  @override
   bool get isDefaultConstructor => baseElement.isConst;
 
   @override

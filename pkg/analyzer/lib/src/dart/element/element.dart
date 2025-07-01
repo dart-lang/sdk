@@ -749,7 +749,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
         FragmentedElementMixin<ConstructorFragmentImpl>,
         ConstructorElementMixin2,
         _HasSinceSdkVersionMixin
-    implements ConstructorElement {
+    implements ConstantEvaluationTarget, ConstructorElement {
   @override
   final Reference reference;
 
@@ -931,10 +931,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
 /// Common implementation for methods defined in [ConstructorElement].
 mixin ConstructorElementMixin2
-    implements
-        ConstantEvaluationTarget,
-        ExecutableElement2OrMember,
-        ConstructorElement {
+    implements ExecutableElement2OrMember, ConstructorElement {
   @override
   ConstructorElementImpl get baseElement;
 

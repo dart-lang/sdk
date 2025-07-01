@@ -86,10 +86,6 @@ class ConstantEvaluationEngine {
       constant = element.declaration as ConstantEvaluationTarget;
     }
 
-    if (constant case ConstructorElementMixin2 constructor) {
-      constant = constructor.baseElement;
-    }
-
     var library = constant.library as LibraryElementImpl;
     if (constant is FormalParameterElementImpl) {
       var defaultValue = constant.constantInitializer2?.expression;
