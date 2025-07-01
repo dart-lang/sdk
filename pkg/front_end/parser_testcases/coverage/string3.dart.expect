@@ -1,0 +1,42 @@
+Problems reported:
+
+parser/coverage/string3:2:10: Expected ';' after this.
+  return """
+         ^^^^...
+
+parser/coverage/string3:2:10: String starting with """ must end with """.
+  return """
+         ^^^^...
+
+parser/coverage/string3:1:12: Can't find '}' to match '{'.
+void foo() {
+           ^
+
+beginCompilationUnit(void)
+  beginMetadataStar(void)
+  endMetadataStar(0)
+  beginTopLevelMember(void)
+    beginTopLevelMethod(UnmatchedToken({), null, null)
+      handleVoidKeyword(void)
+      handleIdentifier(foo, topLevelFunctionDeclaration)
+      handleNoTypeVariables(()
+      beginFormalParameters((, MemberKind.TopLevelMethod)
+      endFormalParameters(0, (, ), MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      beginBlockFunctionBody({)
+        beginReturnStatement(return)
+          beginLiteralString("""
+æbler""")
+          endLiteralString(0, })
+          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], """
+æbler""", """
+æbler""")
+        endReturnStatement(true, return, ;)
+      endBlockFunctionBody(1, {, })
+    endTopLevelMethod(void, null, })
+  endTopLevelDeclaration(})
+  handleErrorToken(UnterminatedString("""))
+  handleRecoverableError(Message[UnterminatedString, String starting with """ must end with """., null, {string: """, string2: """}], UnterminatedString("""), UnterminatedString("""))
+  handleErrorToken(UnmatchedToken({))
+  handleRecoverableError(Message[UnmatchedToken, Can't find '}' to match '{'., null, {string: }, lexeme: {}], UnmatchedToken({), UnmatchedToken({))
+endCompilationUnit(1, )

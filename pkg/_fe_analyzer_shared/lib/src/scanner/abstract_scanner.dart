@@ -396,7 +396,10 @@ abstract class AbstractScanner implements Scanner {
   }
 
   int _getLineOf(Token token) {
-    if (lineStarts.isEmpty) return -1;
+    if (lineStarts.isEmpty) {
+      // Coverage-ignore-block(suite): Not run.
+      return -1;
+    }
     final int offset = token.offset;
     int low = 0, high = lineStarts.length - 1;
     while (low < high) {
@@ -425,7 +428,10 @@ abstract class AbstractScanner implements Scanner {
   /// `a` because it's the indentation of the `if`, even though the _line_ of a
   /// has a different indentation of the _line_ of `{`.
   int _spacesAtStartOfLogicalLineOf(Token token) {
-    if (lineStarts.isEmpty) return -1;
+    if (lineStarts.isEmpty) {
+      // Coverage-ignore-block(suite): Not run.
+      return -1;
+    }
 
     // If the previous token is a `)`, e.g. if this is the start curly brace in
     // an if, we find the first token before the corresponding `(` (in this case
@@ -433,7 +439,10 @@ abstract class AbstractScanner implements Scanner {
     // for - e.g. if the if is spread over several lines the given token itself
     // will - if formatted by the formatter - be indented more than the "if".
     if (token.isA(TokenType.OPEN_CURLY_BRACKET)) {
-      if (token.previous == null) return -1;
+      if (token.previous == null) {
+        // Coverage-ignore-block(suite): Not run.
+        return -1;
+      }
       Token previous = token.previous!;
       bool foundWanted = false;
       if (previous.isA(TokenType.CLOSE_PAREN)) {
@@ -477,6 +486,7 @@ abstract class AbstractScanner implements Scanner {
     // Now find the line of [token].
     final int lineIndex = _getLineOf(token);
     if (lineIndex == 0) {
+      // Coverage-ignore-block(suite): Not run.
       // On first line.
       return tokens.next?.charOffset ?? -1;
     }
@@ -492,6 +502,7 @@ abstract class AbstractScanner implements Scanner {
       return candidate.next!.offset - lineStartOfToken;
     }
 
+    // Coverage-ignore(suite): Not run.
     return -1;
   }
 
@@ -792,6 +803,7 @@ abstract class AbstractScanner implements Scanner {
         case OPEN_PAREN_TOKEN:
           type = TokenType.CLOSE_PAREN;
           break;
+        // Coverage-ignore(suite): Not run.
         default:
           throw new StateError("Unexpected openKind");
       }
@@ -974,11 +986,8 @@ abstract class AbstractScanner implements Scanner {
       while (next != $EOF) {
         next = bigSwitch(next);
       }
-      if (atEndOfFile()) {
-        appendEofToken();
-      } else {
-        unexpectedEof();
-      }
+      assert(atEndOfFile());
+      appendEofToken();
     }
 
     // Always pretend that there's a line at the end of the file.
@@ -1000,18 +1009,11 @@ abstract class AbstractScanner implements Scanner {
         iterations++;
 
         if (iterations > 100) {
+          // Coverage-ignore-block(suite): Not run.
           return recoveryCount;
         }
       }
-      if (!atEndOfFile()) {
-        // $EOF in the middle of the file. Skip it as `tokenize`.
-        next = advance();
-        iterations++;
-
-        if (iterations > 100) {
-          return recoveryCount;
-        }
-      }
+      assert(atEndOfFile());
     }
     return recoveryCount;
   }
@@ -1193,11 +1195,15 @@ abstract class AbstractScanner implements Scanner {
     }
 
     if (next == $BACKPING) {
+      // Coverage-ignore-block(suite): Not run.
+      // Hit when parsing doc comments in the analyzer.
       appendPrecedenceToken(TokenType.BACKPING);
       return advance();
     }
 
     if (next == $BACKSLASH) {
+      // Coverage-ignore-block(suite): Not run.
+      // Hit when parsing doc comments in the analyzer.
       appendPrecedenceToken(TokenType.BACKSLASH);
       return advance();
     }
@@ -1225,7 +1231,9 @@ abstract class AbstractScanner implements Scanner {
           next = advance();
           if (next > 127) asciiOnly = false;
         } while (next != $LF && next != $CR && next != $EOF);
-        if (!asciiOnly) handleUnicode(start);
+        if (!asciiOnly) {
+          handleUnicode(start);
+        }
         appendSubstringToken(TokenType.SCRIPT_TAG, start, asciiOnly);
         return next;
       }
@@ -1288,6 +1296,7 @@ abstract class AbstractScanner implements Scanner {
     next = advance();
     if (next == $BAR) {
       next = advance();
+      // Coverage-ignore(suite): Not run.
       if (LAZY_ASSIGNMENT_ENABLED && next == $EQ) {
         appendPrecedenceToken(TokenType.BAR_BAR_EQ);
         return advance();
@@ -1308,6 +1317,7 @@ abstract class AbstractScanner implements Scanner {
     next = advance();
     if (next == $AMPERSAND) {
       next = advance();
+      // Coverage-ignore(suite): Not run.
       if (LAZY_ASSIGNMENT_ENABLED && next == $EQ) {
         appendPrecedenceToken(TokenType.AMPERSAND_AMPERSAND_EQ);
         return advance();
@@ -1625,25 +1635,16 @@ abstract class AbstractScanner implements Scanner {
     }
   }
 
+  /// [next] has to be in [0-9eE].
   int tokenizeFractionPart(int next, int start, bool hasSeparators) {
+    assert(($0 <= next && next <= $9) || ($e == next || $E == next));
     bool done = false;
-    bool hasDigit = false;
     bool previousWasSeparator = false;
     LOOP:
     while (!done) {
       if ($0 <= next && next <= $9) {
-        hasDigit = true;
         previousWasSeparator = false;
       } else if ($_ == next) {
-        if (!hasDigit) {
-          prependErrorToken(
-            new UnterminatedToken(
-              messageUnexpectedSeparatorInNumber,
-              start,
-              stringOffset,
-            ),
-          );
-        }
         hasSeparators = true;
         previousWasSeparator = true;
       } else if ($e == next || $E == next) {
@@ -1657,7 +1658,6 @@ abstract class AbstractScanner implements Scanner {
             ),
           );
         }
-        hasDigit = true;
         previousWasSeparator = false;
         next = advance();
         while (next == $_) {
@@ -1744,27 +1744,6 @@ abstract class AbstractScanner implements Scanner {
         continue LOOP;
       }
       next = advance();
-    }
-    if (!hasDigit) {
-      // Reduce offset, we already advanced to the token past the period.
-      appendSubstringToken(
-        TokenType.INT,
-        start,
-        /* asciiOnly = */ true,
-        /* extraOffset = */ -1,
-      );
-
-      // TODO(ahe): Wrong offset for the period. Cannot call beginToken because
-      // the scanner already advanced past the period.
-      if ($PERIOD == next) {
-        return select(
-          $PERIOD,
-          TokenType.PERIOD_PERIOD_PERIOD,
-          TokenType.PERIOD_PERIOD,
-        );
-      }
-      appendPrecedenceToken(TokenType.PERIOD);
-      return next;
     }
     TokenType tokenType =
         hasSeparators ? TokenType.DOUBLE_WITH_SEPARATORS : TokenType.DOUBLE;
@@ -1934,7 +1913,9 @@ abstract class AbstractScanner implements Scanner {
     bool dartdoc = $STAR == next;
     while (true) {
       if ($EOF == next) {
-        if (!asciiOnlyLines) handleUnicode(unicodeStart);
+        if (!asciiOnlyLines) {
+          handleUnicode(unicodeStart);
+        }
         prependErrorToken(
           new UnterminatedToken(
             messageUnterminatedComment,
@@ -2174,14 +2155,18 @@ abstract class AbstractScanner implements Scanner {
       if (next == $BACKSLASH) {
         next = advance();
       } else if (next == $$) {
-        if (!asciiOnly) handleUnicode(start);
+        if (!asciiOnly) {
+          handleUnicode(start);
+        }
         next = tokenizeStringInterpolation(start, asciiOnly);
         start = scanOffset;
         asciiOnly = true;
         continue;
       }
       if (next <= $CR && (next == $LF || next == $CR || next == $EOF)) {
-        if (!asciiOnly) handleUnicode(start);
+        if (!asciiOnly) {
+          handleUnicode(start);
+        }
         unterminatedString(
           quoteChar,
           quoteStart,
@@ -2260,12 +2245,16 @@ abstract class AbstractScanner implements Scanner {
     bool asciiOnly = true;
     while (next != $EOF) {
       if (next == quoteChar) {
-        if (!asciiOnly) handleUnicode(quoteStart);
+        if (!asciiOnly) {
+          handleUnicode(quoteStart);
+        }
         next = advance();
         appendSubstringToken(TokenType.STRING, quoteStart, asciiOnly);
         return next;
       } else if (next == $LF || next == $CR) {
-        if (!asciiOnly) handleUnicode(quoteStart);
+        if (!asciiOnly) {
+          handleUnicode(quoteStart);
+        }
         unterminatedString(
           quoteChar,
           quoteStart,
@@ -2280,7 +2269,9 @@ abstract class AbstractScanner implements Scanner {
       }
       next = advance();
     }
-    if (!asciiOnly) handleUnicode(quoteStart);
+    if (!asciiOnly) {
+      handleUnicode(quoteStart);
+    }
     unterminatedString(
       quoteChar,
       quoteStart,
@@ -2319,14 +2310,18 @@ abstract class AbstractScanner implements Scanner {
       if (next == quoteChar) {
         next = advance();
         if (next == quoteChar) {
-          if (!asciiOnlyLine) handleUnicode(unicodeStart);
+          if (!asciiOnlyLine) {
+            handleUnicode(unicodeStart);
+          }
           next = advance();
           appendSubstringToken(TokenType.STRING, quoteStart, asciiOnlyString);
           return next;
         }
       }
     }
-    if (!asciiOnlyLine) handleUnicode(unicodeStart);
+    if (!asciiOnlyLine) {
+      handleUnicode(unicodeStart);
+    }
     unterminatedString(
       quoteChar,
       quoteStart,
@@ -2339,7 +2334,9 @@ abstract class AbstractScanner implements Scanner {
   }
 
   int tokenizeMultiLineString(int quoteChar, int quoteStart, bool raw) {
-    if (raw) return tokenizeMultiLineRawString(quoteChar, quoteStart);
+    if (raw) {
+      return tokenizeMultiLineRawString(quoteChar, quoteStart);
+    }
     int start = quoteStart;
     bool asciiOnlyString = true;
     bool asciiOnlyLine = true;
@@ -2347,7 +2344,9 @@ abstract class AbstractScanner implements Scanner {
     int next = advance(); // Advance past the (last) quote (of three).
     while (next != $EOF) {
       if (next == $$) {
-        if (!asciiOnlyLine) handleUnicode(unicodeStart);
+        if (!asciiOnlyLine) {
+          handleUnicode(unicodeStart);
+        }
         next = tokenizeStringInterpolation(start, asciiOnlyString);
         start = scanOffset;
         unicodeStart = start;
@@ -2360,7 +2359,9 @@ abstract class AbstractScanner implements Scanner {
         if (next == quoteChar) {
           next = advance();
           if (next == quoteChar) {
-            if (!asciiOnlyLine) handleUnicode(unicodeStart);
+            if (!asciiOnlyLine) {
+              handleUnicode(unicodeStart);
+            }
             next = advance();
             appendSubstringToken(TokenType.STRING, start, asciiOnlyString);
             return next;
@@ -2370,7 +2371,9 @@ abstract class AbstractScanner implements Scanner {
       }
       if (next == $BACKSLASH) {
         next = advance();
-        if (next == $EOF) break;
+        if (next == $EOF) {
+          break;
+        }
       }
       if (next == $LF) {
         if (!asciiOnlyLine) {
@@ -2386,7 +2389,9 @@ abstract class AbstractScanner implements Scanner {
       }
       next = advance();
     }
-    if (!asciiOnlyLine) handleUnicode(unicodeStart);
+    if (!asciiOnlyLine) {
+      handleUnicode(unicodeStart);
+    }
     unterminatedString(
       quoteChar,
       quoteStart,
@@ -2433,11 +2438,6 @@ abstract class AbstractScanner implements Scanner {
       prependErrorToken(errorToken);
       return advanceAfterError();
     }
-  }
-
-  void unexpectedEof() {
-    ErrorToken errorToken = buildUnexpectedCharacterToken($EOF, tokenStart);
-    prependErrorToken(errorToken);
   }
 
   void unterminatedString(
@@ -2497,6 +2497,7 @@ class LineStarts extends Object with ListMixin<int> {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void set length(int newLength) {
     if (newLength > array.length) {
       grow(newLength);
@@ -2505,6 +2506,7 @@ class LineStarts extends Object with ListMixin<int> {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void operator []=(int index, int value) {
     if (value > 65535 && array is! Uint32List) {
       switchToUint32(array.length);
@@ -2518,7 +2520,10 @@ class LineStarts extends Object with ListMixin<int> {
     if (arrayLength >= array.length) {
       grow(/* newLengthMinimum = */ 0);
     }
-    if (value > 65535 && array is! Uint32List) {
+    if (value > 65535 &&
+        // Coverage-ignore(suite): Not run.
+        array is! Uint32List) {
+      // Coverage-ignore-block(suite): Not run.
       switchToUint32(array.length);
     }
     array[arrayLength++] = value;
@@ -2535,10 +2540,12 @@ class LineStarts extends Object with ListMixin<int> {
       newArray.setRange(/* start = */ 0, arrayLength, array);
       array = newArray;
     } else {
+      // Coverage-ignore-block(suite): Not run.
       switchToUint32(newLength);
     }
   }
 
+  // Coverage-ignore(suite): Not run.
   void switchToUint32(int newLength) {
     final Uint32List newArray = new Uint32List(newLength);
     newArray.setRange(/* start = */ 0, arrayLength, array);
@@ -2550,6 +2557,7 @@ class LineStarts extends Object with ListMixin<int> {
     final int expectedNumberOfLines = 1 + (numberOfBytesHint ~/ 22);
 
     if (numberOfBytesHint > 65535) {
+      // Coverage-ignore-block(suite): Not run.
       return new Uint32List(expectedNumberOfLines);
     } else {
       return new Uint16List(expectedNumberOfLines);

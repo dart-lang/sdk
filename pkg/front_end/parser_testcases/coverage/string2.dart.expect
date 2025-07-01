@@ -1,0 +1,152 @@
+Problems reported:
+
+parser/coverage/string2:2:22: Expected ';' after this.
+  return """æbler$bar"""
+                     ^^^
+
+parser/coverage/string2:6:10: Expected ';' after this.
+  return """æbler"""
+         ^^^^^^^^^^^
+
+parser/coverage/string2:10:10: Expected ';' after this.
+  return r"""hello"""
+         ^^^^^^^^^^^^
+
+parser/coverage/string2:14:10: Expected ';' after this.
+  return """
+         ^^^^...
+
+parser/coverage/string2:21:10: Expected ';' after this.
+  return """æbler\
+         ^^^^^^^^^
+
+parser/coverage/string2:21:10: String starting with """ must end with """.
+  return """æbler\
+         ^^^^^^^^^
+
+parser/coverage/string2:19:13: Can't find '}' to match '{'.
+void quux() {
+            ^
+
+beginCompilationUnit(void)
+  beginMetadataStar(void)
+  endMetadataStar(0)
+  beginTopLevelMember(void)
+    beginTopLevelMethod(UnmatchedToken({), null, null)
+      handleVoidKeyword(void)
+      handleIdentifier(foo, topLevelFunctionDeclaration)
+      handleNoTypeVariables(()
+      beginFormalParameters((, MemberKind.TopLevelMethod)
+        beginMetadataStar(dynamic)
+        endMetadataStar(0)
+        beginFormalParameter(dynamic, MemberKind.TopLevelMethod, null, null, null)
+          handleIdentifier(dynamic, typeReference)
+          handleNoTypeArguments(bar)
+          handleType(dynamic, null)
+          handleIdentifier(bar, formalParameterDeclaration)
+          handleFormalParameterWithoutValue())
+        endFormalParameter(null, null, null, bar, null, null, FormalParameterKind.requiredPositional, MemberKind.TopLevelMethod)
+      endFormalParameters(1, (, ), MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      beginBlockFunctionBody({)
+        beginReturnStatement(return)
+          beginLiteralString("""æbler)
+            handleIdentifier(bar, expression)
+            handleNoTypeArguments(""")
+            handleNoArguments(""")
+            handleSend(bar, bar)
+            handleInterpolationExpression($, null)
+            handleStringPart(""")
+          endLiteralString(1, })
+          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], """, """)
+        endReturnStatement(true, return, ;)
+      endBlockFunctionBody(1, {, })
+    endTopLevelMethod(void, null, })
+  endTopLevelDeclaration(})
+  beginMetadataStar(void)
+  endMetadataStar(0)
+  beginTopLevelMember(void)
+    beginTopLevelMethod(}, null, null)
+      handleVoidKeyword(void)
+      handleIdentifier(bar, topLevelFunctionDeclaration)
+      handleNoTypeVariables(()
+      beginFormalParameters((, MemberKind.TopLevelMethod)
+      endFormalParameters(0, (, ), MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      beginBlockFunctionBody({)
+        beginReturnStatement(return)
+          beginLiteralString("""æbler""")
+          endLiteralString(0, })
+          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], """æbler""", """æbler""")
+        endReturnStatement(true, return, ;)
+      endBlockFunctionBody(1, {, })
+    endTopLevelMethod(void, null, })
+  endTopLevelDeclaration(})
+  beginMetadataStar(void)
+  endMetadataStar(0)
+  beginTopLevelMember(void)
+    beginTopLevelMethod(}, null, null)
+      handleVoidKeyword(void)
+      handleIdentifier(baz, topLevelFunctionDeclaration)
+      handleNoTypeVariables(()
+      beginFormalParameters((, MemberKind.TopLevelMethod)
+      endFormalParameters(0, (, ), MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      beginBlockFunctionBody({)
+        beginReturnStatement(return)
+          beginLiteralString(r"""hello""")
+          endLiteralString(0, })
+          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], r"""hello""", r"""hello""")
+        endReturnStatement(true, return, ;)
+      endBlockFunctionBody(1, {, })
+    endTopLevelMethod(void, null, })
+  endTopLevelDeclaration(})
+  beginMetadataStar(void)
+  endMetadataStar(0)
+  beginTopLevelMember(void)
+    beginTopLevelMethod(}, null, null)
+      handleVoidKeyword(void)
+      handleIdentifier(qux, topLevelFunctionDeclaration)
+      handleNoTypeVariables(()
+      beginFormalParameters((, MemberKind.TopLevelMethod)
+      endFormalParameters(0, (, ), MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      beginBlockFunctionBody({)
+        beginReturnStatement(return)
+          beginLiteralString("""
+æbler
+""")
+          endLiteralString(0, })
+          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], """
+æbler
+""", """
+æbler
+""")
+        endReturnStatement(true, return, ;)
+      endBlockFunctionBody(1, {, })
+    endTopLevelMethod(void, null, })
+  endTopLevelDeclaration(})
+  beginMetadataStar(void)
+  endMetadataStar(0)
+  beginTopLevelMember(void)
+    beginTopLevelMethod(}, null, null)
+      handleVoidKeyword(void)
+      handleIdentifier(quux, topLevelFunctionDeclaration)
+      handleNoTypeVariables(()
+      beginFormalParameters((, MemberKind.TopLevelMethod)
+      endFormalParameters(0, (, ), MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      beginBlockFunctionBody({)
+        beginReturnStatement(return)
+          beginLiteralString("""æbler\""")
+          endLiteralString(0, })
+          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], """æbler\""", """æbler\""")
+        endReturnStatement(true, return, ;)
+      endBlockFunctionBody(1, {, })
+    endTopLevelMethod(void, null, })
+  endTopLevelDeclaration(})
+  handleErrorToken(UnterminatedString("""))
+  handleRecoverableError(Message[UnterminatedString, String starting with """ must end with """., null, {string: """, string2: """}], UnterminatedString("""), UnterminatedString("""))
+  handleErrorToken(UnmatchedToken({))
+  handleRecoverableError(Message[UnmatchedToken, Can't find '}' to match '{'., null, {string: }, lexeme: {}], UnmatchedToken({), UnmatchedToken({))
+endCompilationUnit(5, )

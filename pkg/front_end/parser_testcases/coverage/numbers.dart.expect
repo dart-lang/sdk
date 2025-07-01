@@ -1,0 +1,204 @@
+Problems reported:
+
+parser/coverage/numbers:4:7: Expected an identifier, but got ';'.
+  12_.;
+      ^
+
+parser/coverage/numbers:2:3: Digit separators ('_') in a number literal can only be placed between two digits.
+  12_e;
+  ^
+
+parser/coverage/numbers:2:3: Numbers in exponential notation should always contain an exponent (an integer number with an optional sign).
+  12_e;
+  ^
+
+parser/coverage/numbers:3:3: Digit separators ('_') in a number literal can only be placed between two digits.
+  12_E;
+  ^
+
+parser/coverage/numbers:3:3: Numbers in exponential notation should always contain an exponent (an integer number with an optional sign).
+  12_E;
+  ^
+
+parser/coverage/numbers:4:3: Digit separators ('_') in a number literal can only be placed between two digits.
+  12_.;
+  ^
+
+parser/coverage/numbers:5:3: Digit separators ('_') in a number literal can only be placed between two digits.
+  12_;
+  ^
+
+parser/coverage/numbers:6:3: Digit separators ('_') in a number literal can only be placed between two digits.
+  0x_;
+  ^
+
+parser/coverage/numbers:6:3: A hex digit (0-9 or A-F) must follow '0x'.
+  0x_;
+  ^
+
+parser/coverage/numbers:7:3: Digit separators ('_') in a number literal can only be placed between two digits.
+  0xA_;
+  ^
+
+parser/coverage/numbers:9:3: Digit separators ('_') in a number literal can only be placed between two digits.
+  1.2_;
+  ^
+
+parser/coverage/numbers:10:3: Digit separators ('_') in a number literal can only be placed between two digits.
+  1.2_e;
+  ^
+
+parser/coverage/numbers:10:3: Numbers in exponential notation should always contain an exponent (an integer number with an optional sign).
+  1.2_e;
+  ^
+
+parser/coverage/numbers:11:3: Digit separators ('_') in a number literal can only be placed between two digits.
+  1.2_E;
+  ^
+
+parser/coverage/numbers:11:3: Numbers in exponential notation should always contain an exponent (an integer number with an optional sign).
+  1.2_E;
+  ^
+
+parser/coverage/numbers:12:3: Digit separators ('_') in a number literal can only be placed between two digits.
+  1.2e_;
+  ^
+
+parser/coverage/numbers:12:3: Numbers in exponential notation should always contain an exponent (an integer number with an optional sign).
+  1.2e_;
+  ^
+
+parser/coverage/numbers:13:3: Digit separators ('_') in a number literal can only be placed between two digits.
+  1.2E_;
+  ^
+
+parser/coverage/numbers:13:3: Numbers in exponential notation should always contain an exponent (an integer number with an optional sign).
+  1.2E_;
+  ^
+
+parser/coverage/numbers:14:3: Digit separators ('_') in a number literal can only be placed between two digits.
+  1.2e-_;
+  ^
+
+parser/coverage/numbers:14:3: Numbers in exponential notation should always contain an exponent (an integer number with an optional sign).
+  1.2e-_;
+  ^
+
+parser/coverage/numbers:15:3: Digit separators ('_') in a number literal can only be placed between two digits.
+  1.2E-_;
+  ^
+
+parser/coverage/numbers:15:3: Numbers in exponential notation should always contain an exponent (an integer number with an optional sign).
+  1.2E-_;
+  ^
+
+parser/coverage/numbers:16:3: Digit separators ('_') in a number literal can only be placed between two digits.
+  1.2e-1_;
+  ^
+
+parser/coverage/numbers:17:3: Digit separators ('_') in a number literal can only be placed between two digits.
+  1.2E-1_;
+  ^
+
+beginCompilationUnit(void)
+  beginMetadataStar(void)
+  endMetadataStar(0)
+  beginTopLevelMember(void)
+    beginTopLevelMethod(UnterminatedToken(UnexpectedSeparatorInNumber), null, null)
+      handleVoidKeyword(void)
+      handleIdentifier(foo, topLevelFunctionDeclaration)
+      handleNoTypeVariables(()
+      beginFormalParameters((, MemberKind.TopLevelMethod)
+      endFormalParameters(0, (, ), MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      beginBlockFunctionBody({)
+        handleLiteralDoubleWithSeparators(12_e0)
+        handleExpressionStatement(12_e0, ;)
+        handleLiteralDoubleWithSeparators(12_E0)
+        handleExpressionStatement(12_E0, ;)
+        handleLiteralIntWithSeparators(12_)
+        handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got ';'., Try inserting an identifier before ';'., {lexeme: ;}], ;, ;)
+        handleIdentifier(, expressionContinuation)
+        handleNoTypeArguments(;)
+        handleNoArguments(;)
+        handleSend(, )
+        handleEndingBinaryExpression(., )
+        handleExpressionStatement(12_, ;)
+        handleLiteralIntWithSeparators(12_)
+        handleExpressionStatement(12_, ;)
+        handleLiteralInt(0x_0)
+        handleExpressionStatement(0x_0, ;)
+        handleLiteralIntWithSeparators(0xA_)
+        handleExpressionStatement(0xA_, ;)
+        handleLiteralDouble(.1)
+        handleExpressionStatement(.1, ;)
+        handleLiteralDoubleWithSeparators(1.2_)
+        handleExpressionStatement(1.2_, ;)
+        handleLiteralDoubleWithSeparators(1.2_e0)
+        handleExpressionStatement(1.2_e0, ;)
+        handleLiteralDoubleWithSeparators(1.2_E0)
+        handleExpressionStatement(1.2_E0, ;)
+        handleLiteralDoubleWithSeparators(1.2e_0)
+        handleExpressionStatement(1.2e_0, ;)
+        handleLiteralDoubleWithSeparators(1.2E_0)
+        handleExpressionStatement(1.2E_0, ;)
+        handleLiteralDoubleWithSeparators(1.2e-_0)
+        handleExpressionStatement(1.2e-_0, ;)
+        handleLiteralDoubleWithSeparators(1.2E-_0)
+        handleExpressionStatement(1.2E-_0, ;)
+        handleLiteralDoubleWithSeparators(1.2e-1_)
+        handleExpressionStatement(1.2e-1_, ;)
+        handleLiteralDoubleWithSeparators(1.2E-1_)
+        handleExpressionStatement(1.2E-1_, ;)
+      endBlockFunctionBody(16, {, })
+    endTopLevelMethod(void, null, })
+  endTopLevelDeclaration(})
+  handleErrorToken(UnterminatedToken(UnexpectedSeparatorInNumber))
+  handleRecoverableError(UnexpectedSeparatorInNumber, UnterminatedToken(UnexpectedSeparatorInNumber), UnterminatedToken(UnexpectedSeparatorInNumber))
+  handleErrorToken(UnterminatedToken(MissingExponent))
+  handleRecoverableError(MissingExponent, UnterminatedToken(MissingExponent), UnterminatedToken(MissingExponent))
+  handleErrorToken(UnterminatedToken(UnexpectedSeparatorInNumber))
+  handleRecoverableError(UnexpectedSeparatorInNumber, UnterminatedToken(UnexpectedSeparatorInNumber), UnterminatedToken(UnexpectedSeparatorInNumber))
+  handleErrorToken(UnterminatedToken(MissingExponent))
+  handleRecoverableError(MissingExponent, UnterminatedToken(MissingExponent), UnterminatedToken(MissingExponent))
+  handleErrorToken(UnterminatedToken(UnexpectedSeparatorInNumber))
+  handleRecoverableError(UnexpectedSeparatorInNumber, UnterminatedToken(UnexpectedSeparatorInNumber), UnterminatedToken(UnexpectedSeparatorInNumber))
+  handleErrorToken(UnterminatedToken(UnexpectedSeparatorInNumber))
+  handleRecoverableError(UnexpectedSeparatorInNumber, UnterminatedToken(UnexpectedSeparatorInNumber), UnterminatedToken(UnexpectedSeparatorInNumber))
+  handleErrorToken(UnterminatedToken(UnexpectedSeparatorInNumber))
+  handleRecoverableError(UnexpectedSeparatorInNumber, UnterminatedToken(UnexpectedSeparatorInNumber), UnterminatedToken(UnexpectedSeparatorInNumber))
+  handleErrorToken(UnterminatedToken(ExpectedHexDigit))
+  handleRecoverableError(ExpectedHexDigit, UnterminatedToken(ExpectedHexDigit), UnterminatedToken(ExpectedHexDigit))
+  handleErrorToken(UnterminatedToken(UnexpectedSeparatorInNumber))
+  handleRecoverableError(UnexpectedSeparatorInNumber, UnterminatedToken(UnexpectedSeparatorInNumber), UnterminatedToken(UnexpectedSeparatorInNumber))
+  handleErrorToken(UnterminatedToken(UnexpectedSeparatorInNumber))
+  handleRecoverableError(UnexpectedSeparatorInNumber, UnterminatedToken(UnexpectedSeparatorInNumber), UnterminatedToken(UnexpectedSeparatorInNumber))
+  handleErrorToken(UnterminatedToken(UnexpectedSeparatorInNumber))
+  handleRecoverableError(UnexpectedSeparatorInNumber, UnterminatedToken(UnexpectedSeparatorInNumber), UnterminatedToken(UnexpectedSeparatorInNumber))
+  handleErrorToken(UnterminatedToken(MissingExponent))
+  handleRecoverableError(MissingExponent, UnterminatedToken(MissingExponent), UnterminatedToken(MissingExponent))
+  handleErrorToken(UnterminatedToken(UnexpectedSeparatorInNumber))
+  handleRecoverableError(UnexpectedSeparatorInNumber, UnterminatedToken(UnexpectedSeparatorInNumber), UnterminatedToken(UnexpectedSeparatorInNumber))
+  handleErrorToken(UnterminatedToken(MissingExponent))
+  handleRecoverableError(MissingExponent, UnterminatedToken(MissingExponent), UnterminatedToken(MissingExponent))
+  handleErrorToken(UnterminatedToken(UnexpectedSeparatorInNumber))
+  handleRecoverableError(UnexpectedSeparatorInNumber, UnterminatedToken(UnexpectedSeparatorInNumber), UnterminatedToken(UnexpectedSeparatorInNumber))
+  handleErrorToken(UnterminatedToken(MissingExponent))
+  handleRecoverableError(MissingExponent, UnterminatedToken(MissingExponent), UnterminatedToken(MissingExponent))
+  handleErrorToken(UnterminatedToken(UnexpectedSeparatorInNumber))
+  handleRecoverableError(UnexpectedSeparatorInNumber, UnterminatedToken(UnexpectedSeparatorInNumber), UnterminatedToken(UnexpectedSeparatorInNumber))
+  handleErrorToken(UnterminatedToken(MissingExponent))
+  handleRecoverableError(MissingExponent, UnterminatedToken(MissingExponent), UnterminatedToken(MissingExponent))
+  handleErrorToken(UnterminatedToken(UnexpectedSeparatorInNumber))
+  handleRecoverableError(UnexpectedSeparatorInNumber, UnterminatedToken(UnexpectedSeparatorInNumber), UnterminatedToken(UnexpectedSeparatorInNumber))
+  handleErrorToken(UnterminatedToken(MissingExponent))
+  handleRecoverableError(MissingExponent, UnterminatedToken(MissingExponent), UnterminatedToken(MissingExponent))
+  handleErrorToken(UnterminatedToken(UnexpectedSeparatorInNumber))
+  handleRecoverableError(UnexpectedSeparatorInNumber, UnterminatedToken(UnexpectedSeparatorInNumber), UnterminatedToken(UnexpectedSeparatorInNumber))
+  handleErrorToken(UnterminatedToken(MissingExponent))
+  handleRecoverableError(MissingExponent, UnterminatedToken(MissingExponent), UnterminatedToken(MissingExponent))
+  handleErrorToken(UnterminatedToken(UnexpectedSeparatorInNumber))
+  handleRecoverableError(UnexpectedSeparatorInNumber, UnterminatedToken(UnexpectedSeparatorInNumber), UnterminatedToken(UnexpectedSeparatorInNumber))
+  handleErrorToken(UnterminatedToken(UnexpectedSeparatorInNumber))
+  handleRecoverableError(UnexpectedSeparatorInNumber, UnterminatedToken(UnexpectedSeparatorInNumber), UnterminatedToken(UnexpectedSeparatorInNumber))
+endCompilationUnit(1, )

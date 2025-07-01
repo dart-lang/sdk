@@ -9,6 +9,11 @@ part of "coverage_suite.dart";
 // difference for compute_platform_binaries_location.dart).
 const Map<String, ({int hitCount, int missCount})> _expect = {
   // 100.0%.
+  "package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart": (
+    hitCount: 1227,
+    missCount: 0,
+  ),
+  // 100.0%.
   "package:front_end/src/api_prototype/compiler_options.dart": (
     hitCount: 43,
     missCount: 0,
@@ -1171,7 +1176,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/util/parser_ast.dart": (
-    hitCount: 73,
+    hitCount: 119,
     missCount: 0,
   ),
   // 100.0%.
