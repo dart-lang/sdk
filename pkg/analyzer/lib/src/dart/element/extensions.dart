@@ -179,7 +179,7 @@ extension LibraryExtension2 on LibraryElement? {
       this?.featureSet.isEnabled(Feature.wildcard_variables) ?? false;
 }
 
-extension ParameterElementMixinExtension on ParameterElementMixin {
+extension ParameterElementMixinExtension on FormalParameterFragmentImpl {
   /// Return [FormalParameterFragmentImpl] with the specified properties replaced.
   FormalParameterFragmentImpl copyWith({
     TypeImpl? type,

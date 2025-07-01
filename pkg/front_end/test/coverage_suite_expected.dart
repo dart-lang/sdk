@@ -930,7 +930,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/fragment_factory_impl.dart": (
-    hitCount: 1143,
+    hitCount: 1079,
     missCount: 0,
   ),
   // 100.0%.
@@ -941,6 +941,11 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   // 100.0%.
   "package:front_end/src/source/name_space_builder.dart": (
     hitCount: 191,
+    missCount: 0,
+  ),
+  // 100.0%.
+  "package:front_end/src/source/native_method_registry.dart": (
+    hitCount: 38,
     missCount: 0,
   ),
   // 100.0%.
@@ -975,7 +980,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/source_compilation_unit.dart": (
-    hitCount: 674,
+    hitCount: 712,
     missCount: 0,
   ),
   // 100.0%.
@@ -1011,7 +1016,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/source_library_builder.dart": (
-    hitCount: 1068,
+    hitCount: 1063,
     missCount: 0,
   ),
   // 100.0%.

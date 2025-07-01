@@ -3595,7 +3595,6 @@
   "../../../tests/standalone/stack_trace/rethrow_error_test.dart",
   "../../../tests/standalone/stack_trace/rethrow_nonerror_test.dart",
   "../../../tests/standalone/stack_trace/stack_trace_test.dart",
-  "../../../tests/standalone/string_overflow_test.dart",
   "../../../tests/standalone/typed_data_test.dart",
   "../../../tests/standalone/typed_data_view_test.dart",
   "../../../tests/standalone/unboxed_int_converter_test.dart"

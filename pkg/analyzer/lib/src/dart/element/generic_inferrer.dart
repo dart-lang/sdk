@@ -179,7 +179,7 @@ class GenericInferrer {
   /// [argumentTypes].
   void constrainArguments({
     InterfaceFragmentImpl? genericClass,
-    required List<ParameterElementMixin> parameters,
+    required List<FormalParameterElementImpl> parameters,
     required List<TypeImpl> argumentTypes,
     required AstNodeImpl? nodeForTesting,
   }) {
@@ -189,7 +189,7 @@ class GenericInferrer {
       constrainArgument(
         argumentTypes[i],
         parameters[i].type,
-        parameters[i].name2 ?? '',
+        parameters[i].name3 ?? '',
         genericClass: genericClass,
         nodeForTesting: nodeForTesting,
       );

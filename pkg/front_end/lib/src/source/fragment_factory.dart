@@ -9,9 +9,7 @@ import 'package:kernel/ast.dart' hide Combinator, MapLiteralEntry;
 import '../api_prototype/lowering_predicates.dart';
 import '../base/combinator.dart' show CombinatorBuilder;
 import '../base/configuration.dart' show Configuration;
-import '../base/export.dart';
 import '../base/identifiers.dart' show Identifier;
-import '../base/import.dart';
 import '../base/modifiers.dart';
 import '../base/scope.dart';
 import '../builder/constructor_reference_builder.dart';
@@ -24,39 +22,8 @@ import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../fragment/fragment.dart';
 import 'offset_map.dart';
-import 'source_class_builder.dart';
-import 'source_library_builder.dart';
 import 'source_type_parameter_builder.dart';
 import 'type_parameter_factory.dart';
-import 'type_scope.dart';
-
-abstract class FragmentFactoryResult {
-  String? get name;
-
-  bool get isPart;
-
-  String? get partOfName;
-
-  Uri? get partOfUri;
-
-  /// The part directives in this compilation unit.
-  List<Part> get parts;
-
-  List<Import> get imports;
-
-  List<Export> get exports;
-
-  List<MetadataBuilder>? get metadata;
-
-  TypeScope get typeScope;
-
-  void takeMixinApplications(
-      Map<SourceClassBuilder, TypeBuilder> mixinApplications);
-
-  int finishNativeMethods();
-
-  List<LibraryPart> get libraryParts;
-}
 
 abstract class FragmentFactory {
   void beginClassOrNamedMixinApplicationHeader();

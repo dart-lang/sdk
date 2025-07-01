@@ -19,7 +19,6 @@ import '../fragment/fragment.dart';
 import '../kernel/body_builder_context.dart';
 import '../source/name_space_builder.dart';
 import '../source/offset_map.dart';
-import '../source/source_class_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_loader.dart';
 import 'builder.dart';
@@ -149,7 +148,7 @@ abstract class SourceCompilationUnit
 
   String? get name;
 
-  int finishNativeMethods();
+  int finishNativeMethods(SourceLoader loader);
 
   String? get partOfName;
 
@@ -171,9 +170,6 @@ abstract class SourceCompilationUnit
   NameSpace get prefixNameSpace;
 
   bool get mayImplementRestrictedTypes;
-
-  void takeMixinApplications(
-      Map<SourceClassBuilder, TypeBuilder> mixinApplications);
 
   void addDependencies(Library library, Set<SourceCompilationUnit> seen);
 

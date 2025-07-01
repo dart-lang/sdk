@@ -996,7 +996,7 @@ class ResolutionSink extends _SummaryDataWriter {
   }
 
   void _writeFormalParameters(
-    List<ParameterElementMixin> parameters, {
+    List<FormalParameterFragmentImpl> parameters, {
     required bool withAnnotations,
   }) {
     writeUInt30(parameters.length);
@@ -1350,7 +1350,7 @@ class _SummaryDataWriter extends BufferedSink {
     return _SummaryDataWriter(stringIndexer: _stringIndexer);
   }
 
-  void _writeFormalParameterKind(ParameterElementMixin p) {
+  void _writeFormalParameterKind(FormalParameterFragmentImpl p) {
     if (p.isRequiredPositional) {
       writeByte(Tag.ParameterKindRequiredPositional);
     } else if (p.isOptionalPositional) {
