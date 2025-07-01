@@ -3169,7 +3169,6 @@ mixin FormalParameterElementMixin
 }
 
 class FormalParameterFragmentImpl extends VariableFragmentImpl
-    with ParameterElementMixin
     implements FormalParameterFragment {
   @override
   final String? name2;
@@ -3190,7 +3189,10 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
   /// typed parameter.
   List<TypeParameterFragmentImpl> _typeParameters = const [];
 
-  @override
+  /// The kind of a parameter. A parameter can be either positional or named, and
+  /// can be either required or optional.
+  ///
+  /// Prefer using `isXyz` instead, e.g. [isRequiredNamed].
   final ParameterKind parameterKind;
 
   /// True if this parameter inherits from a covariant parameter. This happens
@@ -3258,7 +3260,8 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
   @override
   Fragment? get enclosingFragment => enclosingElement3 as Fragment?;
 
-  @override
+  /// Whether the parameter is covariant, meaning it is allowed to have a
+  /// narrower type in an override.
   bool get isCovariant {
     if (isExplicitlyCovariant || inheritsCovariant) {
       return true;
@@ -3277,11 +3280,60 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
     setModifier(Modifier.COVARIANT, isCovariant);
   }
 
-  @override
+  /// Whether the parameter is an initializing formal parameter.
   bool get isInitializingFormal => false;
 
   @override
   bool get isLate => false;
+
+  /// Whether the parameter is a named parameter.
+  ///
+  /// Named parameters that are annotated with the `@required` annotation are
+  /// considered optional. Named parameters that are annotated with the
+  /// `required` syntax are considered required.
+  bool get isNamed => parameterKind.isNamed;
+
+  /// Whether the parameter is an optional parameter.
+  ///
+  /// Optional parameters can either be positional or named. Named parameters
+  /// that are annotated with the `@required` annotation are considered
+  /// optional. Named parameters that are annotated with the `required` syntax
+  /// are considered required.
+  bool get isOptional => parameterKind.isOptional;
+
+  /// Whether the parameter is both an optional and named parameter.
+  ///
+  /// Named parameters that are annotated with the `@required` annotation are
+  /// considered optional. Named parameters that are annotated with the
+  /// `required` syntax are considered required.
+  bool get isOptionalNamed => parameterKind.isOptionalNamed;
+
+  /// Whether the parameter is both an optional and positional parameter.
+  bool get isOptionalPositional => parameterKind.isOptionalPositional;
+
+  /// Whether the parameter is a positional parameter.
+  ///
+  /// Positional parameters can either be required or optional.
+  bool get isPositional => parameterKind.isPositional;
+
+  /// Whether the parameter is either a required positional parameter, or a
+  /// named parameter with the `required` keyword.
+  ///
+  /// Note: the presence or absence of the `@required` annotation does not
+  /// change the meaning of this getter. The parameter `{@required int x}`
+  /// will return `false` and the parameter `{@required required int x}`
+  /// will return `true`.
+  bool get isRequired => parameterKind.isRequired;
+
+  /// Whether the parameter is both a required and named parameter.
+  ///
+  /// Named parameters that are annotated with the `@required` annotation are
+  /// considered optional. Named parameters that are annotated with the
+  /// `required` syntax are considered required.
+  bool get isRequiredNamed => parameterKind.isRequiredNamed;
+
+  /// Whether the parameter is both a required and positional parameter.
+  bool get isRequiredPositional => parameterKind.isRequiredPositional;
 
   /// Whether the parameter is a super formal parameter.
   bool get isSuperFormal => false;
@@ -3308,7 +3360,10 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
   // TODO(augmentations): Support chaining between the fragments.
   FormalParameterFragmentImpl? get nextFragment => null;
 
-  @override
+  /// The parameters defined by this parameter.
+  ///
+  /// A parameter will only define other parameters if it is a function typed
+  /// parameter.
   List<FormalParameterFragmentImpl> get parameters {
     return _parameters;
   }
@@ -3326,7 +3381,10 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
   // TODO(augmentations): Support chaining between the fragments.
   FormalParameterFragmentImpl? get previousFragment => null;
 
-  @override
+  /// The type parameters defined by this parameter.
+  ///
+  /// A parameter will only define type parameters if it is a function typed
+  /// parameter.
   List<TypeParameterFragmentImpl> get typeParameters {
     return _typeParameters;
   }
@@ -8167,114 +8225,6 @@ abstract class NonParameterVariableFragmentImpl extends VariableFragmentImpl
   /// Set whether this variable has an initializer.
   set hasInitializer(bool hasInitializer) {
     setModifier(Modifier.HAS_INITIALIZER, hasInitializer);
-  }
-}
-
-/// A mixin that provides a common implementation for methods defined in
-/// `ParameterElement`.
-mixin ParameterElementMixin implements VariableElementOrMember {
-  @override
-  FormalParameterFragmentImpl get declaration;
-
-  @override
-  FormalParameterElementImpl get element;
-
-  /// Whether the parameter is covariant, meaning it is allowed to have a
-  /// narrower type in an override.
-  bool get isCovariant;
-
-  /// Whether the parameter is an initializing formal parameter.
-  bool get isInitializingFormal;
-
-  /// Whether the parameter is a named parameter.
-  ///
-  /// Named parameters that are annotated with the `@required` annotation are
-  /// considered optional. Named parameters that are annotated with the
-  /// `required` syntax are considered required.
-  bool get isNamed => parameterKind.isNamed;
-
-  /// Whether the parameter is an optional parameter.
-  ///
-  /// Optional parameters can either be positional or named. Named parameters
-  /// that are annotated with the `@required` annotation are considered
-  /// optional. Named parameters that are annotated with the `required` syntax
-  /// are considered required.
-  bool get isOptional => parameterKind.isOptional;
-
-  /// Whether the parameter is both an optional and named parameter.
-  ///
-  /// Named parameters that are annotated with the `@required` annotation are
-  /// considered optional. Named parameters that are annotated with the
-  /// `required` syntax are considered required.
-  bool get isOptionalNamed => parameterKind.isOptionalNamed;
-
-  /// Whether the parameter is both an optional and positional parameter.
-  bool get isOptionalPositional => parameterKind.isOptionalPositional;
-
-  /// Whether the parameter is a positional parameter.
-  ///
-  /// Positional parameters can either be required or optional.
-  bool get isPositional => parameterKind.isPositional;
-
-  /// Whether the parameter is either a required positional parameter, or a
-  /// named parameter with the `required` keyword.
-  ///
-  /// Note: the presence or absence of the `@required` annotation does not
-  /// change the meaning of this getter. The parameter `{@required int x}`
-  /// will return `false` and the parameter `{@required required int x}`
-  /// will return `true`.
-  bool get isRequired => parameterKind.isRequired;
-
-  /// Whether the parameter is both a required and named parameter.
-  ///
-  /// Named parameters that are annotated with the `@required` annotation are
-  /// considered optional. Named parameters that are annotated with the
-  /// `required` syntax are considered required.
-  bool get isRequiredNamed => parameterKind.isRequiredNamed;
-
-  /// Whether the parameter is both a required and positional parameter.
-  bool get isRequiredPositional => parameterKind.isRequiredPositional;
-
-  @override
-  MetadataImpl get metadata;
-
-  ParameterKind get parameterKind;
-
-  /// The parameters defined by this parameter.
-  ///
-  /// A parameter will only define other parameters if it is a function typed
-  /// parameter.
-  List<ParameterElementMixin> get parameters;
-
-  @override
-  TypeImpl get type;
-
-  /// The type parameters defined by this parameter.
-  ///
-  /// A parameter will only define type parameters if it is a function typed
-  /// parameter.
-  List<TypeParameterFragmentImpl> get typeParameters;
-
-  /// Appends the type, name and possibly the default value of this parameter
-  /// to the given [buffer].
-  void appendToWithoutDelimiters(
-    StringBuffer buffer, {
-    @Deprecated('Only non-nullable by default mode is supported')
-    bool withNullability = true,
-  }) {
-    buffer.write(
-      type.getDisplayString(
-        // ignore:deprecated_member_use_from_same_package
-        withNullability: withNullability,
-      ),
-    );
-    buffer.write(' ');
-    buffer.write(displayName);
-    var defaultValueCode = element.defaultValueCode;
-    if (defaultValueCode != null) {
-      buffer.write(' = ');
-      buffer.write(defaultValueCode);
-    }
   }
 }
 
