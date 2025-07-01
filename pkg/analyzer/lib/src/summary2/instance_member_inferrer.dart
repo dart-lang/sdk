@@ -58,7 +58,7 @@ class InstanceMemberInferrer {
   /// given [parameter]. If the parameter is positional, then it appears at the
   /// given [index] in its enclosing element's list of parameters.
   FormalParameterElementMixin? _getCorrespondingParameter(
-    ParameterElementMixin parameter,
+    FormalParameterFragmentImpl parameter,
     int index,
     List<FormalParameterElementMixin> methodParameters,
   ) {
