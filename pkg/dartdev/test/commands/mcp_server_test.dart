@@ -15,11 +15,13 @@ void main() {
           () async {
         final client = TestMCPClient();
         addTearDown(client.shutdown);
-        final serverConnection =
-            await client.connectStdioServer(Platform.resolvedExecutable, [
+        final process = await Process.start(Platform.resolvedExecutable, [
           'mcp-server',
           if (withExperiment) '--experimental-mcp-server',
         ]);
+        final serverConnection = client.connectStdioServer(
+            process.stdin, process.stdout,
+            onDone: process.kill);
         final initializeResult = await serverConnection.initialize(
             InitializeRequest(
                 protocolVersion: ProtocolVersion.latestSupported,
