@@ -102,7 +102,8 @@ external bool debugger({bool when = true, String? message});
 /// Debuggers may open an inspector on the object. Returns the argument.
 external Object? inspect(Object? object);
 
-/// Emit a log event.
+/// Emit a log event, which can can viewed using the DevTools
+/// [Logging view](https://docs.flutter.dev/tools/devtools/logging).
 ///
 /// This function was designed to map closely to the logging information
 /// collected by `package:logging`.
