@@ -22,24 +22,20 @@ import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
 import '../api_prototype/experimental_flags.dart';
-import '../base/combinator.dart' show CombinatorBuilder;
 import '../base/export.dart' show Export;
-import '../base/import.dart' show Import;
 import '../base/lookup_result.dart';
 import '../base/messages.dart';
 import '../base/name_space.dart';
 import '../base/problems.dart' show unexpected, unhandled;
 import '../base/scope.dart';
 import '../base/uri_offset.dart';
-import '../base/uris.dart';
 import '../builder/builder.dart';
-import '../builder/constructor_builder.dart';
+import '../builder/compilation_unit.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/dynamic_type_declaration_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
-import '../builder/metadata_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/never_type_declaration_builder.dart';
 import '../builder/nullability_builder.dart';
@@ -50,21 +46,15 @@ import '../kernel/body_builder_context.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/load_library_builder.dart';
-import '../kernel/type_algorithms.dart' show ComputeDefaultTypeContext;
 import '../kernel/utils.dart'
     show
         compareProcedures,
         exportDynamicSentinel,
         exportNeverSentinel,
-        toCombinators,
         unserializableExportName;
 import 'class_declaration.dart';
-import 'fragment_factory.dart';
-import 'fragment_factory_impl.dart';
 import 'name_scheme.dart';
 import 'name_space_builder.dart';
-import 'offset_map.dart';
-import 'outline_builder.dart';
 import 'source_builder_mixins.dart';
 import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_extension_builder.dart';
@@ -76,8 +66,6 @@ import 'source_member_builder.dart';
 import 'source_property_builder.dart';
 import 'source_type_alias_builder.dart';
 import 'source_type_parameter_builder.dart';
-
-part 'source_compilation_unit.dart';
 
 /// Enum that define what state a source library is in, in terms of how far
 /// in the compilation it has progressed. This is used to document and assert

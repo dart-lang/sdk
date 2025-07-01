@@ -46,6 +46,7 @@ import '../base/ticker.dart' show Ticker;
 import '../base/uri_offset.dart';
 import '../base/uris.dart';
 import '../builder/builder.dart';
+import '../builder/compilation_unit.dart';
 import '../builder/constructor_builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
@@ -79,13 +80,13 @@ import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_enum_builder.dart';
 import 'source_extension_type_declaration_builder.dart';
 import 'source_factory_builder.dart';
+import 'source_compilation_unit.dart' show SourceCompilationUnitImpl;
 import 'source_library_builder.dart'
     show
         ImplicitLanguageVersion,
         InvalidLanguageVersion,
         LanguageVersion,
         LibraryAccess,
-        SourceCompilationUnitImpl,
         SourceLibraryBuilder;
 import 'stack_listener_impl.dart' show offsetForToken;
 

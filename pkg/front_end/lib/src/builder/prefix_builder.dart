@@ -15,8 +15,8 @@ import '../kernel/load_library_builder.dart' show LoadLibraryBuilder;
 import '../kernel/utils.dart';
 import '../source/source_library_builder.dart';
 import 'builder.dart';
+import 'compilation_unit.dart';
 import 'declaration_builders.dart';
-import 'library_builder.dart';
 
 class PrefixBuilder extends NamedBuilderImpl implements LookupResult {
   @override

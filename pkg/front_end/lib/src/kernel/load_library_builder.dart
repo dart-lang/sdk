@@ -20,7 +20,7 @@ import 'package:kernel/ast.dart'
         ReturnStatement;
 
 import '../builder/builder.dart';
-import '../builder/library_builder.dart';
+import '../builder/compilation_unit.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import 'forest.dart' show Forest;
 

@@ -47,6 +47,7 @@ import '../base/ticker.dart' show Ticker;
 import '../base/uri_offset.dart';
 import '../base/uri_translator.dart' show UriTranslator;
 import '../builder/builder.dart';
+import '../builder/compilation_unit.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
