@@ -149,7 +149,7 @@ vars = {
   "test_rev": "0793a2b3262ac900558c49c76e9bbe4f29f91ea4",
   "tools_rev": "7bf22c951019f860aa52a8b7dc97fba5880aa9ba",
   "vector_math_rev": "13f185f7e97d559e003f5ac79201da12f9a01049",
-  "web_rev": "4b2f02ebc74acef26fa1285801a626213c35b304",
+  "web_rev": "3e11172d5c7adc1fe47605180abb63ecc99ac45c",
   "webdev_rev": "7f376d242709e933fff70610503d0c5c09b2e17e",
   "webdriver_rev": "b8f511d7719e2ae2c21eb4d94f68564eee32cbe2",
   "webkit_inspection_protocol_rev": "effa75205516757795683d527c3dea9546eb0c32",
