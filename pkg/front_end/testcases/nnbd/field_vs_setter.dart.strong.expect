@@ -699,49 +699,25 @@ library;
 //   static int? duplicateExtensionStaticFieldAndInstanceSetter2;
 //               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/field_vs_setter.dart:173:28: Error: Can't use 'topLevelFieldAndSetter' because it is declared more than once.
-//   topLevelFieldAndSetter = topLevelFieldAndSetter;
-//                            ^
-//
 // pkg/front_end/testcases/nnbd/field_vs_setter.dart:173:26: Error: Can't assign to this.
 //   topLevelFieldAndSetter = topLevelFieldAndSetter;
 //                          ^
-//
-// pkg/front_end/testcases/nnbd/field_vs_setter.dart:174:37: Error: Can't use 'topLevelFieldAndDuplicateSetter' because it is declared more than once.
-//   topLevelFieldAndDuplicateSetter = topLevelFieldAndDuplicateSetter;
-//                                     ^
 //
 // pkg/front_end/testcases/nnbd/field_vs_setter.dart:174:35: Error: Can't assign to this.
 //   topLevelFieldAndDuplicateSetter = topLevelFieldAndDuplicateSetter;
 //                                   ^
 //
-// pkg/front_end/testcases/nnbd/field_vs_setter.dart:175:37: Error: Can't use 'topLevelLateFinalFieldAndSetter' because it is declared more than once.
-//   topLevelLateFinalFieldAndSetter = topLevelLateFinalFieldAndSetter;
-//                                     ^
-//
 // pkg/front_end/testcases/nnbd/field_vs_setter.dart:175:35: Error: Can't assign to this.
 //   topLevelLateFinalFieldAndSetter = topLevelLateFinalFieldAndSetter;
 //                                   ^
-//
-// pkg/front_end/testcases/nnbd/field_vs_setter.dart:177:7: Error: Can't use 'topLevelLateFinalFieldAndDuplicateSetter' because it is declared more than once.
-//       topLevelLateFinalFieldAndDuplicateSetter;
-//       ^
 //
 // pkg/front_end/testcases/nnbd/field_vs_setter.dart:176:44: Error: Can't assign to this.
 //   topLevelLateFinalFieldAndDuplicateSetter =
 //                                            ^
 //
-// pkg/front_end/testcases/nnbd/field_vs_setter.dart:178:38: Error: Can't use 'duplicateTopLevelFieldAndSetter1' because it is declared more than once.
-//   duplicateTopLevelFieldAndSetter1 = duplicateTopLevelFieldAndSetter1;
-//                                      ^
-//
 // pkg/front_end/testcases/nnbd/field_vs_setter.dart:178:36: Error: Can't assign to this.
 //   duplicateTopLevelFieldAndSetter1 = duplicateTopLevelFieldAndSetter1;
 //                                    ^
-//
-// pkg/front_end/testcases/nnbd/field_vs_setter.dart:179:38: Error: Can't use 'duplicateTopLevelFieldAndSetter2' because it is declared more than once.
-//   duplicateTopLevelFieldAndSetter2 = duplicateTopLevelFieldAndSetter2;
-//                                      ^
 //
 // pkg/front_end/testcases/nnbd/field_vs_setter.dart:179:36: Error: Can't assign to this.
 //   duplicateTopLevelFieldAndSetter2 = duplicateTopLevelFieldAndSetter2;

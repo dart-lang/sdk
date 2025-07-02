@@ -16,10 +16,6 @@ library;
 //   foo(List<A> a) {}
 //            ^
 //
-// pkg/front_end/testcases/general/issue39421.dart:16:12: Error: Can't use 'A' because it is declared more than once.
-//   foo(List<A> a) {}
-//            ^
-//
 import self as self;
 import "dart:core" as core;
 

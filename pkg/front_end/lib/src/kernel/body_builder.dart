@@ -643,7 +643,7 @@ class BodyBuilder extends StackListenerImpl
       return buildProblem(
           cfe.messageSuperAsExpression, node.fileOffset, noLength);
     } else if (node is ProblemBuilder) {
-      return buildProblem(node.message, node.fileOffset, noLength);
+      return node.toExpression(libraryBuilder);
     } else {
       return unhandled("${node.runtimeType}", "toValue", -1, uri);
     }
@@ -664,8 +664,7 @@ class BodyBuilder extends StackListenerImpl
     }
     // Coverage-ignore(suite): Not run.
     else if (node is ProblemBuilder) {
-      Expression expression =
-          buildProblem(node.message, node.fileOffset, noLength);
+      Expression expression = node.toExpression(libraryBuilder);
       return forest.createConstantPattern(expression);
     } else {
       return unhandled("${node.runtimeType}", "toPattern", -1, uri);
@@ -2772,8 +2771,7 @@ class BodyBuilder extends StackListenerImpl
         push(left.buildEqualsOperation(token, right, isNot: isNot));
       } else {
         if (left is ProblemBuilder) {
-          ProblemBuilder problem = left;
-          left = buildProblem(problem.message, problem.fileOffset, noLength);
+          left = left.toExpression(libraryBuilder);
         }
         assert(left is Expression);
         push(forest.createEquals(fileOffset, left as Expression, right,
@@ -2793,8 +2791,7 @@ class BodyBuilder extends StackListenerImpl
         push(left.buildBinaryOperation(token, name, right));
       } else {
         if (left is ProblemBuilder) {
-          ProblemBuilder problem = left;
-          left = buildProblem(problem.message, problem.fileOffset, noLength);
+          left = left.toExpression(libraryBuilder);
         }
         assert(left is Expression);
         push(forest.createBinary(fileOffset, left as Expression, name, right));
@@ -5093,9 +5090,6 @@ class BodyBuilder extends StackListenerImpl
           allowPotentiallyConstantType: allowPotentiallyConstantType,
           performTypeCanonicalization: constantContext != ConstantContext.none);
     } else if (name is ProblemBuilder) {
-      // TODO(ahe): Arguments could be passed here.
-      libraryBuilder.addProblem(
-          name.message, name.fileOffset, name.name.length, name.fileUri);
       result = new NamedTypeBuilderImpl.forInvalidType(
           name.name,
           isMarkedAsNullable
@@ -10596,5 +10590,15 @@ extension on MemberKind {
       case MemberKind.PrimaryConstructor:
         return false;
     }
+  }
+}
+
+extension on ProblemBuilder {
+  Expression toExpression(SourceLibraryBuilder libraryBuilder) {
+    String text = libraryBuilder.loader.target.context
+        .format(
+            message.withLocation(fileUri, fileOffset, noLength), Severity.error)
+        .plain;
+    return new InvalidExpression(text)..fileOffset = fileOffset;
   }
 }

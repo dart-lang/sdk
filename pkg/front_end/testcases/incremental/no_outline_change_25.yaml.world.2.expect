@@ -10,10 +10,6 @@ library from "org-dartlang-test:///main.dart" as main {
 //   void bar() {
 //        ^^^
 //
-// org-dartlang-test:///main.dart:9:5: Error: Can't use 'bar' because it is declared more than once.
-//     bar();
-//     ^
-//
 
   class Foo extends dart.core::Object {
     synthetic constructor •() → main::Foo

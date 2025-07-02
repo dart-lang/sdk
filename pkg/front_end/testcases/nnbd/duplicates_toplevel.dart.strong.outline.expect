@@ -100,14 +100,6 @@ library;
 // void set topLevelMethodAndSetter2(int value) {}
 //          ^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:56:13: Error: Can't use 'topLevelMethod' because it is declared more than once.
-// var field = topLevelMethod;
-//             ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:58:2: Error: Can't use 'topLevelMethod' because it is declared more than once.
-// @topLevelMethod
-//  ^
-//
 // pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:58:2: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
 // @topLevelMethod
 //  ^

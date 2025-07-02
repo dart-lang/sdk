@@ -100,129 +100,41 @@ library;
 // void set topLevelMethodAndSetter2(int value) {}
 //          ^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:56:13: Error: Can't use 'topLevelMethod' because it is declared more than once.
-// var field = topLevelMethod;
-//             ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:58:2: Error: Can't use 'topLevelMethod' because it is declared more than once.
-// @topLevelMethod
-//  ^
-//
 // pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:58:2: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
 // @topLevelMethod
 //  ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:60:3: Error: Can't use 'topLevelMethod' because it is declared more than once.
-//   topLevelMethod();
-//   ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:61:4: Error: Can't use 'topLevelMethod' because it is declared more than once.
-//   (topLevelMethod)();
-//    ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:62:7: Error: Can't use 'topLevelMethod' because it is declared more than once.
-//   if (topLevelMethod) {}
-//       ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:63:3: Error: Can't use 'topLevelMethod' because it is declared more than once.
-//   topLevelMethod;
-//   ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:64:4: Error: Can't use 'topLevelMethod' because it is declared more than once.
-//   @topLevelMethod
-//    ^
 //
 // pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:64:4: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
 //   @topLevelMethod
 //    ^
 //
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:67:10: Error: Can't use 'topLevelMethod' because it is declared more than once.
-//     case topLevelMethod:
-//          ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:69:3: Error: Can't use 'topLevelMethod' because it is declared more than once.
-//   topLevelMethod || topLevelMethod;
-//   ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:69:21: Error: Can't use 'topLevelMethod' because it is declared more than once.
-//   topLevelMethod || topLevelMethod;
-//                     ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:70:3: Error: Can't use 'topLevelMethod' because it is declared more than once.
-//   topLevelMethod + 0;
-//   ^
-//
 // pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:71:18: Error: '~' isn't a binary operator.
 //   topLevelMethod ~ 0;
 //                  ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:72:21: Error: Can't use 'topLevelMethod' because it is declared more than once.
-//   topLevelMethod ?? topLevelMethod;
-//                     ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:72:3: Error: Can't use 'topLevelMethod' because it is declared more than once.
-//   topLevelMethod ?? topLevelMethod;
-//   ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:73:3: Error: Can't use 'topLevelMethod' because it is declared more than once.
-//   topLevelMethod?.foo;
-//   ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:74:3: Error: Can't use 'topLevelMethod' because it is declared more than once.
-//   topLevelMethod?.foo();
-//   ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:75:3: Error: Can't use 'topLevelGetter' because it is declared more than once.
-//   topLevelGetter;
-//   ^
 //
 // pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:76:18: Error: Can't assign to this.
 //   topLevelSetter = 0;
 //                  ^
 //
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:77:3: Error: Can't use 'topLevelField' because it is declared more than once.
-//   topLevelField;
-//   ^
-//
 // pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:78:17: Error: Can't assign to this.
 //   topLevelField = 0;
 //                 ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:79:3: Error: Can't use 'topLevelDuplicateFieldAndSetter' because it is declared more than once.
-//   topLevelDuplicateFieldAndSetter;
-//   ^
 //
 // pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:80:35: Error: Can't assign to this.
 //   topLevelDuplicateFieldAndSetter = 0;
 //                                   ^
 //
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:81:3: Error: Can't use 'topLevelFieldAndSetter1' because it is declared more than once.
-//   topLevelFieldAndSetter1;
-//   ^
-//
 // pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:82:27: Error: Can't assign to this.
 //   topLevelFieldAndSetter1 = 0;
 //                           ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:83:3: Error: Can't use 'topLevelFieldAndSetter2' because it is declared more than once.
-//   topLevelFieldAndSetter2;
-//   ^
 //
 // pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:84:27: Error: Can't assign to this.
 //   topLevelFieldAndSetter2 = 0;
 //                           ^
 //
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:85:3: Error: Can't use 'topLevelFieldAndDuplicateSetter' because it is declared more than once.
-//   topLevelFieldAndDuplicateSetter;
-//   ^
-//
 // pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:86:35: Error: Can't assign to this.
 //   topLevelFieldAndDuplicateSetter = 0;
 //                                   ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:87:3: Error: Can't use 'topLevelDuplicateFieldAndDuplicateSetter' because it is declared more than once.
-//   topLevelDuplicateFieldAndDuplicateSetter;
-//   ^
 //
 // pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:88:44: Error: Can't assign to this.
 //   topLevelDuplicateFieldAndDuplicateSetter = 0;
@@ -236,29 +148,13 @@ library;
 //   topLevelMethodAndSetter2 = 0;
 //                            ^
 //
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:91:3: Error: Can't use 'topLevelLateFinalFieldAndSetter1' because it is declared more than once.
-//   topLevelLateFinalFieldAndSetter1;
-//   ^
-//
 // pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:92:36: Error: Can't assign to this.
 //   topLevelLateFinalFieldAndSetter1 = 0;
 //                                    ^
 //
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:93:3: Error: Can't use 'topLevelLateFinalFieldAndSetter2' because it is declared more than once.
-//   topLevelLateFinalFieldAndSetter2;
-//   ^
-//
 // pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:94:36: Error: Can't assign to this.
 //   topLevelLateFinalFieldAndSetter2 = 0;
 //                                    ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:95:3: Error: Can't use 'topLevelMethodAndSetter1' because it is declared more than once.
-//   topLevelMethodAndSetter1();
-//   ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:96:3: Error: Can't use 'topLevelMethodAndSetter2' because it is declared more than once.
-//   topLevelMethodAndSetter2();
-//   ^
 //
 import self as self;
 import "dart:core" as core;
