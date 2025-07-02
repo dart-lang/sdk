@@ -10,7 +10,7 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:meta/meta.dart';
 
-class MockLibraryImportElement implements Element, PrefixFragment {
+class MockLibraryImportElement implements Element {
   final LibraryImportImpl import;
 
   MockLibraryImportElement(LibraryImport import)
@@ -25,7 +25,6 @@ class MockLibraryImportElement implements Element, PrefixFragment {
   @override
   LibraryElementImpl get library => libraryFragment.element;
 
-  @override
   LibraryFragmentImpl get libraryFragment => import.libraryFragment;
 
   @override
