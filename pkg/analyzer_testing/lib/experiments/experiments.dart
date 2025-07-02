@@ -19,4 +19,5 @@ List<String> experimentsForTests = [
   Feature.dot_shorthands.enableString,
   Feature.enhanced_parts.enableString,
   Feature.macros.enableString,
+  Feature.variance.enableString,
 ];

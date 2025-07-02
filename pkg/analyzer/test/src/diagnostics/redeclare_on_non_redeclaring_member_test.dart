@@ -17,9 +17,6 @@ main() {
 @reflectiveTest
 class RedeclareOnNonRedeclaringMemberTest extends PubPackageResolutionTest {
   @override
-  List<String> get experiments => [];
-
-  @override
   void setUp() {
     super.setUp();
     writeTestPackageConfig(PackageConfigFileBuilder(), meta: true);
