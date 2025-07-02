@@ -45,9 +45,9 @@ class InstanceMemberInferrer {
     ExecutableFragmentImpl element,
     List<ExecutableFragmentImpl> elements,
   ) {
-    var elementKind = element.kind;
+    var elementKind = element.element.kind;
     for (int i = 0; i < elements.length; i++) {
-      if (elements[i].kind != elementKind) {
+      if (elements[i].element.kind != elementKind) {
         return false;
       }
     }
