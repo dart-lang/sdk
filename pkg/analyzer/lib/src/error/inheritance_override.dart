@@ -430,7 +430,7 @@ class _ClassVerifier {
     required int mixinIndex,
   }) {
     var libraryUri = type.element.library.uri;
-    for (var method in type.methods2) {
+    for (var method in type.methods) {
       _checkDeclaredMember(node, libraryUri, method, mixinIndex: mixinIndex);
     }
     for (var getter in type.getters) {
@@ -976,7 +976,7 @@ class _ClassVerifier {
       // we could store a bit on ClassElement (included in summaries) which
       // denotes whether any declared element has been so annotated. Then the
       // expensive looping is deferred until we have such a class.
-      for (var method in supertype.methods2) {
+      for (var method in supertype.methods) {
         if (method.isPrivate && method.library != classElement.library) {
           continue;
         }

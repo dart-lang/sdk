@@ -307,7 +307,7 @@ class _SuggestionBuilder {
     // exceptions to handle getter/setter pairs).
     var types = _getTypeOrdering(type);
     for (var targetType in types) {
-      for (var method in targetType.methods2) {
+      for (var method in targetType.methods) {
         // Exclude static methods when completion on an instance
         if (!method.isStatic) {
           // Boost the relevance of a super expression
