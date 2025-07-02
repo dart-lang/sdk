@@ -77,7 +77,7 @@ class VariableDeclarationResolver {
     // Initializers of top-level variables and fields are already included
     // into elements during linking.
     if (element is LocalVariableElementImpl && element.isConst) {
-      var fragment = element.firstFragment as ConstLocalVariableFragmentImpl;
+      var fragment = element.firstFragment;
       fragment.constantInitializer = initializer;
     }
 
