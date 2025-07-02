@@ -1100,7 +1100,7 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
   FunctionTypeImpl get type {
     // TODO(scheglov): Remove "element" in the breaking changes branch.
     return _type ??= FunctionTypeImpl(
-      typeFormals: typeParameters,
+      typeParameters: typeParameters.map((f) => f.asElement2).toList(),
       parameters: parameters.map((f) => f.asElement2).toList(),
       returnType: returnType,
       nullabilitySuffix: NullabilitySuffix.none,
@@ -2360,7 +2360,7 @@ abstract class ExecutableFragmentImpl extends _ExistingFragmentImpl
     if (_type != null) return _type!;
 
     return _type = FunctionTypeImpl(
-      typeFormals: typeParameters,
+      typeParameters: typeParameters.map((f) => f.asElement2).toList(),
       parameters: parameters.map((f) => f.asElement2).toList(),
       returnType: returnType,
       nullabilitySuffix: NullabilitySuffix.none,
@@ -4076,7 +4076,7 @@ class GenericFunctionTypeFragmentImpl extends _ExistingFragmentImpl
     if (_type != null) return _type!;
 
     return _type = FunctionTypeImpl(
-      typeFormals: typeParameters,
+      typeParameters: typeParameters.map((f) => f.asElement2).toList(),
       parameters: parameters.map((f) => f.asElement2).toList(),
       returnType: returnType,
       nullabilitySuffix:
@@ -9461,9 +9461,9 @@ class TypeAliasElementImpl extends TypeDefiningElementImpl
             : nullabilitySuffix;
 
     if (type is FunctionTypeImpl) {
-      return FunctionTypeImpl(
-        typeFormals: type.typeFormals,
-        parameters: type.parameters,
+      return FunctionTypeImpl.v2(
+        typeParameters: type.typeParameters,
+        formalParameters: type.parameters,
         returnType: type.returnType,
         nullabilitySuffix: resultNullability,
         alias: InstantiatedTypeAliasElementImpl(
@@ -9507,7 +9507,7 @@ class TypeAliasElementImpl extends TypeDefiningElementImpl
 
   FunctionTypeImpl _errorFunctionType(NullabilitySuffix nullabilitySuffix) {
     return FunctionTypeImpl(
-      typeFormals: const [],
+      typeParameters: const [],
       parameters: const [],
       returnType: DynamicTypeImpl.instance,
       nullabilitySuffix: nullabilitySuffix,
@@ -9657,6 +9657,11 @@ class TypeParameterElementImpl extends TypeDefiningElementImpl
       fragment.element = this;
       fragment = fragment.nextFragment;
     }
+  }
+
+  factory TypeParameterElementImpl.synthetic({required String name}) {
+    var fragment = TypeParameterFragmentImpl.synthetic(name2: name);
+    return TypeParameterElementImpl(firstFragment: fragment, name3: name);
   }
 
   @override

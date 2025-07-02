@@ -1083,7 +1083,8 @@ class InheritanceManager3 {
         nameOffset: -1,
       );
       resultFragment.enclosingElement3 = targetClass.firstFragment;
-      resultFragment.typeParameters = resultType.typeFormals;
+      resultFragment.typeParameters =
+          resultType.typeParameters.map((e) => e.firstFragment).toList();
       resultFragment.returnType = resultType.returnType;
       // TODO(scheglov): check if can type cast instead
       resultFragment.parameters =

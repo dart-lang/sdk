@@ -253,8 +253,8 @@ class GreatestLowerBoundHelper {
   /// https://github.com/dart-lang/language
   /// See `resources/type-system/upper-lower-bounds.md`
   TypeImpl _functionType(FunctionTypeImpl f, FunctionTypeImpl g) {
-    var fTypeFormals = f.typeFormals;
-    var gTypeFormals = g.typeFormals;
+    var fTypeFormals = f.typeParameters;
+    var gTypeFormals = g.typeParameters;
 
     // The number of type parameters must be the same.
     // Otherwise the result is `Never`.

@@ -663,7 +663,8 @@ class TypeSystemImpl implements TypeSystem {
     required TypeConstraintGenerationDataForTesting? dataForTesting,
     required AstNodeImpl? nodeForTesting,
   }) {
-    if (contextType.typeFormals.isNotEmpty || fnType.typeFormals.isEmpty) {
+    if (contextType.typeParameters.isNotEmpty ||
+        fnType.typeParameters.isEmpty) {
       return const <TypeImpl>[];
     }
 

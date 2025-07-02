@@ -1199,12 +1199,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
 
     var staticType = expression.staticType;
-    if (staticType is! FunctionTypeImpl || staticType.typeFormals.isEmpty) {
+    if (staticType is! FunctionTypeImpl || staticType.typeParameters.isEmpty) {
       return expression;
     }
 
     var context = typeSystem.flatten(contextType);
-    if (context is! FunctionTypeImpl || context.typeFormals.isNotEmpty) {
+    if (context is! FunctionTypeImpl || context.typeParameters.isNotEmpty) {
       return expression;
     }
 
@@ -4384,7 +4384,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var callMethodType = callMethod.type;
     List<DartType> typeArgumentTypes;
     if (isConstructorTearoffsEnabled &&
-        callMethodType.typeFormals.isNotEmpty &&
+        callMethodType.typeParameters.isNotEmpty &&
         context is FunctionTypeImpl) {
       typeArgumentTypes = typeSystem.inferFunctionTypeInstantiation(
         context,

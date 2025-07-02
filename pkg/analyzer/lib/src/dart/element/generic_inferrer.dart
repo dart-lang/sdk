@@ -232,7 +232,7 @@ class GenericInferrer {
     // Since we're trying to infer the instantiation, we want to ignore type
     // formals as we check the parameters and return type.
     var inferFnType = FunctionTypeImpl(
-      typeFormals: const [],
+      typeParameters: const [],
       parameters: fnType.parameters,
       returnType: fnType.returnType,
       nullabilitySuffix: fnType.nullabilitySuffix,
@@ -343,7 +343,7 @@ class GenericInferrer {
       }
 
       if (inferred is FunctionTypeImpl &&
-          inferred.typeFormals.isNotEmpty &&
+          inferred.typeParameters.isNotEmpty &&
           !genericMetadataIsEnabled &&
           _diagnosticReporter != null) {
         if (failAtError) {
@@ -357,15 +357,15 @@ class GenericInferrer {
           return null;
         }
 
-        var typeFormals = inferred.typeFormals;
-        var typeFormalsStr = typeFormals.map(_elementStr).join(', ');
+        var typeParameters = inferred.typeParameters;
+        var typeParametersStr = typeParameters.map(_elementStr).join(', ');
         _diagnosticReporter.atEntity(
           errorEntity!,
           CompileTimeErrorCode.COULD_NOT_INFER,
           arguments: [
             name,
             ' Inferred candidate type ${_typeStr(inferred)} has type parameters'
-                ' [$typeFormalsStr], but a function with'
+                ' [$typeParametersStr], but a function with'
                 ' type parameters cannot be used as a type argument.',
           ],
         );
@@ -621,8 +621,8 @@ class GenericInferrer {
     }
   }
 
-  String _elementStr(FragmentImpl element) {
-    return element.getDisplayString();
+  String _elementStr(ElementImpl element) {
+    return element.displayString2();
   }
 
   String _formatError(

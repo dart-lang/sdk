@@ -236,9 +236,9 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
     GenericInferrer? inferrer;
     Substitution? substitution;
     if (_isGenericInferenceDisabled) {
-      if (rawType != null && rawType.typeFormals.isNotEmpty) {
+      if (rawType != null && rawType.typeParameters.isNotEmpty) {
         typeArgumentTypes = List.filled(
-          rawType.typeFormals.length,
+          rawType.typeParameters.length,
           DynamicTypeImpl.instance,
         );
         substitution = Substitution.fromPairs2(
@@ -250,7 +250,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
       }
     } else if (typeArgumentList != null) {
       if (rawType != null &&
-          typeArgumentList.arguments.length != rawType.typeFormals.length) {
+          typeArgumentList.arguments.length != rawType.typeParameters.length) {
         var typeParameters = rawType.typeParameters;
         _reportWrongNumberOfTypeArguments(
           typeArgumentList,
@@ -295,10 +295,10 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
           typeArgumentTypes,
         );
       }
-    } else if (rawType == null || rawType.typeFormals.isEmpty) {
+    } else if (rawType == null || rawType.typeParameters.isEmpty) {
       typeArgumentTypes = const <TypeImpl>[];
     } else {
-      var typeParameters = [for (var tp in rawType.typeFormals) tp.element];
+      var typeParameters = rawType.typeParameters;
       rawType = getFreshTypeParameters2(
         typeParameters,
       ).applyToFunctionType(rawType);

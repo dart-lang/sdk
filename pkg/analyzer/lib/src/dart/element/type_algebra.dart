@@ -66,7 +66,7 @@ FunctionTypeImpl replaceTypeParameters(
   FunctionTypeImpl type,
   List<TypeParameterElementImpl> newTypeParameters,
 ) {
-  assert(newTypeParameters.length == type.typeFormals.length);
+  assert(newTypeParameters.length == type.typeParameters.length);
   if (newTypeParameters.isEmpty) {
     return type;
   }
@@ -75,7 +75,10 @@ FunctionTypeImpl replaceTypeParameters(
       newTypeParameters
           .map((e) => e.instantiate(nullabilitySuffix: NullabilitySuffix.none))
           .toList();
-  var substitution = Substitution.fromPairs(type.typeFormals, typeArguments);
+  var substitution = Substitution.fromPairs2(
+    type.typeParameters,
+    typeArguments,
+  );
 
   FormalParameterElementMixin transformParameter(
     FormalParameterElementMixin p,

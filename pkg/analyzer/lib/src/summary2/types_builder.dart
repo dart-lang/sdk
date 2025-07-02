@@ -108,7 +108,7 @@ class TypesBuilder {
     var formalParameters = _formalParameters(parameterList);
 
     return FunctionTypeImpl(
-      typeFormals: typeParameters,
+      typeParameters: typeParameters.map((f) => f.asElement2).toList(),
       parameters: formalParameters,
       returnType: returnType,
       nullabilitySuffix: nullabilitySuffix,
@@ -446,7 +446,7 @@ class TypesBuilder {
   /// alias, but the actual provided type annotation is not a function type.
   static FunctionTypeImpl _errorFunctionType() {
     return FunctionTypeImpl(
-      typeFormals: const [],
+      typeParameters: const [],
       parameters: const [],
       returnType: DynamicTypeImpl.instance,
       nullabilitySuffix: NullabilitySuffix.none,
