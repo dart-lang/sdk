@@ -44,11 +44,11 @@ environment:
 
 # Add regular dependencies here.
 dependencies:
-  args: ^2.5.0
+  args: ^2.7.0
 
 dev_dependencies:
-  lints: ^5.0.0
-  test: ^1.24.0
+  lints: ^6.0.0
+  test: ^1.25.6
 ''';
 
 final String _readme = '''

@@ -54,8 +54,8 @@ dependencies:
 
 dev_dependencies:
   build_runner: ^2.4.15
-  build_web_compilers: ^4.1.4
-  lints: ^5.0.0
+  build_web_compilers: ^4.1.6
+  lints: ^6.0.0
 ''';
 
 final String _readme = '''
