@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -107,11 +106,6 @@ C<G>? x;
 class GenericTypeAliasResolutionTest_WithoutGenericMetadata
     extends PubPackageResolutionTest
     with GenericTypeAliasResolutionTestCases {
-  @override
-  List<String> get experiments {
-    return [...super.experiments, Feature.generic_metadata.enableString];
-  }
-
   test_genericFunctionTypeCannotBeTypeArgument_def_class() async {
     await assertErrorsInCode(
       r'''

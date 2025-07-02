@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -21,15 +20,16 @@ class HorizontalInferenceDisabledTest extends PubPackageResolutionTest
     with HorizontalInferenceTestCases {
   @override
   String get testPackageLanguageVersion => '2.17';
+
+  @override
+  bool get _isEnabled => false;
 }
 
 @reflectiveTest
 class HorizontalInferenceEnabledTest extends PubPackageResolutionTest
     with HorizontalInferenceTestCases {
   @override
-  List<String> get experiments {
-    return [...super.experiments, Feature.inference_update_1.enableString];
-  }
+  bool get _isEnabled => true;
 
   test_record_field_named() async {
     // A round of horizontal inference should occur between the first argument
@@ -61,8 +61,7 @@ test() {
 }
 
 mixin HorizontalInferenceTestCases on PubPackageResolutionTest {
-  bool get _isEnabled =>
-      experiments.contains(Feature.inference_update_1.enableString);
+  bool get _isEnabled;
 
   test_closure_passed_to_dynamic() async {
     await assertNoErrorsInCode('''

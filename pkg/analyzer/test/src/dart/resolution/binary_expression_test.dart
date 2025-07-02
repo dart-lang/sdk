@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -2264,11 +2263,6 @@ BinaryExpression
 
 @reflectiveTest
 class InferenceUpdate3Test extends PubPackageResolutionTest {
-  @override
-  List<String> get experiments {
-    return [...super.experiments, Feature.inference_update_3.enableString];
-  }
-
   test_ifNull_contextIsConvertedToATypeUsingGreatestClosure() async {
     await assertNoErrorsInCode('''
 class A {}

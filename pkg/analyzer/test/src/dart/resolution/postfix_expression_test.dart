@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -19,11 +18,6 @@ main() {
 
 @reflectiveTest
 class InferenceUpdate4Test extends PubPackageResolutionTest {
-  @override
-  List<String> get experiments {
-    return [...super.experiments, Feature.inference_update_4.enableString];
-  }
-
   test_isExpression_notPromoted() async {
     await assertNoErrorsInCode('''
 f() {

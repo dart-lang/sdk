@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer_testing/experiments/experiments.dart';
 import 'package:collection/collection.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -28,10 +27,7 @@ class GetterNotSubtypeSetterTypesTest_withGetterSetterErrorFeature
 
 @reflectiveTest
 class GetterNotSubtypeSetterTypesTest_withoutGetterSetterErrorFeature
-    extends _GetterNotSubtypeSetterTypesTest {
-  @override
-  List<String> get experiments => [...experimentsForTests];
-}
+    extends _GetterNotSubtypeSetterTypesTest {}
 
 class _GetterNotSubtypeSetterTypesTest extends PubPackageResolutionTest {
   test_class_instance() async {
