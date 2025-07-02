@@ -18,6 +18,7 @@ dependencies:
   code_assets: any
   collection: any
   dart2native: any
+  dart_mcp_server: any
   dart_style: any
   dartdoc: any
   data_assets: any
