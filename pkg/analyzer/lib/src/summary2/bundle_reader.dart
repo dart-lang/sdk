@@ -1715,7 +1715,7 @@ class ResolutionReader {
         return type;
       } else if (type is FunctionTypeImpl) {
         return FunctionTypeImpl(
-          typeFormals: type.typeFormals,
+          typeParameters: type.typeParameters,
           parameters: type.parameters,
           returnType: type.returnType,
           nullabilitySuffix: type.nullabilitySuffix,
@@ -1818,7 +1818,7 @@ class ResolutionReader {
     _localElements.length -= typeParameters.length;
 
     return FunctionTypeImpl(
-      typeFormals: typeParameters,
+      typeParameters: typeParameters.map((f) => f.asElement2).toList(),
       parameters: formalParameters.map((f) => f.asElement2).toList(),
       returnType: returnType,
       nullabilitySuffix: nullability,

@@ -7,6 +7,7 @@ import 'dart:io';
 import 'dart:ffi';
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:expect/expect.dart';
 import 'package:native_stack_traces/elf.dart';
 import 'package:path/path.dart' as path;
@@ -27,12 +28,8 @@ Future<void> testAOT(
   bool forceDrops = false,
   bool stripUtil = false, // Note: forced true if useAsm.
   bool stripFlag = false,
-  bool disassemble = false,
 }) async {
   const isProduct = const bool.fromEnvironment('dart.vm.product');
-  if (isProduct && disassemble) {
-    Expect.isFalse(disassemble, 'no use of disassembler in PRODUCT mode');
-  }
 
   final analyzeSnapshot = path.join(buildDir, 'analyze_snapshot');
 
@@ -55,9 +52,6 @@ Future<void> testAOT(
   if (stripUtil) {
     descriptionBuilder.write('-extstrip');
   }
-  if (disassemble) {
-    descriptionBuilder.write('-disassembled');
-  }
 
   final description = descriptionBuilder.toString();
   Expect.isTrue(
@@ -77,26 +71,32 @@ Future<void> testAOT(
         '--no-retain-function-objects',
         '--no-retain-code-objects',
       ],
-      if (disassemble) '--disassemble', // Not defined in PRODUCT mode.
       dillPath,
     ];
 
+    final int textSectionSize;
     if (useAsm) {
       final assemblyPath = path.join(tempDir, 'test.S');
 
-      await (disassemble ? runSilent : run)(genSnapshot, <String>[
-        '--snapshot-kind=app-aot-assembly',
-        '--assembly=$assemblyPath',
-        ...commonSnapshotArgs,
-      ]);
+      textSectionSize = _findTextSectionSize(
+        await runOutput(genSnapshot, <String>[
+          '--snapshot-kind=app-aot-assembly',
+          '--assembly=$assemblyPath',
+          '--print-snapshot-sizes',
+          ...commonSnapshotArgs,
+        ], ignoreStdErr: true),
+      );
 
       await assembleSnapshot(assemblyPath, snapshotPath);
     } else {
-      await (disassemble ? runSilent : run)(genSnapshot, <String>[
-        '--snapshot-kind=app-aot-elf',
-        '--elf=$snapshotPath',
-        ...commonSnapshotArgs,
-      ]);
+      textSectionSize = _findTextSectionSize(
+        await runOutput(genSnapshot, <String>[
+          '--snapshot-kind=app-aot-elf',
+          '--elf=$snapshotPath',
+          '--print-snapshot-sizes',
+          ...commonSnapshotArgs,
+        ], ignoreStdErr: true),
+      );
     }
 
     print("Snapshot generated at $snapshotPath.");
@@ -371,6 +371,34 @@ Future<void> testAOT(
       analyzerJson['metadata']['analyzer_version'] == 2,
       'invalid snapshot analyzer version',
     );
+
+    // Find all code objects.
+    final codeObjects = objects
+        .where((o) => o['type'] == 'Code' && o['size'] != 0)
+        .map(
+          (o) => (
+            name: o['name'] as String,
+            stub: (o['is_stub'] as bool? ?? false),
+            offset: o['offset'] as int,
+            size: o['size'] as int,
+          ),
+        )
+        .toList();
+    codeObjects.sort((a, b) => a.offset.compareTo(b.offset));
+    Expect.isNotEmpty(codeObjects);
+    Expect.isNotNull(
+      codeObjects.firstWhereOrNull((o) => o.stub && o.name == 'AllocateArray'),
+      'expected stubs to be identified',
+    );
+    final int totalSize = codeObjects.fold(0, (size, code) => size + code.size);
+    int totalGap = 0;
+    for (int i = 0; i < codeObjects.length - 1; i++) {
+      final code = codeObjects[i];
+      final nextCode = codeObjects[i + 1];
+      totalGap += code.offset + code.size - nextCode.offset;
+    }
+    Expect.isTrue(totalGap < 500);
+    Expect.isTrue((totalSize + totalGap - textSectionSize) < 500);
   });
 }
 
@@ -559,14 +587,6 @@ main() async {
       testAOT(aotDillPath, stripFlag: true),
     ]);
 
-    // Since we can't force disassembler support after the fact when running
-    // in PRODUCT mode, skip any --disassemble tests. Do these tests last as
-    // they have lots of output and so the log will be truncated.
-    if (!const bool.fromEnvironment('dart.vm.product')) {
-      // Regression test for dartbug.com/41149.
-      await Future.wait([testAOT(aotDillPath, disassemble: true)]);
-    }
-
     // Test unstripped ELF generation that is then externally stripped.
     await Future.wait([testAOT(aotDillPath, stripUtil: true)]);
 
@@ -586,4 +606,11 @@ main() async {
 
 Future<String> readFile(String file) {
   return new File(file).readAsString();
+}
+
+int _findTextSectionSize(List<String> output) {
+  const prefix = 'Instructions(CodeSize): ';
+  return int.parse(
+    output.firstWhere((l) => l.startsWith(prefix)).substring(prefix.length),
+  );
 }

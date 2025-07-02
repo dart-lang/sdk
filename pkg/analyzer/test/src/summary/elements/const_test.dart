@@ -725,6 +725,80 @@ library
 ''');
   }
 
+  test_const_dotShorthand_invalid_methodInvocation() async {
+    var library = await buildLibrary(r'''
+class A {
+  static A method() => A();
+}
+
+const A a = .method();
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A @6
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 synthetic new
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          methods
+            #F3 method @21
+              element: <testLibrary>::@class::A::@method::method
+      topLevelVariables
+        #F4 hasInitializer a @49
+          element: <testLibrary>::@topLevelVariable::a
+          initializer: expression_0
+            DotShorthandInvocation
+              period: . @53
+              memberName: SimpleIdentifier
+                token: method @54
+                element: <testLibrary>::@class::A::@method::method
+                staticType: A Function()
+              argumentList: ArgumentList
+                leftParenthesis: ( @60
+                rightParenthesis: ) @61
+              staticInvokeType: A Function()
+              staticType: A
+      getters
+        #F5 synthetic a
+          element: <testLibrary>::@getter::a
+          returnType: A
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+      methods
+        static method
+          reference: <testLibrary>::@class::A::@method::method
+          firstFragment: #F3
+          returnType: A
+  topLevelVariables
+    const hasInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
+      firstFragment: #F4
+      type: A
+      constantInitializer
+        fragment: #F4
+        expression: expression_0
+      getter: <testLibrary>::@getter::a
+  getters
+    synthetic static a
+      reference: <testLibrary>::@getter::a
+      firstFragment: #F5
+      returnType: A
+      variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
   test_const_dotShorthand_property() async {
     var library = await buildLibrary(r'''
 class A {

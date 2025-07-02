@@ -4,9 +4,9 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <map>
 #include <set>
 #include <sstream>
+#include <unordered_map>
 #include <vector>
 
 #include "include/analyze_snapshot_api.h"
@@ -71,6 +71,7 @@ class SnapshotAnalyzer {
                               const std::vector<const Field*>& fields);
   void DumpFunction(const Function& function);
   void DumpCode(const Code& code);
+  void DumpCode(uword start_pc, uword end_pc, const char* name);
   void DumpField(const Field& field);
   void DumpString(const String& string);
   void DumpInstance(const Object& object);
@@ -85,6 +86,7 @@ class SnapshotAnalyzer {
   const Dart_SnapshotAnalyzerInformation& info_;
   std::vector<std::vector<const Field*>> class_fields_;
   std::vector<std::vector<const Field*>> top_level_class_fields_;
+  std::unordered_map<uword, const char*> stub_names_;
 
   JSONWriter js_;
   Thread* thread_;
@@ -250,7 +252,7 @@ void SnapshotAnalyzer::DumpClassInstanceSlots(
 
 void SnapshotAnalyzer::DumpFunction(const Function& function) {
   js_.PrintProperty("type", "Function");
-  js_.PrintProperty("name", function.ToCString());
+  js_.PrintProperty("name", function.QualifiedScrubbedNameCString());
 
   js_.PrintProperty("signature",
                     String::Handle(function.InternalSignature()).ToCString());
@@ -262,26 +264,106 @@ void SnapshotAnalyzer::DumpFunction(const Function& function) {
   }
 }
 
+namespace {
+// Try to identify stubs which were effectively copied into the isolate
+// instructions section by comparing payloads.
+const char* TryIdentifyIsolateSpecificStubCopy(ObjectStore* object_store,
+                                               const Code& code) {
+#define MATCH(member, name)                                                    \
+  if (object_store->member() != Code::null() &&                                \
+      StubCode::name().ptr() == object_store->member() &&                      \
+      StubCode::name().Size() == code.Size() &&                                \
+      memcmp(reinterpret_cast<void*>(code.PayloadStart()),                     \
+             reinterpret_cast<void*>(StubCode::name().PayloadStart()),         \
+             code.Size()) == 0) {                                              \
+    return "_iso_stub_" #name "Stub";                                          \
+  }
+  OBJECT_STORE_STUB_CODE_LIST(MATCH)
+#undef MATCH
+
+  return nullptr;
+}
+}  // namespace
+
 void SnapshotAnalyzer::DumpCode(const Code& code) {
   js_.PrintProperty("type", "Code");
   const auto instruction_base =
       reinterpret_cast<uint64_t>(info_.vm_isolate_instructions);
 
+  if (code.IsUnknownDartCode()) {
+    js_.PrintProperty64("offset", 0);
+    js_.PrintProperty64("size", 0);
+    js_.PrintProperty("name", "UnknownDartCode");
+    js_.PrintProperty("section", "_kDartVmSnapshotInstructions");
+    return;
+  }
+
   // On different architectures the type of the underlying
   // dart::uword can result in an unsigned long long vs unsigned long
   // mismatch.
   const auto code_addr = static_cast<uint64_t>(code.PayloadStart());
-  // Invoking code.PayloadStart() for _kDartVmSnapshotInstructions
-  // when the tree has been shaken always returns 0
-  if (code_addr == 0) {
-    js_.PrintProperty64("offset", 0);
-    js_.PrintProperty64("size", 0);
-    js_.PrintProperty("section", "_kDartVmSnapshotInstructions");
+  js_.PrintProperty64("offset", code_addr - instruction_base);
+  js_.PrintProperty64("size", static_cast<uint64_t>(code.Size()));
+  js_.PrintProperty("section", "_kDartIsolateSnapshotInstructions");
+
+  if (code.owner() != Object::null()) {
+    const auto& owner = Object::Handle(code.owner());
+    js_.PrintProperty("owner", GetObjectId(owner.ptr()));
+    if (owner.IsClass()) {
+      js_.PrintfProperty("name", "new %s",
+                         Class::Cast(owner).ScrubbedNameCString());
+      js_.PrintPropertyBool("is_stub", true);
+    } else if (owner.IsAbstractType()) {
+      js_.PrintfProperty("name", "as %s",
+                         AbstractType::Cast(owner).ScrubbedNameCString());
+      js_.PrintPropertyBool("is_stub", true);
+    } else if (owner.IsFunction()) {
+      js_.PrintProperty("name", Function::Cast(owner).UserVisibleNameCString());
+    } else if (owner.IsSmi()) {
+      // This is a class id of the class which owned the function.
+      // See Precompiler::DropFunctions.
+      const auto cid = Smi::Cast(owner).Value();
+      auto class_table = thread_->isolate_group()->class_table();
+      if (class_table->IsValidIndex(cid) &&
+          class_table->At(cid) != Class::null()) {
+        const auto& cls = Class::Handle(class_table->At(cid));
+        js_.PrintProperty("owner", GetObjectId(cls.ptr()));
+        js_.PrintfProperty("name", "unknown function of %s",
+                           Class::Cast(cls).ScrubbedNameCString());
+      } else {
+        js_.PrintfProperty("name", "unknown function of class #%" Pd "", cid);
+      }
+    } else {
+      // Expected to handle all possibilities.
+      UNREACHABLE();
+    }
   } else {
-    js_.PrintProperty64("offset", code_addr - instruction_base);
-    js_.PrintProperty64("size", static_cast<uint64_t>(code.Size()));
-    js_.PrintProperty("section", "_kDartIsolateSnapshotInstructions");
+    js_.PrintPropertyBool("is_stub", true);
+
+    const auto it = stub_names_.find(code.EntryPoint());
+    if (it != stub_names_.end()) {
+      js_.PrintProperty("name", it->second);
+    } else if (auto stub_name = TryIdentifyIsolateSpecificStubCopy(
+                   thread_->isolate_group()->object_store(), code)) {
+      js_.PrintProperty("name", stub_name);
+    } else {
+      UNREACHABLE();
+    }
   }
+}
+
+void SnapshotAnalyzer::DumpCode(uword start_pc,
+                                uword end_pc,
+                                const char* name) {
+  js_.PrintProperty("type", "Code");
+  const auto instruction_base =
+      reinterpret_cast<uint64_t>(info_.vm_isolate_instructions);
+
+  js_.PrintProperty64("offset",
+                      static_cast<uint64_t>(start_pc) - instruction_base);
+  js_.PrintProperty64("size", static_cast<uint64_t>(end_pc - start_pc));
+  js_.PrintProperty("name", name);
+  js_.PrintProperty("section", "_kDartIsolateSnapshotInstructions");
 }
 
 void SnapshotAnalyzer::DumpField(const Field& field) {
@@ -383,6 +465,12 @@ void SnapshotAnalyzer::DumpObjectPool(const ObjectPool& pool) {
 }
 
 void SnapshotAnalyzer::DumpInterestingObjects() {
+  // Collect stubs into stub_names to enable quick name lookup
+  StubCode::ForEachStub([&](const char* name, uword entry_point) {
+    stub_names_[entry_point] = name;
+    return true;
+  });
+
   Zone* zone = thread_->zone();
   auto class_table = thread_->isolate_group()->class_table();
   class_table->NumCids();
@@ -426,6 +514,29 @@ void SnapshotAnalyzer::DumpInterestingObjects() {
       object = class_table->At(cid);
       handle_object(object.ptr());
     }
+
+    // - All instructions tables
+    const auto& instruction_tables = GrowableObjectArray::Handle(
+        thread_->isolate_group()->object_store()->instructions_tables());
+    for (intptr_t i = 0; i < instruction_tables.Length(); i++) {
+      object = instruction_tables.At(i);
+      object = InstructionsTable::Cast(object).code_objects();
+      handle_object(object.ptr());
+    }
+
+    // - All VM stubs
+    for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
+      if (!StubCode::EntryAt(i).IsNull()) {
+        handle_object(StubCode::EntryAt(i).ptr());
+      }
+    }
+
+    // - Object store.
+    //
+    // This will include a bunch of stuff we don't care about
+    // but it will also capture things like isolate specific stubs and
+    // canonicalized types which themselves include references to stubs.
+    thread_->isolate_group()->object_store()->VisitObjectPointers(&visitor);
   }
 
   // Sometimes we have [Field] objects for fields but they are not available
@@ -490,9 +601,28 @@ void SnapshotAnalyzer::DumpInterestingObjects() {
     } else if (object->IsInstance()) {
       DumpInstance(*object);
     }
-
     js_.CloseObject();
   }
+
+  // Finally dump pseudo-Code objects for all entries in the instructions
+  // tables without code objects.
+  uint64_t pseudo_code_id = kStartIndex + discovered_objects.size();
+  const auto& instruction_tables = GrowableObjectArray::Handle(
+      thread_->isolate_group()->object_store()->instructions_tables());
+  auto& instructions_table = InstructionsTable::Handle();
+  for (intptr_t i = 0; i < instruction_tables.Length(); i++) {
+    instructions_table ^= instruction_tables.At(i);
+    for (intptr_t index = 0; index < instructions_table.FirstEntryWithCode();
+         index++) {
+      js_.OpenObject();
+      js_.PrintProperty64("id", pseudo_code_id);
+      DumpCode(instructions_table.EntryPointAt(index),
+               instructions_table.EntryPointAt(index + 1), "Unknown Code");
+      js_.CloseObject();
+      pseudo_code_id++;
+    }
+  }
+
   js_.CloseArray();
 }
 

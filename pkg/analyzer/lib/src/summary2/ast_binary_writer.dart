@@ -240,6 +240,13 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitDotShorthandInvocation(DotShorthandInvocation node) {
+    _writeByte(Tag.DotShorthandInvocation);
+    _writeNode(node.memberName);
+    _storeInvocationExpression(node);
+  }
+
+  @override
   void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
     _writeByte(Tag.DotShorthandPropertyAccess);
     _writeNode(node.propertyName);

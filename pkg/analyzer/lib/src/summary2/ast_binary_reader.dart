@@ -65,6 +65,8 @@ class AstBinaryReader {
         return _readDefaultFormalParameter();
       case Tag.DotShorthandConstructorInvocation:
         return _readDotShorthandConstructorInvocation();
+      case Tag.DotShorthandInvocation:
+        return _readDotShorthandInvocation();
       case Tag.DotShorthandPropertyAccess:
         return _readDotShorthandPropertyAccess();
       case Tag.DottedName:
@@ -479,6 +481,20 @@ class AstBinaryReader {
     );
     _readExpressionResolution(node);
     _resolveNamedExpressions(node.constructorName.element, node.argumentList);
+    return node;
+  }
+
+  DotShorthandInvocation _readDotShorthandInvocation() {
+    var memberName = readNode() as SimpleIdentifierImpl;
+    var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
+    var arguments = readNode() as ArgumentListImpl;
+    var node = DotShorthandInvocationImpl(
+      period: Tokens.period(),
+      memberName: memberName,
+      typeArguments: typeArguments,
+      argumentList: arguments,
+    );
+    _readInvocationExpression(node);
     return node;
   }
 

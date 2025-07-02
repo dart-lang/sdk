@@ -858,7 +858,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
 
     TypeAliasElement? viaTypeAlias;
     if (typeElement is TypeAliasElementImpl) {
-      if (constructorFunctionType.typeFormals.isNotEmpty &&
+      if (constructorFunctionType.typeParameters.isNotEmpty &&
           !typeElement.isProperRename) {
         // The type alias is not a proper rename of the aliased class, so
         // the constructor tear-off is distinct from the associated
@@ -918,6 +918,11 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       entity: node,
       diagnosticCode: CompileTimeErrorCode.INVALID_CONSTANT,
     );
+  }
+
+  @override
+  Constant visitDotShorthandInvocation(DotShorthandInvocation node) {
+    return _invalidConstantForMethodInvocation(node);
   }
 
   @override
@@ -1150,20 +1155,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       }
     }
 
-    // Some methods aren't resolved by the time we are evaluating it. We'll mark
-    // it and return immediately.
-    if (node.staticType is InvalidType) {
-      return InvalidConstant.forEntity(
-        entity: node,
-        diagnosticCode: CompileTimeErrorCode.INVALID_CONSTANT,
-        isUnresolved: true,
-      );
-    }
-
-    return InvalidConstant.forEntity(
-      entity: node,
-      diagnosticCode: CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION,
-    );
+    return _invalidConstantForMethodInvocation(node);
   }
 
   @override
@@ -2169,7 +2161,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       return value;
     }
     var valueType = functionElement.type;
-    if (valueType.typeFormals.isNotEmpty) {
+    if (valueType.typeParameters.isNotEmpty) {
       var typeArgumentTypes = node.typeArgumentTypes;
       if (typeArgumentTypes != null && typeArgumentTypes.isNotEmpty) {
         var instantiatedType = functionElement.type.instantiate(
@@ -2204,7 +2196,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       return value;
     }
     var valueType = functionElement.type;
-    if (valueType.typeFormals.isNotEmpty) {
+    if (valueType.typeParameters.isNotEmpty) {
       var tearOffTypeArgumentTypes = node.tearOffTypeArgumentTypes;
       if (tearOffTypeArgumentTypes != null &&
           tearOffTypeArgumentTypes.isNotEmpty) {
@@ -2219,6 +2211,25 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       }
     }
     return value;
+  }
+
+  // Common invalid constants for method invocations and dot shorthand
+  // invocations.
+  Constant _invalidConstantForMethodInvocation(Expression node) {
+    // Some methods aren't resolved by the time we are evaluating it. We'll mark
+    // it and return immediately.
+    if (node.staticType is InvalidType) {
+      return InvalidConstant.forEntity(
+        entity: node,
+        diagnosticCode: CompileTimeErrorCode.INVALID_CONSTANT,
+        isUnresolved: true,
+      );
+    }
+
+    return InvalidConstant.forEntity(
+      entity: node,
+      diagnosticCode: CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION,
+    );
   }
 
   /// Returns the first not-potentially constant error found with [node] or
@@ -2710,7 +2721,7 @@ class DartObjectComputer {
   ) {
     var rawType = function.type;
     if (rawType is FunctionTypeImpl) {
-      if (typeArguments.length != rawType.typeFormals.length) {
+      if (typeArguments.length != rawType.typeParameters.length) {
         if (node is SimpleIdentifier) {
           return InvalidConstant.forEntity(
             entity: typeArgumentsErrorNode,
@@ -2718,7 +2729,7 @@ class DartObjectComputer {
                 CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION,
             arguments: [
               node.name,
-              rawType.typeFormals.length,
+              rawType.typeParameters.length,
               typeArguments.length,
             ],
           );
@@ -2728,7 +2739,7 @@ class DartObjectComputer {
           diagnosticCode:
               CompileTimeErrorCode
                   .WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION,
-          arguments: [rawType.typeFormals.length, typeArguments.length],
+          arguments: [rawType.typeParameters.length, typeArguments.length],
         );
       }
       var type = rawType.instantiate(typeArguments);

@@ -226,7 +226,6 @@ abstract class TestSuite {
 
     TestUtils.mkdirRecursive(Path('.'), generatedTestPath);
     return File(generatedTestPath.toNativePath())
-        .absolute
         .path
         .replaceAll('\\', '/');
   }
@@ -344,7 +343,7 @@ class VMTestSuite extends TestSuite {
             configuration.architecture == Architecture.x64c
         ? '$buildDir/gen/kernel-service.dart.snapshot'
         : '$buildDir/gen/kernel_service.dill';
-    var dfePath = Path(filename).absolute.toNativePath();
+    var dfePath = Path(filename).toNativePath();
     final experiments = [...configuration.experiments];
     var args = [
       ...initialTargetArguments,
@@ -955,8 +954,7 @@ class StandardTestSuite extends TestSuite {
         var nameFromModuleRoot = testFile.path.relativeTo(Repository.dir);
         var nameFromModuleRootNoExt =
             "${nameFromModuleRoot.directoryPath}/$nameNoExt";
-        var jsDir =
-            Path(compilationTempDir).relativeTo(Repository.dir).toString();
+        var jsDir = Path(compilationTempDir).toString();
         var nativeNonNullAsserts =
             testFile.ddcOptions.contains('--native-null-assertions');
         var jsInteropNonNullAsserts =
@@ -1032,7 +1030,7 @@ class StandardTestSuite extends TestSuite {
       args.add('--format=json');
     }
 
-    args.add(testFile.path.toNativePath());
+    args.add(testFile.path.relativeTo(Repository.dir).toNativePath());
 
     return args;
   }
@@ -1040,7 +1038,8 @@ class StandardTestSuite extends TestSuite {
   String? packagesArgument(String? packages) {
     // If this test is inside a package, we will check if there is a
     // pubspec.yaml file and if so, create a custom package root for it.
-    packages ??= Path(configuration.packages).toNativePath();
+    packages ??=
+        Path(configuration.packages).relativeTo(Repository.dir).toNativePath();
 
     if (packages == 'none') {
       return null;

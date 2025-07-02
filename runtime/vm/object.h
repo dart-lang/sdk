@@ -6070,6 +6070,12 @@ class InstructionsTable : public Object {
   // Returns entry point of the instructions with given index.
   uword EntryPointAt(intptr_t index) const;
 
+  ArrayPtr code_objects() const { return untag()->code_objects_; }
+
+  intptr_t FirstEntryWithCode() const {
+    return static_cast<intptr_t>(rodata()->first_entry_with_code);
+  }
+
  private:
   uword start_pc() const { return InstructionsTable::start_pc(this->ptr()); }
   static uword start_pc(InstructionsTablePtr table) {
@@ -6080,8 +6086,6 @@ class InstructionsTable : public Object {
   static uword end_pc(InstructionsTablePtr table) {
     return table->untag()->end_pc_;
   }
-
-  ArrayPtr code_objects() const { return untag()->code_objects_; }
 
   void set_length(intptr_t value) const;
   void set_start_pc(uword value) const;

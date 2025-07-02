@@ -274,12 +274,12 @@ class TypeConstraintGatherer
     // whichever of the two generic function types is a type schema and does
     // not contain any variables from `L`.
     var newTypeParameters = <TypeParameterElementImpl>[];
-    for (var i = 0; i < P.typeFormals.length; i++) {
+    for (var i = 0; i < P.typeParameters.length; i++) {
       var Z = TypeParameterFragmentImpl(name2: 'Z$i', nameOffset: -1);
       if (leftSchema) {
-        Z.bound = P.typeFormals[i].bound;
+        Z.bound = P.typeParameters[i].bound;
       } else {
-        Z.bound = Q.typeFormals[i].bound;
+        Z.bound = Q.typeParameters[i].bound;
       }
       newTypeParameters.add(Z.element);
     }

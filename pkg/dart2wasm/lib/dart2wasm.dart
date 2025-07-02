@@ -26,6 +26,7 @@ final List<Option> options = [
       defaultsTo: _d.translatorOptions.inlining),
   Flag("minify", (o, value) => o.translatorOptions.minify = value,
       defaultsTo: _d.translatorOptions.minify),
+  Flag("dry-run", (o, value) => o.dryRun = value, defaultsTo: _d.dryRun),
   Flag("polymorphic-specialization",
       (o, value) => o.translatorOptions.polymorphicSpecialization = value,
       defaultsTo: _d.translatorOptions.polymorphicSpecialization),

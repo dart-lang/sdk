@@ -2663,6 +2663,15 @@
           ],
           "shards": 8,
           "fileset": "dart2wasm_hostasserts"
+        },
+        {
+          "name": "dart2wasm unit tests",
+          "script":  "out/ReleaseX64/dart-sdk/bin/dart",
+          "testRunner": true,
+          "arguments": [
+            "pkg/dart2wasm/test/dry_run/dry_run_test.dart",
+            "-ndart2wasm-asserts-linux-chrome"
+          ]
         }
       ]
     },

@@ -29,6 +29,7 @@ class WasmCompilerOptions {
   String? dumpKernelAfterCfe;
   String? dumpKernelBeforeTfa;
   String? dumpKernelAfterTfa;
+  bool dryRun = false;
 
   factory WasmCompilerOptions.defaultOptions() =>
       WasmCompilerOptions(mainUri: Uri(), outputFile: '');

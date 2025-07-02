@@ -37,6 +37,7 @@ import 'package:wasm_builder/wasm_builder.dart' show Serializer;
 import 'compiler_options.dart' as compiler;
 import 'constant_evaluator.dart';
 import 'deferred_loading.dart';
+import 'dry_run.dart';
 import 'dynamic_module_kernel_metadata.dart';
 import 'dynamic_modules.dart';
 import 'js/runtime_generator.dart' as js;
@@ -48,6 +49,12 @@ import 'target.dart' hide Mode;
 import 'translator.dart';
 
 sealed class CompilationResult {}
+
+abstract class CompilationDryRunResult extends CompilationResult {}
+
+class CompilationDryRunError extends CompilationDryRunResult {}
+
+class CompilationDryRunSuccess extends CompilationDryRunResult {}
 
 class CompilationSuccess extends CompilationResult {
   final Map<String, ({Uint8List moduleBytes, String? sourceMap})> wasmModules;
@@ -79,7 +86,9 @@ class CFECrashError extends CompilationError {
 /// (We print them as soon as they are reported by CFE. i.e. we stream errors
 /// instead of accumulating/batching all of them and reporting at the end.)
 class CFECompileTimeErrors extends CompilationError {
-  CFECompileTimeErrors();
+  final Component? component;
+
+  CFECompileTimeErrors(this.component);
 }
 
 const List<String> _librariesToIndex = [
@@ -199,7 +208,18 @@ Future<CompilationResult> compileToModule(
   } catch (e, s) {
     return CFECrashError(e, s);
   }
-  if (hadCompileTimeError) return CFECompileTimeErrors();
+  if (options.dryRun) {
+    final component = compilerResult?.component;
+    if (component == null) {
+      return CompilationDryRunError();
+    }
+    final summarizer = DryRunSummarizer(component);
+    final hasErrors = summarizer.summarize();
+    return hasErrors ? CompilationDryRunError() : CompilationDryRunSuccess();
+  }
+  if (hadCompileTimeError) {
+    return CFECompileTimeErrors(compilerResult?.component);
+  }
   assert(compilerResult != null);
 
   Component component = compilerResult!.component!;

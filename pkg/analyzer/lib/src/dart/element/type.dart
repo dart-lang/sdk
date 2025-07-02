@@ -15,7 +15,6 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:collection/collection.dart';
 
 /// Returns a [List] of fixed length with given types.
@@ -92,9 +91,8 @@ class FunctionTypeImpl extends TypeImpl
   @override
   final TypeImpl returnType;
 
-  /// The formal type parameters of this generic function; for example,
-  /// `<T> T -> T`.
-  final List<TypeParameterFragmentImpl> typeFormals;
+  @override
+  final List<TypeParameterElementImpl> typeParameters;
 
   /// A list containing the parameters elements of this type of function.
   ///
@@ -126,7 +124,7 @@ class FunctionTypeImpl extends TypeImpl
   final List<FormalParameterElementMixin> sortedNamedParameters;
 
   factory FunctionTypeImpl({
-    required List<TypeParameterFragmentImpl> typeFormals,
+    required List<TypeParameterElementImpl> typeParameters,
     required List<FormalParameterElementMixin> parameters,
     required TypeImpl returnType,
     required NullabilitySuffix nullabilitySuffix,
@@ -176,7 +174,7 @@ class FunctionTypeImpl extends TypeImpl
       );
     }
     return FunctionTypeImpl._(
-      typeFormals: typeFormals,
+      typeParameters: typeParameters,
       parameters: parameters,
       returnType: returnType,
       nullabilitySuffix: nullabilitySuffix,
@@ -195,7 +193,7 @@ class FunctionTypeImpl extends TypeImpl
     InstantiatedTypeAliasElementImpl? alias,
   }) {
     return FunctionTypeImpl(
-      typeFormals: typeParameters.map((e) => e.asElement).toList(),
+      typeParameters: typeParameters,
       parameters: formalParameters,
       returnType: returnType,
       nullabilitySuffix: nullabilitySuffix,
@@ -204,7 +202,7 @@ class FunctionTypeImpl extends TypeImpl
   }
 
   FunctionTypeImpl._({
-    required this.typeFormals,
+    required this.typeParameters,
     required this.parameters,
     required this.returnType,
     required this.nullabilitySuffix,
@@ -255,10 +253,6 @@ class FunctionTypeImpl extends TypeImpl
       sortedNamedParameters;
 
   @override
-  List<TypeParameterElementImpl> get typeParameters =>
-      typeFormals.map((fragment) => fragment.element).toList();
-
-  @override
   List<TypeParameterElementImpl> get typeParametersShared => typeParameters;
 
   @override
@@ -272,13 +266,13 @@ class FunctionTypeImpl extends TypeImpl
         return false;
       }
 
-      if (other.typeFormals.length != typeFormals.length) {
+      if (other.typeParameters.length != typeParameters.length) {
         return false;
       }
       // `<T>T -> T` should be equal to `<U>U -> U`
       // To test this, we instantiate both types with the same (unique) type
       // variables, and see if the result is equal.
-      if (typeFormals.isNotEmpty) {
+      if (typeParameters.isNotEmpty) {
         var freshVariables = FunctionTypeImpl.relateTypeFormals(
           this,
           other,
@@ -330,7 +324,7 @@ class FunctionTypeImpl extends TypeImpl
 
     return FunctionTypeImpl(
       returnType: substitution.substituteType(returnType),
-      typeFormals: const [],
+      typeParameters: const [],
       parameters:
           parameters
               .map((p) => ParameterMember.from2(p, substitution))
@@ -341,8 +335,8 @@ class FunctionTypeImpl extends TypeImpl
 
   @override
   bool referencesAny(Set<TypeParameterElementImpl> parameters) {
-    if (typeFormals.any((element) {
-      assert(!parameters.contains(element.asElement2));
+    if (typeParameters.any((element) {
+      assert(!parameters.contains(element));
 
       var bound = element.bound;
       if (bound != null && bound.referencesAny(parameters)) {
@@ -369,7 +363,7 @@ class FunctionTypeImpl extends TypeImpl
   TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
     if (this.nullabilitySuffix == nullabilitySuffix) return this;
     return FunctionTypeImpl._(
-      typeFormals: typeFormals,
+      typeParameters: typeParameters,
       parameters: parameters,
       returnType: returnType,
       nullabilitySuffix: nullabilitySuffix,
@@ -381,7 +375,7 @@ class FunctionTypeImpl extends TypeImpl
   }
 
   int _computeHashCode() {
-    if (typeFormals.isNotEmpty) {
+    if (typeParameters.isNotEmpty) {
       // Two generic function types are considered equivalent even if their type
       // formals have different names, so we need to normalize to a standard set
       // of type formals before taking the hash code.
@@ -391,7 +385,7 @@ class FunctionTypeImpl extends TypeImpl
       // parameter bounds will receive the same hash code; this should be rare
       // enough that it won't be a problem.
       return instantiate([
-        for (var i = 0; i < typeFormals.length; i++)
+        for (var i = 0; i < typeParameters.length; i++)
           TypeParameterTypeImpl(
             element: TypeParameterFragmentImpl.synthetic(name2: 'T$i').element,
             nullabilitySuffix: NullabilitySuffix.none,

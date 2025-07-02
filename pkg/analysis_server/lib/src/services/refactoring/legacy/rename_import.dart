@@ -93,7 +93,11 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
         }
       }
       if (edit != null) {
-        doSourceChange_addFragmentEdit(change, element, edit);
+        doSourceChange_addSourceEdit(
+          change,
+          element.libraryFragment.source,
+          edit,
+        );
       }
     }
     // update references

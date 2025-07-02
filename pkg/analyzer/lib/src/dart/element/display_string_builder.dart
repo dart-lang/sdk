@@ -145,14 +145,14 @@ class ElementDisplayStringBuilder {
       _write('augment ');
     }
 
-    if (fragment.kind != ElementKind.SETTER) {
+    if (fragment is! SetterFragmentImpl) {
       _writeType(fragment.returnType);
       _write(' ');
     }
 
     _write(name);
 
-    if (fragment.kind != ElementKind.GETTER) {
+    if (fragment is! GetterFragmentImpl) {
       _writeTypeParameters(fragment.typeParameters);
       _writeFormalParameters(
         fragment.parameters,

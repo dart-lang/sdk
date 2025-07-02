@@ -517,7 +517,7 @@ abstract class ResolvedCorrectionProducer
         var type = conditionalExpression.correspondingParameter?.type;
         if (type is InterfaceType && type.isDartCoreFunction) {
           return FunctionTypeImpl(
-            typeFormals: const [],
+            typeParameters: const [],
             parameters: const [],
             returnType: DynamicTypeImpl.instance,
             nullabilitySuffix: NullabilitySuffix.none,

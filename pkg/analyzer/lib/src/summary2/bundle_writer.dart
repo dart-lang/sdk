@@ -23,7 +23,6 @@ import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/summary2/element_flags.dart';
 import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/reference.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 
 class BundleWriter {
   late final _BundleWriterReferences _references;
@@ -1050,7 +1049,7 @@ class ResolutionSink extends _SummaryDataWriter {
 
     writeEnum(TypeTag.FunctionType);
 
-    _writeTypeParameters(type.typeFormals, () {
+    _writeTypeParameters2(type.typeParameters, () {
       writeType(type.returnType);
       _writeFormalParameters2(type.formalParameters, withAnnotations: false);
     }, withAnnotations: false);
@@ -1185,7 +1184,7 @@ class ResolutionSink extends _SummaryDataWriter {
   }
 
   static FunctionTypeImpl _toSyntheticFunctionType(FunctionTypeImpl type) {
-    var typeParameters = [for (var tp in type.typeFormals) tp.asElement2];
+    var typeParameters = type.typeParameters;
     if (typeParameters.isEmpty) return type;
 
     var fresh = getFreshTypeParameters2(typeParameters);

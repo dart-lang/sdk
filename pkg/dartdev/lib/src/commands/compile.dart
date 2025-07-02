@@ -467,7 +467,10 @@ class CompileNativeCommand extends CompileSubcommandCommand {
   static const String exeCmdName = 'exe';
   static const String aotSnapshotCmdName = 'aot-snapshot';
   static final supportedTargetPlatforms = <Target>{
+    // ARM cross-compilation is not supported on Windows currently.
+    if (!Platform.isWindows) Target.linuxArm,
     Target.linuxArm64,
+    Target.linuxRiscv64,
     Target.linuxX64
   };
 
@@ -1027,6 +1030,11 @@ class CompileWasmCommand extends CompileSubcommandCommand {
     }
 
     final bool strip = args.flag('strip-wasm');
+
+    // When running in dry run mode there will not be any file emitted.
+    final isDryRun = extraCompilerOptions.any((e) => e.contains('dry-run'));
+
+    if (isDryRun) return 0;
 
     if (runWasmOpt) {
       final unoptFile = '$outputFileBasename.unopt.wasm';
