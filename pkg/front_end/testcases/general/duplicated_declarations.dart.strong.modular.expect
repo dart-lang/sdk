@@ -305,18 +305,6 @@ library;
 //   String toString() => _enumToString();
 //          ^^^^^^^^
 //
-// pkg/front_end/testcases/general/duplicated_declarations.dart:36:3: Error: Can't use 'main' because it is declared more than once.
-//   main();
-//   ^
-//
-// pkg/front_end/testcases/general/duplicated_declarations.dart:37:9: Error: Can't use 'field' because it is declared more than once.
-//   print(field);
-//         ^
-//
-// pkg/front_end/testcases/general/duplicated_declarations.dart:38:3: Error: Can't use 'C' because it is declared more than once.
-//   C.s();
-//   ^
-//
 // pkg/front_end/testcases/general/duplicated_declarations.dart:39:5: Error: Expected identifier, but got 'this'.
 //   C.this();
 //     ^^^^
@@ -334,10 +322,6 @@ library;
 //   C.();
 //     ^
 //
-// pkg/front_end/testcases/general/duplicated_declarations.dart:66:17: Error: Can't use 's' because it is declared more than once.
-//   static f() => s;
-//                 ^
-//
 // pkg/front_end/testcases/general/duplicated_declarations.dart:70:16: Error: Too many positional arguments: 0 allowed, but 1 found.
 // Try removing the extra positional arguments.
 //   Sub() : super(null);
@@ -350,10 +334,6 @@ library;
 // pkg/front_end/testcases/general/duplicated_declarations.dart:109:39: Error: Can't use 'values' because it is declared more than once.
 //     "AnotherEnum.values": AnotherEnum.values,
 //                                       ^^^^^^
-//
-// pkg/front_end/testcases/general/duplicated_declarations_part.dart:64:17: Error: Can't use 's' because it is declared more than once.
-//   static f() => s;
-//                 ^
 //
 import self as self;
 import "dart:core" as core;

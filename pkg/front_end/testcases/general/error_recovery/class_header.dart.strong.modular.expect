@@ -2642,26 +2642,6 @@ library;
 // enum E25 with C with { element }
 //      ^
 //
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:38:27: Error: Can't use 'B' because it is declared more than once.
-// class N5 = with C extends B implements D;
-//                           ^
-//
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:43:33: Error: Can't use 'C' because it is declared more than once.
-// class N10 = B implements D with C implements D;
-//                                 ^
-//
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:45:30: Error: Can't use 'C' because it is declared more than once.
-// class N12 = B extends B with C implements D;
-//                              ^
-//
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:46:27: Error: Can't use 'C' because it is declared more than once.
-// class N13 = B with C with C implements D;
-//                           ^
-//
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:73:35: Error: Can't use 'C' because it is declared more than once.
-// enum E12 extends B extends B with C implements D { element }
-//                                   ^
-//
 // pkg/front_end/testcases/general/error_recovery/class_header.dart:73:52: Error: Expected ';' after this.
 // enum E12 extends B extends B with C implements D { element }
 //                                                    ^^^^^^^

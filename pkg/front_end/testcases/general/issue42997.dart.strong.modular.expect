@@ -14,10 +14,6 @@ library;
 // PropertyState();
 // ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/issue42997.dart:12:10: Error: Can't use 'PropertyState' because it is declared more than once.
-//     for (PropertyState<Object, Object>> state in _states) ;
-//          ^
-//
 // pkg/front_end/testcases/general/issue42997.dart:12:24: Error: Expected ';' after this.
 //     for (PropertyState<Object, Object>> state in _states) ;
 //                        ^^^^^^

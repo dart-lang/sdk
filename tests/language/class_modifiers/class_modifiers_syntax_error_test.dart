@@ -10,7 +10,6 @@ sealed sealed class SealedSealed {}
 // [error column 1, length 6]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [cfe] 'sealed' isn't a type.
-// [cfe] Can't use 'sealed' because it is declared more than once.
 //     ^^^^^^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
 // [cfe] Expected ';' after this.
@@ -19,14 +18,13 @@ final final class FinalFinal {}
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
 // [cfe] Expected ';' after this.
 //    ^^^^^
-// [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
 // [analyzer] COMPILE_TIME_ERROR.FINAL_NOT_INITIALIZED
+// [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
 // [cfe] Expected an identifier, but got 'final'.
 base base class BaseBase {}
 // [error column 1, length 4]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [cfe] 'base' isn't a type.
-// [cfe] Can't use 'base' because it is declared more than once.
 //   ^^^^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
 // [cfe] Expected ';' after this.
@@ -47,14 +45,13 @@ final abstract class FinalAbstract {}
 // [cfe] Expected ';' after this.
 // [cfe] The modifier 'abstract' should be before the modifier 'final'.
 //             ^^^^^
-// [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
 // [analyzer] COMPILE_TIME_ERROR.FINAL_NOT_INITIALIZED
+// [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
 // [cfe] Expected an identifier, but got 'class'.
 base abstract class BaseAbstract {}
 // [error column 1, length 4]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [cfe] 'base' isn't a type.
-// [cfe] Can't use 'base' because it is declared more than once.
 //   ^^^^^^^^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
 // [cfe] Expected ';' after this.
@@ -109,7 +106,6 @@ base abstract mixin class BaseAbstractMixin {}
 // [error column 1, length 4]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [cfe] 'base' isn't a type.
-// [cfe] Can't use 'base' because it is declared more than once.
 //   ^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
@@ -208,7 +204,6 @@ sealed base class SealedBase {}
 // [error column 1, length 6]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [cfe] 'sealed' isn't a type.
-// [cfe] Can't use 'sealed' because it is declared more than once.
 //     ^^^^
 // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
@@ -218,7 +213,6 @@ sealed interface class SealedInterface {}
 // [error column 1, length 6]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [cfe] 'sealed' isn't a type.
-// [cfe] Can't use 'sealed' because it is declared more than once.
 //     ^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
@@ -252,7 +246,6 @@ base sealed class BaseSealed {}
 // [error column 1, length 4]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [cfe] 'base' isn't a type.
-// [cfe] Can't use 'base' because it is declared more than once.
 //   ^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
@@ -270,7 +263,6 @@ base interface class BaseInterface {}
 // [error column 1, length 4]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [cfe] 'base' isn't a type.
-// [cfe] Can't use 'base' because it is declared more than once.
 //   ^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN

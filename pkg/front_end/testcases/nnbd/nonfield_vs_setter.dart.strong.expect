@@ -91,10 +91,6 @@ library;
 //   static extensionStaticMethodAndInstanceSetter() {}
 //          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:47:29: Error: Can't use 'topLevelMethodAndSetter' because it is declared more than once.
-//   topLevelMethodAndSetter = topLevelMethodAndSetter();
-//                             ^
-//
 // pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:47:27: Error: Can't assign to this.
 //   topLevelMethodAndSetter = topLevelMethodAndSetter();
 //                           ^
@@ -106,10 +102,6 @@ library;
 // pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:48:3: Error: Can't assign to a type literal.
 //   typedefAndSetter = typedefAndSetter();
 //   ^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:49:20: Error: Can't use 'classAndSetter' because it is declared more than once.
-//   classAndSetter = classAndSetter();
-//                    ^
 //
 // pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:49:18: Error: Can't assign to this.
 //   classAndSetter = classAndSetter();
