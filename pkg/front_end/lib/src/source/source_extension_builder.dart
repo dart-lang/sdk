@@ -289,4 +289,9 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
         isInternalImplementation: isInternalImplementation,
         kind: kind));
   }
+
+  @override
+  int resolveConstructors(SourceLibraryBuilder library) {
+    return 0;
+  }
 }

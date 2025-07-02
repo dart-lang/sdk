@@ -29,7 +29,6 @@ import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/kernel_helper.dart';
 import '../type_inference/type_inference_engine.dart';
-import 'class_declaration.dart';
 import 'name_scheme.dart';
 import 'name_space_builder.dart';
 import 'source_builder_mixins.dart';
@@ -43,9 +42,7 @@ import 'source_type_parameter_builder.dart';
 class SourceExtensionTypeDeclarationBuilder
     extends ExtensionTypeDeclarationBuilderImpl
     with SourceDeclarationBuilderMixin
-    implements
-        Comparable<SourceExtensionTypeDeclarationBuilder>,
-        ClassDeclarationBuilder {
+    implements Comparable<SourceExtensionTypeDeclarationBuilder> {
   @override
   final SourceLibraryBuilder parent;
 

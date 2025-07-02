@@ -48,12 +48,11 @@ import '../kernel/kernel_helper.dart';
 import '../kernel/type_algorithms.dart';
 import '../kernel/utils.dart' show compareProcedures;
 import 'builder_factory.dart';
-import 'class_declaration.dart';
 import 'name_scheme.dart';
 import 'name_space_builder.dart';
 import 'nominal_parameter_name_space.dart';
-import 'source_builder_mixins.dart';
 import 'source_constructor_builder.dart';
+import 'source_declaration_builder.dart';
 import 'source_factory_builder.dart';
 import 'source_library_builder.dart';
 import 'source_loader.dart';
@@ -94,10 +93,7 @@ Class initializeClass(
 }
 
 class SourceClassBuilder extends ClassBuilderImpl
-    implements
-        Comparable<SourceClassBuilder>,
-        ClassDeclarationBuilder,
-        SourceDeclarationBuilder {
+    implements Comparable<SourceClassBuilder>, SourceDeclarationBuilder {
   @override
   final SourceLibraryBuilder libraryBuilder;
 

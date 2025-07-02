@@ -17,16 +17,11 @@ import '../builder/factory_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/type_builder.dart';
 import '../kernel/type_algorithms.dart';
+import 'source_declaration_builder.dart';
 import 'source_library_builder.dart';
 import 'source_loader.dart';
 import 'source_member_builder.dart';
 import 'source_type_parameter_builder.dart';
-
-abstract class SourceDeclarationBuilder implements IDeclarationBuilder {
-  void buildScopes(LibraryBuilder coreLibrary);
-
-  int computeDefaultTypes(ComputeDefaultTypeContext context);
-}
 
 mixin SourceDeclarationBuilderMixin
     implements DeclarationBuilderMixin, SourceDeclarationBuilder {
