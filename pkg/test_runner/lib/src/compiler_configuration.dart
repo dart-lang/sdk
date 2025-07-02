@@ -1428,8 +1428,7 @@ abstract mixin class VMKernelCompilerMixin {
 
   Command computeCompileToKernelCommand(String tempDir, List<String> arguments,
       Map<String, String> environmentOverrides) {
-    var pkgVmDir = Platform.script.resolve('../../../pkg/vm').toFilePath();
-    var genKernel = '$pkgVmDir/tool/gen_kernel$shellScriptExtension';
+    var genKernel = 'pkg/vm/tool/gen_kernel$shellScriptExtension';
 
     var kernelBinariesFolder = _configuration.buildDirectory;
     if (_useSdk) {

@@ -542,9 +542,9 @@ class DartkFuchsiaEmulatorRuntimeConfiguration
     }
 
     // Rewrite paths on the host to paths in the Fuchsia package.
+    arguments[arguments.length - 1] = "pkg/data/${arguments[arguments.length - 1]}";
     arguments = arguments
-        .map((argument) =>
-            argument.replaceAll(Directory.current.path, "pkg/data"))
+        .map((argument) => argument.replaceAll("--packages=", "--packages=pkg/data/"))
         .toList();
 
     var component = "dart_test_component.cm";
