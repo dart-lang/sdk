@@ -433,6 +433,8 @@ trace to find the place to insert the appropriate support.
                     self.rebase(self.optarg.replace('.js', '.dill')))
             elif self.get_option(['--dart-sdk-summary']):
                 self.extra_paths.add(self.rebase(self.optarg))
+            elif self.get_option(['--packages']):
+                self.extra_paths.add(self.rebase(self.optarg))
             elif self.get_option([
                     '--multi-root-scheme', '--multi-root-output-path',
                     '--modules'
