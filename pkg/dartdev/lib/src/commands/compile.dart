@@ -467,7 +467,10 @@ class CompileNativeCommand extends CompileSubcommandCommand {
   static const String exeCmdName = 'exe';
   static const String aotSnapshotCmdName = 'aot-snapshot';
   static final supportedTargetPlatforms = <Target>{
+    // ARM cross-compilation is not supported on Windows currently.
+    if (!Platform.isWindows) Target.linuxArm,
     Target.linuxArm64,
+    Target.linuxRiscv64,
     Target.linuxX64
   };
 
