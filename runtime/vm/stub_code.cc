@@ -347,24 +347,39 @@ const Code& StubCode::UnoptimizedStaticCallEntry(intptr_t num_args_tested) {
   }
 }
 
-const char* StubCode::NameOfStub(uword entry_point) {
+void StubCode::ForEachStub(
+    const std::function<bool(const char*, uword)>& callback) {
   for (size_t i = 0; i < ARRAY_SIZE(entries_); i++) {
-    if ((entries_[i].code != nullptr) && !entries_[i].code->IsNull() &&
-        (entries_[i].code->EntryPoint() == entry_point)) {
-      return entries_[i].name;
+    if (entries_[i].code != nullptr && !entries_[i].code->IsNull()) {
+      if (!callback(entries_[i].name, entries_[i].code->EntryPoint())) {
+        return;
+      }
     }
   }
-
   auto object_store = IsolateGroup::Current()->object_store();
 
 #define MATCH(member, name)                                                    \
-  if (object_store->member() != Code::null() &&                                \
-      entry_point == Code::EntryPointOf(object_store->member())) {             \
-    return "_iso_stub_" #name "Stub";                                          \
+  if (object_store->member() != Code::null()) {                                \
+    if (!callback("_iso_stub_" #name "Stub",                                   \
+                  Code::EntryPointOf(object_store->member()))) {               \
+      return;                                                                  \
+    }                                                                          \
   }
   OBJECT_STORE_STUB_CODE_LIST(MATCH)
 #undef MATCH
-  return nullptr;
+}
+
+const char* StubCode::NameOfStub(uword entry_point) {
+  const char* result = nullptr;
+  ForEachStub(
+      [&result, &entry_point](const char* name, uword stub_entry_point) {
+        if (stub_entry_point == entry_point) {
+          result = name;
+          return false;  // Found match.
+        }
+        return true;  // Continue searching.
+      });
+  return result;
 }
 
 }  // namespace dart

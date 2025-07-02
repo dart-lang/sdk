@@ -253,14 +253,20 @@ Future<void> runSilent(String executable, List<String> args) async {
   }
 }
 
-Future<List<String>> runOutput(String executable, List<String> args) async {
+Future<List<String>> runOutput(
+  String executable,
+  List<String> args, {
+  bool ignoreStdErr = false,
+}) async {
   final result = await runHelper(executable, args);
 
   if (result.exitCode != 0) {
     throw 'Command failed with unexpected exit code (was ${result.exitCode})';
   }
   Expect.isTrue(result.stdout.isNotEmpty);
-  Expect.isTrue(result.stderr.isEmpty);
+  if (!ignoreStdErr) {
+    Expect.isTrue(result.stderr.isEmpty);
+  }
 
   return LineSplitter.split(result.stdout).toList(growable: false);
 }
