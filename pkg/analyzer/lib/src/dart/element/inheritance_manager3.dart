@@ -63,8 +63,8 @@ class InheritanceManager3 {
     MethodElement.NO_SUCH_METHOD_METHOD_NAME,
   );
 
-  /// Cached instance interfaces for [InterfaceFragmentImpl].
-  final Map<InterfaceFragmentImpl, Interface> _interfaces = {};
+  /// Cached instance interfaces for [InterfaceElementImpl].
+  final Map<InterfaceElementImpl, Interface> _interfaces = {};
 
   /// Tracks signatures from superinterfaces that were combined.
   /// It is used to track dependencies in manifests.
@@ -276,7 +276,7 @@ class InheritanceManager3 {
   /// Remove interfaces for classes defined in specified libraries.
   void removeOfLibraries(Set<Uri> uriSet) {
     _interfaces.removeWhere((element, _) {
-      return uriSet.contains(element.librarySource.uri);
+      return uriSet.contains(element.library.uri);
     });
   }
 
@@ -454,11 +454,11 @@ class InheritanceManager3 {
   /// Implementation of [getInterface], without dependency tracking.
   Interface _getInterface(InterfaceElement element) {
     element as InterfaceElementImpl; // TODO(scheglov): remove cast
-    var result = _interfaces[element.firstFragment];
+    var result = _interfaces[element];
     if (result != null) {
       return result;
     }
-    _interfaces[element.firstFragment] = Interface._empty;
+    _interfaces[element] = Interface._empty;
 
     if (!_processingClasses.add(element.firstFragment)) {
       return Interface._empty;
@@ -476,7 +476,7 @@ class InheritanceManager3 {
       _processingClasses.remove(element.firstFragment);
     }
 
-    _interfaces[element.firstFragment] = result;
+    _interfaces[element] = result;
     return result;
   }
 
