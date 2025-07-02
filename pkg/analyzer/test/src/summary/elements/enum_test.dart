@@ -312,7 +312,7 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F6
           formalParameters
-            requiredPositional a
+            #E1 requiredPositional a
               firstFragment: #F7
               type: T
       getters
@@ -533,7 +533,7 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F5
           formalParameters
-            requiredPositional a
+            #E1 requiredPositional a
               firstFragment: #F6
               type: T
       getters
@@ -936,11 +936,11 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F5
           formalParameters
-            requiredPositional final x
+            #E0 requiredPositional final x
               firstFragment: #F6
               type: int Function(double)
               formalParameters
-                requiredPositional a
+                #E1 requiredPositional a
                   firstFragment: #F10
                   type: double
       getters
@@ -1070,7 +1070,7 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F6
           formalParameters
-            requiredPositional final hasImplicitType x
+            #E0 requiredPositional final hasImplicitType x
               firstFragment: #F7
               type: int
       getters
@@ -1182,7 +1182,7 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
           formalParameters
-            requiredPositional final hasImplicitType x
+            #E0 requiredPositional final hasImplicitType x
               firstFragment: #F5
               type: dynamic
       getters
@@ -1307,7 +1307,7 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F5
           formalParameters
-            optionalNamed final hasImplicitType x
+            #E0 optionalNamed final hasImplicitType x
               firstFragment: #F6
               type: int
               constantInitializer
@@ -1428,7 +1428,7 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F5
           formalParameters
-            requiredPositional final x
+            #E0 requiredPositional final x
               firstFragment: #F6
               type: int
       getters
@@ -1546,7 +1546,7 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F5
           formalParameters
-            requiredPositional final x
+            #E0 requiredPositional final x
               firstFragment: #F6
               type: int
       getters
@@ -1664,7 +1664,7 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F5
           formalParameters
-            requiredPositional final hasImplicitType x
+            #E0 requiredPositional final hasImplicitType x
               firstFragment: #F6
               type: dynamic
       getters
@@ -1781,7 +1781,7 @@ library
           reference: <testLibrary>::@enum::E::@constructor::named
           firstFragment: #F4
           formalParameters
-            requiredPositional a
+            #E0 requiredPositional a
               firstFragment: #F5
               type: int
       getters
@@ -1887,7 +1887,7 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
           formalParameters
-            requiredPositional a
+            #E0 requiredPositional a
               firstFragment: #F5
               type: int
       getters
@@ -2008,7 +2008,7 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F6
           formalParameters
-            requiredPositional a
+            #E1 requiredPositional a
               firstFragment: #F7
               type: T?
           constantInitializers
@@ -3015,10 +3015,10 @@ library
             #E1 U
               firstFragment: #F9
           formalParameters
-            requiredPositional t
+            #E2 requiredPositional t
               firstFragment: #F10
               type: T
-            requiredPositional u
+            #E3 requiredPositional u
               firstFragment: #F11
               type: U
           returnType: int
@@ -3691,7 +3691,7 @@ library
           reference: <testLibrary>::@enum::E::@setter::foo
           firstFragment: #F8
           formalParameters
-            requiredPositional _
+            #E0 requiredPositional _
               firstFragment: #F9
               type: int
           returnType: void
@@ -5598,7 +5598,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
           formalParameters
-            requiredPositional final hasImplicitType value
+            #E0 requiredPositional final hasImplicitType value
               firstFragment: #F4
               type: dynamic
       getters

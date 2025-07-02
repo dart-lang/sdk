@@ -1332,7 +1332,7 @@ library
       reference: <testLibrary>::@setter::a
       firstFragment: #F4
       formalParameters
-        requiredPositional _a
+        #E0 requiredPositional _a
           firstFragment: #F5
           type: int
       returnType: void

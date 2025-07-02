@@ -354,7 +354,7 @@ library
           reference: <testLibrary>::@class::A::@setter::foo::@def::0
           firstFragment: #F7
           formalParameters
-            requiredPositional _foo
+            #E0 requiredPositional _foo
               firstFragment: #F8
               type: int
           returnType: void
@@ -362,7 +362,7 @@ library
           reference: <testLibrary>::@class::A::@setter::foo::@def::1
           firstFragment: #F9
           formalParameters
-            requiredPositional _foo
+            #E1 requiredPositional _foo
               firstFragment: #F10
               type: double
           returnType: void
@@ -865,7 +865,7 @@ library
           reference: <testLibrary>::@extension::E::@def::1::@setter::x
           firstFragment: #F5
           formalParameters
-            requiredPositional _x
+            #E0 requiredPositional _x
               firstFragment: #F6
               type: dynamic
           returnType: void
@@ -891,7 +891,7 @@ library
           reference: <testLibrary>::@extension::E::@def::2::@setter::y
           firstFragment: #F10
           formalParameters
-            requiredPositional _y
+            #E1 requiredPositional _y
               firstFragment: #F11
               type: int
           returnType: void
@@ -963,7 +963,7 @@ library
           reference: <testLibrary>::@extensionType::E::@def::0::@constructor::new
           firstFragment: #F3
           formalParameters
-            requiredPositional final hasImplicitType it
+            #E0 requiredPositional final hasImplicitType it
               firstFragment: #F4
               type: int
       getters
@@ -989,7 +989,7 @@ library
           reference: <testLibrary>::@extensionType::E::@def::1::@constructor::new
           firstFragment: #F8
           formalParameters
-            requiredPositional final hasImplicitType it
+            #E1 requiredPositional final hasImplicitType it
               firstFragment: #F9
               type: double
       getters
@@ -1038,7 +1038,7 @@ library
       reference: <testLibrary>::@function::f::@def::1
       firstFragment: #F2
       formalParameters
-        requiredPositional a
+        #E0 requiredPositional a
           firstFragment: #F3
           type: int
       returnType: void
@@ -1046,10 +1046,10 @@ library
       reference: <testLibrary>::@function::f::@def::2
       firstFragment: #F4
       formalParameters
-        optionalPositional b
+        #E1 optionalPositional b
           firstFragment: #F5
           type: int
-        optionalPositional c
+        #E2 optionalPositional c
           firstFragment: #F6
           type: double
       returnType: void
@@ -1080,10 +1080,10 @@ library
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       formalParameters
-        optionalNamed a
+        #E0 optionalNamed a
           firstFragment: #F2
           type: int
-        optionalNamed a
+        #E1 optionalNamed a
           firstFragment: #F3
           type: double
       returnType: void
@@ -1205,7 +1205,7 @@ library
           reference: <testLibrary>::@mixin::A::@def::1::@setter::x
           firstFragment: #F5
           formalParameters
-            requiredPositional _x
+            #E0 requiredPositional _x
               firstFragment: #F6
               type: dynamic
           returnType: void
@@ -1232,7 +1232,7 @@ library
           reference: <testLibrary>::@mixin::A::@def::2::@setter::y
           firstFragment: #F10
           formalParameters
-            requiredPositional _y
+            #E1 requiredPositional _y
               firstFragment: #F11
               type: int
           returnType: void
@@ -1341,7 +1341,7 @@ library
       reference: <testLibrary>::@setter::x::@def::0
       firstFragment: #F9
       formalParameters
-        requiredPositional _x
+        #E0 requiredPositional _x
           firstFragment: #F10
           type: bool
       returnType: void
@@ -1349,7 +1349,7 @@ library
       reference: <testLibrary>::@setter::x::@def::1
       firstFragment: #F11
       formalParameters
-        requiredPositional _x
+        #E1 requiredPositional _x
           firstFragment: #F12
           type: dynamic
       returnType: void
@@ -1357,7 +1357,7 @@ library
       reference: <testLibrary>::@setter::x::@def::2
       firstFragment: #F13
       formalParameters
-        requiredPositional _x
+        #E2 requiredPositional _x
           firstFragment: #F14
           type: double
       returnType: void
@@ -1457,7 +1457,7 @@ library
       reference: <testLibrary>::@setter::foo::@def::0
       firstFragment: #F3
       formalParameters
-        requiredPositional _
+        #E0 requiredPositional _
           firstFragment: #F4
           type: int
       returnType: void
@@ -1465,7 +1465,7 @@ library
       reference: <testLibrary>::@setter::foo::@def::1
       firstFragment: #F5
       formalParameters
-        requiredPositional _
+        #E1 requiredPositional _
           firstFragment: #F6
           type: double
       returnType: void

@@ -113,6 +113,25 @@ static void* GenericMapAligned(void* hint,
                                intptr_t alignment,
                                intptr_t allocated_size,
                                int map_flags) {
+#if defined(DART_HOST_OS_MACOS)
+  // vm_map doesn't support MAP_JIT.
+  if ((map_flags & MAP_JIT) == 0) {
+    vm_address_t address = 0;
+    vm_prot_t cur_prot = 0;
+    if ((prot & PROT_READ) != 0) cur_prot |= VM_PROT_READ;
+    if ((prot & PROT_WRITE) != 0) cur_prot |= VM_PROT_WRITE;
+    if ((prot & PROT_EXEC) != 0) cur_prot |= VM_PROT_EXECUTE;
+    vm_prot_t max_prot = VM_PROT_ALL;
+    const kern_return_t result =
+        vm_map(mach_task_self(), &address, size, /*mask=*/alignment - 1,
+               VM_FLAGS_ANYWHERE, MEMORY_OBJECT_NULL, /*offset=*/0,
+               /*copy=*/FALSE, cur_prot, max_prot, VM_INHERIT_DEFAULT);
+    if (result != KERN_SUCCESS) {
+      return nullptr;
+    }
+    return reinterpret_cast<void*>(address);
+  }
+#endif
   void* address = Map(hint, allocated_size, prot, map_flags, -1, 0);
   if (address == MAP_FAILED) {
     return nullptr;

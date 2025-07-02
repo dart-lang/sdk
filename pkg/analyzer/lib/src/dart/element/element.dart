@@ -29,7 +29,6 @@ import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/display_string_builder.dart';
 import 'package:analyzer/src/dart/element/field_name_non_promotability_info.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/name_union.dart';
 import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/since_sdk_version.dart';
@@ -1084,7 +1083,7 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
   }
 
   @override
-  int get offset => isSynthetic ? enclosingElement3.offset : _nameOffset;
+  int get offset => isSynthetic ? enclosingElement3.offset : nameOffset;
 
   @override
   InterfaceTypeImpl get returnType {
@@ -2305,7 +2304,7 @@ abstract class ExecutableFragmentImpl extends _ExistingFragmentImpl
   }
 
   @override
-  int get offset => _nameOffset;
+  int get offset => nameOffset;
 
   /// The formal parameters defined by this executable fragment.
   List<FormalParameterFragmentImpl> get parameters {
@@ -2940,7 +2939,7 @@ class FieldFragmentImpl extends PropertyInducingFragmentImpl
       super.nextFragment as FieldFragmentImpl?;
 
   @override
-  int get offset => isSynthetic ? enclosingFragment.offset : _nameOffset;
+  int get offset => isSynthetic ? enclosingFragment.offset : nameOffset;
 
   @override
   FieldFragmentImpl? get previousFragment =>
@@ -3280,9 +3279,6 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
   /// Whether the parameter is an initializing formal parameter.
   bool get isInitializingFormal => false;
 
-  @override
-  bool get isLate => false;
-
   /// Whether the parameter is a named parameter.
   ///
   /// Named parameters that are annotated with the `@required` annotation are
@@ -3583,10 +3579,10 @@ mixin FragmentedTypeParameterizedElementMixin<
   }
 }
 
-abstract class FragmentImpl implements FragmentOrMember {
+abstract class FragmentImpl implements Fragment {
   static int _NEXT_ID = 0;
 
-  @override
+  /// The unique integer identifier of this fragment.
   final int id = _NEXT_ID++;
 
   /// The element that either physically or logically encloses this element.
@@ -3600,14 +3596,16 @@ abstract class FragmentImpl implements FragmentOrMember {
   FragmentImpl? enclosingElement3;
 
   /// The offset of the name of this element in the file that contains the
-  /// declaration of this element.
-  int _nameOffset = 0;
+  /// declaration of this element, or `-1` if this element is synthetic, does
+  /// not have a name, or otherwise does not have an offset.
+  int nameOffset = 0;
 
   /// The modifiers associated with this element.
   EnumSet<Modifier> _modifiers = EnumSet.empty();
 
-  /// The documentation comment for this element.
-  String? _docComment;
+  /// The content of the documentation comment (including delimiters) for this
+  /// element, or `null` if this element does not or cannot have documentation.
+  String? documentationComment;
 
   /// The offset of the beginning of the element's code in the file that
   /// contains the element, or `null` if the element is synthetic.
@@ -3618,7 +3616,7 @@ abstract class FragmentImpl implements FragmentOrMember {
 
   /// Initialize a newly created element to have the given [name] at the given
   /// [_nameOffset].
-  FragmentImpl({required int nameOffset}) : _nameOffset = nameOffset;
+  FragmentImpl({required this.nameOffset});
 
   /// The length of the element's code, or `null` if the element is synthetic.
   int? get codeLength => _codeLength;
@@ -3627,24 +3625,27 @@ abstract class FragmentImpl implements FragmentOrMember {
   /// contains the element, or `null` if the element is synthetic.
   int? get codeOffset => _codeOffset;
 
-  @override
+  /// The analysis context in which this element is defined.
   AnalysisContext get context {
     return library!.context;
   }
 
-  @override
+  /// The declaration of this element.
+  ///
+  /// If the element is a view on an element, e.g. a method from an interface
+  /// type, with substituted type parameters, return the corresponding element
+  /// from the class, without any substitutions. If this element is already a
+  /// declaration (or a synthetic element, e.g. a synthetic property accessor),
+  /// return itself.
   FragmentImpl get declaration => this;
 
-  @override
+  /// The display name of this element, possibly the empty string if the
+  /// element does not have a name.
+  ///
+  /// In most cases the name and the display name are the same. Differences
+  /// though are cases such as setters where the name of some setter `set f(x)`
+  /// is `f=`, instead of `f`.
   String get displayName => name2 ?? '';
-
-  @override
-  String? get documentationComment => _docComment;
-
-  /// The documentation comment source for this element.
-  set documentationComment(String? doc) {
-    _docComment = doc;
-  }
 
   /// Return the enclosing unit element (which might be the same as `this`), or
   /// `null` if this element is not contained in any compilation unit.
@@ -3656,7 +3657,10 @@ abstract class FragmentImpl implements FragmentOrMember {
     return library!.featureSet.isEnabled(Feature.nonfunction_type_aliases);
   }
 
-  @override
+  /// Whether the element is private.
+  ///
+  /// Private elements are visible only within the library in which they are
+  /// declared.
   bool get isPrivate {
     var name = name2;
     if (name == null) {
@@ -3665,10 +3669,17 @@ abstract class FragmentImpl implements FragmentOrMember {
     return Identifier.isPrivateName(name);
   }
 
-  @override
+  /// Whether the element is public.
+  ///
+  /// Public elements are visible within any library that imports the library
+  /// in which they are declared.
   bool get isPublic => !isPrivate;
 
-  @override
+  /// Whether the element is synthetic.
+  ///
+  /// A synthetic element is an element that is not represented in the source
+  /// code explicitly, but is implied by the source code, such as the default
+  /// constructor for a class that does not explicitly define any constructors.
   bool get isSynthetic {
     return hasModifier(Modifier.SYNTHETIC);
   }
@@ -3678,38 +3689,50 @@ abstract class FragmentImpl implements FragmentOrMember {
     setModifier(Modifier.SYNTHETIC, isSynthetic);
   }
 
+  /// The kind of element that this is.
+  // TODO(scheglov): remove it
+  ElementKind get kind;
+
   LibraryElementImpl? get library;
 
-  @override
+  /// If this target is associated with a library, return the source of the
+  /// library's defining compilation unit; otherwise return `null`.
   Source? get librarySource => library?.source;
 
   String? get lookupName {
     return name2;
   }
 
-  @override
+  /// The length of the name of this element in the file that contains the
+  /// declaration of this element, or `0` if this element does not have a name.
   int get nameLength => displayName.length;
 
-  @override
-  int get nameOffset => _nameOffset;
-
-  /// Sets the offset of the name of this element in the file that contains the
-  /// declaration of this element.
-  set nameOffset(int offset) {
-    _nameOffset = offset;
-  }
-
-  @override
+  /// The analysis session in which this element is defined.
   AnalysisSession? get session {
     return enclosingElement3?.session;
   }
 
-  @override
+  /// The version where this SDK API was added.
+  ///
+  /// A `@Since()` annotation can be applied to a library declaration,
+  /// any public declaration in a library, or in a class, or to an optional
+  /// parameter, etc.
+  ///
+  /// The returned version is "effective", so that if a library is annotated
+  /// then all elements of the library inherit it; or if a class is annotated
+  /// then all members and constructors of the class inherit it.
+  ///
+  /// If multiple `@Since()` annotations apply to the same element, the latest
+  /// version takes precedence.
+  ///
+  /// Returns `null` if the element is not declared in SDK, or does not have
+  /// a `@Since()` annotation applicable to it.
   Version? get sinceSdkVersion {
     return asElement2.ifTypeOrNull<HasSinceSdkVersion>()?.sinceSdkVersion;
   }
 
-  @override
+  /// Return the source associated with this target, or `null` if this target is
+  /// not associated with a source.
   Source? get source {
     return enclosingElement3?.source;
   }
@@ -3742,7 +3765,22 @@ abstract class FragmentImpl implements FragmentOrMember {
     }
   }
 
-  @override
+  /// Returns the presentation of this element as it should appear when
+  /// presented to users.
+  ///
+  /// If [withNullability] is `true`, then [NullabilitySuffix.question] and
+  /// [NullabilitySuffix.star] in types will be represented as `?` and `*`.
+  /// [NullabilitySuffix.none] does not have any explicit presentation.
+  ///
+  /// If [withNullability] is `false`, nullability suffixes will not be
+  /// included into the presentation.
+  ///
+  /// If [multiline] is `true`, the string may be wrapped over multiple lines
+  /// with newlines to improve formatting. For example function signatures may
+  /// be formatted as if they had trailing commas.
+  ///
+  /// Clients should not depend on the content of the returned value as it will
+  /// be changed if doing so would improve the UX.
   String getDisplayString({
     @Deprecated('Only non-nullable by default mode is supported')
     bool withNullability = true,
@@ -3784,118 +3822,6 @@ abstract class FragmentImpl implements FragmentOrMember {
   void writeModifiers(BufferedSink writer) {
     _modifiers.write(writer);
   }
-}
-
-/// A shared internal interface of `Element` and [Member].
-/// Used during migration to avoid referencing `Element`.
-abstract class FragmentOrMember implements Fragment {
-  /// The analysis context in which this element is defined.
-  AnalysisContext get context;
-
-  /// The declaration of this element.
-  ///
-  /// If the element is a view on an element, e.g. a method from an interface
-  /// type, with substituted type parameters, return the corresponding element
-  /// from the class, without any substitutions. If this element is already a
-  /// declaration (or a synthetic element, e.g. a synthetic property accessor),
-  /// return itself.
-  FragmentOrMember? get declaration;
-
-  /// The display name of this element, possibly the empty string if the
-  /// element does not have a name.
-  ///
-  /// In most cases the name and the display name are the same. Differences
-  /// though are cases such as setters where the name of some setter `set f(x)`
-  /// is `f=`, instead of `f`.
-  String get displayName;
-
-  /// The content of the documentation comment (including delimiters) for this
-  /// element, or `null` if this element does not or cannot have documentation.
-  String? get documentationComment;
-
-  /// The unique integer identifier of this element.
-  int get id;
-
-  /// Whether the element is private.
-  ///
-  /// Private elements are visible only within the library in which they are
-  /// declared.
-  bool get isPrivate;
-
-  /// Whether the element is public.
-  ///
-  /// Public elements are visible within any library that imports the library
-  /// in which they are declared.
-  bool get isPublic;
-
-  /// Whether the element is synthetic.
-  ///
-  /// A synthetic element is an element that is not represented in the source
-  /// code explicitly, but is implied by the source code, such as the default
-  /// constructor for a class that does not explicitly define any constructors.
-  bool get isSynthetic;
-
-  /// The kind of element that this is.
-  ElementKind get kind;
-
-  /// If this target is associated with a library, return the source of the
-  /// library's defining compilation unit; otherwise return `null`.
-  Source? get librarySource;
-
-  /// The length of the name of this element in the file that contains the
-  /// declaration of this element, or `0` if this element does not have a name.
-  int get nameLength;
-
-  /// The offset of the name of this element in the file that contains the
-  /// declaration of this element, or `-1` if this element is synthetic, does
-  /// not have a name, or otherwise does not have an offset.
-  int get nameOffset;
-
-  /// The analysis session in which this element is defined.
-  AnalysisSession? get session;
-
-  /// The version where this SDK API was added.
-  ///
-  /// A `@Since()` annotation can be applied to a library declaration,
-  /// any public declaration in a library, or in a class, or to an optional
-  /// parameter, etc.
-  ///
-  /// The returned version is "effective", so that if a library is annotated
-  /// then all elements of the library inherit it; or if a class is annotated
-  /// then all members and constructors of the class inherit it.
-  ///
-  /// If multiple `@Since()` annotations apply to the same element, the latest
-  /// version takes precedence.
-  ///
-  /// Returns `null` if the element is not declared in SDK, or does not have
-  /// a `@Since()` annotation applicable to it.
-  Version? get sinceSdkVersion;
-
-  /// Return the source associated with this target, or `null` if this target is
-  /// not associated with a source.
-  Source? get source;
-
-  /// Returns the presentation of this element as it should appear when
-  /// presented to users.
-  ///
-  /// If [withNullability] is `true`, then [NullabilitySuffix.question] and
-  /// [NullabilitySuffix.star] in types will be represented as `?` and `*`.
-  /// [NullabilitySuffix.none] does not have any explicit presentation.
-  ///
-  /// If [withNullability] is `false`, nullability suffixes will not be
-  /// included into the presentation.
-  ///
-  /// If [multiline] is `true`, the string may be wrapped over multiple lines
-  /// with newlines to improve formatting. For example function signatures may
-  /// be formatted as if they had trailing commas.
-  ///
-  /// Clients should not depend on the content of the returned value as it will
-  /// be changed if doing so would improve the UX.
-  String getDisplayString({
-    @Deprecated('Only non-nullable by default mode is supported')
-    bool withNullability = true,
-    bool multiline = false,
-  });
 }
 
 sealed class FunctionFragmentImpl extends ExecutableFragmentImpl
@@ -4112,7 +4038,7 @@ class GenericFunctionTypeFragmentImpl extends _ExistingFragmentImpl
   GenericFunctionTypeFragmentImpl? get nextFragment => null;
 
   @override
-  int get offset => _nameOffset;
+  int get offset => nameOffset;
 
   @override
   List<FormalParameterFragmentImpl> get parameters {
@@ -4858,7 +4784,7 @@ abstract class InstanceFragmentImpl extends _ExistingFragmentImpl
   List<MethodFragment> get methods2 => methods.cast<MethodFragment>();
 
   @override
-  int get offset => _nameOffset;
+  int get offset => nameOffset;
 
   @override
   List<SetterFragmentImpl> get setters {
@@ -5636,7 +5562,7 @@ class LabelFragmentImpl extends FragmentImpl implements LabelFragment {
   LabelFragmentImpl? get nextFragment => null;
 
   @override
-  int get offset => _nameOffset;
+  int get offset => nameOffset;
 
   @override
   LabelFragmentImpl? get previousFragment => null;
@@ -6991,7 +6917,7 @@ class LocalVariableElementImpl extends PromotableElementImpl
 }
 
 class LocalVariableFragmentImpl extends NonParameterVariableFragmentImpl
-    implements LocalVariableFragment, VariableElementOrMember {
+    implements LocalVariableFragment {
   late LocalVariableElementImpl _element2 = switch (this) {
     BindPatternVariableFragmentImpl() => BindPatternVariableElementImpl(this),
     JoinPatternVariableFragmentImpl() => JoinPatternVariableElementImpl(this),
@@ -7023,11 +6949,6 @@ class LocalVariableFragmentImpl extends NonParameterVariableFragmentImpl
 
   set enclosingFragment(Fragment value) {
     enclosingElement3 = value as FragmentImpl;
-  }
-
-  @override
-  bool get isLate {
-    return hasModifier(Modifier.LATE);
   }
 
   @override
@@ -8590,7 +8511,7 @@ sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
       }
       return variable.firstFragment.offset;
     }
-    return _nameOffset;
+    return nameOffset;
   }
 }
 
@@ -8723,11 +8644,6 @@ abstract class PropertyInducingFragmentImpl
     }
 
     return !isFinal;
-  }
-
-  @override
-  bool get isLate {
-    return hasModifier(Modifier.LATE);
   }
 
   @override
@@ -10159,52 +10075,8 @@ abstract class VariableElementImpl extends ElementImpl
   }
 }
 
-/// Common base class for all analyzer-internal classes that implement
-/// `VariableElement`.
-abstract class VariableElementOrMember
-    implements FragmentOrMember, Annotatable {
-  @override
-  VariableFragmentImpl get declaration;
-
-  /// Whether the variable element did not have an explicit type specified
-  /// for it.
-  bool get hasImplicitType;
-
-  /// Whether the variable was declared with the 'const' modifier.
-  bool get isConst;
-
-  /// Whether the variable was declared with the 'final' modifier.
-  ///
-  /// Variables that are declared with the 'const' modifier will return `false`
-  /// even though they are implicitly final.
-  bool get isFinal;
-
-  /// Whether the variable uses late evaluation semantics.
-  ///
-  /// This will always return `false` unless the experiment 'non-nullable' is
-  /// enabled.
-  bool get isLate;
-
-  /// Whether the element is a static variable, as per section 8 of the Dart
-  /// Language Specification:
-  ///
-  /// > A static variable is a variable that is not associated with a particular
-  /// > instance, but rather with an entire library or class. Static variables
-  /// > include library variables and class variables. Class variables are
-  /// > variables whose declaration is immediately nested inside a class
-  /// > declaration and includes the modifier static. A library variable is
-  /// > implicitly static.
-  bool get isStatic;
-
-  /// The declared type of this variable.
-  TypeImpl get type;
-}
-
 abstract class VariableFragmentImpl extends FragmentImpl
-    implements
-        VariableElementOrMember,
-        AnnotatableFragmentImpl,
-        VariableFragment {
+    implements AnnotatableFragmentImpl, VariableFragment {
   /// The type of this variable.
   TypeImpl? _type;
 
@@ -10230,7 +10102,8 @@ abstract class VariableFragmentImpl extends FragmentImpl
   @override
   VariableElementImpl get element;
 
-  @override
+  /// Whether the variable element did not have an explicit type specified
+  /// for it.
   bool get hasImplicitType {
     return hasModifier(Modifier.IMPLICIT_TYPE);
   }
@@ -10250,7 +10123,7 @@ abstract class VariableFragmentImpl extends FragmentImpl
     setModifier(Modifier.ABSTRACT, isAbstract);
   }
 
-  @override
+  /// Whether the variable was declared with the 'const' modifier.
   bool get isConst {
     return hasModifier(Modifier.CONST);
   }
@@ -10265,7 +10138,10 @@ abstract class VariableFragmentImpl extends FragmentImpl
     setModifier(Modifier.EXTERNAL, isExternal);
   }
 
-  @override
+  /// Whether the variable was declared with the 'final' modifier.
+  ///
+  /// Variables that are declared with the 'const' modifier will return `false`
+  /// even though they are implicitly final.
   bool get isFinal {
     return hasModifier(Modifier.FINAL);
   }
@@ -10275,12 +10151,28 @@ abstract class VariableFragmentImpl extends FragmentImpl
     setModifier(Modifier.FINAL, isFinal);
   }
 
+  /// Whether the variable uses late evaluation semantics.
+  ///
+  /// This will always return `false` unless the experiment 'non-nullable' is
+  /// enabled.
+  bool get isLate {
+    return hasModifier(Modifier.LATE);
+  }
+
   /// Set whether this variable is late.
   set isLate(bool isLate) {
     setModifier(Modifier.LATE, isLate);
   }
 
-  @override
+  /// Whether the element is a static variable, as per section 8 of the Dart
+  /// Language Specification:
+  ///
+  /// > A static variable is a variable that is not associated with a particular
+  /// > instance, but rather with an entire library or class. Static variables
+  /// > include library variables and class variables. Class variables are
+  /// > variables whose declaration is immediately nested inside a class
+  /// > declaration and includes the modifier static. A library variable is
+  /// > implicitly static.
   bool get isStatic => hasModifier(Modifier.STATIC);
 
   set isStatic(bool isStatic) {
@@ -10290,7 +10182,8 @@ abstract class VariableFragmentImpl extends FragmentImpl
   @override
   int get offset => nameOffset;
 
-  @override
+  /// The declared type of this variable.
+  // TODO(scheglov): make it nullable and turn into field
   TypeImpl get type => _type!;
 
   set type(TypeImpl type) {

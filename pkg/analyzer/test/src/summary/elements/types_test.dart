@@ -72,7 +72,7 @@ library
       reference: <testLibrary>::@function::main
       firstFragment: #F2
       formalParameters
-        requiredPositional f
+        #E0 requiredPositional f
           firstFragment: #F3
           type: dynamic Function(int)
             alias: <testLibrary>::@typeAlias::F
@@ -121,7 +121,7 @@ library
       reference: <testLibrary>::@setter::x
       firstFragment: #F3
       formalParameters
-        requiredPositional _x
+        #E0 requiredPositional _x
           firstFragment: #F4
           type: FutureOr<int>
       returnType: void
@@ -248,7 +248,7 @@ library
       reference: <testLibrary>::@setter::x
       firstFragment: #F5
       formalParameters
-        requiredPositional _x
+        #E0 requiredPositional _x
           firstFragment: #F6
           type: FutureOr<int>
       returnType: void
@@ -256,7 +256,7 @@ library
       reference: <testLibrary>::@setter::y
       firstFragment: #F7
       formalParameters
-        requiredPositional _y
+        #E1 requiredPositional _y
           firstFragment: #F8
           type: InvalidType
       returnType: void
@@ -339,10 +339,10 @@ library
             #E3 W
               firstFragment: #F7
           formalParameters
-            requiredPositional v
+            #E4 requiredPositional v
               firstFragment: #F8
               type: V
-            requiredPositional w
+            #E5 requiredPositional w
               firstFragment: #F9
               type: W
           returnType: void
@@ -416,7 +416,7 @@ library
           reference: <testLibrary>::@class::D::@constructor::new
           firstFragment: #F5
           formalParameters
-            requiredPositional c
+            #E0 requiredPositional c
               firstFragment: #F6
               type: C
           constantInitializers
@@ -444,7 +444,7 @@ library
           reference: <testLibrary>::@class::D::@constructor::named
           firstFragment: #F7
           formalParameters
-            requiredPositional f
+            #E1 requiredPositional f
               firstFragment: #F8
               type: void Function()
 ''');
@@ -489,7 +489,7 @@ library
       reference: <testLibrary>::@setter::v
       firstFragment: #F3
       formalParameters
-        requiredPositional _v
+        #E0 requiredPositional _v
           firstFragment: #F4
           type: int Function()
       returnType: void
@@ -535,7 +535,7 @@ library
       reference: <testLibrary>::@setter::v
       firstFragment: #F3
       formalParameters
-        requiredPositional _v
+        #E0 requiredPositional _v
           firstFragment: #F4
           type: Future<dynamic> Function(dynamic)
       returnType: void
@@ -587,7 +587,7 @@ library
       reference: <testLibrary>::@setter::v
       firstFragment: #F3
       formalParameters
-        requiredPositional _v
+        #E0 requiredPositional _v
           firstFragment: #F4
           type: Future<int> Function(Future<Future<Future<int>>>)
       returnType: void
@@ -638,7 +638,7 @@ library
       reference: <testLibrary>::@setter::v
       firstFragment: #F3
       formalParameters
-        requiredPositional _v
+        #E0 requiredPositional _v
           firstFragment: #F4
           type: Future<int> Function(Future<int>)
       returnType: void
@@ -689,7 +689,7 @@ library
       reference: <testLibrary>::@setter::v
       firstFragment: #F3
       formalParameters
-        requiredPositional _v
+        #E0 requiredPositional _v
           firstFragment: #F4
           type: Future<dynamic> Function(Future<dynamic>)
       returnType: void
@@ -754,7 +754,7 @@ library
           reference: <testLibrary>::@class::C::@setter::v
           firstFragment: #F5
           formalParameters
-            requiredPositional _v
+            #E0 requiredPositional _v
               firstFragment: #F6
               type: int Function()
           returnType: void
@@ -869,7 +869,7 @@ library
           reference: <testLibrary>::@class::X1::@method::==
           firstFragment: #F3
           formalParameters
-            requiredPositional hasImplicitType other
+            #E0 requiredPositional hasImplicitType other
               firstFragment: #F4
               type: Object
           returnType: bool
@@ -887,7 +887,7 @@ library
           reference: <testLibrary>::@class::X2::@method::==
           firstFragment: #F7
           formalParameters
-            requiredPositional hasImplicitType other
+            #E1 requiredPositional hasImplicitType other
               firstFragment: #F8
               type: Object
           returnType: bool
@@ -905,7 +905,7 @@ library
           reference: <testLibrary>::@class::X3::@method::==
           firstFragment: #F11
           formalParameters
-            requiredPositional hasImplicitType other
+            #E2 requiredPositional hasImplicitType other
               firstFragment: #F12
               type: int
           returnType: bool
@@ -981,7 +981,7 @@ library
       reference: <testLibrary>::@setter::c
       firstFragment: #F7
       formalParameters
-        requiredPositional _c
+        #E2 requiredPositional _c
           firstFragment: #F8
           type: C<num, C<num, dynamic>>
       returnType: void
@@ -1092,7 +1092,7 @@ library
           reference: <testLibrary>::@class::B::@setter::c3
           firstFragment: #F8
           formalParameters
-            requiredPositional _c3
+            #E1 requiredPositional _c3
               firstFragment: #F9
               type: C<C<Object?>>
           returnType: void
@@ -1125,7 +1125,7 @@ library
       reference: <testLibrary>::@setter::c
       firstFragment: #F14
       formalParameters
-        requiredPositional _c
+        #E2 requiredPositional _c
           firstFragment: #F15
           type: C<C<dynamic>>
       returnType: void
@@ -1133,7 +1133,7 @@ library
       reference: <testLibrary>::@setter::c2
       firstFragment: #F16
       formalParameters
-        requiredPositional _c2
+        #E3 requiredPositional _c2
           firstFragment: #F17
           type: C<C<Object?>>
       returnType: void
@@ -1209,7 +1209,7 @@ library
       reference: <testLibrary>::@setter::c
       firstFragment: #F7
       formalParameters
-        requiredPositional _c
+        #E2 requiredPositional _c
           firstFragment: #F8
           type: C<C<dynamic, num>, num>
       returnType: void
@@ -1333,7 +1333,7 @@ library
       reference: <testLibrary>::@setter::f
       firstFragment: #F5
       formalParameters
-        requiredPositional _f
+        #E1 requiredPositional _f
           firstFragment: #F6
           type: dynamic Function(num)
             alias: <testLibrary>::@typeAlias::F
@@ -1432,7 +1432,7 @@ library
       reference: <testLibrary>::@setter::b
       firstFragment: #F10
       formalParameters
-        requiredPositional _b
+        #E3 requiredPositional _b
           firstFragment: #F11
           type: B<int Function(), A<int Function()>>
       returnType: void
@@ -1505,7 +1505,7 @@ library
       reference: <testLibrary>::@setter::f
       firstFragment: #F5
       formalParameters
-        requiredPositional _f
+        #E1 requiredPositional _f
           firstFragment: #F6
           type: S Function<S>(num)
             alias: <testLibrary>::@typeAlias::F
@@ -1656,7 +1656,7 @@ library
       reference: <testLibrary>::@setter::c
       firstFragment: #F6
       formalParameters
-        requiredPositional _c
+        #E1 requiredPositional _c
           firstFragment: #F7
           type: C<num>
       returnType: void
@@ -1727,7 +1727,7 @@ library
           reference: <testLibrary>::@class::C::@setter::v
           firstFragment: #F5
           formalParameters
-            requiredPositional _v
+            #E0 requiredPositional _v
               firstFragment: #F6
               type: List<dynamic>
           returnType: void
@@ -1771,7 +1771,7 @@ library
       reference: <testLibrary>::@function::foo
       firstFragment: #F1
       formalParameters
-        optionalPositional hasImplicitType p
+        #E0 optionalPositional hasImplicitType p
           firstFragment: #F2
           type: dynamic
           constantInitializer
@@ -1816,7 +1816,7 @@ library
       reference: <testLibrary>::@function::foo
       firstFragment: #F1
       formalParameters
-        optionalPositional hasImplicitType p
+        #E0 optionalPositional hasImplicitType p
           firstFragment: #F2
           type: dynamic
           constantInitializer
@@ -1882,7 +1882,7 @@ library
       reference: <testLibrary>::@setter::V
       firstFragment: #F3
       formalParameters
-        requiredPositional _V
+        #E0 requiredPositional _V
           firstFragment: #F4
           type: dynamic
       returnType: void
@@ -1891,7 +1891,7 @@ library
       reference: <testLibrary>::@function::foo
       firstFragment: #F5
       formalParameters
-        optionalPositional hasImplicitType p
+        #E1 optionalPositional hasImplicitType p
           firstFragment: #F6
           type: dynamic
           constantInitializer
@@ -1954,7 +1954,7 @@ library
       reference: <testLibrary>::@setter::v
       firstFragment: #F3
       formalParameters
-        requiredPositional _v
+        #E0 requiredPositional _v
           firstFragment: #F4
           type: C
       returnType: void
@@ -2011,7 +2011,7 @@ library
       reference: <testLibrary>::@setter::v
       firstFragment: #F3
       formalParameters
-        requiredPositional _v
+        #E0 requiredPositional _v
           firstFragment: #F4
           type: C
       returnType: void
@@ -2072,7 +2072,7 @@ library
       reference: <testLibrary>::@setter::v
       firstFragment: #F3
       formalParameters
-        requiredPositional _v
+        #E0 requiredPositional _v
           firstFragment: #F4
           type: C
       returnType: void
@@ -2383,7 +2383,7 @@ library
         #E1 U
           firstFragment: #F3
       formalParameters
-        requiredPositional b
+        #E2 requiredPositional b
           firstFragment: #F4
           type: bool
       returnType: void
@@ -2465,7 +2465,7 @@ library
           firstFragment: #F7
           hasEnclosingTypeParameterReference: true
           formalParameters
-            requiredPositional _v
+            #E2 requiredPositional _v
               firstFragment: #F8
               type: int Function(T, U)
           returnType: void
@@ -2510,7 +2510,7 @@ library
         #E1 U
           firstFragment: #F3
       formalParameters
-        requiredPositional b
+        #E2 requiredPositional b
           firstFragment: #F4
           type: bool
       returnType: void
@@ -2638,7 +2638,7 @@ library
       reference: <testLibrary>::@setter::m
       firstFragment: #F3
       formalParameters
-        requiredPositional _m
+        #E0 requiredPositional _m
           firstFragment: #F4
           type: Map<dynamic, dynamic>
       returnType: void
@@ -2684,7 +2684,7 @@ library
       reference: <testLibrary>::@setter::m
       firstFragment: #F3
       formalParameters
-        requiredPositional _m
+        #E0 requiredPositional _m
           firstFragment: #F4
           type: Map<dynamic, int>
       returnType: void
@@ -2730,7 +2730,7 @@ library
       reference: <testLibrary>::@setter::m
       firstFragment: #F3
       formalParameters
-        requiredPositional _m
+        #E0 requiredPositional _m
           firstFragment: #F4
           type: Map<String, dynamic>
       returnType: void
@@ -2776,7 +2776,7 @@ library
       reference: <testLibrary>::@setter::m
       firstFragment: #F3
       formalParameters
-        requiredPositional _m
+        #E0 requiredPositional _m
           firstFragment: #F4
           type: Map<String, int>
       returnType: void
@@ -2822,7 +2822,7 @@ library
       reference: <testLibrary>::@setter::m
       firstFragment: #F3
       formalParameters
-        requiredPositional _m
+        #E0 requiredPositional _m
           firstFragment: #F4
           type: Map<dynamic, dynamic>
       returnType: void
@@ -2868,7 +2868,7 @@ library
       reference: <testLibrary>::@setter::d
       firstFragment: #F3
       formalParameters
-        requiredPositional _d
+        #E0 requiredPositional _d
           firstFragment: #F4
           type: dynamic
       returnType: void
@@ -2914,7 +2914,7 @@ library
       reference: <testLibrary>::@setter::c
       firstFragment: #F3
       formalParameters
-        requiredPositional _c
+        #E0 requiredPositional _c
           firstFragment: #F4
           type: InvalidType
       returnType: void
@@ -2965,7 +2965,7 @@ library
       reference: <testLibrary>::@setter::c
       firstFragment: #F3
       formalParameters
-        requiredPositional _c
+        #E0 requiredPositional _c
           firstFragment: #F4
           type: InvalidType
       returnType: void

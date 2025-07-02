@@ -152,7 +152,7 @@ library
           reference: <testLibrary>::@class::A::@method::foo
           firstFragment: #F3
           formalParameters
-            requiredPositional a
+            #E0 requiredPositional a
               firstFragment: #F4
               type: (int, String)
           returnType: void
@@ -274,7 +274,7 @@ library
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       formalParameters
-        requiredPositional b
+        #E0 requiredPositional b
           firstFragment: #F2
           type: void Function((int, String))
       returnType: void
@@ -302,7 +302,7 @@ library
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       formalParameters
-        requiredPositional a
+        #E0 requiredPositional a
           firstFragment: #F2
           type: (int, String) Function()
       returnType: void
@@ -330,7 +330,7 @@ library
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       formalParameters
-        requiredPositional a
+        #E0 requiredPositional a
           firstFragment: #F2
           type: (int, String)
       returnType: void

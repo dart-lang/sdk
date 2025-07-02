@@ -75,7 +75,7 @@ library
           reference: <testLibrary>::@class::C::@setter::foo
           firstFragment: #F5
           formalParameters
-            requiredPositional _foo
+            #E0 requiredPositional _foo
               firstFragment: #F6
               type: int
           returnType: void
@@ -180,7 +180,7 @@ library
           reference: <testLibrary>::@class::C::@setter::foo
           firstFragment: #F4
           formalParameters
-            requiredPositional value
+            #E0 requiredPositional value
               firstFragment: #F5
               type: int
           returnType: void
@@ -368,7 +368,7 @@ library
           reference: <testLibrary>::@mixin::M::@setter::foo
           firstFragment: #F4
           formalParameters
-            requiredPositional _foo
+            #E0 requiredPositional _foo
               firstFragment: #F5
               type: int
           returnType: void
@@ -461,7 +461,7 @@ library
           reference: <testLibrary>::@mixin::M::@setter::foo
           firstFragment: #F3
           formalParameters
-            requiredPositional value
+            #E0 requiredPositional value
               firstFragment: #F4
               type: int
           returnType: void
@@ -544,7 +544,7 @@ library
       reference: <testLibrary>::@setter::foo
       firstFragment: #F3
       formalParameters
-        requiredPositional value
+        #E0 requiredPositional value
           firstFragment: #F4
           type: int
       returnType: void
@@ -582,7 +582,7 @@ library
       reference: <testLibrary>::@setter::foo
       firstFragment: #F2
       formalParameters
-        requiredPositional value
+        #E0 requiredPositional value
           firstFragment: #F3
           type: int
       returnType: void
@@ -631,7 +631,7 @@ library
       reference: <testLibrary>::@setter::foo
       firstFragment: #F3
       formalParameters
-        requiredPositional _foo
+        #E0 requiredPositional _foo
           firstFragment: #F4
           type: int
       returnType: void

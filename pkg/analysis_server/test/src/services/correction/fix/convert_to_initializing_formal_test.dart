@@ -175,6 +175,21 @@ class C {
 ''');
   }
 
+  Future<void> test_initializer_parameterRequired() async {
+    await resolveTestCode('''
+class C {
+  final int foo;
+  C({required int foo}) : foo = foo;
+}
+''');
+    await assertHasFix('''
+class C {
+  final int foo;
+  C({required this.foo});
+}
+''');
+  }
+
   Future<void> test_initializer_positional() async {
     await resolveTestCode('''
 class C {
