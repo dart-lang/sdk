@@ -58,10 +58,10 @@ import '../builder/property_builder.dart';
 import '../builder/type_builder.dart';
 import '../dill/dill_target.dart' show DillTarget;
 import '../fragment/constructor/declaration.dart';
-import '../source/class_declaration.dart';
 import '../source/name_scheme.dart';
 import '../source/source_class_builder.dart' show SourceClassBuilder;
 import '../source/source_constructor_builder.dart';
+import '../source/source_declaration_builder.dart';
 import '../source/source_extension_type_declaration_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../source/source_loader.dart'
@@ -1360,7 +1360,7 @@ class KernelTarget {
     _finishConstructors(extensionTypeDeclaration);
   }
 
-  void _finishConstructors(ClassDeclarationBuilder classDeclaration) {
+  void _finishConstructors(SourceDeclarationBuilder classDeclaration) {
     SourceLibraryBuilder libraryBuilder = classDeclaration.libraryBuilder;
 
     /// Quotes below are from [Dart Programming Language Specification, 4th

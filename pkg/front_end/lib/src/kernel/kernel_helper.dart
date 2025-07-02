@@ -327,23 +327,6 @@ class TypeDependency {
   }
 }
 
-/// Removes [FileUriExpression] nodes for annotations whose file URI is
-/// [annotatableFileUri], the file URI of the [annotatable].
-///
-/// This is an optimization to avoid unnecessary [FileUriConstantExpression]
-/// nodes in the generated AST.
-void adjustAnnotationFileUri(Annotatable annotatable, Uri annotatableFileUri) {
-  List<Expression> annotations = annotatable.annotations;
-  for (int i = 0; i < annotations.length; i++) {
-    Expression annotation = annotations[i];
-    if (annotation is FileUriExpression &&
-        annotation.fileUri == annotatableFileUri) {
-      // Coverage-ignore-block(suite): Not run.
-      annotations[i] = annotation.expression..parent = annotatable;
-    }
-  }
-}
-
 // Coverage-ignore(suite): Not run.
 /// Copies properties, function parameters and body from the [augmentation]
 /// procedure to its [origin].
@@ -357,6 +340,4 @@ void finishProcedureAugmentation(Procedure origin, Procedure augmentation) {
   origin.isExternal = augmentation.isExternal;
   origin.function = augmentation.function;
   origin.function.parent = origin;
-
-  adjustAnnotationFileUri(origin, origin.fileUri);
 }

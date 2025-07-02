@@ -1241,6 +1241,13 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
 
     final address = await _resolveHost(host);
 
+    if (address.type != InternetAddressType.IPv6 &&
+        address.type != InternetAddressType.IPv4) {
+      throw SocketException(
+        'Cannot bind datagram socket on non-IPv4/IPv6 address (was: $address)',
+      );
+    }
+
     var socket = _NativeSocket.datagram(address);
     var result = socket._nativeCreateBindDatagram(
       address._in_addr,

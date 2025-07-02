@@ -39,7 +39,7 @@ import 'name_space_builder.dart';
 import 'native_method_registry.dart';
 import 'offset_map.dart';
 import 'outline_builder.dart';
-import 'source_builder_mixins.dart';
+import 'source_declaration_builder.dart';
 import 'source_library_builder.dart';
 import 'source_loader.dart' show SourceLoader;
 import 'source_member_builder.dart';

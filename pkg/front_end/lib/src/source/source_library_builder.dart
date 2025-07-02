@@ -50,11 +50,10 @@ import '../kernel/utils.dart'
         exportDynamicSentinel,
         exportNeverSentinel,
         unserializableExportName;
-import 'class_declaration.dart';
 import 'name_scheme.dart';
 import 'name_space_builder.dart';
-import 'source_builder_mixins.dart';
 import 'source_class_builder.dart' show SourceClassBuilder;
+import 'source_declaration_builder.dart';
 import 'source_extension_builder.dart';
 import 'source_extension_type_declaration_builder.dart';
 import 'source_factory_builder.dart';
@@ -708,10 +707,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// return the number of constructors resolved.
   int resolveConstructors() {
     int count = 0;
-    Iterator<ClassDeclarationBuilder> iterator =
+    Iterator<SourceDeclarationBuilder> iterator =
         filteredMembersIterator(includeDuplicates: true);
     while (iterator.moveNext()) {
-      ClassDeclarationBuilder builder = iterator.current;
+      SourceDeclarationBuilder builder = iterator.current;
       count += builder.resolveConstructors(this);
     }
     return count;

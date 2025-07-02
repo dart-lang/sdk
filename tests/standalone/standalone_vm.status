@@ -11,9 +11,12 @@ link_natives_lazily_test: SkipByDesign # Not supported.
 no_allow_absolute_addresses_test: SkipByDesign # Not supported.
 
 [ $system == android ]
+embedder_samples_test: SkipByDesign # Uses subprocess calls to things not available on Android device
+gn_py_test: SkipByDesign # Uses subprocess calls to things not available on Android device
 io/file_stat_test: Skip # Issue 26376
 io/file_system_watcher_test: Skip # Issue 26376
 io/file_test: Skip # Issue 26376
+io/http_on_unix_socket_test: SkipByDesign # Uses curl, not available on Android device
 io/many_pending_secure_sockets_test: Skip # Too expensive
 io/non_utf8_output_test: Skip # The Android command runner doesn't correctly handle non-UTF8 formatted output. https://github.com/dart-lang/sdk/issues/28872
 io/process_exit_test: Skip # Issue 29578
