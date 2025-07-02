@@ -1288,13 +1288,16 @@ class MethodInvocationResolver with ScopeHelpers {
     // [DotShorthandConstructorInvocation].
     if (receiver.getNamedConstructor2(name) case ConstructorElementImpl element?
         when element.isAccessibleIn2(_resolver.definingLibrary)) {
-      var replacement = DotShorthandConstructorInvocationImpl(
-        constKeyword: null,
-        period: node.period,
-        constructorName: nameNode,
-        typeArguments: node.typeArguments,
-        argumentList: node.argumentList,
-      )..element = element;
+      var replacement =
+          DotShorthandConstructorInvocationImpl(
+              constKeyword: null,
+              period: node.period,
+              constructorName: nameNode,
+              typeArguments: node.typeArguments,
+              argumentList: node.argumentList,
+            )
+            ..element = element
+            ..isDotShorthand = node.isDotShorthand;
       _resolver.replaceExpression(node, replacement);
       _resolver.flowAnalysis.transferTestData(node, replacement);
       return replacement;

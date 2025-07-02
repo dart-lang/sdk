@@ -921,6 +921,11 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   }
 
   @override
+  Constant visitDotShorthandInvocation(DotShorthandInvocation node) {
+    return _invalidConstantForMethodInvocation(node);
+  }
+
+  @override
   Constant visitDotShorthandPropertyAccess(
     covariant DotShorthandPropertyAccessImpl node,
   ) {
@@ -1150,20 +1155,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       }
     }
 
-    // Some methods aren't resolved by the time we are evaluating it. We'll mark
-    // it and return immediately.
-    if (node.staticType is InvalidType) {
-      return InvalidConstant.forEntity(
-        entity: node,
-        diagnosticCode: CompileTimeErrorCode.INVALID_CONSTANT,
-        isUnresolved: true,
-      );
-    }
-
-    return InvalidConstant.forEntity(
-      entity: node,
-      diagnosticCode: CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION,
-    );
+    return _invalidConstantForMethodInvocation(node);
   }
 
   @override
@@ -2219,6 +2211,25 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       }
     }
     return value;
+  }
+
+  // Common invalid constants for method invocations and dot shorthand
+  // invocations.
+  Constant _invalidConstantForMethodInvocation(Expression node) {
+    // Some methods aren't resolved by the time we are evaluating it. We'll mark
+    // it and return immediately.
+    if (node.staticType is InvalidType) {
+      return InvalidConstant.forEntity(
+        entity: node,
+        diagnosticCode: CompileTimeErrorCode.INVALID_CONSTANT,
+        isUnresolved: true,
+      );
+    }
+
+    return InvalidConstant.forEntity(
+      entity: node,
+      diagnosticCode: CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION,
+    );
   }
 
   /// Returns the first not-potentially constant error found with [node] or

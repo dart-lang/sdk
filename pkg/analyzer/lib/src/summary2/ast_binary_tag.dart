@@ -52,6 +52,7 @@ class Tag {
   static const int DeclaredIdentifier = 90;
   static const int DefaultFormalParameter = 8;
   static const int DotShorthandConstructorInvocation = 114;
+  static const int DotShorthandInvocation = 115;
   static const int DotShorthandPropertyAccess = 113;
   static const int DottedName = 47;
   static const int DoubleLiteral = 9;

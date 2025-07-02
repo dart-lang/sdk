@@ -7197,8 +7197,17 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
 
 base mixin DotShorthandMixin on ExpressionImpl {
   /// Whether the AST node is a dot shorthand and has a dot shorthand head
-  /// ([DotShorthandInvocation] or [DotShorthandPropertyAccess]) as its
+  /// ([DotShorthandInvocation], [DotShorthandConstructorInvocation] or
+  /// [DotShorthandPropertyAccess]) as its
   /// inner-most target.
+  ///
+  /// This is `false` and remains `false` when there is no dot shorthand head as
+  /// its inner-most target. When we are parsing and notice that we have a dot
+  /// shorthand head, we flip this flag to `true` and it remains `true` for that
+  /// expression.
+  ///
+  /// We use this flag to determine the correct context type to cache. This
+  /// cached context type is then used to resolve the dot shorthand head.
   bool isDotShorthand = false;
 }
 
