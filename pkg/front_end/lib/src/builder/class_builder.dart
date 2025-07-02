@@ -79,6 +79,7 @@ abstract class ClassBuilder implements DeclarationBuilder {
 }
 
 abstract class ClassBuilderImpl extends DeclarationBuilderImpl
+    with DeclarationBuilderMixin
     implements ClassBuilder {
   @override
   bool isNullClass = false;
@@ -96,33 +97,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     return isMixinApplication &&
         // Coverage-ignore(suite): Not run.
         !isNamedMixinApplication;
-  }
-
-  @override
-  LookupResult? findStaticBuilder(String name, int fileOffset, Uri fileUri,
-      LibraryBuilder accessingLibrary) {
-    if (accessingLibrary.nameOriginBuilder !=
-            libraryBuilder.nameOriginBuilder &&
-        name.startsWith("_")) {
-      return null;
-    }
-    return nameSpace.lookupLocal(name,
-        fileUri: fileUri, fileOffset: fileOffset, staticOnly: true);
-  }
-
-  @override
-  NamedBuilder? lookupLocalMember(String name,
-      {bool setter = false, bool required = false}) {
-    LookupResult? result = nameSpace.lookupLocalMember(name);
-    NamedBuilder? builder = setter ? result?.setable : result?.getable;
-    if (required && builder == null) {
-      internalProblem(
-          templateInternalProblemNotFoundIn.withArguments(
-              name, fullNameForErrors),
-          -1,
-          null);
-    }
-    return builder;
   }
 
   @override

@@ -21,6 +21,9 @@ class InvalidTypeDeclarationBuilder extends TypeDeclarationBuilderImpl
       {this.context, this.suppressMessage = true});
 
   @override
+  int get typeParametersCount => 0;
+
+  @override
   Builder? get parent => null;
 
   @override

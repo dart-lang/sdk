@@ -25,7 +25,7 @@ import 'source_member_builder.dart';
 import 'source_type_parameter_builder.dart';
 
 class SourceExtensionBuilder extends ExtensionBuilderImpl
-    with SourceDeclarationBuilderMixin {
+    with SourceDeclarationBuilderBaseMixin, SourceDeclarationBuilderMixin {
   @override
   final SourceLibraryBuilder libraryBuilder;
 

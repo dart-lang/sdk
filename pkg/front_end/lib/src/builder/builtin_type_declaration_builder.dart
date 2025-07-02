@@ -25,6 +25,9 @@ abstract class BuiltinTypeDeclarationBuilder extends TypeDeclarationBuilderImpl
       : fileUri = parent.fileUri;
 
   @override
+  int get typeParametersCount => 0;
+
+  @override
   DartType buildAliasedType(
       LibraryBuilder library,
       NullabilityBuilder nullabilityBuilder,

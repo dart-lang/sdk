@@ -10,7 +10,7 @@ import 'package:kernel/src/unaliasing.dart';
 import '../base/lookup_result.dart';
 import '../base/messages.dart';
 import '../base/name_space.dart';
-import '../base/problems.dart' show internalProblem, unexpected, unhandled;
+import '../base/problems.dart' show unexpected, unhandled;
 import '../base/scope.dart';
 import '../base/uris.dart';
 import '../codes/cfe_codes.dart';

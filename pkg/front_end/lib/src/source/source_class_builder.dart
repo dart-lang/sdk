@@ -4,7 +4,7 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart'
-    show ClassHierarchy, ClassHierarchyBase, ClassHierarchyMembers;
+    show ClassHierarchy, ClassHierarchyMembers;
 import 'package:kernel/core_types.dart';
 import 'package:kernel/names.dart' show equalsName;
 import 'package:kernel/reference_from_index.dart'
@@ -45,12 +45,12 @@ import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/hierarchy/hierarchy_node.dart';
 import '../kernel/kernel_helper.dart';
-import '../kernel/type_algorithms.dart';
 import '../kernel/utils.dart' show compareProcedures;
 import 'builder_factory.dart';
 import 'name_scheme.dart';
 import 'name_space_builder.dart';
 import 'nominal_parameter_name_space.dart';
+import 'source_builder_mixins.dart';
 import 'source_constructor_builder.dart';
 import 'source_declaration_builder.dart';
 import 'source_factory_builder.dart';
@@ -93,6 +93,7 @@ Class initializeClass(
 }
 
 class SourceClassBuilder extends ClassBuilderImpl
+    with SourceDeclarationBuilderBaseMixin
     implements Comparable<SourceClassBuilder>, SourceDeclarationBuilder {
   @override
   final SourceLibraryBuilder libraryBuilder;
@@ -585,55 +586,6 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     }
     return null;
-  }
-
-  @override
-  int get typeParametersCount => typeParameters?.length ?? 0;
-
-  @override
-  List<DartType> buildAliasedTypeArguments(LibraryBuilder library,
-      List<TypeBuilder>? arguments, ClassHierarchyBase? hierarchy) {
-    if (arguments == null && typeParameters == null) {
-      return <DartType>[];
-    }
-
-    if (arguments == null && typeParameters != null) {
-      // TODO(johnniwinther): Use i2b here when needed.
-      List<DartType> result = new List<DartType>.generate(
-          typeParameters!.length,
-          (int i) => typeParameters![i]
-              .defaultType!
-              // TODO(johnniwinther): Using [libraryBuilder] here instead of
-              // [library] preserves the nullability of the original
-              // declaration. Should we legacy erase this?
-              .buildAliased(
-                  libraryBuilder, TypeUse.defaultTypeAsTypeArgument, hierarchy),
-          growable: true);
-      return result;
-    }
-
-    if (arguments != null && arguments.length != typeParametersCount) {
-      // Coverage-ignore-block(suite): Not run.
-      assert(libraryBuilder.loader.assertProblemReportedElsewhere(
-          "SourceClassBuilder.buildAliasedTypeArguments: "
-          "the numbers of type parameters and type arguments don't match.",
-          expectedPhase: CompilationPhaseForProblemReporting.outline));
-      return unhandled(
-          templateTypeArgumentMismatch
-              .withArguments(typeParametersCount)
-              .problemMessage,
-          "buildTypeArguments",
-          -1,
-          null);
-    }
-
-    assert(arguments!.length == typeParametersCount);
-    List<DartType> result = new List<DartType>.generate(
-        arguments!.length,
-        (int i) =>
-            arguments[i].buildAliased(library, TypeUse.typeArgument, hierarchy),
-        growable: true);
-    return result;
   }
 
   /// Returns a map which maps the type parameters of [superclass] to their
@@ -1242,45 +1194,6 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
   }
 
-  @override
-  int computeDefaultTypes(ComputeDefaultTypeContext context) {
-    bool hasErrors = context.reportNonSimplicityIssues(this, typeParameters);
-    int count = context.computeDefaultTypesForVariables(typeParameters,
-        inErrorRecovery: hasErrors);
-
-    Iterator<SourceMemberBuilder> iterator =
-        filteredConstructorsIterator(includeDuplicates: false);
-    while (iterator.moveNext()) {
-      count += iterator.current
-          .computeDefaultTypes(context, inErrorRecovery: hasErrors);
-    }
-
-    Iterator<SourceMemberBuilder> memberIterator =
-        filteredMembersIterator(includeDuplicates: false);
-    while (memberIterator.moveNext()) {
-      count += memberIterator.current
-          .computeDefaultTypes(context, inErrorRecovery: hasErrors);
-    }
-    return count;
-  }
-
-  void checkTypesInOutline(TypeEnvironment typeEnvironment) {
-    Iterator<SourceMemberBuilder> memberIterator =
-        filteredMembersIterator(includeDuplicates: false);
-    while (memberIterator.moveNext()) {
-      SourceMemberBuilder builder = memberIterator.current;
-      builder.checkVariance(this, typeEnvironment);
-      builder.checkTypes(libraryBuilder, nameSpace, typeEnvironment);
-    }
-
-    Iterator<SourceMemberBuilder> constructorIterator =
-        filteredConstructorsIterator(includeDuplicates: false);
-    while (constructorIterator.moveNext()) {
-      SourceMemberBuilder builder = constructorIterator.current;
-      builder.checkTypes(libraryBuilder, nameSpace, typeEnvironment);
-    }
-  }
-
   void addSyntheticConstructor(SourceConstructorBuilder constructorBuilder) {
     String name = constructorBuilder.name;
     assert(
@@ -1295,8 +1208,6 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   int buildBodyNodes() {
-    adjustAnnotationFileUri(cls, cls.fileUri);
-
     int count = 0;
 
     void buildMembers(SourceMemberBuilder builder) {
