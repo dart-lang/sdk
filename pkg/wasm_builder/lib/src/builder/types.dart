@@ -9,12 +9,20 @@ import '../ir/ir.dart' as ir;
 import 'builder.dart';
 
 /// The available field values that can be used in brand type StructTypes.
-const List<ir.ValueType> _brandTypeFieldValues = [
+const List<ir.StorageType> _brandTypeFieldValues = [
   ir.NumType.i32,
   ir.NumType.i64,
   ir.NumType.f32,
   ir.NumType.f64,
   ir.NumType.v128,
+  ir.PackedType.i8,
+  ir.PackedType.i16,
+  ir.RefType.i31(nullable: false),
+  ir.RefType.i31(nullable: true),
+  ir.RefType.struct(nullable: false),
+  ir.RefType.struct(nullable: true),
+  ir.RefType.array(nullable: false),
+  ir.RefType.array(nullable: true),
   ir.RefType.extern(nullable: false),
   ir.RefType.extern(nullable: true),
   ir.RefType.any(nullable: false),
@@ -35,22 +43,17 @@ const List<ir.ValueType> _brandTypeFieldValues = [
 /// The produced brand type can be added to rec groups that would otherwise be
 /// considered equal by the wasm type system. The brand types break the unwanted
 /// equivalence relation between the groups.
-///
-/// The brand type must contain at least one field because every struct is a
-/// subtype of the empty struct.
 ir.StructType _getBrandType(int index) {
   final brandName = 'brand$index';
   final List<ir.FieldType> fields = [];
   final numDigits = _brandTypeFieldValues.length;
-  do {
-    final modValue = index % numDigits;
-    // It's important that the fields are mutable. This ensures that the
-    // contained StorageTypes must be mutual subtypes (i.e. they must be equal)
-    // in order for them to match. Some of our brand digit options are subtypes
-    // of others so to avoid them matching we need the mutual subtyping.
-    fields.add(ir.FieldType(_brandTypeFieldValues[modValue], mutable: true));
-    index = index ~/ numDigits;
-  } while (index > 0);
+  while (index > 0) {
+    final useMutable = index & 1 == 1;
+    final digitIndex = (index >> 1) % numDigits;
+    fields.add(
+        ir.FieldType(_brandTypeFieldValues[digitIndex], mutable: useMutable));
+    index = index ~/ (numDigits * 2);
+  }
   return ir.StructType(brandName, fields: fields);
 }
 
