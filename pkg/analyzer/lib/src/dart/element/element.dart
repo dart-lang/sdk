@@ -728,17 +728,6 @@ class ConstantInitializerImpl implements ConstantInitializer {
   }
 }
 
-/// A `LocalVariableElement` for a local 'const' variable that has an
-/// initializer.
-class ConstLocalVariableFragmentImpl extends LocalVariableFragmentImpl {
-  /// Initialize a newly created local variable element to have the given [name]
-  /// and [offset].
-  ConstLocalVariableFragmentImpl({
-    required super.name2,
-    required super.nameOffset,
-  });
-}
-
 class ConstructorElementImpl extends ExecutableElementImpl
     with
         FragmentedExecutableElementMixin<ConstructorFragmentImpl>,

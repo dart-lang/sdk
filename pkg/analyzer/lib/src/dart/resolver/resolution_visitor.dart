@@ -1529,18 +1529,10 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       variable as VariableDeclarationImpl;
       var nameToken = variable.name;
 
-      LocalVariableFragmentImpl fragment;
-      if (isConst && variable.initializer != null) {
-        fragment = ConstLocalVariableFragmentImpl(
-          name2: _getFragmentName(nameToken),
-          nameOffset: nameToken.offset,
-        );
-      } else {
-        fragment = LocalVariableFragmentImpl(
-          name2: _getFragmentName(nameToken),
-          nameOffset: nameToken.offset,
-        );
-      }
+      var fragment = LocalVariableFragmentImpl(
+        name2: _getFragmentName(nameToken),
+        nameOffset: nameToken.offset,
+      );
       variable.declaredFragment = fragment;
       _elementHolder.enclose(fragment);
       _define(fragment.element);
