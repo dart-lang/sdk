@@ -1808,11 +1808,8 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     SafepointWriteRwLocker ml(thread, isolate_group->program_lock());
 
     Class& cls = Class::Handle(zone);
-    Class& vm_isolate_cls = Class::Handle(zone);
     Type& type = Type::Handle(zone);
-    Object& obj = Object::Handle(zone);
     Array& array = Array::Handle(zone);
-    Array& array2 = Array::Handle(zone);
     WeakArray& weak_array = WeakArray::Handle(zone);
     Library& lib = Library::Handle(zone);
     TypeArguments& type_args = TypeArguments::Handle(zone);
@@ -1941,24 +1938,6 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     pending_classes.Add(cls);
 
     cls = Class::New<Array, RTN::Array>(kImmutableArrayCid, isolate_group);
-
-    // Carry over immutable array constants from vm-isolate: vm-isolate contains
-    // stubs and those use argument descriptor objects represented as
-    // canonical immutable arrays. To avoid duplicating these again prepopulate
-    // constants set by copying it over from vm-isolate.
-    vm_isolate_cls =
-        Dart::vm_isolate_group()->object_store()->immutable_array_class();
-    array = vm_isolate_cls.constants();
-    if (!array.IsNull()) {
-      const auto length = array.Length();
-      array2 = Array::New(length, Heap::kOld);
-      for (intptr_t i = 0; i < length; i++) {
-        obj = array.At(i);
-        array2.SetAt(i, obj);
-      }
-      cls.set_constants(array2);
-    }
-
     object_store->set_immutable_array_class(cls);
     cls.set_type_arguments_field_offset(Array::type_arguments_offset(),
                                         RTN::Array::type_arguments_offset());
