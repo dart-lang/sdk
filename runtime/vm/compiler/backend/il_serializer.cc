@@ -102,24 +102,26 @@ void ArgumentsDescriptor::Write(FlowGraphSerializer* s) const {
   if (IsCached()) {
     // Simple argument descriptors are cached in the VM isolate.
     // Write them as arguments count and query cache during deserialization.
-    ASSERT(TypeArgsLen() == 0);
     ASSERT(NamedCount() == 0);
     ASSERT(Count() == Size());
     ASSERT(array_.InVMIsolateHeap());
+    s->Write<intptr_t>(TypeArgsLen());
     s->Write<intptr_t>(Count());
   } else {
     ASSERT(array_.IsCanonical());
+    ASSERT(!array_.InVMIsolateHeap());
     s->Write<intptr_t>(-1);
     s->Write<const Array&>(array_);
   }
 }
 
 ArrayPtr ArgumentsDescriptor::Read(FlowGraphDeserializer* d) {
-  const intptr_t num_args = d->Read<intptr_t>();
-  if (num_args < 0) {
+  const intptr_t num_type_args = d->Read<intptr_t>();
+  if (num_type_args < 0) {
     return d->Read<const Array&>().ptr();
   }
-  return NewBoxed(0, num_args);
+  const intptr_t num_args = d->Read<intptr_t>();
+  return NewBoxed(num_type_args, num_args);
 }
 
 void BlockEntryInstr::WriteTo(FlowGraphSerializer* s) {

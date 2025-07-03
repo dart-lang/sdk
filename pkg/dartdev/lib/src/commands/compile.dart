@@ -602,7 +602,9 @@ Remove debugging information from the output and save it separately to the speci
       }
 
       var cacheDir = getDartStorageDirectory();
-      if (cacheDir == null) {
+      if (cacheDir != null) {
+        cacheDir = Directory(path.join(cacheDir.path, 'dartdev', 'sdk_cache'));
+      } else {
         cacheDir = Directory.systemTemp.createTempSync();
         log.stdout('Cannot get dart storage directory. '
             'Using temp dir ${cacheDir.path}');
