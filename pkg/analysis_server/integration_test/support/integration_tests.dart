@@ -116,6 +116,10 @@ abstract class AbstractAnalysisServerIntegrationTest extends IntegrationTest
   @override
   final Server server = Server();
 
+  /// Temporary folders created by the test that should be deleted (recursively)
+  /// during [tearDown].
+  final List<String> _temporaryFolders = [];
+
   /// Temporary directory in which source files can be stored.
   late Directory sourceDirectory;
 
@@ -223,10 +227,13 @@ abstract class AbstractAnalysisServerIntegrationTest extends IntegrationTest
   /// [sourceDirectory] is created.
   Future<void> setUp() async {
     var pathContext = resourceProvider.pathContext;
-    var tempDirectoryPath =
-        Directory.systemTemp
-            .createTempSync('analysisServer')
-            .resolveSymbolicLinksSync();
+    var testTemporaryDirectory = Directory(
+      Directory.systemTemp
+          .createTempSync('analysisServer_test_integration_project')
+          .resolveSymbolicLinksSync(),
+    );
+    var tempDirectoryPath = testTemporaryDirectory.path;
+    _temporaryFolders.add(tempDirectoryPath);
     sourceDirectory = Directory(pathContext.join(tempDirectoryPath, 'app'))
       ..createSync();
     packagesDirectory = Directory(
@@ -323,8 +330,9 @@ abstract class AbstractAnalysisServerIntegrationTest extends IntegrationTest
   @mustCallSuper
   Future<void> tearDown() {
     return shutdownIfNeeded().then((_) {
-      sourceDirectory.deleteSync(recursive: true);
-      packagesDirectory.deleteSync(recursive: true);
+      for (var temporaryFolder in _temporaryFolders) {
+        deleteFolder(temporaryFolder);
+      }
     });
   }
 

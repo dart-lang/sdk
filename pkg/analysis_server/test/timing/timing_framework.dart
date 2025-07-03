@@ -137,7 +137,9 @@ abstract class TimingTest extends IntegrationTest {
   /// iterations.
   Future<void> oneTimeSetUp() {
     server = Server();
-    sourceDirectory = Directory.systemTemp.createTempSync('analysisServer');
+    sourceDirectory = Directory.systemTemp.createTempSync(
+      'analysisServer_test_timing',
+    );
     var serverConnected = Completer<void>();
     onServerConnected.listen((_) {
       serverConnected.complete();

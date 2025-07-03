@@ -53,7 +53,7 @@ Future<String> getAnalysisServerPath(String dartSdkPath) async {
   //      This is a simple way to run from source using the test_all file that
   //      runs all tests in a single isolate and will trigger a single
   //      compilation for all integration tests.
-  //  - An path to a pre-compiled snapshot.
+  //  - A path to a pre-compiled snapshot.
   //    This allows configuring VS Code to pre-compile the snapshot once and
   //    then use 'dart test' which will run each sweet in a separate isolate
   //    without each test/isolate having to compile.
@@ -85,7 +85,7 @@ Future<String> _compileTemporaryServerSnapshot() async {
 
   var dartBinary = Platform.resolvedExecutable;
   var tempSnapshotDirectory = Directory.systemTemp.createTempSync(
-    'dart_analysis_server_tests',
+    'analysisServer_test_integration_compiledServer',
   );
   var tempSnapshotFilePath = path.join(
     tempSnapshotDirectory.path,
