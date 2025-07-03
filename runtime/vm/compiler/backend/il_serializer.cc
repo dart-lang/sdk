@@ -109,7 +109,6 @@ void ArgumentsDescriptor::Write(FlowGraphSerializer* s) const {
     s->Write<intptr_t>(Count());
   } else {
     ASSERT(array_.IsCanonical());
-    ASSERT(!array_.InVMIsolateHeap());
     s->Write<intptr_t>(-1);
     s->Write<const Array&>(array_);
   }
