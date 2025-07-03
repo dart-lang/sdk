@@ -40,6 +40,8 @@ application_snapshot("dartdevc") {
   main_dart = "../../pkg/dev_compiler/bin/dartdevc.dart"
 
   training_args = [
+    "--packages",
+    rebase_path("../../.dart_tool/package_config.json"),
     "--dart-sdk-summary",
     rebase_path(sdk_outline_dill),
     "-o",

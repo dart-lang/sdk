@@ -307,9 +307,8 @@ abstract class GeneratedContent {
   static Future<void> checkAll(
     String pkgPath,
     String generatorPath,
-    Iterable<GeneratedContent> targets, {
-    List<String> args = const [],
-  }) async {
+    Iterable<GeneratedContent> targets,
+  ) async {
     var generateNeeded = false;
     for (var target in targets) {
       var ok = await target.check(pkgPath);
@@ -325,7 +324,7 @@ abstract class GeneratedContent {
       print('Please regenerate using:');
       var executable = Platform.executable;
       var generateScript = normalize(joinAll(posix.split(generatorPath)));
-      print('  $executable $generateScript ${args.join(" ")}');
+      print('  $executable $generateScript');
       fail('Generated content needs to be regenerated');
     }
   }

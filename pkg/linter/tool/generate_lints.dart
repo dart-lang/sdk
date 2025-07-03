@@ -19,6 +19,10 @@ void main() async {
   ]);
 }
 
+const String generatedCodesPath = 'lib/src/lint_codes.g.dart';
+
+const String generatedNamesPath = 'lib/src/lint_names.g.dart';
+
 GeneratedFile get generatedCodesFile =>
     GeneratedFile(generatedCodesPath, (String pkgPath) async {
       var out = StringBuffer('''
@@ -96,9 +100,6 @@ class LinterLintCode extends LintCode {
       return out.toString();
     });
 
-String get generatedCodesPath =>
-    pathRelativeToPackageRoot(const ['lib', 'src', 'lint_codes.g.dart']);
-
 GeneratedFile get generatedNamesFile =>
     GeneratedFile(generatedNamesPath, (String pkgPath) async {
       var out = StringBuffer('''
@@ -127,6 +128,3 @@ abstract final class LintNames {
       out.writeln('}');
       return out.toString();
     });
-
-String get generatedNamesPath =>
-    pathRelativeToPackageRoot(const ['lib', 'src', 'lint_names.g.dart']);

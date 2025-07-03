@@ -43,4 +43,4 @@ VM_OPTIONS+=("--enable-asserts")
 
 cd "${SCRIPT_DIR}"
 "${DART}" "${VM_OPTIONS[@]}" "messages/generate.dart"
-"${DART}" "${VM_OPTIONS[@]}" "summary/generate.dart" "${ROOT_DIR}/pkg/analyzer/lib/src/summary/idl.dart"
+"${DART}" "${VM_OPTIONS[@]}" "summary/generate.dart"

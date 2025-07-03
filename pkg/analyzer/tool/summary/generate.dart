@@ -23,22 +23,19 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
+import 'package:analyzer_testing/package_root.dart' as pkg_root;
 import 'package:analyzer_utilities/tools.dart';
+import 'package:path/path.dart';
 
 import 'idl_model.dart' as idl_model;
 import 'mini_ast.dart';
 
-void main(List<String> args) async {
-  if (args.length != 1) {
-    print('Error: IDL path is required');
-    print('usage: dart generate.dart path/to/idl.dart');
-    return;
-  }
-  String idlPath = args[0];
-  await GeneratedContent.generateAll(
-    File(idlPath).parent.path,
-    getAllTargets(idlPath),
+void main() async {
+  var idlFolderPath = normalize(
+    join(pkg_root.packageRoot, 'analyzer', 'lib', 'src', 'summary'),
   );
+  var idlPath = normalize(join(idlFolderPath, 'idl.dart'));
+  await GeneratedContent.generateAll(idlFolderPath, getAllTargets(idlPath));
 }
 
 List<GeneratedContent> getAllTargets(String idlPath) {

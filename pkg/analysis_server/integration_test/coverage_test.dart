@@ -5,30 +5,21 @@
 import 'dart:io';
 
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
+import 'package:analyzer_testing/package_root.dart' as pkg_root;
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
-import '../tool/spec/api.dart';
 import '../tool/spec/from_html.dart';
 
 /// Define tests to fail if there's no mention in the coverage file.
 void main() {
-  Api api;
-  File coverageFile;
-  String pathPrefix;
-
   // parse the API file
-  if (FileSystemEntity.isFileSync(
-    path.join('tool', 'spec', 'spec_input.html'),
-  )) {
-    api = readApi('.');
-    pathPrefix = '.';
-  } else {
-    api = readApi(path.join('pkg', 'analysis_server'));
-    pathPrefix = path.join('pkg', 'analysis_server');
-  }
+  var pathPrefix = path.join(pkg_root.packageRoot, 'analysis_server');
+  var api = readApi(pathPrefix);
 
-  coverageFile = File(path.join(pathPrefix, 'integration_test', 'coverage.md'));
+  var coverageFile = File(
+    path.join(pathPrefix, 'integration_test', 'coverage.md'),
+  );
   var lines = coverageFile.readAsLinesSync();
 
   // ## server domain
