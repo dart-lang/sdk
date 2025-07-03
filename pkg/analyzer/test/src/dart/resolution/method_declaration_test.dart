@@ -156,8 +156,10 @@ VariableDeclaration
     token: _
     element: <testLibrary>::@class::C::@getter::_
     staticType: int
-  declaredElement: _@51
+  declaredFragment: isPrivate _@51
     type: int
+    element: isPrivate
+      type: int
 ''');
   }
 }

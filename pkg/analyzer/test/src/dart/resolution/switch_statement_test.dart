@@ -306,8 +306,10 @@ SwitchStatement
             element2: dart:core::@class::int
             type: int
           name: a
-          declaredElement: a@48
+          declaredFragment: isPublic a@48
             type: int
+            element: isPublic
+              type: int
           matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
@@ -334,8 +336,10 @@ SwitchStatement
             element2: dart:core::@class::int
             type: int
           name: a
-          declaredElement: a@75
+          declaredFragment: isPublic a@75
             type: int
+            element: isPublic
+              type: int
           matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
@@ -397,8 +401,10 @@ SwitchStatement
             element2: dart:core::@class::int
             type: int
           name: a
-          declaredElement: isFinal a@54
+          declaredFragment: isFinal isPublic a@54
             type: int
+            element: isFinal isPublic
+              type: int
           matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
@@ -426,8 +432,10 @@ SwitchStatement
             element2: dart:core::@class::int
             type: int
           name: a
-          declaredElement: isFinal a@87
+          declaredFragment: isFinal isPublic a@87
             type: int
+            element: isFinal isPublic
+              type: int
           matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
@@ -489,8 +497,10 @@ SwitchStatement
               element2: dart:core::@class::int
               type: int
             name: a
-            declaredElement: a@48
+            declaredFragment: isPublic a@48
               type: int
+              element: isPublic
+                type: int
             matchedValueType: Object?
           operator: ||
           rightOperand: ListPattern
@@ -502,8 +512,10 @@ SwitchStatement
                   element2: dart:core::@class::int
                   type: int
                 name: a
-                declaredElement: a@58
+                declaredFragment: isPublic a@58
                   type: int
+                  element: isPublic
+                    type: int
                 matchedValueType: Object?
             rightBracket: ]
             matchedValueType: Object?
@@ -535,8 +547,10 @@ SwitchStatement
               element2: dart:core::@class::int
               type: int
             name: a
-            declaredElement: a@86
+            declaredFragment: isPublic a@86
               type: int
+              element: isPublic
+                type: int
             matchedValueType: Object?
           operator: ||
           rightOperand: ListPattern
@@ -548,8 +562,10 @@ SwitchStatement
                   element2: dart:core::@class::int
                   type: int
                 name: a
-                declaredElement: a@96
+                declaredFragment: isPublic a@96
                   type: int
+                  element: isPublic
+                    type: int
                 matchedValueType: Object?
             rightBracket: ]
             matchedValueType: Object?
@@ -625,8 +641,10 @@ SwitchStatement
             element2: dart:core::@class::int
             type: int
           name: a
-          declaredElement: isFinal a@54
+          declaredFragment: isFinal isPublic a@54
             type: int
+            element: isFinal isPublic
+              type: int
           matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
@@ -653,8 +671,10 @@ SwitchStatement
             element2: dart:core::@class::int
             type: int
           name: a
-          declaredElement: a@81
+          declaredFragment: isPublic a@81
             type: int
+            element: isPublic
+              type: int
           matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
@@ -726,8 +746,10 @@ SwitchStatement
             element2: dart:core::@class::int
             type: int
           name: a
-          declaredElement: isFinal a@54
+          declaredFragment: isFinal isPublic a@54
             type: int
+            element: isFinal isPublic
+              type: int
           matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
@@ -754,8 +776,10 @@ SwitchStatement
             element2: dart:core::@class::num
             type: num
           name: a
-          declaredElement: a@81
+          declaredFragment: isPublic a@81
             type: num
+            element: isPublic
+              type: num
           matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
@@ -826,8 +850,10 @@ SwitchStatement
             element2: dart:core::@class::int
             type: int
           name: a
-          declaredElement: a@48
+          declaredFragment: isPublic a@48
             type: int
+            element: isPublic
+              type: int
           matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
@@ -854,8 +880,10 @@ SwitchStatement
             element2: dart:core::@class::num
             type: num
           name: a
-          declaredElement: a@75
+          declaredFragment: isPublic a@75
             type: num
+            element: isPublic
+              type: num
           matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
@@ -934,8 +962,10 @@ SwitchStatement
             element2: dart:core::@class::int
             type: int
           name: a
-          declaredElement: a@60
+          declaredFragment: isPublic a@60
             type: int
+            element: isPublic
+              type: int
           matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
@@ -1005,8 +1035,10 @@ SwitchStatement
             element2: dart:core::@class::int
             type: int
           name: a
-          declaredElement: a@48
+          declaredFragment: isPublic a@48
             type: int
+            element: isPublic
+              type: int
           matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
@@ -1085,8 +1117,10 @@ SwitchStatement
             element2: dart:core::@class::int
             type: int
           name: a
-          declaredElement: a@48
+          declaredFragment: isPublic a@48
             type: int
+            element: isPublic
+              type: int
           matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
@@ -1160,8 +1194,10 @@ SwitchStatement
         pattern: DeclaredVariablePattern
           keyword: var
           name: a
-          declaredElement: hasImplicitType a@48
-            type: Object?
+          declaredFragment: isPublic a@48
+            type: null
+            element: hasImplicitType isPublic
+              type: Object?
           matchedValueType: Object?
       colon: :
     SwitchPatternCase
@@ -1170,8 +1206,10 @@ SwitchStatement
         pattern: DeclaredVariablePattern
           keyword: var
           name: a
-          declaredElement: hasImplicitType a@64
-            type: Object?
+          declaredFragment: isPublic a@64
+            type: null
+            element: hasImplicitType isPublic
+              type: Object?
           matchedValueType: Object?
       colon: :
     SwitchDefault
@@ -1237,8 +1275,10 @@ SwitchStatement
             element2: dart:core::@class::int
             type: int
           name: a
-          declaredElement: a@61
+          declaredFragment: isPublic a@61
             type: int
+            element: isPublic
+              type: int
           matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
@@ -1321,8 +1361,10 @@ SwitchStatement
             element2: dart:core::@class::int
             type: int
           name: a
-          declaredElement: a@48
+          declaredFragment: isPublic a@48
             type: int
+            element: isPublic
+              type: int
           matchedValueType: Object?
       colon: :
     SwitchPatternCase
@@ -1334,8 +1376,10 @@ SwitchStatement
             element2: dart:core::@class::double
             type: double
           name: b
-          declaredElement: b@67
+          declaredFragment: isPublic b@67
             type: double
+            element: isPublic
+              type: double
           matchedValueType: Object?
       colon: :
     SwitchPatternCase
@@ -1347,8 +1391,10 @@ SwitchStatement
             element2: dart:core::@class::String
             type: String
           name: c
-          declaredElement: c@86
+          declaredFragment: isPublic c@86
             type: String
+            element: isPublic
+              type: String
           matchedValueType: Object?
       colon: :
       statements
@@ -1417,15 +1463,19 @@ SwitchStatement
               leftOperand: DeclaredVariablePattern
                 keyword: var
                 name: a
-                declaredElement: hasImplicitType a@54
-                  type: int
+                declaredFragment: isPublic a@54
+                  type: null
+                  element: hasImplicitType isPublic
+                    type: int
                 matchedValueType: int
               operator: ||
               rightOperand: DeclaredVariablePattern
                 keyword: var
                 name: a
-                declaredElement: hasImplicitType a@63
-                  type: int
+                declaredFragment: isPublic a@63
+                  type: null
+                  element: hasImplicitType isPublic
+                    type: int
                 matchedValueType: int
               matchedValueType: int
           rightBracket: ]
@@ -1493,8 +1543,10 @@ SwitchStatement
                 element2: dart:core::@class::int
                 type: int
               name: a
-              declaredElement: a@62
+              declaredFragment: isPublic a@62
                 type: int
+                element: isPublic
+                  type: int
               matchedValueType: Object?
             RelationalPattern
               operator: ==
@@ -1565,8 +1617,10 @@ SwitchStatement
             element2: dart:core::@class::int
             type: int
           name: a
-          declaredElement: a@48
+          declaredFragment: isPublic a@48
             type: int
+            element: isPublic
+              type: int
           matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when

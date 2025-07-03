@@ -77,8 +77,10 @@ IfStatement
             element2: dart:core::@class::int
             type: int
           name: a
-          declaredElement: a@37
+          declaredFragment: isPublic a@37
             type: int
+            element: isPublic
+              type: int
           matchedValueType: Object?
         operator: ||
         rightOperand: ListPattern
@@ -90,8 +92,10 @@ IfStatement
                 element2: dart:core::@class::int
                 type: int
               name: a
-              declaredElement: a@47
+              declaredFragment: isPublic a@47
                 type: int
+                element: isPublic
+                  type: int
               matchedValueType: Object?
           rightBracket: ]
           matchedValueType: Object?
@@ -165,15 +169,19 @@ IfStatement
             leftOperand: DeclaredVariablePattern
               keyword: var
               name: a
-              declaredElement: hasImplicitType a@43
-                type: int
+              declaredFragment: isPublic a@43
+                type: null
+                element: hasImplicitType isPublic
+                  type: int
               matchedValueType: int
             operator: ||
             rightOperand: DeclaredVariablePattern
               keyword: var
               name: a
-              declaredElement: hasImplicitType a@52
-                type: int
+              declaredFragment: isPublic a@52
+                type: null
+                element: hasImplicitType isPublic
+                  type: int
               matchedValueType: int
             matchedValueType: int
         rightBracket: ]
@@ -245,8 +253,10 @@ IfStatement
             element2: dart:core::@class::int
             type: int
           name: a
-          declaredElement: a@37
+          declaredFragment: isPublic a@37
             type: int
+            element: isPublic
+              type: int
           matchedValueType: Object?
         operator: ||
         rightOperand: ListPattern
@@ -259,8 +269,10 @@ IfStatement
                 element2: dart:core::@class::int
                 type: int
               name: a
-              declaredElement: isFinal a@53
+              declaredFragment: isFinal isPublic a@53
                 type: int
+                element: isFinal isPublic
+                  type: int
               matchedValueType: Object?
           rightBracket: ]
           matchedValueType: Object?
@@ -332,8 +344,10 @@ IfStatement
             element2: dart:core::@class::int
             type: int
           name: a
-          declaredElement: a@37
+          declaredFragment: isPublic a@37
             type: int
+            element: isPublic
+              type: int
           matchedValueType: Object?
         operator: ||
         rightOperand: ListPattern
@@ -345,8 +359,10 @@ IfStatement
                 element2: dart:core::@class::double
                 type: double
               name: a
-              declaredElement: a@50
+              declaredFragment: isPublic a@50
                 type: double
+                element: isPublic
+                  type: double
               matchedValueType: Object?
           rightBracket: ]
           matchedValueType: Object?
@@ -416,8 +432,10 @@ IfStatement
               element2: dart:core::@class::int
               type: int
             name: a
-            declaredElement: a@37
+            declaredFragment: isPublic a@37
               type: int
+              element: isPublic
+                type: int
             matchedValueType: Object?
           operator: ||
           rightOperand: ConstantPattern
@@ -494,8 +512,10 @@ IfStatement
               element2: dart:core::@class::int
               type: int
             name: a
-            declaredElement: a@37
+            declaredFragment: isPublic a@37
               type: int
+              element: isPublic
+                type: int
             matchedValueType: Object?
           operator: ||
           rightOperand: DeclaredVariablePattern
@@ -504,8 +524,10 @@ IfStatement
               element2: dart:core::@class::int
               type: int
             name: a
-            declaredElement: a@46
+            declaredFragment: isPublic a@46
               type: int
+              element: isPublic
+                type: int
             matchedValueType: Object?
           matchedValueType: Object?
         operator: ||
@@ -573,8 +595,10 @@ IfStatement
               element2: dart:core::@class::int
               type: int
             name: a
-            declaredElement: a@37
+            declaredFragment: isPublic a@37
               type: int
+              element: isPublic
+                type: int
             matchedValueType: Object?
           operator: ||
           rightOperand: DeclaredVariablePattern
@@ -583,8 +607,10 @@ IfStatement
               element2: dart:core::@class::int
               type: int
             name: a
-            declaredElement: a@46
+            declaredFragment: isPublic a@46
               type: int
+              element: isPublic
+                type: int
             matchedValueType: Object?
           matchedValueType: Object?
         operator: ||
@@ -594,8 +620,10 @@ IfStatement
             element2: dart:core::@class::int
             type: int
           name: a
-          declaredElement: a@55
+          declaredFragment: isPublic a@55
             type: int
+            element: isPublic
+              type: int
           matchedValueType: Object?
         matchedValueType: Object?
       whenClause: WhenClause
@@ -659,8 +687,10 @@ IfStatement
               element2: dart:core::@class::int
               type: int
             name: a
-            declaredElement: a@37
+            declaredFragment: isPublic a@37
               type: int
+              element: isPublic
+                type: int
             matchedValueType: Object?
           operator: ||
           rightOperand: ConstantPattern
@@ -676,8 +706,10 @@ IfStatement
             element2: dart:core::@class::int
             type: int
           name: a
-          declaredElement: a@51
+          declaredFragment: isPublic a@51
             type: int
+            element: isPublic
+              type: int
           matchedValueType: Object?
         matchedValueType: Object?
       whenClause: WhenClause
@@ -750,8 +782,10 @@ IfStatement
               element2: dart:core::@class::int
               type: int
             name: a
-            declaredElement: a@42
+            declaredFragment: isPublic a@42
               type: int
+              element: isPublic
+                type: int
             matchedValueType: Object?
           matchedValueType: Object?
         operator: ||
@@ -828,8 +862,10 @@ IfStatement
               element2: dart:core::@class::int
               type: int
             name: a
-            declaredElement: a@42
+            declaredFragment: isPublic a@42
               type: int
+              element: isPublic
+                type: int
             matchedValueType: Object?
           matchedValueType: Object?
         operator: ||
@@ -839,8 +875,10 @@ IfStatement
             element2: dart:core::@class::int
             type: int
           name: a
-          declaredElement: a@51
+          declaredFragment: isPublic a@51
             type: int
+            element: isPublic
+              type: int
           matchedValueType: Object?
         matchedValueType: Object?
       whenClause: WhenClause
@@ -926,8 +964,10 @@ IfStatement
               element2: dart:core::@class::int
               type: int
             name: a
-            declaredElement: a@51
+            declaredFragment: isPublic a@51
               type: int
+              element: isPublic
+                type: int
             matchedValueType: Object?
           RelationalPattern
             operator: ==
@@ -1017,8 +1057,10 @@ IfStatement
             element2: dart:core::@class::bool
             type: bool
           name: a
-          declaredElement: a@51
+          declaredFragment: isPublic a@51
             type: bool
+            element: isPublic
+              type: bool
           matchedValueType: Object?
         operator: ||
         rightOperand: ConstantPattern
@@ -1091,8 +1133,10 @@ IfStatement
           element2: dart:core::@class::int
           type: int
         name: a
-        declaredElement: a@37
+        declaredFragment: isPublic a@37
           type: int
+          element: isPublic
+            type: int
         matchedValueType: Object?
       whenClause: WhenClause
         whenKeyword: when

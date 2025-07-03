@@ -70,8 +70,10 @@ ForStatement
     loopVariable: DeclaredIdentifier
       keyword: var
       name: x
-      declaredElement: hasImplicitType x@47
-        type: InvalidType
+      declaredFragment: isPublic x@47
+        type: null
+        element: hasImplicitType isPublic
+          type: InvalidType
     inKeyword: in
     iterable: SimpleIdentifier
       token: p

@@ -44,8 +44,10 @@ VariableDeclarationStatement
         initializer: SuperExpression
           superKeyword: super
           staticType: A
-        declaredElement: hasImplicitType isFinal a@33
-          type: A
+        declaredFragment: isFinal isPublic a@33
+          type: null
+          element: hasImplicitType isFinal isPublic
+            type: A
   semicolon: ;
 ''');
   }
@@ -74,8 +76,10 @@ VariableDeclarationStatement
         initializer: ThisExpression
           thisKeyword: this
           staticType: A
-        declaredElement: hasImplicitType isFinal a@33
-          type: A
+        declaredFragment: isFinal isPublic a@33
+          type: null
+          element: hasImplicitType isFinal isPublic
+            type: A
   semicolon: ;
 ''');
   }

@@ -246,8 +246,10 @@ SwitchExpression
               pattern: DeclaredVariablePattern
                 keyword: var
                 name: isEven
-                declaredElement: hasImplicitType isEven@46
-                  type: bool
+                declaredFragment: isPublic isEven@46
+                  type: null
+                  element: hasImplicitType isPublic
+                    type: bool
                 matchedValueType: bool
               element2: dart:core::@class::int::@getter::isEven
           rightParenthesis: )
@@ -563,15 +565,19 @@ SwitchExpression
               leftOperand: DeclaredVariablePattern
                 keyword: var
                 name: a
-                declaredElement: hasImplicitType a@50
-                  type: int
+                declaredFragment: isPublic a@50
+                  type: null
+                  element: hasImplicitType isPublic
+                    type: int
                 matchedValueType: int
               operator: ||
               rightOperand: DeclaredVariablePattern
                 keyword: var
                 name: a
-                declaredElement: hasImplicitType a@59
-                  type: int
+                declaredFragment: isPublic a@59
+                  type: null
+                  element: hasImplicitType isPublic
+                    type: int
                 matchedValueType: int
               matchedValueType: int
           rightBracket: ]
@@ -645,8 +651,10 @@ SwitchExpression
                 element2: dart:core::@class::int
                 type: int
               name: a
-              declaredElement: a@58
+              declaredFragment: isPublic a@58
                 type: int
+                element: isPublic
+                  type: int
               matchedValueType: Object?
             RelationalPattern
               operator: ==
@@ -726,8 +734,10 @@ SwitchExpression
             element2: dart:core::@class::int
             type: int
           name: a
-          declaredElement: a@44
+          declaredFragment: isPublic a@44
             type: int
+            element: isPublic
+              type: int
           matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
