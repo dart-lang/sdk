@@ -38,7 +38,19 @@ final tests = <IsolateTest>[
     expect(await shouldPauseOnExit(service, isolateRef), true);
     await service.resume(isolateRef.id!);
     await completer.future;
-    await service.resume(isolateRef.id!);
+    try {
+      await service.resume(isolateRef.id!);
+    } on RPCError catch (e) {
+      // The server may have already shut down, causing the service connection
+      // to be disposed before the resume response is sent.
+      if (![
+        RPCErrorKind.kConnectionDisposed.code,
+        RPCErrorKind.kServerError.code,
+      ].contains(e.code)) {
+        rethrow;
+      }
+      // This is expected - ignore it.
+    }
     await subscription.cancel();
   },
 ];
