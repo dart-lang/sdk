@@ -153,7 +153,7 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
   DartType _buildInternal(
       LibraryBuilder library, TypeUse typeUse, ClassHierarchyBase? hierarchy) {
     DartType aliasedType = buildAliased(library, typeUse, hierarchy);
-    return unalias(aliasedType, legacyEraseAliases: false);
+    return unalias(aliasedType);
   }
 
   @override

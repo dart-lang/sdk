@@ -939,17 +939,16 @@ class _InnerTypeSubstitutor extends _SubstitutorBase {
 /// nullability of `T?` and `int`.  The function computes the nullability for
 /// the replacement as per the following table:
 ///
-/// |  inner \ outer  |  !  |  ?  |  *  |  %  |
-/// |-----------------|-----|-----|-----|-----|
-/// |     !           |  !  |  ?  |  *  |  !  |
-/// |     ?           | N/A |  ?  |  ?  |  ?  |
-/// |     *           |  *  |  ?  |  *  |  *  |
-/// |     %           | N/A |  ?  |  *  |  %  |
+/// |  inner \ outer  |  !  |  ?  |  %  |
+/// |-----------------|-----|-----|-----|
+/// |     !           |  !  |  ?  |  !  |
+/// |     ?           | N/A |  ?  |  ?  |
+/// |     %           | N/A |  ?  |  %  |
 ///
 /// Here `!` denotes `Nullability.nonNullable`, `?` denotes
-/// `Nullability.nullable`, `*` denotes `Nullability.legacy`, and `%` denotes
-/// `Nullability.undetermined`.  The table elements marked with N/A denote the
-/// cases that should yield a type error before the substitution is performed.
+/// `Nullability.nullable`, and `%` denotes `Nullability.undetermined`.  The
+/// table elements marked with N/A denote the cases that should yield a type
+/// error before the substitution is performed.
 ///
 /// a is nonNullable:
 /// DartDocTest(
@@ -961,11 +960,6 @@ class _InnerTypeSubstitutor extends _SubstitutorBase {
 ///   combineNullabilitiesForSubstitution(
 ///     inner: Nullability.nonNullable, outer: Nullability.nullable),
 ///   Nullability.nullable
-/// )
-/// DartDocTest(
-///   combineNullabilitiesForSubstitution(
-///     inner: Nullability.nonNullable, outer: Nullability.legacy),
-///   Nullability.legacy
 /// )
 /// DartDocTest(
 ///   combineNullabilitiesForSubstitution(
@@ -981,35 +975,8 @@ class _InnerTypeSubstitutor extends _SubstitutorBase {
 /// )
 /// DartDocTest(
 ///   combineNullabilitiesForSubstitution(
-///     inner: Nullability.nullable, outer: Nullability.legacy),
-///   Nullability.nullable
-/// )
-/// DartDocTest(
-///   combineNullabilitiesForSubstitution(
 ///     inner: Nullability.nullable, outer: Nullability.undetermined),
 ///   Nullability.nullable
-/// )
-///
-/// a is legacy:
-/// DartDocTest(
-///   combineNullabilitiesForSubstitution(
-///     inner: Nullability.legacy, outer: Nullability.nonNullable),
-///   Nullability.legacy
-/// )
-/// DartDocTest(
-///   combineNullabilitiesForSubstitution(
-///     inner: Nullability.legacy, outer: Nullability.nullable),
-///   Nullability.nullable
-/// )
-/// DartDocTest(
-///   combineNullabilitiesForSubstitution(
-///     inner: Nullability.legacy, outer: Nullability.legacy),
-///   Nullability.legacy
-/// )
-/// DartDocTest(
-///   combineNullabilitiesForSubstitution(
-///     inner: Nullability.legacy, outer: Nullability.undetermined),
-///   Nullability.legacy
 /// )
 ///
 /// a is undetermined:
@@ -1017,11 +984,6 @@ class _InnerTypeSubstitutor extends _SubstitutorBase {
 ///   combineNullabilitiesForSubstitution(
 ///     inner: Nullability.undetermined, outer: Nullability.nullable),
 ///   Nullability.nullable
-/// )
-/// DartDocTest(
-///   combineNullabilitiesForSubstitution(
-///     inner: Nullability.undetermined, outer: Nullability.legacy),
-///   Nullability.legacy
 /// )
 /// DartDocTest(
 ///   combineNullabilitiesForSubstitution(
@@ -1034,20 +996,15 @@ Nullability combineNullabilitiesForSubstitution(
   // with whatever is easier to implement.  In this implementation, we extend
   // the table function as follows:
   //
-  // |  inner  \  outer  |  !  |  ?  |  *  |  %  |
+  // |  inner  \  outer  |  !  |  ?  |  %  |
   // |-----------|-----|-----|-----|-----|
-  // |     !     |  !  |  ?  |  *  |  !  |
-  // |     ?     |  ?  |  ?  |  ?  |  ?  |
-  // |     *     |  *  |  ?  |  *  |  *  |
-  // |     %     |  %  |  ?  |  *  |  %  |
+  // |     !     |  !  |  ?  |  !  |
+  // |     ?     |  ?  |  ?  |  ?  |
+  // |     %     |  %  |  ?  |  %  |
   //
 
   if (inner == Nullability.nullable || outer == Nullability.nullable) {
     return Nullability.nullable;
-  }
-
-  if (inner == Nullability.legacy || outer == Nullability.legacy) {
-    return Nullability.legacy;
   }
 
   return inner;
@@ -1749,9 +1706,6 @@ Nullability uniteNullabilities(Nullability a, Nullability b) {
   if (a == Nullability.nullable || b == Nullability.nullable) {
     return Nullability.nullable;
   }
-  if (a == Nullability.legacy || b == Nullability.legacy) {
-    return Nullability.legacy;
-  }
   if (a == Nullability.undetermined || b == Nullability.undetermined) {
     return Nullability.undetermined;
   }
@@ -1764,9 +1718,6 @@ Nullability intersectNullabilities(Nullability a, Nullability b) {
   }
   if (a == Nullability.undetermined || b == Nullability.undetermined) {
     return Nullability.undetermined;
-  }
-  if (a == Nullability.legacy || b == Nullability.legacy) {
-    return Nullability.legacy;
   }
   return Nullability.nullable;
 }
@@ -2188,21 +2139,18 @@ class _NullabilityMarkerDetector implements DartTypeVisitor<bool> {
   @override
   bool visitFunctionType(FunctionType node) {
     assert(node.declaredNullability != Nullability.undetermined);
-    return node.declaredNullability == Nullability.nullable ||
-        node.declaredNullability == Nullability.legacy;
+    return node.declaredNullability == Nullability.nullable;
   }
 
   @override
   bool visitRecordType(RecordType node) {
     assert(node.declaredNullability != Nullability.undetermined);
-    return node.declaredNullability == Nullability.nullable ||
-        node.declaredNullability == Nullability.legacy;
+    return node.declaredNullability == Nullability.nullable;
   }
 
   @override
   bool visitFutureOrType(FutureOrType node) {
-    if (node.declaredNullability == Nullability.nullable ||
-        node.declaredNullability == Nullability.legacy) {
+    if (node.declaredNullability == Nullability.nullable) {
       return true;
     }
     return false;
@@ -2211,14 +2159,12 @@ class _NullabilityMarkerDetector implements DartTypeVisitor<bool> {
   @override
   bool visitInterfaceType(InterfaceType node) {
     assert(node.declaredNullability != Nullability.undetermined);
-    return node.declaredNullability == Nullability.nullable ||
-        node.declaredNullability == Nullability.legacy;
+    return node.declaredNullability == Nullability.nullable;
   }
 
   @override
   bool visitExtensionType(ExtensionType node) {
-    return node.declaredNullability == Nullability.nullable ||
-        node.declaredNullability == Nullability.legacy;
+    return node.declaredNullability == Nullability.nullable;
   }
 
   @override
@@ -2227,8 +2173,7 @@ class _NullabilityMarkerDetector implements DartTypeVisitor<bool> {
   @override
   bool visitNeverType(NeverType node) {
     assert(node.declaredNullability != Nullability.undetermined);
-    return node.declaredNullability == Nullability.nullable ||
-        node.declaredNullability == Nullability.legacy;
+    return node.declaredNullability == Nullability.nullable;
   }
 
   @override
@@ -2250,8 +2195,7 @@ class _NullabilityMarkerDetector implements DartTypeVisitor<bool> {
   @override
   bool visitTypedefType(TypedefType node) {
     assert(node.declaredNullability != Nullability.undetermined);
-    return node.declaredNullability == Nullability.nullable ||
-        node.declaredNullability == Nullability.legacy;
+    return node.declaredNullability == Nullability.nullable;
   }
 
   @override
@@ -2275,31 +2219,6 @@ bool isNullableTypeConstructorApplication(DartType type) {
       type is! VoidType &&
       type is! NullType &&
       type is! InvalidType;
-}
-
-/// Returns true if [type] is an application of the legacy type constructor.
-///
-/// A type is considered an application of the legacy type constructor if it was
-/// declared within a legacy library and is not one of exempt types, such as
-/// dynamic or void.
-bool isLegacyTypeConstructorApplication(DartType type) {
-  if (type is TypeParameterType) {
-    // The legacy nullability is considered an application of the legacy
-    // nullability constructor if it doesn't match the default nullability
-    // of the type-parameter type for the library.
-    return type.declaredNullability == Nullability.legacy &&
-        !isTypeParameterTypeWithoutNullabilityMarker(type);
-  } else if (type is StructuralParameterType) {
-    // The legacy nullability is considered an application of the legacy
-    // nullability constructor if it doesn't match the default nullability
-    // of the type-parameter type for the library.
-    return type.declaredNullability == Nullability.legacy &&
-        !isStructuralParameterTypeWithoutNullabilityMarker(type);
-  } else if (type is InvalidType) {
-    return false;
-  } else {
-    return type.declaredNullability == Nullability.legacy;
-  }
 }
 
 /// Recalculates and updates nullabilities of the bounds in [typeParameters].

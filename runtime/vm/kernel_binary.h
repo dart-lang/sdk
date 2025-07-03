@@ -18,7 +18,7 @@ namespace kernel {
 // package:kernel/binary.md.
 
 static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
-static const uint32_t kSupportedKernelFormatVersion = 124;
+static const uint32_t kSupportedKernelFormatVersion = 125;
 
 // Keep in sync with package:kernel/lib/binary/tag.dart
 #define KERNEL_TAG_LIST(V)                                                     \
@@ -216,7 +216,6 @@ enum class KernelNullability : int8_t {
   kUndetermined = 0,
   kNullable = 1,
   kNonNullable = 2,
-  kLegacy = 3,
 };
 
 // Keep in sync with package:kernel/lib/ast.dart
@@ -443,8 +442,6 @@ class Reader : public ValueObject {
       case KernelNullability::kNonNullable:
       case KernelNullability::kUndetermined:
         return Nullability::kNonNullable;
-      case KernelNullability::kLegacy:
-        FATAL("Legacy nullability is not supported.");
     }
     UNREACHABLE();
   }

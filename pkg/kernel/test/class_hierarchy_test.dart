@@ -341,8 +341,8 @@ class H extends self::G implements self::C, self::A {}
             name, coreTypes.objectNullableRawType, const DynamicType()))
         .toList();
     var typeParameterTypes = typeParameters
-        .map(
-            (parameter) => new TypeParameterType(parameter, Nullability.legacy))
+        .map((parameter) =>
+            new TypeParameterType(parameter, Nullability.undetermined))
         .toList();
     var supertype =
         extends_ != null ? extends_(typeParameterTypes) : objectSuper;
@@ -1344,11 +1344,11 @@ class A<T? = dynamic, U? = dynamic> {}
 class B<T? = dynamic> extends self::A<self::B::T%, core::bool> {}
 ''');
 
-    var b_int = new InterfaceType(b, Nullability.legacy, [int]);
+    var b_int = new InterfaceType(b, Nullability.nonNullable, [int]);
     expect(hierarchy.getInterfaceTypeAsInstanceOfClass(b_int, a),
-        new InterfaceType(a, Nullability.legacy, [int, bool]));
+        new InterfaceType(a, Nullability.nonNullable, [int, bool]));
     expect(hierarchy.getInterfaceTypeAsInstanceOfClass(b_int, objectClass),
-        new InterfaceType(objectClass, Nullability.legacy));
+        new InterfaceType(objectClass, Nullability.nonNullable));
   }
 
   void _assertOverridePairs(Class class_, List<String> expected) {

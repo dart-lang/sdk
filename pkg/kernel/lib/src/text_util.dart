@@ -6,8 +6,6 @@ import '../ast.dart';
 
 String nullabilityToString(Nullability nullability) {
   switch (nullability) {
-    case Nullability.legacy:
-      return '*';
     case Nullability.nullable:
       return '?';
     case Nullability.undetermined:

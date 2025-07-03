@@ -25,7 +25,8 @@ class IncludesTypeParametersCovariantlyTest {
   }
 
   bool checkContravariant(DartType type, List<TypeParameter> typeParameters) {
-    return check(new FunctionType([type], const VoidType(), Nullability.legacy),
+    return check(
+        new FunctionType([type], const VoidType(), Nullability.nonNullable),
         typeParameters);
   }
 
@@ -35,113 +36,117 @@ class IncludesTypeParametersCovariantlyTest {
     expect(
         check(
             new FunctionType(
-                [tpt(T), tpt(U)], const VoidType(), Nullability.legacy),
+                [tpt(T), tpt(U)], const VoidType(), Nullability.nonNullable),
             [T]),
         isFalse);
     expect(
         check(
             new FunctionType(
-                [tpt(T), tpt(U)], const VoidType(), Nullability.legacy),
+                [tpt(T), tpt(U)], const VoidType(), Nullability.nonNullable),
             [U]),
         isFalse);
     expect(
         check(
             new FunctionType(
-                [tpt(T), tpt(U)], const VoidType(), Nullability.legacy),
+                [tpt(T), tpt(U)], const VoidType(), Nullability.nonNullable),
             []),
         isFalse);
     expect(
         check(
-            new FunctionType([], const VoidType(), Nullability.legacy,
+            new FunctionType([], const VoidType(), Nullability.nonNullable,
                 namedParameters: [named('a', tpt(T)), named('b', tpt(U))]),
             [T]),
         isFalse);
     expect(
         check(
-            new FunctionType([], const VoidType(), Nullability.legacy,
+            new FunctionType([], const VoidType(), Nullability.nonNullable,
                 namedParameters: [named('a', tpt(T)), named('b', tpt(U))]),
             [U]),
         isFalse);
     expect(
         check(
-            new FunctionType([], const VoidType(), Nullability.legacy,
+            new FunctionType([], const VoidType(), Nullability.nonNullable,
                 namedParameters: [named('a', tpt(T)), named('b', tpt(U))]),
             []),
         isFalse);
-    expect(
-        check(new FunctionType([], tpt(T), Nullability.legacy), [T]), isTrue);
-    expect(
-        check(new FunctionType([], tpt(T), Nullability.legacy), [U]), isFalse);
+    expect(check(new FunctionType([], tpt(T), Nullability.nonNullable), [T]),
+        isTrue);
+    expect(check(new FunctionType([], tpt(T), Nullability.nonNullable), [U]),
+        isFalse);
     expect(
         checkContravariant(
             new FunctionType(
-                [tpt(T), tpt(U)], const VoidType(), Nullability.legacy),
+                [tpt(T), tpt(U)], const VoidType(), Nullability.nonNullable),
             [T]),
         isTrue);
     expect(
         checkContravariant(
             new FunctionType(
-                [tpt(T), tpt(U)], const VoidType(), Nullability.legacy),
+                [tpt(T), tpt(U)], const VoidType(), Nullability.nonNullable),
             [U]),
         isTrue);
     expect(
         checkContravariant(
             new FunctionType(
-                [tpt(T), tpt(U)], const VoidType(), Nullability.legacy),
+                [tpt(T), tpt(U)], const VoidType(), Nullability.nonNullable),
             []),
         isFalse);
     expect(
         checkContravariant(
-            new FunctionType([], const VoidType(), Nullability.legacy,
+            new FunctionType([], const VoidType(), Nullability.nonNullable,
                 namedParameters: [named('a', tpt(T)), named('b', tpt(U))]),
             [T]),
         isTrue);
     expect(
         checkContravariant(
-            new FunctionType([], const VoidType(), Nullability.legacy,
+            new FunctionType([], const VoidType(), Nullability.nonNullable,
                 namedParameters: [named('a', tpt(T)), named('b', tpt(U))]),
             [U]),
         isTrue);
     expect(
         checkContravariant(
-            new FunctionType([], const VoidType(), Nullability.legacy,
+            new FunctionType([], const VoidType(), Nullability.nonNullable,
                 namedParameters: [named('a', tpt(T)), named('b', tpt(U))]),
             []),
         isFalse);
     expect(
         checkContravariant(
-            new FunctionType([], tpt(T), Nullability.legacy), [T]),
+            new FunctionType([], tpt(T), Nullability.nonNullable), [T]),
         isFalse);
     expect(
         checkContravariant(
-            new FunctionType([], tpt(T), Nullability.legacy), [U]),
+            new FunctionType([], tpt(T), Nullability.nonNullable), [U]),
         isFalse);
   }
 
   void test_interface_type() {
     Class cls = new Class(name: 'C', typeParameters: [T, U], fileUri: dummyUri);
     expect(
-        check(
-            new InterfaceType(cls, Nullability.legacy, [tpt(T), tpt(U)]), [T]),
+        check(new InterfaceType(cls, Nullability.nonNullable, [tpt(T), tpt(U)]),
+            [T]),
         isTrue);
     expect(
-        check(
-            new InterfaceType(cls, Nullability.legacy, [tpt(T), tpt(U)]), [U]),
+        check(new InterfaceType(cls, Nullability.nonNullable, [tpt(T), tpt(U)]),
+            [U]),
         isTrue);
     expect(
-        check(new InterfaceType(cls, Nullability.legacy, [tpt(T), tpt(U)]), []),
+        check(new InterfaceType(cls, Nullability.nonNullable, [tpt(T), tpt(U)]),
+            []),
         isFalse);
     expect(
         checkContravariant(
-            new InterfaceType(cls, Nullability.legacy, [tpt(T), tpt(U)]), [T]),
+            new InterfaceType(cls, Nullability.nonNullable, [tpt(T), tpt(U)]),
+            [T]),
         isFalse);
     expect(
         checkContravariant(
-            new InterfaceType(cls, Nullability.legacy, [tpt(T), tpt(U)]), [U]),
+            new InterfaceType(cls, Nullability.nonNullable, [tpt(T), tpt(U)]),
+            [U]),
         isFalse);
     expect(
         checkContravariant(
-            new InterfaceType(cls, Nullability.legacy, [tpt(T), tpt(U)]), []),
+            new InterfaceType(cls, Nullability.nonNullable, [tpt(T), tpt(U)]),
+            []),
         isFalse);
   }
 
@@ -184,48 +189,48 @@ class IncludesTypeParametersCovariantlyTest {
   void test_typedef_type() {
     // typedef U F<T, U>(T x);
     var typedefNode = new Typedef(
-        'F', new FunctionType([tpt(T)], tpt(U), Nullability.legacy),
+        'F', new FunctionType([tpt(T)], tpt(U), Nullability.nonNullable),
         typeParameters: [T, U], fileUri: dummyUri);
     expect(
         check(
-            new TypedefType(typedefNode, Nullability.legacy,
+            new TypedefType(typedefNode, Nullability.nonNullable,
                 [const DynamicType(), const DynamicType()]),
             [V]),
         isFalse);
     expect(
         check(
-            new TypedefType(
-                typedefNode, Nullability.legacy, [tpt(V), const DynamicType()]),
+            new TypedefType(typedefNode, Nullability.nonNullable,
+                [tpt(V), const DynamicType()]),
             [V]),
         isFalse);
     expect(
         check(
-            new TypedefType(
-                typedefNode, Nullability.legacy, [const DynamicType(), tpt(V)]),
+            new TypedefType(typedefNode, Nullability.nonNullable,
+                [const DynamicType(), tpt(V)]),
             [V]),
         isTrue);
     expect(
         checkContravariant(
-            new TypedefType(typedefNode, Nullability.legacy,
+            new TypedefType(typedefNode, Nullability.nonNullable,
                 [const DynamicType(), const DynamicType()]),
             [V]),
         isFalse);
     expect(
         checkContravariant(
-            new TypedefType(
-                typedefNode, Nullability.legacy, [tpt(V), const DynamicType()]),
+            new TypedefType(typedefNode, Nullability.nonNullable,
+                [tpt(V), const DynamicType()]),
             [V]),
         isTrue);
     expect(
         checkContravariant(
-            new TypedefType(
-                typedefNode, Nullability.legacy, [const DynamicType(), tpt(V)]),
+            new TypedefType(typedefNode, Nullability.nonNullable,
+                [const DynamicType(), tpt(V)]),
             [V]),
         isFalse);
   }
 
   TypeParameterType tpt(TypeParameter param, {Variance? variance = null}) {
-    return new TypeParameterType(param, Nullability.legacy)
+    return new TypeParameterType(param, Nullability.nonNullable)
       ..parameter.variance = variance;
   }
 }

@@ -2577,12 +2577,6 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
 
   void writeNullability(Nullability nullability, {bool inComment = false}) {
     switch (nullability) {
-      case Nullability.legacy:
-        writeSymbol('*');
-        if (!inComment) {
-          state = WORD; // Disallow a word immediately after the '*'.
-        }
-        break;
       case Nullability.nullable:
         writeSymbol('?');
         if (!inComment) {

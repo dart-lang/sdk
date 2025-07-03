@@ -32,7 +32,6 @@ class Token {
   static const int Colon = 12;
   static const int Ampersand = 13;
   static const int QuestionMark = 14;
-  static const int Asterisk = 15;
   static const int Invalid = 100;
 }
 
@@ -98,8 +97,6 @@ class DartTypeParser {
     switch (character) {
       case 38:
         return Token.Ampersand;
-      case 42:
-        return Token.Asterisk;
       case 44:
         return Token.Comma;
       case 60:
@@ -144,9 +141,6 @@ class DartTypeParser {
       case Token.QuestionMark:
         scanToken();
         return Nullability.nullable;
-      case Token.Asterisk:
-        scanToken();
-        return Nullability.legacy;
       default:
         return defaultNullability;
     }

@@ -5627,9 +5627,7 @@ class _ObjectAccessDescriptor {
             functionType: functionType,
           );
         case Nullability.nullable:
-        // Coverage-ignore(suite): Not run.
-        case Nullability.legacy:
-          // Never? and Never* are equivalent to Null.
+          // Never? is equivalent to Null.
           return visitor.findInterfaceMember(
             const NullType(),
             name,

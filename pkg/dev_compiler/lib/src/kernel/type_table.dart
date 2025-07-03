@@ -61,14 +61,9 @@ Set</* TypeParameter | StructuralParameter */ Object> freeTypeParameters(
 
 /// A name for a type made of JS identifier safe characters.
 ///
-/// 'L' and 'N' are appended to a type name to represent a legacy or nullable
-/// flavor of a type.
+/// 'N' is appended to a type name to represent a nullable flavor of a type.
 String _typeString(DartType type, {bool flat = false}) {
-  var nullability = type.declaredNullability == Nullability.legacy
-      ? 'L'
-      : type.declaredNullability == Nullability.nullable
-      ? 'N'
-      : '';
+  var nullability = type.declaredNullability == Nullability.nullable ? 'N' : '';
   switch (type) {
     case InterfaceType():
       var name = '${type.classNode.name}$nullability';

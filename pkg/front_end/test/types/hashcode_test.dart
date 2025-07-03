@@ -7,15 +7,19 @@ import 'package:kernel/kernel.dart';
 
 FunctionType createVoidToR() {
   StructuralParameter R = StructuralParameter("R", const DynamicType());
-  return new FunctionType([],
-      new StructuralParameterType(R, Nullability.legacy), Nullability.legacy,
+  return new FunctionType(
+      [],
+      new StructuralParameterType(R, Nullability.undetermined),
+      Nullability.nonNullable,
       typeParameters: [R]);
 }
 
 FunctionType createTTo_VoidToR() {
   StructuralParameter T = new StructuralParameter("T", const DynamicType());
-  return new FunctionType([new StructuralParameterType(T, Nullability.legacy)],
-      createVoidToR(), Nullability.legacy,
+  return new FunctionType(
+      [new StructuralParameterType(T, Nullability.undetermined)],
+      createVoidToR(),
+      Nullability.nonNullable,
       typeParameters: [T]);
 }
 
@@ -40,9 +44,10 @@ FunctionType createVoidTo_VoidToR() {
   StructuralParameter R = new StructuralParameter("R", const DynamicType());
   return new FunctionType(
       [],
-      new FunctionType([], new StructuralParameterType(R, Nullability.legacy),
-          Nullability.legacy),
-      Nullability.legacy,
+      new FunctionType([],
+          new StructuralParameterType(R, Nullability.undetermined),
+          Nullability.nonNullable),
+      Nullability.nonNullable,
       typeParameters: [R]);
 }
 

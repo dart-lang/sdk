@@ -84,7 +84,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   @override
   bool isNullClass = false;
 
-  InterfaceType? _legacyRawType;
   InterfaceType? _nullableRawType;
   InterfaceType? _nonNullableRawType;
   InterfaceType? _thisType;
@@ -105,12 +104,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         getAsTypeArguments(cls.typeParameters, libraryBuilder.library));
   }
 
-  // Coverage-ignore(suite): Not run.
-  InterfaceType get legacyRawType {
-    return _legacyRawType ??= new InterfaceType(cls, Nullability.legacy,
-        new List<DartType>.filled(typeParametersCount, const DynamicType()));
-  }
-
   InterfaceType get nullableRawType {
     return _nullableRawType ??= new InterfaceType(cls, Nullability.nullable,
         new List<DartType>.filled(typeParametersCount, const DynamicType()));
@@ -125,9 +118,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
 
   InterfaceType rawType(Nullability nullability) {
     switch (nullability) {
-      case Nullability.legacy:
-        // Coverage-ignore(suite): Not run.
-        return legacyRawType;
       case Nullability.nullable:
         return nullableRawType;
       case Nullability.nonNullable:
@@ -243,7 +233,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     if (arguments != null) {
       List<DartType> typeArguments =
           buildAliasedTypeArguments(library, arguments, /* hierarchy = */ null);
-      typeArguments = unaliasTypes(typeArguments, legacyEraseAliases: false)!;
+      typeArguments = unaliasTypes(typeArguments)!;
       return new Supertype(cls, typeArguments);
     } else {
       return new Supertype(
