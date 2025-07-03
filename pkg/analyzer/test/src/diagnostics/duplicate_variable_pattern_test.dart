@@ -49,15 +49,19 @@ IfStatement
         leftOperand: DeclaredVariablePattern
           keyword: var
           name: a
-          declaredElement: hasImplicitType a@33
-            type: int
+          declaredFragment: isPublic a@33
+            type: null
+            element: hasImplicitType isPublic
+              type: int
           matchedValueType: int
         operator: &&
         rightOperand: DeclaredVariablePattern
           keyword: var
           name: a
-          declaredElement: hasImplicitType a@42
-            type: int
+          declaredFragment: isPublic a@42
+            type: null
+            element: hasImplicitType isPublic
+              type: int
           matchedValueType: int
         matchedValueType: int
   rightParenthesis: )
@@ -102,15 +106,19 @@ SwitchPatternCase
       leftOperand: DeclaredVariablePattern
         keyword: var
         name: a
-        declaredElement: hasImplicitType a@44
-          type: int
+        declaredFragment: isPublic a@44
+          type: null
+          element: hasImplicitType isPublic
+            type: int
         matchedValueType: int
       operator: &&
       rightOperand: DeclaredVariablePattern
         keyword: var
         name: a
-        declaredElement: hasImplicitType a@53
-          type: int
+        declaredFragment: isPublic a@53
+          type: null
+          element: hasImplicitType isPublic
+            type: int
         matchedValueType: int
       matchedValueType: int
   colon: :
@@ -155,13 +163,17 @@ Block
           elements
             DeclaredVariablePattern
               name: a
-              declaredElement: hasImplicitType a@18
-                type: int
+              declaredFragment: isPublic a@18
+                type: null
+                element: hasImplicitType isPublic
+                  type: int
               matchedValueType: int
             DeclaredVariablePattern
               name: a
-              declaredElement: hasImplicitType a@21
-                type: int
+              declaredFragment: isPublic a@21
+                type: null
+                element: hasImplicitType isPublic
+                  type: int
               matchedValueType: int
           rightBracket: ]
           matchedValueType: List<int>

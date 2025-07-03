@@ -41,6 +41,10 @@ class BlazeChangesTest extends AbstractAnalysisServerIntegrationTest {
   late String blazeGenfilesPath;
   late Directory oldSourceDirectory;
 
+  /// Temporary folders created by the test that should be deleted (recursively)
+  /// during [tearDown].
+  final List<String> _temporaryFolders = [];
+
   String inTmpDir(String relative) =>
       path.join(tmpPath, relative.replaceAll('/', path.separator));
 
@@ -55,9 +59,10 @@ class BlazeChangesTest extends AbstractAnalysisServerIntegrationTest {
     tmpPath =
         Directory(
           Directory.systemTemp
-              .createTempSync('analysisServer')
+              .createTempSync('analysisServer_test_integration_blazeProject')
               .resolveSymbolicLinksSync(),
         ).path;
+    _temporaryFolders.add(tmpPath);
     workspacePath = inTmpDir('workspace_root');
     writeFile(inWorkspace(file_paths.blazeWorkspaceMarker), '');
 
@@ -81,7 +86,9 @@ class BlazeChangesTest extends AbstractAnalysisServerIntegrationTest {
 
   @override
   Future<void> tearDown() async {
-    Directory(tmpPath).deleteSync(recursive: true);
+    for (var temporaryFolder in _temporaryFolders) {
+      Directory(temporaryFolder).deleteSync(recursive: true);
+    }
     sourceDirectory = oldSourceDirectory;
     await super.tearDown();
   }

@@ -72,8 +72,10 @@ IfElement
       pattern: DeclaredVariablePattern
         keyword: var
         name: a
-        declaredElement: hasImplicitType a@40
-          type: int
+        declaredFragment: isPublic a@40
+          type: null
+          element: hasImplicitType isPublic
+            type: int
         matchedValueType: int
   rightParenthesis: )
   thenElement: SimpleIdentifier
@@ -138,8 +140,10 @@ IfElement
               element2: dart:core::@class::int
               type: int
             name: a
-            declaredElement: a@56
+            declaredFragment: isPublic a@56
               type: int
+              element: isPublic
+                type: int
             matchedValueType: Object?
           RelationalPattern
             operator: ==
@@ -213,8 +217,10 @@ IfElement
           element2: dart:core::@class::int
           type: int
         name: a
-        declaredElement: a@42
+        declaredFragment: isPublic a@42
           type: int
+          element: isPublic
+            type: int
         matchedValueType: Object
       whenClause: WhenClause
         whenKeyword: when

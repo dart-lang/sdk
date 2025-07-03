@@ -44,6 +44,10 @@ abstract class AbstractLspAnalysisServerIntegrationTest
   /// be applied in the same way a real client would apply them.
   final _overlayContent = <Uri, String>{};
 
+  /// Temporary folders created by the test that should be deleted (recursively)
+  /// during [tearDown].
+  final List<String> _temporaryFolders = [];
+
   LspByteStreamServerChannel get channel => client!.channel!;
 
   @override
@@ -137,8 +141,9 @@ abstract class AbstractLspAnalysisServerIntegrationTest
     // Set up temporary folder for the test.
     projectFolderPath =
         Directory.systemTemp
-            .createTempSync('analysisServer')
+            .createTempSync('analysisServer_test_integration_lspProject')
             .resolveSymbolicLinksSync();
+    _temporaryFolders.add(projectFolderPath);
     newFolder(projectFolderPath);
     newFolder(path.join(projectFolderPath, 'lib'));
     mainFilePath = path.join(projectFolderPath, 'lib', 'main.dart');
@@ -168,6 +173,9 @@ abstract class AbstractLspAnalysisServerIntegrationTest
   void tearDown() {
     // TODO(dantup): Graceful shutdown?
     client?.close();
+    for (var temporaryFolder in _temporaryFolders) {
+      Directory(temporaryFolder).deleteSync(recursive: true);
+    }
   }
 }
 

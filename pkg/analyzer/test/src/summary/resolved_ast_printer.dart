@@ -432,16 +432,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        var fragment = node.declaredFragment;
-        if (fragment != null) {
-          _sink.writeWithIndent('declaredElement: ');
-          _sink.writeIf(fragment.hasImplicitType, 'hasImplicitType ');
-          _sink.writeIf(fragment.isFinal, 'isFinal ');
-          _sink.writeln('${fragment.name2 ?? ''}@${fragment.nameOffset}');
-          _sink.withIndent(() {
-            _writeType('type', fragment.type);
-          });
-        }
+        _writeDeclaredFragment(node.declaredFragment);
         _writePatternMatchedValueType(node);
       }
     });
@@ -1760,17 +1751,7 @@ Expected parent: (${parent.runtimeType}) $parent
   void _writeDeclaredFragment(Fragment? fragment) {
     if (_withResolution) {
       if (fragment is LocalVariableFragmentImpl) {
-        _sink.writeWithIndent('declaredElement:');
-        _sink.writeIf(fragment.hasImplicitType, ' hasImplicitType');
-        _sink.writeIf(fragment.isConst, ' isConst');
-        _sink.writeIf(fragment.isFinal, ' isFinal');
-        _sink.writeIf(fragment.isLate, ' isLate');
-        // TODO(scheglov): This crashes.
-        // _writeIf(element.hasInitializer, ' hasInitializer');
-        _sink.writeln(' ${fragment.name2 ?? ''}@${fragment.nameOffset}');
-        _sink.withIndent(() {
-          _writeType('type', fragment.type);
-        });
+        _writeDeclaredLocalVariableFragment(fragment);
       } else if (fragment is TypeParameterFragmentImpl) {
         _writeFragment('declaredElement', fragment);
         _sink.withIndent(() {
@@ -1789,6 +1770,47 @@ Expected parent: (${parent.runtimeType}) $parent
         }
       }
     }
+  }
+
+  void _writeDeclaredLocalVariableFragment(LocalVariableFragmentImpl fragment) {
+    _sink.writeIndentedLine(() {
+      _sink.write('declaredFragment: ');
+      _sink.writeIf(fragment.isConst, 'isConst ');
+      _sink.writeIf(fragment.isFinal, 'isFinal ');
+      _sink.writeIf(fragment.isLate, 'isLate ');
+      _sink.writeIf(fragment.isPrivate, 'isPrivate ');
+      _sink.writeIf(fragment.isPublic, 'isPublic ');
+      _sink.writeIf(fragment.isStatic, 'isStatic ');
+      _sink.writeIf(fragment.isSynthetic, 'isSynthetic ');
+      _sink.write('${fragment.name2 ?? ''}@${fragment.nameOffset}');
+    });
+
+    _sink.withIndent(() {
+      if (fragment.hasImplicitType) {
+        // TODO(scheglov): eventually we can just write type a below.
+        _sink.writelnWithIndent('type: null');
+      } else {
+        _writeType('type', fragment.type);
+      }
+
+      var element = fragment.element;
+      _sink.writeIndentedLine(() {
+        _sink.write('element:');
+        _sink.writeIf(element.hasImplicitType, ' hasImplicitType');
+        _sink.writeIf(element.isConst, ' isConst');
+        _sink.writeIf(element.isFinal, ' isFinal');
+        _sink.writeIf(element.isLate, ' isLate');
+        _sink.writeIf(element.isPrivate, ' isPrivate');
+        _sink.writeIf(element.isPublic, ' isPublic');
+        _sink.writeIf(element.isStatic, ' isStatic');
+        _sink.writeIf(element.isSynthetic, ' isSynthetic');
+        expect(element.firstFragment, same(fragment));
+        expect(element.fragments, hasLength(1));
+      });
+      _sink.withIndent(() {
+        _writeType('type', element.type);
+      });
+    });
   }
 
   void _writeDocDirectiveTag(DocDirectiveTag docDirective) {

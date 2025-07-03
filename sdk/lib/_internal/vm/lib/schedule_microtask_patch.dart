@@ -4,22 +4,63 @@
 
 part of "async_patch.dart";
 
-@patch
+@pragma("vm:entry-point", !const bool.fromEnvironment("dart.vm.product"))
 abstract final class _MicrotaskMirrorQueue {
-  @patch
+  // This will be set to true by the native runtime's
+  // `DartUtils::PrepareAsyncLibrary` when the CLI flag `--profile-microtasks`
+  // is set.
+  @pragma("vm:entry-point", !const bool.fromEnvironment("dart.vm.product"))
+  static bool _shouldProfileMicrotasks = false;
+
   @pragma("vm:external-name", "MicrotaskMirrorQueue_onScheduleAsyncCallback")
   external static void _onScheduleAsyncCallback();
 
-  @patch
   @pragma(
     "vm:external-name",
     "MicrotaskMirrorQueue_onSchedulePriorityAsyncCallback",
   )
   external static void _onSchedulePriorityAsyncCallback();
 
-  @patch
   @pragma("vm:external-name", "MicrotaskMirrorQueue_onAsyncCallbackComplete")
   external static void _onAsyncCallbackComplete(int startTime, int endTime);
+}
+
+@patch
+void _beforeScheduleMicrotaskCallback() {
+  if (!const bool.fromEnvironment("dart.vm.product") &&
+      _MicrotaskMirrorQueue._shouldProfileMicrotasks) {
+    _MicrotaskMirrorQueue._onScheduleAsyncCallback();
+  }
+}
+
+@patch
+void _beforeSchedulePriorityCallback() {
+  if (!const bool.fromEnvironment("dart.vm.product") &&
+      _MicrotaskMirrorQueue._shouldProfileMicrotasks) {
+    _MicrotaskMirrorQueue._onSchedulePriorityAsyncCallback();
+  }
+}
+
+@patch
+void Function() _microtaskEntryCallback(_AsyncCallbackEntry entry) {
+  if (const bool.fromEnvironment("dart.vm.product") ||
+      !_MicrotaskMirrorQueue._shouldProfileMicrotasks) {
+    return entry.callback;
+  } else {
+    @pragma("vm:invisible")
+    void timedCallback() {
+      final callbackStartTime = Timeline.now;
+      (entry.callback)();
+      final callbackEndTime = Timeline.now;
+      _MicrotaskMirrorQueue._onAsyncCallbackComplete(
+        callbackStartTime,
+        callbackEndTime,
+      );
+    }
+
+    ;
+    return timedCallback;
+  }
 }
 
 @patch

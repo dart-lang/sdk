@@ -96,14 +96,18 @@ PatternVariableDeclarationStatement
       pattern: LogicalAndPattern
         leftOperand: DeclaredVariablePattern
           name: a
-          declaredElement: hasImplicitType a@18
-            type: int
+          declaredFragment: isPublic a@18
+            type: null
+            element: hasImplicitType isPublic
+              type: int
           matchedValueType: int
         operator: &&
         rightOperand: DeclaredVariablePattern
           name: b
-          declaredElement: hasImplicitType b@23
-            type: int
+          declaredFragment: isPublic b@23
+            type: null
+            element: hasImplicitType isPublic
+              type: int
           matchedValueType: int
         matchedValueType: int
       rightParenthesis: )

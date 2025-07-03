@@ -30,8 +30,10 @@ NullCheckPattern
   pattern: DeclaredVariablePattern
     keyword: var
     name: y
-    declaredElement: hasImplicitType y@34
-      type: int
+    declaredFragment: isPublic y@34
+      type: null
+      element: hasImplicitType isPublic
+        type: int
     matchedValueType: int
   operator: ?
   matchedValueType: int?
@@ -56,8 +58,10 @@ NullCheckPattern
   pattern: DeclaredVariablePattern
     keyword: var
     name: y
-    declaredElement: hasImplicitType y@45
-      type: int
+    declaredFragment: isPublic y@45
+      type: null
+      element: hasImplicitType isPublic
+        type: int
     matchedValueType: int
   operator: ?
   matchedValueType: int?
@@ -89,8 +93,10 @@ PatternVariableDeclaration
     pattern: NullCheckPattern
       pattern: DeclaredVariablePattern
         name: a
-        declaredElement: hasImplicitType a@24
-          type: int
+        declaredFragment: isPublic a@24
+          type: null
+          element: hasImplicitType isPublic
+            type: int
         matchedValueType: int
       operator: ?
       matchedValueType: int?
