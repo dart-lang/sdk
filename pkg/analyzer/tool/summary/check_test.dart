@@ -19,6 +19,5 @@ void main() async {
     idlFolderPath,
     'pkg/analyzer/tool/summary/generate.dart',
     getAllTargets(idlPath),
-    args: [idlPath],
   );
 }

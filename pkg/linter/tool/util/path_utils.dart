@@ -2,39 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-import 'dart:isolate';
-
+import 'package:analyzer_testing/package_root.dart' as pkg_root;
 import 'package:path/path.dart' as path;
 
-String get linterPackageRoot => path.joinAll(_packageRoot);
-
-List<String> get _packageRoot {
-  // Locate the root of the package without using `Platform.script` as it fails
-  // when run through the `dart test`.
-  // https://github.com/dart-lang/test/issues/110
-  var packageLibUri = Isolate.resolvePackageUriSync(
-    Uri.parse('package:linter/'),
-  );
-
-  var parts = path.split(path.dirname(packageLibUri!.toFilePath()));
-  while (parts.last != 'linter') {
-    parts.removeLast();
-    if (parts.isEmpty) {
-      throw StateError(
-        "Script is not located inside a 'linter' directory? "
-        "'${Platform.script.path}'",
-      );
-    }
-  }
-  return parts;
-}
+final String linterPackageRoot = path.normalize(
+  path.join(pkg_root.packageRoot, 'linter'),
+);
 
 String pathRelativeToPackageRoot(Iterable<String> parts) =>
-    path.joinAll([..._packageRoot, ...parts]);
+    path.joinAll([linterPackageRoot, ...parts]);
 
-String pathRelativeToPkgDir(Iterable<String> parts) {
-  var pathParts = _packageRoot;
-  pathParts.replaceRange(pathParts.length - 1, pathParts.length, parts);
-  return path.joinAll(pathParts);
-}
+String pathRelativeToPkgDir(Iterable<String> parts) =>
+    path.joinAll([pkg_root.packageRoot, ...parts]);

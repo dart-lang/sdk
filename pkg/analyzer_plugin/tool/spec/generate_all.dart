@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
+import 'package:analyzer_testing/package_root.dart' as pkg_root;
 import 'package:analyzer_utilities/tools.dart';
 import 'package:path/path.dart';
 
@@ -16,8 +15,7 @@ import 'to_html.dart' as to_html;
 
 /// Generate all targets.
 Future<void> main() async {
-  var script = Platform.script.toFilePath(windows: Platform.isWindows);
-  var pkgPath = normalize(join(dirname(script), '..', '..'));
+  var pkgPath = normalize(join(pkg_root.packageRoot, 'analyzer_plugin'));
   await GeneratedContent.generateAll(pkgPath, allTargets);
 }
 
