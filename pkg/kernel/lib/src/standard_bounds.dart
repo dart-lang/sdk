@@ -66,33 +66,6 @@ mixin StandardBounds {
           when tClassNode == coreTypes.objectClass:
         return false;
 
-      // MORETOP(S*, T*) = MORETOP(S, T).
-      case (
-          DartType(declaredNullability: Nullability.legacy),
-          DartType(declaredNullability: Nullability.legacy)
-        ):
-        DartType nonNullableS =
-            s.withDeclaredNullability(Nullability.nonNullable);
-        assert(!identical(s, nonNullableS));
-        DartType nonNullableT =
-            t.withDeclaredNullability(Nullability.nonNullable);
-        assert(!identical(t, nonNullableT));
-        return moretop(nonNullableS, nonNullableT);
-
-      // MORETOP(S, T*) = true.
-      case (
-          DartType(declaredNullability: Nullability.nonNullable),
-          DartType(declaredNullability: Nullability.legacy)
-        ):
-        return true;
-
-      // MORETOP(S*, T) = false.
-      case (
-          DartType(declaredNullability: Nullability.legacy),
-          DartType(declaredNullability: Nullability.nonNullable)
-        ):
-        return false;
-
       // MORETOP(S?, T?) == MORETOP(S, T).
       case (
           DartType(declaredNullability: Nullability.nullable),
@@ -117,20 +90,6 @@ mixin StandardBounds {
       case (
           DartType(declaredNullability: Nullability.nullable),
           DartType(declaredNullability: Nullability.nonNullable)
-        ):
-        return false;
-
-      // TODO(cstefantsova): Update the following after the spec is updated.
-      case (
-          DartType(declaredNullability: Nullability.nullable),
-          DartType(declaredNullability: Nullability.legacy)
-        ):
-        return true;
-
-      // TODO(cstefantsova): Update the following after the spec is updated.
-      case (
-          DartType(declaredNullability: Nullability.legacy),
-          DartType(declaredNullability: Nullability.nullable)
         ):
         return false;
 
@@ -225,47 +184,6 @@ mixin StandardBounds {
       case (
           DartType(declaredNullability: Nullability.nullable),
           DartType(declaredNullability: Nullability.nonNullable)
-        ):
-        return false;
-
-      // MOREBOTTOM(S*, T*) = MOREBOTTOM(S, T)
-      case (
-          DartType(declaredNullability: Nullability.legacy),
-          DartType(declaredNullability: Nullability.legacy)
-        ):
-        DartType nonNullableS =
-            s.withDeclaredNullability(Nullability.nonNullable);
-        assert(s != nonNullableS);
-        DartType nonNullableT =
-            t.withDeclaredNullability(Nullability.nonNullable);
-        assert(t != nonNullableT);
-        return morebottom(nonNullableS, nonNullableT);
-
-      // MOREBOTTOM(S, T*) = true.
-      case (
-          DartType(declaredNullability: Nullability.nonNullable),
-          DartType(declaredNullability: Nullability.legacy)
-        ):
-        return true;
-
-      // MOREBOTTOM(S*, T) = false.
-      case (
-          DartType(declaredNullability: Nullability.legacy),
-          DartType(declaredNullability: Nullability.nonNullable)
-        ):
-        return false;
-
-      // TODO(cstefantsova): Update the following after the spec is updated.
-      case (
-          DartType(declaredNullability: Nullability.nullable),
-          DartType(declaredNullability: Nullability.legacy)
-        ):
-        return true;
-
-      // TODO(cstefantsova): Update the following after the spec is updated.
-      case (
-          DartType(declaredNullability: Nullability.legacy),
-          DartType(declaredNullability: Nullability.nullable)
         ):
         return false;
 
@@ -411,74 +329,30 @@ mixin StandardBounds {
           NeverType(nullability: Nullability.nullable),
           NeverType(nullability: Nullability.nullable)
         ):
-      case (
-          NeverType(nullability: Nullability.nullable),
-          NeverType(nullability: Nullability.legacy)
-        ):
-      case (
-          NeverType(nullability: Nullability.legacy),
-          NeverType(nullability: Nullability.nullable)
-        ):
-      case (
-          NeverType(nullability: Nullability.legacy),
-          NeverType(nullability: Nullability.legacy)
-        ):
       case (_, _) when coreTypes.isNull(type1) && coreTypes.isNull(type2):
         return morebottom(type1, type2) ? type1 : type2;
       case (NullType(), DartType(declaredNullability: Nullability.nullable)):
-      case (NullType(), DartType(declaredNullability: Nullability.legacy)):
       case (
           NeverType(nullability: Nullability.nullable),
           DartType(declaredNullability: Nullability.nullable)
-        ):
-      case (
-          NeverType(nullability: Nullability.nullable),
-          DartType(declaredNullability: Nullability.legacy)
-        ):
-      case (
-          NeverType(nullability: Nullability.legacy),
-          DartType(declaredNullability: Nullability.nullable)
-        ):
-      case (
-          NeverType(nullability: Nullability.legacy),
-          DartType(declaredNullability: Nullability.legacy)
         ):
       case (_, DartType(declaredNullability: Nullability.nullable))
-          when coreTypes.isNull(type1):
-      case (_, DartType(declaredNullability: Nullability.legacy))
           when coreTypes.isNull(type1):
         return type1;
       case (NullType(), _):
       case (NeverType(nullability: Nullability.nullable), _):
-      case (NeverType(nullability: Nullability.legacy), _):
       case (_, _) when coreTypes.isNull(type1):
         return const NeverType.nonNullable();
       case (DartType(declaredNullability: Nullability.nullable), NullType()):
-      case (DartType(declaredNullability: Nullability.legacy), NullType()):
       case (
           DartType(declaredNullability: Nullability.nullable),
           NeverType(nullability: Nullability.nullable)
-        ):
-      case (
-          DartType(declaredNullability: Nullability.legacy),
-          NeverType(nullability: Nullability.nullable)
-        ):
-      case (
-          DartType(declaredNullability: Nullability.nullable),
-          NeverType(nullability: Nullability.legacy)
-        ):
-      case (
-          DartType(declaredNullability: Nullability.legacy),
-          NeverType(nullability: Nullability.legacy)
         ):
       case (DartType(declaredNullability: Nullability.nullable), _)
-          when coreTypes.isNull(type2):
-      case (DartType(declaredNullability: Nullability.legacy), _)
           when coreTypes.isNull(type2):
         return type2;
       case (_, NullType()):
       case (_, NeverType(nullability: Nullability.nullable)):
-      case (_, NeverType(nullability: Nullability.legacy)):
       case (_, _) when coreTypes.isNull(type2):
         return const NeverType.nonNullable();
 
@@ -532,12 +406,6 @@ mixin StandardBounds {
           when !isType1WithoutNullabilityMarker &&
               isType2WithoutNullabilityMarker:
         return _getStandardLowerBound(type1WithoutNullabilityMarker, type2);
-      case (_, _)
-          when isLegacyTypeConstructorApplication(type1) ||
-              isLegacyTypeConstructorApplication(type2):
-        return _getStandardLowerBound(
-                type1WithoutNullabilityMarker, type2WithoutNullabilityMarker)
-            .withDeclaredNullability(Nullability.legacy);
       case (_, _)
           when isNullableTypeConstructorApplication(type1) &&
               isNullableTypeConstructorApplication(type2):
@@ -747,28 +615,14 @@ mixin StandardBounds {
           NeverType(nullability: Nullability.nullable),
           NeverType(nullability: Nullability.nullable)
         ):
-      case (
-          NeverType(nullability: Nullability.nullable),
-          NeverType(nullability: Nullability.legacy)
-        ):
-      case (
-          NeverType(nullability: Nullability.legacy),
-          NeverType(nullability: Nullability.nullable)
-        ):
-      case (
-          NeverType(nullability: Nullability.legacy),
-          NeverType(nullability: Nullability.legacy)
-        ):
       case (_, _) when coreTypes.isNull(type1) && coreTypes.isNull(type2):
         return morebottom(type1, type2) ? type2 : type1;
       case (NullType(), _):
       case (NeverType(nullability: Nullability.nullable), _):
-      case (NeverType(nullability: Nullability.legacy), _):
       case (_, _) when coreTypes.isNull(type1):
         return type2.withDeclaredNullability(Nullability.nullable);
       case (_, NullType()):
       case (_, NeverType(nullability: Nullability.nullable)):
-      case (_, NeverType(nullability: Nullability.legacy)):
       case (_, _) when coreTypes.isNull(type2):
         return type1.withDeclaredNullability(Nullability.nullable);
 
@@ -810,12 +664,6 @@ mixin StandardBounds {
                 computeTypeWithoutNullabilityMarker(type1),
                 computeTypeWithoutNullabilityMarker(type2))
             .withDeclaredNullability(Nullability.nullable);
-      case (_, _) when isLegacyTypeConstructorApplication(type1):
-      case (_, _) when isLegacyTypeConstructorApplication(type2):
-        return _getStandardUpperBound(
-                computeTypeWithoutNullabilityMarker(type1),
-                computeTypeWithoutNullabilityMarker(type2))
-            .withDeclaredNullability(Nullability.legacy);
 
       case (TypeParameterType typeParameterType1, _):
         return _getTypeVariableStandardUpperBound(type1, type2,

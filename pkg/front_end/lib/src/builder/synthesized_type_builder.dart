@@ -96,7 +96,7 @@ class SynthesizedTypeBuilder extends FixedTypeBuilder {
       ClassHierarchyBase? hierarchy) {
     DartType aliasedType =
         _buildAliasedInternal(libraryBuilder, typeUse, hierarchy);
-    return unaliasing.unalias(aliasedType, legacyEraseAliases: false);
+    return unaliasing.unalias(aliasedType);
   }
 
   @override

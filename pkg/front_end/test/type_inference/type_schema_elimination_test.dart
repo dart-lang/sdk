@@ -44,23 +44,23 @@ class TypeSchemaEliminationTest {
   }
 
   void test_greatestClosure_contravariant() {
-    testGreatest("(UNKNOWN) ->* dynamic", "(Never) ->* dynamic");
-    testGreatest("({UNKNOWN foo}) ->* dynamic", "({Never foo}) ->* dynamic");
+    testGreatest("(UNKNOWN) -> dynamic", "(Never) -> dynamic");
+    testGreatest("({UNKNOWN foo}) -> dynamic", "({Never foo}) -> dynamic");
   }
 
   void test_greatestClosure_contravariant_contravariant() {
-    testGreatest("((UNKNOWN) ->* dynamic) ->* dynamic",
-        "((dynamic) ->* dynamic) ->* dynamic");
+    testGreatest("((UNKNOWN) -> dynamic) -> dynamic",
+        "((dynamic) -> dynamic) -> dynamic");
   }
 
   void test_greatestClosure_covariant() {
-    testGreatest("() ->* UNKNOWN", "() ->* dynamic");
-    testGreatest("List<UNKNOWN>*", "List<dynamic>*");
+    testGreatest("() -> UNKNOWN", "() -> dynamic");
+    testGreatest("List<UNKNOWN>", "List<dynamic>");
   }
 
   void test_greatestClosure_function_multipleUnknown() {
-    testGreatest("(UNKNOWN, UNKNOWN, {UNKNOWN a, UNKNOWN b}) ->* UNKNOWN",
-        "(Never, Never, {Never a, Never b}) ->* dynamic");
+    testGreatest("(UNKNOWN, UNKNOWN, {UNKNOWN a, UNKNOWN b}) -> UNKNOWN",
+        "(Never, Never, {Never a, Never b}) -> dynamic");
   }
 
   void test_greatestClosure_simple() {
@@ -68,23 +68,23 @@ class TypeSchemaEliminationTest {
   }
 
   void test_leastClosure_contravariant() {
-    testLeast("(UNKNOWN) ->* dynamic", "(Object?) ->* dynamic");
-    testLeast("({UNKNOWN foo}) ->* dynamic", "({Object? foo}) ->* dynamic");
+    testLeast("(UNKNOWN) -> dynamic", "(Object?) -> dynamic");
+    testLeast("({UNKNOWN foo}) -> dynamic", "({Object? foo}) -> dynamic");
   }
 
   void test_leastClosure_contravariant_contravariant() {
-    testLeast("((UNKNOWN) ->* UNKNOWN) ->* dynamic",
-        "((Never) ->* Object?) ->* dynamic");
+    testLeast(
+        "((UNKNOWN) -> UNKNOWN) -> dynamic", "((Never) -> Object?) -> dynamic");
   }
 
   void test_leastClosure_covariant() {
-    testLeast("() ->* UNKNOWN", "() ->* Never");
-    testLeast("List<UNKNOWN>*", "List<Never>*");
+    testLeast("() -> UNKNOWN", "() -> Never");
+    testLeast("List<UNKNOWN>", "List<Never>");
   }
 
   void test_leastClosure_function_multipleUnknown() {
-    testLeast("(UNKNOWN, UNKNOWN, {UNKNOWN a, UNKNOWN b}) ->* UNKNOWN",
-        "(Object?, Object?, {Object? a, Object? b}) ->* Never");
+    testLeast("(UNKNOWN, UNKNOWN, {UNKNOWN a, UNKNOWN b}) -> UNKNOWN",
+        "(Object?, Object?, {Object? a, Object? b}) -> Never");
   }
 
   void test_leastClosure_simple() {

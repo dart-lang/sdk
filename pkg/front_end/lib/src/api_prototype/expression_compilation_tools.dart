@@ -279,7 +279,6 @@ class ParsedType {
     if (type == ParsedTypeKind.Null) throw "No nullability on the null type";
     if (nullability == 0) return Nullability.nullable;
     if (nullability == 1) return Nullability.nonNullable;
-    if (nullability == 2) return Nullability.legacy;
     throw "Unknown nullability";
   }
 }

@@ -1673,8 +1673,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
         node is VoidType ||
         node is InterfaceType &&
             isObjectClass(node.classNode) &&
-            (node.nullability == Nullability.nullable ||
-                node.nullability == Nullability.legacy) ||
+            node.nullability == Nullability.nullable ||
         node is FutureOrType && isTopType(node.typeArgument);
   }
 
@@ -1685,11 +1684,6 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
 
   @override
   void defaultDartType(DartType node) {
-    if (!inConstant && node.nullability == Nullability.legacy) {
-      problem(localContext,
-          "Unexpected appearance of the legacy type $node outside a constant.",
-          origin: remoteContext);
-    }
     if (!AllowedTypes.isAllowed(node, inConstant: inConstant)) {
       final TreeNode? localContext = this.localContext;
       final TreeNode? remoteContext = this.remoteContext;

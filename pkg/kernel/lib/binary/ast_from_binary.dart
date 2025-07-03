@@ -142,12 +142,7 @@ class BinaryBuilder {
   List<CanonicalName> get linkTable => _linkTable;
 
   late Map<int, DartType?> _cachedSimpleInterfaceTypes;
-  List<FunctionType?> _voidFunctionFunctionTypesCache = [
-    null,
-    null,
-    null,
-    null
-  ];
+  List<FunctionType?> _voidFunctionFunctionTypesCache = [null, null, null];
   int _transformerFlags = 0;
   Library? _currentLibrary;
   int _componentStartOffset = 0;

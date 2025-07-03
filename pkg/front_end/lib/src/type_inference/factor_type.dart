@@ -29,19 +29,6 @@ DartType factorType(TypeEnvironment typeEnvironment, DartType T, DartType S) {
     }
   }
 
-  // * Else if T is R* and Null <: S then factor(R, S)
-  // * Else if T is R* then factor(R, S)*
-  if (T.declaredNullability == Nullability.legacy) {
-    // Coverage-ignore-block(suite): Not run.
-    DartType R = T.withDeclaredNullability(Nullability.nonNullable);
-    DartType factor_RS = factorType(typeEnvironment, R, S);
-    if (typeEnvironment.isSubtypeOf(const NullType(), S)) {
-      return factor_RS;
-    } else {
-      return factor_RS.withDeclaredNullability(Nullability.legacy);
-    }
-  }
-
   // * Else if T is FutureOr<R> and Future<R> <: S then factor(R, S)
   // * Else if T is FutureOr<R> and R <: S then factor(Future<R>, S)
   if (T is FutureOrType) {

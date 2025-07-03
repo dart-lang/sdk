@@ -43,17 +43,11 @@ class FutureOrNormalizer extends ReplacementVisitor {
         return typeArgument;
       case InterfaceType()
           when typeArgument.classNode == _coreTypes.objectClass:
-        // Normalize FutureOr of Object, Object?, Object*.
-        var nullable =
+        // Normalize FutureOr of Object, Object?.
+        var nullability =
             futureOr.nullability == Nullability.nullable ||
-            typeArgument.nullability == Nullability.nullable;
-        var legacy =
-            futureOr.nullability == Nullability.legacy ||
-            typeArgument.nullability == Nullability.legacy;
-        var nullability = nullable
+                typeArgument.nullability == Nullability.nullable
             ? Nullability.nullable
-            : legacy
-            ? Nullability.legacy
             : Nullability.nonNullable;
         return typeArgument.withDeclaredNullability(nullability);
       case NeverType() when typeArgument.nullability == Nullability.nonNullable:

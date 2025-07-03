@@ -4560,14 +4560,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         //       return NNBD_SUBTYPE(NULL, T)
         //    Otherwise return LEGACY_SUBTYPE(S, T)
         if (constant is NullConstant) {
-          if (type.nullability == Nullability.legacy) {
-            // `null is Null` is handled below.
-            return typeEnvironment.isSubtypeOf(type, const NullType()) ||
-                typeEnvironment.isSubtypeOf(
-                    typeEnvironment.objectNullableRawType, type);
-          } else {
-            return typeEnvironment.isSubtypeOf(const NullType(), type);
-          }
+          return typeEnvironment.isSubtypeOf(const NullType(), type);
         }
         return isSubtype(constant, type);
       }

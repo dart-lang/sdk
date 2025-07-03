@@ -489,7 +489,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
             typeName.fullNameLength);
       }
     }
-    return unaliasing.unalias(aliasedType, legacyEraseAliases: false);
+    return unaliasing.unalias(aliasedType);
   }
 
   @override

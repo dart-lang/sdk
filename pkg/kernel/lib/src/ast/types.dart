@@ -35,12 +35,6 @@ enum Nullability {
   /// that some types denoted by a type parameter without the '?' modifier can
   /// be something else rather than non-nullable.
   nonNullable,
-
-  /// Types in opt-out libraries are 'legacy' types.
-  ///
-  /// They are both subtypes and supertypes of the nullable and non-nullable
-  /// versions of the type.
-  legacy
 }
 
 /// Declaration of a type variable.
@@ -778,8 +772,6 @@ class NeverType extends DartType {
 
   const NeverType.nonNullable() : this.internal(Nullability.nonNullable);
 
-  const NeverType.legacy() : this.internal(Nullability.legacy);
-
   const NeverType.internal(this.declaredNullability)
       : assert(declaredNullability != Nullability.undetermined);
 
@@ -789,8 +781,6 @@ class NeverType extends DartType {
         return const NeverType.nullable();
       case Nullability.nonNullable:
         return const NeverType.nonNullable();
-      case Nullability.legacy:
-        return const NeverType.legacy();
       case Nullability.undetermined:
         throw new StateError("Unsupported nullability for 'NeverType': "
             "'${nullability}'");
@@ -808,7 +798,6 @@ class NeverType extends DartType {
         Nullability.undetermined => false,
         Nullability.nullable => false,
         Nullability.nonNullable => true,
-        Nullability.legacy => true,
       };
 
   @override
@@ -927,7 +916,6 @@ class InterfaceType extends TypeDeclarationType {
         Nullability.undetermined => false,
         Nullability.nullable => false,
         Nullability.nonNullable => true,
-        Nullability.legacy => true,
       };
 
   @override
@@ -1041,7 +1029,6 @@ class FunctionType extends DartType implements SharedFunctionType {
         Nullability.undetermined => false,
         Nullability.nullable => false,
         Nullability.nonNullable => true,
-        Nullability.legacy => true,
       };
 
   @override
@@ -1479,7 +1466,6 @@ class ExtensionType extends TypeDeclarationType {
         Nullability.undetermined => true,
         Nullability.nullable => false,
         Nullability.nonNullable => true,
-        Nullability.legacy => true,
       };
 
   static List<DartType> _defaultTypeArguments(
@@ -1679,8 +1665,6 @@ class IntersectionType extends DartType {
                 rightNullability == Nullability.nonNullable) ||
             (leftNullability == Nullability.nonNullable &&
                 rightNullability == Nullability.undetermined) ||
-            (leftNullability == Nullability.legacy &&
-                rightNullability == Nullability.legacy) ||
             (leftNullability == Nullability.undetermined &&
                 rightNullability == Nullability.nonNullable) ||
             (leftNullability == Nullability.undetermined &&
@@ -1715,8 +1699,7 @@ class IntersectionType extends DartType {
             // inference/infer_types_on_loop_indices_for_each_loop
             // inference/infer_types_on_loop_indices_for_each_loop_async
             // replicated in nnbd_mixed/type_parameter_nullability
-            (leftNullability == Nullability.legacy &&
-                rightNullability == Nullability.nonNullable) ||
+            (rightNullability == Nullability.nonNullable) ||
             // pkg/front_end/test/incremental_hello_test
             // pkg/front_end/tool/cfe_perf_test
             // replicated in nnbd_mixed/type_parameter_nullability
@@ -1727,20 +1710,17 @@ class IntersectionType extends DartType {
             //
             // pkg/front_end/test/types/kernel_type_parser_test
             // pkg/front_end/test/types/cfe_types_test
-            (leftNullability == Nullability.legacy &&
-                rightNullability == Nullability.nullable) ||
+            (rightNullability == Nullability.nullable) ||
             // pkg/front_end/test/types/kernel_type_parser_test
             // pkg/front_end/test/types/cfe_types_test
             (leftNullability == Nullability.nonNullable &&
                 rightNullability == Nullability.nullable) ||
             // pkg/front_end/test/types/kernel_type_parser_test
             // pkg/front_end/test/types/cfe_types_test
-            (leftNullability == Nullability.undetermined &&
-                rightNullability == Nullability.legacy) ||
+            (leftNullability == Nullability.undetermined) ||
             // pkg/kernel/test/clone_test
             // The legacy nullability is due to RHS being InvalidType.
-            (leftNullability == Nullability.nonNullable &&
-                rightNullability == Nullability.legacy),
+            (leftNullability == Nullability.nonNullable),
         "Unexpected nullabilities for ${left} & ${right}: "
         "leftNullability = ${leftNullability}, "
         "rightNullability = ${rightNullability}.");
@@ -1842,8 +1822,6 @@ class IntersectionType extends DartType {
                 rhsNullability == Nullability.nonNullable) ||
             (lhsNullability == Nullability.nonNullable &&
                 rhsNullability == Nullability.undetermined) ||
-            (lhsNullability == Nullability.legacy &&
-                rhsNullability == Nullability.legacy) ||
             (lhsNullability == Nullability.undetermined &&
                 rhsNullability == Nullability.nonNullable) ||
             (lhsNullability == Nullability.undetermined &&
@@ -1875,8 +1853,7 @@ class IntersectionType extends DartType {
             // inference/constructors_infer_from_arguments_factory
             // inference/infer_types_on_loop_indices_for_each_loop
             // inference/infer_types_on_loop_indices_for_each_loop_async
-            (lhsNullability == Nullability.legacy &&
-                rhsNullability == Nullability.nonNullable) ||
+            (rhsNullability == Nullability.nonNullable) ||
             // pkg/front_end/test/incremental_hello_test
             // pkg/front_end/tool/cfe_perf_test
             // pkg/front_end/test/incremental_hello_test
@@ -1889,8 +1866,7 @@ class IntersectionType extends DartType {
 
             // pkg/front_end/test/types/kernel_type_parser_test
             // pkg/front_end/test/types/cfe_types_test
-            (lhsNullability == Nullability.undetermined &&
-                rhsNullability == Nullability.legacy) ||
+            (lhsNullability == Nullability.undetermined) ||
             // pkg/front_end/test/types/kernel_type_parser_test
             // pkg/front_end/test/types/cfe_types_test
             (lhsNullability == Nullability.nonNullable &&
@@ -1906,12 +1882,11 @@ class IntersectionType extends DartType {
     //
     // The code below uses the following extension of the table function:
     //
-    // | LHS \ RHS |  !  |  ?  |  *  |  %  |
-    // |-----------|-----|-----|-----|-----|
-    // |     !     |  !  |  !  |  !  |  !  |
-    // |     ?     | (!) | (?) |  *  | (%) |
-    // |     *     | (*) |  *  |  *  |  %  |
-    // |     %     |  !  |  %  |  %  |  %  |
+    // | LHS \ RHS |  !  |  ?  |  %  |
+    // |-----------|-----|-----|-----|
+    // |     !     |  !  |  !  |  !  |
+    // |     ?     | (!) | (?) | (%) |
+    // |     %     |  !  |  %  |  %  |
 
     if (lhsNullability == Nullability.nullable &&
         rhsNullability == Nullability.nonNullable) {
@@ -1921,11 +1896,6 @@ class IntersectionType extends DartType {
     if (lhsNullability == Nullability.nullable &&
         rhsNullability == Nullability.nullable) {
       return Nullability.nullable;
-    }
-
-    if (lhsNullability == Nullability.legacy &&
-        rhsNullability == Nullability.nonNullable) {
-      return Nullability.legacy;
     }
 
     if (lhsNullability == Nullability.nullable &&
@@ -1963,7 +1933,8 @@ class IntersectionType extends DartType {
       return Nullability.undetermined;
     }
 
-    return Nullability.legacy;
+    throw new StateError("Unsupported combination '${lhsNullability}' (LHS) "
+        "and '${rhsNullability}' (RHS).");
   }
 
   @override
@@ -2230,7 +2201,6 @@ class RecordType extends DartType implements SharedRecordType {
         Nullability.undetermined => false,
         Nullability.nullable => false,
         Nullability.nonNullable => true,
-        Nullability.legacy => true,
       };
 
   @override

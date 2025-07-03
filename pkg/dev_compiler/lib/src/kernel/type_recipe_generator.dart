@@ -587,8 +587,6 @@ class _TypeRecipeVisitor extends DartTypeVisitor<String> {
         return Recipe.wrapQuestionString;
       case Nullability.nonNullable:
         return '';
-      case Nullability.legacy:
-        throw UnsupportedError('Legacy nullability.');
     }
   }
 

@@ -45,30 +45,26 @@ void run() {
   // Top types.
   areEqual("dynamic", "dynamic");
   notEqual("dynamic", "Object?");
-  notEqual("dynamic", "Object*");
+  notEqual("dynamic", "Object");
   notEqual("dynamic", "void");
   areEqual("Object?", "Object?");
-  notEqual("Object?", "Object*");
+  notEqual("Object?", "Object");
   notEqual("Object?", "void");
-  areEqual("Object*", "Object*");
-  notEqual("Object*", "void");
+  areEqual("Object", "Object");
+  notEqual("Object", "void");
   areEqual("void", "void");
   notEqual("FutureOr<dynamic>", "void");
-  notEqual("FutureOr<FutureOr<Object?>>", "Object*");
-  notEqual("FutureOr<FutureOr<FutureOr<Object*>?>>?", "dynamic");
+  notEqual("FutureOr<FutureOr<Object?>>", "Object");
+  notEqual("FutureOr<FutureOr<FutureOr<Object>?>>?", "dynamic");
   notEqual("FutureOr<Object?>", "FutureOr<Object?>?");
   notEqual("FutureOr<FutureOr<Object?>>", "FutureOr<FutureOr<Object?>?>?");
   notEqual("FutureOr<FutureOr<Object?>>", "FutureOr<FutureOr<dynamic>?>?");
 
   areEqual("dynamic", "Object?", equateTopTypes: true);
-  areEqual("dynamic", "Object*", equateTopTypes: true);
   areEqual("dynamic", "void", equateTopTypes: true);
-  areEqual("Object?", "Object*", equateTopTypes: true);
   areEqual("Object?", "void", equateTopTypes: true);
-  areEqual("Object*", "void", equateTopTypes: true);
   areEqual("FutureOr<dynamic>", "void", equateTopTypes: true);
-  areEqual("FutureOr<FutureOr<Object?>>", "Object*", equateTopTypes: true);
-  areEqual("FutureOr<FutureOr<FutureOr<Object*>?>>?", "dynamic",
+  areEqual("FutureOr<FutureOr<FutureOr<Object>?>>?", "dynamic",
       equateTopTypes: true);
   areEqual("FutureOr<Object?>", "FutureOr<Object?>?", equateTopTypes: true);
   areEqual("FutureOr<FutureOr<Object?>>", "FutureOr<FutureOr<Object?>?>?",
@@ -76,7 +72,6 @@ void run() {
   areEqual("FutureOr<FutureOr<Object?>>", "FutureOr<FutureOr<dynamic>?>?",
       equateTopTypes: true);
 
-  areEqual("Object?", "Object*", ignoreAllNullabilities: true);
   areEqual("FutureOr<Object?>", "FutureOr<Object?>?",
       ignoreAllNullabilities: true);
   areEqual("FutureOr<FutureOr<Object?>>", "FutureOr<FutureOr<Object?>?>?",
