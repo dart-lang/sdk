@@ -6803,6 +6803,9 @@ class LocalVariableElementImpl extends PromotableElementImpl
   @override
   final LocalVariableFragmentImpl _wrappedElement;
 
+  @override
+  TypeImpl type = InvalidTypeImpl.instance;
+
   LocalVariableElementImpl(this._wrappedElement);
 
   @override
@@ -6854,11 +6857,6 @@ class LocalVariableElementImpl extends PromotableElementImpl
   @override
   MetadataImpl get metadata2 => metadata;
 
-  @override
-  TypeImpl get type => _wrappedElement.type;
-
-  set type(TypeImpl type) => _wrappedElement.type = type;
-
   LocalVariableFragmentImpl get wrappedElement {
     return _wrappedElement;
   }
@@ -6874,6 +6872,19 @@ class LocalVariableElementImpl extends PromotableElementImpl
   @Deprecated('Use accept instead')
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
+
+  @override
+  String displayString2({
+    bool multiline = false,
+    bool preferTypeAlias = false,
+  }) {
+    var builder = ElementDisplayStringBuilder(
+      multiline: multiline,
+      preferTypeAlias: preferTypeAlias,
+    );
+    builder.writeVariableElement2(this);
+    return builder.toString();
+  }
 }
 
 class LocalVariableFragmentImpl extends NonParameterVariableFragmentImpl
@@ -10125,6 +10136,10 @@ abstract class VariableFragmentImpl extends FragmentImpl
   set type(TypeImpl type) {
     _type = type;
   }
+
+  /// The declared type of this variable.
+  // TODO(scheglov): turn into field
+  TypeImpl? get type2 => _type;
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {

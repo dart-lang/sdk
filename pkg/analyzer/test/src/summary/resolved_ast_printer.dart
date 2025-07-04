@@ -1786,12 +1786,7 @@ Expected parent: (${parent.runtimeType}) $parent
     });
 
     _sink.withIndent(() {
-      if (fragment.hasImplicitType) {
-        // TODO(scheglov): eventually we can just write type a below.
-        _sink.writelnWithIndent('type: null');
-      } else {
-        _writeType('type', fragment.type);
-      }
+      _writeType('type', fragment.type2);
 
       var element = fragment.element;
       _sink.writeIndentedLine(() {

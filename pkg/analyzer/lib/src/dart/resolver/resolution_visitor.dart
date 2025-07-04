@@ -244,9 +244,10 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         fragment.isFinal = true;
         if (exceptionTypeNode == null) {
           fragment.hasImplicitType = true;
-          fragment.type = _typeProvider.objectType;
+          fragment.element.type = _typeProvider.objectType;
         } else {
           fragment.type = exceptionTypeNode.typeOrThrow;
+          fragment.element.type = exceptionTypeNode.typeOrThrow;
         }
 
         fragment.setCodeRange(
@@ -267,7 +268,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         stackTraceNode.declaredFragment = fragment;
 
         fragment.isFinal = true;
-        fragment.type = _typeProvider.stackTraceType;
+        fragment.hasImplicitType = true;
+        fragment.element.type = _typeProvider.stackTraceType;
 
         fragment.setCodeRange(
           stackTraceNode.name.offset,
@@ -391,12 +393,13 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     fragment.isConst = node.isConst;
     fragment.isFinal = node.isFinal;
 
-    if (node.type == null) {
-      fragment.hasImplicitType = true;
-      fragment.type = _dynamicType;
+    if (node.type case var typeNode?) {
+      typeNode.accept(this);
+      fragment.type = typeNode.typeOrThrow;
+      fragment.element.type = typeNode.typeOrThrow;
     } else {
-      node.type!.accept(this);
-      fragment.type = node.type!.typeOrThrow;
+      fragment.hasImplicitType = true;
+      fragment.element.type = _dynamicType;
     }
 
     _setCodeRange(fragment, node);
@@ -418,7 +421,10 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     _elementHolder.enclose(fragment);
     _define(fragment.element);
     fragment.hasImplicitType = node.type == null;
-    fragment.type = node.type?.type ?? InvalidTypeImpl.instance;
+    if (node.type case var typeNode?) {
+      fragment.type = typeNode.typeOrThrow;
+      fragment.element.type = typeNode.typeOrThrow;
+    }
     node.declaredFragment = fragment;
 
     var patternContext = node.patternContext;
@@ -1419,13 +1425,19 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       fragment = _elementWalker!.getVariable();
       node.declaredFragment = fragment;
     } else {
-      var localElement = node.declaredFragment as LocalVariableFragmentImpl;
-      fragment = localElement;
+      var localFragment = node.declaredFragment as LocalVariableFragmentImpl;
+      fragment = localFragment;
 
       var varList = node.parent as VariableDeclarationListImpl;
-      localElement.hasImplicitType = varList.type == null;
-      localElement.hasInitializer = initializerNode != null;
-      localElement.type = varList.type?.type ?? _dynamicType;
+      localFragment.hasInitializer = initializerNode != null;
+      if (varList.type case var typeNode?) {
+        var type = typeNode.typeOrThrow;
+        localFragment.type = type;
+        localFragment.element.type = type;
+      } else {
+        localFragment.hasImplicitType = true;
+        localFragment.element.type = _dynamicType;
+      }
     }
 
     if (initializerNode != null) {
