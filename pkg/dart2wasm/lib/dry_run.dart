@@ -161,7 +161,7 @@ class _AnalysisVisitor extends RecursiveVisitor {
       : _typeEnvironment = TypeEnvironment(coreTypes, hierarchy),
         _jsAnyType = ExtensionType(
             coreTypes.index.getExtensionType('dart:js_interop', 'JSAny'),
-            Nullability.nullable);
+            Nullability.nonNullable);
 
   @override
   void visitLibrary(Library node) {
@@ -181,7 +181,9 @@ class _AnalysisVisitor extends RecursiveVisitor {
   @override
   void visitIsExpression(IsExpression node) {
     final operandStaticType = node.operand.getStaticType(_context);
-    if (_typeEnvironment.isSubtypeOf(operandStaticType, _jsAnyType)) {
+    if (_typeEnvironment.isSubtypeOf(
+        operandStaticType.withDeclaredNullability(Nullability.nonNullable),
+        _jsAnyType)) {
       errors.add(_DryRunError(
           _DryRunErrorCode.isTestValueError,
           'Should not perform an `is` test on a JS value. Use `isA` with a JS '
@@ -189,7 +191,9 @@ class _AnalysisVisitor extends RecursiveVisitor {
           errorSourceUri: _enclosingLibrary?.importUri,
           errorLocation: node.location));
     }
-    if (_typeEnvironment.isSubtypeOf(node.type, _jsAnyType)) {
+    if (_typeEnvironment.isSubtypeOf(
+        node.type.withDeclaredNullability(Nullability.nonNullable),
+        _jsAnyType)) {
       errors.add(_DryRunError(
           _DryRunErrorCode.isTestTypeError,
           'Should not perform an `is` test against a JS value type. '
@@ -211,13 +215,15 @@ class _AnalysisVisitor extends RecursiveVisitor {
     // Check InterfaceType and ExtensionType
     if (type is TypeDeclarationType) {
       final arguments = type.typeArguments;
-      if (arguments.any((e) => _typeEnvironment.isSubtypeOf(e, _jsAnyType))) {
+      if (arguments.any((e) => _typeEnvironment.isSubtypeOf(
+          e.withDeclaredNullability(Nullability.nonNullable), _jsAnyType))) {
         return true;
       }
       return arguments.any(_hasJsTypeArguments);
     } else if (type is RecordType) {
       final fields = type.positional.followedBy(type.named.map((t) => t.type));
-      if (fields.any((e) => _typeEnvironment.isSubtypeOf(e, _jsAnyType))) {
+      if (fields.any((e) => _typeEnvironment.isSubtypeOf(
+          e.withDeclaredNullability(Nullability.nonNullable), _jsAnyType))) {
         return true;
       }
       return fields.any(_hasJsTypeArguments);

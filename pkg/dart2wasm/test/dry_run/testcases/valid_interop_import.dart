@@ -4,11 +4,24 @@
 
 import 'dart:js_interop';
 
+class A<B> {
+  void foo() {
+    if (null is! B) {
+      print('');
+    }
+  }
+}
+
 void main() {
   JSAny? jsValue;
   if (jsValue.isA<JSString>()) {
     print(jsValue);
   } else if (jsValue.isA<JSArray>()) {
     print(jsValue);
+  }
+
+  Object? dartObject;
+  if (dartObject case {'foo': final String foo}) {
+    print(foo);
   }
 }

@@ -38,14 +38,15 @@ class TestExpectation {
 }
 
 class TestFinding {
+  final String rawString;
   final int errorCode;
   final String problemMessage;
   final Uri? errorSourceUri;
   final int? errorLine;
   final int? errorColumn;
 
-  TestFinding(this.errorCode, this.problemMessage, this.errorSourceUri,
-      this.errorLine, this.errorColumn);
+  TestFinding(this.rawString, this.errorCode, this.problemMessage,
+      this.errorSourceUri, this.errorLine, this.errorColumn);
 
   factory TestFinding.fromLine(String line) {
     final parts = line.split(' - ');
@@ -60,6 +61,7 @@ class TestFinding {
     final errorCode =
         int.parse(problemMessage.substring(errorCodeStart + 1, errorCodeEnd));
     return TestFinding(
+        line,
         errorCode,
         problemMessage.substring(0, errorCodeStart).trim(),
         Uri.parse(uri),
@@ -140,7 +142,11 @@ Future<TestResults> runTest(TestCase testCase) async {
   timer.stop();
   try {
     final exitCode = result.exitCode;
-    Expect.equals(testCase.expectations.isEmpty ? 0 : 254, exitCode);
+    if (testCase.expectations.isEmpty) {
+      Expect.equals(0, exitCode, 'Unexpected findings:\n${result.stdout}');
+    } else {
+      Expect.equals(254, exitCode, 'Expected findings but found none.');
+    }
     final findings = _parseTestFindings(result.stdout);
     _checkFindings(findings, testCase.expectations);
   } catch (e, s) {
@@ -236,7 +242,8 @@ void _checkFindings(
       findings.length,
       expectations.length,
       'Incorrect number of findings. '
-      'Expected: ${expectations.length}, Actual: ${findings.length}');
+      'Expected: ${expectations.length}, Actual: ${findings.length}\n'
+      'Findings:\n${findings.map((e) => e.rawString).join('\n')}}');
   for (final expectation in expectations) {
     final lineNumber = expectation.lineNumber;
     final lineFindings =
