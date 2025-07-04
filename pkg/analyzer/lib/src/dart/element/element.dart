@@ -159,7 +159,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
 
   ClassElementImpl(this.reference, this._firstFragment) {
     reference.element = this;
-    firstFragment.augmentedInternal = this;
+    firstFragment.element = this;
   }
 
   /// If we can find all possible subtypes of this class, return them.
@@ -563,17 +563,12 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
 /// An [InterfaceFragmentImpl] which is a class.
 class ClassFragmentImpl extends ClassOrMixinFragmentImpl
     implements ClassFragment {
-  late ClassElementImpl augmentedInternal;
+  @override
+  late final ClassElementImpl element;
 
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
   ClassFragmentImpl({required super.name2, required super.nameOffset});
-
-  @override
-  ClassElementImpl get element {
-    _ensureReadResolution();
-    return augmentedInternal;
-  }
 
   bool get hasExtendsClause {
     return hasModifier(Modifier.HAS_EXTENDS_CLAUSE);
@@ -681,7 +676,7 @@ class ClassFragmentImpl extends ClassOrMixinFragmentImpl
   }
 
   void addFragment(ClassFragmentImpl fragment) {
-    fragment.augmentedInternal = element;
+    fragment.element = element;
     fragment.previousFragment = this;
     nextFragment = fragment;
   }
@@ -1971,7 +1966,7 @@ class EnumElementImpl extends InterfaceElementImpl implements EnumElement {
 
   EnumElementImpl(this.reference, this.firstFragment) {
     reference.element = this;
-    firstFragment.augmentedInternal = this;
+    firstFragment.element = this;
   }
 
   @override
@@ -2004,7 +1999,8 @@ class EnumElementImpl extends InterfaceElementImpl implements EnumElement {
 
 /// An [InterfaceFragmentImpl] which is an enum.
 class EnumFragmentImpl extends InterfaceFragmentImpl implements EnumFragment {
-  late EnumElementImpl augmentedInternal;
+  @override
+  late final EnumElementImpl element;
 
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
@@ -2017,12 +2013,6 @@ class EnumFragmentImpl extends InterfaceFragmentImpl implements EnumFragment {
   @override
   List<FieldElement> get constants2 =>
       constants.map((e) => e.asElement2).toList();
-
-  @override
-  EnumElementImpl get element {
-    _ensureReadResolution();
-    return augmentedInternal;
-  }
 
   @override
   EnumFragmentImpl? get nextFragment => super.nextFragment as EnumFragmentImpl?;
@@ -2041,7 +2031,7 @@ class EnumFragmentImpl extends InterfaceFragmentImpl implements EnumFragment {
   }
 
   void addFragment(EnumFragmentImpl fragment) {
-    fragment.augmentedInternal = element;
+    fragment.element = element;
     fragment.previousFragment = this;
     nextFragment = fragment;
   }
@@ -2373,7 +2363,7 @@ class ExtensionElementImpl extends InstanceElementImpl
 
   ExtensionElementImpl(this.reference, this.firstFragment) {
     reference.element = this;
-    firstFragment.augmentedInternal = this;
+    firstFragment.element = this;
   }
 
   @override
@@ -2416,7 +2406,8 @@ class ExtensionElementImpl extends InstanceElementImpl
 
 class ExtensionFragmentImpl extends InstanceFragmentImpl
     implements ExtensionFragment {
-  late ExtensionElementImpl augmentedInternal;
+  @override
+  late final ExtensionElementImpl element;
 
   /// Initialize a newly created extension element to have the given [name] at
   /// the given [nameOffset] in the file that contains the declaration of this
@@ -2434,12 +2425,6 @@ class ExtensionFragmentImpl extends InstanceFragmentImpl
 
   @override
   String get displayName => name2 ?? '';
-
-  @override
-  ExtensionElementImpl get element {
-    _ensureReadResolution();
-    return augmentedInternal;
-  }
 
   TypeImpl get extendedType {
     return element.extendedType;
@@ -2472,7 +2457,7 @@ class ExtensionFragmentImpl extends InstanceFragmentImpl
       super.previousFragment as ExtensionFragmentImpl?;
 
   void addFragment(ExtensionFragmentImpl fragment) {
-    fragment.augmentedInternal = element;
+    fragment.element = element;
     fragment.previousFragment = this;
     nextFragment = fragment;
   }
@@ -2493,7 +2478,7 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
 
   ExtensionTypeElementImpl(this.reference, this.firstFragment) {
     reference.element = this;
-    firstFragment.augmentedInternal = this;
+    firstFragment.element = this;
   }
 
   @override
@@ -2572,7 +2557,8 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
 
 class ExtensionTypeFragmentImpl extends InterfaceFragmentImpl
     implements ExtensionTypeFragment {
-  late ExtensionTypeElementImpl augmentedInternal;
+  @override
+  late final ExtensionTypeElementImpl element;
 
   late DartType typeErasure;
 
@@ -2585,12 +2571,6 @@ class ExtensionTypeFragmentImpl extends InterfaceFragmentImpl
   bool hasImplementsSelfReference = false;
 
   ExtensionTypeFragmentImpl({required super.name2, required super.nameOffset});
-
-  @override
-  ExtensionTypeElementImpl get element {
-    _ensureReadResolution();
-    return augmentedInternal;
-  }
 
   @override
   ExtensionTypeFragmentImpl? get nextFragment =>
@@ -2619,7 +2599,7 @@ class ExtensionTypeFragmentImpl extends InterfaceFragmentImpl
   FieldFragmentImpl get representation2 => representation;
 
   void addFragment(ExtensionTypeFragmentImpl fragment) {
-    fragment.augmentedInternal = element;
+    fragment.element = element;
     fragment.previousFragment = this;
     nextFragment = fragment;
   }
@@ -7550,7 +7530,7 @@ class MixinElementImpl extends InterfaceElementImpl implements MixinElement {
 
   MixinElementImpl(this.reference, this.firstFragment) {
     reference.element = this;
-    firstFragment.augmentedInternal = this;
+    firstFragment.element = this;
   }
 
   @override
@@ -7602,6 +7582,9 @@ class MixinElementImpl extends InterfaceElementImpl implements MixinElement {
 /// A [ClassFragmentImpl] representing a mixin declaration.
 class MixinFragmentImpl extends ClassOrMixinFragmentImpl
     implements MixinFragment {
+  @override
+  late final MixinElementImpl element;
+
   List<InterfaceTypeImpl> _superclassConstraints = const [];
 
   /// Names of methods, getters, setters, and operators that this mixin
@@ -7609,17 +7592,9 @@ class MixinFragmentImpl extends ClassOrMixinFragmentImpl
   /// The list will be empty if this class is not a mixin declaration.
   late List<String> superInvokedNames;
 
-  late MixinElementImpl augmentedInternal;
-
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
   MixinFragmentImpl({required super.name2, required super.nameOffset});
-
-  @override
-  MixinElementImpl get element {
-    _ensureReadResolution();
-    return augmentedInternal;
-  }
 
   @override
   bool get isBase {
@@ -7663,7 +7638,7 @@ class MixinFragmentImpl extends ClassOrMixinFragmentImpl
   }
 
   void addFragment(MixinFragmentImpl fragment) {
-    fragment.augmentedInternal = element;
+    fragment.element = element;
     fragment.previousFragment = this;
     nextFragment = fragment;
   }
