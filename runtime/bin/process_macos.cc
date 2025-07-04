@@ -451,15 +451,18 @@ class ProcessStarter {
         ReportChildError();
       }
       close(write_out_[0]);
+      close(write_out_[1]);
 
       if (TEMP_FAILURE_RETRY(dup2(read_in_[1], STDOUT_FILENO)) == -1) {
         ReportChildError();
       }
+      close(read_in_[0]);
       close(read_in_[1]);
 
       if (TEMP_FAILURE_RETRY(dup2(read_err_[1], STDERR_FILENO)) == -1) {
         ReportChildError();
       }
+      close(read_err_[0]);
       close(read_err_[1]);
     } else {
       ASSERT(mode_ == kInheritStdio);

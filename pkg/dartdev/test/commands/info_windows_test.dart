@@ -24,7 +24,7 @@ void main() {
         expect(process.memoryMb, greaterThan(0));
         expect(process.cpuPercent, null);
         expect(process.elapsedTime, null);
-        expect(process.commandLine, startsWith('dart.exe'));
+        expect(process.commandLine, startsWith('dart'));
       }
     });
 

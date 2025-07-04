@@ -1044,10 +1044,7 @@ int Process::Exec(Namespace* namespc,
     return -1;
   }
   CloseHandle(child_process);
-  // We exit the process here to simulate the same behaviour as exec on systems
-  // that support it.
-  ExitProcess(retval);
-  return 0;
+  return retval;
 }
 
 bool Process::Kill(intptr_t id, int signal) {

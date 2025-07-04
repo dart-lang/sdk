@@ -112,6 +112,7 @@ Run "${runner!.executableName} help" to see global options.''');
         testExecutable.executable,
         argsRestNoExperimentOrSuppressAnalytics,
         packageConfigOverride: testExecutable.packageConfig!,
+        useExecProcess: true,
         // TODO(bkonyi): remove once DartDev moves to AOT and this flag can be
         // provided directly to the process spawned by `dart run` and
         // `dart test`.

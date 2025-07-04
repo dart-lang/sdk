@@ -47,7 +47,7 @@ void main() {
       expect(output, contains('providing this information'));
       expect(output, contains('## Process info'));
       expect(output, contains('Memory |'));
-      expect(output, contains('| dart '));
+      expect(output, contains(RegExp('| dart(vm)? ')));
     });
   }, timeout: longTimeout);
 }

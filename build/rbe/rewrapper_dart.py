@@ -269,6 +269,9 @@ trace to find the place to insert the appropriate support.
             elif arg.endswith('/dart'):
                 self.dart_subdir = os.path.dirname(arg)
                 return self.parse_dart()
+            elif arg.endswith('/dartvm'):
+                self.dart_subdir = os.path.dirname(arg)
+                return self.parse_dart()
             elif arg.endswith('/dartaotruntime'):
                 self.dart_subdir = os.path.dirname(arg)
                 return self.parse_dartaotruntime()

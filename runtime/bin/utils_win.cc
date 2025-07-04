@@ -8,6 +8,7 @@
 #include <errno.h>  // NOLINT
 #include <time.h>   // NOLINT
 #include <memory>
+#include <sstream>
 
 #include "bin/utils.h"
 #include "bin/utils_win.h"
@@ -186,6 +187,70 @@ const wchar_t* StringUtilsWin::Utf8ToWide(const char* utf8,
                                           intptr_t* result_len) {
   return const_cast<const wchar_t*>(
       StringUtilsWin::Utf8ToWide(const_cast<char*>(utf8), len, result_len));
+}
+
+// This code is identical to the one in process_patch.dart, please ensure
+// changes made here are also done in process_patch.dart.
+char* StringUtilsWin::ArgumentEscape(const char* argument) {
+  std::string arg_str(argument);
+  if (arg_str.empty()) {
+    return Utils::StrDup(R"("")");
+  }
+  std::string result_str = arg_str;
+  if (arg_str.find('\t') != std::string::npos ||
+      arg_str.find(' ') != std::string::npos ||
+      arg_str.find('"') != std::string::npos) {
+    // Produce something that the C runtime on Windows will parse
+    // back as this string.
+
+    // Replace any number of '\' followed by '"' with
+    // twice as many '\' followed by '\"'.
+    char backslash = '\\';
+    std::stringstream sb;
+    size_t nextPos = 0;
+    size_t quotePos = arg_str.find('"', nextPos);
+
+    while (quotePos != std::string::npos) {
+      size_t numBackslash = 0;
+      size_t pos = quotePos - 1;
+      while (pos != std::string::npos && arg_str[pos] == backslash) {
+        numBackslash++;
+        pos--;
+      }
+      sb << arg_str.substr(nextPos, quotePos - numBackslash - nextPos);
+      for (size_t i = 0; i < numBackslash; i++) {
+        sb << R"(\\)";
+      }
+      sb << R"(\")";
+      nextPos = quotePos + 1;
+      quotePos = arg_str.find('"', nextPos);
+    }
+    sb << arg_str.substr(nextPos);
+    result_str = sb.str();
+
+    // Add '"' at the beginning and end and replace all '\' at
+    // the end with two '\'.
+    std::stringstream sb2;
+    sb2 << '"';
+    sb2 << result_str;
+
+    // Find the last non-backslash character to determine the actual end
+    // of the string
+    size_t lastCharPos = arg_str.length() - 1;
+    while (lastCharPos != std::string::npos &&
+           arg_str[lastCharPos] == backslash) {
+      sb2 << '\\';
+      lastCharPos--;
+    }
+    sb2 << '"';
+    result_str = sb2.str();
+  }
+  // Allocate memory for the C-style string and copy the content
+  intptr_t len = result_str.length() + 1;
+  char* c_str_result = static_cast<char*>(malloc(len * sizeof(char)));
+  if (c_str_result == nullptr) return nullptr;  // Allocation failure.
+  snprintf(c_str_result, len * sizeof(char), "%s", result_str.c_str());
+  return c_str_result;
 }
 
 bool ShellUtils::GetUtf8Argv(int argc, char** argv) {
