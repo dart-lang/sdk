@@ -5409,10 +5409,7 @@ class JoinPatternVariableFragmentImpl extends PatternVariableFragmentImpl
       variables.cast<PatternVariableFragment>();
 }
 
-class LabelElementImpl extends ElementImpl
-    with WrappedElementMixin
-    implements LabelElement {
-  @override
+class LabelElementImpl extends ElementImpl implements LabelElement {
   final LabelFragmentImpl _wrappedElement;
 
   LabelElementImpl(this._wrappedElement);
@@ -5440,6 +5437,9 @@ class LabelElementImpl extends ElementImpl
   bool get isOnSwitchMember => _wrappedElement.isOnSwitchMember;
 
   @override
+  bool get isSynthetic => _wrappedElement.isSynthetic;
+
+  @override
   ElementKind get kind => ElementKind.LABEL;
 
   @override
@@ -5450,6 +5450,9 @@ class LabelElementImpl extends ElementImpl
   LibraryElement get library2 => library;
 
   @override
+  String? get name3 => _wrappedElement.name2;
+
+  @override
   T? accept<T>(ElementVisitor2<T> visitor) {
     return visitor.visitLabelElement(this);
   }
@@ -5457,6 +5460,15 @@ class LabelElementImpl extends ElementImpl
   @Deprecated('Use accept instead')
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
+
+  @override
+  String displayString2({
+    bool multiline = false,
+    bool preferTypeAlias = false,
+  }) => _wrappedElement.getDisplayString(
+    multiline: multiline,
+    preferTypeAlias: preferTypeAlias,
+  );
 
   @override
   void visitChildren2<T>(ElementVisitor2<T> visitor) {}
@@ -6679,9 +6691,7 @@ final class LoadLibraryFunctionProvider {
 }
 
 class LocalFunctionElementImpl extends ExecutableElementImpl
-    with WrappedElementMixin
     implements LocalFunctionElement {
-  @override
   final LocalFunctionFragmentImpl _wrappedElement;
 
   LocalFunctionElementImpl(this._wrappedElement);
@@ -6737,6 +6747,9 @@ class LocalFunctionElementImpl extends ExecutableElementImpl
   bool get isStatic => _wrappedElement.isStatic;
 
   @override
+  bool get isSynthetic => _wrappedElement.isSynthetic;
+
+  @override
   ElementKind get kind => ElementKind.FUNCTION;
 
   @override
@@ -6745,6 +6758,9 @@ class LocalFunctionElementImpl extends ExecutableElementImpl
   @Deprecated('Use metadata instead')
   @override
   MetadataImpl get metadata2 => metadata;
+
+  @override
+  String? get name3 => _wrappedElement.name2;
 
   @override
   TypeImpl get returnType => _wrappedElement.returnType;
@@ -6770,6 +6786,15 @@ class LocalFunctionElementImpl extends ExecutableElementImpl
   @Deprecated('Use accept instead')
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
+
+  @override
+  String displayString2({
+    bool multiline = false,
+    bool preferTypeAlias = false,
+  }) => _wrappedElement.getDisplayString(
+    multiline: multiline,
+    preferTypeAlias: preferTypeAlias,
+  );
 }
 
 /// A concrete implementation of a [LocalFunctionFragment].
@@ -6798,9 +6823,8 @@ class LocalFunctionFragmentImpl extends FunctionFragmentImpl
 }
 
 class LocalVariableElementImpl extends PromotableElementImpl
-    with WrappedElementMixin, _NonTopLevelVariableOrParameter
+    with _NonTopLevelVariableOrParameter
     implements LocalVariableElement {
-  @override
   final LocalVariableFragmentImpl _wrappedElement;
 
   @override
@@ -6841,6 +6865,9 @@ class LocalVariableElementImpl extends PromotableElementImpl
   bool get isStatic => _wrappedElement.isStatic;
 
   @override
+  bool get isSynthetic => _wrappedElement.isSynthetic;
+
+  @override
   ElementKind get kind => ElementKind.LOCAL_VARIABLE;
 
   @override
@@ -6857,9 +6884,8 @@ class LocalVariableElementImpl extends PromotableElementImpl
   @override
   MetadataImpl get metadata2 => metadata;
 
-  LocalVariableFragmentImpl get wrappedElement {
-    return _wrappedElement;
-  }
+  @override
+  String? get name3 => _wrappedElement.name2;
 
   @override
   FragmentImpl? get _enclosingFunction => _wrappedElement.enclosingElement3;
@@ -10145,25 +10171,6 @@ abstract class VariableFragmentImpl extends FragmentImpl
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeVariableElement(this);
   }
-}
-
-mixin WrappedElementMixin implements ElementImpl {
-  @override
-  bool get isSynthetic => _wrappedElement.isSynthetic;
-
-  @override
-  String? get name3 => _wrappedElement.name2;
-
-  FragmentImpl get _wrappedElement;
-
-  @override
-  String displayString2({
-    bool multiline = false,
-    bool preferTypeAlias = false,
-  }) => _wrappedElement.getDisplayString(
-    multiline: multiline,
-    preferTypeAlias: preferTypeAlias,
-  );
 }
 
 abstract class _ExistingFragmentImpl extends FragmentImpl
