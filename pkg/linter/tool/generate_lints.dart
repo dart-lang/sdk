@@ -6,25 +6,25 @@
 /// the entries in `pkg/linter/messages.yaml`.
 library;
 
+import 'package:analyzer_testing/package_root.dart' as pkg_root;
 import 'package:analyzer_utilities/tools.dart';
 
 import '../../analyzer/tool/messages/error_code_info.dart';
 import 'messages_info.dart';
-import 'util/path_utils.dart';
 
 void main() async {
-  await GeneratedContent.generateAll(linterPackageRoot, [
+  await GeneratedContent.generateAll(pkg_root.packageRoot, [
     generatedNamesFile,
     generatedCodesFile,
   ]);
 }
 
-const String generatedCodesPath = 'lib/src/lint_codes.g.dart';
+const String generatedCodesPath = 'linter/lib/src/lint_codes.g.dart';
 
-const String generatedNamesPath = 'lib/src/lint_names.g.dart';
+const String generatedNamesPath = 'linter/lib/src/lint_names.g.dart';
 
 GeneratedFile get generatedCodesFile =>
-    GeneratedFile(generatedCodesPath, (String pkgPath) async {
+    GeneratedFile(generatedCodesPath, (pkgRoot) async {
       var out = StringBuffer('''
 // Copyright (c) 2024, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -101,7 +101,7 @@ class LinterLintCode extends LintCode {
     });
 
 GeneratedFile get generatedNamesFile =>
-    GeneratedFile(generatedNamesPath, (String pkgPath) async {
+    GeneratedFile(generatedNamesPath, (pkgRoot) async {
       var out = StringBuffer('''
 // Copyright (c) 2024, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

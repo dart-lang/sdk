@@ -9,17 +9,17 @@ import 'codegen_dart.dart';
 import 'from_html.dart';
 
 final GeneratedFile clientTarget = GeneratedFile(
-  '../analysis_server_client/lib/src/protocol/protocol_constants.dart',
-  (String pkgPath) async {
-    var visitor = _CodegenVisitor(readApi(pkgPath));
+  'analysis_server_client/lib/src/protocol/protocol_constants.dart',
+  (pkgRoot) async {
+    var visitor = _CodegenVisitor(readApi(pkgRoot));
     return visitor.collectCode(visitor.visitApi);
   },
 );
 
 final GeneratedFile serverTarget = GeneratedFile(
-  'lib/protocol/protocol_constants.dart',
-  (String pkgPath) async {
-    var visitor = _CodegenVisitor(readApi(pkgPath));
+  'analysis_server/lib/protocol/protocol_constants.dart',
+  (pkgRoot) async {
+    var visitor = _CodegenVisitor(readApi(pkgRoot));
     return visitor.collectCode(visitor.visitApi);
   },
 );

@@ -6,7 +6,6 @@
 library;
 
 import 'package:analyzer_utilities/tools.dart';
-import 'package:path/path.dart' as path;
 
 import 'api.dart';
 import 'codegen_dart.dart';
@@ -14,11 +13,11 @@ import 'from_html.dart';
 import 'to_html.dart';
 
 final GeneratedFile target = GeneratedFile(
-  'integration_test/support/integration_test_methods.dart',
-  (String pkgPath) async {
+  'analysis_server/integration_test/support/integration_test_methods.dart',
+  (pkgRoot) async {
     var visitor = CodegenInttestMethodsVisitor(
-      path.basename(pkgPath),
-      readApi(pkgPath),
+      'analysis_server',
+      readApi(pkgRoot),
     );
     return visitor.collectCode(visitor.visitApi);
   },

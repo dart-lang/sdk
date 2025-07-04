@@ -14,10 +14,12 @@ import 'package:path/path.dart';
 
 import 'api.dart';
 
-/// Read the API description from the file 'plugin_spec.html'.  [pkgPath] is the
-/// path to the current package.
-Api readApi(String pkgPath) {
-  var reader = ApiReader(join(pkgPath, 'tool', 'spec', 'spec_input.html'));
+/// Read the API description from the file 'plugin_spec.html'.  [pkgRoot] is the
+/// path to the SDK's `pkg` directory.
+Api readApi(String pkgRoot) {
+  var reader = ApiReader(
+    join(pkgRoot, 'analysis_server', 'tool', 'spec', 'spec_input.html'),
+  );
   return reader.readApi();
 }
 

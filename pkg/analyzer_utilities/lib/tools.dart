@@ -40,13 +40,13 @@ String capitalize(String string) {
 }
 
 /// Type of functions used to compute the contents of a set of generated files.
-/// [pkgPath] is the path to the current package.
+/// [pkgRoot] is the path to the SDK's `pkg` directory.
 typedef DirectoryContentsComputer =
-    Map<String, FileContentsComputer> Function(String pkgPath);
+    Map<String, FileContentsComputer> Function(String pkgRoot);
 
 /// Type of functions used to compute the contents of a generated file.
-/// [pkgPath] is the path to the current package.
-typedef FileContentsComputer = Future<String> Function(String pkgPath);
+/// [pkgRoot] is the path to the SDK's `pkg` directory.
+typedef FileContentsComputer = Future<String> Function(String pkgRoot);
 
 /// Mixin class for generating code.
 mixin CodeGenerator {
@@ -284,37 +284,41 @@ class DartFormat {
 /// generated directories.
 abstract class GeneratedContent {
   /// Check whether the [output] has the correct contents, and return true if it
-  /// does.  [pkgPath] is the path to the current package.
-  Future<bool> check(String pkgPath);
+  /// does.
+  ///
+  /// [pkgRoot] is the path to the SDK's `pkg` directory.
+  Future<bool> check(String pkgRoot);
 
-  /// Replace the [output] with the correct contents.  [pkgPath] is the path to
-  /// the current package.
-  Future<void> generate(String pkgPath);
+  /// Replace the [output] with the correct contents.
+  ///
+  /// [pkgRoot] is the path to the SDK's `pkg` directory.
+  Future<void> generate(String pkgRoot);
 
   /// Get a [FileSystemEntity] representing the output file or directory.
-  /// [pkgPath] is the path to the current package.
-  FileSystemEntity output(String pkgPath);
+  ///
+  /// [pkgRoot] is the path to the SDK's `pkg` directory.
+  FileSystemEntity output(String pkgRoot);
 
   /// Check that all of the [targets] are up to date.  If they are not, print
   /// out a message instructing the user to regenerate them, and exit with a
   /// nonzero error code.
   ///
-  /// [pkgPath] is the path to the current package.  [generatorPath] is the path
-  /// to a .dart script the user may use to regenerate the targets.
+  /// [pkgRoot] is the path to the SDK's `pkg` directory.  [generatorPath] is
+  /// the path to a .dart script the user may use to regenerate the targets.
   ///
   /// To avoid mistakes when run on Windows, [generatorPath] always uses
   /// POSIX directory separators.
   static Future<void> checkAll(
-    String pkgPath,
+    String pkgRoot,
     String generatorPath,
     Iterable<GeneratedContent> targets,
   ) async {
     var generateNeeded = false;
     for (var target in targets) {
-      var ok = await target.check(pkgPath);
+      var ok = await target.check(pkgRoot);
       if (!ok) {
         print(
-          '${normalize(target.output(pkgPath).absolute.path)}'
+          '${normalize(target.output(pkgRoot).absolute.path)}'
           " doesn't have expected contents.",
         );
         generateNeeded = true;
@@ -329,15 +333,16 @@ abstract class GeneratedContent {
     }
   }
 
-  /// Regenerate all of the [targets].  [pkgPath] is the path to the current
-  /// package.
+  /// Regenerate all of the [targets].
+  ///
+  /// [pkgRoot] is the path to the SDK's `pkg` directory.
   static Future<void> generateAll(
-    String pkgPath,
+    String pkgRoot,
     Iterable<GeneratedContent> targets,
   ) async {
     print('Generating...');
     for (var target in targets) {
-      await target.generate(pkgPath);
+      await target.generate(pkgRoot);
     }
   }
 }
@@ -345,7 +350,10 @@ abstract class GeneratedContent {
 /// Class representing a single output directory (either generated code or
 /// generated HTML). No other content should exist in the directory.
 class GeneratedDirectory extends GeneratedContent {
-  /// The path to the directory that will have the generated content.
+  /// The path to the directory that will have the generated content, relative
+  /// to the `pkg` directory.
+  ///
+  /// This pathname uses the posix path separator ('/') regardless of the OS.
   final String outputDirPath;
 
   /// Callback function that computes the directory contents.
@@ -354,14 +362,14 @@ class GeneratedDirectory extends GeneratedContent {
   GeneratedDirectory(this.outputDirPath, this.directoryContentsComputer);
 
   @override
-  Future<bool> check(String pkgPath) async {
-    var outputDirectory = output(pkgPath);
-    var map = directoryContentsComputer(pkgPath);
+  Future<bool> check(String pkgRoot) async {
+    var outputDirectory = output(pkgRoot);
+    var map = directoryContentsComputer(pkgRoot);
     try {
       for (var entry in map.entries) {
         var file = entry.key;
         var fileContentsComputer = entry.value;
-        var expectedContents = await fileContentsComputer(pkgPath);
+        var expectedContents = await fileContentsComputer(pkgRoot);
         var outputFile = File(posix.join(outputDirectory.path, file));
         var actualContents = outputFile.readAsStringSync();
         // Normalize Windows line endings to Unix line endings so that the
@@ -395,8 +403,8 @@ class GeneratedDirectory extends GeneratedContent {
   }
 
   @override
-  Future<void> generate(String pkgPath) async {
-    var outputDirectory = output(pkgPath);
+  Future<void> generate(String pkgRoot) async {
+    var outputDirectory = output(pkgRoot);
     try {
       // delete the contents of the directory (and the directory itself)
       outputDirectory.deleteSync(recursive: true);
@@ -408,28 +416,29 @@ class GeneratedDirectory extends GeneratedContent {
     outputDirectory.createSync(recursive: true);
 
     // generate all of the files in the directory
-    var map = directoryContentsComputer(pkgPath);
+    var map = directoryContentsComputer(pkgRoot);
     for (var entry in map.entries) {
       var file = entry.key;
       var fileContentsComputer = entry.value;
       var outputFile = File(posix.join(outputDirectory.path, file));
       print('  ${normalize(outputFile.path)}');
-      var contents = await fileContentsComputer(pkgPath);
+      var contents = await fileContentsComputer(pkgRoot);
       outputFile.writeAsStringSync(contents);
     }
   }
 
   @override
-  Directory output(String pkgPath) =>
-      Directory(join(pkgPath, joinAll(posix.split(outputDirPath))));
+  Directory output(String pkgRoot) =>
+      Directory(join(pkgRoot, joinAll(posix.split(outputDirPath))));
 }
 
 /// Class representing a single output file (either generated code or generated
 /// HTML).
 class GeneratedFile extends GeneratedContent {
   /// The output file to which generated output should be written, relative to
-  /// the "tool/spec" directory.  This filename uses the posix path separator
-  /// ('/') regardless of the OS.
+  /// the `pkg` directory.
+  ///
+  /// This filename uses the posix path separator ('/') regardless of the OS.
   final String outputPath;
 
   /// Callback function which computes the file.
@@ -440,9 +449,9 @@ class GeneratedFile extends GeneratedContent {
   bool get isDartFile => outputPath.endsWith('.dart');
 
   @override
-  Future<bool> check(String pkgPath) async {
-    var outputFile = output(pkgPath);
-    var expectedContents = await computeContents(pkgPath);
+  Future<bool> check(String pkgRoot) async {
+    var outputFile = output(pkgRoot);
+    var expectedContents = await computeContents(pkgRoot);
     if (isDartFile) {
       expectedContents = await DartFormat._formatText(
         expectedContents,
@@ -465,10 +474,10 @@ class GeneratedFile extends GeneratedContent {
   }
 
   @override
-  Future<void> generate(String pkgPath) async {
-    var outputFile = output(pkgPath);
+  Future<void> generate(String pkgRoot) async {
+    var outputFile = output(pkgRoot);
     print('  ${normalize(outputFile.path)}');
-    var contents = await computeContents(pkgPath);
+    var contents = await computeContents(pkgRoot);
     outputFile.writeAsStringSync(contents);
     if (isDartFile) {
       DartFormat.formatFile(outputFile);
@@ -476,8 +485,8 @@ class GeneratedFile extends GeneratedContent {
   }
 
   @override
-  File output(String pkgPath) =>
-      File(normalize(join(pkgPath, joinAll(posix.split(outputPath)))));
+  File output(String pkgRoot) =>
+      File(normalize(join(pkgRoot, joinAll(posix.split(outputPath)))));
 }
 
 /// Mixin class for generating HTML representations of code that are suitable

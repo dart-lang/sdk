@@ -9,8 +9,8 @@ import 'codegen_dart.dart';
 import 'from_html.dart';
 
 final GeneratedFile target = GeneratedFile(
-    'lib/protocol/protocol_constants.dart', (String pkgPath) async {
-  var visitor = _CodegenVisitor(readApi(pkgPath));
+    'analyzer_plugin/lib/protocol/protocol_constants.dart', (pkgRoot) async {
+  var visitor = _CodegenVisitor(readApi(pkgRoot));
   return visitor.collectCode(visitor.visitApi);
 });
 

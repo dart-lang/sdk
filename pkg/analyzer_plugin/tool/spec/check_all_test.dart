@@ -12,6 +12,6 @@ import 'generate_all.dart';
 /// user to run generate_all.dart.
 Future<void> main() async {
   var pkgPath = normalize(join(pkg_root.packageRoot, 'analyzer_plugin'));
-  await GeneratedContent.checkAll(
-      pkgPath, join(pkgPath, 'tool', 'spec', 'generate_all.dart'), allTargets);
+  await GeneratedContent.checkAll(pkg_root.packageRoot,
+      join(pkgPath, 'tool', 'spec', 'generate_all.dart'), allTargets);
 }

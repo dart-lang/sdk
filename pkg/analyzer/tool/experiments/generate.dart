@@ -12,10 +12,7 @@ import 'package:path/path.dart';
 import 'package:yaml/yaml.dart' show YamlMap, loadYaml;
 
 void main() async {
-  await GeneratedContent.generateAll(
-    normalize(join(pkg_root.packageRoot, 'analyzer')),
-    allTargets,
-  );
+  await GeneratedContent.generateAll(pkg_root.packageRoot, allTargets);
 }
 
 List<GeneratedContent> get allTargets {
@@ -31,8 +28,8 @@ List<GeneratedContent> get allTargets {
           as Map;
 
   return <GeneratedContent>[
-    GeneratedFile('lib/src/dart/analysis/experiments.g.dart', (
-      String pkgPath,
+    GeneratedFile('analyzer/lib/src/dart/analysis/experiments.g.dart', (
+      pkgRoot,
     ) async {
       var generator = _ExperimentsGenerator(experimentsYaml);
       generator.generateFormatCode();

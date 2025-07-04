@@ -28,7 +28,7 @@ import 'package:path/path.dart';
 import 'error_code_info.dart';
 
 Future<void> main() async {
-  await GeneratedContent.generateAll(analyzerPkgPath, allTargets);
+  await GeneratedContent.generateAll(pkg_root.packageRoot, allTargets);
 
   _SyntacticErrorGenerator()
     ..checkForManualChanges()
@@ -48,7 +48,7 @@ List<GeneratedContent> _analyzerGeneratedFiles() {
   var generatedCodes = <String>[];
   return [
     for (var entry in classesByFile.entries)
-      GeneratedFile(entry.key.path, (String pkgPath) async {
+      GeneratedFile(entry.key.path, (pkgRoot) async {
         var codeGenerator = _AnalyzerErrorGenerator(
           entry.key,
           entry.value,
@@ -57,8 +57,8 @@ List<GeneratedContent> _analyzerGeneratedFiles() {
         codeGenerator.generate();
         return codeGenerator.out.toString();
       }),
-    GeneratedFile('lib/src/diagnostic/diagnostic_code_values.g.dart', (
-      String pkgPath,
+    GeneratedFile('analyzer/lib/src/diagnostic/diagnostic_code_values.g.dart', (
+      pkgRoot,
     ) async {
       var codeGenerator = _DiagnosticCodeValuesGenerator(generatedCodes);
       codeGenerator.generate();
@@ -117,7 +117,7 @@ library;
       }
       analyzerMessages[errorClass.name]!.forEach((_, errorCodeInfo) {
         if (errorCodeInfo is AliasErrorCodeInfo) {
-          imports.add(errorCodeInfo.aliasForFilePath.toPackageAnalyzerUri);
+          imports.add(errorCodeInfo.aliasForFilePath.toPackageUri);
         }
       });
     }
@@ -439,6 +439,8 @@ class _SyntacticErrorGenerator {
 }
 
 extension on String {
-  String get toPackageAnalyzerUri =>
-      replaceFirst(RegExp('^lib/'), 'package:analyzer/');
+  String get toPackageUri => switch (this.split('/')) {
+    [var pkgName, 'lib', ...var rest] => 'package:$pkgName/${rest.join('/')}',
+    _ => 'Cannot convert to a package URI: $this',
+  };
 }
