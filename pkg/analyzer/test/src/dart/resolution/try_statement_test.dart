@@ -84,8 +84,8 @@ TryStatement
       stackTraceParameter: CatchClauseParameter
         name: y
         declaredFragment: isFinal isPublic y@30
-          type: StackTrace
-          element: isFinal isPublic
+          type: null
+          element: hasImplicitType isFinal isPublic
             type: StackTrace
       rightParenthesis: )
       body: Block
@@ -128,8 +128,8 @@ TryStatement
       stackTraceParameter: CatchClauseParameter
         name: st
         declaredFragment: isFinal isPublic st@31
-          type: StackTrace
-          element: isFinal isPublic
+          type: null
+          element: hasImplicitType isFinal isPublic
             type: StackTrace
       rightParenthesis: )
       body: Block
@@ -172,8 +172,8 @@ TryStatement
       stackTraceParameter: CatchClauseParameter
         name: st
         declaredFragment: isFinal isPublic st@31
-          type: StackTrace
-          element: isFinal isPublic
+          type: null
+          element: hasImplicitType isFinal isPublic
             type: StackTrace
       rightParenthesis: )
       body: Block
@@ -213,8 +213,8 @@ TryStatement
       stackTraceParameter: CatchClauseParameter
         name: st
         declaredFragment: isFinal isPublic st@30
-          type: StackTrace
-          element: isFinal isPublic
+          type: null
+          element: hasImplicitType isFinal isPublic
             type: StackTrace
       rightParenthesis: )
       body: Block
@@ -259,8 +259,8 @@ TryStatement
       stackTraceParameter: CatchClauseParameter
         name: st
         declaredFragment: isFinal isPublic st@37
-          type: StackTrace
-          element: isFinal isPublic
+          type: null
+          element: hasImplicitType isFinal isPublic
             type: StackTrace
       rightParenthesis: )
       body: Block
