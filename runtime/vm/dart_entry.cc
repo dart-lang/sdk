@@ -463,8 +463,7 @@ const char* ArgumentsDescriptor::ToCString() const {
 intptr_t ArgumentsDescriptor::CacheIndexFor(intptr_t type_args_len,
                                             intptr_t num_arguments) {
   static constexpr auto kOffsetTo = []() {
-    std::array<intptr_t, kMaxTypeArgsForCachedDescriptor + 1> offset;
-    offset[0] = 0;
+    std::array<intptr_t, kMaxTypeArgsForCachedDescriptor + 1> offset = {0};
     for (intptr_t i = 1; i <= kMaxTypeArgsForCachedDescriptor; i++) {
       offset[i] =
           offset[i - 1] + (kMaxNumArgumentsForCachedDescriptor[i - 1] + 1);
