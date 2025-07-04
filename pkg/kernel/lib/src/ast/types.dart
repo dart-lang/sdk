@@ -1888,53 +1888,37 @@ class IntersectionType extends DartType {
     // |     ?     | (!) | (?) | (%) |
     // |     %     |  !  |  %  |  %  |
 
-    if (lhsNullability == Nullability.nullable &&
-        rhsNullability == Nullability.nonNullable) {
-      return Nullability.nonNullable;
-    }
+    switch ((lhsNullability, rhsNullability)) {
+      case (Nullability.nullable, _):
+        return rhsNullability;
 
-    if (lhsNullability == Nullability.nullable &&
-        rhsNullability == Nullability.nullable) {
-      return Nullability.nullable;
-    }
+      // Intersection with a non-nullable type always yields a non-nullable
+      // type, as it's the most restrictive kind of types.
+      case (Nullability.nonNullable, _):
+      case (_, Nullability.nonNullable):
+        return Nullability.nonNullable;
 
-    if (lhsNullability == Nullability.nullable &&
-        rhsNullability == Nullability.undetermined) {
-      return Nullability.undetermined;
+      // If the nullability of LHS is 'undetermined', the nullability of the
+      // intersection is also 'undetermined' if RHS is 'undetermined' or
+      // nullable.
+      //
+      // Consider the following example:
+      //
+      //     class A<X extends Object?, Y extends X> {
+      //       foo(X x) {
+      //         if (x is Y) {
+      //           x = null;     // Compile-time error.  Consider X = Y = int.
+      //           Object a = x; // Compile-time error.  Consider X = Y = int?.
+      //         }
+      //         if (x is int?) {
+      //           x = null;     // Compile-time error.  Consider X = int.
+      //           Object b = x; // Compile-time error.  Consider X = int?.
+      //         }
+      //       }
+      //     }
+      case (Nullability.undetermined, _):
+        return Nullability.undetermined;
     }
-
-    // Intersection with a non-nullable type always yields a non-nullable type,
-    // as it's the most restrictive kind of types.
-    if (lhsNullability == Nullability.nonNullable ||
-        rhsNullability == Nullability.nonNullable) {
-      return Nullability.nonNullable;
-    }
-
-    // If the nullability of LHS is 'undetermined', the nullability of the
-    // intersection is also 'undetermined' if RHS is 'undetermined' or
-    // nullable.
-    //
-    // Consider the following example:
-    //
-    //     class A<X extends Object?, Y extends X> {
-    //       foo(X x) {
-    //         if (x is Y) {
-    //           x = null;     // Compile-time error.  Consider X = Y = int.
-    //           Object a = x; // Compile-time error.  Consider X = Y = int?.
-    //         }
-    //         if (x is int?) {
-    //           x = null;     // Compile-time error.  Consider X = int.
-    //           Object b = x; // Compile-time error.  Consider X = int?.
-    //         }
-    //       }
-    //     }
-    if (lhsNullability == Nullability.undetermined ||
-        rhsNullability == Nullability.undetermined) {
-      return Nullability.undetermined;
-    }
-
-    throw new StateError("Unsupported combination '${lhsNullability}' (LHS) "
-        "and '${rhsNullability}' (RHS).");
   }
 
   @override
