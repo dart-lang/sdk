@@ -35,21 +35,30 @@ void main() async {
     join(pkg_root.packageRoot, 'analyzer', 'lib', 'src', 'summary'),
   );
   var idlPath = normalize(join(idlFolderPath, 'idl.dart'));
-  await GeneratedContent.generateAll(idlFolderPath, getAllTargets(idlPath));
+  await GeneratedContent.generateAll(
+    pkg_root.packageRoot,
+    getAllTargets(idlPath),
+  );
 }
 
 List<GeneratedContent> getAllTargets(String idlPath) {
-  GeneratedFile formatTarget = GeneratedFile('format.dart', (_) async {
-    _CodeGenerator codeGenerator = _CodeGenerator(idlPath);
-    codeGenerator.generateFormatCode();
-    return codeGenerator._outBuffer.toString();
-  });
+  GeneratedFile formatTarget = GeneratedFile(
+    'analyzer/lib/src/summary/format.dart',
+    (_) async {
+      _CodeGenerator codeGenerator = _CodeGenerator(idlPath);
+      codeGenerator.generateFormatCode();
+      return codeGenerator._outBuffer.toString();
+    },
+  );
 
-  GeneratedFile schemaTarget = GeneratedFile('format.fbs', (_) async {
-    _CodeGenerator codeGenerator = _CodeGenerator(idlPath);
-    codeGenerator.generateFlatBufferSchema();
-    return codeGenerator._outBuffer.toString();
-  });
+  GeneratedFile schemaTarget = GeneratedFile(
+    'analyzer/lib/src/summary/format.fbs',
+    (_) async {
+      _CodeGenerator codeGenerator = _CodeGenerator(idlPath);
+      codeGenerator.generateFlatBufferSchema();
+      return codeGenerator._outBuffer.toString();
+    },
+  );
 
   return <GeneratedContent>[formatTarget, schemaTarget];
 }

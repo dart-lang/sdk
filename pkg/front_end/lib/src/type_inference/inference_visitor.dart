@@ -2881,7 +2881,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           new InstrumentationValueForTypeArgs([inferredTypeArgument]));
       node.typeArgument = inferredTypeArgument;
     }
-    for (Expression expression in node.expressions) {
+    for (int i = 0; i < node.expressions.length; i++) {
+      Expression expression = node.expressions[i];
       if (expression is ControlFlowElement) {
         checkElement(expression, node, node.typeArgument, inferredSpreadTypes,
             inferredConditionTypes);

@@ -203,7 +203,8 @@ class SourceClassBuilder extends ClassBuilderImpl
   @override
   int resolveConstructors(SourceLibraryBuilder libraryBuilder) {
     int count = _introductory.resolveConstructorReferences(libraryBuilder);
-    for (ClassDeclaration augmentation in _augmentations) {
+    for (int i = 0; i < _augmentations.length; i++) {
+      ClassDeclaration augmentation = _augmentations[i];
       count += augmentation.resolveConstructorReferences(libraryBuilder);
     }
     if (count > 0) {
@@ -534,7 +535,8 @@ class SourceClassBuilder extends ClassBuilderImpl
         libraryBuilder: libraryBuilder,
         classHierarchy: classHierarchy,
         createFileUriExpression: false);
-    for (ClassDeclaration augmentation in _augmentations) {
+    for (int i = 0; i < _augmentations.length; i++) {
+      ClassDeclaration augmentation = _augmentations[i];
       augmentation.buildOutlineExpressions(
           annotatable: cls,
           annotatableFileUri: cls.fileUri,
@@ -579,7 +581,8 @@ class SourceClassBuilder extends ClassBuilderImpl
 
     Class? superclass = cls.superclass;
     if (superclass != null) {
-      for (Constructor constructor in superclass.constructors) {
+      for (int i = 0; i < superclass.constructors.length; i++) {
+        Constructor constructor = superclass.constructors[i];
         if (constructor.name == name) {
           return constructor;
         }

@@ -41,7 +41,8 @@ void buildTypeParametersAndFormals(
             initialVariance: Variance.contravariant);
   }
   if (declaredTypeParameters != null) {
-    for (SourceNominalParameterBuilder t in declaredTypeParameters) {
+    for (int i = 0; i < declaredTypeParameters.length; i++) {
+      SourceNominalParameterBuilder t = declaredTypeParameters[i];
       TypeParameter parameter = t.parameter;
       if (supportsTypeParameters) {
         function.typeParameters.add(parameter);
@@ -55,7 +56,8 @@ void buildTypeParametersAndFormals(
     setParents(function.typeParameters, function);
   }
   if (declaredFormals != null) {
-    for (FormalParameterBuilder formal in declaredFormals) {
+    for (int i = 0; i < declaredFormals.length; i++) {
+      FormalParameterBuilder formal = declaredFormals[i];
       VariableDeclaration parameter = formal.build(libraryBuilder);
       if (needsCheckVisitor != null) {
         if (parameter.type.accept(needsCheckVisitor)) {

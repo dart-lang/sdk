@@ -4,7 +4,6 @@
 
 import 'package:analyzer_testing/package_root.dart' as pkg_root;
 import 'package:analyzer_utilities/tools.dart';
-import 'package:path/path.dart';
 
 import 'codegen_analysis_server.dart' as codegen_analysis_server;
 import 'codegen_dart_notification_handler.dart'
@@ -18,8 +17,7 @@ import 'to_html.dart' as to_html;
 
 /// Generate all targets.
 Future<void> main() async {
-  var pkgPath = normalize(join(pkg_root.packageRoot, 'analysis_server'));
-  await GeneratedContent.generateAll(pkgPath, allTargets);
+  await GeneratedContent.generateAll(pkg_root.packageRoot, allTargets);
 }
 
 /// Get a list of all generated targets.

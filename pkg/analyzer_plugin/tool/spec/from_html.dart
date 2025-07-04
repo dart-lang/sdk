@@ -16,8 +16,9 @@ import 'api.dart';
 
 /// Read the API description from the file 'plugin_spec.html'. [pkgPath] is the
 /// path to the current package.
-Api readApi(String pkgPath) {
-  var reader = ApiReader(join(pkgPath, 'tool', 'spec', 'plugin_spec.html'));
+Api readApi(String pkgRoot) {
+  var reader = ApiReader(
+      join(pkgRoot, 'analyzer_plugin', 'tool', 'spec', 'plugin_spec.html'));
   return reader.readApi();
 }
 

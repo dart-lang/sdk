@@ -126,8 +126,8 @@ a:focus, a:hover {
     .trim();
 
 final GeneratedFile target =
-    GeneratedFile('doc/api.html', (String pkgPath) async {
-  var visitor = ToHtmlVisitor(readApi(pkgPath));
+    GeneratedFile('analyzer_plugin/doc/api.html', (pkgRoot) async {
+  var visitor = ToHtmlVisitor(readApi(pkgRoot));
   var document = dom.Document();
   for (var node in visitor.collectHtml(visitor.visitApi)) {
     document.append(node);

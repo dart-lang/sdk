@@ -81,7 +81,8 @@ void buildFormalsForOutlineExpressions(
     {required LookupScope scope,
     required bool isClassInstanceMember}) {
   if (formals != null) {
-    for (FormalParameterBuilder formal in formals) {
+    for (int i = 0; i < formals.length; i++) {
+      FormalParameterBuilder formal = formals[i];
       buildFormalForOutlineExpressions(
           libraryBuilder, declarationBuilder, formal,
           scope: scope, isClassInstanceMember: isClassInstanceMember);

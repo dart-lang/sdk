@@ -891,7 +891,8 @@ class ComputeDefaultTypeContext {
   void reportGenericFunctionTypesForFormals(
       List<FormalParameterBuilder>? formals) {
     if (formals != null && formals.isNotEmpty) {
-      for (FormalParameterBuilder formal in formals) {
+      for (int i = 0; i < formals.length; i++) {
+        FormalParameterBuilder formal = formals[i];
         List<NonSimplicityIssue> issues =
             _getInboundReferenceIssuesInType(formal.type);
         _reportIssues(issues);

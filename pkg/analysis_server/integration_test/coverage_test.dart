@@ -15,7 +15,7 @@ import '../tool/spec/from_html.dart';
 void main() {
   // parse the API file
   var pathPrefix = path.join(pkg_root.packageRoot, 'analysis_server');
-  var api = readApi(pathPrefix);
+  var api = readApi(pkg_root.packageRoot);
 
   var coverageFile = File(
     path.join(pathPrefix, 'integration_test', 'coverage.md'),

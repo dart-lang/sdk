@@ -10,7 +10,7 @@ import 'package:path/path.dart';
 import 'package:yaml/yaml.dart' show loadYaml;
 
 const codesFile = GeneratedErrorCodeFile(
-  path: 'lib/src/error/codes.g.dart',
+  path: 'analyzer/lib/src/error/codes.g.dart',
   preferredImportUri: 'package:analyzer/src/error/codes.dart',
 );
 
@@ -75,34 +75,34 @@ const List<ErrorClassInfo> errorClasses = [
 ];
 
 const ffiCodesFile = GeneratedErrorCodeFile(
-  path: 'lib/src/dart/error/ffi_code.g.dart',
+  path: 'analyzer/lib/src/dart/error/ffi_code.g.dart',
   preferredImportUri: 'package:analyzer/src/dart/error/ffi_code.dart',
 );
 
 const hintCodesFile = GeneratedErrorCodeFile(
-  path: 'lib/src/dart/error/hint_codes.g.dart',
+  path: 'analyzer/lib/src/dart/error/hint_codes.g.dart',
   preferredImportUri: 'package:analyzer/src/dart/error/hint_codes.dart',
 );
 
 const manifestWarningCodeFile = GeneratedErrorCodeFile(
-  path: 'lib/src/manifest/manifest_warning_code.g.dart',
+  path: 'analyzer/lib/src/manifest/manifest_warning_code.g.dart',
   preferredImportUri:
       'package:analyzer/src/manifest/manifest_warning_code.dart',
 );
 
 const optionCodesFile = GeneratedErrorCodeFile(
-  path: 'lib/src/analysis_options/error/option_codes.g.dart',
+  path: 'analyzer/lib/src/analysis_options/error/option_codes.g.dart',
   preferredImportUri:
       'package:analyzer/src/analysis_options/error/option_codes.dart',
 );
 
 const pubspecWarningCodeFile = GeneratedErrorCodeFile(
-  path: 'lib/src/pubspec/pubspec_warning_code.g.dart',
+  path: 'analyzer/lib/src/pubspec/pubspec_warning_code.g.dart',
   preferredImportUri: 'package:analyzer/src/pubspec/pubspec_warning_code.dart',
 );
 
 const syntacticErrorsFile = GeneratedErrorCodeFile(
-  path: 'lib/src/dart/error/syntactic_errors.g.dart',
+  path: 'analyzer/lib/src/dart/error/syntactic_errors.g.dart',
   preferredImportUri: 'package:analyzer/src/dart/error/syntactic_errors.dart',
 );
 
@@ -700,7 +700,7 @@ class FrontEndErrorCodeInfo extends ErrorCodeInfo {
 
 /// Representation of a single file containing generated error codes.
 class GeneratedErrorCodeFile {
-  /// The file path (relative to the root of `pkg/analyzer`) of the generated
+  /// The file path (relative to the SDK's `pkg` directory) of the generated
   /// file.
   final String path;
 

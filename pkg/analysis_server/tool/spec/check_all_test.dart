@@ -13,7 +13,7 @@ import 'generate_all.dart';
 Future<void> main() async {
   var pkgPath = normalize(join(pkg_root.packageRoot, 'analysis_server'));
   await GeneratedContent.checkAll(
-    pkgPath,
+    pkg_root.packageRoot,
     join(pkgPath, 'tool', 'spec', 'generate_all.dart'),
     allTargets,
   );

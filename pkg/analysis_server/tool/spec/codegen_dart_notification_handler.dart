@@ -13,9 +13,9 @@ import 'from_html.dart';
 
 GeneratedFile clientTarget() {
   return GeneratedFile(
-    '../analysis_server_client/lib/handler/notification_handler.dart',
-    (String pkgPath) async {
-      var visitor = CodegenNotificationHandlerVisitor(readApi(pkgPath));
+    'analysis_server_client/lib/handler/notification_handler.dart',
+    (pkgRoot) async {
+      var visitor = CodegenNotificationHandlerVisitor(readApi(pkgRoot));
       return visitor.collectCode(visitor.visitApi);
     },
   );

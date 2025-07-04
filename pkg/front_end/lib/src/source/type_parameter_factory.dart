@@ -154,7 +154,8 @@ void checkTypeParameterDependencies(ProblemReporting problemReporting,
     List<TypeParameterBuilder> typeParameters) {
   Map<TypeParameterBuilder, TraversalState> typeParametersTraversalState =
       <TypeParameterBuilder, TraversalState>{};
-  for (TypeParameterBuilder typeParameter in typeParameters) {
+  for (int i = 0; i < typeParameters.length; i++) {
+    TypeParameterBuilder typeParameter = typeParameters[i];
     if ((typeParametersTraversalState[typeParameter] ??=
             TraversalState.unvisited) ==
         TraversalState.unvisited) {
@@ -202,7 +203,8 @@ void _computeTypeParameterNullabilities(
     List<TypeParameterBuilder> typeParameters) {
   Map<TypeParameterBuilder, TraversalState> typeParametersTraversalState =
       <TypeParameterBuilder, TraversalState>{};
-  for (TypeParameterBuilder typeParameter in typeParameters) {
+  for (int i = 0; i < typeParameters.length; i++) {
+    TypeParameterBuilder typeParameter = typeParameters[i];
     if ((typeParametersTraversalState[typeParameter] ??=
             TraversalState.unvisited) ==
         TraversalState.unvisited) {

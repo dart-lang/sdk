@@ -13,7 +13,7 @@ import 'generate.dart';
 void main() async {
   String pkgPath = normalize(join(pkg_root.packageRoot, 'analyzer'));
   await GeneratedContent.checkAll(
-    pkgPath,
+    pkg_root.packageRoot,
     join(pkgPath, 'tool', 'experiments', 'generate.dart'),
     allTargets,
   );
