@@ -1215,12 +1215,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void _reportTypeArgumentIssues(
-      Iterable<TypeArgumentIssue> issues, Uri fileUri, int offset,
+      List<TypeArgumentIssue> issues, Uri fileUri, int offset,
       {bool? inferred,
       TypeArgumentsInfo? typeArgumentsInfo,
       DartType? targetReceiver,
       String? targetName}) {
-    for (TypeArgumentIssue issue in issues) {
+    for (int i = 0; i < issues.length; i++) {
+      TypeArgumentIssue issue = issues[i];
       DartType argument = issue.argument;
       TypeParameter? typeParameter = issue.typeParameter;
 
@@ -1388,7 +1389,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       List<FormalParameterBuilder>? formals, TypeEnvironment typeEnvironment,
       {required bool isAbstract, required bool isExternal}) {
     if (formals != null && !(isAbstract || isExternal)) {
-      for (FormalParameterBuilder formal in formals) {
+      for (int i = 0; i < formals.length; i++) {
+        FormalParameterBuilder formal = formals[i];
         bool isOptionalPositional =
             formal.isOptionalPositional && formal.isPositional;
         bool isOptionalNamed = !formal.isRequiredNamed && formal.isNamed;

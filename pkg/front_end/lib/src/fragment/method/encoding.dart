@@ -254,7 +254,8 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
       return new FormalParameterScope(parent: parent);
     }
     Map<String, VariableBuilder> local = {};
-    for (FormalParameterBuilder formal in formals) {
+    for (int i = 0; i < formals.length; i++) {
+      FormalParameterBuilder formal = formals[i];
       if (formal.isWildcard) {
         continue;
       }
@@ -270,7 +271,8 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
         .build(libraryBuilder, TypeUse.returnType, hierarchy: hierarchy);
     List<FormalParameterBuilder>? declaredFormals = _fragment.declaredFormals;
     if (declaredFormals != null) {
-      for (FormalParameterBuilder formal in declaredFormals) {
+      for (int i = 0; i < declaredFormals.length; i++) {
+        FormalParameterBuilder formal = declaredFormals[i];
         formal.type
             .build(libraryBuilder, TypeUse.parameterType, hierarchy: hierarchy);
       }

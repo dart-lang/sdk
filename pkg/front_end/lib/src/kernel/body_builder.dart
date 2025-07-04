@@ -6251,7 +6251,8 @@ class BodyBuilder extends StackListenerImpl
     if (named.isNotEmpty) {
       Set<String?> parameterNames =
           new Set.of(function.namedParameters.map((a) => a.name));
-      for (NamedExpression argument in named) {
+      for (int i = 0; i < named.length; i++) {
+        NamedExpression argument = named[i];
         if (!parameterNames.contains(argument.name)) {
           return cfe.templateNoSuchNamedParameter
               .withArguments(argument.name)
@@ -6261,7 +6262,8 @@ class BodyBuilder extends StackListenerImpl
     }
     if (function.namedParameters.isNotEmpty) {
       Set<String> argumentNames = new Set.of(named.map((a) => a.name));
-      for (VariableDeclaration parameter in function.namedParameters) {
+      for (int i = 0; i < function.namedParameters.length; i++) {
+        VariableDeclaration parameter = function.namedParameters[i];
         if (parameter.isRequired && !argumentNames.contains(parameter.name)) {
           return cfe.templateValueForRequiredParameterNotProvidedError
               .withArguments(parameter.name!)
@@ -6321,7 +6323,8 @@ class BodyBuilder extends StackListenerImpl
     if (named.isNotEmpty) {
       Set<String> names =
           new Set.of(function.namedParameters.map((a) => a.name));
-      for (NamedExpression argument in named) {
+      for (int i = 0; i < named.length; i++) {
+        NamedExpression argument = named[i];
         if (!names.contains(argument.name)) {
           return cfe.templateNoSuchNamedParameter
               .withArguments(argument.name)
@@ -6331,7 +6334,8 @@ class BodyBuilder extends StackListenerImpl
     }
     if (function.namedParameters.isNotEmpty) {
       Set<String> argumentNames = new Set.of(named.map((a) => a.name));
-      for (NamedType parameter in function.namedParameters) {
+      for (int i = 0; i < function.namedParameters.length; i++) {
+        NamedType parameter = function.namedParameters[i];
         if (parameter.isRequired && !argumentNames.contains(parameter.name)) {
           return cfe.templateValueForRequiredParameterNotProvidedError
               .withArguments(parameter.name)

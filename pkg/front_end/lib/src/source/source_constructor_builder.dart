@@ -427,7 +427,8 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
   @override
   int buildBodyNodes(BuildNodesCallback f) {
     _introductory.buildBody();
-    for (ConstructorDeclaration augmentation in _augmentations) {
+    for (int i = 0; i < _augmentations.length; i++) {
+      ConstructorDeclaration augmentation = _augmentations[i];
       augmentation.buildBody();
     }
     return _augmentations.length;
@@ -447,7 +448,8 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
           constructorBuilder: this,
           classHierarchy: classHierarchy,
           delayedDefaultValueCloners: delayedDefaultValueCloners);
-      for (ConstructorDeclaration augmentation in _augmentations) {
+      for (int i = 0; i < _augmentations.length; i++) {
+        ConstructorDeclaration augmentation = _augmentations[i];
         augmentation.buildOutlineExpressions(
             annotatables: annotatables,
             annotatablesFileUri: invokeTarget.fileUri,
@@ -473,7 +475,8 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
         nameScheme: _nameScheme,
         constructorReferences: _constructorReferences,
         delayedDefaultValueCloners: _delayedDefaultValueCloners);
-    for (ConstructorDeclaration declaration in _augmentedDeclarations) {
+    for (int i = 0; i < _augmentedDeclarations.length; i++) {
+      ConstructorDeclaration declaration = _augmentedDeclarations[i];
       declaration.buildOutlineNodes(noAddBuildNodesCallback,
           constructorBuilder: this,
           libraryBuilder: libraryBuilder,
@@ -487,7 +490,8 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
   void checkTypes(SourceLibraryBuilder libraryBuilder, NameSpace nameSpace,
       TypeEnvironment typeEnvironment) {
     _introductory.checkTypes(libraryBuilder, nameSpace, typeEnvironment);
-    for (ConstructorDeclaration augmentation in _augmentations) {
+    for (int i = 0; i < _augmentations.length; i++) {
+      ConstructorDeclaration augmentation = _augmentations[i];
       augmentation.checkTypes(libraryBuilder, nameSpace, typeEnvironment);
     }
   }
@@ -502,7 +506,8 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
       {required bool inErrorRecovery}) {
     int count = _introductory.computeDefaultTypes(context,
         inErrorRecovery: inErrorRecovery);
-    for (ConstructorDeclaration augmentation in _augmentations) {
+    for (int i = 0; i < _augmentations.length; i++) {
+      ConstructorDeclaration augmentation = _augmentations[i];
       count += augmentation.computeDefaultTypes(context,
           inErrorRecovery: inErrorRecovery);
     }
@@ -514,7 +519,8 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
     if (_hasFormalsInferred) return;
     _introductory.inferFormalTypes(libraryBuilder, declarationBuilder, this,
         hierarchy, _delayedDefaultValueCloners);
-    for (ConstructorDeclaration augmentation in _augmentations) {
+    for (int i = 0; i < _augmentations.length; i++) {
+      ConstructorDeclaration augmentation = _augmentations[i];
       augmentation.inferFormalTypes(libraryBuilder, declarationBuilder, this,
           hierarchy, _delayedDefaultValueCloners);
     }
@@ -528,7 +534,8 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
 
   void prepareInitializers() {
     _introductory.prepareInitializers();
-    for (ConstructorDeclaration augmentation in _augmentations) {
+    for (int i = 0; i < _augmentations.length; i++) {
+      ConstructorDeclaration augmentation = _augmentations[i];
       augmentation.prepareInitializers();
     }
     redirectingInitializer = null;

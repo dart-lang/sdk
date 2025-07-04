@@ -2737,7 +2737,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     // We therefore reset it before each call, combine it and set it correctly
     // at the end.
     bool wasOrBecameUnevaluated = seenUnevaluatedChild;
-    for (Expression element in node.expressions) {
+    for (int i = 0; i < node.expressions.length; i++) {
+      Expression element = node.expressions[i];
       seenUnevaluatedChild = false;
       AbortConstant? error = builder.add(element);
       wasOrBecameUnevaluated |= seenUnevaluatedChild;
@@ -4965,7 +4966,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     // We therefore reset it before each call, combine it and set it correctly
     // at the end.
     bool wasOrBecameUnevaluated = seenUnevaluatedChild;
-    for (NamedExpression pair in named) {
+    for (int i = 0; i < named.length; i++) {
+      NamedExpression pair = named[i];
       if (_gotError != null) return null;
       seenUnevaluatedChild = false;
       Constant constant = _evaluateSubexpression(pair.value);

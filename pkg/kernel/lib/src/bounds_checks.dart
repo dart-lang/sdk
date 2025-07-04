@@ -212,16 +212,23 @@ List<DartType> calculateBounds(
   List<List<int>> stronglyConnected = computeStrongComponents(graph);
   final DartType topType = const DynamicType();
   final DartType bottomType = const NeverType.nonNullable();
-  for (List<int> component in stronglyConnected) {
+  for (int scIndex = 0; scIndex < stronglyConnected.length; scIndex++) {
+    List<int> component = stronglyConnected[scIndex];
     Map<TypeParameter, DartType> upperBounds = <TypeParameter, DartType>{};
     Map<TypeParameter, DartType> lowerBounds = <TypeParameter, DartType>{};
-    for (int typeParameterIndex in component) {
+    for (int componentIndex = 0;
+        componentIndex < component.length;
+        componentIndex++) {
+      int typeParameterIndex = component[componentIndex];
       upperBounds[typeParameters[typeParameterIndex]] = topType;
       lowerBounds[typeParameters[typeParameterIndex]] = bottomType;
     }
     Substitution substitution =
         Substitution.fromUpperAndLowerBounds(upperBounds, lowerBounds);
-    for (int typeParameterIndex in component) {
+    for (int componentIndex = 0;
+        componentIndex < component.length;
+        componentIndex++) {
+      int typeParameterIndex = component[componentIndex];
       bounds[typeParameterIndex] = substitution.substituteType(
           bounds[typeParameterIndex],
           contravariant: typeParameters[typeParameterIndex].variance ==

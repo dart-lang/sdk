@@ -149,7 +149,8 @@ class BuilderFactory {
     }
 
     if (fragments != null) {
-      for (Fragment fragment in fragments) {
+      for (int i = 0; i < fragments.length; i++) {
+        Fragment fragment = fragments[i];
         _Declaration? declaration = _createDeclarationFromFragment(fragment,
             inLibrary: _inLibrary, unnamedFragments: unnamedFragments);
 
@@ -158,13 +159,16 @@ class BuilderFactory {
       }
     }
 
-    for (_PreBuilder preBuilder in nonConstructorPreBuilders) {
+    for (int i = 0; i < nonConstructorPreBuilders.length; i++) {
+      _PreBuilder preBuilder = nonConstructorPreBuilders[i];
       preBuilder.createBuilders(this);
     }
-    for (_PreBuilder preBuilder in constructorPreBuilders) {
+    for (int i = 0; i < constructorPreBuilders.length; i++) {
+      _PreBuilder preBuilder = constructorPreBuilders[i];
       preBuilder.createBuilders(this);
     }
-    for (Fragment fragment in unnamedFragments) {
+    for (int i = 0; i < unnamedFragments.length; i++) {
+      Fragment fragment = unnamedFragments[i];
       _createBuilder(fragment);
     }
   }

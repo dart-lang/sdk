@@ -2056,13 +2056,15 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
     if (deferredFunctionLiterals != null) {
       bool isFirstStage = true;
-      for (List<_DeferredParamInfo> stage in new _FunctionLiteralDependencies(
+      List<List<_DeferredParamInfo>> stages = new _FunctionLiteralDependencies(
         deferredFunctionLiterals,
         calleeType.typeParameters.toSet(),
         inferenceNeeded
             ? _computeUndeferredParamInfo(formalTypes, deferredFunctionLiterals)
             : const [],
-      ).planReconciliationStages()) {
+      ).planReconciliationStages();
+      for (int i = 0; i < stages.length; i++) {
+        List<_DeferredParamInfo> stage = stages[i];
         if (gatherer != null && !isFirstStage) {
           inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
             gatherer,
@@ -2078,7 +2080,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             inferredTypes,
           );
         }
-        for (_DeferredParamInfo deferredArgument in stage) {
+        for (int j = 0; j < stage.length; j++) {
+          _DeferredParamInfo deferredArgument = stage[j];
           ExpressionInferenceResult result = inferArgument(
             deferredArgument.formalType,
             deferredArgument.argumentExpression,
@@ -2171,7 +2174,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     bool hasProblem = false;
     int namedTypeIndex = arguments.positional.length;
     List<NamedExpression> uniqueNamed = <NamedExpression>[];
-    for (NamedExpression expression in named) {
+    for (int i = 0; i < named.length; i++) {
+      NamedExpression expression = named[i];
       String name = expression.name;
       if (seenNames.containsKey(name)) {
         hasProblem = true;
