@@ -15,7 +15,6 @@
 #include "bin/builtin.h"
 #include "bin/console.h"
 #include "bin/crashpad.h"
-#include "bin/dartdev_isolate.h"
 #include "bin/dartutils.h"
 #include "bin/dfe.h"
 #include "bin/error_exit.h"
@@ -391,17 +390,6 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
     CHECK_RESULT(result);
   }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  // Disable pausing the DartDev isolate on start and exit.
-  const char* isolate_name = nullptr;
-  result = Dart_StringToCString(Dart_DebugName(), &isolate_name);
-  CHECK_RESULT(result);
-  if (strstr(isolate_name, DART_DEV_ISOLATE_NAME) != nullptr) {
-    Dart_SetShouldPauseOnStart(false);
-    Dart_SetShouldPauseOnExit(false);
-  }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
 #if !defined(DART_PRECOMPILER)
   NativeAssetsApi native_assets;
   memset(&native_assets, 0, sizeof(native_assets));
@@ -574,7 +562,7 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   CHECK_RESULT(result);
 
   // We do not spawn the external dds process if DDS is explicitly disabled.
-  bool wait_for_dds_to_advertise_service = !Options::disable_dds();
+  bool wait_for_dds_to_advertise_service = Options::enable_dds();
   bool serve_devtools =
       Options::enable_devtools() || !Options::disable_devtools();
   // Load embedder specific bits and return.
@@ -605,99 +593,6 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   return nullptr;
 #endif  // !defined(PRODUCT)
 }
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
-static Dart_Isolate CreateAndSetupDartDevIsolate(const char* script_uri,
-                                                 const char* packages_config,
-                                                 Dart_IsolateFlags* flags,
-                                                 char** error,
-                                                 int* exit_code) {
-  int64_t start = Dart_TimelineGetMicros();
-
-  auto dartdev_path = DartDevIsolate::TryResolveDartDevSnapshotPath();
-  if (dartdev_path.get() == nullptr) {
-    Syslog::PrintErr(
-        "Failed to start the Dart CLI isolate. Could not resolve DartDev "
-        "snapshot or kernel.\n");
-    if (error != nullptr && *error != nullptr) {
-      free(*error);
-      *error = nullptr;
-    }
-    return nullptr;
-  }
-
-  Dart_Isolate isolate = nullptr;
-  const uint8_t* isolate_snapshot_data = core_isolate_snapshot_data;
-  const uint8_t* isolate_snapshot_instructions =
-      core_isolate_snapshot_instructions;
-  IsolateGroupData* isolate_group_data = nullptr;
-  IsolateData* isolate_data = nullptr;
-  AppSnapshot* app_snapshot = nullptr;
-  bool isolate_run_app_snapshot = true;
-  // dartdev isolate uses an app JIT snapshot or uses the dill file.
-  if (((app_snapshot = Snapshot::TryReadAppSnapshot(
-            dartdev_path.get(), /*force_load_from_memory=*/false,
-            /*decode_uri=*/false)) != nullptr) &&
-      app_snapshot->IsJIT()) {
-    const uint8_t* isolate_snapshot_data = nullptr;
-    const uint8_t* isolate_snapshot_instructions = nullptr;
-    const uint8_t* ignore_vm_snapshot_data;
-    const uint8_t* ignore_vm_snapshot_instructions;
-    app_snapshot->SetBuffers(
-        &ignore_vm_snapshot_data, &ignore_vm_snapshot_instructions,
-        &isolate_snapshot_data, &isolate_snapshot_instructions);
-    isolate_group_data = new IsolateGroupData(
-        DART_DEV_ISOLATE_NAME, /*asset_resolution_base=*/nullptr,
-        packages_config, app_snapshot, isolate_run_app_snapshot);
-    isolate_data = new IsolateData(isolate_group_data);
-    isolate = Dart_CreateIsolateGroup(
-        DART_DEV_ISOLATE_NAME, DART_DEV_ISOLATE_NAME, isolate_snapshot_data,
-        isolate_snapshot_instructions, flags, isolate_group_data, isolate_data,
-        error);
-  }
-
-  if (isolate == nullptr) {
-    // dartdev_path was not an application snapshot, try it as a kernel file.
-    // Clear error from app snapshot and retry from kernel.
-    if (error != nullptr && *error != nullptr) {
-      free(*error);
-      *error = nullptr;
-    }
-    isolate_run_app_snapshot = false;
-    if (app_snapshot != nullptr) {
-      delete app_snapshot;
-    }
-    isolate_group_data =
-        new IsolateGroupData(DART_DEV_ISOLATE_NAME, nullptr, packages_config,
-                             nullptr, isolate_run_app_snapshot);
-    uint8_t* application_kernel_buffer = nullptr;
-    intptr_t application_kernel_buffer_size = 0;
-    dfe.ReadScript(dartdev_path.get(), nullptr, &application_kernel_buffer,
-                   &application_kernel_buffer_size, /*decode_uri=*/false);
-    isolate_group_data->SetKernelBufferNewlyOwned(
-        application_kernel_buffer, application_kernel_buffer_size);
-
-    isolate_data = new IsolateData(isolate_group_data);
-    isolate = Dart_CreateIsolateGroup(
-        DART_DEV_ISOLATE_NAME, DART_DEV_ISOLATE_NAME, isolate_snapshot_data,
-        isolate_snapshot_instructions, flags, isolate_group_data, isolate_data,
-        error);
-  }
-
-  Dart_Isolate created_isolate =
-      IsolateSetupHelper(isolate, false, DART_DEV_ISOLATE_NAME, packages_config,
-                         isolate_run_app_snapshot, flags, error, exit_code);
-
-  int64_t end = Dart_TimelineGetMicros();
-  Dart_RecordTimelineEvent("CreateAndSetupDartDevIsolate", start, end,
-                           /*flow_id_count=*/0, nullptr,
-                           Dart_Timeline_Event_Duration,
-                           /*argument_count=*/0, nullptr, nullptr);
-  return created_isolate;
-}
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 // Returns newly created Isolate on success, nullptr on failure.
 static Dart_Isolate CreateIsolateGroupAndSetupHelper(
@@ -957,13 +852,6 @@ static Dart_Isolate CreateIsolateGroupAndSetup(const char* script_uri,
   }
 #endif  // !defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM)
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  if (strcmp(script_uri, DART_DEV_ISOLATE_NAME) == 0) {
-    return CreateAndSetupDartDevIsolate(script_uri, package_config, flags,
-                                        error, &exit_code);
-  }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
   if (strcmp(script_uri, DART_VM_SERVICE_ISOLATE_NAME) == 0) {
     return CreateAndSetupServiceIsolate(script_uri, package_config, flags,
                                         error, &exit_code);
@@ -1210,13 +1098,11 @@ void main(int argc, char** argv) {
 
   char* script_name = nullptr;
   CStringUniquePtr asset_resolution_base = CStringUniquePtr();
-  // Allows the dartdev process to point to the desired package_config.
   char* package_config_override = nullptr;
   const int EXTRA_VM_ARGUMENTS = 10;
   CommandLineOptions vm_options(argc + EXTRA_VM_ARGUMENTS);
   CommandLineOptions dart_options(argc + EXTRA_VM_ARGUMENTS);
   bool print_flags_seen = false;
-  bool verbose_debug_seen = false;
 
   // Perform platform specific initialization.
   if (!Platform::Initialize()) {
@@ -1248,39 +1134,36 @@ void main(int argc, char** argv) {
   }
   vm_options.AddArgument("--new_gen_growth_factor=4");
 
-  auto parse_arguments = [&](int argc, char** argv,
-                             CommandLineOptions* vm_options,
-                             CommandLineOptions* dart_options,
-                             bool parsing_dart_vm_options) {
-    bool success = Options::ParseArguments(
-        argc, argv, vm_run_app_snapshot, parsing_dart_vm_options, vm_options,
-        &script_name, dart_options, &print_flags_seen, &verbose_debug_seen);
-    if (!success) {
-      if (Options::help_option()) {
-        Options::PrintUsage();
-        Platform::Exit(0);
-      } else if (Options::version_option()) {
-        Options::PrintVersion();
-        Platform::Exit(0);
-      } else if (print_flags_seen) {
-        // Will set the VM flags, print them out and then we exit as no
-        // script was specified on the command line.
-        char* error =
-            Dart_SetVMFlags(vm_options->count(), vm_options->arguments());
-        if (error != nullptr) {
-          Syslog::PrintErr("Setting VM flags failed: %s\n", error);
-          free(error);
-          Platform::Exit(kErrorExitCode);
+  auto parse_arguments =
+      [&](int argc, char** argv, CommandLineOptions* vm_options,
+          CommandLineOptions* dart_options, bool parsing_dart_vm_options) {
+        bool success = Options::ParseArguments(
+            argc, argv, vm_run_app_snapshot, parsing_dart_vm_options,
+            vm_options, &script_name, dart_options, &print_flags_seen);
+        if (!success) {
+          if (Options::help_option()) {
+            Options::PrintUsage();
+            Platform::Exit(0);
+          } else if (Options::version_option()) {
+            Options::PrintVersion();
+            Platform::Exit(0);
+          } else if (print_flags_seen) {
+            // Will set the VM flags, print them out and then we exit as no
+            // script was specified on the command line.
+            char* error =
+                Dart_SetVMFlags(vm_options->count(), vm_options->arguments());
+            if (error != nullptr) {
+              Syslog::PrintErr("Setting VM flags failed: %s\n", error);
+              free(error);
+              Platform::Exit(kErrorExitCode);
+            }
+            Platform::Exit(0);
+          } else {
+            Options::PrintUsage();
+            Platform::Exit(kErrorExitCode);
+          }
         }
-        Platform::Exit(0);
-      } else {
-        // This usage error case will only be invoked when
-        // Options::disable_dart_dev() is false.
-        Options::PrintUsage();
-        Platform::Exit(kErrorExitCode);
-      }
-    }
-  };
+      };
 
   AppSnapshot* app_snapshot = nullptr;
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -1378,9 +1261,8 @@ void main(int argc, char** argv) {
     }
   };
 
-  // At this point, script_name now points to a script if DartDev is disabled
-  // or a valid file path was provided as the first non-flag argument.
-  // Otherwise, script_name can be nullptr if DartDev should be run.
+  // At this point, script_name now points to a script or a valid file path
+  // was provided as the first non-flag argument.
   if (script_name != nullptr) {
     if (!CheckForInvalidPath(script_name)) {
       Platform::Exit(0);
@@ -1484,36 +1366,21 @@ void main(int argc, char** argv) {
                                  &ServiceStreamCancelCallback);
   Dart_SetFileModifiedCallback(&FileModifiedCallback);
   Dart_SetEmbedderInformationCallback(&EmbedderInformationCallback);
-  bool ran_dart_dev = false;
   bool should_run_user_program = true;
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  if (DartDevIsolate::should_run_dart_dev() && !Options::disable_dart_dev() &&
-      Options::gen_snapshot_kind() == SnapshotKind::kNone) {
-    DartDevIsolate::DartDev_Result dartdev_result = DartDevIsolate::RunDartDev(
-        CreateIsolateGroupAndSetup, &package_config_override, &script_name,
-        &vm_options, &dart_options);
-    ASSERT(dartdev_result != DartDevIsolate::DartDev_Result_Unknown);
-    ran_dart_dev = true;
-    should_run_user_program =
-        (dartdev_result == DartDevIsolate::DartDev_Result_Run);
-    if (should_run_user_program) {
-      try_load_snapshots_lambda();
-    }
-  } else if (script_name == nullptr &&
-             Options::gen_snapshot_kind() != SnapshotKind::kNone) {
+  if (script_name == nullptr &&
+      Options::gen_snapshot_kind() != SnapshotKind::kNone) {
     Syslog::PrintErr(
         "Snapshot generation should be done using the 'dart compile' "
         "command.\n");
     Platform::Exit(kErrorExitCode);
   }
-
-  if (!ran_dart_dev &&
-      (Options::resident() ||
-       Options::resident_compiler_info_file_path() != nullptr ||
+  if (!Options::resident() &&
+      (Options::resident_compiler_info_file_path() != nullptr ||
        Options::resident_server_info_file_path() != nullptr)) {
     Syslog::PrintErr(
-        "Passing the `--resident` flag to `dart` is invalid. It must be passed "
-        "to `dart run`.\n");
+        "Error: the --resident flag must be passed whenever the "
+        "--resident-compiler-info-file option is passed.\n");
     Platform::Exit(kErrorExitCode);
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
@@ -1550,9 +1417,6 @@ void main(int argc, char** argv) {
 
   delete app_snapshot;
   free(app_script_uri);
-  if (ran_dart_dev && script_name != nullptr) {
-    free(script_name);
-  }
   asset_resolution_base.reset();
 
   // Free copied argument strings if converted.

@@ -7,7 +7,7 @@
     "//runtime/vm-jit.shard.cml",
   ],
   program: {
-    binary: "exe.stripped/dart",
+    binary: "exe.stripped/dartvm",
     runner: "elf_test_runner",
   },
   capabilities: [

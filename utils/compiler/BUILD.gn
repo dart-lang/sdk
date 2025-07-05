@@ -54,9 +54,7 @@ sdk_root = "../../sdk"
 
 application_snapshot("dart2js") {
   deps = [ ":dart2js_create_snapshot_entry" ]
-  training_deps = [
-    ":compile_dart2js_platform",
-  ]
+  training_deps = [ ":compile_dart2js_platform" ]
   training_inputs = [
     "$root_out_dir/dart2js_platform.dill",
     "$root_out_dir/dart2js_outline.dill",
@@ -75,13 +73,6 @@ application_snapshot("dart2js") {
 
     rebase_path("../../pkg/compiler/lib/src/util/memory_compiler.dart"),
   ]
-}
-
-aot_snapshot("dart2js_aot") {
-  deps = [ ":dart2js_create_snapshot_entry" ]
-
-  main_dart = "$target_gen_dir/dart2js.dart"
-  name = "dart2js_aot"
 }
 
 aot_snapshot("dart2js_sdk_aot") {

@@ -25,7 +25,8 @@ EXECUTABLE_NAMES = {
     'win32': {
         'chrome': 'chrome.exe',
         'crashpad_handler': 'crashpad_handler.exe',
-        'dart': 'dart.exe',
+        'dart': 'dart.exe',\
+        'dart_product': 'dart_product.exe',
         'dartaotruntime': 'dartaotruntime.exe',
         'dartaotruntime_product': 'dartaotruntime_product.exe',
         'firefox': 'firefox.exe',
@@ -38,6 +39,7 @@ EXECUTABLE_NAMES = {
     'linux': {
         'chrome': 'chrome',
         'dart': 'dart',
+        'dart_product': 'dart_product',
         'dartaotruntime': 'dartaotruntime',
         'dartaotruntime_product': 'dartaotruntime_product',
         'firefox': 'firefox',
@@ -49,6 +51,7 @@ EXECUTABLE_NAMES = {
         'chrome': 'Chrome',
         'chrome_helper': 'Chrome Helper',
         'dart': 'dart',
+        'dart_product': 'dart_product',
         'dartaotruntime': 'dartaotruntime',
         'dartaotruntime_product': 'dartaotruntime_product',
         'firefox': 'firefox',

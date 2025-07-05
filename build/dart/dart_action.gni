@@ -10,7 +10,7 @@ import("../executable_suffix.gni")
 # - prebuilt_dart_action()
 #   Runs Dart scripts using the downloaded prebuilt Dart SDK. This is the
 #   preferred method of running Dart code during the build as it is much
-#   faster than using dart_action() in debug and cross builds.
+#   faster than using dartvm_action() in debug and cross builds.
 #   However, prebuilt_dart_action() should *not* be used to generate snapshots.
 #
 # - prebuilt_dartaotruntime_action()
@@ -18,7 +18,7 @@ import("../executable_suffix.gni")
 #   preferred method of running Dart AOT code during the build as it avoids
 #   the multiple layers of code that prebuilt_dart_action goes through.
 #
-# - dart_action()
+# - dartvm_action()
 #   Runs Dart scripts using the binary built for runtime/bin:dart using the
 #   host toolchain. It should only be used when an artifact agreeing exactly
 #   with the version of the Dart VM being built must be produced, for example
@@ -350,10 +350,10 @@ template("_built_tool_action") {
 #    outputs
 #    testonly
 #    visibility
-template("dart_action") {
+template("dartvm_action") {
   assert(defined(invoker.script), "script must be defined for $target_name")
   _built_tool_action(target_name) {
-    tool = "$_dart_root/runtime/bin:dart"
+    tool = "$_dart_root/runtime/bin:dartvm"
     forward_variables_from(invoker,
                            [
                              "args",
