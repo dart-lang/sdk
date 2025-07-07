@@ -432,14 +432,6 @@ class ParserErrorCode extends DiagnosticCode {
     correctionMessage: "Try removing the 'covariant' keyword.",
   );
 
-  static const ParserErrorCode DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION =
-      ParserErrorCode(
-        'DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION',
-        "The identifier 'augmented' has a special meaning inside augmenting "
-            "declarations.",
-        correctionMessage: "Try using a different name.",
-      );
-
   ///  No parameters.
   static const ParserErrorCode DEFAULT_IN_SWITCH_EXPRESSION = ParserErrorCode(
     'DEFAULT_IN_SWITCH_EXPRESSION',

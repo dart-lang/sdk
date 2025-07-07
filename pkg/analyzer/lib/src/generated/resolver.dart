@@ -1761,13 +1761,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }) {
     var writeType =
         atDynamicTarget ? DynamicTypeImpl.instance : InvalidTypeImpl.instance;
-    if (node is AugmentedExpression) {
-      if (element is SetterElement2OrMember) {
-        if (element.formalParameters case [var valueParameter]) {
-          writeType = valueParameter.type;
-        }
-      }
-    } else if (node is IndexExpression) {
+     if (node is IndexExpression) {
       if (element is MethodElement2OrMember) {
         var parameters = element.formalParameters;
         if (parameters.length == 2) {
@@ -1976,22 +1970,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       contextType: contextType,
     );
     inferenceLogWriter?.exitExpression(node);
-  }
-
-  @override
-  void visitAugmentedExpression(
-    covariant AugmentedExpressionImpl node, {
-    TypeImpl contextType = UnknownInferredType.instance,
-  }) {
-    super.visitAugmentedExpression(node);
-  }
-
-  @override
-  void visitAugmentedInvocation(
-    covariant AugmentedInvocationImpl node, {
-    TypeImpl contextType = UnknownInferredType.instance,
-  }) {
-    super.visitAugmentedInvocation(node);
   }
 
   @override

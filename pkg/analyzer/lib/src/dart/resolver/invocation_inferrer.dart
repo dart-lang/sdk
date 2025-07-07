@@ -110,34 +110,6 @@ class AnnotationInferrer extends FullInvocationInferrer<AnnotationImpl> {
 }
 
 /// Specialization of [InvocationInferrer] for performing type inference on AST
-/// nodes of type [AugmentedInvocation].
-class AugmentedInvocationInferrer
-    extends FullInvocationInferrer<AugmentedInvocationImpl> {
-  AugmentedInvocationInferrer({
-    required super.resolver,
-    required super.node,
-    required super.argumentList,
-    required super.contextType,
-    required super.whyNotPromotedArguments,
-  }) : super._();
-
-  @override
-  SyntacticEntity get _errorEntity {
-    return node.augmentedKeyword;
-  }
-
-  @override
-  bool get _needsTypeArgumentBoundsCheck => true;
-
-  @override
-  TypeArgumentListImpl? get _typeArguments => node.typeArguments;
-
-  @override
-  DiagnosticCode get _wrongNumberOfTypeArgumentsErrorCode =>
-      CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS;
-}
-
-/// Specialization of [InvocationInferrer] for performing type inference on AST
 /// nodes of type [DotShorthandConstructorInvocation].
 class DotShorthandConstructorInvocationInferrer
     extends FullInvocationInferrer<DotShorthandConstructorInvocationImpl> {

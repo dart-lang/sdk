@@ -21771,11 +21771,6 @@ ParserErrorCode:
     problemMessage: "A constructor can't be declared to be 'covariant'."
     correctionMessage: "Try removing the keyword 'covariant'."
     hasPublishedDocs: false
-  DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION:
-    experiment: augmentations
-    problemMessage: "The identifier 'augmented' has a special meaning inside augmenting declarations."
-    correctionMessage: "Try using a different name."
-    hasPublishedDocs: false
   DEFAULT_VALUE_IN_FUNCTION_TYPE:
     problemMessage: "Parameters in a function type can't have default values."
     correctionMessage: Try removing the default value.

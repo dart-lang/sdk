@@ -126,26 +126,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitAugmentedExpression(AugmentedExpression node) {
-    _sink.writeln('AugmentedExpression');
-    _sink.withIndent(() {
-      _writeNamedChildEntities(node);
-      _writeFragment('fragment', node.fragment);
-      _writeType('staticType', node.staticType);
-    });
-  }
-
-  @override
-  void visitAugmentedInvocation(AugmentedInvocation node) {
-    _sink.writeln('AugmentedInvocation');
-    _sink.withIndent(() {
-      _writeNamedChildEntities(node);
-      _writeFragment('fragment', node.fragment);
-      _writeType('staticType', node.staticType);
-    });
-  }
-
-  @override
   void visitAwaitExpression(AwaitExpression node) {
     _sink.writeln('AwaitExpression');
     _sink.withIndent(() {

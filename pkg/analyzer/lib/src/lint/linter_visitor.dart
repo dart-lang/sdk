@@ -75,18 +75,6 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
   }
 
   @override
-  void visitAugmentedExpression(AugmentedExpression node) {
-    _runSubscriptions(node, _registry._forAugmentedExpression);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitAugmentedInvocation(AugmentedInvocation node) {
-    _runSubscriptions(node, _registry._forAugmentedInvocation);
-    node.visitChildren(this);
-  }
-
-  @override
   void visitAwaitExpression(AwaitExpression node) {
     _runSubscriptions(node, _registry._forAwaitExpression);
     node.visitChildren(this);
@@ -1157,8 +1145,6 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   final List<_Subscription<AssignedVariablePattern>>
   _forAssignedVariablePattern = [];
   final List<_Subscription<AssignmentExpression>> _forAssignmentExpression = [];
-  final List<_Subscription<AugmentedExpression>> _forAugmentedExpression = [];
-  final List<_Subscription<AugmentedInvocation>> _forAugmentedInvocation = [];
   final List<_Subscription<AwaitExpression>> _forAwaitExpression = [];
   final List<_Subscription<BinaryExpression>> _forBinaryExpression = [];
   final List<_Subscription<Block>> _forBlock = [];
@@ -1409,16 +1395,6 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   @override
   void addAssignmentExpression(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forAssignmentExpression.add(_Subscription(rule, visitor, _getTimer(rule)));
-  }
-
-  @override
-  void addAugmentedExpression(AbstractAnalysisRule rule, AstVisitor visitor) {
-    _forAugmentedExpression.add(_Subscription(rule, visitor, _getTimer(rule)));
-  }
-
-  @override
-  void addAugmentedInvocation(AbstractAnalysisRule rule, AstVisitor visitor) {
-    _forAugmentedInvocation.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
   @override

@@ -39,10 +39,6 @@ class AstBinaryReader {
         return _readAssertInitializer();
       case Tag.AssignmentExpression:
         return _readAssignmentExpression();
-      case Tag.AugmentedExpression:
-        return _readAugmentedExpression();
-      case Tag.AugmentedInvocation:
-        return _readAugmentedInvocation();
       case Tag.AwaitExpression:
         return _readAwaitExpression();
       case Tag.BinaryExpression:
@@ -279,29 +275,6 @@ class AstBinaryReader {
     node.readType = _reader.readType();
     node.writeElement = _reader.readElement();
     node.writeType = _reader.readType();
-    _readExpressionResolution(node);
-    return node;
-  }
-
-  AugmentedExpression _readAugmentedExpression() {
-    var node = AugmentedExpressionImpl(augmentedKeyword: Tokens.augmented());
-    // TODO(scheglov): restore when the feature is fully specified
-    // node.fragment = _reader.readFragmentOrMember() as FragmentImpl?;
-    _readExpressionResolution(node);
-    return node;
-  }
-
-  AugmentedInvocation _readAugmentedInvocation() {
-    var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
-    var arguments = readNode() as ArgumentListImpl;
-
-    var node = AugmentedInvocationImpl(
-      augmentedKeyword: Tokens.augmented(),
-      typeArguments: typeArguments,
-      arguments: arguments,
-    );
-    // TODO(scheglov): restore when the feature is fully specified
-    // node.fragment = _reader.readFragmentOrMember() as ExecutableFragmentImpl?;
     _readExpressionResolution(node);
     return node;
   }
