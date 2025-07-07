@@ -197,8 +197,7 @@ Result _result(
     String commitHash = 'abcdabcd',
     bool flaked = false,
     bool isFlaky = false,
-    String previousOutcome = 'Pass',
-    int timeMs = -1}) {
+    String previousOutcome = 'Pass'}) {
   return Result(
     configuration,
     name,
@@ -209,7 +208,6 @@ Result _result(
     commitHash,
     isFlaky,
     previousOutcome,
-    timeMs,
     flaked: flaked,
   );
 }
