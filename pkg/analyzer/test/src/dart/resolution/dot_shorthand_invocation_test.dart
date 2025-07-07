@@ -60,6 +60,7 @@ DotShorthandInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
+  isDotShorthand: true
   staticInvokeType: C Function()
   staticType: C
 ''');
@@ -105,6 +106,7 @@ DotShorthandInvocation
           substitution: {U: int}
         staticType: int
     rightParenthesis: )
+  isDotShorthand: true
   staticInvokeType: C<dynamic> Function(int)
   staticType: C<dynamic>
   typeArgumentTypes
@@ -142,6 +144,7 @@ DotShorthandInvocation
         correspondingParameter: <testLibrary>::@class::C::@method::member::@formalParameter::x
         staticType: int
     rightParenthesis: )
+  isDotShorthand: true
   staticInvokeType: C Function(int)
   staticType: C
 ''');
@@ -172,6 +175,7 @@ FunctionExpressionInvocation
       token: id1
       element: <testLibrary>::@class::C::@getter::id1
       staticType: C
+    isDotShorthand: false
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
@@ -230,6 +234,7 @@ FunctionExpressionInvocation
       token: id1
       element: <testLibrary>::@class::C::@getter::id1
       staticType: C
+    isDotShorthand: false
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
@@ -266,6 +271,7 @@ DotShorthandInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
+  isDotShorthand: false
   staticInvokeType: C Function()
   staticType: C
 ''');
@@ -297,6 +303,7 @@ DotShorthandInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
+  isDotShorthand: false
   staticInvokeType: C Function()
   staticType: C
 ''');
@@ -333,6 +340,7 @@ DotShorthandInvocation
         correspondingParameter: <testLibrary>::@class::C::@method::member::@formalParameter::x
         staticType: int
     rightParenthesis: )
+  isDotShorthand: true
   correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
   staticInvokeType: C Function(int)
   staticType: C
@@ -363,6 +371,7 @@ DotShorthandInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
+  isDotShorthand: false
   staticInvokeType: List<C> Function()
   staticType: List<C>
 ''');
@@ -447,6 +456,7 @@ DotShorthandInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
+  isDotShorthand: true
   staticInvokeType: C Function()
   staticType: C
 ''');
@@ -479,6 +489,7 @@ DotShorthandInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
+  isDotShorthand: true
   staticInvokeType: C Function()
   staticType: C
 ''');
@@ -511,6 +522,7 @@ DotShorthandInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
+  isDotShorthand: true
   staticInvokeType: C Function()
   staticType: C
 ''');
@@ -550,6 +562,7 @@ DotShorthandInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
+  isDotShorthand: true
   staticInvokeType: CMixin Function()
   staticType: CMixin
 ''');
@@ -601,17 +614,20 @@ DotShorthandInvocation
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
+              isDotShorthand: true
               correspondingParameter: FieldFormalParameterMember
                 baseElement: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
                 substitution: {T: C<dynamic>}
               staticInvokeType: C<int> Function()
               staticType: C<int>
           rightParenthesis: )
+        isDotShorthand: true
         correspondingParameter: ParameterMember
           baseElement: <testLibrary>::@class::C::@method::memberType::@formalParameter::u
           substitution: {U: C<C<dynamic>>, V: dynamic}
         staticType: C<C<dynamic>>
     rightParenthesis: )
+  isDotShorthand: true
   staticInvokeType: C<C<C<dynamic>>> Function(C<C<dynamic>>)
   staticType: C<C<C<dynamic>>>
   typeArgumentTypes
@@ -706,6 +722,7 @@ DotShorthandInvocation
       SimpleStringLiteral
         literal: "String"
     rightParenthesis: )
+  isDotShorthand: false
   staticInvokeType: C<String> Function(String)
   staticType: C<String>
   typeArgumentTypes

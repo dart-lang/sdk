@@ -898,6 +898,7 @@ DotShorthandInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
+  isDotShorthand: true
 ''');
   }
 
@@ -917,6 +918,7 @@ DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: a
+  isDotShorthand: true
 ''');
   }
 

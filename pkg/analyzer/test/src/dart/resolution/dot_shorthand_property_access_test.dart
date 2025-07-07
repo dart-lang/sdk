@@ -42,6 +42,7 @@ DotShorthandPropertyAccess
     token: member
     element: <testLibrary>::@class::C::@getter::member
     staticType: C
+  isDotShorthand: false
   staticType: C
 ''');
   }
@@ -69,6 +70,7 @@ DotShorthandPropertyAccess
     token: member
     element: <testLibrary>::@class::C::@getter::member
     staticType: C
+  isDotShorthand: false
   staticType: C
 ''');
   }
@@ -95,6 +97,7 @@ DotShorthandPropertyAccess
     token: member
     element: <testLibrary>::@class::C::@getter::member
     staticType: C
+  isDotShorthand: true
   staticType: C
 ''');
   }
@@ -121,6 +124,7 @@ DotShorthandPropertyAccess
     token: one
     element: <testLibrary>::@class::Integer::@getter::one
     staticType: Integer
+  isDotShorthand: true
   correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
   staticType: Integer
 ''');
@@ -143,6 +147,7 @@ DotShorthandPropertyAccess
     token: blue
     element: <testLibrary>::@enum::Color::@getter::blue
     staticType: Color
+  isDotShorthand: true
   correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
   staticType: Color
 ''');
@@ -171,6 +176,7 @@ DotShorthandPropertyAccess
     token: member
     element: <testLibrary>::@class::C::@getter::member
     staticType: C
+  isDotShorthand: true
   staticType: C
 ''');
   }
@@ -193,6 +199,7 @@ DotShorthandPropertyAccess
     token: blue
     element: <testLibrary>::@enum::Color::@getter::blue
     staticType: Color
+  isDotShorthand: true
   staticType: Color
 ''');
   }
@@ -218,6 +225,7 @@ DotShorthandPropertyAccess
     token: member
     element: <testLibrary>::@extensionType::C::@getter::member
     staticType: C
+  isDotShorthand: true
   staticType: C
 ''');
   }
@@ -240,6 +248,7 @@ DotShorthandPropertyAccess
     token: red
     element: <testLibrary>::@enum::C::@getter::red
     staticType: C
+  isDotShorthand: true
   staticType: C
 ''');
   }
@@ -267,6 +276,7 @@ DotShorthandPropertyAccess
     token: member
     element: <testLibrary>::@class::C::@getter::member
     staticType: C
+  isDotShorthand: true
   correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
   staticType: C
 ''');
@@ -293,6 +303,7 @@ DotShorthandPropertyAccess
     token: instances
     element: <testLibrary>::@class::C::@getter::instances
     staticType: List<C>
+  isDotShorthand: false
   staticType: List<C>
 ''');
   }
@@ -318,6 +329,7 @@ DotShorthandPropertyAccess
     token: nullable
     element: <testLibrary>::@class::C::@getter::nullable
     staticType: C?
+  isDotShorthand: false
   staticType: C?
 ''');
   }
@@ -344,6 +356,7 @@ DotShorthandPropertyAccess
     token: nullable
     element: <testLibrary>::@class::C::@getter::nullable
     staticType: C?
+  isDotShorthand: false
   staticType: C?
 ''');
   }
@@ -366,6 +379,7 @@ DotShorthandPropertyAccess
     token: blue
     element: <testLibrary>::@enum::Color::@getter::blue
     staticType: Color
+  isDotShorthand: true
   staticType: Color
 ''');
   }
@@ -446,6 +460,7 @@ DotShorthandPropertyAccess
     token: one
     element: <testLibrary>::@extensionType::C::@getter::one
     staticType: C
+  isDotShorthand: true
   staticType: C
 ''');
   }
@@ -478,6 +493,7 @@ DotShorthandPropertyAccess
     token: foo
     element: <testLibrary>::@class::C::@method::foo
     staticType: String Function<X>()
+  isDotShorthand: false
   staticType: String Function<X>()
 ''');
   }
@@ -502,6 +518,7 @@ DotShorthandPropertyAccess
     token: red
     element: <testLibrary>::@enum::C::@getter::red
     staticType: C
+  isDotShorthand: true
   staticType: C
 ''');
   }
@@ -526,6 +543,7 @@ DotShorthandPropertyAccess
     token: red
     element: <testLibrary>::@enum::C::@getter::red
     staticType: C
+  isDotShorthand: true
   staticType: C
 ''');
   }
@@ -560,6 +578,7 @@ DotShorthandPropertyAccess
     token: mixinOne
     element: <testLibrary>::@mixin::CMixin::@getter::mixinOne
     staticType: CMixin
+  isDotShorthand: true
   staticType: CMixin
 ''');
   }
@@ -629,6 +648,7 @@ DotShorthandPropertyAccess
     token: id
     element: <testLibrary>::@class::C1::@constructor::id
     staticType: C1 Function()
+  isDotShorthand: true
   correspondingParameter: <testLibrary>::@class::C1::@method::==::@formalParameter::other
   staticType: C1 Function()
 ''');
@@ -679,6 +699,7 @@ DotShorthandPropertyAccess
     token: new
     element: <testLibrary>::@class::C::@constructor::new
     staticType: C<T> Function(T)
+  isDotShorthand: true
   correspondingParameter: <null>
   staticType: C<T> Function(T)
 ''');
@@ -700,6 +721,7 @@ DotShorthandPropertyAccess
     token: new
     element: dart:core::@class::Object::@constructor::new
     staticType: Object Function()
+  isDotShorthand: true
   staticType: Object Function()
 ''');
   }

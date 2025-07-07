@@ -61,6 +61,7 @@ DotShorthandConstructorInvocation
         element: iter@26
         staticType: List<int>
     rightParenthesis: )
+  isDotShorthand: true
   staticType: Stream<int>
 ''');
   }
@@ -95,6 +96,7 @@ DotShorthandConstructorInvocation
         correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
         staticType: int
     rightParenthesis: )
+  isDotShorthand: false
   staticType: C
 ''');
   }
@@ -129,6 +131,7 @@ DotShorthandConstructorInvocation
         correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
         staticType: int
     rightParenthesis: )
+  isDotShorthand: false
   staticType: C
 ''');
   }
@@ -163,6 +166,7 @@ DotShorthandConstructorInvocation
         correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
         staticType: int
     rightParenthesis: )
+  isDotShorthand: true
   correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
   staticType: C
 ''');
@@ -197,6 +201,7 @@ DotShorthandConstructorInvocation
         correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
         staticType: int
     rightParenthesis: )
+  isDotShorthand: true
   staticType: C
 ''');
   }
@@ -231,6 +236,7 @@ DotShorthandConstructorInvocation
         correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
         staticType: int
     rightParenthesis: )
+  isDotShorthand: true
   staticType: C
 ''');
   }
@@ -299,6 +305,7 @@ DotShorthandConstructorInvocation
         correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
         staticType: int
     rightParenthesis: )
+  isDotShorthand: true
   staticType: C
 ''');
   }
@@ -338,6 +345,7 @@ DotShorthandConstructorInvocation
           substitution: {T: dynamic}
         staticType: int
     rightParenthesis: )
+  isDotShorthand: true
   staticType: C<dynamic>
 ''');
   }
@@ -396,6 +404,7 @@ DotShorthandConstructorInvocation
         correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
         staticType: int
     rightParenthesis: )
+  isDotShorthand: true
   correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
   staticType: C
 ''');
@@ -431,6 +440,7 @@ DotShorthandConstructorInvocation
       SimpleStringLiteral
         literal: '2'
     rightParenthesis: )
+  isDotShorthand: true
   correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
   staticType: List<String>
 ''');
@@ -466,6 +476,7 @@ DotShorthandConstructorInvocation
         correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
         staticType: int
     rightParenthesis: )
+  isDotShorthand: true
   staticType: C
 ''');
   }
@@ -506,12 +517,14 @@ DotShorthandConstructorInvocation
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
+        isDotShorthand: true
         correspondingParameter: FieldFormalParameterMember
           baseElement: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           substitution: {T: C<dynamic>}
         staticInvokeType: C<dynamic> Function()
         staticType: C<dynamic>
     rightParenthesis: )
+  isDotShorthand: true
   staticType: C<C<dynamic>>
 ''');
   }
@@ -549,11 +562,13 @@ DotShorthandConstructorInvocation
           token: member
           element: <testLibrary>::@class::C::@getter::member
           staticType: C<dynamic>
+        isDotShorthand: true
         correspondingParameter: FieldFormalParameterMember
           baseElement: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           substitution: {T: C<dynamic>}
         staticType: C<dynamic>
     rightParenthesis: )
+  isDotShorthand: true
   staticType: C<C<dynamic>>
 ''');
   }
@@ -587,6 +602,7 @@ DotShorthandConstructorInvocation
         correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
         staticType: int
     rightParenthesis: )
+  isDotShorthand: true
   staticType: C
 ''');
   }

@@ -628,6 +628,7 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @48
                 rightParenthesis: ) @49
+              isDotShorthand: true
               staticType: A
       getters
         #F4 synthetic a
@@ -694,6 +695,7 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @42
                 rightParenthesis: ) @43
+              isDotShorthand: true
               staticType: A
       getters
         #F4 synthetic a
@@ -762,6 +764,7 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @60
                 rightParenthesis: ) @61
+              isDotShorthand: true
               staticInvokeType: A Function()
               staticType: A
       getters
@@ -851,6 +854,7 @@ library
                 token: a @65
                 element: <testLibrary>::@class::A::@getter::a
                 staticType: A
+              isDotShorthand: true
               staticType: A
       getters
         #F6 synthetic a
