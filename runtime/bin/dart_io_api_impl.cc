@@ -8,6 +8,11 @@
 #include "bin/directory.h"
 #include "bin/eventhandler.h"
 #include "bin/io_natives.h"
+#if defined(DART_IO_SECURE_SOCKET_DISABLED)
+#include "bin/io_service_no_ssl.h"
+#else  // defined(DART_IO_SECURE_SOCKET_DISABLED)
+#include "bin/io_service.h"
+#endif  // defined(DART_IO_SECURE_SOCKET_DISABLED)
 #include "bin/platform.h"
 #include "bin/process.h"
 #if !defined(DART_IO_SECURE_SOCKET_DISABLED)
@@ -36,6 +41,7 @@ void CleanupDartIo() {
   SSLFilter::Cleanup();
 #endif
   Process::Cleanup();
+  IOService::Cleanup();
 }
 
 void SetSystemTempDirectory(const char* system_temp) {
