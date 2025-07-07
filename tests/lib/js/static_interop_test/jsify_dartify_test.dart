@@ -31,6 +31,27 @@ void _expectRecEquals(Object? l, Object? r) {
   }
 }
 
+@JS('SharedArrayBuffer')
+external JSAny? get _sharedArrayBufferConstructor;
+
+bool supportsSharedArrayBuffer = _sharedArrayBufferConstructor != null;
+
+@JS('SharedArrayBuffer')
+extension type JSSharedArrayBuffer._(JSObject _) implements JSObject {
+  external JSSharedArrayBuffer(int length);
+}
+
+@JS('Uint8Array')
+extension type JSUint8ArrayShared._(JSUint8Array _) implements JSUint8Array {
+  external JSUint8ArrayShared(JSSharedArrayBuffer buf);
+}
+
+extension on JSUint8Array {
+  external int operator [](int index);
+  external operator []=(int index, int value);
+  external JSObject get buffer;
+}
+
 @JS()
 external void eval(String code);
 
@@ -103,10 +124,20 @@ void main() {
   _expectIterableEquals(l, l.jsify().dartify() as Float64List);
   ByteBuffer buffer = Uint8List.fromList([0, 1, 2, 3]).buffer;
   Expect.isTrue(buffer.jsify().isA<JSArrayBuffer>());
-  _expectIterableEquals(
-    buffer.asUint8List(),
-    (buffer.jsify().dartify() as ByteBuffer).asUint8List(),
-  );
+  final uint8List = (buffer.jsify().dartify() as ByteBuffer).asUint8List();
+  _expectIterableEquals(buffer.asUint8List(), uint8List);
+  Expect.isTrue(uint8List.toJS.buffer.isA<JSArrayBuffer>());
+  // TODO(https://github.com/dart-lang/sdk/issues/61043): Support this in the
+  // test runner.
+  if (supportsSharedArrayBuffer) {
+    // Test that `SharedArrayBuffer`s are dartified to `TypedData` correctly.
+    final sharedArrayBuffer = JSSharedArrayBuffer(1);
+    final uint8ArrayShared = JSUint8ArrayShared(sharedArrayBuffer);
+    uint8ArrayShared[0] = 42;
+    final uint8ListShared = uint8ArrayShared.dartify() as Uint8List;
+    Expect.equals(uint8ArrayShared[0], uint8ListShared[0]);
+    Expect.isTrue(uint8ListShared.toJS.buffer.isA<JSSharedArrayBuffer>());
+  }
   ByteData byteData = ByteData.view(buffer);
   Expect.isTrue(byteData.jsify().isA<JSDataView>());
   _expectIterableEquals(

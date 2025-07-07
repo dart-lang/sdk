@@ -129,7 +129,7 @@ def generateCallbackInterface(id):
 
 # Interfaces that are suppressed, but need to still exist for Dartium and to
 # properly wrap DOM objects if/when encountered.
-_removed_html_interfaces = [
+_suppressed_html_interfaces = [
     'Bluetooth',
     'BluetoothAdvertisingData',
     'BluetoothCharacteristicProperties',
@@ -231,7 +231,17 @@ _removed_html_interfaces = [
     'ResourceProgressEvent',
 ]
 
-for interface in _removed_html_interfaces:
+# Interfaces that should not be exposed at all. _suppressed_html_interfaces
+# still emits the type, but doesn't make it public.
+_removed_html_interfaces = [
+    'SharedArrayBuffer',  # Exposed through `dart:_native_typed_data` instead.
+]
+
+_suppressed_html_interfaces.extend(_removed_html_interfaces)
+
+for interface in _suppressed_html_interfaces:
+    if interface in _removed_html_interfaces:
+        continue
     html_interface_renames[interface] = '_' + interface
 
 convert_to_future_members = monitored.Set(
@@ -1094,7 +1104,7 @@ class HtmlRenamer(object):
 
     def RenameInterface(self, interface):
         if 'Callback' in interface.ext_attrs:
-            if interface.id in _removed_html_interfaces:
+            if interface.id in _suppressed_html_interfaces:
                 return None
 
         candidate = self.RenameInterfaceId(interface.id)
@@ -1159,7 +1169,7 @@ class HtmlRenamer(object):
         if self._FindMatch(interface, member, member_prefix,
                            removed_html_members):
             return True
-        if interface.id in _removed_html_interfaces:
+        if interface.id in _suppressed_html_interfaces:
             return True
         metadata_member = member
         if member_prefix == 'on:':
@@ -1170,6 +1180,13 @@ class HtmlRenamer(object):
 
     def ShouldSuppressInterface(self, interface):
         """ Returns true if the interface should be suppressed."""
+        if interface.id in _suppressed_html_interfaces:
+            return True
+
+    def ShouldNotGenerateInterface(self, interface):
+        # Note that suppression renames the type to a private type but still
+        # generates it.
+        """ Returns true if the interface should not be generated."""
         if interface.id in _removed_html_interfaces:
             return True
 

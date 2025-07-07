@@ -35,6 +35,7 @@ import 'dart:indexed_db';
 import "dart:convert";
 import 'dart:math';
 import 'dart:_native_typed_data';
+export 'dart:_native_typed_data' show SharedArrayBuffer;
 import 'dart:typed_data';
 // Not actually used, but imported since dart:html can generate these objects.
 import 'dart:svg' as svg;

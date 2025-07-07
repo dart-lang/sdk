@@ -46,6 +46,7 @@ import 'dart:web_gl' show RenderingContext, RenderingContext2;
 import 'dart:_foreign_helper' show JS, JS_INTERCEPTOR_CONSTANT;
 import 'dart:js_util' as js_util;
 
+export 'dart:_native_typed_data' show SharedArrayBuffer;
 // Not actually used, but imported since dart:html can generate these objects.
 import 'dart:_js_helper'
     show
@@ -28874,32 +28875,6 @@ Please remove them from your code.
   set applyAuthorStyles(bool value) {
     _shadowRootDeprecationReport();
   }
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-@Native("SharedArrayBuffer")
-class SharedArrayBuffer extends JavaScriptObject {
-  // To suppress missing implicit constructor warnings.
-  factory SharedArrayBuffer._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  factory SharedArrayBuffer([int? length]) {
-    if (length != null) {
-      return SharedArrayBuffer._create_1(length);
-    }
-    return SharedArrayBuffer._create_2();
-  }
-  static SharedArrayBuffer _create_1(length) =>
-      JS('SharedArrayBuffer', 'new SharedArrayBuffer(#)', length);
-  static SharedArrayBuffer _create_2() =>
-      JS('SharedArrayBuffer', 'new SharedArrayBuffer()');
-
-  int? get byteLength native;
-
-  SharedArrayBuffer slice([int? begin, int? end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
