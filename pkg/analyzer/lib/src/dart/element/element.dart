@@ -8349,8 +8349,7 @@ class PrefixFragmentImpl extends FragmentImpl implements PrefixFragment {
   LibraryFragmentImpl get libraryFragment => enclosingFragment;
 }
 
-abstract class PromotableElementImpl extends VariableElementImpl
-    implements PromotableElement {}
+abstract class PromotableElementImpl extends VariableElementImpl {}
 
 /// Common base class for all analyzer-internal classes that implement
 /// `PropertyAccessorElement2`.

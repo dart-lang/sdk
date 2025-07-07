@@ -163,7 +163,7 @@ class FlowAnalysisHelper {
   /// will be visited.
   void bodyOrInitializer_enter(
     AstNodeImpl node,
-    FormalParameterList? parameters, {
+    FormalParameterListImpl? parameters, {
     void Function(AstVisitor<Object?> visitor)? visit,
   }) {
     inferenceLogWriter?.enterBodyOrInitializer(node);
@@ -341,13 +341,12 @@ class FlowAnalysisHelper {
     }
   }
 
-  void variableDeclarationList(VariableDeclarationList node) {
+  void variableDeclarationList(VariableDeclarationListImpl node) {
     if (flow != null) {
       var variables = node.variables;
       for (var i = 0; i < variables.length; ++i) {
         var variable = variables[i];
-        var declaredElement =
-            variable.declaredElement as PromotableElementImpl;
+        var declaredElement = variable.declaredElement!;
         flow!.declare(
           declaredElement,
           SharedTypeView(declaredElement.type),
@@ -361,7 +360,7 @@ class FlowAnalysisHelper {
   static AssignedVariables<AstNodeImpl, PromotableElementImpl>
   computeAssignedVariables(
     AstNodeImpl node,
-    FormalParameterList? parameters, {
+    FormalParameterListImpl? parameters, {
     bool retainDataForTesting = false,
     void Function(AstVisitor<Object?> visitor)? visit,
   }) {
@@ -652,7 +651,7 @@ class TypeSystemOperations
   }
 
   @override
-  bool isFinal(PromotableElement variable) {
+  bool isFinal(PromotableElementImpl variable) {
     return variable.isFinal;
   }
 
@@ -717,7 +716,7 @@ class TypeSystemOperations
   }
 
   @override
-  bool isVariableFinal(PromotableElement element) {
+  bool isVariableFinal(PromotableElementImpl element) {
     return element.isFinal;
   }
 
@@ -946,14 +945,14 @@ class TypeSystemOperations
 /// The visitor that gathers local variables that are potentially assigned
 /// in corresponding statements, such as loops, `switch` and `try`.
 class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
-  final AssignedVariables<AstNode, PromotableElement> assignedVariables;
+  final AssignedVariables<AstNode, PromotableElementImpl> assignedVariables;
 
   _AssignedVariablesVisitor(this.assignedVariables);
 
   @override
   void visitAssignedVariablePattern(AssignedVariablePattern node) {
     var element = node.element;
-    if (element is PromotableElement) {
+    if (element is PromotableElementImpl) {
       assignedVariables.write(element);
     }
   }
@@ -966,7 +965,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
 
     if (left is SimpleIdentifier) {
       var element = left.element;
-      if (element is PromotableElement) {
+      if (element is PromotableElementImpl) {
         assignedVariables.write(element);
       }
     }
@@ -985,7 +984,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitCatchClause(CatchClause node) {
+  void visitCatchClause(covariant CatchClauseImpl node) {
     for (var identifier in [
       node.exceptionParameter,
       node.stackTraceParameter,
@@ -1019,17 +1018,17 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitForElement(ForElement node) {
+  void visitForElement(covariant ForElementImpl node) {
     _handleFor(node, node.forLoopParts, node.body);
   }
 
   @override
-  void visitForStatement(ForStatement node) {
+  void visitForStatement(covariant ForStatementImpl node) {
     _handleFor(node, node.forLoopParts, node.body);
   }
 
   @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
+  void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
     if (node.parent is CompilationUnit) {
       throw StateError('Should not visit top level declarations');
     }
@@ -1040,7 +1039,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitFunctionExpression(FunctionExpression node) {
+  void visitFunctionExpression(covariant FunctionExpressionImpl node) {
     if (node.parent is FunctionDeclaration) {
       // A FunctionExpression just inside a FunctionDeclaration is an analyzer
       // artifact--it doesn't correspond to a separate closure.  So skip our
@@ -1085,7 +1084,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
       var operand = node.operand;
       if (operand is SimpleIdentifier) {
         var element = operand.element;
-        if (element is PromotableElement) {
+        if (element is PromotableElementImpl) {
           assignedVariables.write(element);
         }
       }
@@ -1099,7 +1098,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
       var operand = node.operand;
       if (operand is SimpleIdentifier) {
         var element = operand.element;
-        if (element is PromotableElement) {
+        if (element is PromotableElementImpl) {
           assignedVariables.write(element);
         }
       }
@@ -1109,7 +1108,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     var element = node.element;
-    if (element is PromotableElement &&
+    if (element is PromotableElementImpl &&
         node.inGetterContext() &&
         node.parent is! FormalParameter &&
         node.parent is! CatchClause &&
@@ -1182,7 +1181,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
         grandParent is FieldDeclaration) {
       throw StateError('Should not visit top level declarations');
     }
-    var declaredElement = node.declaredElement as PromotableElement;
+    var declaredElement = node.declaredElement as PromotableElementImpl;
     assignedVariables.declare(declaredElement);
     if (declaredElement.isLate && node.initializer != null) {
       assignedVariables.beginNode();
@@ -1200,20 +1199,20 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
     assignedVariables.endNode(node);
   }
 
-  void _declareParameters(FormalParameterList? parameters) {
+  void _declareParameters(FormalParameterListImpl? parameters) {
     if (parameters == null) return;
     for (var parameter in parameters.parameters) {
       assignedVariables.declare(parameter.declaredFragment!.element);
     }
   }
 
-  void _handleFor(AstNode node, ForLoopParts forLoopParts, AstNode body) {
-    if (forLoopParts is ForParts) {
-      if (forLoopParts is ForPartsWithExpression) {
+  void _handleFor(AstNode node, ForLoopPartsImpl forLoopParts, AstNode body) {
+    if (forLoopParts is ForPartsImpl) {
+      if (forLoopParts is ForPartsWithExpressionImpl) {
         forLoopParts.initialization?.accept(this);
-      } else if (forLoopParts is ForPartsWithDeclarations) {
+      } else if (forLoopParts is ForPartsWithDeclarationsImpl) {
         forLoopParts.variables.accept(this);
-      } else if (forLoopParts is ForPartsWithPattern) {
+      } else if (forLoopParts is ForPartsWithPatternImpl) {
         forLoopParts.variables.accept(this);
       } else {
         throw StateError('Unrecognized for loop parts');
@@ -1224,17 +1223,17 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
       body.accept(this);
       forLoopParts.updaters.accept(this);
       assignedVariables.endNode(node);
-    } else if (forLoopParts is ForEachParts) {
+    } else if (forLoopParts is ForEachPartsImpl) {
       var iterable = forLoopParts.iterable;
 
       iterable.accept(this);
 
-      if (forLoopParts is ForEachPartsWithIdentifier) {
+      if (forLoopParts is ForEachPartsWithIdentifierImpl) {
         var element = forLoopParts.identifier.element;
-        if (element is PromotableElement) {
+        if (element is PromotableElementImpl) {
           assignedVariables.write(element);
         }
-      } else if (forLoopParts is ForEachPartsWithDeclaration) {
+      } else if (forLoopParts is ForEachPartsWithDeclarationImpl) {
         var variable = forLoopParts.loopVariable.declaredElement!;
         assignedVariables.declare(variable);
       } else if (forLoopParts is ForEachPartsWithPatternImpl) {

@@ -455,7 +455,7 @@ class FunctionReferenceResolver {
 
     function.prefix.element = prefixElement;
     function.prefix.setPseudoExpressionStaticType(
-      prefixElement is PromotableElement
+      prefixElement is PromotableElementImpl
           ? _resolver.localVariableTypeProvider.getType(
             function.prefix,
             isRead: true,

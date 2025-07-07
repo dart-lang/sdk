@@ -1072,7 +1072,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void handleCase_afterCaseHeads(
     AstNode node,
     int caseIndex,
-    Iterable<PromotableElement> variables,
+    Iterable<PromotableElementImpl> variables,
   ) {}
 
   @override
@@ -1746,7 +1746,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void setVariableType(PromotableElement variable, SharedTypeView type) {
+  void setVariableType(PromotableElementImpl variable, SharedTypeView type) {
     if (variable is LocalVariableElementImpl) {
       variable.type = type.unwrapTypeView();
     } else {
@@ -4182,7 +4182,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitVariableDeclarationList(VariableDeclarationList node) {
+  void visitVariableDeclarationList(
+    covariant VariableDeclarationListImpl node,
+  ) {
     flowAnalysis.variableDeclarationList(node);
     checkUnreachableNode(node);
     node.visitChildren(this);
@@ -4885,7 +4887,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   @override
   void visitAssignedVariablePattern(AssignedVariablePattern node) {
     var element = node.element;
-    if (element is PromotableElement) {
+    if (element is PromotableElementImpl) {
       _localVariableInfo.potentiallyMutatedInScope.add(element);
     }
   }
@@ -5916,7 +5918,7 @@ class _WhyNotPromotedVisitor
         NonPromotionReasonVisitor<
           List<DiagnosticMessage>,
           AstNode,
-          PromotableElement
+          PromotableElementImpl
         > {
   final Source source;
 
@@ -5930,7 +5932,7 @@ class _WhyNotPromotedVisitor
 
   @override
   List<DiagnosticMessage> visitDemoteViaExplicitWrite(
-    DemoteViaExplicitWrite<PromotableElement> reason,
+    DemoteViaExplicitWrite<PromotableElementImpl> reason,
   ) {
     var node = reason.node as AstNode;
     if (node is ForEachPartsWithIdentifier) {
@@ -6083,7 +6085,7 @@ class _WhyNotPromotedVisitor
   DiagnosticMessageImpl _contextMessageForWrite(
     String? variableName,
     AstNode node,
-    DemoteViaExplicitWrite<PromotableElement> reason,
+    DemoteViaExplicitWrite<PromotableElementImpl> reason,
   ) {
     return DiagnosticMessageImpl(
       filePath: source.fullName,

@@ -8,8 +8,8 @@ import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
 
@@ -58,7 +58,7 @@ class _AssignedVariablesDataExtractor extends AstDataExtractor<_Data> {
 
   Declaration? _currentDeclaration;
 
-  AssignedVariablesForTesting<AstNode, PromotableElement>?
+  AssignedVariablesForTesting<AstNode, PromotableElementImpl>?
   _currentAssignedVariables;
 
   _AssignedVariablesDataExtractor(super.uri, super.actualMap, this._flowResult);

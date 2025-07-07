@@ -3603,7 +3603,7 @@ package:analyzer/dart/element/element.dart:
     nextFragment (getter: FieldFragment?)
     offset (getter: int)
     previousFragment (getter: FieldFragment?)
-  FormalParameterElement (class extends Object implements PromotableElement, Annotatable, HasSinceSdkVersion, LocalElement):
+  FormalParameterElement (class extends Object implements VariableElement, Annotatable, HasSinceSdkVersion, LocalElement):
     new (constructor: FormalParameterElement Function())
     baseElement (getter: FormalParameterElement)
     defaultValueCode (getter: String?)
@@ -3624,7 +3624,7 @@ package:analyzer/dart/element/element.dart:
     isSuperFormal (getter: bool)
     typeParameters2 (getter: List<TypeParameterElement>)
     appendToWithoutDelimiters2 (method: void Function(StringBuffer))
-  FormalParameterFragment (class extends Object implements PromotableFragment, Annotatable, LocalFragment):
+  FormalParameterFragment (class extends Object implements VariableFragment, Annotatable, LocalFragment):
     new (constructor: FormalParameterFragment Function())
     element (getter: FormalParameterElement)
     nextFragment (getter: FormalParameterFragment?)
@@ -3887,13 +3887,13 @@ package:analyzer/dart/element/element.dart:
     nextFragment (getter: LocalFunctionFragment?)
     offset (getter: int)
     previousFragment (getter: LocalFunctionFragment?)
-  LocalVariableElement (class extends Object implements PromotableElement, LocalElement, Annotatable):
+  LocalVariableElement (class extends Object implements VariableElement, LocalElement, Annotatable):
     new (constructor: LocalVariableElement Function())
     baseElement (getter: LocalVariableElement)
     firstFragment (getter: LocalVariableFragment)
     fragments (getter: List<LocalVariableFragment>)
     hasInitializer (getter: bool)
-  LocalVariableFragment (class extends Object implements PromotableFragment, LocalFragment):
+  LocalVariableFragment (class extends Object implements VariableFragment, LocalFragment):
     new (constructor: LocalVariableFragment Function())
     element (getter: LocalVariableElement)
     hasInitializer (getter: bool)
@@ -4018,15 +4018,6 @@ package:analyzer/dart/element/element.dart:
     isDeferred (getter: bool)
     nextFragment (getter: PrefixFragment?)
     previousFragment (getter: PrefixFragment?)
-  PromotableElement (class extends Object implements VariableElement):
-    new (constructor: PromotableElement Function())
-    firstFragment (getter: PromotableFragment)
-    fragments (getter: List<PromotableFragment>)
-  PromotableFragment (class extends Object implements VariableFragment):
-    new (constructor: PromotableFragment Function())
-    element (getter: PromotableElement)
-    nextFragment (getter: PromotableFragment?)
-    previousFragment (getter: PromotableFragment?)
   PropertyAccessorElement (class extends Object implements ExecutableElement):
     new (constructor: PropertyAccessorElement Function())
     baseElement (getter: PropertyAccessorElement)
@@ -4201,7 +4192,6 @@ package:analyzer/dart/element/element.dart:
   MultiplyDefinedElement2 (type alias for MultiplyDefinedElement, deprecated)
   PatternVariableElement2 (type alias for PatternVariableElement, deprecated)
   PrefixElement2 (type alias for PrefixElement, deprecated)
-  PromotableElement2 (type alias for PromotableElement, deprecated)
   PropertyAccessorElement2 (type alias for PropertyAccessorElement, deprecated)
   PropertyInducingElement2 (type alias for PropertyInducingElement, deprecated)
   SuperFormalParameterElement2 (type alias for SuperFormalParameterElement, deprecated)
@@ -4287,8 +4277,6 @@ package:analyzer/dart/element/element2.dart:
   PatternVariableFragment (see above)
   PrefixElement (see above)
   PrefixFragment (see above)
-  PromotableElement (see above)
-  PromotableFragment (see above)
   PropertyAccessorElement (see above)
   PropertyAccessorFragment (see above)
   PropertyInducingElement (see above)
@@ -4336,7 +4324,6 @@ package:analyzer/dart/element/element2.dart:
   MultiplyDefinedElement2 (see above)
   PatternVariableElement2 (see above)
   PrefixElement2 (see above)
-  PromotableElement2 (see above)
   PropertyAccessorElement2 (see above)
   PropertyInducingElement2 (see above)
   SuperFormalParameterElement2 (see above)

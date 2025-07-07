@@ -22,7 +22,7 @@ class DiagnosticFactory {
   /// as a previous [original] node in a pattern assignment.
   Diagnostic duplicateAssignmentPatternVariable({
     required Source source,
-    required PromotableElement variable,
+    required PromotableElementImpl variable,
     required AssignedVariablePatternImpl original,
     required AssignedVariablePatternImpl duplicate,
   }) {
