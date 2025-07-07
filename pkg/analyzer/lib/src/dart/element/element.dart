@@ -74,17 +74,6 @@ abstract class AnnotatableFragmentImpl implements FragmentImpl, Annotatable {
   abstract MetadataImpl metadata;
 }
 
-/// Shared implementation for an augmentable [Fragment].
-mixin AugmentableFragment on FragmentImpl {
-  bool get isAugmentation {
-    return hasModifier(Modifier.AUGMENTATION);
-  }
-
-  set isAugmentation(bool value) {
-    setModifier(Modifier.AUGMENTATION, value);
-  }
-}
-
 class BindPatternVariableElementImpl extends PatternVariableElementImpl
     implements BindPatternVariableElement {
   BindPatternVariableElementImpl(super._wrappedElement);
@@ -2133,10 +2122,7 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
 }
 
 abstract class ExecutableFragmentImpl extends _ExistingFragmentImpl
-    with
-        AugmentableFragment,
-        DeferredResolutionReadingMixin,
-        TypeParameterizedFragmentMixin
+    with DeferredResolutionReadingMixin, TypeParameterizedFragmentMixin
     implements ExecutableFragment {
   /// A list containing all of the parameters defined by this executable
   /// element.
@@ -3608,6 +3594,14 @@ abstract class FragmentImpl implements Fragment {
     return enclosingElement3!.enclosingUnit;
   }
 
+  bool get isAugmentation {
+    return hasModifier(Modifier.AUGMENTATION);
+  }
+
+  set isAugmentation(bool value) {
+    setModifier(Modifier.AUGMENTATION, value);
+  }
+
   bool get isNonFunctionTypeAliasesEnabled {
     return library!.featureSet.isEnabled(Feature.nonfunction_type_aliases);
   }
@@ -4611,7 +4605,6 @@ recorded above.
 
 abstract class InstanceFragmentImpl extends _ExistingFragmentImpl
     with
-        AugmentableFragment,
         DeferredMembersReadingMixin,
         DeferredResolutionReadingMixin,
         TypeParameterizedFragmentMixin
@@ -8314,7 +8307,7 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
   void visitChildren2<T>(ElementVisitor2<T> visitor) {}
 }
 
-class PrefixFragmentImpl implements PrefixFragment {
+class PrefixFragmentImpl extends FragmentImpl implements PrefixFragment {
   @override
   final LibraryFragmentImpl enclosingFragment;
 
@@ -8344,17 +8337,19 @@ class PrefixFragmentImpl implements PrefixFragment {
     required this.name2,
     required this.nameOffset2,
     required this.isDeferred,
-  });
+  }) : super(nameOffset: -1);
 
   @override
   List<Fragment> get children3 => const [];
 
   @override
+  LibraryElementImpl? get library => libraryFragment.element;
+
+  @override
   LibraryFragmentImpl get libraryFragment => enclosingFragment;
 }
 
-abstract class PromotableElementImpl extends VariableElementImpl
-    implements PromotableElement {}
+abstract class PromotableElementImpl extends VariableElementImpl {}
 
 /// Common base class for all analyzer-internal classes that implement
 /// `PropertyAccessorElement2`.
@@ -8553,7 +8548,7 @@ abstract class PropertyInducingElementTypeInference {
 
 abstract class PropertyInducingFragmentImpl
     extends NonParameterVariableFragmentImpl
-    with AugmentableFragment, DeferredResolutionReadingMixin
+    with DeferredResolutionReadingMixin
     implements PropertyInducingFragment {
   @override
   final String? name2;
@@ -9122,13 +9117,16 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
     with
         FragmentedAnnotatableElementMixin<TopLevelVariableFragmentImpl>,
         FragmentedElementMixin<TopLevelVariableFragmentImpl>,
-        _HasSinceSdkVersionMixin
+        _HasSinceSdkVersionMixin,
+        DeferredResolutionReadingMixin
     implements TopLevelVariableElement {
   @override
   final Reference reference;
 
   @override
   final TopLevelVariableFragmentImpl firstFragment;
+
+  TypeImpl? _type;
 
   TopLevelVariableElementImpl(this.reference, this.firstFragment) {
     reference.element = this;
@@ -9189,7 +9187,41 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
   String? get name3 => firstFragment.name2;
 
   @override
-  TypeImpl get type => firstFragment.type;
+  TypeImpl get type {
+    _ensureReadResolution();
+    if (_type != null) return _type!;
+
+    // We must be linking, and the type has not been set yet.
+    var type = firstFragment.typeInference?.perform();
+    type ??= InvalidTypeImpl.instance;
+    _type = type;
+    firstFragment._type = type;
+    firstFragment.shouldUseTypeForInitializerInference = false;
+
+    // TODO(scheglov): We repeat this code.
+    var element = this;
+    if (element.getter2 case var getterElement?) {
+      getterElement.returnType = type;
+      getterElement.firstFragment.returnType = type;
+    }
+    if (element.setter2 case var setterElement?) {
+      if (setterElement.isSynthetic) {
+        setterElement.returnType = VoidTypeImpl.instance;
+        setterElement.firstFragment.returnType = VoidTypeImpl.instance;
+        (setterElement.formalParameters.single as FormalParameterElementImpl)
+            .type = type;
+        (setterElement.formalParameters.single as FormalParameterElementImpl)
+            .firstFragment
+            .type = type;
+      }
+    }
+
+    return _type!;
+  }
+
+  set type(TypeImpl value) {
+    _type = value;
+  }
 
   @override
   T? accept<T>(ElementVisitor2<T> visitor) {
@@ -9474,10 +9506,7 @@ class TypeAliasElementImpl extends TypeDefiningElementImpl
 ///
 /// Clients may not extend, implement or mix-in this class.
 class TypeAliasFragmentImpl extends _ExistingFragmentImpl
-    with
-        AugmentableFragment,
-        DeferredResolutionReadingMixin,
-        TypeParameterizedFragmentMixin
+    with DeferredResolutionReadingMixin, TypeParameterizedFragmentMixin
     implements TypeAliasFragment {
   @override
   final String? name2;

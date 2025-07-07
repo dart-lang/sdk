@@ -6234,6 +6234,9 @@ sealed class DeclarationImpl extends AnnotatedNodeImpl implements Declaration {
   /// Either or both of the [comment] and [metadata] can be `null` if the
   /// declaration doesn't have the corresponding attribute.
   DeclarationImpl({required super.comment, required super.metadata});
+
+  @override
+  FragmentImpl? get declaredFragment;
 }
 
 /// The declaration of a single identifier.
@@ -9602,7 +9605,7 @@ final class FieldDeclarationImpl extends ClassMemberImpl
   }
 
   @override
-  Fragment? get declaredFragment => null;
+  Null get declaredFragment => null;
 
   @generated
   @override
@@ -24498,7 +24501,7 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @override
-  Fragment? get declaredFragment => null;
+  Null get declaredFragment => null;
 
   @generated
   @override

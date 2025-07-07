@@ -119,9 +119,13 @@ class BundleWriter {
     _writeMixinElements(libraryElement.mixins);
     _writeTypeAliasElements(libraryElement.typeAliases);
 
+    // TODO(scheglov): extract
     _sink.writeList(libraryElement.topLevelVariables, (element) {
       _writeReference(element.reference);
       _sink.writeList(element.fragments, _writeFragmentId);
+      _writeElementResolution(() {
+        _resolutionSink.writeType(element.type);
+      });
     });
 
     _writeGetterElements(libraryElement.getters);

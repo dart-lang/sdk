@@ -6,7 +6,6 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -53,7 +52,7 @@ class SharedTypeAnalyzerErrors
 
   @override
   void duplicateAssignmentPatternVariable({
-    required covariant PromotableElement variable,
+    required covariant PromotableElementImpl variable,
     required covariant AssignedVariablePatternImpl original,
     required covariant AssignedVariablePatternImpl duplicate,
   }) {
@@ -109,8 +108,8 @@ class SharedTypeAnalyzerErrors
 
   @override
   void inconsistentJoinedPatternVariable({
-    required PromotableElement variable,
-    required PromotableElement component,
+    required PromotableElementImpl variable,
+    required PromotableElementImpl component,
   }) {
     _diagnosticReporter.atElement2(
       component,

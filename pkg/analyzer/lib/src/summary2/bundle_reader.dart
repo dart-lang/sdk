@@ -1254,7 +1254,15 @@ class LibraryReader {
       var reference = _readReference();
       var fragments = _readFragmentsById<TopLevelVariableFragmentImpl>();
       // TODO(scheglov): link fragments.
-      return TopLevelVariableElementImpl(reference, fragments.first);
+      var element = TopLevelVariableElementImpl(reference, fragments.first);
+
+      element.deferReadResolution(
+        _createDeferredReadResolutionCallback((reader) {
+          element.type = reader.readRequiredType();
+        }),
+      );
+
+      return element;
     });
   }
 

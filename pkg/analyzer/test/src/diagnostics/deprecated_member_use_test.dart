@@ -4,6 +4,7 @@
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -688,6 +689,31 @@ import 'package:aaa/a.dart';
     );
   }
 
+  test_incorrectlyNestedNamedParameterDeclaration() async {
+    // This is a regression test; previously this code would cause an analyzer
+    // crash in DeprecatedMemberUseVerifier.
+    await assertErrorsInCode(
+      r'''
+class C {
+  final String x;
+  final bool y;
+
+  const C({
+    required this.x,
+    {this.y = false}
+  });
+}
+
+const z = C(x: '');
+''',
+      [
+        error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1, 53, 1),
+        error(ParserErrorCode.MISSING_IDENTIFIER, 82, 1),
+        error(ParserErrorCode.EXPECTED_TOKEN, 82, 1),
+      ],
+    );
+  }
+
   test_inDeprecatedClass() async {
     await assertNoErrorsInCode2(
       externalCode: r'''
@@ -1328,6 +1354,28 @@ import 'package:aaa/a.dart';
 @deprecated
 class B = Object with A;
 ''');
+  }
+
+  test_namedParameterMissingName() async {
+    // This is a regression test; previously this code would cause an analyzer
+    // crash in DeprecatedMemberUseVerifier.
+    await assertErrorsInCode(
+      r'''
+class C {
+  const C({this.});
+}
+var z = C(x: '');
+''',
+      [
+        error(
+          CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD,
+          21,
+          5,
+        ),
+        error(ParserErrorCode.MISSING_IDENTIFIER, 26, 1),
+        error(CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, 42, 1),
+      ],
+    );
   }
 
   test_operator() async {

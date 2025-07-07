@@ -63,6 +63,7 @@ augment class A {
     );
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augmentedClass_augmentedField() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';

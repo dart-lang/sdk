@@ -9,6 +9,7 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
 
@@ -21,7 +22,7 @@ class DiagnosticFactory {
   /// as a previous [original] node in a pattern assignment.
   Diagnostic duplicateAssignmentPatternVariable({
     required Source source,
-    required PromotableElement variable,
+    required PromotableElementImpl variable,
     required AssignedVariablePatternImpl original,
     required AssignedVariablePatternImpl duplicate,
   }) {
@@ -44,22 +45,19 @@ class DiagnosticFactory {
     );
   }
 
-  /// Return a diagnostic indicating that [duplicateElement] reuses a name
+  /// Return a diagnostic indicating that [duplicateFragment] reuses a name
   /// already used by [originalElement].
   Diagnostic duplicateDefinition(
     DiagnosticCode code,
-    Element duplicateElement,
-    Element originalElement,
+    FragmentImpl duplicateFragment,
+    ElementImpl originalElement,
     List<Object> arguments,
   ) {
-    var duplicate = duplicateElement.nonSynthetic;
-    var duplicateFragment = duplicate.firstFragment;
-    var original = originalElement.nonSynthetic;
-    var originalFragment = original.firstFragment;
+    var originalFragment = originalElement.nonSynthetic.firstFragment;
     return Diagnostic.tmp(
       source: duplicateFragment.libraryFragment!.source,
       offset: duplicateFragment.nameOffset2 ?? -1,
-      length: duplicate.name3!.length,
+      length: duplicateFragment.name2!.length,
       diagnosticCode: code,
       arguments: arguments,
       contextMessages: [
@@ -67,7 +65,7 @@ class DiagnosticFactory {
           filePath: originalFragment.libraryFragment!.source.fullName,
           message: "The first definition of this name.",
           offset: originalFragment.nameOffset2 ?? -1,
-          length: original.name3!.length,
+          length: originalElement.nonSynthetic.name3!.length,
           url: null,
         ),
       ],

@@ -2057,7 +2057,7 @@ class _VariableBinderErrors
     required covariant LogicalOrPatternImpl node,
     required bool hasInLeft,
     required String name,
-    required PromotableElement variable,
+    required PromotableElementImpl variable,
   }) {
     visitor._diagnosticReporter.atNode(
       hasInLeft ? node.rightOperand : node.leftOperand,

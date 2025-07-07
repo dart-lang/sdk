@@ -1831,6 +1831,18 @@ class DeclarationHelper {
     if (mustBeAssignable) {
       return;
     }
+    if (checkVisibilty &&
+        !visibilityTracker.isVisible(
+          element: constructors.first.enclosingElement,
+          importData: importData,
+        )) {
+      return;
+    }
+
+    if (checkVisibilty) {
+      checkVisibilty = false;
+    }
+
     for (var constructor in constructors) {
       if (constructor.isVisibleIn(request.libraryElement) &&
           (allowNonFactory || constructor.isFactory)) {

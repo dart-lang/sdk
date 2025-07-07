@@ -136,9 +136,6 @@ typedef PatternVariableElement2 = PatternVariableElement;
 @Deprecated('Use PrefixElement instead')
 typedef PrefixElement2 = PrefixElement;
 
-@Deprecated('Use PromotableElement instead')
-typedef PromotableElement2 = PromotableElement;
-
 @Deprecated('Use PropertyAccessorElement instead')
 typedef PropertyAccessorElement2 = PropertyAccessorElement;
 
@@ -1467,11 +1464,7 @@ abstract class FieldFragment implements PropertyInducingFragment {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FormalParameterElement
-    implements
-        PromotableElement,
-        Annotatable,
-        HasSinceSdkVersion,
-        LocalElement {
+    implements VariableElement, Annotatable, HasSinceSdkVersion, LocalElement {
   @override
   FormalParameterElement get baseElement;
 
@@ -1570,7 +1563,7 @@ abstract class FormalParameterElement
 ///
 /// Clients may not extend, implement, or mix-in this class.
 abstract class FormalParameterFragment
-    implements PromotableFragment, Annotatable, LocalFragment {
+    implements VariableFragment, Annotatable, LocalFragment {
   @override
   FormalParameterElement get element;
 
@@ -2777,7 +2770,7 @@ abstract class LocalFunctionFragment
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class LocalVariableElement
-    implements PromotableElement, LocalElement, Annotatable {
+    implements VariableElement, LocalElement, Annotatable {
   @override
   LocalVariableElement get baseElement;
 
@@ -2796,7 +2789,7 @@ abstract class LocalVariableElement
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class LocalVariableFragment
-    implements PromotableFragment, LocalFragment {
+    implements VariableFragment, LocalFragment {
   @override
   LocalVariableElement get element;
 
@@ -3174,32 +3167,6 @@ abstract class PrefixFragment implements Fragment {
 
   @override
   PrefixFragment? get previousFragment;
-}
-
-/// A variable that might be subject to type promotion.  This might be a local
-/// variable or a parameter.
-///
-/// Clients may not extend, implement or mix-in this class.
-abstract class PromotableElement implements VariableElement {
-  @override
-  PromotableFragment get firstFragment;
-
-  @override
-  List<PromotableFragment> get fragments;
-}
-
-/// The portion of a [PromotableElement] contributed by a single declaration.
-///
-/// Clients may not extend, implement or mix-in this class.
-abstract class PromotableFragment implements VariableFragment {
-  @override
-  PromotableElement get element;
-
-  @override
-  PromotableFragment? get nextFragment;
-
-  @override
-  PromotableFragment? get previousFragment;
 }
 
 /// A getter or a setter.

@@ -4881,18 +4881,6 @@ class Map{}class tst {var newt;void newf(){}test() {var newz;new ^/* */;}}
 suggestions
   Map
     kind: constructorInvocation
-  Map.from
-    kind: constructorInvocation
-  Map.fromEntries
-    kind: constructorInvocation
-  Map.fromIterable
-    kind: constructorInvocation
-  Map.fromIterables
-    kind: constructorInvocation
-  Map.identity
-    kind: constructorInvocation
-  Map.unmodifiable
-    kind: constructorInvocation
 ''');
   }
 
@@ -4905,18 +4893,6 @@ class Map{}class F{m(){new ^;}}
 suggestions
   Map
     kind: constructorInvocation
-  Map.from
-    kind: constructorInvocation
-  Map.fromEntries
-    kind: constructorInvocation
-  Map.fromIterable
-    kind: constructorInvocation
-  Map.fromIterables
-    kind: constructorInvocation
-  Map.identity
-    kind: constructorInvocation
-  Map.unmodifiable
-    kind: constructorInvocation
 ''');
   }
 
@@ -4928,18 +4904,6 @@ class Map{}class F{m(){new ^
     assertResponse(r'''
 suggestions
   Map
-    kind: constructorInvocation
-  Map.from
-    kind: constructorInvocation
-  Map.fromEntries
-    kind: constructorInvocation
-  Map.fromIterable
-    kind: constructorInvocation
-  Map.fromIterables
-    kind: constructorInvocation
-  Map.identity
-    kind: constructorInvocation
-  Map.unmodifiable
     kind: constructorInvocation
 ''');
   }
@@ -5372,10 +5336,6 @@ replacement
 suggestions
   List
     kind: constructorInvocation
-  List.empty
-    kind: constructorInvocation
-  List.generate
-    kind: constructorInvocation
 ''');
   }
 
@@ -5521,18 +5481,6 @@ class List{}class XXX {XXX.fisk();}void f() {f(); new ^}}
     assertResponse(r'''
 suggestions
   List
-    kind: constructorInvocation
-  List.empty
-    kind: constructorInvocation
-  List.filled
-    kind: constructorInvocation
-  List.from
-    kind: constructorInvocation
-  List.generate
-    kind: constructorInvocation
-  List.of
-    kind: constructorInvocation
-  List.unmodifiable
     kind: constructorInvocation
   XXX.fisk
     kind: constructorInvocation

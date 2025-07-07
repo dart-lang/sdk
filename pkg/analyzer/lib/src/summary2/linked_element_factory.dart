@@ -158,7 +158,7 @@ class LinkedElementFactory {
     }
   }
 
-  Element elementOfReference3(Reference reference) {
+  ElementImpl elementOfReference3(Reference reference) {
     if (reference.element case var element?) {
       return element;
     }
