@@ -74,17 +74,6 @@ abstract class AnnotatableFragmentImpl implements FragmentImpl, Annotatable {
   abstract MetadataImpl metadata;
 }
 
-/// Shared implementation for an augmentable [Fragment].
-mixin AugmentableFragment on FragmentImpl {
-  bool get isAugmentation {
-    return hasModifier(Modifier.AUGMENTATION);
-  }
-
-  set isAugmentation(bool value) {
-    setModifier(Modifier.AUGMENTATION, value);
-  }
-}
-
 class BindPatternVariableElementImpl extends PatternVariableElementImpl
     implements BindPatternVariableElement {
   BindPatternVariableElementImpl(super._wrappedElement);
@@ -2133,10 +2122,7 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
 }
 
 abstract class ExecutableFragmentImpl extends _ExistingFragmentImpl
-    with
-        AugmentableFragment,
-        DeferredResolutionReadingMixin,
-        TypeParameterizedFragmentMixin
+    with DeferredResolutionReadingMixin, TypeParameterizedFragmentMixin
     implements ExecutableFragment {
   /// A list containing all of the parameters defined by this executable
   /// element.
@@ -3608,6 +3594,14 @@ abstract class FragmentImpl implements Fragment {
     return enclosingElement3!.enclosingUnit;
   }
 
+  bool get isAugmentation {
+    return hasModifier(Modifier.AUGMENTATION);
+  }
+
+  set isAugmentation(bool value) {
+    setModifier(Modifier.AUGMENTATION, value);
+  }
+
   bool get isNonFunctionTypeAliasesEnabled {
     return library!.featureSet.isEnabled(Feature.nonfunction_type_aliases);
   }
@@ -4611,7 +4605,6 @@ recorded above.
 
 abstract class InstanceFragmentImpl extends _ExistingFragmentImpl
     with
-        AugmentableFragment,
         DeferredMembersReadingMixin,
         DeferredResolutionReadingMixin,
         TypeParameterizedFragmentMixin
@@ -8314,7 +8307,7 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
   void visitChildren2<T>(ElementVisitor2<T> visitor) {}
 }
 
-class PrefixFragmentImpl implements PrefixFragment {
+class PrefixFragmentImpl extends FragmentImpl implements PrefixFragment {
   @override
   final LibraryFragmentImpl enclosingFragment;
 
@@ -8344,10 +8337,13 @@ class PrefixFragmentImpl implements PrefixFragment {
     required this.name2,
     required this.nameOffset2,
     required this.isDeferred,
-  });
+  }) : super(nameOffset: -1);
 
   @override
   List<Fragment> get children3 => const [];
+
+  @override
+  LibraryElementImpl? get library => libraryFragment.element;
 
   @override
   LibraryFragmentImpl get libraryFragment => enclosingFragment;
@@ -8553,7 +8549,7 @@ abstract class PropertyInducingElementTypeInference {
 
 abstract class PropertyInducingFragmentImpl
     extends NonParameterVariableFragmentImpl
-    with AugmentableFragment, DeferredResolutionReadingMixin
+    with DeferredResolutionReadingMixin
     implements PropertyInducingFragment {
   @override
   final String? name2;
@@ -9474,10 +9470,7 @@ class TypeAliasElementImpl extends TypeDefiningElementImpl
 ///
 /// Clients may not extend, implement or mix-in this class.
 class TypeAliasFragmentImpl extends _ExistingFragmentImpl
-    with
-        AugmentableFragment,
-        DeferredResolutionReadingMixin,
-        TypeParameterizedFragmentMixin
+    with DeferredResolutionReadingMixin, TypeParameterizedFragmentMixin
     implements TypeAliasFragment {
   @override
   final String? name2;
