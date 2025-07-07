@@ -3892,11 +3892,9 @@ package:analyzer/dart/element/element.dart:
     baseElement (getter: LocalVariableElement)
     firstFragment (getter: LocalVariableFragment)
     fragments (getter: List<LocalVariableFragment>)
-    hasInitializer (getter: bool)
   LocalVariableFragment (class extends Object implements VariableFragment, LocalFragment):
     new (constructor: LocalVariableFragment Function())
     element (getter: LocalVariableElement)
-    hasInitializer (getter: bool)
     nameOffset (getter: int)
     nextFragment (getter: LocalVariableFragment?)
     previousFragment (getter: LocalVariableFragment?)

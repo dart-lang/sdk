@@ -6836,9 +6836,6 @@ class LocalVariableElementImpl extends PromotableElementImpl
   bool get hasImplicitType => _wrappedElement.hasImplicitType;
 
   @override
-  bool get hasInitializer => _wrappedElement.hasInitializer;
-
-  @override
   bool get isConst => _wrappedElement.isConst;
 
   @override
@@ -6913,9 +6910,6 @@ class LocalVariableFragmentImpl extends NonParameterVariableFragmentImpl
 
   @override
   MetadataImpl metadata = MetadataImpl(const []);
-
-  @override
-  late bool hasInitializer;
 
   /// Initialize a newly created method element to have the given [name] and
   /// [offset].
