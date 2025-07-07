@@ -1597,7 +1597,6 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     }
   }
 
-  // Tests subtypes ignoring any nullabilities.
   bool _isSubtype(DartType subtype, DartType supertype) =>
       _environment.isSubtypeOf(subtype, supertype);
 
