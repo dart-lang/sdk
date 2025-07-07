@@ -183,6 +183,7 @@ class TypesBuilder {
       switch (element) {
         case GetterElementImpl():
           element.returnType = returnType;
+          (element.variable3 as TopLevelVariableElementImpl).type = returnType;
           element.variable3!.firstFragment.type = returnType;
         case SetterElementImpl():
           element.returnType = returnType;
@@ -194,8 +195,10 @@ class TypesBuilder {
           var valueNodeType = valueNode?.declaredFragment!.type;
           valueElement?.type = valueNodeType ?? InvalidTypeImpl.instance;
 
-          var variableElement = element.variable3!;
+          var variableElement =
+              element.variable3 as TopLevelVariableElementImpl;
           if (variableElement.isSynthetic && valueElement != null) {
+            variableElement.type = valueElement.type;
             variableElement.firstFragment.type = valueElement.type;
           }
         case TopLevelFunctionElementImpl():
@@ -254,6 +257,9 @@ class TypesBuilder {
           var variableFragment = variable.declaredFragment!;
           var variableElement = variableFragment.element;
           variableFragment.type = type;
+          if (variableElement is TopLevelVariableElementImpl) {
+            variableElement.type = type;
+          }
           if (variableElement is PropertyInducingElementImpl) {
             if (variableElement.getter2 case var getterElement?) {
               getterElement.returnType = type;

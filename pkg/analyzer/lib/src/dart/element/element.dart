@@ -9118,13 +9118,16 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
     with
         FragmentedAnnotatableElementMixin<TopLevelVariableFragmentImpl>,
         FragmentedElementMixin<TopLevelVariableFragmentImpl>,
-        _HasSinceSdkVersionMixin
+        _HasSinceSdkVersionMixin,
+        DeferredResolutionReadingMixin
     implements TopLevelVariableElement {
   @override
   final Reference reference;
 
   @override
   final TopLevelVariableFragmentImpl firstFragment;
+
+  TypeImpl? _type;
 
   TopLevelVariableElementImpl(this.reference, this.firstFragment) {
     reference.element = this;
@@ -9185,7 +9188,41 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
   String? get name3 => firstFragment.name2;
 
   @override
-  TypeImpl get type => firstFragment.type;
+  TypeImpl get type {
+    _ensureReadResolution();
+    if (_type != null) return _type!;
+
+    // We must be linking, and the type has not been set yet.
+    var type = firstFragment.typeInference?.perform();
+    type ??= InvalidTypeImpl.instance;
+    _type = type;
+    firstFragment._type = type;
+    firstFragment.shouldUseTypeForInitializerInference = false;
+
+    // TODO(scheglov): We repeat this code.
+    var element = this;
+    if (element.getter2 case var getterElement?) {
+      getterElement.returnType = type;
+      getterElement.firstFragment.returnType = type;
+    }
+    if (element.setter2 case var setterElement?) {
+      if (setterElement.isSynthetic) {
+        setterElement.returnType = VoidTypeImpl.instance;
+        setterElement.firstFragment.returnType = VoidTypeImpl.instance;
+        (setterElement.formalParameters.single as FormalParameterElementImpl)
+            .type = type;
+        (setterElement.formalParameters.single as FormalParameterElementImpl)
+            .firstFragment
+            .type = type;
+      }
+    }
+
+    return _type!;
+  }
+
+  set type(TypeImpl value) {
+    _type = value;
+  }
 
   @override
   T? accept<T>(ElementVisitor2<T> visitor) {

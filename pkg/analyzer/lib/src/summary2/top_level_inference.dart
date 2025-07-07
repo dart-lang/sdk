@@ -146,7 +146,7 @@ class _InitializerInference {
   void perform() {
     for (var element in _toInfer) {
       // Will perform inference, if not done yet.
-      element.type;
+      element.element.type;
     }
   }
 
