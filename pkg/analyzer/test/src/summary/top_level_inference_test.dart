@@ -8279,7 +8279,7 @@ library
         synthetic x
           reference: <testLibrary>::@class::B::@field::x
           firstFragment: #F8
-          type: dynamic
+          type: InvalidType
           setter: <testLibrary>::@class::B::@setter::x
       constructors
         synthetic new

@@ -153,11 +153,14 @@ class _Node extends graph.Node<_Node> {
   void _evaluateWithType(TypeImpl type) {
     var typeSystem = element.library.typeSystem;
 
-    var representation = element.firstFragment.representation;
-    representation.type = type;
+    var representationFragment = element.firstFragment.representation;
+    var representationElement = representationFragment.element;
+
+    representationFragment.type = type;
+    representationElement.type = type;
     // TODO(scheglov): we repeat similar code in many places
-    representation.element.getter2!.returnType = type;
-    representation.element.getter2!.firstFragment.returnType = type;
+    representationElement.getter2!.returnType = type;
+    representationElement.getter2!.firstFragment.returnType = type;
 
     element.firstFragment.typeErasure = type.extensionTypeErasure;
     element.firstFragment.interfaces =

@@ -16078,7 +16078,7 @@ library
         synthetic x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
-          type: dynamic
+          type: InvalidType
           setter: <testLibrary>::@class::C::@setter::x
       constructors
         synthetic new

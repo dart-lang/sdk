@@ -695,10 +695,21 @@ class LibraryReader {
       var reference = _readReference();
       var fragments = _readFragmentsById<FieldFragmentImpl>();
       // TODO(scheglov): link fragments.
-      return FieldElementImpl(
+      var element = FieldElementImpl(
         reference: reference,
         firstFragment: fragments.first,
       );
+
+      element.deferReadResolution(
+        _createDeferredReadResolutionCallback((reader) {
+          var enclosingElement =
+              element.enclosingElement as InstanceElementImpl;
+          reader._addTypeParameters2(enclosingElement.typeParameters2);
+          element.type = reader.readRequiredType();
+        }),
+      );
+
+      return element;
     });
   }
 

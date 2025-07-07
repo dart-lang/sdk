@@ -413,6 +413,9 @@ class BundleWriter {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
       _sink.writeList(element.fragments, _writeFragmentId);
+      _writeElementResolution(() {
+        _resolutionSink.writeType(element.type);
+      });
     });
   }
 

@@ -229,15 +229,23 @@ class TypesBuilder {
       switch (element) {
         case GetterElementImpl():
           element.returnType = returnType;
+          (element.variable3 as FieldElementImpl).type = returnType;
           element.variable3!.firstFragment.type = returnType;
         case SetterElementImpl():
           element.returnType = returnType;
-          var fragmentValue =
+          var valueElement =
               element.formalParameters.singleOrNull
                   as FormalParameterElementImpl?;
           var valueNode = node.parameters?.parameters.firstOrNull;
           var valueNodeType = valueNode?.declaredFragment!.type;
-          fragmentValue?.type = valueNodeType ?? InvalidTypeImpl.instance;
+          var valueType = valueNodeType ?? InvalidTypeImpl.instance;
+          valueElement?.type = valueType;
+
+          var variableElement = element.variable3 as FieldElementImpl;
+          if (variableElement.isSynthetic && variableElement.getter2 == null) {
+            variableElement.type = valueType;
+            variableElement.firstFragment.type = valueType;
+          }
         case MethodElementImpl():
           element.returnType = returnType;
       }
@@ -257,6 +265,9 @@ class TypesBuilder {
           var variableFragment = variable.declaredFragment!;
           var variableElement = variableFragment.element;
           variableFragment.type = type;
+          if (variableElement is FieldElementImpl) {
+            variableElement.type = type;
+          }
           if (variableElement is TopLevelVariableElementImpl) {
             variableElement.type = type;
           }
