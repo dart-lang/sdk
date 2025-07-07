@@ -340,7 +340,9 @@ abstract class BaseDeprecatedMemberUseVerifier {
           namedParameters = {};
           for (var parameter in parameters) {
             if (parameter.isNamed) {
-              namedParameters[parameter.name3!] = parameter;
+              if (parameter.name3 case var name?) {
+                namedParameters[name] = parameter;
+              }
             }
           }
         }
