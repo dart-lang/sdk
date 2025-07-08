@@ -2935,53 +2935,95 @@ void IsolateGroup::VisitObjectPointers(ObjectPointerVisitor* visitor,
   VisitStackPointers(visitor, validate_frames);
 }
 
-void IsolateGroup::VisitSharedPointers(ObjectPointerVisitor* visitor) {
-  // Visit objects in the class table.
-  class_table()->VisitObjectPointers(visitor);
-  if (heap_walk_class_table() != class_table()) {
-    heap_walk_class_table()->VisitObjectPointers(visitor);
-  }
-  api_state()->VisitObjectPointersUnlocked(visitor);
-  // Visit objects in the object store.
-  if (object_store() != nullptr) {
-    object_store()->VisitObjectPointers(visitor);
-  }
-  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&saved_unlinked_calls_));
-  initial_field_table()->VisitObjectPointers(visitor);
-  sentinel_field_table()->VisitObjectPointers(visitor);
-  shared_initial_field_table()->VisitObjectPointers(visitor);
-  shared_field_table()->VisitObjectPointers(visitor);
-
-  // Visit the boxed_field_list_.
-  // 'boxed_field_list_' access via mutator and background compilation threads
-  // is guarded with a monitor. This means that we can visit it only
-  // when at safepoint or the field_list_mutex_ lock has been taken.
-  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&boxed_field_list_));
-
-  NOT_IN_PRECOMPILED(background_compiler()->VisitPointers(visitor));
-
+void IsolateGroup::VisitSharedPointers(ObjectPointerVisitor* visitor,
+                                       intptr_t slice) {
+  switch (slice) {
+    case kClassTable:
+      class_table()->VisitObjectPointers(visitor);
+      if (heap_walk_class_table() != class_table()) {
+        heap_walk_class_table()->VisitObjectPointers(visitor);
+      }
+      break;
+    case kApiState:
+      api_state()->VisitObjectPointersUnlocked(visitor);
+      break;
+    case kObjectStore:
+      if (object_store() != nullptr) {
+        object_store()->VisitObjectPointers(visitor);
+      }
+      break;
+    case kSavedUnlinkedCalls:
+      visitor->VisitPointer(
+          reinterpret_cast<ObjectPtr*>(&saved_unlinked_calls_));
+      break;
+    case kInitialFieldTable:
+      initial_field_table()->VisitObjectPointers(visitor);
+      break;
+    case kSentinelFieldTable:
+      sentinel_field_table()->VisitObjectPointers(visitor);
+      break;
+    case kSharedInitialFieldTable:
+      shared_initial_field_table()->VisitObjectPointers(visitor);
+      break;
+    case kSharedFieldTable:
+      shared_field_table()->VisitObjectPointers(visitor);
+      break;
+    case kBoxedFieldList:
+      // Visit the boxed_field_list_.
+      // 'boxed_field_list_' access via mutator and background compilation
+      // threads is guarded with a monitor. This means that we can visit it only
+      // when at safepoint or the field_list_mutex_ lock has been taken.
+      visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&boxed_field_list_));
+      break;
+    case kBackgroundCompiler:
+      NOT_IN_PRECOMPILED(background_compiler()->VisitPointers(visitor));
+      break;
+    case kDebugger:
 #if !defined(PRODUCT)
-  if (debugger() != nullptr) {
-    debugger()->VisitObjectPointers(visitor);
-  }
+      if (debugger() != nullptr) {
+        debugger()->VisitObjectPointers(visitor);
+      }
 #endif
-
+      break;
+    case kReloadContext:
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  // Visit objects that are being used for isolate reload.
-  if (program_reload_context() != nullptr) {
-    program_reload_context()->VisitObjectPointers(visitor);
-    program_reload_context()->group_reload_context()->VisitObjectPointers(
-        visitor);
-  }
+      if (program_reload_context() != nullptr) {
+        program_reload_context()->VisitObjectPointers(visitor);
+        program_reload_context()->group_reload_context()->VisitObjectPointers(
+            visitor);
+      }
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-
-  if (source()->loaded_blobs_ != nullptr) {
-    visitor->VisitPointer(
-        reinterpret_cast<ObjectPtr*>(&(source()->loaded_blobs_)));
+      break;
+    case kLoadedBlobs:
+      if (source()->loaded_blobs_ != nullptr) {
+        visitor->VisitPointer(
+            reinterpret_cast<ObjectPtr*>(&(source()->loaded_blobs_)));
+      }
+      break;
+    case kBecome:
+      if (become() != nullptr) {
+        become()->VisitObjectPointers(visitor);
+      }
+      break;
+    case kObjectIdZones:
+#if !defined(PRODUCT)
+      if (visitor->trace_object_id_rings()) {
+        for (Isolate* isolate : isolates_) {
+          for (intptr_t i = 0; i < isolate->NumServiceIdZones(); ++i) {
+            isolate->GetServiceIdZone(i)->VisitPointers(visitor);
+          }
+        }
+      }
+#endif  // !defined(PRODUCT)
+      break;
+    default:
+      UNREACHABLE();
   }
+}
 
-  if (become() != nullptr) {
-    become()->VisitObjectPointers(visitor);
+void IsolateGroup::VisitSharedPointers(ObjectPointerVisitor* visitor) {
+  for (intptr_t i = 0; i < kNumRootSlices; i++) {
+    VisitSharedPointers(visitor, static_cast<RootSlice>(i));
   }
 }
 
@@ -3000,17 +3042,6 @@ void IsolateGroup::VisitStackPointers(ObjectPointerVisitor* visitor,
   }
 
   visitor->clear_gc_root_type();
-}
-
-void IsolateGroup::VisitPointersInAllServiceIdZones(
-    ObjectPointerVisitor& visitor) {
-#if !defined(PRODUCT)
-  for (Isolate* isolate : isolates_) {
-    for (intptr_t i = 0; i < isolate->NumServiceIdZones(); ++i) {
-      isolate->GetServiceIdZone(i)->VisitPointers(visitor);
-    }
-  }
-#endif  // !defined(PRODUCT)
 }
 
 void IsolateGroup::VisitWeakPersistentHandles(HandleVisitor* visitor) {

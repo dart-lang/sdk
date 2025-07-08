@@ -67,6 +67,7 @@ class ObjectPointerVisitor {
   // through fields.
   // Otherwise trace field values through isolate's field_table.
   virtual bool trace_values_through_fields() const { return false; }
+  virtual bool trace_object_id_rings() const { return true; }
 
   const ClassTable* class_table() const { return class_table_; }
 

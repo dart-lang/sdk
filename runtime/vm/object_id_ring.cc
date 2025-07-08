@@ -68,8 +68,9 @@ ObjectPtr ObjectIdRing::GetObjectForId(int32_t id, LookupResult* kind) {
 }
 
 void ObjectIdRing::VisitPointers(ObjectPointerVisitor* visitor) const {
-  ASSERT(table_ != nullptr);
-  visitor->VisitPointers(table_, capacity_);
+  if (table_ != nullptr) {
+    visitor->VisitPointers(table_, capacity_);
+  }
 }
 
 void ObjectIdRing::PrintJSON(JSONStream* js) {
