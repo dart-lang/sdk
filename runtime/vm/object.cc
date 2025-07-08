@@ -14363,6 +14363,11 @@ void Library::SetLoaded() const {
 
 void Library::AddMetadata(const Object& declaration,
                           intptr_t kernel_offset) const {
+  AddMetadata(declaration, Smi::Handle(Smi::New(kernel_offset)));
+}
+
+void Library::AddMetadata(const Object& declaration,
+                          const Object& metadata_value) const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   UNREACHABLE();
 #else
@@ -14370,7 +14375,7 @@ void Library::AddMetadata(const Object& declaration,
   ASSERT(thread->isolate_group()->program_lock()->IsCurrentThreadWriter());
 
   MetadataMap map(metadata());
-  map.UpdateOrInsert(declaration, Smi::Handle(Smi::New(kernel_offset)));
+  map.UpdateOrInsert(declaration, metadata_value);
   set_metadata(map.Release());
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
