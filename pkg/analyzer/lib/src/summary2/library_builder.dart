@@ -152,14 +152,14 @@ class LibraryBuilder {
       if (classFragment.isMixinApplication) continue;
       if (classFragment.constructors.isNotEmpty) continue;
 
-      var fragment = ConstructorFragmentImpl(name2: 'new', nameOffset: -1)
+      var fragment = ConstructorFragmentImpl(name: 'new', nameOffset: -1)
         ..isSynthetic = true;
-      fragment.typeName = classFragment.name2;
+      fragment.typeName = classFragment.name;
 
       var classElement = classFragment.element;
       classElement.constructors = [
         ConstructorElementImpl(
-          name3: fragment.name2,
+          name3: fragment.name,
           reference: classElement.reference
               .getChild('@constructor')
               .addChild('new'),
@@ -235,13 +235,13 @@ class LibraryBuilder {
       if (hasConstructor(enumFragment)) continue;
 
       var fragment =
-          ConstructorFragmentImpl(name2: 'new', nameOffset: -1)
+          ConstructorFragmentImpl(name: 'new', nameOffset: -1)
             ..isConst = true
             ..isSynthetic = true;
-      fragment.typeName = enumFragment.name2;
+      fragment.typeName = enumFragment.name;
 
       var element = ConstructorElementImpl(
-        name3: fragment.name2,
+        name3: fragment.name,
         reference: enumFragment.element.reference
             .getChild('@constructor')
             .addChild('new'),
@@ -338,7 +338,7 @@ class LibraryBuilder {
         for (var parameter in constructor.parameters) {
           if (parameter is FieldFormalParameterFragmentImpl) {
             parameter.field =
-                element.getField(parameter.name2 ?? '')?.asElement;
+                element.getField(parameter.name ?? '')?.asElement;
           }
         }
       }
@@ -620,7 +620,7 @@ class LibraryBuilder {
   }) {
     var fragment = PrefixFragmentImpl(
       enclosingFragment: libraryFragment,
-      name2: unlinkedName?.name,
+      name: unlinkedName?.name,
       nameOffset2: unlinkedName?.nameOffset,
       isDeferred: isDeferred,
     )..offset = offset;

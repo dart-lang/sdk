@@ -310,7 +310,7 @@ class LibraryReader {
     return _reader.readTypedList(() {
       return _readTemplateFragment(
         create: (name) {
-          var fragment = ClassFragmentImpl(name2: name, nameOffset: -1);
+          var fragment = ClassFragmentImpl(name: name, nameOffset: -1);
           fragment.readModifiers(_reader);
           fragment.typeParameters = _readTypeParameters();
 
@@ -356,7 +356,7 @@ class LibraryReader {
       var fragments = _readFragmentsById<ConstructorFragmentImpl>();
       // TODO(scheglov): link fragments.
       var element = ConstructorElementImpl(
-        name3: fragments.first.name2,
+        name3: fragments.first.name,
         reference: reference,
         firstFragment: fragments.first,
       );
@@ -381,7 +381,7 @@ class LibraryReader {
     return _reader.readTypedList(() {
       return _readTemplateFragment(
         create: (name) {
-          var fragment = ConstructorFragmentImpl(name2: name!, nameOffset: -1);
+          var fragment = ConstructorFragmentImpl(name: name!, nameOffset: -1);
 
           fragment.readModifiers(_reader);
           fragment.typeName = _reader.readOptionalStringReference();
@@ -517,7 +517,7 @@ class LibraryReader {
     return _reader.readTypedList(() {
       return _readTemplateFragment(
         create: (name) {
-          var fragment = EnumFragmentImpl(name2: name, nameOffset: -1);
+          var fragment = EnumFragmentImpl(name: name, nameOffset: -1);
           fragment.readModifiers(_reader);
           fragment.typeParameters = _readTypeParameters();
 
@@ -603,7 +603,7 @@ class LibraryReader {
     return _reader.readTypedList(() {
       return _readTemplateFragment(
         create: (name) {
-          var fragment = ExtensionFragmentImpl(name2: name, nameOffset: -1);
+          var fragment = ExtensionFragmentImpl(name: name, nameOffset: -1);
           fragment.readModifiers(_reader);
           fragment.typeParameters = _readTypeParameters();
           fragment.fields = _readFieldFragments();
@@ -657,7 +657,7 @@ class LibraryReader {
     return _reader.readTypedList(() {
       return _readTemplateFragment(
         create: (name) {
-          var fragment = ExtensionTypeFragmentImpl(name2: name, nameOffset: -1);
+          var fragment = ExtensionTypeFragmentImpl(name: name, nameOffset: -1);
           fragment.readModifiers(_reader);
           fragment.hasRepresentationSelfReference = _reader.readBool();
           fragment.hasImplementsSelfReference = _reader.readBool();
@@ -717,7 +717,7 @@ class LibraryReader {
     return _reader.readTypedList(() {
       return _readTemplateFragment(
         create: (name) {
-          var fragment = FieldFragmentImpl(name2: name, nameOffset: -1);
+          var fragment = FieldFragmentImpl(name: name, nameOffset: -1);
           fragment.readModifiers(_reader);
           return fragment;
         },
@@ -808,7 +808,7 @@ class LibraryReader {
     return _reader.readTypedList(() {
       return _readTemplateFragment(
         create: (name) {
-          var fragment = GetterFragmentImpl(name2: name, nameOffset: -1);
+          var fragment = GetterFragmentImpl(name: name, nameOffset: -1);
 
           fragment.readModifiers(_reader);
           fragment.typeParameters = _readTypeParameters();
@@ -885,7 +885,7 @@ class LibraryReader {
       var isDeferred = _reader.readBool();
       var fragment = PrefixFragmentImpl(
         enclosingFragment: libraryFragment,
-        name2: fragmentName,
+        name: fragmentName,
         nameOffset2: null,
         isDeferred: isDeferred,
       );
@@ -911,7 +911,7 @@ class LibraryReader {
       var fragments = _readFragmentsById<MethodFragmentImpl>();
       // TODO(scheglov): link fragments.
       var element = MethodElementImpl(
-        name3: fragments.first.name2,
+        name3: fragments.first.name,
         reference: reference,
         firstFragment: fragments.first,
       );
@@ -939,7 +939,7 @@ class LibraryReader {
     return _reader.readTypedList(() {
       return _readTemplateFragment(
         create: (name) {
-          var fragment = MethodFragmentImpl(name2: name, nameOffset: -1);
+          var fragment = MethodFragmentImpl(name: name, nameOffset: -1);
 
           fragment.readModifiers(_reader);
           fragment.typeInferenceError = _readTopLevelInferenceError();
@@ -1002,7 +1002,7 @@ class LibraryReader {
     return _reader.readTypedList(() {
       return _readTemplateFragment(
         create: (name) {
-          var fragment = MixinFragmentImpl(name2: name, nameOffset: -1);
+          var fragment = MixinFragmentImpl(name: name, nameOffset: -1);
           fragment.readModifiers(_reader);
           fragment.superInvokedNames = _reader.readStringReferenceList();
           fragment.typeParameters = _readTypeParameters();
@@ -1065,21 +1065,21 @@ class LibraryReader {
       if (isInitializingFormal) {
         element = FieldFormalParameterFragmentImpl(
           nameOffset: -1,
-          name2: fragmentName,
+          name: fragmentName,
           nameOffset2: null,
           parameterKind: kind,
         );
       } else if (isSuperFormal) {
         element = SuperFormalParameterFragmentImpl(
           nameOffset: -1,
-          name2: fragmentName,
+          name: fragmentName,
           nameOffset2: null,
           parameterKind: kind,
         );
       } else {
         element = FormalParameterFragmentImpl(
           nameOffset: -1,
-          name2: fragmentName,
+          name: fragmentName,
           nameOffset2: null,
           parameterKind: kind,
         );
@@ -1135,7 +1135,7 @@ class LibraryReader {
     return _reader.readTypedList(() {
       return _readTemplateFragment(
         create: (name) {
-          var fragment = SetterFragmentImpl(name2: name, nameOffset: -1);
+          var fragment = SetterFragmentImpl(name: name, nameOffset: -1);
 
           fragment.readModifiers(_reader);
           fragment.typeParameters = _readTypeParameters();
@@ -1221,7 +1221,7 @@ class LibraryReader {
       return _readTemplateFragment(
         create: (name) {
           var fragment = TopLevelFunctionFragmentImpl(
-            name2: name,
+            name: name,
             nameOffset: -1,
           );
 
@@ -1282,7 +1282,7 @@ class LibraryReader {
       return _readTemplateFragment(
         create: (name) {
           var fragment = TopLevelVariableFragmentImpl(
-            name2: name,
+            name: name,
             nameOffset: -1,
           );
           fragment.readModifiers(_reader);
@@ -1317,7 +1317,7 @@ class LibraryReader {
     return _reader.readTypedList(() {
       return _readTemplateFragment(
         create: (name) {
-          var fragment = TypeAliasFragmentImpl(name2: name, nameOffset: -1);
+          var fragment = TypeAliasFragmentImpl(name: name, nameOffset: -1);
 
           fragment.readModifiers(_reader);
           fragment.isFunctionTypeAliasBased = _reader.readBool();
@@ -1344,7 +1344,7 @@ class LibraryReader {
       var varianceEncoding = _reader.readByte();
       var variance = _decodeVariance(varianceEncoding);
       var element = TypeParameterFragmentImpl(
-        name2: fragmentName,
+        name: fragmentName,
         nameOffset: -1,
       );
       element.variance = variance;
@@ -1797,14 +1797,14 @@ class ResolutionReader {
       if (isInitializingFormal) {
         element = FieldFormalParameterFragmentImpl(
           nameOffset: -1,
-          name2: name,
+          name: name,
           nameOffset2: null,
           parameterKind: kind,
         )..type = type;
       } else {
         element = FormalParameterFragmentImpl(
           nameOffset: -1,
-          name2: name,
+          name: name,
           nameOffset2: null,
           parameterKind: kind,
         )..type = type;
@@ -1917,12 +1917,12 @@ class ResolutionReader {
     var typeParameters = readTypedList(() {
       var fragmentName = _readFragmentName();
       var typeParameterFragment = TypeParameterFragmentImpl(
-        name2: fragmentName,
+        name: fragmentName,
         nameOffset: -1,
       );
       var typeParameterElement = TypeParameterElementImpl(
         firstFragment: typeParameterFragment,
-        name3: typeParameterFragment.name2,
+        name3: typeParameterFragment.name,
       );
       _localElements.add(typeParameterElement);
       // TODO(scheglov): why not element?

@@ -233,7 +233,7 @@ class _PropertyInducingElementTypeInference
       var cycle = _inferring.slice(startIndex);
       var inferenceError = TopLevelInferenceError(
         kind: TopLevelInferenceErrorKind.dependencyCycle,
-        arguments: cycle.map((e) => e._element.name2 ?? '').sorted(),
+        arguments: cycle.map((e) => e._element.name ?? '').sorted(),
       );
       for (var inference in cycle) {
         if (inference._status == _InferenceStatus.beingInferred) {

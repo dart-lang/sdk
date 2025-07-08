@@ -69,7 +69,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       var fieldFragment = field.firstFragment;
       var nameOffset = fieldFragment.nameOffset2;
       if (nameOffset == null) return;
-      var nameLength = fieldFragment.name2?.length;
+      var nameLength = fieldFragment.name?.length;
       if (nameLength == null) return;
       rule.reportAtOffset(
         nameOffset,

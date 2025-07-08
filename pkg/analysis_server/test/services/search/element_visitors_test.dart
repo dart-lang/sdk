@@ -69,6 +69,6 @@ int? ccc;
   void _assertElement(int nameOffset, ElementKind kind, String name) {
     var fragment = findFragmentByNameOffset(testUnitFragment, nameOffset)!;
     expect(fragment.element.kind, kind);
-    expect(fragment.name2, name);
+    expect(fragment.name, name);
   }
 }

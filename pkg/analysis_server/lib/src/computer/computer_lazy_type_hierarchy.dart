@@ -234,7 +234,7 @@ class TypeHierarchyItem {
     assert(fragment.nameOffset2 != -1);
     return fragment.nameOffset2 == -1
         ? SourceRange(0, 0)
-        : SourceRange(fragment.nameOffset2 ?? 0, fragment.name2?.length ?? 0);
+        : SourceRange(fragment.nameOffset2 ?? 0, fragment.name?.length ?? 0);
   }
 }
 

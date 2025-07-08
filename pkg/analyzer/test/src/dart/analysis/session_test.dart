@@ -351,7 +351,7 @@ int foo = 0;
 
     var unitResult = await session.getUnitElementValid(testFile);
     var fooElement = unitResult.fragment.topLevelVariables2[0];
-    expect(fooElement.name2, 'foo');
+    expect(fooElement.name, 'foo');
 
     // We can get the variable element declaration.
     var fooDeclaration = parsedLibrary.getFragmentDeclaration(fooElement)!;
@@ -587,7 +587,7 @@ class B2 extends X {}
     expect(aNode.name.lexeme, 'A');
     expect(aNode.offset, 16);
     expect(aNode.length, 16);
-    expect(aNode.declaredFragment!.name2, 'A');
+    expect(aNode.declaredFragment!.name, 'A');
 
     var bDeclaration =
         resolvedLibrary.getFragmentDeclaration(bClass.firstFragment)!;
@@ -595,7 +595,7 @@ class B2 extends X {}
     expect(bNode.name.lexeme, 'B');
     expect(bNode.offset, 19);
     expect(bNode.length, 16);
-    expect(bNode.declaredFragment!.name2, 'B');
+    expect(bNode.declaredFragment!.name, 'B');
   }
 
   test_getResolvedLibrary_getElementDeclaration_notThisLibrary() async {
@@ -620,7 +620,7 @@ int foo = 0;
     var unitElement = resolvedLibrary.element2.firstFragment;
 
     var fooElement = unitElement.topLevelVariables2[0];
-    expect(fooElement.name2, 'foo');
+    expect(fooElement.name, 'foo');
 
     // We can get the variable element declaration.
     var fooDeclaration = resolvedLibrary.getFragmentDeclaration(fooElement)!;
@@ -628,7 +628,7 @@ int foo = 0;
     expect(fooNode.name.lexeme, 'foo');
     expect(fooNode.offset, 4);
     expect(fooNode.length, 7);
-    expect(fooNode.declaredFragment!.name2, 'foo');
+    expect(fooNode.declaredFragment!.name, 'foo');
 
     // Synthetic elements don't have nodes.
     expect(
@@ -956,7 +956,7 @@ unitElementResult
             (element as LibraryFragment).element as LibraryElementImpl;
         sink.writelnWithIndent('library: ${library.reference}');
 
-        var classListStr = element.classes2.map((e) => e.name2).join(', ');
+        var classListStr = element.classes2.map((e) => e.name).join(', ');
         sink.writelnWithIndent('classes: $classListStr');
       });
     });

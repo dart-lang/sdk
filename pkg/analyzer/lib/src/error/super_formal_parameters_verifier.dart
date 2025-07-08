@@ -18,7 +18,7 @@ VerifySuperFormalParametersResult verifySuperFormalParameters({
     if (parameter is SuperFormalParameterImpl) {
       var declaredFragment = parameter.declaredFragment!;
       if (parameter.isNamed) {
-        var name = declaredFragment.name2;
+        var name = declaredFragment.name;
         if (name != null) {
           result.namedArgumentNames.add(name);
         }

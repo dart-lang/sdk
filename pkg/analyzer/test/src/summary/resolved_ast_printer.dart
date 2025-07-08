@@ -1767,7 +1767,7 @@ Expected parent: (${parent.runtimeType}) $parent
       _sink.writeIf(fragment.isPublic, 'isPublic ');
       _sink.writeIf(fragment.isStatic, 'isStatic ');
       _sink.writeIf(fragment.isSynthetic, 'isSynthetic ');
-      _sink.write('${fragment.name2 ?? ''}@${fragment.nameOffset}');
+      _sink.write('${fragment.name ?? ''}@${fragment.nameOffset}');
     });
 
     _sink.withIndent(() {
@@ -1940,7 +1940,7 @@ Expected parent: (${parent.runtimeType}) $parent
     _sink.writelnWithIndent('parameters');
     _sink.withIndent(() {
       for (var parameter in parameters) {
-        var name = parameter.name2;
+        var name = parameter.name;
         _sink.writelnWithIndent(name ?? '<empty>');
         _sink.withIndent(() {
           _writeParameterKind(parameter);

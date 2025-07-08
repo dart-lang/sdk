@@ -798,7 +798,7 @@ class _ClassVerifier {
           classElement.asElement2 is EnumElement
               ? CompileTimeErrorCode.ENUM_WITH_ABSTRACT_MEMBER
               : CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
-          arguments: [displayName, classElement.name2 ?? ''],
+          arguments: [displayName, classElement.name ?? ''],
         );
         return true;
       } else {
@@ -943,7 +943,7 @@ class _ClassVerifier {
         reporter.atToken(
           node.name,
           CompileTimeErrorCode.NO_COMBINED_SUPER_SIGNATURE,
-          arguments: [classElement.name2 ?? '', inferenceError!.arguments[0]],
+          arguments: [classElement.name ?? '', inferenceError!.arguments[0]],
         );
         return true;
       }

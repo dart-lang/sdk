@@ -152,7 +152,7 @@ class ElementWriter with TreeWriter {
   void _writeFragment(Fragment fragment, int index) {
     indent();
     buffer.write('fragments[$index]: ');
-    buffer.write(fragment.name2);
+    buffer.write(fragment.name);
     buffer.write(' <span style="color:gray">(');
     buffer.write(fragment.runtimeType);
     buffer.write(')</span>');
@@ -164,7 +164,7 @@ class ElementWriter with TreeWriter {
         for (var import in fragment.libraryImports2)
           {
             'combinators': import.combinators,
-            if (import.prefix2 != null) 'prefix': import.prefix2?.name2,
+            if (import.prefix2 != null) 'prefix': import.prefix2?.name,
             'isDeferred': import.prefix2?.isDeferred ?? false,
             'library': import.importedLibrary2,
           },

@@ -37,7 +37,7 @@ class ElementDisplayStringBuilder {
   String toString() => _buffer.toString();
 
   void writeAbstractElement(FragmentImpl element) {
-    _write(element.name2 ?? '<unnamed ${element.runtimeType}>');
+    _write(element.name ?? '<unnamed ${element.runtimeType}>');
   }
 
   void writeAbstractElement2(ElementImpl element) {
@@ -189,7 +189,7 @@ class ElementDisplayStringBuilder {
     _write('(');
     _writeType(element.representation.type);
     _write(' ');
-    _write(element.representation.name2 ?? '<null-name}>');
+    _write(element.representation.name ?? '<null-name}>');
     _write(')');
 
     _writeTypesIfNotEmpty(' implements ', element.interfaces);
@@ -769,7 +769,7 @@ class ElementDisplayStringBuilder {
       }
 
       var newTypeParameter = TypeParameterFragmentImpl(
-        name2: name,
+        name: name,
         nameOffset: -1,
       );
       newTypeParameter.bound = typeParameter.bound;

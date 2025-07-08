@@ -72,7 +72,7 @@ class InstanceMemberInferrer {
       //
       return methodParameters.lastWhereOrNull(
         (methodParameter) =>
-            methodParameter.isNamed && methodParameter.name3 == parameter.name2,
+            methodParameter.isNamed && methodParameter.name3 == parameter.name,
       );
     }
     //
@@ -111,7 +111,7 @@ class InstanceMemberInferrer {
         return;
       }
       elementLibraryUri = field.library.source.uri;
-      elementName = field.name2 ?? '';
+      elementName = field.name ?? '';
     } else {
       throw UnimplementedError();
     }
@@ -420,7 +420,7 @@ class InstanceMemberInferrer {
       return;
     }
 
-    var name = Name(element.library.source.uri, element.name2 ?? '');
+    var name = Name(element.library.source.uri, element.name ?? '');
     var overriddenElements = inheritance.getOverridden(
       currentInterfaceElement.element,
       name,
@@ -619,7 +619,7 @@ class InstanceMemberInferrer {
     MethodFragmentImpl element,
     List<ExecutableFragmentImpl> overriddenElements,
   ) {
-    if (element.name2 != '==') return;
+    if (element.name != '==') return;
 
     var parameters = element.parameters;
     if (parameters.length != 1) {

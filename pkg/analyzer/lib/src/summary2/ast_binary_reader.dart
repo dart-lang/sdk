@@ -427,7 +427,7 @@ class AstBinaryReader {
     var nonDefaultElement = parameter.declaredFragment!;
     var fragment = FormalParameterFragmentImpl(
       nameOffset: nonDefaultElement.nameOffset,
-      name2: nonDefaultElement.name2,
+      name: nonDefaultElement.name,
       nameOffset2: nonDefaultElement.nameOffset2,
       parameterKind: kind,
     );
@@ -1219,7 +1219,7 @@ class AstBinaryReader {
 
     var fragment = FormalParameterFragmentImpl(
       nameOffset: -1,
-      name2: name?.lexeme,
+      name: name?.lexeme,
       nameOffset2: null,
       parameterKind: node.kind,
     );

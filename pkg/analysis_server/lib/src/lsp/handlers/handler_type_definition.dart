@@ -123,7 +123,7 @@ class TypeDefinitionHandler
         }
 
         var nameOffset = targetFragment.nameOffset2;
-        var nameLength = targetFragment.name2?.length;
+        var nameLength = targetFragment.name?.length;
         if (nameOffset == null || nameLength == null) {
           return success(_emptyResult);
         }

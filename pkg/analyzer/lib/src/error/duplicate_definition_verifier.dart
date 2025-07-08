@@ -404,7 +404,7 @@ class MemberDuplicateDefinitionVerifier {
           if (member.augmentKeyword != null) {
             continue;
           }
-          if (member.returnType.name != firstFragment.name2) {
+          if (member.returnType.name != firstFragment.name) {
             // [member] is erroneous; do not count it as a possible duplicate.
             continue;
           }
@@ -488,7 +488,7 @@ class MemberDuplicateDefinitionVerifier {
             String name = identifier.lexeme;
             if (instanceScope.containsKey(name)) {
               if (firstFragment is InterfaceFragmentImpl) {
-                String className = firstFragment.name2 ?? '';
+                String className = firstFragment.name ?? '';
                 _diagnosticReporter.atToken(
                   identifier,
                   CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
@@ -504,7 +504,7 @@ class MemberDuplicateDefinitionVerifier {
           String name = identifier.lexeme;
           if (instanceScope.containsKey(name)) {
             if (firstFragment is InterfaceFragmentImpl) {
-              String className = firstFragment.name2 ?? '';
+              String className = firstFragment.name ?? '';
               _diagnosticReporter.atToken(
                 identifier,
                 CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
@@ -522,7 +522,7 @@ class MemberDuplicateDefinitionVerifier {
     required Map<String, _ScopeEntry> staticScope,
   }) {
     for (var constructor in interfaceElement.constructors) {
-      var name = constructor.name2;
+      var name = constructor.name;
 
       // It is already an error to declare a member named 'new'.
       if (name == 'new') {
@@ -634,7 +634,7 @@ class MemberDuplicateDefinitionVerifier {
   void _checkEnum(EnumDeclarationImpl node) {
     var fragment = node.declaredFragment!;
     var firstFragment = fragment.element.firstFragment;
-    var declarationName = firstFragment.name2;
+    var declarationName = firstFragment.name;
 
     var elementContext = _getElementContext(firstFragment);
     var staticScope = elementContext.staticScope;
@@ -714,7 +714,7 @@ class MemberDuplicateDefinitionVerifier {
   void _checkEnumStatic(EnumDeclarationImpl node) {
     var fragment = node.declaredFragment!;
     var firstFragment = fragment.element.firstFragment;
-    var declarationName = firstFragment.name2;
+    var declarationName = firstFragment.name;
     if (declarationName == null) {
       return;
     }
@@ -801,7 +801,7 @@ class MemberDuplicateDefinitionVerifier {
   void _checkExtensionType(ExtensionTypeDeclarationImpl node) {
     var fragment = node.declaredFragment!;
     var firstFragment = fragment.element.firstFragment;
-    var primaryConstructorName = firstFragment.constructors.first.name2;
+    var primaryConstructorName = firstFragment.constructors.first.name;
     var representationGetter = firstFragment.representation.element.getter2!;
     var elementContext = _getElementContext(firstFragment);
     elementContext.constructorNames.add(primaryConstructorName);

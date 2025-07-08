@@ -57,7 +57,7 @@ class DiagnosticFactory {
     return Diagnostic.tmp(
       source: duplicateFragment.libraryFragment!.source,
       offset: duplicateFragment.nameOffset2 ?? -1,
-      length: duplicateFragment.name2!.length,
+      length: duplicateFragment.name!.length,
       diagnosticCode: code,
       arguments: arguments,
       contextMessages: [
@@ -346,7 +346,7 @@ class DiagnosticFactory {
             filePath: superFragment.libraryFragment!.source.fullName,
             message: "The member being overridden.",
             offset: superFragment.nameOffset2 ?? -1,
-            length: superFragment.name2!.length,
+            length: superFragment.name!.length,
             url: null,
           ),
         if (code == CompileTimeErrorCode.INVALID_OVERRIDE_SETTER)
@@ -354,7 +354,7 @@ class DiagnosticFactory {
             filePath: superFragment.libraryFragment!.source.fullName,
             message: "The setter being overridden.",
             offset: superFragment.nameOffset2 ?? -1,
-            length: superFragment.name2!.length,
+            length: superFragment.name!.length,
             url: null,
           ),
       ],

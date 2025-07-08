@@ -974,7 +974,7 @@ class InheritanceManager3 {
       }
 
       var resultFragment = MethodFragmentImpl(
-        name2: executable.name3,
+        name: executable.name3,
         nameOffset: -1,
       );
       resultFragment.enclosingElement3 = class_.firstFragment;
@@ -1007,7 +1007,7 @@ class InheritanceManager3 {
       }
 
       var resultFragment = SetterFragmentImpl(
-        name2: executable.name3,
+        name: executable.name3,
         nameOffset: -1,
       );
       resultFragment.enclosingElement3 = class_.firstFragment;
@@ -1019,7 +1019,7 @@ class InheritanceManager3 {
       var result = SetterElementImpl(setterReference, resultFragment);
 
       var resultField = FieldFragmentImpl(
-        name2: executable.name3,
+        name: executable.name3,
         nameOffset: -1,
       );
       resultField.enclosingElement3 = class_.firstFragment;
@@ -1069,7 +1069,7 @@ class InheritanceManager3 {
 
     if (first is MethodElement2OrMember) {
       var firstElement = first;
-      var fragmentName = firstElement.firstFragment.name2!;
+      var fragmentName = firstElement.firstFragment.name!;
 
       var elementReference = targetClass.reference!
           .getChild('@method')
@@ -1079,7 +1079,7 @@ class InheritanceManager3 {
       }
 
       var resultFragment = MethodFragmentImpl(
-        name2: fragmentName,
+        name: fragmentName,
         nameOffset: -1,
       );
       resultFragment.enclosingElement3 = targetClass.firstFragment;
@@ -1103,7 +1103,7 @@ class InheritanceManager3 {
     } else {
       var firstElement = first as PropertyAccessorElement2OrMember;
       var fragmentName = first.name3!;
-      var field = FieldFragmentImpl(name2: fragmentName, nameOffset: -1);
+      var field = FieldFragmentImpl(name: fragmentName, nameOffset: -1);
 
       PropertyAccessorFragmentImpl resultFragment;
       PropertyAccessorElementImpl resultElement;
@@ -1115,7 +1115,7 @@ class InheritanceManager3 {
           return result;
         }
 
-        var fragment = GetterFragmentImpl(name2: fragmentName, nameOffset: -1);
+        var fragment = GetterFragmentImpl(name: fragmentName, nameOffset: -1);
         resultFragment = fragment;
 
         var element = GetterElementImpl(elementReference, fragment);
@@ -1129,7 +1129,7 @@ class InheritanceManager3 {
           return result;
         }
 
-        var fragment = SetterFragmentImpl(name2: fragmentName, nameOffset: -1);
+        var fragment = SetterFragmentImpl(name: fragmentName, nameOffset: -1);
         resultFragment = fragment;
 
         resultElement = SetterElementImpl(elementReference, fragment);

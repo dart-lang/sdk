@@ -99,7 +99,7 @@ class ReplaceReturnType extends ResolvedCorrectionProducer {
       return false;
     }
 
-    var methodName = method.declaredFragment!.name2;
+    var methodName = method.declaredFragment!.name;
     if (methodName == null) {
       return false;
     }

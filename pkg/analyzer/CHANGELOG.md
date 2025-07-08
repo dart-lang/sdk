@@ -113,6 +113,7 @@
 * Deprecated `RelationalPattern.element2, use `element` instead.
 * Deprecated `VariableDeclaration.declaredElement2, use `declaredElement` instead.
 * Deprecate `InterfaceType.methods2`, use `methods` instead.
+* Deprecate `Fragment.name2`, use `name` instead.
 
 ## 7.4.1
 * Restore `InstanceElement.augmented` getter.

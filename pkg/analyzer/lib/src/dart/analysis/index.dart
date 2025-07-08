@@ -123,7 +123,7 @@ class ElementNameComponents {
   factory ElementNameComponents(Element element) {
     String? parameterName;
     if (element.firstFragment case FormalParameterFragment fragment) {
-      parameterName = fragment.name2;
+      parameterName = fragment.name;
       element = fragment.enclosingFragment!.element;
     }
 

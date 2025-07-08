@@ -2252,7 +2252,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         continue;
       }
 
-      String name = method.name2 ?? '';
+      String name = method.name ?? '';
 
       // find inherited property accessors
       var getter = _inheritanceManager.getInherited(
@@ -2388,7 +2388,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                       method.enclosingElement!.name3,
                     ]),
                 offset: method.firstFragment.nameOffset2!,
-                length: method.firstFragment.name2!.length,
+                length: method.firstFragment.name!.length,
                 url: null,
               ),
               DiagnosticMessageImpl(
@@ -2399,7 +2399,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                       setter.enclosingElement.name3,
                     ]),
                 offset: setter.firstFragment.nameOffset2!,
-                length: setter.firstFragment.name2!.length,
+                length: setter.firstFragment.name!.length,
                 url: null,
               ),
             ],
@@ -2446,9 +2446,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     EnumFragmentImpl fragment,
   ) {
     for (var typeParameter in fragment.typeParameters) {
-      var name = typeParameter.name2 ?? '';
+      var name = typeParameter.name ?? '';
       // name is same as the name of the enclosing enum
-      if (fragment.name2 == name) {
+      if (fragment.name == name) {
         diagnosticReporter.atElement2(
           typeParameter.asElement2,
           CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_ENUM,
@@ -2475,9 +2475,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     for (var typeParameter in fragment.typeParameters) {
       if (typeParameter.isWildcardVariable) continue;
 
-      var name = typeParameter.name2 ?? '';
+      var name = typeParameter.name ?? '';
       // name is same as the name of the enclosing class
-      if (fragment.name2 == name) {
+      if (fragment.name == name) {
         diagnosticReporter.atElement2(
           typeParameter.asElement2,
           CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION_TYPE,
@@ -3382,7 +3382,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
               filePath:
                   executable.firstFragment.libraryFragment.source.fullName,
               offset: nonSynthetic.firstFragment.nameOffset2!,
-              length: nonSynthetic.firstFragment.name2!.length,
+              length: nonSynthetic.firstFragment.name!.length,
               message: "Inherited from '${container.name3}'",
               url: null,
             );
@@ -4077,7 +4077,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    if (declaredFragment.name2 != 'main') {
+    if (declaredFragment.name != 'main') {
       return;
     }
 
@@ -4627,7 +4627,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           CompileTimeErrorCode.NON_GENERATIVE_IMPLICIT_CONSTRUCTOR,
           arguments: [
             superElement.name3 ?? '',
-            fragment.name2 ?? '',
+            fragment.name ?? '',
             superUnnamedConstructor,
           ],
         );
@@ -5946,7 +5946,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                 CompileTimeErrorCode
                     .WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
                 arguments: [
-                  typeParameter.name2 ?? '',
+                  typeParameter.name ?? '',
                   typeParameter.variance.keyword,
                   superVariance.keyword,
                   superInterface,
@@ -5957,7 +5957,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                 typeParameter.asElement2,
                 CompileTimeErrorCode
                     .WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
-                arguments: [typeParameter.name2 ?? '', superInterface],
+                arguments: [typeParameter.name ?? '', superInterface],
               );
             }
           }
@@ -5999,7 +5999,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_POSITION,
         arguments: [
           typeParameter.variance.keyword,
-          typeParameter.name2 ?? '',
+          typeParameter.name ?? '',
           variance.keyword,
         ],
       );

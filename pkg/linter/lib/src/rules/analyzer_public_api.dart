@@ -196,7 +196,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       // aren't public API.
       return;
     }
-    var name = fragment.name2;
+    var name = fragment.name;
     if (name != null && !name.isPublic) {
       // Private member; no need to check.
       return;
@@ -208,7 +208,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   void _checkTopLevelFragment(Fragment fragment) {
     if (!fragment.element.isInAnalyzerPublicApi) return;
-    var name = fragment.name2;
+    var name = fragment.name;
     if (name != null && name.endsWith('Impl')) {
       // Nothing in the analyzer public API may have a name ending in `Impl`.
       rule.reportAtOffset(
@@ -218,7 +218,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       );
     }
     switch (fragment) {
-      case ExtensionFragment(name2: null):
+      case ExtensionFragment(name: null):
         // Unnamed extensions are not public, so ignore.
         break;
       case InstanceFragment(:var typeParameters2, :var children3):
@@ -274,7 +274,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     while (true) {
       if (fragment.nameOffset2 != null) {
         offset = fragment.nameOffset2!;
-        length = fragment.name2!.length;
+        length = fragment.name!.length;
         break;
       } else if (fragment case PropertyAccessorFragment()
           when fragment.element.variable3!.firstFragment.nameOffset2 != null) {
@@ -284,7 +284,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       } else if (fragment is ConstructorFragment &&
           fragment.typeNameOffset != null) {
         offset = fragment.typeNameOffset!;
-        length = fragment.enclosingFragment!.name2!.length;
+        length = fragment.enclosingFragment!.name!.length;
         break;
       } else if (fragment.enclosingFragment case var enclosingFragment?) {
         fragment = enclosingFragment;

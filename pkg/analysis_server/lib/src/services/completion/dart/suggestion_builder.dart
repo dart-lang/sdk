@@ -177,7 +177,7 @@ class SuggestionBuilder {
     var enclosingClass = constructor.enclosingElement.firstFragment;
 
     if (completion == null) {
-      var className = enclosingClass.name2;
+      var className = enclosingClass.name;
       if (className == null || className.isEmpty) {
         return;
       }
