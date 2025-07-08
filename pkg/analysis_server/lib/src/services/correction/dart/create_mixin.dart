@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/utilities/extensions/string.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -21,6 +22,7 @@ class CreateMixin extends MultiCorrectionProducer {
     Element? prefixElement;
     var withKeyword = false;
     var node = this.node;
+    Expression? expression;
     if (node is NamedType) {
       var importPrefix = node.importPrefix;
       if (importPrefix != null) {
@@ -42,6 +44,7 @@ class CreateMixin extends MultiCorrectionProducer {
             return const [];
           }
       }
+      expression = stepUpNamedExpression(node);
       mixinName = node.name;
     } else if (node is PrefixedIdentifier) {
       if (node.parent is InstanceCreationExpression) {
@@ -51,6 +54,7 @@ class CreateMixin extends MultiCorrectionProducer {
       if (prefixElement == null) {
         return const [];
       }
+      expression = stepUpNamedExpression(node);
       mixinName = node.identifier.name;
     } else {
       return const [];
@@ -64,6 +68,7 @@ class CreateMixin extends MultiCorrectionProducer {
       if (mixinName.firstLetterIsLowercase)
         _CreateMixin.lowercase(
           mixinName,
+          expression,
           prefixElement,
           withKeyword: withKeyword,
           context: context,
@@ -71,6 +76,7 @@ class CreateMixin extends MultiCorrectionProducer {
       else
         _CreateMixin.uppercase(
           mixinName,
+          expression,
           prefixElement,
           withKeyword: withKeyword,
           context: context,
@@ -82,12 +88,14 @@ class CreateMixin extends MultiCorrectionProducer {
 class _CreateMixin extends ResolvedCorrectionProducer {
   final String _mixinName;
   final Element? prefixElement;
+  final Expression? _expression;
 
   @override
   final FixKind fixKind;
 
   _CreateMixin.lowercase(
     this._mixinName,
+    this._expression,
     this.prefixElement, {
     required bool withKeyword,
     required super.context,
@@ -98,6 +106,7 @@ class _CreateMixin extends ResolvedCorrectionProducer {
 
   _CreateMixin.uppercase(
     this._mixinName,
+    this._expression,
     this.prefixElement, {
     required bool withKeyword,
     required super.context,
@@ -116,6 +125,15 @@ class _CreateMixin extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
+    // either not expecting anything specific or expecting a type || object
+    if (_expression != null) {
+      var fieldType = inferUndefinedExpressionType(_expression);
+      if (fieldType != null &&
+          (!typeSystem.isAssignableTo(fieldType, typeProvider.typeType) ||
+              !typeSystem.isSubtypeOf(fieldType, typeProvider.objectType))) {
+        return;
+      }
+    }
     // prepare environment
     LibraryFragment targetUnit;
     var prefix = '';

@@ -187,7 +187,7 @@ extension ParameterElementMixinExtension on FormalParameterFragmentImpl {
     bool? isCovariant,
   }) {
     return FormalParameterFragmentImpl.synthetic(
-      name2,
+      name,
       type ?? this.type,
       kind ?? parameterKind,
     )..isExplicitlyCovariant = isCovariant ?? this.isCovariant;
@@ -245,6 +245,6 @@ extension RecordTypeExtension on RecordType {
 
 extension TypeParameterElementImplExtension on TypeParameterFragmentImpl {
   bool get isWildcardVariable {
-    return name2 == '_' && library.hasWildcardVariablesFeatureEnabled;
+    return name == '_' && library.hasWildcardVariablesFeatureEnabled;
   }
 }

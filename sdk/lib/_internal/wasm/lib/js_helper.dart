@@ -266,11 +266,22 @@ String typeof(WasmExternRef? object) =>
 String stringify(WasmExternRef? object) =>
     JSStringImpl.fromRefUnchecked(JS<WasmExternRef?>("o => String(o)", object));
 
-void promiseThen(
+/// `Promise.then` call where [failureFunc] can be a JS function that expects
+/// two arguments, the first being the error, and the second being whether the
+/// error was undefined.
+///
+/// The second argument is needed as dart2wasm implicitly converts all JS
+/// `undefined`s to Dart `null` when boxing JS values.
+void promiseThenWithIsUndefined(
   WasmExternRef? promise,
   WasmExternRef? successFunc,
   WasmExternRef? failureFunc,
-) => JS<void>("(p, s, f) => p.then(s, f)", promise, successFunc, failureFunc);
+) => JS<void>(
+  "(p, s, f) => p.then(s, (e) => f(e, e === undefined))",
+  promise,
+  successFunc,
+  failureFunc,
+);
 
 // Currently, `allowInterop` returns a Function type. This is unfortunate for
 // Dart2wasm because it means arbitrary Dart functions can flow to JS util

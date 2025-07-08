@@ -35,7 +35,7 @@ class ImplementedComputer {
   void _addImplementedClass(InterfaceElement element) {
     for (var fragment in element.fragments) {
       var offset = fragment.nameOffset2;
-      var name = fragment.name2;
+      var name = fragment.name;
       if (offset != null && name != null) {
         classes.add(protocol.ImplementedClass(offset, name.length));
       }
@@ -45,7 +45,7 @@ class ImplementedComputer {
   void _addImplementedMember(Element element) {
     for (var fragment in element.fragments) {
       var offset = fragment.nameOffset2;
-      var name = fragment.name2;
+      var name = fragment.name;
       if (offset != null && name != null) {
         members.add(protocol.ImplementedMember(offset, name.length));
       }

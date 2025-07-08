@@ -269,9 +269,9 @@ library
     var variables = library.definingCompilationUnit.topLevelVariables;
     expect(variables, hasLength(2));
     var x = variables[0];
-    expect(x.name2, 'x');
+    expect(x.name, 'x');
     var y = variables[1];
-    expect(y.name2, 'y');
+    expect(y.name, 'y');
     _assertTypeStr(x.type, 'FutureOr<int>');
     _assertTypeStr(y.type, 'InvalidType');
   }

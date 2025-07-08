@@ -470,7 +470,7 @@ class BundleWriter {
   }
 
   void _writeFragmentName(Fragment fragment) {
-    _sink._writeOptionalStringReference(fragment.name2);
+    _sink._writeOptionalStringReference(fragment.name);
   }
 
   void _writeGetterElements(List<GetterElementImpl> elements) {
@@ -1048,7 +1048,7 @@ class ResolutionSink extends _SummaryDataWriter {
   }
 
   void _writeFragmentName(Fragment fragment) {
-    _writeOptionalStringReference(fragment.name2);
+    _writeOptionalStringReference(fragment.name);
   }
 
   void _writeFunctionType(FunctionTypeImpl type) {

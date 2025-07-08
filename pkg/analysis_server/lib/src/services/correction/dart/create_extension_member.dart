@@ -4,9 +4,12 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analysis_server/src/utilities/extensions/object.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -42,6 +45,7 @@ class CreateExtensionGetter extends _CreateExtensionMember {
 
     // prepare target
     DartType? targetType;
+    ExtensionElement? extensionElement;
     switch (nameNode.parent) {
       case PrefixedIdentifier prefixedIdentifier:
         if (prefixedIdentifier.identifier == nameNode) {
@@ -50,11 +54,19 @@ class CreateExtensionGetter extends _CreateExtensionMember {
       case PropertyAccess propertyAccess:
         if (propertyAccess.propertyName == nameNode) {
           targetType = propertyAccess.realTarget.staticType;
+          if (propertyAccess.realTarget case ExtensionOverride(
+            :var element,
+          ) when targetType == null) {
+            extensionElement = element;
+            targetType = extensionElement.thisType;
+          }
         }
       case ExpressionFunctionBody expressionFunctionBody:
         if (expressionFunctionBody.expression == nameNode) {
           targetType = node.enclosingInstanceElement?.thisType;
         }
+      default:
+        targetType = nameNode.enclosingInstanceElement?.thisType;
     }
 
     // TODO(FMorschel): We should take into account if the target type contains
@@ -71,6 +83,9 @@ class CreateExtensionGetter extends _CreateExtensionMember {
     var fieldType = inferUndefinedExpressionType(fieldTypeNode);
 
     void writeGetter(DartEditBuilder builder) {
+      if (inStaticContext) {
+        builder.write('static ');
+      }
       if (fieldType != null) {
         builder.writeType(fieldType, methodBeingCopied: methodBeingCopied);
         builder.write(' ');
@@ -82,14 +97,27 @@ class CreateExtensionGetter extends _CreateExtensionMember {
       builder.write(';');
     }
 
-    var updatedExisting = await _updateExistingExtension(builder, targetType, (
-      extension,
-      builder,
-    ) {
-      builder.insertGetter(extension, (builder) {
-        writeGetter(builder);
+    bool updatedExisting;
+    if (extensionElement != null) {
+      updatedExisting = await _updateExistingExtension2(
+        builder,
+        extensionElement,
+        (extension, builder) {
+          builder.insertGetter(extension, (builder) {
+            writeGetter(builder);
+          });
+        },
+      );
+    } else {
+      updatedExisting = await _updateExistingExtension(builder, targetType, (
+        extension,
+        builder,
+      ) {
+        builder.insertGetter(extension, (builder) {
+          writeGetter(builder);
+        });
       });
-    });
+    }
     if (updatedExisting) {
       return;
     }
@@ -117,27 +145,48 @@ class CreateExtensionMethod extends _CreateExtensionMember {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
+    var static = false;
     var nameNode = node;
     if (nameNode is! SimpleIdentifier) {
       return;
     }
 
-    var invocation = nameNode.parent;
-    if (invocation is! MethodInvocation) {
-      return;
-    }
-    if (invocation.methodName != nameNode) {
+    var parent = nameNode.parent;
+    var isInvocation = true;
+    MethodInvocation? invocation;
+    Expression? target;
+    if (parent is! MethodInvocation) {
+      isInvocation = false;
+      target = switch (parent) {
+        PropertyAccess(:var realTarget) => realTarget,
+        PrefixedIdentifier(:var prefix) => prefix,
+        _ => null,
+      };
+    } else if (parent.methodName == nameNode) {
+      invocation = parent;
+      target = invocation.realTarget;
+    } else {
       return;
     }
     _methodName = nameNode.name;
 
-    var target = invocation.realTarget;
-    if (target == null) {
-      return;
+    DartType? targetType;
+    ExtensionElement? extensionElement;
+    if (target is ExtensionOverride) {
+      targetType = target.extendedType;
+      extensionElement = target.element;
+    } else if (target == null) {
+      extensionElement = node.enclosingInstanceElement?.ifTypeOrNull();
+      targetType = extensionElement?.thisType;
+    } else {
+      // We need the type for the extension.
+      targetType = target.staticType;
     }
-
-    // We need the type for the extension.
-    var targetType = target.staticType;
+    if (targetType == null && target is SimpleIdentifier) {
+      extensionElement = target.element?.ifTypeOrNull();
+      targetType = extensionElement?.thisType;
+      static = true;
+    }
     if (targetType == null ||
         targetType is DynamicType ||
         targetType is InvalidType) {
@@ -145,11 +194,33 @@ class CreateExtensionMethod extends _CreateExtensionMember {
     }
 
     // Try to find the return type.
-    var returnType = inferUndefinedExpressionType(invocation);
+    DartType? returnType;
+    if (invocation ?? parent case Expression exp) {
+      returnType = inferUndefinedExpressionType(exp);
+    }
+
+    if (returnType is InterfaceType && returnType.isDartCoreFunction) {
+      returnType = FunctionTypeImpl(
+        typeParameters: const [],
+        parameters: const [],
+        returnType: DynamicTypeImpl.instance,
+        nullabilitySuffix: NullabilitySuffix.none,
+      );
+    }
+
+    if (returnType is! FunctionType && !isInvocation) {
+      return;
+    }
+
+    var functionType = !isInvocation ? returnType as FunctionType : null;
 
     void writeMethod(DartEditBuilder builder) {
+      if (static) {
+        builder.write('static ');
+      }
+
       if (builder.writeType(
-        returnType,
+        isInvocation ? returnType : functionType?.returnType,
         groupName: 'RETURN_TYPE',
         methodBeingCopied: methodBeingCopied,
       )) {
@@ -161,30 +232,53 @@ class CreateExtensionMethod extends _CreateExtensionMember {
       });
 
       builder.writeTypeParameters(
-        [
-              returnType,
-              ...invocation.argumentList.arguments.map((e) => e.staticType),
-            ].typeParameters
+        ([
+                isInvocation ? returnType : functionType?.returnType,
+                ...?functionType?.formalParameters.map((e) => e.type),
+                ...?invocation?.argumentList.arguments.map((e) => e.staticType),
+              ].typeParameters
+              ..addAll([...?functionType?.typeParameters]))
             .whereNot([targetType].typeParameters.contains)
             .toList(),
       );
 
-      builder.write('(');
-      builder.writeParametersMatchingArguments(
-        invocation.argumentList,
-        methodBeingCopied: methodBeingCopied,
-      );
-      builder.write(') {}');
+      if (invocation?.argumentList case var arguments?) {
+        builder.write('(');
+        builder.writeParametersMatchingArguments(
+          arguments,
+          methodBeingCopied: methodBeingCopied,
+        );
+        builder.write(')');
+      } else if (functionType != null) {
+        builder.writeFormalParameters(
+          functionType.formalParameters,
+          methodBeingCopied: methodBeingCopied,
+        );
+      }
+      builder.write(' {}');
     }
 
-    var updatedExisting = await _updateExistingExtension(builder, targetType, (
-      extension,
-      builder,
-    ) {
-      builder.insertMethod(extension, (builder) {
-        writeMethod(builder);
+    bool updatedExisting;
+    if (extensionElement != null) {
+      updatedExisting = await _updateExistingExtension2(
+        builder,
+        extensionElement,
+        (extension, builder) {
+          builder.insertMethod(extension, (builder) {
+            writeMethod(builder);
+          });
+        },
+      );
+    } else {
+      updatedExisting = await _updateExistingExtension(builder, targetType, (
+        extension,
+        builder,
+      ) {
+        builder.insertMethod(extension, (builder) {
+          writeMethod(builder);
+        });
       });
-    });
+    }
     if (updatedExisting) {
       return;
     }
@@ -471,18 +565,41 @@ abstract class _CreateExtensionMember extends ResolvedCorrectionProducer {
   }
 
   ExtensionDeclaration? _existingExtension(DartType targetType) {
-    for (var existingExtension in unitResult.unit.declarations) {
-      if (existingExtension is ExtensionDeclaration) {
-        var element = existingExtension.declaredFragment!.element;
-        var instantiated = [element].applicableTo(
-          targetLibrary: libraryElement2,
-          targetType: targetType as TypeImpl,
-          strictCasts: true,
-        );
-        if (instantiated.isNotEmpty) {
-          return existingExtension;
-        }
+    for (var existingExtension
+        in unitResult.unit.declarations.whereType<ExtensionDeclaration>()) {
+      var extendedType =
+          existingExtension.declaredFragment!.element.extendedType;
+      if (extendedType == targetType) {
+        return existingExtension;
       }
+    }
+    return null;
+  }
+
+  Future<(String, ExtensionDeclaration)?> _existingExtension2(
+    ExtensionElement extension,
+  ) async {
+    var library = extension.library;
+    if (library.isInSdk) {
+      return null;
+    }
+    var path = library.library.firstFragment.source.fullName;
+    var unit = await unitResult.session.getResolvedUnit(path);
+    if (unit is! ResolvedUnitResult) {
+      return null;
+    }
+    var existingExtension = unit.unit.declarations
+        .whereType<ExtensionDeclaration>()
+        .firstWhere(
+          (declaration) => declaration.declaredFragment!.element == extension,
+        );
+    var instantiated = [extension].applicableTo(
+      targetLibrary: libraryElement2,
+      targetType: extension.thisType as TypeImpl,
+      strictCasts: true,
+    );
+    if (instantiated.isNotEmpty) {
+      return (path, existingExtension);
     }
     return null;
   }
@@ -497,6 +614,24 @@ abstract class _CreateExtensionMember extends ResolvedCorrectionProducer {
     if (extension == null) {
       return false;
     }
+
+    await builder.addDartFileEdit(file, (builder) {
+      write(extension, builder);
+    });
+    return true;
+  }
+
+  Future<bool> _updateExistingExtension2(
+    ChangeBuilder builder,
+    ExtensionElement extensionElement,
+    void Function(ExtensionDeclaration existing, DartFileEditBuilder builder)
+    write,
+  ) async {
+    var record = await _existingExtension2(extensionElement);
+    if (record == null) {
+      return false;
+    }
+    var (file, extension) = record;
 
     await builder.addDartFileEdit(file, (builder) {
       write(extension, builder);

@@ -150,7 +150,7 @@ extension on MethodDeclaration {
     var parameters = this.parameters;
     if (parameters != null) {
       for (var parameter in parameters.parameters) {
-        if (parameter.declaredFragment?.name2 == name) {
+        if (parameter.declaredFragment?.name == name) {
           return parameter;
         }
       }

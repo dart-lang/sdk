@@ -158,7 +158,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
     var fragment = element.firstFragment;
     var offset = fragment.periodOffset;
     if (offset != null) {
-      var name = fragment.name2;
+      var name = fragment.name;
       var nameEnd = fragment.nameOffset2! + name.length;
       return range.startOffsetEndOffset(offset, nameEnd);
     } else {

@@ -292,13 +292,8 @@ extension E on String {
   static int m()  => g;
 }
 ''');
-    await assertHasFix('''
-extension E on String {
-  static int get g => null;
-
-  static int m()  => g;
-}
-''');
+    // This should be handled by create extension member fixes
+    await assertNoFix();
   }
 
   Future<void> test_location_afterLastGetter() async {
@@ -490,16 +485,8 @@ void f(String s) {
   print(v);
 }
 ''');
-    await assertHasFix('''
-extension E on String {
-  int get test => null;
-}
-
-void f(String s) {
-  int v = E(s).test;
-  print(v);
-}
-''');
+    // This should be handled by create extension member fixes
+    await assertNoFix();
   }
 
   Future<void> test_part_main() async {
@@ -672,6 +659,36 @@ void f() {
 ''');
   }
 
+  Future<void> test_record() async {
+    await resolveTestCode('''
+class A {
+  (bool,) get record => (myBool,);
+}
+''');
+    await assertHasFix('''
+class A {
+  (bool,) get record => (myBool,);
+
+  bool get myBool => null;
+}
+''');
+  }
+
+  Future<void> test_record_named() async {
+    await resolveTestCode('''
+class A {
+  ({int v,}) get record => (v: v,);
+}
+''');
+    await assertHasFix('''
+class A {
+  ({int v,}) get record => (v: v,);
+
+  int get v => null;
+}
+''');
+  }
+
   Future<void> test_setterContext() async {
     await resolveTestCode('''
 class A {
@@ -715,16 +732,8 @@ void f(String s) {
   print(v);
 }
 ''');
-    await assertHasFix('''
-extension E on String {
-  static int get test => null;
-}
-
-void f(String s) {
-  int v = E.test;
-  print(v);
-}
-''');
+    // This should be handled by create extension member fixes
+    await assertNoFix();
   }
 
   Future<void> test_unqualified_instance_asInvocationArgument() async {

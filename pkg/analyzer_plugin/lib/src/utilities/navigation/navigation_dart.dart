@@ -713,7 +713,7 @@ extension on Fragment {
     }
 
     var nameOffset = nameOffset2;
-    var nameLength = name2?.length;
+    var nameLength = name?.length;
 
     if (nameOffset == null) {
       // For unnamed constructors, use the type name as the target location.

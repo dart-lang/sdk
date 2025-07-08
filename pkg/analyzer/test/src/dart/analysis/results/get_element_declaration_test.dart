@@ -228,7 +228,7 @@ void f({@a}) {}
 ''');
     var f = findElement2.topFunction('f').firstFragment;
     var fragment = f.formalParameters.single;
-    expect(fragment.name2, isNull);
+    expect(fragment.name, isNull);
     expect(fragment.element.isNamed, isTrue);
 
     var result = await getFragmentDeclaration(fragment);
@@ -242,7 +242,7 @@ void f(@a) {}
 ''');
     var f = findElement2.topFunction('f').firstFragment;
     var fragment = f.formalParameters.single;
-    expect(fragment.name2, isNull);
+    expect(fragment.name, isNull);
     expect(fragment.element.isPositional, isTrue);
 
     var result = await getFragmentDeclaration(fragment);

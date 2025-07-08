@@ -4220,6 +4220,20 @@ DEFINE_RUNTIME_ENTRY(InitStaticField, 1) {
   arguments.SetReturn(result);
 }
 
+DEFINE_RUNTIME_ENTRY(ThrowIfValueCantBeShared, 2) {
+  const Field& field = Field::CheckedHandle(zone, arguments.ArgAt(0));
+  const Object& value = Field::CheckedHandle(zone, arguments.ArgAt(1));
+
+  auto& message = String::Handle(zone);
+  message = String::NewFormatted(
+      "Attempt to place "
+      "non-trivially-shareable value %s in the shared field: %s",
+      value.ToCString(), field.ToCString());
+  const Array& args = Array::Handle(Array::New(1));
+  args.SetAt(0, message);
+  Exceptions::ThrowByType(Exceptions::kUnsupported, args);
+}
+
 DEFINE_RUNTIME_ENTRY(StaticFieldAccessedWithoutIsolateError, 1) {
   const Field& field = Field::CheckedHandle(zone, arguments.ArgAt(0));
   Exceptions::ThrowStaticFieldAccessedWithoutIsolate(

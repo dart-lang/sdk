@@ -38,6 +38,30 @@ bool test() {
 ''');
   }
 
+  Future<void> test_assignment_invocation() async {
+    await resolveTestCode('''
+bool Function() f = g();
+''');
+    await assertHasFix('''
+bool Function() f = g();
+
+bool Function() g() {
+}
+''');
+  }
+
+  Future<void> test_assignment_tearoff() async {
+    await resolveTestCode('''
+bool Function() f = g;
+''');
+    await assertHasFix('''
+bool Function() f = g;
+
+bool g() {
+}
+''');
+  }
+
   Future<void> test_await_infer_from_parent() async {
     await resolveTestCode('''
 Future<void> f() async {
@@ -686,6 +710,30 @@ class A {
 }
 
 void bar(int i) {
+}
+''');
+  }
+
+  Future<void> test_record_invocation() async {
+    await resolveTestCode('''
+(bool,) f = (g(),);
+''');
+    await assertHasFix('''
+(bool,) f = (g(),);
+
+bool g() {
+}
+''');
+  }
+
+  Future<void> test_record_tearoff() async {
+    await resolveTestCode('''
+(bool Function(),) f = (g,);
+''');
+    await assertHasFix('''
+(bool Function(),) f = (g,);
+
+bool g() {
 }
 ''');
   }

@@ -496,6 +496,26 @@ abstract class ResolvedCorrectionProducer
   /// inferred.
   DartType? inferUndefinedExpressionType(Expression expression) {
     var parent = expression.parent;
+    // `(myFunction(),)` or `(name: myFunction())`.
+    if (parent case NamedExpression(parent: var grandParent) && var named) {
+      parent = grandParent;
+      expression = named;
+    }
+    if (parent is RecordLiteral) {
+      var recordType = inferUndefinedExpressionType(parent);
+      if (recordType is RecordType) {
+        if (expression case NamedExpression named) {
+          return recordType.namedFields
+              .firstWhere((field) => field.name == named.name.label.name)
+              .type;
+        } else {
+          var index = parent.fields.indexed
+              .firstWhere((record) => record.$2 == expression)
+              .$1;
+          return recordType.positionalFields[index].type;
+        }
+      }
+    }
     // `await (v + v2)`
     if (parent is ParenthesizedExpression) {
       return inferUndefinedExpressionType(parent);

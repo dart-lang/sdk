@@ -284,7 +284,7 @@ mixin M {}
     // separately, without asking classes.
     var mixins = library.definingCompilationUnit.mixins;
     expect(mixins, hasLength(1));
-    expect(mixins[0].name2, 'M');
+    expect(mixins[0].name, 'M');
   }
 
   test_mixin_getter_invokesSuperSelf_getter() async {

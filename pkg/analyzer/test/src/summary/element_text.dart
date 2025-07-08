@@ -77,7 +77,7 @@ class ElementTextConfiguration {
         case LibraryFragment():
           return true;
         case ClassFragmentImpl():
-          return classNames.contains(o.name2);
+          return classNames.contains(o.name);
         case ClassElement():
           return classNames.contains(o.name3);
         case ConstructorFragment():
@@ -826,8 +826,7 @@ class _Element2Writer extends _AbstractElementWriter {
         }
 
         // Special case enum fields/getters: index, _name, values.
-        if (variable is FieldElementImpl &&
-            variable.firstFragment.isSyntheticEnumField) {
+        if (variable is FieldElementImpl && variable.isSyntheticEnumField) {
           var enumElement = f.enclosingFragment as EnumFragmentImpl;
           expect(f.offset, enumElement.offset);
           expect(variable.firstFragment.offset, enumElement.offset);
@@ -887,11 +886,11 @@ class _Element2Writer extends _AbstractElementWriter {
   }
 
   void _writeFragmentName(Fragment f) {
-    if (f.name2 == null) {
+    if (f.name == null) {
       expect(f.nameOffset2, isNull);
     }
 
-    _sink.write(f.name2 ?? '<null-name>');
+    _sink.write(f.name ?? '<null-name>');
     if (f.nameOffset2 case var nameOffset?) {
       _sink.write(' @$nameOffset');
     }
@@ -1501,7 +1500,7 @@ class _Element2Writer extends _AbstractElementWriter {
           e.fragments
               .map((f) {
                 expect(f.element, same(e));
-                expect(f.name2, e.name3);
+                expect(f.name, e.name3);
                 return '@${f.nameOffset2}';
               })
               .join(' '),

@@ -119,7 +119,7 @@ class BindPatternVariableFragmentImpl extends PatternVariableFragmentImpl
 
   BindPatternVariableFragmentImpl({
     required this.node,
-    required super.name2,
+    required super.name,
     required super.nameOffset,
   }) {
     _element2 = BindPatternVariableElementImpl(this);
@@ -452,7 +452,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
     _constructors =
         superConstructors.map((superConstructor) {
           var constructorFragment = ConstructorFragmentImpl(
-            name2: superConstructor.name3 ?? 'new',
+            name: superConstructor.name3 ?? 'new',
             nameOffset: -1,
           );
           constructorFragment.isSynthetic = true;
@@ -462,10 +462,10 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
           constructorFragment.enclosingElement3 = firstFragment;
 
           var constructorElement = ConstructorElementImpl(
-            name3: constructorFragment.name2,
+            name3: constructorFragment.name,
             reference: reference
                 .getChild('@constructor')
-                .getChild(constructorFragment.name2),
+                .getChild(constructorFragment.name),
             firstFragment: constructorFragment,
           );
           constructorElement.superConstructor2 = superConstructor;
@@ -478,7 +478,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
           for (var superFormalParameter in superConstructor.formalParameters) {
             var formalParameterFragment = FormalParameterFragmentImpl(
                 nameOffset: -1,
-                name2: superFormalParameter.name3,
+                name: superFormalParameter.name3,
                 nameOffset2: null,
                 parameterKind: superFormalParameter.parameterKind,
               )
@@ -505,7 +505,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
               SimpleIdentifierImpl(
                   token: StringToken(
                     TokenType.STRING,
-                    formalParameterFragment.name2 ?? '',
+                    formalParameterFragment.name ?? '',
                     -1,
                   ),
                 )
@@ -557,7 +557,7 @@ class ClassFragmentImpl extends ClassOrMixinFragmentImpl
 
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
-  ClassFragmentImpl({required super.name2, required super.nameOffset});
+  ClassFragmentImpl({required super.name, required super.nameOffset});
 
   bool get hasExtendsClause {
     return hasModifier(Modifier.HAS_EXTENDS_CLAUSE);
@@ -587,15 +587,15 @@ class ClassFragmentImpl extends ClassOrMixinFragmentImpl
   bool get isConstructable => !isSealed && !isAbstract;
 
   bool get isDartCoreEnum {
-    return name2 == 'Enum' && library.isDartCore;
+    return name == 'Enum' && library.isDartCore;
   }
 
   bool get isDartCoreObject {
-    return name2 == 'Object' && library.isDartCore;
+    return name == 'Object' && library.isDartCore;
   }
 
   bool get isDartCoreRecord {
-    return name2 == 'Record' && library.isDartCore;
+    return name == 'Record' && library.isDartCore;
   }
 
   bool get isExhaustive => isSealed;
@@ -679,7 +679,7 @@ class ClassFragmentImpl extends ClassOrMixinFragmentImpl
 abstract class ClassOrMixinFragmentImpl extends InterfaceFragmentImpl {
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
-  ClassOrMixinFragmentImpl({required super.name2, required super.nameOffset});
+  ClassOrMixinFragmentImpl({required super.name, required super.nameOffset});
 
   bool get isBase {
     return hasModifier(Modifier.BASE);
@@ -938,7 +938,7 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
   int? nameEnd;
 
   @override
-  final String name2;
+  final String name;
 
   @override
   int? nameOffset2;
@@ -959,7 +959,7 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
 
   /// Initialize a newly created constructor element to have the given [name]
   /// and [offset].
-  ConstructorFragmentImpl({required this.name2, required super.nameOffset});
+  ConstructorFragmentImpl({required this.name, required super.nameOffset});
 
   /// Return the constant initializers for this element, which will be empty if
   /// there are no initializers, or `null` if there was an error in the source.
@@ -977,10 +977,10 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
 
   @override
   String get displayName {
-    var className = enclosingElement3.name2;
-    var name2 = this.name2;
-    if (name2 != 'new') {
-      return '$className.$name2';
+    var className = enclosingElement3.name;
+    var name = this.name;
+    if (name != 'new') {
+      return '$className.$name';
     } else {
       return className ?? '<null>';
     }
@@ -1008,7 +1008,7 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
   /// and has no required parameters.
   bool get isDefaultConstructor {
     // unnamed
-    if (name2 != 'new') {
+    if (name != 'new') {
       return false;
     }
     // no required parameters
@@ -1035,6 +1035,10 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
   bool get isGenerative {
     return !isFactory;
   }
+
+  @Deprecated('Use name instead')
+  @override
+  String get name2 => name;
 
   @override
   int get nameLength {
@@ -1326,7 +1330,11 @@ class DynamicFragmentImpl extends FragmentImpl implements TypeDefiningFragment {
   MetadataImpl get metadata2 => metadata;
 
   @override
-  String get name2 => 'dynamic';
+  String get name => 'dynamic';
+
+  @Deprecated('Use name instead')
+  @override
+  String get name2 => name;
 
   @override
   Null get nameOffset2 => null;
@@ -1954,6 +1962,15 @@ class EnumElementImpl extends InterfaceElementImpl implements EnumElement {
   @override
   ElementKind get kind => ElementKind.ENUM;
 
+  FieldElementImpl? get valuesField {
+    for (var field in fields) {
+      if (field.name3 == 'values' && field.isSyntheticEnumField) {
+        return field;
+      }
+    }
+    return null;
+  }
+
   @override
   T? accept<T>(ElementVisitor2<T> visitor) => visitor.visitEnumElement(this);
 
@@ -1969,7 +1986,7 @@ class EnumFragmentImpl extends InterfaceFragmentImpl implements EnumFragment {
 
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
-  EnumFragmentImpl({required super.name2, required super.nameOffset});
+  EnumFragmentImpl({required super.name, required super.nameOffset});
 
   List<FieldFragmentImpl> get constants {
     return fields.where((field) => field.isEnumConstant).toList();
@@ -1985,15 +2002,6 @@ class EnumFragmentImpl extends InterfaceFragmentImpl implements EnumFragment {
   @override
   EnumFragmentImpl? get previousFragment =>
       super.previousFragment as EnumFragmentImpl?;
-
-  FieldFragmentImpl? get valuesField {
-    for (var field in fields) {
-      if (field.name2 == 'values' && field.isSyntheticEnumField) {
-        return field;
-      }
-    }
-    return null;
-  }
 
   void addFragment(EnumFragmentImpl fragment) {
     fragment.element = element;
@@ -2374,7 +2382,7 @@ class ExtensionFragmentImpl extends InstanceFragmentImpl
   /// Initialize a newly created extension element to have the given [name] at
   /// the given [nameOffset] in the file that contains the declaration of this
   /// element.
-  ExtensionFragmentImpl({required super.name2, required super.nameOffset});
+  ExtensionFragmentImpl({required super.name, required super.nameOffset});
 
   @override
   List<Fragment> get children3 => [
@@ -2386,7 +2394,7 @@ class ExtensionFragmentImpl extends InstanceFragmentImpl
   ];
 
   @override
-  String get displayName => name2 ?? '';
+  String get displayName => name ?? '';
 
   TypeImpl get extendedType {
     return element.extendedType;
@@ -2394,7 +2402,7 @@ class ExtensionFragmentImpl extends InstanceFragmentImpl
 
   @override
   bool get isPrivate {
-    var name = name2;
+    var name = this.name;
     return name == null || Identifier.isPrivateName(name);
   }
 
@@ -2532,7 +2540,7 @@ class ExtensionTypeFragmentImpl extends InterfaceFragmentImpl
   /// in implemented superinterfaces.
   bool hasImplementsSelfReference = false;
 
-  ExtensionTypeFragmentImpl({required super.name2, required super.nameOffset});
+  ExtensionTypeFragmentImpl({required super.name, required super.nameOffset});
 
   @override
   ExtensionTypeFragmentImpl? get nextFragment =>
@@ -2581,16 +2589,13 @@ class FieldElementImpl extends PropertyInducingElementImpl
     with
         FragmentedAnnotatableElementMixin<FieldFragmentImpl>,
         FragmentedElementMixin<FieldFragmentImpl>,
-        _HasSinceSdkVersionMixin,
-        DeferredResolutionReadingMixin
+        _HasSinceSdkVersionMixin
     implements FieldElement2OrMember {
   @override
   final Reference reference;
 
   @override
   final FieldFragmentImpl firstFragment;
-
-  TypeImpl? _type;
 
   FieldElementImpl({required this.reference, required this.firstFragment}) {
     reference.element = this;
@@ -2661,6 +2666,20 @@ class FieldElementImpl extends PropertyInducingElementImpl
   @override
   bool get isStatic => firstFragment.isStatic;
 
+  /// Return `true` if this element is a synthetic enum field.
+  ///
+  /// It is synthetic because it is not written explicitly in code, but it
+  /// is different from other synthetic fields, because its getter is also
+  /// synthetic.
+  ///
+  /// Such fields are `index`, `_name`, and `values`.
+  bool get isSyntheticEnumField {
+    return enclosingElement is EnumElementImpl &&
+        isSynthetic &&
+        getter2?.isSynthetic == true &&
+        setter2 == null;
+  }
+
   @override
   ElementKind get kind => ElementKind.FIELD;
 
@@ -2672,44 +2691,7 @@ class FieldElementImpl extends PropertyInducingElementImpl
   LibraryElementImpl get library2 => library;
 
   @override
-  String? get name3 => firstFragment.name2;
-
-  @override
-  TypeImpl get type {
-    _ensureReadResolution();
-    if (_type != null) return _type!;
-
-    // We must be linking, and the type has not been set yet.
-    var type = firstFragment.typeInference?.perform();
-    type ??= InvalidTypeImpl.instance;
-    _type = type;
-    firstFragment._type = type;
-    firstFragment.shouldUseTypeForInitializerInference = false;
-
-    // TODO(scheglov): We repeat this code.
-    var element = this;
-    if (element.getter2 case var getterElement?) {
-      getterElement.returnType = type;
-      getterElement.firstFragment.returnType = type;
-    }
-    if (element.setter2 case var setterElement?) {
-      if (setterElement.isSynthetic) {
-        setterElement.returnType = VoidTypeImpl.instance;
-        setterElement.firstFragment.returnType = VoidTypeImpl.instance;
-        (setterElement.formalParameters.single as FormalParameterElementImpl)
-            .type = type;
-        (setterElement.formalParameters.single as FormalParameterElementImpl)
-            .firstFragment
-            .type = type;
-      }
-    }
-
-    return _type!;
-  }
-
-  set type(TypeImpl value) {
-    _type = value;
-  }
+  String? get name3 => firstFragment.name;
 
   @override
   T? accept<T>(ElementVisitor2<T> visitor) {
@@ -2759,7 +2741,7 @@ class FieldFormalParameterFragmentImpl extends FormalParameterFragmentImpl
   /// [nameOffset].
   FieldFormalParameterFragmentImpl({
     required super.nameOffset,
-    required super.name2,
+    required super.name,
     required super.nameOffset2,
     required super.parameterKind,
   });
@@ -2807,7 +2789,7 @@ class FieldFragmentImpl extends PropertyInducingFragmentImpl
 
   /// Initialize a newly created synthetic field element to have the given
   /// [name] at the given [offset].
-  FieldFragmentImpl({required super.name2, required super.nameOffset});
+  FieldFragmentImpl({required super.name, required super.nameOffset});
 
   @override
   ExpressionImpl? get constantInitializer {
@@ -2868,21 +2850,6 @@ class FieldFragmentImpl extends PropertyInducingFragmentImpl
 
   set isPromotable(bool value) {
     setModifier(Modifier.PROMOTABLE, value);
-  }
-
-  /// Return `true` if this element is a synthetic enum field.
-  ///
-  /// It is synthetic because it is not written explicitly in code, but it
-  /// is different from other synthetic fields, because its getter is also
-  /// synthetic.
-  ///
-  /// Such fields are `index`, `_name`, and `values`.
-  bool get isSyntheticEnumField {
-    // TODO(scheglov): move to element
-    return enclosingElement3 is EnumFragmentImpl &&
-        isSynthetic &&
-        element.getter2?.isSynthetic == true &&
-        element.setter2 == null;
   }
 
   @override
@@ -3043,11 +3010,11 @@ class FormalParameterElementImpl extends PromotableElementImpl
 
   @override
   String? get name3 {
-    return wrappedElement.name2;
+    return wrappedElement.name;
   }
 
   @override
-  String get nameShared => wrappedElement.name2 ?? '';
+  String get nameShared => wrappedElement.name ?? '';
 
   @override
   ParameterKind get parameterKind {
@@ -3058,6 +3025,7 @@ class FormalParameterElementImpl extends PromotableElementImpl
   // TODO(augmentations): Implement the merge of formal parameters.
   TypeImpl get type => wrappedElement.type;
 
+  @override
   set type(TypeImpl value) {
     wrappedElement.type = value;
   }
@@ -3124,7 +3092,7 @@ mixin FormalParameterElementMixin
 class FormalParameterFragmentImpl extends VariableFragmentImpl
     implements FormalParameterFragment {
   @override
-  final String? name2;
+  final String? name;
 
   @override
   int? nameOffset2;
@@ -3160,11 +3128,11 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
   /// [nameOffset].
   FormalParameterFragmentImpl({
     required super.nameOffset,
-    required this.name2,
+    required this.name,
     required this.nameOffset2,
     required this.parameterKind,
   }) : assert(nameOffset2 == null || nameOffset2 >= 0),
-       assert(name2 == null || name2.isNotEmpty);
+       assert(name == null || name.isNotEmpty);
 
   /// Creates a synthetic parameter with [name2], [type] and [parameterKind].
   factory FormalParameterFragmentImpl.synthetic(
@@ -3177,7 +3145,7 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
     //  https://github.com/dart-lang/sdk/issues/60200
     var element = FormalParameterFragmentImpl(
       nameOffset: -1,
-      name2: name2,
+      name: name2,
       nameOffset2: null,
       parameterKind: parameterKind,
     );
@@ -3302,6 +3270,10 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
   @Deprecated('Use metadata instead')
   @override
   MetadataImpl get metadata2 => metadata;
+
+  @Deprecated('Use name instead')
+  @override
+  String? get name2 => name;
 
   @override
   // TODO(augmentations): Support chaining between the fragments.
@@ -3599,7 +3571,7 @@ abstract class FragmentImpl implements Fragment {
   /// In most cases the name and the display name are the same. Differences
   /// though are cases such as setters where the name of some setter `set f(x)`
   /// is `f=`, instead of `f`.
-  String get displayName => name2 ?? '';
+  String get displayName => name ?? '';
 
   /// Return the enclosing unit element (which might be the same as `this`), or
   /// `null` if this element is not contained in any compilation unit.
@@ -3624,7 +3596,7 @@ abstract class FragmentImpl implements Fragment {
   /// Private elements are visible only within the library in which they are
   /// declared.
   bool get isPrivate {
-    var name = name2;
+    var name = this.name;
     if (name == null) {
       return false;
     }
@@ -3658,8 +3630,12 @@ abstract class FragmentImpl implements Fragment {
   Source? get librarySource => library?.source;
 
   String? get lookupName {
-    return name2;
+    return name;
   }
+
+  @Deprecated('Use name instead')
+  @override
+  String? get name2 => name;
 
   /// The length of the name of this element in the file that contains the
   /// declaration of this element, or `0` if this element does not have a name.
@@ -3785,19 +3761,19 @@ abstract class FragmentImpl implements Fragment {
 sealed class FunctionFragmentImpl extends ExecutableFragmentImpl
     implements FunctionTypedFragmentImpl {
   @override
-  final String? name2;
+  final String? name;
 
   @override
   int? nameOffset2;
 
   /// Initialize a newly created function element to have the given [name] and
   /// [offset].
-  FunctionFragmentImpl({required this.name2, required super.nameOffset});
+  FunctionFragmentImpl({required this.name, required super.nameOffset});
 
   /// Initialize a newly created function element to have no name and the given
   /// [nameOffset]. This is used for function expressions, that have no name.
   FunctionFragmentImpl.forOffset(int nameOffset)
-    : name2 = null,
+    : name = null,
       super(nameOffset: nameOffset);
 
   @override
@@ -3918,7 +3894,7 @@ class GenericFunctionTypeElementImpl extends FunctionTypedElementImpl
   MetadataImpl get metadata2 => metadata;
 
   @override
-  String? get name3 => _wrappedElement.name2;
+  String? get name3 => _wrappedElement.name;
 
   @override
   DartType get returnType => _wrappedElement.returnType;
@@ -3981,7 +3957,11 @@ class GenericFunctionTypeFragmentImpl extends _ExistingFragmentImpl
   List<FormalParameterFragmentImpl> get formalParameters => parameters;
 
   @override
-  String? get name2 => null;
+  String? get name => null;
+
+  @Deprecated('Use name instead')
+  @override
+  String? get name2 => name;
 
   @override
   int? get nameOffset2 => null;
@@ -4147,7 +4127,7 @@ class GetterFragmentImpl extends PropertyAccessorFragmentImpl
   @override
   GetterFragmentImpl? nextFragment;
 
-  GetterFragmentImpl({required super.name2, required super.nameOffset});
+  GetterFragmentImpl({required super.name, required super.nameOffset});
 
   GetterFragmentImpl.forVariable(super.variable) : super.forVariable();
 
@@ -4298,7 +4278,7 @@ abstract class InstanceElementImpl extends ElementImpl
   List<MethodElementImpl> get methods2 => methods;
 
   @override
-  String? get name3 => firstFragment.name2;
+  String? get name3 => firstFragment.name;
 
   @override
   Element get nonSynthetic => isSynthetic ? enclosingElement : this as Element;
@@ -4625,7 +4605,7 @@ abstract class InstanceFragmentImpl extends _ExistingFragmentImpl
   void Function()? applyMembersConstantOffsets;
 
   @override
-  final String? name2;
+  final String? name;
 
   @override
   int? nameOffset2;
@@ -4641,7 +4621,7 @@ abstract class InstanceFragmentImpl extends _ExistingFragmentImpl
   List<SetterFragmentImpl> _setters = _Sentinel.setterElement;
   List<MethodFragmentImpl> _methods = _Sentinel.methodElement;
 
-  InstanceFragmentImpl({required this.name2, required super.nameOffset});
+  InstanceFragmentImpl({required this.name, required super.nameOffset});
 
   List<PropertyAccessorFragmentImpl> get accessors {
     return [...getters, ...setters];
@@ -5139,7 +5119,7 @@ abstract class InterfaceFragmentImpl extends InstanceFragmentImpl
 
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
-  InterfaceFragmentImpl({required super.name2, required super.nameOffset});
+  InterfaceFragmentImpl({required super.name, required super.nameOffset});
 
   @override
   List<Fragment> get children3 => [
@@ -5177,7 +5157,7 @@ abstract class InterfaceFragmentImpl extends InstanceFragmentImpl
   }
 
   @override
-  String get displayName => name2 ?? '';
+  String get displayName => name ?? '';
 
   @override
   InterfaceElementImpl get element;
@@ -5197,13 +5177,13 @@ abstract class InterfaceFragmentImpl extends InstanceFragmentImpl
   /// Return `true` if this class represents the class '_Enum' defined in the
   /// dart:core library.
   bool get isDartCoreEnumImpl {
-    return name2 == '_Enum' && library.isDartCore;
+    return name == '_Enum' && library.isDartCore;
   }
 
   /// Return `true` if this class represents the class 'Function' defined in the
   /// dart:core library.
   bool get isDartCoreFunctionImpl {
-    return name2 == 'Function' && library.isDartCore;
+    return name == 'Function' && library.isDartCore;
   }
 
   @override
@@ -5343,7 +5323,7 @@ class JoinPatternVariableFragmentImpl extends PatternVariableFragmentImpl
   final List<SimpleIdentifier> references = [];
 
   JoinPatternVariableFragmentImpl({
-    required super.name2,
+    required super.name,
     required super.nameOffset,
     required this.variables,
     required this.inconsistency,
@@ -5436,7 +5416,7 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
   LibraryElement get library2 => library;
 
   @override
-  String? get name3 => _wrappedElement.name2;
+  String? get name3 => _wrappedElement.name;
 
   @override
   T? accept<T>(ElementVisitor2<T> visitor) {
@@ -5464,7 +5444,7 @@ class LabelFragmentImpl extends FragmentImpl implements LabelFragment {
   late final LabelElementImpl element2 = LabelElementImpl(this);
 
   @override
-  final String? name2;
+  final String? name;
 
   /// A flag indicating whether this label is associated with a `switch` member
   /// (`case` or `default`).
@@ -5475,7 +5455,7 @@ class LabelFragmentImpl extends FragmentImpl implements LabelFragment {
   /// [_onSwitchMember] should be `true` if this label is associated with a
   /// `switch` member.
   LabelFragmentImpl({
-    required this.name2,
+    required this.name,
     required super.nameOffset,
     required bool onSwitchMember,
   }) : _onSwitchMember = onSwitchMember;
@@ -5484,7 +5464,7 @@ class LabelFragmentImpl extends FragmentImpl implements LabelFragment {
   List<Fragment> get children3 => const [];
 
   @override
-  String get displayName => name2 ?? '';
+  String get displayName => name ?? '';
 
   @override
   LabelElement get element => element2;
@@ -6351,7 +6331,11 @@ class LibraryFragmentImpl extends _ExistingFragmentImpl
   List<MixinFragmentImpl> get mixins2 => mixins;
 
   @override
-  String? get name2 => null;
+  String? get name => null;
+
+  @Deprecated('Use name instead')
+  @override
+  String? get name2 => name;
 
   @override
   int? get nameOffset2 => null;
@@ -6665,7 +6649,7 @@ final class LoadLibraryFunctionProvider {
   TopLevelFunctionElementImpl _create(LibraryElementImpl library) {
     var name = TopLevelFunctionElement.LOAD_LIBRARY_NAME;
 
-    var fragment = TopLevelFunctionFragmentImpl(name2: name, nameOffset: -1);
+    var fragment = TopLevelFunctionFragmentImpl(name: name, nameOffset: -1);
     fragment.isSynthetic = true;
     fragment.isStatic = true;
     fragment.returnType = library.typeProvider.futureDynamicType;
@@ -6746,7 +6730,7 @@ class LocalFunctionElementImpl extends ExecutableElementImpl
   MetadataImpl get metadata2 => metadata;
 
   @override
-  String? get name3 => _wrappedElement.name2;
+  String? get name3 => _wrappedElement.name;
 
   @override
   TypeImpl get returnType => _wrappedElement.returnType;
@@ -6796,7 +6780,7 @@ class LocalFunctionFragmentImpl extends FunctionFragmentImpl
   @override
   LocalFunctionFragmentImpl? nextFragment;
 
-  LocalFunctionFragmentImpl({required super.name2, required super.nameOffset});
+  LocalFunctionFragmentImpl({required super.name, required super.nameOffset});
 
   LocalFunctionFragmentImpl.forOffset(super.nameOffset) : super.forOffset();
 
@@ -6868,7 +6852,7 @@ class LocalVariableElementImpl extends PromotableElementImpl
   MetadataImpl get metadata2 => metadata;
 
   @override
-  String? get name3 => _wrappedElement.name2;
+  String? get name3 => _wrappedElement.name;
 
   @override
   FragmentImpl? get _enclosingFunction => _wrappedElement.enclosingElement3;
@@ -6906,14 +6890,14 @@ class LocalVariableFragmentImpl extends NonParameterVariableFragmentImpl
   };
 
   @override
-  final String? name2;
+  final String? name;
 
   @override
   MetadataImpl metadata = MetadataImpl(const []);
 
   /// Initialize a newly created method element to have the given [name] and
   /// [offset].
-  LocalVariableFragmentImpl({required this.name2, required super.nameOffset});
+  LocalVariableFragmentImpl({required this.name, required super.nameOffset});
 
   @override
   List<Fragment> get children3 => const [];
@@ -7443,7 +7427,7 @@ class MethodFragmentImpl extends ExecutableFragmentImpl
   late final MethodElementImpl element;
 
   @override
-  final String? name2;
+  final String? name;
 
   @override
   int? nameOffset2;
@@ -7465,7 +7449,7 @@ class MethodFragmentImpl extends ExecutableFragmentImpl
 
   /// Initialize a newly created method element to have the given [name] at the
   /// given [offset].
-  MethodFragmentImpl({required this.name2, required super.nameOffset});
+  MethodFragmentImpl({required this.name, required super.nameOffset});
 
   @override
   MethodFragmentImpl get declaration => this;
@@ -7508,10 +7492,10 @@ class MethodFragmentImpl extends ExecutableFragmentImpl
 
   @override
   String? get lookupName {
-    if (name2 == '-' && formalParameters.isEmpty) {
+    if (name == '-' && formalParameters.isEmpty) {
       return 'unary-';
     }
-    return name2;
+    return name;
   }
 
   void addFragment(MethodFragmentImpl fragment) {
@@ -7594,7 +7578,7 @@ class MixinFragmentImpl extends ClassOrMixinFragmentImpl
 
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
-  MixinFragmentImpl({required super.name2, required super.nameOffset});
+  MixinFragmentImpl({required super.name, required super.nameOffset});
 
   @override
   bool get isBase {
@@ -7934,7 +7918,11 @@ class MultiplyDefinedFragmentImpl implements MultiplyDefinedFragment {
   LibraryFragment get libraryFragment => enclosingFragment;
 
   @override
-  String? get name2 => element.name3;
+  String? get name => element.name3;
+
+  @Deprecated('Use name instead')
+  @override
+  String? get name2 => name;
 
   @override
   Null get nameOffset2 => null;
@@ -8057,7 +8045,11 @@ class NeverFragmentImpl extends FragmentImpl implements TypeDefiningFragment {
   MetadataImpl get metadata2 => metadata;
 
   @override
-  String get name2 => 'Never';
+  String get name => 'Never';
+
+  @Deprecated('Use name instead')
+  @override
+  String get name2 => name;
 
   @override
   Null get nameOffset2 => null;
@@ -8186,10 +8178,7 @@ class PatternVariableFragmentImpl extends LocalVariableFragmentImpl
   /// the [GuardedPattern] that declares this variable.
   bool isVisitingWhenClause = false;
 
-  PatternVariableFragmentImpl({
-    required super.name2,
-    required super.nameOffset,
-  });
+  PatternVariableFragmentImpl({required super.name, required super.nameOffset});
 
   @override
   PatternVariableElementImpl get element =>
@@ -8269,7 +8258,7 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
   LibraryElementImpl get library2 => library;
 
   @override
-  String? get name3 => firstFragment.name2;
+  String? get name3 => firstFragment.name;
 
   @override
   PrefixScope get scope {
@@ -8319,7 +8308,7 @@ class PrefixFragmentImpl extends FragmentImpl implements PrefixFragment {
   final LibraryFragmentImpl enclosingFragment;
 
   @override
-  final String? name2;
+  final String? name;
 
   @override
   int? nameOffset2;
@@ -8341,7 +8330,7 @@ class PrefixFragmentImpl extends FragmentImpl implements PrefixFragment {
 
   PrefixFragmentImpl({
     required this.enclosingFragment,
-    required this.name2,
+    required this.name,
     required this.nameOffset2,
     required this.isDeferred,
   }) : super(nameOffset: -1);
@@ -8395,7 +8384,7 @@ abstract class PropertyAccessorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  String? get name3 => firstFragment.name2;
+  String? get name3 => firstFragment.name;
 
   @override
   @trackedDirectly
@@ -8416,23 +8405,20 @@ abstract class PropertyAccessorElementImpl extends ExecutableElementImpl
 sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
     implements PropertyAccessorFragment {
   @override
-  final String? name2;
+  final String? name;
 
   @override
   int? nameOffset2;
 
   /// Initialize a newly created property accessor element to have the given
   /// [name] and [offset].
-  PropertyAccessorFragmentImpl({
-    required this.name2,
-    required super.nameOffset,
-  });
+  PropertyAccessorFragmentImpl({required this.name, required super.nameOffset});
 
   /// Initialize a newly created synthetic property accessor element to be
   /// associated with the given [variable].
   PropertyAccessorFragmentImpl.forVariable(
     PropertyInducingFragmentImpl variable,
-  ) : name2 = variable.name2,
+  ) : name = variable.name,
       super(nameOffset: -1) {
     isAbstract = variable is FieldFragmentImpl && variable.isAbstract;
     isStatic = variable.isStatic;
@@ -8495,12 +8481,19 @@ abstract class PropertyInducingElement2OrMember
 }
 
 abstract class PropertyInducingElementImpl extends VariableElementImpl
+    with DeferredResolutionReadingMixin
     implements PropertyInducingElement2OrMember, AnnotatableElementImpl {
   @override
   GetterElementImpl? getter2;
 
   @override
   SetterElementImpl? setter2;
+
+  TypeImpl? _type;
+
+  PropertyInducingElementImpl() {
+    shouldUseTypeForInitializerInference = true;
+  }
 
   @override
   PropertyInducingFragmentImpl get firstFragment;
@@ -8541,7 +8534,49 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
   Reference get reference;
 
   bool get shouldUseTypeForInitializerInference {
-    return firstFragment.shouldUseTypeForInitializerInference;
+    return hasModifier(Modifier.SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE);
+  }
+
+  set shouldUseTypeForInitializerInference(bool value) {
+    setModifier(Modifier.SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE, value);
+  }
+
+  @override
+  TypeImpl get type {
+    _ensureReadResolution();
+    if (_type != null) return _type!;
+
+    // We must be linking, and the type has not been set yet.
+    var type = firstFragment.typeInference?.perform();
+    type ??= InvalidTypeImpl.instance;
+    _type = type;
+    firstFragment._type = type;
+    shouldUseTypeForInitializerInference = false;
+
+    // TODO(scheglov): We repeat this code.
+    var element = this;
+    if (element.getter2 case var getterElement?) {
+      getterElement.returnType = type;
+      getterElement.firstFragment.returnType = type;
+    }
+    if (element.setter2 case var setterElement?) {
+      if (setterElement.isSynthetic) {
+        setterElement.returnType = VoidTypeImpl.instance;
+        setterElement.firstFragment.returnType = VoidTypeImpl.instance;
+        (setterElement.formalParameters.single as FormalParameterElementImpl)
+            .type = type;
+        (setterElement.formalParameters.single as FormalParameterElementImpl)
+            .firstFragment
+            .type = type;
+      }
+    }
+
+    return _type!;
+  }
+
+  @override
+  set type(TypeImpl value) {
+    _type = value;
   }
 
   List<PropertyInducingFragmentImpl> get _fragments;
@@ -8558,7 +8593,7 @@ abstract class PropertyInducingFragmentImpl
     with DeferredResolutionReadingMixin
     implements PropertyInducingFragment {
   @override
-  final String? name2;
+  final String? name;
 
   @override
   int? nameOffset2;
@@ -8582,12 +8617,7 @@ abstract class PropertyInducingFragmentImpl
 
   /// Initialize a newly created synthetic element to have the given [name] and
   /// [offset].
-  PropertyInducingFragmentImpl({
-    required this.name2,
-    required super.nameOffset,
-  }) {
-    setModifier(Modifier.SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE, true);
-  }
+  PropertyInducingFragmentImpl({required this.name, required super.nameOffset});
 
   @override
   List<Fragment> get children3 => const [];
@@ -8620,52 +8650,9 @@ abstract class PropertyInducingFragmentImpl
   @override
   MetadataImpl get metadata2 => metadata;
 
-  bool get shouldUseTypeForInitializerInference {
-    return hasModifier(Modifier.SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE);
-  }
-
-  set shouldUseTypeForInitializerInference(bool value) {
-    setModifier(Modifier.SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE, value);
-  }
-
   @override
   TypeImpl get type {
     _ensureReadResolution();
-    if (_type != null) return _type!;
-
-    if (isSynthetic) {
-      if (element.getter2 case var getter?) {
-        return _type = getter.returnType;
-      }
-      if (element.setter2 case var setter?) {
-        if (setter.formalParameters case [var value, ...]) {
-          return _type = value.type;
-        }
-      }
-      return _type = DynamicTypeImpl.instance;
-    }
-
-    // We must be linking, and the type has not been set yet.
-    var type = typeInference!.perform();
-    _type = type;
-    // TODO(scheglov): We repeat this code.
-    if (element.getter2 case var getterElement?) {
-      getterElement.returnType = type;
-      getterElement.firstFragment.returnType = type;
-    }
-    if (element.setter2 case var setterElement?) {
-      if (setterElement.isSynthetic) {
-        setterElement.returnType = VoidTypeImpl.instance;
-        setterElement.firstFragment.returnType = VoidTypeImpl.instance;
-        (setterElement.formalParameters.single as FormalParameterElementImpl)
-            .type = type;
-        (setterElement.formalParameters.single as FormalParameterElementImpl)
-            .firstFragment
-            .type = type;
-      }
-    }
-
-    shouldUseTypeForInitializerInference = false;
     return _type!;
   }
 }
@@ -8788,13 +8775,13 @@ class SetterFragmentImpl extends PropertyAccessorFragmentImpl
   @override
   SetterFragmentImpl? nextFragment;
 
-  SetterFragmentImpl({required super.name2, required super.nameOffset});
+  SetterFragmentImpl({required super.name, required super.nameOffset});
 
   SetterFragmentImpl.forVariable(super.variable) : super.forVariable();
 
   @override
   String? get lookupName {
-    if (name2 case var name?) {
+    if (name case var name?) {
       return '$name=';
     }
     return null;
@@ -8965,7 +8952,7 @@ class SuperFormalParameterFragmentImpl extends FormalParameterFragmentImpl
   /// [nameOffset].
   SuperFormalParameterFragmentImpl({
     required super.nameOffset,
-    required super.name2,
+    required super.name,
     required super.nameOffset2,
     required super.parameterKind,
   });
@@ -9076,7 +9063,7 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl
   LibraryElementImpl get library2 => library;
 
   @override
-  String? get name3 => firstFragment.name2;
+  String? get name3 => firstFragment.name;
 
   @override
   T? accept<T>(ElementVisitor2<T> visitor) {
@@ -9102,7 +9089,7 @@ class TopLevelFunctionFragmentImpl extends FunctionFragmentImpl
   TopLevelFunctionFragmentImpl? nextFragment;
 
   TopLevelFunctionFragmentImpl({
-    required super.name2,
+    required super.name,
     required super.nameOffset,
   });
 
@@ -9124,16 +9111,13 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
     with
         FragmentedAnnotatableElementMixin<TopLevelVariableFragmentImpl>,
         FragmentedElementMixin<TopLevelVariableFragmentImpl>,
-        _HasSinceSdkVersionMixin,
-        DeferredResolutionReadingMixin
+        _HasSinceSdkVersionMixin
     implements TopLevelVariableElement {
   @override
   final Reference reference;
 
   @override
   final TopLevelVariableFragmentImpl firstFragment;
-
-  TypeImpl? _type;
 
   TopLevelVariableElementImpl(this.reference, this.firstFragment) {
     reference.element = this;
@@ -9191,44 +9175,7 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
   LibraryElement get library2 => library;
 
   @override
-  String? get name3 => firstFragment.name2;
-
-  @override
-  TypeImpl get type {
-    _ensureReadResolution();
-    if (_type != null) return _type!;
-
-    // We must be linking, and the type has not been set yet.
-    var type = firstFragment.typeInference?.perform();
-    type ??= InvalidTypeImpl.instance;
-    _type = type;
-    firstFragment._type = type;
-    firstFragment.shouldUseTypeForInitializerInference = false;
-
-    // TODO(scheglov): We repeat this code.
-    var element = this;
-    if (element.getter2 case var getterElement?) {
-      getterElement.returnType = type;
-      getterElement.firstFragment.returnType = type;
-    }
-    if (element.setter2 case var setterElement?) {
-      if (setterElement.isSynthetic) {
-        setterElement.returnType = VoidTypeImpl.instance;
-        setterElement.firstFragment.returnType = VoidTypeImpl.instance;
-        (setterElement.formalParameters.single as FormalParameterElementImpl)
-            .type = type;
-        (setterElement.formalParameters.single as FormalParameterElementImpl)
-            .firstFragment
-            .type = type;
-      }
-    }
-
-    return _type!;
-  }
-
-  set type(TypeImpl value) {
-    _type = value;
-  }
+  String? get name3 => firstFragment.name;
 
   @override
   T? accept<T>(ElementVisitor2<T> visitor) {
@@ -9248,7 +9195,7 @@ class TopLevelVariableFragmentImpl extends PropertyInducingFragmentImpl
   /// Initialize a newly created synthetic top-level variable element to have
   /// the given [name] and [offset].
   TopLevelVariableFragmentImpl({
-    required super.name2,
+    required super.name,
     required super.nameOffset,
   });
 
@@ -9406,7 +9353,7 @@ class TypeAliasElementImpl extends TypeDefiningElementImpl
   LibraryElementImpl get library2 => library;
 
   @override
-  String? get name3 => firstFragment.name2;
+  String? get name3 => firstFragment.name;
 
   @override
   List<TypeParameterElementImpl> get typeParameters2 =>
@@ -9516,7 +9463,7 @@ class TypeAliasFragmentImpl extends _ExistingFragmentImpl
     with DeferredResolutionReadingMixin, TypeParameterizedFragmentMixin
     implements TypeAliasFragment {
   @override
-  final String? name2;
+  final String? name;
 
   @override
   int? nameOffset2;
@@ -9539,7 +9486,7 @@ class TypeAliasFragmentImpl extends _ExistingFragmentImpl
   @override
   late TypeAliasElementImpl element;
 
-  TypeAliasFragmentImpl({required this.name2, required super.nameOffset});
+  TypeAliasFragmentImpl({required this.name, required super.nameOffset});
 
   /// If the aliased type has structure, return the corresponding element.
   /// For example it could be [GenericFunctionTypeElement].
@@ -9578,7 +9525,7 @@ class TypeAliasFragmentImpl extends _ExistingFragmentImpl
   List<Fragment> get children3 => const [];
 
   @override
-  String get displayName => name2 ?? '';
+  String get displayName => name ?? '';
 
   @override
   LibraryFragmentImpl get enclosingElement3 =>
@@ -9642,7 +9589,7 @@ class TypeParameterElementImpl extends TypeDefiningElementImpl
   }
 
   factory TypeParameterElementImpl.synthetic({required String name}) {
-    var fragment = TypeParameterFragmentImpl.synthetic(name2: name);
+    var fragment = TypeParameterFragmentImpl.synthetic(name: name);
     return TypeParameterElementImpl(firstFragment: fragment, name3: name);
   }
 
@@ -9732,7 +9679,7 @@ class TypeParameterElementImpl extends TypeDefiningElementImpl
 class TypeParameterFragmentImpl extends FragmentImpl
     implements AnnotatableFragmentImpl, TypeParameterFragment {
   @override
-  final String? name2;
+  final String? name;
 
   @override
   int? nameOffset2;
@@ -9758,11 +9705,11 @@ class TypeParameterFragmentImpl extends FragmentImpl
 
   /// Initialize a newly created method element to have the given [name] and
   /// [offset].
-  TypeParameterFragmentImpl({required this.name2, required super.nameOffset});
+  TypeParameterFragmentImpl({required this.name, required super.nameOffset});
 
   /// Initialize a newly created synthetic type parameter element to have the
   /// given [name], and with [isSynthetic] set to `true`.
-  TypeParameterFragmentImpl.synthetic({required this.name2})
+  TypeParameterFragmentImpl.synthetic({required this.name})
     : super(nameOffset: -1) {
     isSynthetic = true;
   }
@@ -9793,7 +9740,7 @@ class TypeParameterFragmentImpl extends FragmentImpl
   TypeParameterFragmentImpl get declaration => this;
 
   @override
-  String get displayName => name2 ?? '';
+  String get displayName => name ?? '';
 
   @override
   TypeParameterElementImpl get element {
@@ -9810,7 +9757,7 @@ class TypeParameterFragmentImpl extends FragmentImpl
     // chain will have their `_element` set to the newly created element.
     return TypeParameterElementImpl(
       firstFragment: firstFragment,
-      name3: firstFragment.name2,
+      name3: firstFragment.name,
     );
   }
 
@@ -10014,6 +9961,10 @@ abstract class VariableElementImpl extends ElementImpl
   LibraryFragmentImpl? get libraryFragment =>
       firstFragment.libraryFragment as LibraryFragmentImpl?;
 
+  set type(TypeImpl type) {
+    // TODO(scheglov): eventually move logic from PropertyInducingElementImpl
+  }
+
   /// Return a representation of the value of this variable, forcing the value
   /// to be computed if it had not previously been computed, or `null` if either
   /// this variable was not declared with the 'const' modifier or if the value
@@ -10074,7 +10025,7 @@ abstract class VariableFragmentImpl extends FragmentImpl
   VariableFragmentImpl get declaration => this;
 
   @override
-  String get displayName => name2 ?? '';
+  String get displayName => name ?? '';
 
   @override
   VariableElementImpl get element;

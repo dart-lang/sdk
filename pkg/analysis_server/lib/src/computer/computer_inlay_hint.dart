@@ -217,7 +217,7 @@ class DartInlayHintComputer {
     }
     return Location(
       uri: pathContext.toUri(path),
-      range: toRange(lineInfo, nameOffset, firstFragment.name2?.length ?? 0),
+      range: toRange(lineInfo, nameOffset, firstFragment.name?.length ?? 0),
     );
   }
 

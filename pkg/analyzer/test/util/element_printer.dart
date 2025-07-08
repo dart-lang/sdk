@@ -304,7 +304,7 @@ class ElementPrinter {
       if (uriStr == 'package:test/test.dart') {
         uriStr = '<testLibraryFragment>';
       }
-      return '$uriStr ${fragment.name2}@${fragment.nameOffset2}';
+      return '$uriStr ${fragment.name}@${fragment.nameOffset2}';
     }
 
     var enclosingFragment = fragment.enclosingFragment;
@@ -316,18 +316,18 @@ class ElementPrinter {
           enclosingFragment != null
               ? _fragmentToReferenceString(enclosingFragment)
               : 'root';
-      return '$enclosingStr::@formalParameter::${fragment.name2}';
+      return '$enclosingStr::@formalParameter::${fragment.name}';
     } else if (fragment is JoinPatternVariableFragmentImpl) {
       return [
         if (!fragment.isConsistent) 'notConsistent ',
         if (fragment.isFinal) 'final ',
-        fragment.name2 ?? '',
+        fragment.name ?? '',
         '[',
         fragment.variables.map(_fragmentToReferenceString).join(', '),
         ']',
       ].join();
     } else {
-      return '${fragment.name2}@${fragment.nameOffset2}';
+      return '${fragment.name}@${fragment.nameOffset2}';
     }
   }
 

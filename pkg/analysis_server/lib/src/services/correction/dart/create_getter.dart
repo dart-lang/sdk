@@ -164,7 +164,11 @@ class CreateGetter extends CreateFieldOrGetter {
     } else {
       staticModifier = inStaticContext;
       targetElement = nameNode.enclosingInstanceElement;
-      if (targetElement is ExtensionElement && !staticModifier) {
+      if (targetElement is ExtensionElement) {
+        if (staticModifier) {
+          // This should be handled by create extension member fixes
+          return;
+        }
         targetElement = targetElement.extendedInterfaceElement;
       }
       if (targetElement == null) {

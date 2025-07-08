@@ -325,7 +325,7 @@ class SearchMatchImpl implements SearchMatch {
       true,
       true,
       MatchKind.DECLARATION,
-      SourceRange(firstFragment.nameOffset2!, firstFragment.name2!.length),
+      SourceRange(firstFragment.nameOffset2!, firstFragment.name!.length),
     );
   }
 

@@ -26,7 +26,7 @@ f() {
 
     var element = findElement2.localFunction('g');
     var fragment = element.firstFragment;
-    expect(fragment.name2, 'g');
+    expect(fragment.name, 'g');
     expect(fragment.nameOffset2, 8);
     expect(element.name3, 'g');
 
@@ -58,7 +58,7 @@ f() {
     var node = findNode.functionDeclaration('g() {}');
     var fragment = node.declaredFragment!;
     var element = fragment.element;
-    expect(fragment.name2, 'g');
+    expect(fragment.name, 'g');
     expect(fragment.nameOffset2, 23);
     expect(element.name3, 'g');
   }
@@ -77,7 +77,7 @@ f(int a) {
 
     var element = findElement2.localFunction('g');
     var fragment = element.firstFragment;
-    expect(fragment.name2, 'g');
+    expect(fragment.name, 'g');
     expect(fragment.nameOffset2, 44);
     expect(element.name3, 'g');
 
@@ -111,7 +111,7 @@ f(int a) {
 
     var element = findElement2.localFunction('g');
     var fragment = element.firstFragment;
-    expect(fragment.name2, 'g');
+    expect(fragment.name, 'g');
     expect(fragment.nameOffset2, 60);
     expect(element.name3, 'g');
 

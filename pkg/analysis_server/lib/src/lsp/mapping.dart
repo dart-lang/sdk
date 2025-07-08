@@ -534,10 +534,10 @@ lsp.Location? fragmentToLocation(
   ) when isSynthetic) {
     var element = fragment.element.nonSynthetic;
     nameOffset = element.firstFragment.nameOffset2;
-    nameLength = element.firstFragment.name2?.length;
+    nameLength = element.firstFragment.name?.length;
   } else {
     nameOffset = fragment.nameOffset2;
-    nameLength = fragment.name2?.length;
+    nameLength = fragment.name?.length;
   }
 
   // For unnamed constructors, use the type name as the target location.

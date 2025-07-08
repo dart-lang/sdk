@@ -169,7 +169,7 @@ class NamespaceBuilder {
   }) {
     var exportedNames = _getExportMapping(importedLibrary);
     exportedNames = _applyCombinators(exportedNames, combinators);
-    if (prefix?.name2 case var name?) {
+    if (prefix?.name case var name?) {
       return PrefixedNamespace(name, exportedNames);
     }
     return Namespace(exportedNames);

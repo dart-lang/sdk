@@ -13,14 +13,23 @@ import 'package:front_end/src/codes/cfe_codes.dart'
         messageFfiDeeplyImmutableSupertypeMustBeDeeplyImmutable;
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
+import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 
 void validateLibraries(
+  Component component,
   List<Library> libraries,
   CoreTypes coreTypes,
   DiagnosticReporter diagnosticReporter,
 ) {
-  final validator = DeeplyImmutableValidator(coreTypes, diagnosticReporter);
+  final LibraryIndex index = LibraryIndex(component, const [
+    'dart:nativewrappers',
+  ]);
+  final validator = DeeplyImmutableValidator(
+    index,
+    coreTypes,
+    diagnosticReporter,
+  );
   for (final library in libraries) {
     validator.visitLibrary(library);
   }
@@ -34,10 +43,19 @@ class DeeplyImmutableValidator {
   final DiagnosticReporter diagnosticReporter;
   final Class pragmaClass;
   final Field pragmaName;
+  // Can be null if nativewrappers library is not available.
+  final Class? nativeFieldWrapperClass1Class;
 
-  DeeplyImmutableValidator(this.coreTypes, this.diagnosticReporter)
-    : pragmaClass = coreTypes.pragmaClass,
-      pragmaName = coreTypes.pragmaName;
+  DeeplyImmutableValidator(
+    LibraryIndex index,
+    this.coreTypes,
+    this.diagnosticReporter,
+  ) : pragmaClass = coreTypes.pragmaClass,
+      pragmaName = coreTypes.pragmaName,
+      nativeFieldWrapperClass1Class = index.tryGetClass(
+        'dart:nativewrappers',
+        'NativeFieldWrapperClass1',
+      );
 
   void visitLibrary(Library library) {
     for (final cls in library.classes) {
@@ -47,6 +65,13 @@ class DeeplyImmutableValidator {
 
   void visitClass(Class node) {
     _validateDeeplyImmutable(node);
+  }
+
+  bool _isOrExtendsNativeFieldWrapper1Class(Class? node) {
+    while (node != null && node != nativeFieldWrapperClass1Class) {
+      node = node.superclass;
+    }
+    return node != null;
   }
 
   void _validateDeeplyImmutable(Class node) {
@@ -72,7 +97,9 @@ class DeeplyImmutableValidator {
     }
 
     final superClass = node.superclass;
-    if (superClass != null && superClass != coreTypes.objectClass) {
+    if (superClass != null &&
+        superClass != coreTypes.objectClass &&
+        !_isOrExtendsNativeFieldWrapper1Class(superClass)) {
       if (!_isDeeplyImmutableClass(superClass)) {
         diagnosticReporter.report(
           messageFfiDeeplyImmutableSupertypeMustBeDeeplyImmutable,

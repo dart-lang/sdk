@@ -136,10 +136,10 @@ class RangeFactory {
   /// Returns `null` if the [fragment] does not have an explicit name location,
   /// such as when it is synthetic.
   ///
-  /// See [Fragment.name2] and [Fragment.nameOffset2].
+  /// See [Fragment.name] and [Fragment.nameOffset2].
   SourceRange? fragmentName(Fragment fragment) {
     var nameOffset = fragment.nameOffset2;
-    var nameLength = fragment.name2?.length;
+    var nameLength = fragment.name?.length;
     if (nameOffset == null || nameLength == null) {
       return null;
     }

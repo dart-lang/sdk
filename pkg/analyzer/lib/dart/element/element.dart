@@ -447,6 +447,10 @@ abstract class ConstructorFragment implements ExecutableFragment {
   InstanceFragment? get enclosingFragment;
 
   @override
+  String get name;
+
+  @Deprecated('Use name instead')
+  @override
   String get name2;
 
   @override
@@ -467,7 +471,7 @@ abstract class ConstructorFragment implements ExecutableFragment {
   /// The offset of the `.` before the name.
   ///
   /// It is `null` if the fragment is synthetic, or does not specify an
-  /// explicit name, even if [name2] is `new` in this case.
+  /// explicit name, even if [name] is `new` in this case.
   int? get periodOffset;
 
   @override
@@ -666,7 +670,7 @@ abstract class Element {
   ///
   /// Returns `null` if this element doesn't have a name.
   ///
-  /// See [Fragment.name2] for details.
+  /// See [Fragment.name] for details.
   String? get name3;
 
   /// The non-synthetic element that caused this element to be created.
@@ -1638,9 +1642,37 @@ abstract class Fragment {
   /// For a [SetterFragment] this is the identifier, without `=` at the end.
   ///
   /// For both unary and binary `-` operator this is `-`.
+  String? get name;
+
+  /// The name of the fragment.
+  ///
+  /// Never empty.
+  ///
+  /// If a fragment, e.g. an [ExtensionFragment], does not have a name,
+  /// then the name is `null`.
+  ///
+  /// For an unnamed [ConstructorFragment] the name is `new`, but [nameOffset2]
+  /// is `null`. If there is an explicit `ClassName.new`, the name is also
+  /// `new`, and [nameOffset2] is not `null`. For a synthetic default unnamed
+  /// [ConstructorElement] there is always a synthetic [ConstructorFragment]
+  /// with the name `new`, and [nameOffset2] is `null`.
+  ///
+  /// If the fragment declaration node does not have the name specified, and
+  /// the parser inserted a synthetic token, then the name is `null`, and
+  /// [nameOffset2] is `null`.
+  ///
+  /// For a synthetic [GetterFragment] or [SetterFragment] the name is the
+  /// name of the corresponding non-synthetic [PropertyInducingFragment],
+  /// which is usually not `null`, but could be. And `nameOffset2` is `null`
+  /// for such synthetic fragments.
+  ///
+  /// For a [SetterFragment] this is the identifier, without `=` at the end.
+  ///
+  /// For both unary and binary `-` operator this is `-`.
+  @Deprecated('Use name instead')
   String? get name2;
 
-  /// The offset of the [name2] of this element.
+  /// The offset of the [name] of this element.
   ///
   /// If a fragment, e.g. an [ExtensionFragment], does not have a name,
   /// then the name offset is `null`.
