@@ -683,6 +683,7 @@ Future<void> asyncTests() async {
       Expect.fail('Expected rejected promise to throw.');
     } catch (e) {
       Expect.isTrue(e is NullRejectionException);
+      Expect.equals(rejectWithNull, !(e as NullRejectionException).isUndefined);
     }
   }
 

@@ -355,7 +355,8 @@ Future<void> promiseToFutureTest() async {
     globalThis.getResolvedPromise = function() {
       return resolvedPromise;
     }
-    //globalThis.nullRejectedPromise = Promise.reject(null);
+    globalThis.nullRejectedPromise = new Promise((resolve, reject) => reject(null));
+    globalThis.undefinedRejectedPromise = new Promise((resolve, reject) => reject(undefined));
   ''');
 
   // Test resolved
@@ -391,15 +392,26 @@ Future<void> promiseToFutureTest() async {
   }
 
   // Test rejecting promise with null should trigger an exception.
-  // TODO(joshualitt): Fails with an illegal cast.
-  // {
-  //   Future f = promiseToFuture(getProperty(gt, 'nullRejectedPromise'));
-  //   f.then((_) { Expect.fail("Expect promise to reject"); }).catchError((e) {
-  //     print('A');
-  //     Expect.isTrue(e is NullRejectionException);
-  //   });
-  //   await f;
-  // }
+  {
+    try {
+      await promiseToFuture(getProperty(gt, 'nullRejectedPromise'));
+      Expect.fail("Expect promise to reject");
+    } catch (e) {
+      Expect.isTrue(e is NullRejectionException);
+      Expect.isFalse((e as NullRejectionException).isUndefined);
+    }
+  }
+
+  // Test rejecting promise with undefined should trigger an exception.
+  {
+    try {
+      await promiseToFuture(getProperty(gt, 'undefinedRejectedPromise'));
+      Expect.fail("Expect promise to reject");
+    } catch (e) {
+      Expect.isTrue(e is NullRejectionException);
+      Expect.isTrue((e as NullRejectionException).isUndefined);
+    }
+  }
 }
 
 @JS('Symbol')
