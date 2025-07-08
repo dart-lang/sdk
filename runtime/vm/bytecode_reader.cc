@@ -1554,6 +1554,24 @@ TypeArgumentsPtr BytecodeReaderHelper::ReadTypeArguments() {
   return type_arguments.Canonicalize(thread_);
 }
 
+void BytecodeReaderHelper::ReadAnnotations(const Class& cls,
+                                           const Object& declaration,
+                                           bool has_pragma) {
+  const intptr_t annotations_offset =
+      reader_.ReadUInt() + bytecode_component_->GetAnnotationsOffset();
+  ASSERT(annotations_offset > 0);
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (FLAG_enable_mirrors || has_pragma) {
+    AlternativeReadingScope alt(&reader_, annotations_offset);
+    const auto& metadata = Object::Handle(Z, ReadObject());
+    ASSERT(metadata.IsArray());
+    const auto& library = Library::Handle(Z, cls.library());
+    library.AddMetadata(declaration, metadata);
+  }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+}
+
 void BytecodeReaderHelper::ReadMembers(const Class& cls, bool discard_fields) {
   ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   ASSERT(cls.is_type_finalized());
@@ -1726,7 +1744,7 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
     }
 
     if ((flags & kHasAnnotationsFlag) != 0) {
-      reader_.ReadUInt();  // Skip annotations offset.
+      ReadAnnotations(cls, field, has_pragma);
     }
 
     if (field.is_static()) {
@@ -2003,7 +2021,7 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
     }
 
     if ((flags & kHasAnnotationsFlag) != 0) {
-      reader_.ReadUInt();  // Skip annotations offset.
+      ReadAnnotations(cls, function, has_pragma);
     }
 
     functions_->SetAt(function_index_++, function);
@@ -2122,7 +2140,7 @@ void BytecodeReaderHelper::ReadClassDeclaration(const Class& cls) {
   }
 
   if ((flags & kHasAnnotationsFlag) != 0) {
-    reader_.ReadUInt();  // Skip annotations offset.
+    ReadAnnotations(cls, cls, has_pragma);
   }
 
   const intptr_t members_offset = reader_.ReadUInt();

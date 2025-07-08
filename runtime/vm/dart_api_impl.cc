@@ -5845,6 +5845,29 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle kernel_buffer) {
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
+DART_EXPORT Dart_Handle
+Dart_LoadLibraryFromBytecode(Dart_Handle bytecode_buffer) {
+#if defined(DART_DYNAMIC_MODULES)
+  DARTSCOPE(Thread::Current());
+  const ExternalTypedData& td =
+      Api::UnwrapExternalTypedDataHandle(Z, bytecode_buffer);
+  if (td.IsNull()) {
+    RETURN_TYPE_ERROR(Z, bytecode_buffer, ExternalTypedData);
+  }
+  SafepointWriteRwLocker ml(T, T->isolate_group()->program_lock());
+  bytecode::BytecodeLoader loader(T, td);
+  const Function& function = Function::Handle(loader.LoadBytecode());
+  if (function.IsNull()) {
+    return Api::Null();
+  }
+  return Api::NewHandle(T, Class::Handle(function.Owner()).library());
+#else
+  return Api::NewError(
+      "%s: Cannot load bytecode as dynamic modules are disabled.",
+      CURRENT_FUNC);
+#endif  // defined(DART_DYNAMIC_MODULES)
+}
+
 // Finalizes classes and invokes Dart core library function that completes
 // futures of loadLibrary calls (deferred library loading).
 DART_EXPORT Dart_Handle Dart_FinalizeLoading(bool complete_futures) {

@@ -75,6 +75,14 @@ constraint][language version] lower bound to 3.9 or greater (`sdk: '^3.9.0'`).
   Container<dynamic>().value('Invocation with missing runtime checks!');
   ```
 
+#### Dart Native Compiler
+
+Added [cross-compilation][] for the Linux ARM and Linux RISCV64 target
+platforms. Note that Linux ARM cross-compilation is not available on Windows
+host platforms.
+
+[cross-compilation]: https://dart.dev/tools/dart-compile#cross-compilation-exe
+
 #### Dart CLI and Dart VM
 
 - The Dart CLI and Dart VM have been split into two seperate executables.

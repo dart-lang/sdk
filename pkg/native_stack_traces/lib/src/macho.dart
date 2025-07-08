@@ -125,6 +125,7 @@ class LoadCommand {
   static const LC_SYMTAB = 0x2;
   static const LC_SEGMENT_64 = 0x19;
   static const LC_UUID = 0x1b;
+  static const LC_BUILD_VERSION = 0x32;
 
   static LoadCommand fromReader(Reader reader) {
     final start = reader.offset; // cmdsize includes size of cmd and cmdsize.
@@ -142,6 +143,9 @@ class LoadCommand {
         break;
       case LC_UUID:
         command = UuidCommand.fromReader(reader, cmd, cmdsize);
+        break;
+      case LC_BUILD_VERSION:
+        command = BuildVersionCommand.fromReader(reader, cmd, cmdsize);
         break;
       default:
         break;
@@ -351,6 +355,161 @@ class UuidCommand extends LoadCommand {
   }
 }
 
+class Version {
+  final int x;
+  final int y;
+  final int z;
+
+  const Version(this.x, this.y, this.z);
+
+  static Version fromInt(int v) {
+    final x = (v & 0xffffffff) >> 16;
+    final y = (v & 0xffff) >> 8;
+    final z = v & 0xff;
+    return Version(x, y, z);
+  }
+
+  @override
+  int get hashCode => Object.hash(x, y, z);
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is Version && x == other.x && y == other.y && z == other.z;
+  }
+
+  @override
+  String toString() => '$x.$y.$z';
+}
+
+enum Platform {
+  PLATFORM_UNKNOWN(0, 'Unknown'),
+  PLATFORM_ANY(0xFFFFFFFF, 'any'),
+  PLATFORM_MACOS(0x1, 'MacOS'),
+  PLATFORM_IOS(0x2, 'iOS'),
+  PLATFORM_TVOS(0x3, 'TVOS'),
+  PLATFORM_WATCHOS(0x4, 'WatchOS'),
+  PLATFORM_IOSSIMULATOR(0x7, 'iOS Simulator'),
+  PLATFORM_TVOSSIMULATOR(0x8, 'TVOS Simulator'),
+  PLATFORM_WATCHOSSIMULATOR(0x9, 'WatchOS Simulator');
+
+  final int id;
+  final String description;
+
+  const Platform(this.id, this.description);
+
+  static Platform? fromId(int id) {
+    for (final platform in values) {
+      if (platform.id == id) {
+        return platform;
+      }
+    }
+    return null;
+  }
+
+  @override
+  String toString() => description;
+}
+
+enum BuildTool {
+  TOOL_CLANG(1, 'clang'),
+  TOOL_SWIFT(2, 'Swift'),
+  TOOL_LD(3, 'ld'),
+  TOOL_LLD(4, 'lld');
+
+  final int id;
+  final String description;
+
+  const BuildTool(this.id, this.description);
+
+  static BuildTool? fromId(int id) {
+    for (final tool in values) {
+      if (tool.id == id) {
+        return tool;
+      }
+    }
+    return null;
+  }
+
+  @override
+  String toString() => description;
+}
+
+class BuildToolVersion {
+  final int _toolId;
+  final BuildTool? tool;
+  final Version version;
+
+  const BuildToolVersion._(this._toolId, this.tool, this.version);
+
+  factory BuildToolVersion.fromReader(Reader reader) {
+    final id = _readMachOUint32(reader);
+    final tool = BuildTool.fromId(id);
+    final version = Version.fromInt(_readMachOUint32(reader));
+    return BuildToolVersion._(id, tool, version);
+  }
+
+  void writeToStringBuffer(StringBuffer buffer) {
+    buffer
+      ..write('  - ')
+      ..write(tool ?? 'Unknown (0x${paddedHex(_toolId, 4)})')
+      ..write(' (')
+      ..write(version)
+      ..writeln(')');
+  }
+
+  @override
+  String toString() {
+    final buffer = StringBuffer();
+    writeToStringBuffer(buffer);
+    return buffer.toString();
+  }
+}
+
+class BuildVersionCommand extends LoadCommand {
+  final int _platformId;
+  final Platform? platform;
+  final Version minOS;
+  final Version sdk;
+  final List<BuildToolVersion> toolVersions;
+
+  BuildVersionCommand._(super.cmd, super.cmdsize, this._platformId,
+      this.platform, this.minOS, this.sdk, this.toolVersions)
+      : super._();
+
+  static BuildVersionCommand fromReader(Reader reader, int cmd, int cmdsize) {
+    final platformId = _readMachOUint32(reader);
+    final platform = Platform.fromId(platformId);
+    final minOS = Version.fromInt(_readMachOUint32(reader));
+    final sdk = Version.fromInt(_readMachOUint32(reader));
+    final toolCount = _readMachOUint32(reader);
+    final toolVersions = <BuildToolVersion>[];
+    for (int i = 0; i < toolCount; i++) {
+      toolVersions.add(BuildToolVersion.fromReader(reader));
+    }
+    return BuildVersionCommand._(
+        cmd, cmdsize, platformId, platform, minOS, sdk, toolVersions);
+  }
+
+  @override
+  void writeToStringBuffer(StringBuffer buffer) {
+    buffer
+      ..writeln('Build version:')
+      ..write('  Platform: ')
+      ..writeln(platform ?? 'Unknown (0x${paddedHex(_platformId, 4)})')
+      ..write('  Minimum OS: ')
+      ..writeln(minOS)
+      ..write('  Minimum SDK: ')
+      ..writeln(sdk);
+    if (toolVersions.isNotEmpty) {
+      buffer.writeln('  Tools:');
+      for (final v in toolVersions) {
+        v.writeToStringBuffer(buffer);
+      }
+    }
+  }
+}
+
 class MachOHeader {
   final int magic;
   final int cputype;
@@ -528,6 +687,9 @@ class MachO extends DwarfContainer {
   Reader applyWordSizeAndEndian(Reader reader) =>
       Reader.fromTypedData(reader.bdata,
           wordSize: _header.wordSize, endian: _header.endian);
+
+  Iterable<T> commandsWhereType<T extends LoadCommand>() =>
+      _commands.whereType<T>();
 
   @override
   String? get architecture => CpuType.fromCode(_header.cputype)?.dartName;

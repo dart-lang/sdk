@@ -16,7 +16,8 @@ import "dart:io";
 
 import 'package:native_stack_traces/native_stack_traces.dart';
 import 'package:native_stack_traces/src/constants.dart' show rootLoadingUnitId;
-import 'package:native_stack_traces/src/macho.dart';
+import 'package:native_stack_traces/src/macho.dart'
+    show emptyMachOForArchitecture, MachO;
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 

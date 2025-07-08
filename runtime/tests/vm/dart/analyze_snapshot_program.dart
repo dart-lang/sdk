@@ -18,11 +18,22 @@ final channel2 = MethodChannel("channel2");
 const constChannel = MethodChannel("constChannel1");
 const constChannel2 = MethodChannel("constChannel2");
 
-class MyBase {}
+class MyBase {
+  @pragma('vm:never-inline')
+  void foo() => print('foo!');
+}
 
-class MyInterface {}
+class MyInterface {
+  @pragma('vm:never-inline')
+  void bar() => print('bar default!');
+}
 
-class MySub extends MyBase implements MyInterface {}
+class MySub extends MyBase implements MyInterface {
+  @pragma('vm:never-inline')
+  void bar() => print('bar override!');
+}
+
+final mySub1 = MySub();
 
 main() {
   final mcs = [channel1, channel2, constChannel, constChannel2];
@@ -30,6 +41,9 @@ main() {
     mcs[i].dump();
   }
   print('Class: ${MySub()}');
+
+  mySub1.foo();
+  mySub1.bar();
 
   final l = [
     FieldTestBase(2, 2.2, null, Float32x4.zero(), Float64x2.zero()),
@@ -53,6 +67,7 @@ class FieldTestBase {
     baseS1++;
   }
 
+  @pragma('vm:never-inline')
   String foo() =>
       'Base.foo: [$baseS0, $baseS1, $base0, $base1, $base2, $base3, $base4]';
 }
@@ -70,5 +85,6 @@ class FieldTestSub<T> extends FieldTestBase {
         Float64x2(2.1, 2.2),
       );
 
+  @pragma('vm:never-inline')
   String foo() => '${super.foo()} Sub<$T>.foo: [$subL1, $subL2]';
 }

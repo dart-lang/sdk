@@ -13,6 +13,7 @@ import "dart:io";
 
 import 'package:expect/expect.dart';
 import 'package:native_stack_traces/src/dwarf_container.dart';
+import 'package:native_stack_traces/src/macho.dart' as macho;
 import 'package:path/path.dart' as path;
 
 import 'use_flag_test_helper.dart';
@@ -85,11 +86,18 @@ Future<List<String>?> retrieveDebugMap(
   return await runOutput(dsymutil, ['--dump-debug-map', snapshotPath]);
 }
 
+final hasMinOSVersionOption = Platform.isMacOS || Platform.isIOS;
+final expectedVersion = hasMinOSVersionOption ? macho.Version(1, 2, 3) : null;
+
 Future<void> checkSnapshotType(
   String tempDir,
   String scriptDill,
   SnapshotType snapshotType,
 ) async {
+  final commonOptions = <String>[];
+  if (hasMinOSVersionOption && snapshotType == SnapshotType.machoDylib) {
+    commonOptions.add('--macho-min-os-version=$expectedVersion');
+  }
   // Run the AOT compiler without Dwarf stack trace, once without obfuscation,
   // once with obfuscation, and once with obfuscation and saving debugging
   // information.
@@ -97,8 +105,14 @@ Future<void> checkSnapshotType(
     tempDir,
     'unobfuscated-$snapshotType.so',
   );
-  await createSnapshot(scriptDill, snapshotType, scriptUnobfuscatedSnapshot);
+  await createSnapshot(
+    scriptDill,
+    snapshotType,
+    scriptUnobfuscatedSnapshot,
+    commonOptions,
+  );
   final unobfuscatedCase = TestCase(
+    snapshotType,
     scriptUnobfuscatedSnapshot,
     snapshotType.fromFile(scriptUnobfuscatedSnapshot)!,
     debugMap: await retrieveDebugMap(snapshotType, scriptUnobfuscatedSnapshot),
@@ -109,9 +123,11 @@ Future<void> checkSnapshotType(
     'obfuscated-only-$snapshotType.so',
   );
   await createSnapshot(scriptDill, snapshotType, scriptObfuscatedOnlySnapshot, [
+    ...commonOptions,
     '--obfuscate',
   ]);
   final obfuscatedOnlyCase = TestCase(
+    snapshotType,
     scriptObfuscatedOnlySnapshot,
     snapshotType.fromFile(scriptObfuscatedOnlySnapshot)!,
     debugMap: await retrieveDebugMap(
@@ -135,10 +151,12 @@ Future<void> checkSnapshotType(
       'obfuscated-debug-$snapshotType.so',
     );
     await createSnapshot(scriptDill, snapshotType, scriptObfuscatedSnapshot, [
+      ...commonOptions,
       '--obfuscate',
       '--save-debugging-info=$scriptDebuggingInfo',
     ]);
     obfuscatedCase = TestCase(
+      snapshotType,
       scriptObfuscatedSnapshot,
       snapshotType.fromFile(scriptObfuscatedSnapshot)!,
       debuggingInfoContainer: snapshotType.fromFile(scriptDebuggingInfo)!,
@@ -154,11 +172,13 @@ Future<void> checkSnapshotType(
       'obfuscated-separate-debug-$snapshotType.so',
     );
     await createSnapshot(scriptDill, snapshotType, scriptStrippedSnapshot, [
+      ...commonOptions,
       '--strip',
       '--obfuscate',
       '--save-debugging-info=$scriptSeparateDebuggingInfo',
     ]);
     strippedCase = TestCase(
+      snapshotType,
       scriptStrippedSnapshot,
       /*container=*/ null, // No static symbols in stripped snapshot.
       debuggingInfoContainer: snapshotType.fromFile(
@@ -192,12 +212,14 @@ Future<void> checkAssembly(String tempDir, String scriptDill) async {
 }
 
 class TestCase {
+  final SnapshotType type;
   final String snapshotPath;
   final DwarfContainer? container;
   final DwarfContainer? debuggingInfoContainer;
   final List<String>? debugMap;
 
   TestCase(
+    this.type,
     this.snapshotPath,
     this.container, {
     this.debuggingInfoContainer,
@@ -222,6 +244,7 @@ Future<void> checkCases(
       unstrippedObfuscateds.map((c) => c.debugMap!).toList(),
     );
   }
+  checkMachOSnapshots(unobfuscated, obfuscateds);
 }
 
 Future<void> checkTraces(
@@ -409,6 +432,34 @@ void checkDebugMaps(List<String> expected, List<List<String>> cases) {
         // Check line equality for anything not already covered.
         Expect.stringEquals(expectedLine, gotLine);
       }
+    }
+  }
+}
+
+// Checks for MachO snapshots (not separate debugging information).
+void checkMachOSnapshots(TestCase unobfuscated, List<TestCase> obfuscateds) {
+  checkMachOSnapshot(unobfuscated);
+  obfuscateds.forEach(checkMachOSnapshot);
+}
+
+void checkMachOSnapshot(TestCase testCase) {
+  // The checks below are only for snapshots, not for debugging information.
+  final snapshot = testCase.container;
+  if (snapshot is! macho.MachO) return;
+  final buildVersion = snapshot
+      .commandsWhereType<macho.BuildVersionCommand>()
+      .singleOrNull;
+  final expectedPlatform = Platform.isMacOS
+      ? macho.Platform.PLATFORM_MACOS
+      : Platform.isIOS
+      ? macho.Platform.PLATFORM_IOS
+      : null;
+  Expect.equals(expectedPlatform, buildVersion?.platform);
+  if (testCase.type == SnapshotType.machoDylib) {
+    Expect.equals(expectedVersion, buildVersion?.minOS);
+    Expect.equals(expectedVersion, buildVersion?.sdk);
+    if (buildVersion != null) {
+      Expect.isEmpty(buildVersion.toolVersions);
     }
   }
 }

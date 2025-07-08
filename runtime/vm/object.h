@@ -5235,6 +5235,8 @@ class Library : public Object {
   void AddExport(const Namespace& ns) const;
 
   void AddMetadata(const Object& declaration, intptr_t kernel_offset) const;
+  void AddMetadata(const Object& declaration,
+                   const Object& metadata_value) const;
   ObjectPtr GetMetadata(const Object& declaration) const;
 
 #if !defined(DART_PRECOMPILED_RUNTIME)

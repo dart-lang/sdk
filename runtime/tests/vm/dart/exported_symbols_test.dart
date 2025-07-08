@@ -231,6 +231,7 @@ main() {
     "Dart_ListSetAt",
     "Dart_LoadingUnitLibraryUris",
     "Dart_LoadLibrary",
+    "Dart_LoadLibraryFromBytecode",
     "Dart_LoadLibraryFromKernel",
     "Dart_LoadScriptFromBytecode",
     "Dart_LoadScriptFromKernel",

@@ -456,7 +456,9 @@ Dart_Handle TestCase::LoadTestLibrary(const char* lib_uri,
       kernel_buffer_size, const_cast<uint8_t*>(kernel_buffer),
       kernel_buffer_size, MallocFinalizer);
   EXPECT_VALID(td);
-  Dart_Handle lib = Dart_LoadLibrary(td);
+  Dart_Handle lib = Dart_IsBytecode(kernel_buffer, kernel_buffer_size)
+                        ? Dart_LoadLibraryFromBytecode(td)
+                        : Dart_LoadLibrary(td);
   EXPECT_VALID(lib);
 
   // TODO(32618): Kernel doesn't correctly represent the root library.
@@ -495,7 +497,9 @@ Dart_Handle TestCase::LoadTestScriptWithDFE(int sourcefiles_count,
       kernel_buffer_size, const_cast<uint8_t*>(kernel_buffer),
       kernel_buffer_size, MallocFinalizer);
   EXPECT_VALID(td);
-  Dart_Handle lib = Dart_LoadLibrary(td);
+  Dart_Handle lib = Dart_IsBytecode(kernel_buffer, kernel_buffer_size)
+                        ? Dart_LoadLibraryFromBytecode(td)
+                        : Dart_LoadLibrary(td);
   EXPECT_VALID(lib);
 
   // BOGUS: Kernel doesn't correctly represent the root library.
