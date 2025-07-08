@@ -126,26 +126,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitAugmentedExpression(AugmentedExpression node) {
-    _sink.writeln('AugmentedExpression');
-    _sink.withIndent(() {
-      _writeNamedChildEntities(node);
-      _writeFragment('fragment', node.fragment);
-      _writeType('staticType', node.staticType);
-    });
-  }
-
-  @override
-  void visitAugmentedInvocation(AugmentedInvocation node) {
-    _sink.writeln('AugmentedInvocation');
-    _sink.withIndent(() {
-      _writeNamedChildEntities(node);
-      _writeFragment('fragment', node.fragment);
-      _writeType('staticType', node.staticType);
-    });
-  }
-
-  @override
   void visitAwaitExpression(AwaitExpression node) {
     _sink.writeln('AwaitExpression');
     _sink.withIndent(() {
@@ -458,21 +438,23 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitDotShorthandConstructorInvocation(
-    DotShorthandConstructorInvocation node,
+    covariant DotShorthandConstructorInvocationImpl node,
   ) {
     _sink.writeln('DotShorthandConstructorInvocation');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
+      _sink.writelnWithIndent('isDotShorthand: ${node.isDotShorthand}');
       _writeParameterElement(node);
       _writeType('staticType', node.staticType);
     });
   }
 
   @override
-  void visitDotShorthandInvocation(DotShorthandInvocation node) {
+  void visitDotShorthandInvocation(covariant DotShorthandInvocationImpl node) {
     _sink.writeln('DotShorthandInvocation');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
+      _sink.writelnWithIndent('isDotShorthand: ${node.isDotShorthand}');
       _writeParameterElement(node);
       _writeType('staticInvokeType', node.staticInvokeType);
       _writeType('staticType', node.staticType);
@@ -481,10 +463,13 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
+  void visitDotShorthandPropertyAccess(
+    covariant DotShorthandPropertyAccessImpl node,
+  ) {
     _sink.writeln('DotShorthandPropertyAccess');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
+      _sink.writelnWithIndent('isDotShorthand: ${node.isDotShorthand}');
       _writeParameterElement(node);
       _writeType('staticType', node.staticType);
     });

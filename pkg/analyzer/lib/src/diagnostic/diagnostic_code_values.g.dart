@@ -696,7 +696,6 @@ const List<DiagnosticCode> diagnosticCodeValues = [
   ParserErrorCode.COVARIANT_AND_STATIC,
   ParserErrorCode.COVARIANT_CONSTRUCTOR,
   ParserErrorCode.COVARIANT_MEMBER,
-  ParserErrorCode.DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION,
   ParserErrorCode.DEFAULT_IN_SWITCH_EXPRESSION,
   ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE,
   ParserErrorCode.DEFERRED_AFTER_PREFIX,

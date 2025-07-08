@@ -11,7 +11,6 @@ import 'package:args/args.dart';
 import 'package:path/path.dart' as path;
 
 import 'configuration.dart';
-import 'deflake_info.dart';
 import 'path.dart';
 import 'repository.dart';
 import 'test_configurations.dart';
@@ -627,17 +626,12 @@ has been specified on the command line.''')
 
     void addConfiguration(Configuration innerConfiguration,
         [String? namedConfiguration]) {
-
-      final (testList, deflakeInfoMap) = parseTestList(
-          data["test-list-contents"] as List<String>?);
-
       var configuration = TestConfiguration(
           configuration: innerConfiguration,
           progress: progress,
           selectors: _expandSelectors(data),
           build: data["build"] as bool,
-          testList: testList,
-          deflakeInfoMap: deflakeInfoMap ?? const {},
+          testList: data["test-list-contents"] as List<String>?,
           repeat: int.parse(data["repeat"] as String),
           batch: !(data["no-batch"] as bool),
           copyCoreDumps: data["copy-coredumps"] as bool,
@@ -1015,16 +1009,3 @@ final Map<String, String> sanitizerEnvironmentVariables = (() {
 
   return environment;
 })();
-
-(List<String>?, Map<String, DeflakeInfo>?) parseTestList(List<String>? raw) {
-  final isJson = raw != null && raw.isNotEmpty && raw[0].startsWith('{');
-  if (!isJson) return (raw, null);
-  final deflakes = <DeflakeInfo>[
-    for (var line in raw)
-        DeflakeInfo.fromJson(jsonDecode(line) as Map<dynamic, dynamic>),
-  ];
-  return (
-    [ for (var i in deflakes) i.name ],
-    { for (var i in deflakes) i.name: i },
-  );
-}

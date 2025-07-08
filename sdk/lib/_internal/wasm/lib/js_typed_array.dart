@@ -4,24 +4,50 @@
 
 part of dart._js_types;
 
-/// A JS `ArrayBuffer`.
+/// Container class for constants that represent the possible types of a
+/// [WasmExternRef] that can be passed to [JSArrayBufferImpl].
+///
+/// Constants are preferred over enums for performance.
+abstract final class _ArrayBufferType {
+  static const int arrayBuffer = 0;
+  static const int sharedArrayBuffer = 1;
+  static const int unknown = 2;
+}
+
+/// A JS `ArrayBuffer` or `SharedArrayBuffer`.
 final class JSArrayBufferImpl implements ByteBuffer {
-  /// `externref` of a JS `ArrayBuffer`.
+  /// `externref` of a JS `ArrayBuffer` or `SharedArrayBuffer`.
   final WasmExternRef? _ref;
 
   final bool _immutable;
 
-  static bool _checkRefType(WasmExternRef? ref) =>
-      js.JS<bool>('o => o instanceof ArrayBuffer', ref);
+  late int _refType = _getRefType(_ref);
+
+  static int _getRefType(WasmExternRef? _ref) =>
+      // Feature check for `SharedArrayBuffer` before doing a type-check.
+      js.JS<WasmI32>('''o => {
+          if (o instanceof ArrayBuffer) return 0;
+          if (globalThis.SharedArrayBuffer !== undefined &&
+              o instanceof SharedArrayBuffer) {
+            return 1;
+          }
+          return 2;
+        }''', _ref).toIntUnsigned();
+
+  bool get isArrayBuffer => _refType == _ArrayBufferType.arrayBuffer;
+
+  bool get isSharedArrayBuffer =>
+      _refType == _ArrayBufferType.sharedArrayBuffer;
 
   JSArrayBufferImpl.fromRefUnchecked(this._ref) : _immutable = false {
-    assert(_checkRefType(_ref));
+    assert(isArrayBuffer || isSharedArrayBuffer);
   }
 
   JSArrayBufferImpl.fromRefImmutableUnchecked(this._ref) : _immutable = true;
 
   factory JSArrayBufferImpl.fromRef(WasmExternRef? ref) {
-    if (!_checkRefType(ref)) {
+    final refType = _getRefType(ref);
+    if (refType == _ArrayBufferType.unknown) {
       return _throwConversionFailureError("ByteBuffer");
     }
     return JSArrayBufferImpl.fromRefUnchecked(ref);
@@ -30,9 +56,13 @@ final class JSArrayBufferImpl implements ByteBuffer {
   @pragma("wasm:prefer-inline")
   WasmExternRef? get toExternRef => _ref;
 
-  /// Get a JS `DataView` of this `ArrayBuffer`.
+  /// Get a JS `DataView` of this `ArrayBuffer` or `SharedArrayBuffer`.
   WasmExternRef? view(int offsetInBytes, int? length) =>
-      _newDataViewFromArrayBuffer(toExternRef, offsetInBytes, length);
+      _newDataViewFromArrayBufferOrSharedArrayBuffer(
+        toExternRef,
+        offsetInBytes,
+        length,
+      );
 
   WasmExternRef? cloneAsDataView(int offsetInBytes, int? lengthInBytes) {
     lengthInBytes ??= this.lengthInBytes;
@@ -279,7 +309,11 @@ final class JSDataViewImpl implements ByteData {
     int offsetInBytes,
     int? length,
   ) => JSDataViewImpl.fromRefUnchecked(
-    _newDataViewFromArrayBuffer(buffer.toExternRef, offsetInBytes, length),
+    _newDataViewFromArrayBufferOrSharedArrayBuffer(
+      buffer.toExternRef,
+      offsetInBytes,
+      length,
+    ),
   );
 
   @pragma("wasm:prefer-inline")
@@ -2601,7 +2635,7 @@ int _dataViewByteLength(WasmExternRef? ref) => js
     .toInt();
 
 @pragma("wasm:prefer-inline")
-WasmExternRef? _newDataViewFromArrayBuffer(
+WasmExternRef? _newDataViewFromArrayBufferOrSharedArrayBuffer(
   WasmExternRef? bufferRef,
   int offsetInBytes,
   int? length,

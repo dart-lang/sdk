@@ -241,13 +241,19 @@ extension ByteBufferToJSArrayBuffer on ByteBuffer {
   @patch
   JSArrayBuffer get toJS {
     final t = this;
-    return JSArrayBuffer._(
-      JSValue(
-        t is js_types.JSArrayBufferImpl
-            ? t.toExternRef
-            : jsArrayBufferFromDartByteBuffer(t),
-      ),
-    );
+    if (t is js_types.JSArrayBufferImpl) {
+      if (!t.isArrayBuffer) {
+        assert(t.isSharedArrayBuffer);
+        throw StateError(
+          "ByteBuffer is a wrapped 'SharedArrayBuffer'. Convert the typed list "
+          "that wrapped this buffer to a JS typed array instead to access the "
+          "`SharedArrayBuffer` from that JS typed array.",
+        );
+      }
+      return JSArrayBuffer._(JSValue(t.toExternRef));
+    } else {
+      return JSArrayBuffer._(JSValue(jsArrayBufferFromDartByteBuffer(t)));
+    }
   }
 }
 

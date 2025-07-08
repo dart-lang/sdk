@@ -1064,7 +1064,9 @@ class NativeClassTag {
 
   factory NativeClassTag(String tagText) {
     List<String> tags = tagText.split(',');
-    List<String> names = tags.where((s) => !s.startsWith('!')).toList();
+    List<String> names = tags
+        .where((s) => s.isNotEmpty && !s.startsWith('!'))
+        .toList();
     bool isNonLeaf = tags.contains('!nonleaf');
     return NativeClassTag.internal(names, isNonLeaf);
   }

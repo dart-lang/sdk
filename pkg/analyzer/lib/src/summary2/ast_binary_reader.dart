@@ -39,10 +39,6 @@ class AstBinaryReader {
         return _readAssertInitializer();
       case Tag.AssignmentExpression:
         return _readAssignmentExpression();
-      case Tag.AugmentedExpression:
-        return _readAugmentedExpression();
-      case Tag.AugmentedInvocation:
-        return _readAugmentedInvocation();
       case Tag.AwaitExpression:
         return _readAwaitExpression();
       case Tag.BinaryExpression:
@@ -283,29 +279,6 @@ class AstBinaryReader {
     return node;
   }
 
-  AugmentedExpression _readAugmentedExpression() {
-    var node = AugmentedExpressionImpl(augmentedKeyword: Tokens.augmented());
-    // TODO(scheglov): restore when the feature is fully specified
-    // node.fragment = _reader.readFragmentOrMember() as FragmentImpl?;
-    _readExpressionResolution(node);
-    return node;
-  }
-
-  AugmentedInvocation _readAugmentedInvocation() {
-    var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
-    var arguments = readNode() as ArgumentListImpl;
-
-    var node = AugmentedInvocationImpl(
-      augmentedKeyword: Tokens.augmented(),
-      typeArguments: typeArguments,
-      arguments: arguments,
-    );
-    // TODO(scheglov): restore when the feature is fully specified
-    // node.fragment = _reader.readFragmentOrMember() as ExecutableFragmentImpl?;
-    _readExpressionResolution(node);
-    return node;
-  }
-
   AwaitExpression _readAwaitExpression() {
     var expression = readNode() as ExpressionImpl;
     return AwaitExpressionImpl(
@@ -478,13 +451,14 @@ class AstBinaryReader {
       constructorName: constructorName,
       typeArguments: null,
       argumentList: argumentList,
-    );
+    )..isDotShorthand = AstBinaryFlags.isDotShorthand(flags);
     _readExpressionResolution(node);
     _resolveNamedExpressions(node.constructorName.element, node.argumentList);
     return node;
   }
 
   DotShorthandInvocation _readDotShorthandInvocation() {
+    var flags = _readByte();
     var memberName = readNode() as SimpleIdentifierImpl;
     var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
     var arguments = readNode() as ArgumentListImpl;
@@ -493,17 +467,18 @@ class AstBinaryReader {
       memberName: memberName,
       typeArguments: typeArguments,
       argumentList: arguments,
-    );
+    )..isDotShorthand = AstBinaryFlags.isDotShorthand(flags);
     _readInvocationExpression(node);
     return node;
   }
 
   DotShorthandPropertyAccess _readDotShorthandPropertyAccess() {
+    var flags = _readByte();
     var propertyName = readNode() as SimpleIdentifierImpl;
     var node = DotShorthandPropertyAccessImpl(
       period: Tokens.period(),
       propertyName: propertyName,
-    );
+    )..isDotShorthand = AstBinaryFlags.isDotShorthand(flags);
     _readExpressionResolution(node);
     return node;
   }

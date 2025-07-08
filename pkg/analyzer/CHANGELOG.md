@@ -6,6 +6,8 @@
 * Remove `ElementLocation` class; its values are not returned anymore.
 * Remove deprecated `AnalysisContext.analysisOptions`.
 * Remove deprecated `PromotableElement` and `PromotableFragment`.
+* Remove deprecated `LocalVariableElement.hasInitializer`.
+* Remove deprecated `LocalVariableFragment.hasInitializer`.
 * `LibraryFragment` is not `Annotatable` anymore.
 * Stop implementing `ConstantEvaluationTarget` by `ElementAnnotation`.
   This is an internal interface that should not have been exposed.

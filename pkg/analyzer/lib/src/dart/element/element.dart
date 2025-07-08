@@ -762,9 +762,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  AnalysisContext get context => firstFragment.context;
-
-  @override
   String get displayName {
     var className = enclosingElement.name3 ?? '<null>';
     var name = name3 ?? '<null>';
@@ -825,7 +822,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  Source? get librarySource => firstFragment.librarySource;
+  LibraryFragmentImpl get libraryFragment => firstFragment.libraryFragment;
 
   @override
   Element get nonSynthetic {
@@ -850,9 +847,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
   InterfaceTypeImpl get returnType {
     return firstFragment.returnType;
   }
-
-  @override
-  Source? get source => firstFragment.source;
 
   @override
   ConstructorElementMixin2? get superConstructor2 {
@@ -1501,8 +1495,8 @@ class ElementAnnotationImpl
   @override
   Element? element2;
 
-  /// The compilation unit in which this annotation appears.
-  LibraryFragmentImpl compilationUnit;
+  @override
+  LibraryFragmentImpl libraryFragment;
 
   /// The AST of the annotation itself, cloned from the resolved AST for the
   /// source code.
@@ -1522,9 +1516,9 @@ class ElementAnnotationImpl
   // annotations having a valid result as well as unresolved errors.
   List<Diagnostic>? additionalErrors;
 
-  /// Initialize a newly created annotation. The given [compilationUnit] is the
+  /// Initialize a newly created annotation. The given [libraryFragment] is the
   /// compilation unit in which the annotation appears.
-  ElementAnnotationImpl(this.compilationUnit);
+  ElementAnnotationImpl(this.libraryFragment);
 
   @override
   List<Diagnostic> get constantEvaluationErrors {
@@ -1535,7 +1529,7 @@ class ElementAnnotationImpl
       // errors because this result contains the most relevant error.
       return [
         Diagnostic.tmp(
-          source: source,
+          source: libraryFragment.source,
           offset: evaluationResult.offset,
           length: evaluationResult.length,
           diagnosticCode: evaluationResult.diagnosticCode,
@@ -1546,9 +1540,6 @@ class ElementAnnotationImpl
     }
     return additionalErrors ?? const <Diagnostic>[];
   }
-
-  @override
-  AnalysisContext get context => compilationUnit.library.context;
 
   @override
   bool get isAlwaysThrows => _isPackageMetaGetter(_alwaysThrowsVariableName);
@@ -1707,28 +1698,13 @@ class ElementAnnotationImpl
   );
 
   @override
-  LibraryElementImpl get library => compilationUnit.library;
-
-  @Deprecated('Use library instead')
-  @override
-  LibraryElementImpl get library2 => compilationUnit.library;
-
-  @override
-  LibraryFragmentImpl get libraryFragment => compilationUnit;
-
-  @override
-  Source get librarySource => compilationUnit.librarySource;
-
-  @override
-  Source get source => compilationUnit.source;
-
-  @override
   DartObject? computeConstantValue() {
     if (evaluationResult == null) {
+      var library = libraryFragment.element;
       computeConstants(
-        declaredVariables: context.declaredVariables,
+        declaredVariables: library.context.declaredVariables,
         constants: [this],
-        featureSet: compilationUnit.library.featureSet,
+        featureSet: library.featureSet,
         configuration: ConstantEvaluationConfiguration(),
       );
     }
@@ -2605,13 +2581,16 @@ class FieldElementImpl extends PropertyInducingElementImpl
     with
         FragmentedAnnotatableElementMixin<FieldFragmentImpl>,
         FragmentedElementMixin<FieldFragmentImpl>,
-        _HasSinceSdkVersionMixin
+        _HasSinceSdkVersionMixin,
+        DeferredResolutionReadingMixin
     implements FieldElement2OrMember {
   @override
   final Reference reference;
 
   @override
   final FieldFragmentImpl firstFragment;
+
+  TypeImpl? _type;
 
   FieldElementImpl({required this.reference, required this.firstFragment}) {
     reference.element = this;
@@ -2696,7 +2675,41 @@ class FieldElementImpl extends PropertyInducingElementImpl
   String? get name3 => firstFragment.name2;
 
   @override
-  TypeImpl get type => firstFragment.type;
+  TypeImpl get type {
+    _ensureReadResolution();
+    if (_type != null) return _type!;
+
+    // We must be linking, and the type has not been set yet.
+    var type = firstFragment.typeInference?.perform();
+    type ??= InvalidTypeImpl.instance;
+    _type = type;
+    firstFragment._type = type;
+    firstFragment.shouldUseTypeForInitializerInference = false;
+
+    // TODO(scheglov): We repeat this code.
+    var element = this;
+    if (element.getter2 case var getterElement?) {
+      getterElement.returnType = type;
+      getterElement.firstFragment.returnType = type;
+    }
+    if (element.setter2 case var setterElement?) {
+      if (setterElement.isSynthetic) {
+        setterElement.returnType = VoidTypeImpl.instance;
+        setterElement.firstFragment.returnType = VoidTypeImpl.instance;
+        (setterElement.formalParameters.single as FormalParameterElementImpl)
+            .type = type;
+        (setterElement.formalParameters.single as FormalParameterElementImpl)
+            .firstFragment
+            .type = type;
+      }
+    }
+
+    return _type!;
+  }
+
+  set type(TypeImpl value) {
+    _type = value;
+  }
 
   @override
   T? accept<T>(ElementVisitor2<T> visitor) {
@@ -6823,9 +6836,6 @@ class LocalVariableElementImpl extends PromotableElementImpl
   bool get hasImplicitType => _wrappedElement.hasImplicitType;
 
   @override
-  bool get hasInitializer => _wrappedElement.hasInitializer;
-
-  @override
   bool get isConst => _wrappedElement.isConst;
 
   @override
@@ -6900,9 +6910,6 @@ class LocalVariableFragmentImpl extends NonParameterVariableFragmentImpl
 
   @override
   MetadataImpl metadata = MetadataImpl(const []);
-
-  @override
-  late bool hasInitializer;
 
   /// Initialize a newly created method element to have the given [name] and
   /// [offset].
@@ -10001,18 +10008,11 @@ abstract class VariableElementImpl extends ElementImpl
   }
 
   @override
-  AnalysisContext get context {
-    return (firstFragment as VariableFragmentImpl).context;
-  }
-
-  @override
   bool get isConstantEvaluated => evaluationResult != null;
 
   @override
-  Source? get librarySource => library!.firstFragment.source;
-
-  @override
-  Source? get source => (firstFragment as VariableFragmentImpl).source;
+  LibraryFragmentImpl? get libraryFragment =>
+      firstFragment.libraryFragment as LibraryFragmentImpl?;
 
   /// Return a representation of the value of this variable, forcing the value
   /// to be computed if it had not previously been computed, or `null` if either
@@ -10021,13 +10021,13 @@ abstract class VariableElementImpl extends ElementImpl
   @override
   DartObject? computeConstantValue() {
     if (evaluationResult == null) {
-      var library = this.library;
+      var library = libraryFragment?.element;
       // TODO(scheglov): https://github.com/dart-lang/sdk/issues/47915
       if (library == null) {
         return null;
       }
       computeConstants(
-        declaredVariables: context.declaredVariables,
+        declaredVariables: library.context.declaredVariables,
         constants: [this],
         featureSet: library.featureSet,
         configuration: ConstantEvaluationConfiguration(),

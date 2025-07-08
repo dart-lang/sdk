@@ -180,8 +180,9 @@ class InstanceMemberInferrer {
         accessor.returnType = returnType;
         accessor.element.returnType = returnType;
         // TODO(scheglov): store type in FieldElementImpl itself
-        (accessor.element.variable3 as FieldElementImpl).firstFragment.type =
-            returnType;
+        var fieldElement = accessor.element.variable3 as FieldElementImpl;
+        fieldElement.type = returnType;
+        fieldElement.firstFragment.type = returnType;
         return;
       }
 
@@ -194,8 +195,9 @@ class InstanceMemberInferrer {
         accessor.returnType = returnType;
         accessor.element.returnType = returnType;
         // TODO(scheglov): store type in FieldElementImpl itself
-        (accessor.element.variable3 as FieldElementImpl).firstFragment.type =
-            returnType;
+        var fieldElement = accessor.element.variable3 as FieldElementImpl;
+        fieldElement.type = returnType;
+        fieldElement.firstFragment.type = returnType;
         return;
       }
 
@@ -222,7 +224,10 @@ class InstanceMemberInferrer {
       // to be the return type of the combined member signature of said getter
       // in the direct superinterfaces.
       if (overriddenGetters.isNotEmpty && overriddenSetters.isEmpty) {
-        parameter.type = combinedGetterType();
+        var valueType = combinedGetterType();
+        parameter.type = valueType;
+        var fieldElement = accessor.element.variable3 as FieldElementImpl;
+        fieldElement.type = valueType;
         return;
       }
 
@@ -235,7 +240,10 @@ class InstanceMemberInferrer {
       // setter and a getter is inferred to be the parameter type of the
       // combined member signature of said setter in the direct superinterfaces.
       if (overriddenSetters.isNotEmpty) {
-        parameter.type = combinedSetterType();
+        var valueType = combinedSetterType();
+        parameter.type = valueType;
+        var fieldElement = accessor.element.variable3 as FieldElementImpl;
+        fieldElement.type = valueType;
         return;
       }
 
@@ -385,7 +393,7 @@ class InstanceMemberInferrer {
         if (parameter is FieldFormalParameterFragmentImpl) {
           var field = parameter.field;
           if (field != null) {
-            parameter.type = field.type;
+            parameter.type = field.element.type;
           }
         } else if (parameter is SuperFormalParameterFragmentImpl) {
           var superParameter = parameter.element.superConstructorParameter2;
@@ -774,6 +782,7 @@ class InstanceMemberInferrer {
 
   static void _setFieldType(FieldFragmentImpl field, TypeImpl type) {
     field.type = type;
+    field.element.type = type;
     // TODO(scheglov): We repeat this code.
     field.element.getter2?.returnType = type;
     field.element.getter2?.firstFragment.returnType = type;

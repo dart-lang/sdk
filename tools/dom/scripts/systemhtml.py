@@ -658,6 +658,8 @@ class HtmlDartInterfaceGenerator(object):
 
     def GenerateInterface(self):
         interface_name = self._interface_type_info.interface_name()
+        if (self._renamer.ShouldNotGenerateInterface(self._interface)):
+            return
 
         implementation_name = self._interface_type_info.implementation_name()
         self._library_emitter.AddTypeEntry(

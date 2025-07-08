@@ -92,24 +92,6 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitAugmentedExpression(covariant AugmentedExpressionImpl node) {
-    _writeByte(Tag.AugmentedExpression);
-    // TODO(scheglov): restore when the feature is fully specified
-    // _sink.writeFragmentOrMember(node.fragment);
-    _storeExpression(node);
-  }
-
-  @override
-  void visitAugmentedInvocation(covariant AugmentedInvocationImpl node) {
-    _writeByte(Tag.AugmentedInvocation);
-    _writeOptionalNode(node.typeArguments);
-    _writeNode(node.arguments);
-    // TODO(scheglov): restore when the feature is fully specified
-    // _sink.writeFragmentOrMember(node.fragment);
-    _storeExpression(node);
-  }
-
-  @override
   void visitAwaitExpression(AwaitExpression node) {
     _writeByte(Tag.AwaitExpression);
 
@@ -228,11 +210,14 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
 
   @override
   void visitDotShorthandConstructorInvocation(
-    DotShorthandConstructorInvocation node,
+    covariant DotShorthandConstructorInvocationImpl node,
   ) {
     _writeByte(Tag.DotShorthandConstructorInvocation);
     _writeByte(
-      AstBinaryFlags.encode(isConst: node.constKeyword?.type == Keyword.CONST),
+      AstBinaryFlags.encode(
+        isConst: node.constKeyword?.type == Keyword.CONST,
+        isDotShorthand: node.isDotShorthand,
+      ),
     );
     _writeNode(node.constructorName);
     _writeNode(node.argumentList);
@@ -240,15 +225,19 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitDotShorthandInvocation(DotShorthandInvocation node) {
+  void visitDotShorthandInvocation(covariant DotShorthandInvocationImpl node) {
     _writeByte(Tag.DotShorthandInvocation);
+    _writeByte(AstBinaryFlags.encode(isDotShorthand: node.isDotShorthand));
     _writeNode(node.memberName);
     _storeInvocationExpression(node);
   }
 
   @override
-  void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
+  void visitDotShorthandPropertyAccess(
+    covariant DotShorthandPropertyAccessImpl node,
+  ) {
     _writeByte(Tag.DotShorthandPropertyAccess);
+    _writeByte(AstBinaryFlags.encode(isDotShorthand: node.isDotShorthand));
     _writeNode(node.propertyName);
     _storeExpression(node);
   }

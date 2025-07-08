@@ -172,8 +172,6 @@ class AstBuilder extends StackListener {
 
   final LineInfo _lineInfo;
 
-  Token? _enclosingDeclarationAugmentToken;
-
   AstBuilder(
     DiagnosticReporter? errorReporter,
     this.fileUri,
@@ -413,33 +411,6 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void beginFields(
-    DeclarationKind declarationKind,
-    Token? abstractToken,
-    Token? augmentToken,
-    Token? externalToken,
-    Token? staticToken,
-    Token? covariantToken,
-    Token? lateToken,
-    Token? varFinalOrConst,
-    Token lastConsumed,
-  ) {
-    _enclosingDeclarationAugmentToken = augmentToken;
-
-    super.beginFields(
-      declarationKind,
-      abstractToken,
-      augmentToken,
-      externalToken,
-      staticToken,
-      covariantToken,
-      lateToken,
-      varFinalOrConst,
-      lastConsumed,
-    );
-  }
-
-  @override
   void beginFormalParameter(
     Token token,
     MemberKind kind,
@@ -498,7 +469,6 @@ class AstBuilder extends StackListener {
     if (augmentToken != null) {
       assert(augmentToken.isModifier);
       modifiers.augmentKeyword = augmentToken;
-      _enclosingDeclarationAugmentToken = augmentToken;
     }
     if (externalToken != null) {
       assert(externalToken.isModifier);
@@ -651,7 +621,6 @@ class AstBuilder extends StackListener {
     Token? augmentToken,
     Token? externalToken,
   ) {
-    _enclosingDeclarationAugmentToken = augmentToken;
     push(
       _Modifiers()
         ..augmentKeyword = augmentToken
@@ -954,14 +923,6 @@ class AstBuilder extends StackListener {
   ) {
     var receiver = pop() as ExpressionImpl;
     switch (receiver) {
-      case AugmentedExpressionImpl():
-        push(
-          AugmentedInvocationImpl(
-            augmentedKeyword: receiver.augmentedKeyword,
-            typeArguments: typeArguments,
-            arguments: arguments.argumentList,
-          ),
-        );
       case SimpleIdentifierImpl():
         arguments.methodName = receiver;
         if (typeArguments != null) {
@@ -1298,7 +1259,6 @@ class AstBuilder extends StackListener {
     _classLikeBuilder?.members.add(
       _buildConstructorDeclaration(beginToken: beginToken, endToken: endToken),
     );
-    _enclosingDeclarationAugmentToken = null;
   }
 
   @override
@@ -1398,7 +1358,6 @@ class AstBuilder extends StackListener {
         semicolon: semicolon,
       ),
     );
-    _enclosingDeclarationAugmentToken = null;
   }
 
   @override
@@ -1482,7 +1441,6 @@ class AstBuilder extends StackListener {
         body: body,
       ),
     );
-    _enclosingDeclarationAugmentToken = null;
   }
 
   @override
@@ -1515,8 +1473,6 @@ class AstBuilder extends StackListener {
   @override
   void endCompilationUnit(int count, Token endToken) {
     debugEvent("CompilationUnit");
-
-    assert(_enclosingDeclarationAugmentToken == null);
 
     var beginToken = pop() as Token;
     checkEmpty(endToken.charOffset);
@@ -3645,7 +3601,6 @@ class AstBuilder extends StackListener {
         semicolon: semicolon,
       ),
     );
-    _enclosingDeclarationAugmentToken = null;
   }
 
   @override
@@ -3685,7 +3640,6 @@ class AstBuilder extends StackListener {
         ),
       ),
     );
-    _enclosingDeclarationAugmentToken = null;
   }
 
   @override
@@ -4304,15 +4258,6 @@ class AstBuilder extends StackListener {
     assert(variable.lexeme != '_');
     var type = pop() as TypeAnnotationImpl?;
 
-    if (_enclosingDeclarationAugmentToken != null) {
-      if (variable.lexeme == 'augmented') {
-        diagnosticReporter.diagnosticReporter?.atToken(
-          variable,
-          ParserErrorCode.DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION,
-        );
-      }
-    }
-
     push(
       DeclaredVariablePatternImpl(keyword: keyword, type: type, name: variable),
     );
@@ -4788,20 +4733,6 @@ class AstBuilder extends StackListener {
     if (context.inSymbol) {
       push(token);
       return;
-    }
-
-    if (_enclosingDeclarationAugmentToken != null) {
-      if (token.lexeme == 'augmented') {
-        if (context.inDeclaration) {
-          diagnosticReporter.diagnosticReporter?.atToken(
-            token,
-            ParserErrorCode.DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION,
-          );
-        } else {
-          push(AugmentedExpressionImpl(augmentedKeyword: token));
-          return;
-        }
-      }
     }
 
     var identifier = SimpleIdentifierImpl(token: token);
@@ -5306,18 +5237,7 @@ class AstBuilder extends StackListener {
     debugEvent("NamedArgument");
 
     var expression = pop() as ExpressionImpl;
-
-    SimpleIdentifierImpl name;
-    var nameCandidate = pop();
-    if (nameCandidate is AugmentedExpressionImpl) {
-      diagnosticReporter.diagnosticReporter?.atNode(
-        nameCandidate,
-        ParserErrorCode.INVALID_USE_OF_IDENTIFIER_AUGMENTED,
-      );
-      name = SimpleIdentifierImpl(token: nameCandidate.augmentedKeyword);
-    } else {
-      name = nameCandidate as SimpleIdentifierImpl;
-    }
+    var name = pop() as SimpleIdentifierImpl;
 
     push(
       NamedExpressionImpl(
@@ -5922,18 +5842,7 @@ class AstBuilder extends StackListener {
     debugEvent("Type");
 
     var arguments = pop() as TypeArgumentListImpl?;
-
-    IdentifierImpl name;
-    var nameCandidate = pop();
-    if (nameCandidate is AugmentedExpressionImpl) {
-      diagnosticReporter.diagnosticReporter?.atNode(
-        nameCandidate,
-        ParserErrorCode.INVALID_USE_OF_IDENTIFIER_AUGMENTED,
-      );
-      name = SimpleIdentifierImpl(token: nameCandidate.augmentedKeyword);
-    } else {
-      name = nameCandidate as IdentifierImpl;
-    }
+    var name = pop() as IdentifierImpl;
 
     push(name.toNamedType(typeArguments: arguments, question: question));
   }

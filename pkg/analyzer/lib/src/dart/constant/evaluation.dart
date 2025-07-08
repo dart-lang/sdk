@@ -13,7 +13,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
@@ -86,14 +85,15 @@ class ConstantEvaluationEngine {
       constant = element.declaration as ConstantEvaluationTarget;
     }
 
-    var library = constant.library as LibraryElementImpl;
+    var libraryFragment = constant.libraryFragment!;
+    var library = libraryFragment.element;
     if (constant is FormalParameterElementImpl) {
       var defaultValue = constant.constantInitializer2?.expression;
       if (defaultValue != null) {
         var diagnosticListener = RecordingDiagnosticListener();
         var diagnosticReporter = DiagnosticReporter(
           diagnosticListener,
-          constant.source!,
+          libraryFragment.source,
         );
         var constantVisitor = ConstantVisitor(
           this,
@@ -110,7 +110,7 @@ class ConstantEvaluationEngine {
       if (constantInitializer != null) {
         var diagnosticReporter = DiagnosticReporter(
           RecordingDiagnosticListener(),
-          constant.source!,
+          libraryFragment.source,
         );
         var constantVisitor = ConstantVisitor(
           this,
@@ -194,7 +194,7 @@ class ConstantEvaluationEngine {
         var diagnosticListener = RecordingDiagnosticListener();
         var diagnosticReporter = DiagnosticReporter(
           diagnosticListener,
-          constant.source,
+          libraryFragment.source,
         );
         var constantVisitor = ConstantVisitor(
           this,
@@ -437,7 +437,7 @@ class ConstantEvaluationEngine {
     if (constant is VariableElementImpl) {
       DiagnosticReporter diagnosticReporter = DiagnosticReporter(
         RecordingDiagnosticListener(),
-        constant.source!,
+        constant.libraryFragment!.source,
       );
       // TODO(paulberry): It would be really nice if we could extract enough
       // information from the 'cycle' argument to provide the user with a
@@ -536,24 +536,11 @@ class ConstantEvaluationEngine {
 
 /// Interface for constant evaluation targets.
 abstract class ConstantEvaluationTarget {
-  /// Return the [AnalysisContext] which should be used to evaluate this
-  /// constant.
-  AnalysisContext get context;
-
   /// Return whether this constant is evaluated.
   bool get isConstantEvaluated;
 
-  /// The library with this constant.
-  LibraryElement? get library;
-
-  @Deprecated('Use library instead')
-  LibraryElement? get library2;
-
-  /// The library containing this constant.
-  Source? get librarySource;
-
-  /// The source associated with this constant.
-  Source? get source;
+  /// The library fragment with the first fragment of this constant.
+  LibraryFragmentImpl? get libraryFragment;
 }
 
 /// A visitor used to evaluate constant expressions to produce their

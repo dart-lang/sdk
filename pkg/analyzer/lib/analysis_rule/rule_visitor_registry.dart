@@ -33,10 +33,6 @@ abstract class RuleVisitorRegistry {
 
   void addAssignmentExpression(AbstractAnalysisRule rule, AstVisitor visitor);
 
-  void addAugmentedExpression(AbstractAnalysisRule rule, AstVisitor visitor);
-
-  void addAugmentedInvocation(AbstractAnalysisRule rule, AstVisitor visitor);
-
   void addAwaitExpression(AbstractAnalysisRule rule, AstVisitor visitor);
 
   void addBinaryExpression(AbstractAnalysisRule rule, AstVisitor visitor);

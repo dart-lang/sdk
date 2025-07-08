@@ -9,7 +9,6 @@ import 'as_expression_test.dart' as as_expression;
 import 'assignment_test.dart' as assignment;
 import 'ast_rewrite_test.dart' as ast_rewrite;
 import 'augmented_expression_test.dart' as augmented_expression;
-import 'augmented_invocation_test.dart' as augmented_invocation;
 import 'await_expression_test.dart' as await_expression;
 import 'binary_expression_test.dart' as binary_expression;
 import 'cascade_expression_resolution_test.dart'
@@ -130,7 +129,6 @@ main() {
     assignment.main();
     ast_rewrite.main();
     augmented_expression.main();
-    augmented_invocation.main();
     await_expression.main();
     binary_expression.main();
     cascade_expression_resolution_test.main();

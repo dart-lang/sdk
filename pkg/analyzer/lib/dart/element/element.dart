@@ -2779,9 +2779,6 @@ abstract class LocalVariableElement
 
   @override
   List<LocalVariableFragment> get fragments;
-
-  /// Whether the variable has an initializer at declaration.
-  bool get hasInitializer;
 }
 
 /// The portion of a [LocalVariableElement] contributed by a single
@@ -2792,9 +2789,6 @@ abstract class LocalVariableFragment
     implements VariableFragment, LocalFragment {
   @override
   LocalVariableElement get element;
-
-  /// Whether the variable has an initializer at declaration.
-  bool get hasInitializer;
 
   /// The offset of the name in this element.
   int get nameOffset;

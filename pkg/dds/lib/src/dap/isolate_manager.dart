@@ -1067,6 +1067,29 @@ class IsolateManager {
         clientBreakpoint.breakpoint.column == breakpoint.column);
   }
 
+  /// Converts local Google3 or SDK file paths to URIs VM can recognize.
+  ///
+  /// ```
+  /// sdk-path/lib/core/print.dart -> org-dartlang-sdk://sdk/lib/core/print.dart
+  /// google/*/google3/<path> -> google3://<path>
+  /// ```
+  ///
+  /// VM is capable of setting breakpoints using both original (`package`
+  /// scheme) URIs or their resolved variants - which means no convertion
+  /// is necessary if local path is the same as the resolved path known to the
+  /// VM.
+  ///
+  /// Google3 paths and Dart SDK paths however require special handling:
+  /// because in both cases resolved paths we given using *multi-root
+  /// filesystem* accessed via a special scheme (`google3` and
+  /// `org-dartlang-sdk` respectively) to hide local file layout from the
+  /// front-end.
+  Uri _fixSDKOrGoogle3Paths(Uri sourcePathUri) {
+    return _adapter.convertUriToOrgDartlangSdk(sourcePathUri) ??
+        _convertPathToGoogle3Uri(sourcePathUri) ??
+        sourcePathUri;
+  }
+
   /// Creates a breakpoint in [clientUri] for [thread] in the VM that
   /// corresponds to [clientBreakpoint] received from the client.
   Future<void> addBreakpoint(ClientBreakpoint clientBreakpoint,
@@ -1081,12 +1104,7 @@ class IsolateManager {
     try {
       // Some file URIs (like SDK sources) need to be converted to
       // appropriate internal URIs to be able to set breakpoints.
-      final vmUri = await thread.resolvePathToUri(Uri.parse(clientUri));
-
-      if (vmUri == null) {
-        return;
-      }
-
+      final vmUri = _fixSDKOrGoogle3Paths(Uri.parse(clientUri));
       final vmBp = await service.addBreakpointWithScriptUri(
           isolateId, vmUri.toString(), clientBreakpoint.breakpoint.line,
           column: clientBreakpoint.breakpoint.column);
@@ -1385,49 +1403,32 @@ class ThreadInfo with FileUtils {
     return _currentEvaluationZoneId;
   }
 
-  /// Resolves a source file path (or URI) into a URI for the VM.
+  /// Resolves a source file URI into a original `package://` or SDK URI.
   ///
-  /// sdk-path/lib/core/print.dart -> dart:core/print.dart
+  /// ```
+  /// sdk-path/lib/core/print.dart -> org-dartlang-sdk://sdk/lib/core/print.dart
   /// c:\foo\bar -> package:foo/bar
-  /// dart-macro+file:///c:/foo/bar -> dart-macro+package:foo/bar
+  /// ```
   ///
-  /// This is required so that when the user sets a breakpoint in an SDK source
-  /// (which they may have navigated to via the Analysis Server) we generate a
-  /// valid URI that the VM would create a breakpoint for.
-  ///
-  /// Because the VM supports using `file:` URIs in many places, we usually do
-  /// not need to convert file paths into `package:` URIs, however this will
-  /// be done if [forceResolveFileUris] is `true`.
-  Future<Uri?> resolvePathToUri(
-    Uri sourcePathUri, {
-    bool forceResolveFileUris = false,
-  }) async {
-    final sdkUri = _manager._adapter.convertUriToOrgDartlangSdk(sourcePathUri);
-    if (sdkUri != null) {
-      return sdkUri;
+  /// This helper is used when trying to find [vm.Script] by matching its
+  /// `uri`.
+  Future<Uri?> _convertToPackageOrSdkPath(Uri sourcePathUri) async {
+    final uri = _manager._fixSDKOrGoogle3Paths(sourcePathUri);
+    if (uri.isScheme('org-dartlang-sdk')) {
+      return uri; // No package path exists for SDK sources.
     }
-
-    final google3Uri = _convertPathToGoogle3Uri(sourcePathUri);
-    final uri = google3Uri ?? sourcePathUri;
-
-    // As an optimisation, we don't resolve file -> package URIs in many cases
-    // because the VM can set breakpoints for file: URIs anyway. However for
-    // G3 or if [forceResolveFileUris] is set, we will.
-    final performResolve = google3Uri != null || forceResolveFileUris;
 
     // TODO(dantup): Consider caching results for this like we do for
     //  resolveUriToPath (and then forceResolveFileUris can be removed and just
     //  always used).
-    final packageUriList = performResolve
-        ? await _manager._adapter.vmService
-            ?.lookupPackageUris(isolate.id!, [uri.toString()])
-        : null;
+    final packageUriList = await _manager._adapter.vmService
+        ?.lookupPackageUris(isolate.id!, [uri.toString()]);
     final packageUriString = packageUriList?.uris?.firstOrNull;
 
     if (packageUriString != null) {
       // Use package URI if we resolved something
       return Uri.parse(packageUriString);
-    } else if (google3Uri != null) {
+    } else if (uri.isScheme('google3')) {
       // If we failed to resolve and was a Google3 URI, return null
       return null;
     } else {
@@ -1614,28 +1615,6 @@ class ThreadInfo with FileUtils {
   /// that are round-tripped to the client.
   int storeData(Object data) => _manager.storeData(this, data);
 
-  Uri? _convertPathToGoogle3Uri(Uri input) {
-    // TODO(dantup): Do we need to handle non-file here? Eg. can we have
-    //  dart-macro+file:/// for a google3 path?
-    if (!input.isScheme('file')) {
-      return null;
-    }
-    final inputPath = input.toFilePath();
-
-    const search = '/google3/';
-    if (inputPath.startsWith('/google') && inputPath.contains(search)) {
-      var idx = inputPath.indexOf(search);
-      var remainingPath = inputPath.substring(idx + search.length);
-      return Uri(
-        scheme: 'google3',
-        host: '',
-        path: remainingPath,
-      );
-    }
-
-    return null;
-  }
-
   /// Converts a VM-returned URI to a file-like URI, taking org-dartlang-sdk
   /// schemes into account.
   ///
@@ -1721,12 +1700,9 @@ class ThreadInfo with FileUtils {
   Future<vm.LibraryRef?> getLibraryForFileUri(Uri scriptFileUri) async {
     // We start with a file URI and need to find the Library (via the script).
     //
-    // We need to handle msimatched drive letters, and also file vs package
+    // We need to handle mismatched drive letters, and also file vs package
     // URIs.
-    final scriptResolvedUri = await resolvePathToUri(
-      scriptFileUri,
-      forceResolveFileUris: true,
-    );
+    final scriptResolvedUri = await _convertToPackageOrSdkPath(scriptFileUri);
     final candidateUris = {
       scriptFileUri.toString(),
       normalizeUri(scriptFileUri).toString(),
@@ -1866,4 +1842,26 @@ class StoredData {
   final Object data;
 
   StoredData(this.thread, this.data);
+}
+
+Uri? _convertPathToGoogle3Uri(Uri input) {
+  // TODO(dantup): Do we need to handle non-file here? Eg. can we have
+  //  dart-macro+file:/// for a google3 path?
+  if (!input.isScheme('file')) {
+    return null;
+  }
+  final inputPath = input.toFilePath();
+
+  const search = '/google3/';
+  if (inputPath.startsWith('/google') && inputPath.contains(search)) {
+    var idx = inputPath.indexOf(search);
+    var remainingPath = inputPath.substring(idx + search.length);
+    return Uri(
+      scheme: 'google3',
+      host: '',
+      path: remainingPath,
+    );
+  }
+
+  return null;
 }
