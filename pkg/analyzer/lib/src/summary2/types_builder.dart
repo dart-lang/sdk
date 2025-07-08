@@ -193,13 +193,15 @@ class TypesBuilder {
           var valueNode =
               node.functionExpression.parameters?.parameters.firstOrNull;
           var valueNodeType = valueNode?.declaredFragment!.type;
-          valueElement?.type = valueNodeType ?? InvalidTypeImpl.instance;
+          var valueType = valueNodeType ?? InvalidTypeImpl.instance;
+          valueElement?.type = valueType;
+          valueElement?.firstFragment.type = valueType;
 
           var variableElement =
               element.variable3 as TopLevelVariableElementImpl;
-          if (variableElement.isSynthetic && valueElement != null) {
-            variableElement.type = valueElement.type;
-            variableElement.firstFragment.type = valueElement.type;
+          if (variableElement.isSynthetic) {
+            variableElement.type = valueType;
+            variableElement.firstFragment.type = valueType;
           }
         case TopLevelFunctionElementImpl():
           element.returnType = returnType;
@@ -240,6 +242,7 @@ class TypesBuilder {
           var valueNodeType = valueNode?.declaredFragment!.type;
           var valueType = valueNodeType ?? InvalidTypeImpl.instance;
           valueElement?.type = valueType;
+          valueElement?.firstFragment.type = valueType;
 
           var variableElement = element.variable3 as FieldElementImpl;
           if (variableElement.isSynthetic && variableElement.getter2 == null) {
@@ -265,12 +268,7 @@ class TypesBuilder {
           var variableFragment = variable.declaredFragment!;
           var variableElement = variableFragment.element;
           variableFragment.type = type;
-          if (variableElement is FieldElementImpl) {
-            variableElement.type = type;
-          }
-          if (variableElement is TopLevelVariableElementImpl) {
-            variableElement.type = type;
-          }
+          variableElement.type = type;
           if (variableElement is PropertyInducingElementImpl) {
             if (variableElement.getter2 case var getterElement?) {
               getterElement.returnType = type;

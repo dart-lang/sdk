@@ -1962,6 +1962,15 @@ class EnumElementImpl extends InterfaceElementImpl implements EnumElement {
   @override
   ElementKind get kind => ElementKind.ENUM;
 
+  FieldElementImpl? get valuesField {
+    for (var field in fields) {
+      if (field.name3 == 'values' && field.isSyntheticEnumField) {
+        return field;
+      }
+    }
+    return null;
+  }
+
   @override
   T? accept<T>(ElementVisitor2<T> visitor) => visitor.visitEnumElement(this);
 
@@ -1993,15 +2002,6 @@ class EnumFragmentImpl extends InterfaceFragmentImpl implements EnumFragment {
   @override
   EnumFragmentImpl? get previousFragment =>
       super.previousFragment as EnumFragmentImpl?;
-
-  FieldFragmentImpl? get valuesField {
-    for (var field in fields) {
-      if (field.name == 'values' && field.isSyntheticEnumField) {
-        return field;
-      }
-    }
-    return null;
-  }
 
   void addFragment(EnumFragmentImpl fragment) {
     fragment.element = element;
@@ -2589,16 +2589,13 @@ class FieldElementImpl extends PropertyInducingElementImpl
     with
         FragmentedAnnotatableElementMixin<FieldFragmentImpl>,
         FragmentedElementMixin<FieldFragmentImpl>,
-        _HasSinceSdkVersionMixin,
-        DeferredResolutionReadingMixin
+        _HasSinceSdkVersionMixin
     implements FieldElement2OrMember {
   @override
   final Reference reference;
 
   @override
   final FieldFragmentImpl firstFragment;
-
-  TypeImpl? _type;
 
   FieldElementImpl({required this.reference, required this.firstFragment}) {
     reference.element = this;
@@ -2669,6 +2666,20 @@ class FieldElementImpl extends PropertyInducingElementImpl
   @override
   bool get isStatic => firstFragment.isStatic;
 
+  /// Return `true` if this element is a synthetic enum field.
+  ///
+  /// It is synthetic because it is not written explicitly in code, but it
+  /// is different from other synthetic fields, because its getter is also
+  /// synthetic.
+  ///
+  /// Such fields are `index`, `_name`, and `values`.
+  bool get isSyntheticEnumField {
+    return enclosingElement is EnumElementImpl &&
+        isSynthetic &&
+        getter2?.isSynthetic == true &&
+        setter2 == null;
+  }
+
   @override
   ElementKind get kind => ElementKind.FIELD;
 
@@ -2681,43 +2692,6 @@ class FieldElementImpl extends PropertyInducingElementImpl
 
   @override
   String? get name3 => firstFragment.name;
-
-  @override
-  TypeImpl get type {
-    _ensureReadResolution();
-    if (_type != null) return _type!;
-
-    // We must be linking, and the type has not been set yet.
-    var type = firstFragment.typeInference?.perform();
-    type ??= InvalidTypeImpl.instance;
-    _type = type;
-    firstFragment._type = type;
-    firstFragment.shouldUseTypeForInitializerInference = false;
-
-    // TODO(scheglov): We repeat this code.
-    var element = this;
-    if (element.getter2 case var getterElement?) {
-      getterElement.returnType = type;
-      getterElement.firstFragment.returnType = type;
-    }
-    if (element.setter2 case var setterElement?) {
-      if (setterElement.isSynthetic) {
-        setterElement.returnType = VoidTypeImpl.instance;
-        setterElement.firstFragment.returnType = VoidTypeImpl.instance;
-        (setterElement.formalParameters.single as FormalParameterElementImpl)
-            .type = type;
-        (setterElement.formalParameters.single as FormalParameterElementImpl)
-            .firstFragment
-            .type = type;
-      }
-    }
-
-    return _type!;
-  }
-
-  set type(TypeImpl value) {
-    _type = value;
-  }
 
   @override
   T? accept<T>(ElementVisitor2<T> visitor) {
@@ -2876,21 +2850,6 @@ class FieldFragmentImpl extends PropertyInducingFragmentImpl
 
   set isPromotable(bool value) {
     setModifier(Modifier.PROMOTABLE, value);
-  }
-
-  /// Return `true` if this element is a synthetic enum field.
-  ///
-  /// It is synthetic because it is not written explicitly in code, but it
-  /// is different from other synthetic fields, because its getter is also
-  /// synthetic.
-  ///
-  /// Such fields are `index`, `_name`, and `values`.
-  bool get isSyntheticEnumField {
-    // TODO(scheglov): move to element
-    return enclosingElement3 is EnumFragmentImpl &&
-        isSynthetic &&
-        element.getter2?.isSynthetic == true &&
-        element.setter2 == null;
   }
 
   @override
@@ -3066,6 +3025,7 @@ class FormalParameterElementImpl extends PromotableElementImpl
   // TODO(augmentations): Implement the merge of formal parameters.
   TypeImpl get type => wrappedElement.type;
 
+  @override
   set type(TypeImpl value) {
     wrappedElement.type = value;
   }
@@ -8218,10 +8178,7 @@ class PatternVariableFragmentImpl extends LocalVariableFragmentImpl
   /// the [GuardedPattern] that declares this variable.
   bool isVisitingWhenClause = false;
 
-  PatternVariableFragmentImpl({
-    required super.name,
-    required super.nameOffset,
-  });
+  PatternVariableFragmentImpl({required super.name, required super.nameOffset});
 
   @override
   PatternVariableElementImpl get element =>
@@ -8455,10 +8412,7 @@ sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
 
   /// Initialize a newly created property accessor element to have the given
   /// [name] and [offset].
-  PropertyAccessorFragmentImpl({
-    required this.name,
-    required super.nameOffset,
-  });
+  PropertyAccessorFragmentImpl({required this.name, required super.nameOffset});
 
   /// Initialize a newly created synthetic property accessor element to be
   /// associated with the given [variable].
@@ -8527,12 +8481,19 @@ abstract class PropertyInducingElement2OrMember
 }
 
 abstract class PropertyInducingElementImpl extends VariableElementImpl
+    with DeferredResolutionReadingMixin
     implements PropertyInducingElement2OrMember, AnnotatableElementImpl {
   @override
   GetterElementImpl? getter2;
 
   @override
   SetterElementImpl? setter2;
+
+  TypeImpl? _type;
+
+  PropertyInducingElementImpl() {
+    shouldUseTypeForInitializerInference = true;
+  }
 
   @override
   PropertyInducingFragmentImpl get firstFragment;
@@ -8573,7 +8534,49 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
   Reference get reference;
 
   bool get shouldUseTypeForInitializerInference {
-    return firstFragment.shouldUseTypeForInitializerInference;
+    return hasModifier(Modifier.SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE);
+  }
+
+  set shouldUseTypeForInitializerInference(bool value) {
+    setModifier(Modifier.SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE, value);
+  }
+
+  @override
+  TypeImpl get type {
+    _ensureReadResolution();
+    if (_type != null) return _type!;
+
+    // We must be linking, and the type has not been set yet.
+    var type = firstFragment.typeInference?.perform();
+    type ??= InvalidTypeImpl.instance;
+    _type = type;
+    firstFragment._type = type;
+    shouldUseTypeForInitializerInference = false;
+
+    // TODO(scheglov): We repeat this code.
+    var element = this;
+    if (element.getter2 case var getterElement?) {
+      getterElement.returnType = type;
+      getterElement.firstFragment.returnType = type;
+    }
+    if (element.setter2 case var setterElement?) {
+      if (setterElement.isSynthetic) {
+        setterElement.returnType = VoidTypeImpl.instance;
+        setterElement.firstFragment.returnType = VoidTypeImpl.instance;
+        (setterElement.formalParameters.single as FormalParameterElementImpl)
+            .type = type;
+        (setterElement.formalParameters.single as FormalParameterElementImpl)
+            .firstFragment
+            .type = type;
+      }
+    }
+
+    return _type!;
+  }
+
+  @override
+  set type(TypeImpl value) {
+    _type = value;
   }
 
   List<PropertyInducingFragmentImpl> get _fragments;
@@ -8614,12 +8617,7 @@ abstract class PropertyInducingFragmentImpl
 
   /// Initialize a newly created synthetic element to have the given [name] and
   /// [offset].
-  PropertyInducingFragmentImpl({
-    required this.name,
-    required super.nameOffset,
-  }) {
-    setModifier(Modifier.SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE, true);
-  }
+  PropertyInducingFragmentImpl({required this.name, required super.nameOffset});
 
   @override
   List<Fragment> get children3 => const [];
@@ -8652,52 +8650,9 @@ abstract class PropertyInducingFragmentImpl
   @override
   MetadataImpl get metadata2 => metadata;
 
-  bool get shouldUseTypeForInitializerInference {
-    return hasModifier(Modifier.SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE);
-  }
-
-  set shouldUseTypeForInitializerInference(bool value) {
-    setModifier(Modifier.SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE, value);
-  }
-
   @override
   TypeImpl get type {
     _ensureReadResolution();
-    if (_type != null) return _type!;
-
-    if (isSynthetic) {
-      if (element.getter2 case var getter?) {
-        return _type = getter.returnType;
-      }
-      if (element.setter2 case var setter?) {
-        if (setter.formalParameters case [var value, ...]) {
-          return _type = value.type;
-        }
-      }
-      return _type = DynamicTypeImpl.instance;
-    }
-
-    // We must be linking, and the type has not been set yet.
-    var type = typeInference!.perform();
-    _type = type;
-    // TODO(scheglov): We repeat this code.
-    if (element.getter2 case var getterElement?) {
-      getterElement.returnType = type;
-      getterElement.firstFragment.returnType = type;
-    }
-    if (element.setter2 case var setterElement?) {
-      if (setterElement.isSynthetic) {
-        setterElement.returnType = VoidTypeImpl.instance;
-        setterElement.firstFragment.returnType = VoidTypeImpl.instance;
-        (setterElement.formalParameters.single as FormalParameterElementImpl)
-            .type = type;
-        (setterElement.formalParameters.single as FormalParameterElementImpl)
-            .firstFragment
-            .type = type;
-      }
-    }
-
-    shouldUseTypeForInitializerInference = false;
     return _type!;
   }
 }
@@ -9156,16 +9111,13 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
     with
         FragmentedAnnotatableElementMixin<TopLevelVariableFragmentImpl>,
         FragmentedElementMixin<TopLevelVariableFragmentImpl>,
-        _HasSinceSdkVersionMixin,
-        DeferredResolutionReadingMixin
+        _HasSinceSdkVersionMixin
     implements TopLevelVariableElement {
   @override
   final Reference reference;
 
   @override
   final TopLevelVariableFragmentImpl firstFragment;
-
-  TypeImpl? _type;
 
   TopLevelVariableElementImpl(this.reference, this.firstFragment) {
     reference.element = this;
@@ -9224,43 +9176,6 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
 
   @override
   String? get name3 => firstFragment.name;
-
-  @override
-  TypeImpl get type {
-    _ensureReadResolution();
-    if (_type != null) return _type!;
-
-    // We must be linking, and the type has not been set yet.
-    var type = firstFragment.typeInference?.perform();
-    type ??= InvalidTypeImpl.instance;
-    _type = type;
-    firstFragment._type = type;
-    firstFragment.shouldUseTypeForInitializerInference = false;
-
-    // TODO(scheglov): We repeat this code.
-    var element = this;
-    if (element.getter2 case var getterElement?) {
-      getterElement.returnType = type;
-      getterElement.firstFragment.returnType = type;
-    }
-    if (element.setter2 case var setterElement?) {
-      if (setterElement.isSynthetic) {
-        setterElement.returnType = VoidTypeImpl.instance;
-        setterElement.firstFragment.returnType = VoidTypeImpl.instance;
-        (setterElement.formalParameters.single as FormalParameterElementImpl)
-            .type = type;
-        (setterElement.formalParameters.single as FormalParameterElementImpl)
-            .firstFragment
-            .type = type;
-      }
-    }
-
-    return _type!;
-  }
-
-  set type(TypeImpl value) {
-    _type = value;
-  }
 
   @override
   T? accept<T>(ElementVisitor2<T> visitor) {
@@ -10045,6 +9960,10 @@ abstract class VariableElementImpl extends ElementImpl
   @override
   LibraryFragmentImpl? get libraryFragment =>
       firstFragment.libraryFragment as LibraryFragmentImpl?;
+
+  set type(TypeImpl type) {
+    // TODO(scheglov): eventually move logic from PropertyInducingElementImpl
+  }
 
   /// Return a representation of the value of this variable, forcing the value
   /// to be computed if it had not previously been computed, or `null` if either

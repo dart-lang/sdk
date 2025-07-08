@@ -162,9 +162,8 @@ class FieldElementFlags {
   static const int _isFinal = 1 << 10;
   static const int _isLate = 1 << 11;
   static const int _isPromotable = 1 << 12;
-  static const int _shouldUseTypeForInitializerInference = 1 << 13;
-  static const int _isStatic = 1 << 14;
-  static const int _isSynthetic = 1 << 15;
+  static const int _isStatic = 1 << 13;
+  static const int _isSynthetic = 1 << 14;
 
   static void read(SummaryDataReader reader, FieldFragmentImpl element) {
     var byte = reader.readUInt30();
@@ -182,8 +181,6 @@ class FieldElementFlags {
     element.isFinal = (byte & _isFinal) != 0;
     element.isLate = (byte & _isLate) != 0;
     element.isPromotable = (byte & _isPromotable) != 0;
-    element.shouldUseTypeForInitializerInference =
-        (byte & _shouldUseTypeForInitializerInference) != 0;
     element.isStatic = (byte & _isStatic) != 0;
     element.isSynthetic = (byte & _isSynthetic) != 0;
   }
@@ -206,10 +203,6 @@ class FieldElementFlags {
     result |= element.isFinal ? _isFinal : 0;
     result |= element.isLate ? _isLate : 0;
     result |= element.isPromotable ? _isPromotable : 0;
-    result |=
-        element.shouldUseTypeForInitializerInference
-            ? _shouldUseTypeForInitializerInference
-            : 0;
     result |= element.isStatic ? _isStatic : 0;
     result |= element.isSynthetic ? _isSynthetic : 0;
     sink.writeUInt30(result);
@@ -436,8 +429,7 @@ class TopLevelVariableElementFlags {
   static const int _isExternal = 1 << 3;
   static const int _isFinal = 1 << 4;
   static const int _isLate = 1 << 5;
-  static const int _shouldUseTypeForInitializerInference = 1 << 6;
-  static const int _isSynthetic = 1 << 7;
+  static const int _isSynthetic = 1 << 6;
 
   static void read(
     SummaryDataReader reader,
@@ -450,8 +442,6 @@ class TopLevelVariableElementFlags {
     element.isExternal = (byte & _isExternal) != 0;
     element.isFinal = (byte & _isFinal) != 0;
     element.isLate = (byte & _isLate) != 0;
-    element.shouldUseTypeForInitializerInference =
-        (byte & _shouldUseTypeForInitializerInference) != 0;
     element.isSynthetic = (byte & _isSynthetic) != 0;
   }
 
@@ -463,10 +453,6 @@ class TopLevelVariableElementFlags {
     result |= element.isExternal ? _isExternal : 0;
     result |= element.isFinal ? _isFinal : 0;
     result |= element.isLate ? _isLate : 0;
-    result |=
-        element.shouldUseTypeForInitializerInference
-            ? _shouldUseTypeForInitializerInference
-            : 0;
     result |= element.isSynthetic ? _isSynthetic : 0;
     sink.writeByte(result);
   }

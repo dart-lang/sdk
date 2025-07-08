@@ -13,7 +13,6 @@ import 'package:analyzer/src/summary2/instance_member_inferrer.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linking_node_scope.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
 
@@ -116,28 +115,35 @@ enum _InferenceStatus { notInferred, beingInferred, inferred }
 
 class _InitializerInference {
   final Linker _linker;
-  final List<PropertyInducingFragmentImpl> _toInfer = [];
+  final List<PropertyInducingElementImpl> _toInfer = [];
   final List<_PropertyInducingElementTypeInference> _inferring = [];
 
   late LibraryBuilder _libraryBuilder;
-  late LibraryFragmentImpl _unitElement;
-  late Scope _scope;
 
   _InitializerInference(this._linker);
 
   void createNodes() {
     for (var builder in _linker.builders.values) {
       _libraryBuilder = builder;
-      for (var unit in builder.element.units) {
-        _unitElement = unit;
-        unit.classes.forEach(_addClassElementFields);
-        unit.enums.forEach(_addClassElementFields);
-        unit.extensions.forEach(_addExtensionElementFields);
-        unit.extensionTypes.forEach(_addClassElementFields);
-        unit.mixins.forEach(_addClassElementFields);
+      var libraryElement = builder.element;
 
-        _scope = unit.scope;
-        unit.topLevelVariables.forEach(_addVariableNode);
+      var instanceElementListList = [
+        libraryElement.classes,
+        libraryElement.enums,
+        libraryElement.extensions,
+        libraryElement.extensionTypes,
+        libraryElement.mixins,
+      ];
+      for (var instanceElementList in instanceElementListList) {
+        for (var instanceElement in instanceElementList) {
+          for (var field in instanceElement.fields) {
+            _addVariableNode(field);
+          }
+        }
+      }
+
+      for (var variable in libraryElement.topLevelVariables) {
+        _addVariableNode(variable);
       }
     }
   }
@@ -146,25 +152,13 @@ class _InitializerInference {
   void perform() {
     for (var element in _toInfer) {
       // Will perform inference, if not done yet.
-      element.element.type;
+      element.type;
     }
   }
 
-  void _addClassElementFields(InterfaceFragmentImpl class_) {
-    var node = _linker.getLinkingNode(class_)!;
-    _scope = LinkingNodeContext.get(node).scope;
-    class_.fields.forEach(_addVariableNode);
-  }
-
-  void _addExtensionElementFields(ExtensionFragmentImpl extension_) {
-    var node = _linker.getLinkingNode(extension_)!;
-    _scope = LinkingNodeContext.get(node).scope;
-    extension_.fields.forEach(_addVariableNode);
-  }
-
-  void _addVariableNode(PropertyInducingFragmentImpl element) {
+  void _addVariableNode(PropertyInducingElementImpl element) {
     if (element.isSynthetic &&
-        !(element is FieldFragmentImpl && element.isSyntheticEnumField)) {
+        !(element is FieldElementImpl && element.isSyntheticEnumField)) {
       return;
     }
 
@@ -172,14 +166,10 @@ class _InitializerInference {
 
     _toInfer.add(element);
 
-    var node = _linker.getLinkingNode(element) as VariableDeclarationImpl;
-    element.typeInference = _PropertyInducingElementTypeInference(
+    element.firstFragment.typeInference = _PropertyInducingElementTypeInference(
       _linker,
       _inferring,
-      _unitElement,
-      _scope,
       element,
-      node,
       _libraryBuilder,
     );
   }
@@ -198,24 +188,29 @@ class _PropertyInducingElementTypeInference
   _InferenceStatus _status = _InferenceStatus.notInferred;
 
   final LibraryBuilder _libraryBuilder;
-  final LibraryFragmentImpl _unitElement;
-  final Scope _scope;
-  final PropertyInducingFragmentImpl _element;
-  final VariableDeclarationImpl _node;
+  final PropertyInducingElementImpl _element;
 
   _PropertyInducingElementTypeInference(
     this._linker,
     this._inferring,
-    this._unitElement,
-    this._scope,
     this._element,
-    this._node,
     this._libraryBuilder,
   );
 
   @override
   TypeImpl perform() {
-    if (_node.initializer == null) {
+    PropertyInducingFragmentImpl? initializerFragment;
+    VariableDeclarationImpl? variableDeclaration;
+    for (var fragment in _element.fragments) {
+      var node = _linker.elementNodes[fragment] as VariableDeclarationImpl;
+      if (node.initializer != null) {
+        initializerFragment = fragment;
+        variableDeclaration = node;
+      }
+    }
+
+    if (initializerFragment == null || variableDeclaration == null) {
+      _element.constantInitializer2;
       _status = _InferenceStatus.inferred;
       return DynamicTypeImpl.instance;
     }
@@ -233,12 +228,12 @@ class _PropertyInducingElementTypeInference
       var cycle = _inferring.slice(startIndex);
       var inferenceError = TopLevelInferenceError(
         kind: TopLevelInferenceErrorKind.dependencyCycle,
-        arguments: cycle.map((e) => e._element.name ?? '').sorted(),
+        arguments: cycle.map((e) => e._element.name3 ?? '').sorted(),
       );
       for (var inference in cycle) {
         if (inference._status == _InferenceStatus.beingInferred) {
           var element = inference._element;
-          element.typeInferenceError = inferenceError;
+          element.firstFragment.typeInferenceError = inferenceError;
           element.type = DynamicTypeImpl.instance;
           inference._status = _InferenceStatus.inferred;
         }
@@ -252,19 +247,21 @@ class _PropertyInducingElementTypeInference
     _inferring.add(this);
     _status = _InferenceStatus.beingInferred;
 
-    var enclosingElement = _element.enclosingElement3;
+    var enclosingElement = _element.enclosingElement;
     var enclosingInterfaceElement =
-        enclosingElement.ifTypeOrNull<InterfaceFragmentImpl>()?.asElement2;
+        enclosingElement.ifTypeOrNull<InterfaceElementImpl>();
+
+    var scope = LinkingNodeContext.get(variableDeclaration).scope;
 
     var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
     var astResolver = AstResolver(
       _linker,
-      _unitElement,
-      _scope,
+      initializerFragment.libraryFragment as LibraryFragmentImpl,
+      scope,
       analysisOptions,
       enclosingClassElement: enclosingInterfaceElement,
     );
-    astResolver.resolveExpression(() => _node.initializer!);
+    astResolver.resolveExpression(() => variableDeclaration!.initializer!);
 
     // Pop self from the stack.
     var self = _inferring.removeLast();
@@ -278,7 +275,7 @@ class _PropertyInducingElementTypeInference
       _status = _InferenceStatus.inferred;
     }
 
-    var initializerType = _node.initializer!.typeOrThrow;
+    var initializerType = variableDeclaration.initializer!.typeOrThrow;
     return _refineType(initializerType);
   }
 

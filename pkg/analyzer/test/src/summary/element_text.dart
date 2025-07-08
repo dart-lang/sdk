@@ -826,8 +826,7 @@ class _Element2Writer extends _AbstractElementWriter {
         }
 
         // Special case enum fields/getters: index, _name, values.
-        if (variable is FieldElementImpl &&
-            variable.firstFragment.isSyntheticEnumField) {
+        if (variable is FieldElementImpl && variable.isSyntheticEnumField) {
           var enumElement = f.enclosingFragment as EnumFragmentImpl;
           expect(f.offset, enumElement.offset);
           expect(variable.firstFragment.offset, enumElement.offset);

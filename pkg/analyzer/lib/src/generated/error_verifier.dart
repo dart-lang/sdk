@@ -774,7 +774,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForFinalNotInitializedInClass(declaredFragment, members);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
       _checkForMainFunction1(node.name, node.declaredFragment!);
-      _checkForEnumInstantiatedToBoundsIsNotWellBounded(node, declaredFragment);
+      _checkForEnumInstantiatedToBoundsIsNotWellBounded(node, declaredElement);
 
       GetterSetterTypesVerifier(
         library: _currentLibrary,
@@ -3143,7 +3143,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   void _checkForEnumInstantiatedToBoundsIsNotWellBounded(
     EnumDeclaration node,
-    EnumFragmentImpl element,
+    EnumElementImpl element,
   ) {
     var valuesFieldType = element.valuesField?.type;
     if (valuesFieldType is InterfaceTypeImpl) {

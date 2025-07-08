@@ -146,6 +146,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var outerScope = scope;
 
     var fragment = node.declaredFragment!;
+    var element = fragment.element;
 
     scope = TypeParameterScope(
       scope,
@@ -157,11 +158,16 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.implementsClause?.accept(this);
     node.withClause?.accept(this);
 
-    scope = InstanceScope(scope, fragment.asElement2);
+    scope = InstanceScope(scope, element);
     LinkingNodeContext(node, scope);
 
     node.members.accept(this);
     nodesToBuildType.addDeclaration(node);
+
+    for (var constant in fragment.constants) {
+      var node = linker.elementNodes[constant]!;
+      LinkingNodeContext(node, scope);
+    }
 
     scope = outerScope;
   }
@@ -571,9 +577,17 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitVariableDeclarationList(VariableDeclarationList node) {
+  void visitVariableDeclarationList(
+    covariant VariableDeclarationListImpl node,
+  ) {
     node.type?.accept(this);
     nodesToBuildType.addDeclaration(node);
+
+    for (var variable in node.variables) {
+      var fragment = variable.declaredFragment!;
+      var node = linker.elementNodes[fragment]!;
+      LinkingNodeContext(node, scope);
+    }
   }
 
   @override
