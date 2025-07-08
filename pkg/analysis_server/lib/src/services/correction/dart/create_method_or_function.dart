@@ -11,7 +11,6 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
-import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -80,12 +79,28 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     if (node case SimpleIdentifier node) {
+      DartType? parameterType;
+      var fieldTypeNode = climbPropertyAccess(node);
+      parameterType = inferUndefinedExpressionType(fieldTypeNode);
       var target = getQualifiedPropertyTarget(node);
 
-      // In order to fix this by creating a function or a method,
-      // `parameterType` should be be a function type.
-      var parameterType = _computeParameterType(node, target);
+      if (parameterType == null) {
+        // If we cannot infer the type, we cannot create a method or function.
+        return;
+      }
+
+      if (parameterType is InterfaceType && parameterType.isDartCoreFunction) {
+        parameterType = FunctionTypeImpl(
+          typeParameters: const [],
+          parameters: const [],
+          returnType: DynamicTypeImpl.instance,
+          nullabilitySuffix: NullabilitySuffix.none,
+        );
+      }
+
       if (parameterType is! FunctionType) {
+        // If the type is not a function type, we cannot create a method or
+        // function.
         return;
       }
 
@@ -105,69 +120,6 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
         await _createFunction(builder, parameterType);
       }
     }
-  }
-
-  DartType? _computeParameterType(SimpleIdentifier node, Expression? target) {
-    // `argument` should be an argument of some invocation or child of an
-    // expression that is one.
-    Expression argument;
-    if (target == null) {
-      argument = node;
-    } else {
-      var targetParent = target.parent;
-      if (targetParent is! Expression) {
-        return null;
-      }
-      argument = targetParent;
-    }
-    argument = stepUpNamedExpression(argument);
-
-    var parameterElement = argument.correspondingParameter;
-    int? recordFieldIndex;
-    if (argument.parent case ConditionalExpression parent) {
-      if (argument == parent.condition) {
-        return null;
-      }
-      parameterElement = parent.correspondingParameter;
-    } else if (argument.parent case RecordLiteral record) {
-      parameterElement = record.correspondingParameter;
-      for (var (index, field)
-          in record.fields.whereNotType<NamedExpression>().indexed) {
-        if (field == argument) {
-          recordFieldIndex = index;
-          break;
-        }
-      }
-    }
-    if (parameterElement == null) {
-      return null;
-    }
-
-    var parameterType = parameterElement.type;
-    if (parameterType is RecordType) {
-      // Finds the corresponding field for argument
-      if (argument is NamedExpression) {
-        var fieldName = argument.name.label.name;
-        for (var field in parameterType.namedFields) {
-          if (field.name == fieldName) {
-            parameterType = field.type;
-            break;
-          }
-        }
-      } else if (recordFieldIndex != null) {
-        var field = parameterType.positionalFields[recordFieldIndex];
-        parameterType = field.type;
-      }
-    }
-    if (parameterType is InterfaceType && parameterType.isDartCoreFunction) {
-      return FunctionTypeImpl(
-        typeParameters: const [],
-        parameters: const [],
-        returnType: DynamicTypeImpl.instance,
-        nullabilitySuffix: NullabilitySuffix.none,
-      );
-    }
-    return parameterType;
   }
 
   /// Prepares proposal for creating function corresponding to the given

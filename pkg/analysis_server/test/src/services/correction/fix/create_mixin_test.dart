@@ -305,6 +305,24 @@ mixin Test {
     assertLinkedGroup(change.linkedEditGroups[0], ['Test])', 'Test {']);
   }
 
+  Future<void> test_notTypeExpression1() async {
+    await resolveTestCode('''
+extension E on int {
+  (bool,) get record => (myBool,);
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_notTypeExpression2() async {
+    await resolveTestCode('''
+extension E on int {
+  ({int v,}) get record => (v: v,);
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_prefixedIdentifier_identifier() async {
     await resolveTestCode('''
 void f(C c) {
@@ -361,6 +379,18 @@ mixin Test {
 }
 ''');
     assertLinkedGroup(change.linkedEditGroups[0], ['Test v =', 'Test {']);
+  }
+
+  Future<void> test_typeExpression() async {
+    await resolveTestCode('''
+Type t = Test;
+''');
+    await assertHasFix('''
+Type t = Test;
+
+mixin Test {
+}
+''');
   }
 
   Future<void> test_with() async {

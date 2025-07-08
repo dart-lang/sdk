@@ -957,7 +957,8 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   ],
   CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER: [
     ChangeTo.getterOrSetter,
-    CreateGetter.new,
+    CreateExtensionGetter.new,
+    CreateExtensionMethod.new,
   ],
   CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD: [
     ChangeTo.method,
