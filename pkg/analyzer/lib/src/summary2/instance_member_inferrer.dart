@@ -227,7 +227,10 @@ class InstanceMemberInferrer {
         var valueType = combinedGetterType();
         parameter.type = valueType;
         var fieldElement = accessor.element.variable3 as FieldElementImpl;
-        fieldElement.type = valueType;
+        if (fieldElement.getter2 == null) {
+          fieldElement.type = valueType;
+          fieldElement.firstFragment.type = valueType;
+        }
         return;
       }
 
