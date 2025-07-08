@@ -5725,6 +5725,7 @@ ClassPtr Class::NewNativeWrapper(const Library& library,
     cls.set_is_type_finalized();
     cls.set_is_synthesized_class();
     cls.set_is_isolate_unsendable(true);
+    cls.set_is_deeply_immutable(true);
     NOT_IN_PRECOMPILED(cls.set_implementor_cid(kDynamicCid));
     library.AddClass(cls);
     return cls.ptr();

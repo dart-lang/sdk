@@ -2901,8 +2901,7 @@ LocationSummary* StoreStaticFieldInstr::MakeLocationSummary(Zone* zone,
                                                             bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 1;
-  const bool can_call_to_throw =
-      FLAG_experimental_shared_data && !field().is_shared();
+  const bool can_call_to_throw = FLAG_experimental_shared_data;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps,
                       can_call_to_throw ? LocationSummary::kCallOnSlowPath
@@ -2918,12 +2917,37 @@ void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   compiler->used_static_fields().Add(&field());
 
-  if (FLAG_experimental_shared_data && !field().is_shared()) {
-    ThrowErrorSlowPathCode* slow_path = new FieldAccessErrorSlowPath(this);
-    compiler->AddSlowPathCode(slow_path);
+  if (FLAG_experimental_shared_data) {
+    if (!field().is_shared()) {
+      ThrowErrorSlowPathCode* slow_path = new FieldAccessErrorSlowPath(this);
+      compiler->AddSlowPathCode(slow_path);
 
-    __ LoadIsolate(temp);
-    __ BranchIfZero(temp, slow_path->entry_label());
+      __ LoadIsolate(temp);
+      __ BranchIfZero(temp, slow_path->entry_label());
+    } else {
+      // TODO(dartbug.com/61078): use field static type information to decide
+      // whether the following value check is needed or not.
+      auto throw_if_cant_be_shared_slow_path =
+          new ThrowIfValueCantBeSharedSlowPath(this, value);
+      compiler->AddSlowPathCode(throw_if_cant_be_shared_slow_path);
+
+      compiler::Label allow_store;
+      __ BranchIfSmi(value, &allow_store, compiler::Assembler::kNearJump);
+      __ ldrb(temp, compiler::FieldAddress(
+                        value, compiler::target::Object::tags_offset()));
+      __ TestImmediate(temp,
+                       1 << compiler::target::UntaggedObject::kImmutableBit);
+      __ b(&allow_store, NOT_ZERO);
+
+      // Allow TypedData because they contain non-structural mutable state.
+      __ LoadClassId(temp, value);
+      __ CompareImmediate(temp, kFirstTypedDataCid);
+      __ b(throw_if_cant_be_shared_slow_path->entry_label(), LT);
+      __ CompareImmediate(temp, kLastTypedDataCid);
+      __ b(throw_if_cant_be_shared_slow_path->entry_label(), GT);
+
+      __ Bind(&allow_store);
+    }
   }
 
   __ LoadFromOffset(

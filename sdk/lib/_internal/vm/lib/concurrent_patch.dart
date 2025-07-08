@@ -13,8 +13,9 @@ abstract interface class Mutex {
   factory Mutex._() => _MutexImpl();
 }
 
+@pragma("vm:deeply-immutable")
 @pragma("vm:entry-point")
-base class _MutexImpl extends NativeFieldWrapperClass1 implements Mutex {
+final class _MutexImpl extends NativeFieldWrapperClass1 implements Mutex {
   _MutexImpl() {
     _initialize();
   }
@@ -37,8 +38,9 @@ abstract interface class ConditionVariable {
   factory ConditionVariable._() => _ConditionVariableImpl();
 }
 
+@pragma("vm:deeply-immutable")
 @pragma("vm:entry-point")
-base class _ConditionVariableImpl extends NativeFieldWrapperClass1
+final class _ConditionVariableImpl extends NativeFieldWrapperClass1
     implements ConditionVariable {
   _ConditionVariableImpl() {
     _initialize();
