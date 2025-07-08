@@ -145,8 +145,8 @@ package:analysis_server_plugin/registry.dart:
     new (constructor: PluginRegistry Function())
     registerAssist (method: void Function(CorrectionProducer<ParsedUnitResult> Function({required CorrectionProducerContext context})))
     registerFixForRule (method: void Function(LintCode, CorrectionProducer<ParsedUnitResult> Function({required CorrectionProducerContext context})))
-    registerLintRule (method: void Function(AnalysisRule))
-    registerWarningRule (method: void Function(AnalysisRule))
+    registerLintRule (method: void Function(AbstractAnalysisRule))
+    registerWarningRule (method: void Function(AbstractAnalysisRule))
 dart:async:
   Future (referenced)
   FutureOr (referenced)
@@ -162,7 +162,7 @@ dart:core:
 package:_fe_analyzer_shared/src/scanner/token.dart:
   Token (referenced)
 package:analyzer/analysis_rule/analysis_rule.dart:
-  AnalysisRule (referenced)
+  AbstractAnalysisRule (referenced)
 package:analyzer/dart/analysis/analysis_options.dart:
   AnalysisOptions (referenced)
 package:analyzer/dart/analysis/features.dart:
