@@ -262,6 +262,63 @@ class MutatorThreadPool : public ThreadPool {
   IsolateGroup* isolate_group_ = nullptr;
 };
 
+enum RootSlice : intptr_t {
+  kClassTable,
+  kApiState,
+  kObjectStore,
+  kSavedUnlinkedCalls,
+  kInitialFieldTable,
+  kSentinelFieldTable,
+  kSharedInitialFieldTable,
+  kSharedFieldTable,
+  kBoxedFieldList,
+  kBackgroundCompiler,
+  kDebugger,
+  kReloadContext,
+  kLoadedBlobs,
+  kBecome,
+  kObjectIdZones,
+
+  kNumRootSlices,
+};
+
+inline const char* RootSliceToCString(intptr_t slice) {
+  switch (slice) {
+    case kClassTable:
+      return "class table";
+    case kApiState:
+      return "api state";
+    case kObjectStore:
+      return "group object store";
+    case kSavedUnlinkedCalls:
+      return "saved unlinked calls";
+    case kInitialFieldTable:
+      return "initial field table";
+    case kSentinelFieldTable:
+      return "sentinel field table";
+    case kSharedInitialFieldTable:
+      return "shared initial field table";
+    case kSharedFieldTable:
+      return "shared field table";
+    case kBoxedFieldList:
+      return "boxed field list";
+    case kBackgroundCompiler:
+      return "background compiler";
+    case kDebugger:
+      return "debugger";
+    case kReloadContext:
+      return "reload context";
+    case kLoadedBlobs:
+      return "loaded blobs";
+    case kBecome:
+      return "become";
+    case kObjectIdZones:
+      return "object id zones";
+    default:
+      return "?";
+  }
+}
+
 // Represents an isolate group and is shared among all isolates within a group.
 class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
  public:
@@ -692,9 +749,9 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   void VisitObjectPointers(ObjectPointerVisitor* visitor,
                            ValidationPolicy validate_frames);
   void VisitSharedPointers(ObjectPointerVisitor* visitor);
+  void VisitSharedPointers(ObjectPointerVisitor* visitor, intptr_t slice);
   void VisitStackPointers(ObjectPointerVisitor* visitor,
                           ValidationPolicy validate_frames);
-  void VisitPointersInAllServiceIdZones(ObjectPointerVisitor& visitor);
   void VisitWeakPersistentHandles(HandleVisitor* visitor);
 
   // In precompilation we finalize all regular classes before compiling.

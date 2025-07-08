@@ -108,7 +108,7 @@ class _AnalyzerErrorGenerator {
 )
 library;
 ''');
-    var imports = {'package:analyzer/error/error.dart'};
+    var imports = {'package:_fe_analyzer_shared/src/base/errors.dart'};
     bool shouldGenerateFastaAnalyzerErrorCodes = false;
     for (var errorClass in errorClasses) {
       imports.addAll(errorClass.extraImports);
@@ -156,7 +156,13 @@ library;
         } else {
           generatedCodes.add('${errorClass.name}.$errorName');
           out.writeln('  static const ${errorClass.name} $errorName =');
-          out.writeln(errorCodeInfo.toAnalyzerCode(errorClass.name, errorName));
+          out.writeln(
+            errorCodeInfo.toAnalyzerCode(
+              errorClass.name,
+              errorName,
+              useExplicitConst: file.shouldUseExplicitConst,
+            ),
+          );
         }
       }
       out.writeln();
@@ -227,17 +233,6 @@ class _DiagnosticCodeValuesGenerator {
     // The scanner error codes are not yet being generated, so we need to add
     // them to the list explicitly.
     generatedCodes.addAll([
-      'ScannerErrorCode.EXPECTED_TOKEN',
-      'ScannerErrorCode.ILLEGAL_CHARACTER',
-      'ScannerErrorCode.MISSING_DIGIT',
-      'ScannerErrorCode.MISSING_HEX_DIGIT',
-      'ScannerErrorCode.MISSING_IDENTIFIER',
-      'ScannerErrorCode.MISSING_QUOTE',
-      'ScannerErrorCode.UNABLE_GET_CONTENT',
-      'ScannerErrorCode.UNEXPECTED_DOLLAR_IN_STRING',
-      'ScannerErrorCode.UNSUPPORTED_OPERATOR',
-      'ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT',
-      'ScannerErrorCode.UNTERMINATED_STRING_LITERAL',
       'TodoCode.TODO',
       'TodoCode.FIXME',
       'TodoCode.HACK',

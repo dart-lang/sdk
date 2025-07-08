@@ -24,7 +24,7 @@
 )
 library;
 
-import "package:analyzer/error/error.dart";
+import "package:_fe_analyzer_shared/src/base/errors.dart";
 
 class HintCode extends DiagnosticCode {
   ///  No parameters.

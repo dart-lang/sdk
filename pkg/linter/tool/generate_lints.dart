@@ -64,6 +64,7 @@ class LinterLintCode extends LintCode {
             'LinterLintCode',
             errorName,
             sharedNameReference: 'LintNames.$lintName',
+            useExplicitConst: false,
           ),
         );
         out.writeln();

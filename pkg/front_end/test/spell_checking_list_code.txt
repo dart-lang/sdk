@@ -50,6 +50,7 @@ ainv
 aka
 al
 alexmarkov
+align
 aligned
 alive
 allocate
@@ -453,6 +454,7 @@ depended
 dependency's
 depfile
 deprecating
+deprecation
 deps
 dereference
 dereferences
@@ -1833,6 +1835,7 @@ supernode
 supers
 supplies
 suppose
+suppresses
 surfaced
 surprising
 surrounded
@@ -1918,6 +1921,7 @@ tm
 tmp
 tn
 todo
+todos
 token's
 tokenize
 tokenized
@@ -1943,6 +1947,7 @@ transfer
 transferable
 transformers
 transforming
+transitioning
 transitively
 translation
 traversal
@@ -1953,6 +1958,7 @@ trees
 tricky
 triggering
 triggers
+tripping
 trips
 trivially
 truncated

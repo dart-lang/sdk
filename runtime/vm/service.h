@@ -57,7 +57,7 @@ class ServiceIdZone {
   virtual char* GetServiceId(const Object& obj) = 0;
   // Invalidate all the Service IDs currently living in this zone.
   virtual void Invalidate() = 0;
-  virtual void VisitPointers(ObjectPointerVisitor& visitor) const = 0;
+  virtual void VisitPointers(ObjectPointerVisitor* visitor) const = 0;
 
   virtual void PrintJSON(JSONStream& js) const = 0;
 
@@ -91,7 +91,7 @@ class RingServiceIdZone final : public ServiceIdZone {
   // Returned string will be zone allocated.
   char* GetServiceId(const Object& obj) final;
   void Invalidate() final;
-  void VisitPointers(ObjectPointerVisitor& visitor) const final;
+  void VisitPointers(ObjectPointerVisitor* visitor) const final;
 
   void PrintJSON(JSONStream& js) const final;
 

@@ -469,19 +469,6 @@ void CompactorTask::RunEnteredIsolateGroup() {
           isolate_group_->VisitWeakPersistentHandles(compactor_);
           break;
         }
-#ifndef PRODUCT
-        case 4: {
-          TIMELINE_FUNCTION_GC_DURATION(thread, "ForwardObjectIdRing");
-          isolate_group_->ForEachIsolate(
-              [&](Isolate* isolate) {
-                for (intptr_t i = 0; i < isolate->NumServiceIdZones(); ++i) {
-                  isolate->GetServiceIdZone(i)->VisitPointers(*compactor_);
-                }
-              },
-              /*at_safepoint=*/true);
-          break;
-        }
-#endif  // !PRODUCT
         default:
           more_forwarding_tasks = false;
       }

@@ -446,8 +446,8 @@ void RingServiceIdZone::Invalidate() {
   ring_.Invalidate();
 }
 
-void RingServiceIdZone::VisitPointers(ObjectPointerVisitor& visitor) const {
-  ring_.VisitPointers(&visitor);
+void RingServiceIdZone::VisitPointers(ObjectPointerVisitor* visitor) const {
+  ring_.VisitPointers(visitor);
 }
 
 void RingServiceIdZone::PrintJSON(JSONStream& js) const {

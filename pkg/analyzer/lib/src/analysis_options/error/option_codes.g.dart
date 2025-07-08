@@ -24,7 +24,7 @@
 )
 library;
 
-import "package:analyzer/error/error.dart";
+import "package:_fe_analyzer_shared/src/base/errors.dart";
 
 class AnalysisOptionsErrorCode extends DiagnosticCode {
   ///  An error code indicating that there is a syntactic error in the included

@@ -1192,32 +1192,21 @@ void Scavenger::IterateRememberedCards(ScavengerVisitor* visitor) {
   heap_->old_space()->VisitRememberedCards(visitor);
 }
 
-void Scavenger::IterateObjectIdTable(ObjectPointerVisitor* visitor) {
-#ifndef PRODUCT
-  TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "IterateObjectIdTable");
-  heap_->isolate_group()->VisitPointersInAllServiceIdZones(*visitor);
-#endif  // !PRODUCT
-}
-
 enum RootSlices {
   kIsolate = 0,
-  kObjectIdRing,
-  kNumRootSlices,
+  kNumFixedRootSlices = 1,
 };
 
 void Scavenger::IterateRoots(ScavengerVisitor* visitor) {
   for (;;) {
     intptr_t slice = root_slices_started_.fetch_add(1);
-    if (slice >= kNumRootSlices) {
+    if (slice >= kNumFixedRootSlices) {
       break;  // No more slices.
     }
-
     switch (slice) {
       case kIsolate:
+        // TODO(gc): Split this by isolate?
         IterateIsolateRoots(visitor);
-        break;
-      case kObjectIdRing:
-        IterateObjectIdTable(visitor);
         break;
       default:
         UNREACHABLE();

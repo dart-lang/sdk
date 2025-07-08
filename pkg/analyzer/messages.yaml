@@ -23061,6 +23061,58 @@ PubspecWarningCode:
           - pkg/package_1
           - pkg/package_2
       ```
+ScannerErrorCode:
+  EXPECTED_TOKEN:
+    problemMessage: Expected to find '{0}'.
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the token that was expected but not found
+  ILLEGAL_CHARACTER:
+    problemMessage: Illegal character '{0}'.
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the illegal character
+  MISSING_DIGIT:
+    problemMessage: Decimal digit expected.
+    hasPublishedDocs: false
+  MISSING_HEX_DIGIT:
+    problemMessage: Hexadecimal digit expected.
+    hasPublishedDocs: false
+  MISSING_IDENTIFIER:
+    problemMessage: Expected an identifier.
+    hasPublishedDocs: false
+  MISSING_QUOTE:
+    problemMessage: Expected quote (' or ").
+    hasPublishedDocs: false
+  UNABLE_GET_CONTENT:
+    problemMessage: Unable to get content of '{0}'.
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the path of the file that cannot be read
+  UNEXPECTED_DOLLAR_IN_STRING:
+    problemMessage: A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({}).
+    hasPublishedDocs: false
+    correctionMessage: Try adding a backslash (\) to escape the '$'.
+  UNEXPECTED_SEPARATOR_IN_NUMBER:
+    problemMessage: Digit separators ('_') in a number literal can only be placed between two digits.
+    hasPublishedDocs: false
+    correctionMessage: Try removing the '_'.
+  UNSUPPORTED_OPERATOR:
+    problemMessage: The '{0}' operator is not supported.
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the unsupported operator
+  UNTERMINATED_MULTI_LINE_COMMENT:
+    problemMessage: Unterminated multi-line comment.
+    hasPublishedDocs: false
+    correctionMessage: Try terminating the comment with '*/', or removing any unbalanced occurrences of '/*' (because comments nest in Dart).
+  UNTERMINATED_STRING_LITERAL:
+    problemMessage: Unterminated string literal.
+    hasPublishedDocs: false
 StaticWarningCode:
   DEAD_NULL_AWARE_EXPRESSION:
     problemMessage: "The left operand can't be null, so the right operand is never executed."
