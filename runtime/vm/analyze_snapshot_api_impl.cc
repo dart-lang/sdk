@@ -258,6 +258,7 @@ void SnapshotAnalyzer::DumpFunction(const Function& function) {
                     String::Handle(function.InternalSignature()).ToCString());
 
   js_.PrintProperty("code", GetObjectId(function.CurrentCode()));
+  js_.PrintProperty("owner_class", GetObjectId(function.Owner()));
   if (function.IsClosureFunction()) {
     js_.PrintProperty("parent_function",
                       GetObjectId(function.parent_function()));
@@ -373,6 +374,7 @@ void SnapshotAnalyzer::DumpField(const Field& field) {
   js_.PrintProperty("type", "Field");
   js_.PrintProperty("name", name.ToCString());
   js_.PrintProperty64("type_class", GetObjectId(field.type()));
+  js_.PrintProperty("owner_class", GetObjectId(field.Owner()));
   if (field.is_static()) {
     js_.PrintProperty("instance", GetObjectId(field.StaticValue()));
     js_.PrintProperty64("static_field_offset",
