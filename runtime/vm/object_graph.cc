@@ -1110,8 +1110,9 @@ enum ExtraCids {
   kImagePageExtraCid = 2,
   kRootSliceExtraCid = 3,
   kIsolateExtraCid = 4,
+  kObjectStoreExtraCid = 5,
 
-  kNumExtraCids = 4,
+  kNumExtraCids = 5,
 };
 
 class Pass2Visitor : public ObjectVisitor,
@@ -1581,6 +1582,42 @@ void HeapSnapshotWriter::Write() {
         WriteUtf8("");  // Reserved
       }
     }
+    {
+      ASSERT(kObjectStoreExtraCid == 5);
+      WriteUnsigned(0);          // Flags
+      WriteUtf8("ObjectStore");  // Name
+      WriteUtf8("");             // Library name
+      WriteUtf8("");             // Library uri
+      WriteUtf8("");             // Reserved
+
+      enum {
+#define V(type, name) kObjectStore_##name,
+        OBJECT_STORE_FIELD_LIST(V, V, V, V, V, V, V, V, V)
+#undef EMIT_FIELD_NAME
+            kNumObjectStoreFields
+      };
+      WriteUnsigned(kNumObjectStoreFields);
+
+      // A strtab is smaller than an array of strings.
+      static const char* const names = ""
+#define EMIT_FIELD_NAME(type, name) #name "_\0"
+          OBJECT_STORE_FIELD_LIST(EMIT_FIELD_NAME, EMIT_FIELD_NAME,
+                                  EMIT_FIELD_NAME, EMIT_FIELD_NAME,
+                                  EMIT_FIELD_NAME, EMIT_FIELD_NAME,
+                                  EMIT_FIELD_NAME, EMIT_FIELD_NAME,
+                                  EMIT_FIELD_NAME)
+#undef EMIT_FIELD_NAME
+          ;  // NOLINT
+      const char* name = names;
+      for (intptr_t i = 0; i < kNumObjectStoreFields; i++) {
+        intptr_t flags = 1;  // Strong.
+        WriteUnsigned(flags);
+        WriteUnsigned(i);  // Index.
+        WriteUtf8(name);
+        WriteUtf8("");  // Reserved
+        name += strlen(name) + 1;
+      }
+    }
 
     for (intptr_t cid = 1; cid <= class_count_; cid++) {
       if (!class_table->HasValidClassAt(cid)) {
@@ -1708,7 +1745,11 @@ void HeapSnapshotWriter::Write() {
       DEBUG_ASSERT(visitor.count() == num_image_objects);
     }
     for (intptr_t i = 0; i < kNumRootSlices; i++) {
-      WriteUnsigned(kRootSliceExtraCid);
+      if (i == kObjectStore) {
+        WriteUnsigned(kObjectStoreExtraCid);
+      } else {
+        WriteUnsigned(kRootSliceExtraCid);
+      }
       WriteUnsigned(0);  // shallowSize
       WriteUnsigned(kNameData);
       WriteUtf8(RootSliceToCString(i));
