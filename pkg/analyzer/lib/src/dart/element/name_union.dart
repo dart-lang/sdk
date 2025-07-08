@@ -119,7 +119,7 @@ class _ElementVisitor2 extends GeneralizingElementVisitor2<void> {
   @override
   void visitElement(Element element) {
     if (ElementNameUnion._isInterestingElement(element)) {
-      var name = element.name3;
+      var name = element.name;
       if (name != null) {
         union.add(name);
       }

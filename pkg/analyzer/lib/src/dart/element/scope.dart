@@ -20,7 +20,7 @@ class ConstructorInitializerScope extends EnclosedScope {
     );
     for (var formalParameter in element.formalParameters) {
       // Skip wildcards.
-      if (formalParameter.name3 == '_' && hasWildcardVariables) {
+      if (formalParameter.name == '_' && hasWildcardVariables) {
         continue;
       }
       _addGetter(formalParameter);
@@ -343,7 +343,7 @@ class LibraryFragmentScope implements Scope {
     required this.noPrefixScope,
   }) {
     for (var prefix in fragment.prefixes) {
-      if (prefix.name3 case var name?) {
+      if (prefix.name case var name?) {
         _prefixElements[name] = prefix;
       }
       prefix.scope = PrefixScope(
@@ -427,7 +427,7 @@ class LibraryFragmentScope implements Scope {
     }
 
     for (var scope = parent; scope != null; scope = scope.parent) {
-      var parentPrefix = scope._prefixElements[prefix.name3];
+      var parentPrefix = scope._prefixElements[prefix.name];
       if (parentPrefix != null) {
         return parentPrefix.scope;
       }
@@ -667,7 +667,7 @@ class PrefixScope implements Scope {
 
     return MultiplyDefinedElementImpl(
       libraryFragment,
-      conflictingElements.first.name3!,
+      conflictingElements.first.name!,
       conflictingElements.toList(),
     );
   }

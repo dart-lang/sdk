@@ -1445,7 +1445,7 @@ class FunctionState extends InstanceState {
   }
 
   @override
-  StringState convertToString() => StringState(element.name3);
+  StringState convertToString() => StringState(element.name);
 
   @override
   BoolState equalEqual(TypeSystemImpl typeSystem, InstanceState rightOperand) {
@@ -1489,7 +1489,7 @@ class FunctionState extends InstanceState {
   }
 
   @override
-  String toString() => element.name3 ?? '<unnamed>';
+  String toString() => element.name ?? '<unnamed>';
 }
 
 /// The state of an object representing a Dart object for which there is no more
@@ -2512,7 +2512,7 @@ class InvalidConstant implements Constant {
     bool isUnresolved = false,
     bool isRuntimeException = false,
   }) : this._(
-         length: element.name3!.length,
+         length: element.name!.length,
          offset: element.firstFragment.nameOffset2 ?? -1,
          diagnosticCode: diagnosticCode,
          arguments: arguments,

@@ -136,9 +136,9 @@ extension on DartType {
         return {
           for (var method in element.methods)
             // No need to test for eq operators, as they are not explicitly defined.
-            if (method.name3 == TokenType.SLASH.lexeme)
+            if (method.name == TokenType.SLASH.lexeme)
               _DivisionOperator.division
-            else if (method.name3 == TokenType.TILDE_SLASH.lexeme)
+            else if (method.name == TokenType.TILDE_SLASH.lexeme)
               _DivisionOperator.effectiveIntegerDivision,
           ...element.allSupertypes.expand((type) => type.divisionOperators),
         };

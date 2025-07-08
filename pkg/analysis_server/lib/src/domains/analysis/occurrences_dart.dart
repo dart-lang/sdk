@@ -22,7 +22,7 @@ void addDartOccurrences(OccurrencesCollector collector, CompilationUnit unit) {
     // because 'name3' may contain 'new' for constructors which doesn't match
     // what is in the source.
     var length =
-        serverElement.location?.length ?? engineElement.name3?.length ?? 0;
+        serverElement.location?.length ?? engineElement.name?.length ?? 0;
     var offsets =
         offsetLengths
             .where((offsetLength) => offsetLength.$2 == length)

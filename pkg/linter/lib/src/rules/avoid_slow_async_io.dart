@@ -81,7 +81,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var target = node.target;
     if (target is Identifier) {
       var element = target.element;
-      if (element is ClassElement && element.name3 == 'FileSystemEntity') {
+      if (element is ClassElement && element.name == 'FileSystemEntity') {
         if (_fileSystemEntityMethodNames.contains(node.methodName.name)) {
           rule.reportAtNode(node);
         }

@@ -76,7 +76,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
     // TODO(pq): ask the FunctionElement once implemented
     if (_wildCardVariablesEnabled &&
         element is LocalFunctionElement &&
-        element.name3 == '_') {
+        element.name == '_') {
       _diagnosticReporter.atNode(node, WarningCode.DEAD_CODE);
     }
     super.visitFunctionDeclaration(node);
@@ -124,7 +124,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
       // TODO(pq): ask the LocalVariableElement once implemented
       if (_wildCardVariablesEnabled &&
           element is LocalVariableElement &&
-          element.name3 == '_') {
+          element.name == '_') {
         _diagnosticReporter.atNode(
           initializer,
           WarningCode.DEAD_CODE_LATE_WILDCARD_VARIABLE_INITIALIZER,

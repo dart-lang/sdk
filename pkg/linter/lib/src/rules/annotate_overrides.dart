@@ -41,7 +41,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     var member = element.overriddenMember;
     if (member != null) {
-      rule.reportAtToken(target, arguments: [member.name3!]);
+      rule.reportAtToken(target, arguments: [member.name!]);
     }
   }
 

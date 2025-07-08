@@ -590,7 +590,7 @@ abstract class TypeProviderBase implements TypeProvider {
 
   @override
   bool isNonSubtypableClass2(InterfaceElement element) {
-    var name = element.name3;
+    var name = element.name;
     if (_nonSubtypableClassNames.contains(name)) {
       var libraryUriStr = element.library.uri.toString();
       var ofLibrary = _nonSubtypableClassMap[libraryUriStr];

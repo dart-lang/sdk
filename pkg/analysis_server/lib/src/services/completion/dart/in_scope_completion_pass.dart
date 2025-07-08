@@ -307,7 +307,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         for (int i = 0; i < parameters.length; i++) {
           var parameter = parameters[i];
           if (parameter.isNamed) {
-            if (!usedNames.contains(parameter.name3)) {
+            if (!usedNames.contains(parameter.name)) {
               availableNamedParameters.add(parameter);
             }
           } else {
@@ -2046,7 +2046,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
             for (int i = 0; i < parameters.length; i++) {
               var parameter = parameters[i];
               if (parameter.isNamed) {
-                if (!usedNames.contains(parameter.name3)) {
+                if (!usedNames.contains(parameter.name)) {
                   var matcherScore = state.matcher.score(parameter.displayName);
                   if (matcherScore != -1) {
                     var isWidget = isFlutterWidgetParameter(parameter);

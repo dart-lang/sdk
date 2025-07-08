@@ -589,11 +589,11 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     var element = node.writeOrReadElement;
-    if (element case PrefixElement(:var fragments, :var name3)) {
+    if (element case PrefixElement(:var fragments, :var name)) {
       for (var fragment in fragments) {
         computer._addRegionForFragmentRange(
           node.offset,
-          name3?.length,
+          name?.length,
           fragment,
         );
       }

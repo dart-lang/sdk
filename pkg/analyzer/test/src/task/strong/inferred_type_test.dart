@@ -39,13 +39,13 @@ var g = () async => futureInt;
       [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 24, 4)],
     );
     var futureInt = _resultLibraryElement.topLevelVariables[0];
-    expect(futureInt.name3, 'futureInt');
+    expect(futureInt.name, 'futureInt');
     _assertTypeStr(futureInt.type, 'Future<int>');
     var f = _resultLibraryElement.topLevelVariables[1];
-    expect(f.name3, 'f');
+    expect(f.name, 'f');
     _assertTypeStr(f.type, 'Future<int> Function()');
     var g = _resultLibraryElement.topLevelVariables[2];
-    expect(g.name3, 'g');
+    expect(g.name, 'g');
     _assertTypeStr(g.type, 'Future<int> Function()');
   }
 
@@ -54,7 +54,7 @@ var g = () async => futureInt;
 var f = () async => 0;
 ''');
     var f = _resultLibraryElement.topLevelVariables[0];
-    expect(f.name3, 'f');
+    expect(f.name, 'f');
     _assertTypeStr(f.type, 'Future<int> Function()');
   }
 
@@ -69,13 +69,13 @@ var g = () async => futureOrInt;
       [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 49, 4)],
     );
     var futureOrInt = _resultLibraryElement.topLevelVariables[0];
-    expect(futureOrInt.name3, 'futureOrInt');
+    expect(futureOrInt.name, 'futureOrInt');
     _assertTypeStr(futureOrInt.type, 'FutureOr<int>');
     var f = _resultLibraryElement.topLevelVariables[1];
-    expect(f.name3, 'f');
+    expect(f.name, 'f');
     _assertTypeStr(f.type, 'FutureOr<int> Function()');
     var g = _resultLibraryElement.topLevelVariables[2];
-    expect(g.name3, 'g');
+    expect(g.name, 'g');
     _assertTypeStr(g.type, 'Future<int> Function()');
   }
 
@@ -466,8 +466,8 @@ var y = () => x;
 
     var x = _resultLibraryElement.topLevelVariables[0];
     var y = _resultLibraryElement.topLevelVariables[1];
-    expect(x.name3, 'x');
-    expect(y.name3, 'y');
+    expect(x.name, 'x');
+    expect(y.name, 'y');
     _assertTypeStr(x.type, 'dynamic');
     _assertTypeStr(y.type, 'dynamic');
   }
@@ -488,8 +488,8 @@ var y = () => x;
 
     var x = _resultLibraryElement.topLevelVariables[0];
     var y = _resultLibraryElement.topLevelVariables[1];
-    expect(x.name3, 'x');
-    expect(y.name3, 'y');
+    expect(x.name, 'x');
+    expect(y.name, 'y');
     _assertTypeStr(x.type, 'dynamic');
     _assertTypeStr(y.type, 'dynamic');
   }
@@ -4046,10 +4046,10 @@ class C {
 }
 ''');
     var x = _resultLibraryElement.getClass2('C')!.fields[0];
-    expect(x.name3, 'x');
+    expect(x.name, 'x');
     _assertTypeStr(x.type, 'String');
     var y = _resultLibraryElement.getClass2('C')!.fields[1];
-    expect(y.name3, 'y');
+    expect(y.name, 'y');
     _assertTypeStr(y.type, 'Map<String, Map<String, String>>');
   }
 
@@ -4061,10 +4061,10 @@ class C {
 }
 ''');
     var x = _resultLibraryElement.topLevelVariables[0];
-    expect(x.name3, 'x');
+    expect(x.name, 'x');
     _assertTypeStr(x.type, 'String');
     var y = _resultLibraryElement.getClass2('C')!.fields[0];
-    expect(y.name3, 'y');
+    expect(y.name, 'y');
     _assertTypeStr(y.type, 'String');
   }
 
@@ -4139,7 +4139,7 @@ var x = c*c;
       ],
     );
     var x = _resultLibraryElement.topLevelVariables[1];
-    expect(x.name3, 'x');
+    expect(x.name, 'x');
     _assertTypeStr(x.type, 'bool');
   }
 
@@ -4162,7 +4162,7 @@ var x = c*c;
       ],
     );
     var x = _resultLibraryElement.topLevelVariables[1];
-    expect(x.name3, 'x');
+    expect(x.name, 'x');
     _assertTypeStr(x.type, 'bool');
   }
 
@@ -4189,7 +4189,7 @@ main() {
     );
 
     var x = findElement2.localVar('x');
-    expect(x.name3, 'x');
+    expect(x.name, 'x');
     _assertTypeStr(x.type, 'bool');
   }
 
@@ -4217,7 +4217,7 @@ main() {
     );
 
     var x = findElement2.localVar('x');
-    expect(x.name3, 'x');
+    expect(x.name, 'x');
     _assertTypeStr(x.type, 'bool');
   }
 
@@ -4239,7 +4239,7 @@ var x = -c;
       ],
     );
     var x = _resultLibraryElement.topLevelVariables[1];
-    expect(x.name3, 'x');
+    expect(x.name, 'x');
     _assertTypeStr(x.type, 'bool');
   }
 
@@ -4262,7 +4262,7 @@ var x = -c;
       ],
     );
     var x = _resultLibraryElement.topLevelVariables[1];
-    expect(x.name3, 'x');
+    expect(x.name, 'x');
     _assertTypeStr(x.type, 'bool');
   }
 
@@ -4278,7 +4278,7 @@ var x = f().g;
       [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 41, 4)],
     );
     var x = _resultLibraryElement.topLevelVariables[0];
-    expect(x.name3, 'x');
+    expect(x.name, 'x');
     _assertTypeStr(x.type, 'bool Function()');
   }
 
@@ -4295,7 +4295,7 @@ var x = f().g;
       [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 74, 4)],
     );
     var x = _resultLibraryElement.topLevelVariables[0];
-    expect(x.name3, 'x');
+    expect(x.name, 'x');
     _assertTypeStr(x.type, 'bool Function()');
   }
 
@@ -4319,7 +4319,7 @@ var x = f().g();
       [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 41, 4)],
     );
     var x = _resultLibraryElement.topLevelVariables[0];
-    expect(x.name3, 'x');
+    expect(x.name, 'x');
     _assertTypeStr(x.type, 'bool');
   }
 
@@ -4336,7 +4336,7 @@ var x = f().g();
       [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 74, 4)],
     );
     var x = _resultLibraryElement.topLevelVariables[0];
-    expect(x.name3, 'x');
+    expect(x.name, 'x');
     _assertTypeStr(x.type, 'bool');
   }
 
@@ -5080,7 +5080,7 @@ void f() {}
 var x = f();
   ''');
     var x = _resultLibraryElement.topLevelVariables[0];
-    expect(x.name3, 'x');
+    expect(x.name, 'x');
     _assertTypeStr(x.type, 'void');
   }
 
@@ -5319,7 +5319,7 @@ var f = c.f<int>();
       ],
     );
     var v = _resultLibraryElement.topLevelVariables[1];
-    expect(v.name3, 'f');
+    expect(v.name, 'f');
     _assertTypeStr(v.type, 'D<int>');
   }
 
@@ -5674,7 +5674,7 @@ main() {
     );
 
     var v = findElement2.localVar('v');
-    expect(v.name3, 'v');
+    expect(v.name, 'v');
     _assertTypeStr(v.type, 'double');
   }
 
@@ -5686,7 +5686,7 @@ class C<T> {
 var v = new C<dynamic>(() { return 1; });
 ''');
     var v = _resultLibraryElement.topLevelVariables[0];
-    expect(v.name3, 'v');
+    expect(v.name, 'v');
     _assertTypeStr(v.type, 'C<dynamic>');
   }
 
@@ -5698,7 +5698,7 @@ class C<T> {
 var v = new C<int>(() { return 1; });
 ''');
     var v = _resultLibraryElement.topLevelVariables[0];
-    expect(v.name3, 'v');
+    expect(v.name, 'v');
     _assertTypeStr(v.type, 'C<int>');
   }
 
@@ -5719,7 +5719,7 @@ main() {
     );
 
     var v = findElement2.localVar('v');
-    expect(v.name3, 'v');
+    expect(v.name, 'v');
     _assertTypeStr(v.type, 'C<int>');
   }
 
@@ -5731,7 +5731,7 @@ class C {
 var v = new C(() { return 1; });
 ''');
     var v = _resultLibraryElement.topLevelVariables[0];
-    expect(v.name3, 'v');
+    expect(v.name, 'v');
     _assertTypeStr(v.type, 'C');
   }
 
@@ -5741,7 +5741,7 @@ List<T> f<T>(T g()) => <T>[g()];
 var v = f<dynamic>(() { return 1; });
 ''');
     var v = _resultLibraryElement.topLevelVariables[0];
-    expect(v.name3, 'v');
+    expect(v.name, 'v');
     _assertTypeStr(v.type, 'List<dynamic>');
   }
 
@@ -5753,7 +5753,7 @@ List<T> f<T>(T g()) => <T>[g()];
 var v = (f<dynamic>)(() { return 1; });
 ''');
     var v = _resultLibraryElement.topLevelVariables[0];
-    expect(v.name3, 'v');
+    expect(v.name, 'v');
     _assertTypeStr(v.type, 'List<dynamic>');
   }
 
@@ -5763,7 +5763,7 @@ List<T> f<T>(T g()) => <T>[g()];
 var v = (f)<dynamic>(() { return 1; });
 ''');
     var v = _resultLibraryElement.topLevelVariables[0];
-    expect(v.name3, 'v');
+    expect(v.name, 'v');
     _assertTypeStr(v.type, 'List<dynamic>');
   }
 
@@ -5773,7 +5773,7 @@ List<T> f<T>(T g()) => <T>[g()];
 var v = f<int>(() { return 1; });
 ''');
     var v = _resultLibraryElement.topLevelVariables[0];
-    expect(v.name3, 'v');
+    expect(v.name, 'v');
     _assertTypeStr(v.type, 'List<int>');
   }
 
@@ -5787,7 +5787,7 @@ List<T> f<T>(T g()) => <T>[g()];
 var v = (f<int>)(() { return 1; });
 ''');
     var v = _resultLibraryElement.topLevelVariables[0];
-    expect(v.name3, 'v');
+    expect(v.name, 'v');
     _assertTypeStr(v.type, 'List<int>');
   }
 
@@ -5797,7 +5797,7 @@ List<T> f<T>(T g()) => <T>[g()];
 var v = (f)<int>(() { return 1; });
 ''');
     var v = _resultLibraryElement.topLevelVariables[0];
-    expect(v.name3, 'v');
+    expect(v.name, 'v');
     _assertTypeStr(v.type, 'List<int>');
   }
 
@@ -6021,7 +6021,7 @@ class C {
 var v = new C().f(() { return 1; });
 ''');
     var v = _resultLibraryElement.topLevelVariables[0];
-    expect(v.name3, 'v');
+    expect(v.name, 'v');
     _assertTypeStr(v.type, 'double');
   }
 

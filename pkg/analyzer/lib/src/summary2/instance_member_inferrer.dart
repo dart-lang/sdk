@@ -72,7 +72,7 @@ class InstanceMemberInferrer {
       //
       return methodParameters.lastWhereOrNull(
         (methodParameter) =>
-            methodParameter.isNamed && methodParameter.name3 == parameter.name,
+            methodParameter.isNamed && methodParameter.name == parameter.name,
       );
     }
     //
@@ -460,7 +460,7 @@ class InstanceMemberInferrer {
           if (conflict is CandidatesConflict) {
             conflictExplanation = conflict.candidates
                 .map((candidate) {
-                  var className = candidate.enclosingElement!.name3 ?? '';
+                  var className = candidate.enclosingElement!.name ?? '';
                   var typeStr = candidate.type.getDisplayString();
                   return '$className.${name.name} ($typeStr)';
                 })

@@ -76,7 +76,7 @@ class ConstructorFieldsVerifier {
       if (field.isSynthetic) {
         continue;
       }
-      if (element is EnumElement && field.name3 == 'index') {
+      if (element is EnumElement && field.name == 'index') {
         continue;
       }
       fieldMap[field] =
@@ -125,7 +125,7 @@ class _Constructor {
       if (field.isAbstract || field.isExternal) return;
       if (field.isStatic) return;
 
-      var name = field.name3;
+      var name = field.name;
       if (name == null) return;
 
       if (field.isFinal) {

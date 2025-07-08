@@ -823,7 +823,7 @@ import 'dart:collection' as p2;
 import 'dart:math' as p1;
 ''');
     var p1 = library.definingCompilationUnit.prefixes.singleWhere(
-      (prefix) => prefix.name3 == 'p1',
+      (prefix) => prefix.name == 'p1',
     );
     var libraryImports = library.definingCompilationUnit.libraryImports;
     var import_async = libraryImports[0];

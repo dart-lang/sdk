@@ -62,7 +62,7 @@ class AssignmentVerifier {
         CompileTimeErrorCode.ASSIGNMENT_TO_METHOD,
       );
     } else if (recovery is PrefixElement) {
-      if (recovery.name3 case var prefixName?) {
+      if (recovery.name case var prefixName?) {
         _diagnosticReporter.atNode(
           node,
           CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
@@ -75,7 +75,7 @@ class AssignmentVerifier {
         return;
       }
 
-      var variableName = variable.name3;
+      var variableName = variable.name;
       if (variableName == null) {
         return;
       }

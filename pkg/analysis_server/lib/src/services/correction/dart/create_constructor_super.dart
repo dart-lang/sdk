@@ -30,7 +30,7 @@ class CreateConstructorSuper extends MultiCorrectionProducer {
     // add proposals for all super constructors
     for (var constructor in superType.constructors) {
       // Only propose public constructors.
-      var name = constructor.name3;
+      var name = constructor.name;
       if (name != null && !Identifier.isPrivateName(name)) {
         producers.add(
           _CreateConstructor(constructor, targetClassNode, context: context),
@@ -65,7 +65,7 @@ class _CreateConstructor extends ResolvedCorrectionProducer {
   List<String> get fixArguments {
     var buffer = StringBuffer();
     buffer.write('super');
-    var constructorName = _constructor.name3;
+    var constructorName = _constructor.name;
     if (isEnabled(Feature.super_parameters)) {
       if (constructorName != null && constructorName != 'new') {
         buffer.write('.');
@@ -97,7 +97,7 @@ class _CreateConstructor extends ResolvedCorrectionProducer {
   }
 
   Future<void> _computeWithoutSuperParameters(ChangeBuilder builder) async {
-    var constructorName = _constructor.name3;
+    var constructorName = _constructor.name;
     var requiredPositionalParameters = _constructor.formalParameters.where(
       (parameter) => parameter.isRequiredPositional,
     );
@@ -180,7 +180,7 @@ class _CreateConstructor extends ResolvedCorrectionProducer {
   }
 
   Future<void> _computeWithSuperParameters(ChangeBuilder builder) async {
-    var constructorName = _constructor.name3;
+    var constructorName = _constructor.name;
     var requiredPositionalParameters = _constructor.formalParameters.where(
       (parameter) => parameter.isRequiredPositional,
     );

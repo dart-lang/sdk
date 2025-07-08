@@ -418,6 +418,13 @@ abstract class ConstructorElement
   ///
   /// The name of the unnamed constructor is `new`.
   @override
+  String? get name;
+
+  /// The name of this constructor.
+  ///
+  /// The name of the unnamed constructor is `new`.
+  @Deprecated('Use name instead')
+  @override
   String? get name3;
 
   /// The constructor to which this constructor is redirecting.
@@ -655,9 +662,9 @@ abstract class Element {
 
   /// The name to use for lookup in maps.
   ///
-  /// It is usually the same as [name3], with a few special cases.
+  /// It is usually the same as [name], with a few special cases.
   ///
-  /// Just like [name3], it can be `null` if the element does not have
+  /// Just like [name], it can be `null` if the element does not have
   /// a name, for example an unnamed extension, or because of parser recovery.
   ///
   /// For a [SetterElement] the result has `=` at the end.
@@ -671,6 +678,14 @@ abstract class Element {
   /// Returns `null` if this element doesn't have a name.
   ///
   /// See [Fragment.name] for details.
+  String? get name;
+
+  /// The name of this element.
+  ///
+  /// Returns `null` if this element doesn't have a name.
+  ///
+  /// See [Fragment.name] for details.
+  @Deprecated('Use name instead')
   String? get name3;
 
   /// The non-synthetic element that caused this element to be created.

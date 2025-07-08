@@ -64,7 +64,7 @@ class _Visitor extends SimpleAstVisitor<void> {
               field.computeConstantValue() == value) {
             rule.reportAtNode(
               node,
-              arguments: ['${element.name3}.${field.name3}'],
+              arguments: ['${element.name}.${field.name}'],
             );
             return;
           }

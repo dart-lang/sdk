@@ -141,7 +141,7 @@ abstract class _AbstractUnnecessaryOverrideVisitor
       var superParam = _inheritedMethod.formalParameters[i];
       var param = declaredElement.formalParameters[i];
       if (param.type != superParam.type) return false;
-      if (param.name3 != superParam.name3) return false;
+      if (param.name != superParam.name) return false;
       if (param.isCovariant != superParam.isCovariant) return false;
       if (!_sameKind(param, superParam)) return false;
       if (param.defaultValueCode != superParam.defaultValueCode) return false;
@@ -185,7 +185,7 @@ class _UnnecessaryGetterOverrideVisitor
     if (element == null) return null;
     var enclosingElement = element.enclosingElement;
     if (enclosingElement is! InterfaceElement) return null;
-    var getterName = element.name3;
+    var getterName = element.name;
     if (getterName == null) return null;
     return enclosingElement.thisType.lookUpGetter(
       getterName,
@@ -197,7 +197,7 @@ class _UnnecessaryGetterOverrideVisitor
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
-    if (node.propertyName.name == _inheritedMethod.name3) {
+    if (node.propertyName.name == _inheritedMethod.name) {
       node.target?.accept(this);
     }
   }
@@ -227,7 +227,7 @@ class _UnnecessaryMethodOverrideVisitor
   void visitMethodInvocation(MethodInvocation node) {
     var declarationParameters = declaration.parameters;
     if (declarationParameters != null &&
-        node.methodName.name == _inheritedMethod.name3 &&
+        node.methodName.name == _inheritedMethod.name &&
         argumentsMatchParameters(
           node.argumentList.arguments,
           declarationParameters.parameters,
@@ -247,7 +247,7 @@ class _UnnecessaryOperatorOverrideVisitor
     if (element == null) return null;
     var enclosingElement = element.enclosingElement;
     if (enclosingElement is! InterfaceElement) return null;
-    var methodName = element.name3;
+    var methodName = element.name;
     if (methodName == null) return null;
     return enclosingElement.thisType.lookUpMethod(
       methodName,
@@ -313,7 +313,7 @@ class _UnnecessarySetterOverrideVisitor
             node.rightHandSide.canonicalElement) {
       var leftPart = node.leftHandSide.unParenthesized;
       if (leftPart is PropertyAccess) {
-        if (node.writeElement?.name3 == _inheritedMethod.name3) {
+        if (node.writeElement?.name == _inheritedMethod.name) {
           leftPart.target?.accept(this);
         }
       }

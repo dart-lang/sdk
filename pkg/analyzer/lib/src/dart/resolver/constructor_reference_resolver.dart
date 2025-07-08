@@ -81,7 +81,7 @@ class ConstructorReferenceResolver {
           _resolver.diagnosticReporter.atNode(
             node,
             CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER,
-            arguments: [enclosingElement.name3!, name.name],
+            arguments: [enclosingElement.name!, name.name],
           );
         }
       }

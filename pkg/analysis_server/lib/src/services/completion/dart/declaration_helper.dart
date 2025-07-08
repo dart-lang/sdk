@@ -183,7 +183,7 @@ class DeclarationHelper {
     String? exclude,
   }) {
     for (var constructor in type.constructors) {
-      var name = constructor.name3;
+      var name = constructor.name;
       if (name != 'new' &&
           name != exclude &&
           !(mustBeConstant && !constructor.isConst)) {
@@ -331,7 +331,7 @@ class DeclarationHelper {
         continue;
       }
 
-      if (prefixElement.name3.isEmptyOrNull) {
+      if (prefixElement.name.isEmptyOrNull) {
         continue;
       }
 
@@ -473,7 +473,7 @@ class DeclarationHelper {
       }
     }
     for (var accessor in extension.getters) {
-      if (excludedGetters.contains(accessor.name3)) {
+      if (excludedGetters.contains(accessor.name)) {
         continue;
       }
       if (!accessor.isStatic) {
@@ -593,14 +593,14 @@ class DeclarationHelper {
               .whereType<SuperConstructorInvocation>()
               .singleOrNull;
       var specified = <String>{
-        ...constructorElement.formalParameters.map((e) => e.name3).nonNulls,
+        ...constructorElement.formalParameters.map((e) => e.name).nonNulls,
         ...?superConstructorInvocation?.argumentList.arguments
             .whereType<NamedExpression>()
             .map((e) => e.name.label.name),
       };
       for (var superParameter in superConstructor.formalParameters) {
         if (superParameter.isNamed &&
-            !specified.contains(superParameter.name3)) {
+            !specified.contains(superParameter.name)) {
           _suggestSuperParameter(superParameter);
         }
       }
@@ -814,7 +814,7 @@ class DeclarationHelper {
         }
       }
       for (var getter in extension.getters) {
-        if (excludedGetters.contains(getter.name3)) {
+        if (excludedGetters.contains(getter.name)) {
           continue;
         }
         if (!getter.isSynthetic) {
@@ -946,7 +946,7 @@ class DeclarationHelper {
         _addConstructorsImportedFrom(
           library: importedLibrary,
           namespace: importElement.namespace,
-          prefix: importElement.prefix2?.element.name3,
+          prefix: importElement.prefix2?.element.name,
         );
       }
     }
@@ -964,7 +964,7 @@ class DeclarationHelper {
         _addDeclarationsImportedFrom(
           library: importedLibrary,
           namespace: importElement.namespace,
-          prefix: importElement.prefix2?.element.name3,
+          prefix: importElement.prefix2?.element.name,
         );
         if (importedLibrary.isDartCore && mustBeType) {
           var name = 'Never';
@@ -1472,12 +1472,12 @@ class DeclarationHelper {
     for (var field in fields) {
       if (field.isStatic &&
           (!field.isSynthetic ||
-              (containingElement is EnumElement && field.name3 == 'values')) &&
+              (containingElement is EnumElement && field.name == 'values')) &&
           field.isVisibleIn(request.libraryElement)) {
         if (field.isEnumConstant) {
           var enumElement = field.enclosingElement;
           var matcherScore = state.matcher.score(
-            '${enumElement.name3}.${field.name3}',
+            '${enumElement.name}.${field.name}',
           );
           if (matcherScore != -1) {
             var suggestion = EnumConstantSuggestion(
@@ -1551,7 +1551,7 @@ class DeclarationHelper {
         }
       }
       for (var element in library.extensions) {
-        if (element.name3 != null) {
+        if (element.name != null) {
           _suggestExtension(element, null);
         }
       }
@@ -1988,7 +1988,7 @@ class DeclarationHelper {
         return;
       }
       // Don't suggest wildcard local functions.
-      if (_isWildcard(element.name3)) return;
+      if (_isWildcard(element.name)) return;
       var matcherScore = state.matcher.score(element.displayName);
       if (matcherScore != -1) {
         var suggestion = LocalFunctionSuggestion(
@@ -2038,7 +2038,7 @@ class DeclarationHelper {
             keyword = Keyword.VAR;
           }
         }
-        if (method.name3 == 'setState' &&
+        if (method.name == 'setState' &&
             enclosingElement is ClassElement &&
             enclosingElement.isExactState) {
           var suggestion = SetStateMethodSuggestion(
@@ -2095,7 +2095,7 @@ class DeclarationHelper {
   /// Adds a suggestion for the parameter represented by the [element].
   void _suggestParameter(FormalParameterElement element) {
     if (visibilityTracker.isVisible(element: element, importData: null)) {
-      if (mustBeConstant || _isWildcard(element.name3)) {
+      if (mustBeConstant || _isWildcard(element.name)) {
         return;
       }
       var matcherScore = state.matcher.score(element.displayName);
@@ -2428,7 +2428,7 @@ class DeclarationHelper {
   /// Adds a suggestion for each of the [typeParameters].
   void _suggestTypeParameters(List<TypeParameterElement> typeParameters) {
     for (var parameter in typeParameters) {
-      if (!_isWildcard(parameter.name3)) {
+      if (!_isWildcard(parameter.name)) {
         _suggestTypeParameter(parameter);
       }
     }
@@ -2680,7 +2680,7 @@ class DeclarationHelper {
     for (var typeParameter in typeParameters.typeParameters) {
       var element = typeParameter.declaredFragment?.element;
       if (element != null) {
-        if (!_isWildcard(element.name3)) {
+        if (!_isWildcard(element.name)) {
           _suggestTypeParameter(element);
         }
       }
@@ -2713,7 +2713,7 @@ extension on Element {
     if (library == referencingLibrary) {
       return true;
     }
-    var name = name3;
+    var name = this.name;
     return name != null && !Identifier.isPrivateName(name);
   }
 }

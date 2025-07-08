@@ -119,7 +119,7 @@ class ImportLibrary extends MultiCorrectionProducer {
     var namesInThisLibrary = <String>[
       name,
       for (var otherName in otherNames)
-        if (getExportedElement(libraryElement, otherName)?.name3
+        if (getExportedElement(libraryElement, otherName)?.name
             case var exportedName?)
           exportedName,
     ];
@@ -422,7 +422,7 @@ class ImportLibrary extends MultiCorrectionProducer {
         }
         names.add(
           _PrefixedName(
-            name: instantiatedExtension.extension.name3!,
+            name: instantiatedExtension.extension.name!,
             ignorePrefix: true,
             producerGenerators: (prefix, name) async {
               var producers = <ResolvedCorrectionProducer>[];
@@ -1022,7 +1022,7 @@ class _ImportLibraryPrefix extends ResolvedCorrectionProducer {
   @override
   FixKind get fixKind => DartFixKind.IMPORT_LIBRARY_PREFIX;
 
-  String get _prefixName => _importPrefix.name3!;
+  String get _prefixName => _importPrefix.name!;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

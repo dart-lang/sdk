@@ -1882,7 +1882,7 @@ class TypeSystemImpl implements TypeSystem {
 
     // If e is an expression of the form e1 + e2, e1 - e2, e1 * e2, e1 % e2 or
     // e1.remainder(e2)...
-    if (const {'+', '-', '*', '%', 'remainder'}.contains(methodElement.name3)) {
+    if (const {'+', '-', '*', '%', 'remainder'}.contains(methodElement.name)) {
       // ...where C is the context type of e and T is the static type of e1, and
       // where T is a non-Never subtype of num...
       // Notes:
@@ -1924,7 +1924,7 @@ class TypeSystemImpl implements TypeSystem {
       }
     }
     // If e is an expression of the form e1.clamp(e2, e3)...
-    if (methodElement.name3 == 'clamp') {
+    if (methodElement.name == 'clamp') {
       // ...where C is the context type of e and T is the static type of e1
       // where T is a non-Never subtype of num...
       // Notes:
@@ -1985,7 +1985,7 @@ class TypeSystemImpl implements TypeSystem {
 
     // Let e be an expression of one of the forms e1 + e2, e1 - e2, e1 * e2,
     // e1 % e2 or e1.remainder(e2)...
-    if (const {'+', '-', '*', '%', 'remainder'}.contains(methodElement.name3)) {
+    if (const {'+', '-', '*', '%', 'remainder'}.contains(methodElement.name)) {
       // ...where the static type of e1 is a non-Never type T and T <: num...
       // Notes:
       // - We don't have to check for Never because if T is Never, the method
@@ -2034,7 +2034,7 @@ class TypeSystemImpl implements TypeSystem {
       }
     }
     // Let e be a normal invocation of the form e1.clamp(e2, e3)...
-    if (methodElement.name3 == 'clamp') {
+    if (methodElement.name == 'clamp') {
       // ...where the static types of e1, e2 and e3 are T1, T2 and T3
       // respectively...
       var t1 = targetType;

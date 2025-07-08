@@ -220,7 +220,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   /// concrete enum. The `index` was always available for concrete enums,
   /// but there was no common `Enum` supertype for all enums.
   static bool _shouldReportEnumIndex(AstNode node, Element element) {
-    if (element is PropertyAccessorElement && element.name3 == 'index') {
+    if (element is PropertyAccessorElement && element.name == 'index') {
       DartType? targetType;
       if (node is PrefixedIdentifier) {
         targetType = node.prefix.staticType;

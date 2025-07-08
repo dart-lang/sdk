@@ -65,7 +65,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       var overridden = interface.getOverridden(name);
       if (overridden != null && overridden.isNotEmpty) continue;
 
-      var getterName = element.name3;
+      var getterName = element.name;
       if (getterName == null) continue;
 
       var getter =

@@ -208,7 +208,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var arguments = superInvocation.argumentList.arguments;
     for (var argument in arguments) {
       if (argument is NamedExpression &&
-          argument.name.label.name == parameterElement.name3) {
+          argument.name.label.name == parameterElement.name) {
         var expression = argument.expression;
         if (expression is SimpleIdentifier &&
             expression.element == parameterElement) {
@@ -240,8 +240,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     FormalParameterElement thisParameter,
   ) {
     for (var superParameter in superConstructor.formalParameters) {
-      if (superParameter.isNamed &&
-          superParameter.name3 == thisParameter.name3) {
+      if (superParameter.isNamed && superParameter.name == thisParameter.name) {
         return superParameter;
       }
     }

@@ -998,7 +998,7 @@ class ResolutionSink extends _SummaryDataWriter {
   }
 
   void _writeElementName(Element element) {
-    _writeOptionalStringReference(element.name3);
+    _writeOptionalStringReference(element.name);
   }
 
   void _writeFormalParameters(

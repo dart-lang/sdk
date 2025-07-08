@@ -72,7 +72,7 @@ it might look something like this:
 ```dart
 void printMembers(LibraryElement libraryElement) {
   for (ClassElement classElement in libraryElement.classes) {
-    print(classElement.name3);
+    print(classElement.name);
     for (ConstructorElement constructorElement in classElement.constructors) {
       if (!constructorElement.isSynthetic) {
         print('  ${constructorElement.displayName}');
@@ -80,22 +80,22 @@ void printMembers(LibraryElement libraryElement) {
     }
     for (FieldElement fieldElement in classElement.fields) {
       if (!fieldElement.isSynthetic) {
-        print('  ${fieldElement.name3}');
+        print('  ${fieldElement.name}');
       }
     }
     for (GetterElement getterElement in classElement.getters) {
       if (!getterElement.isSynthetic) {
-        print('  ${getterElement.name3}');
+        print('  ${getterElement.name}');
       }
     }
     for (SetterElement setterElement in classElement.setters) {
       if (!setterElement.isSynthetic) {
-        print('  ${setterElement.name3}');
+        print('  ${setterElement.name}');
       }
     }
     for (MethodElement methodElement in classElement.methods) {
       if (!methodElement.isSynthetic) {
-        print('  ${methodElement.name3}');
+        print('  ${methodElement.name}');
       }
     }
   }

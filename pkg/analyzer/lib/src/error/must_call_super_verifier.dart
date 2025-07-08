@@ -27,7 +27,7 @@ class MustCallSuperVerifier {
       return;
     }
 
-    var overriddenName = overridden.name3;
+    var overriddenName = overridden.name;
     if (overriddenName == null) {
       return;
     }
@@ -36,7 +36,7 @@ class MustCallSuperVerifier {
       _verifySuperIsCalled(
         node,
         overriddenName,
-        overridden.enclosingElement?.name3,
+        overridden.enclosingElement?.name,
       );
       return;
     }
@@ -53,7 +53,7 @@ class MustCallSuperVerifier {
         _verifySuperIsCalled(
           node,
           overriddenName,
-          overridden.enclosingElement?.name3,
+          overridden.enclosingElement?.name,
         );
       }
       return;
@@ -69,7 +69,7 @@ class MustCallSuperVerifier {
         if (name.endsWith('=')) {
           name = name.substring(0, name.length - 1);
         }
-        _verifySuperIsCalled(node, name, overridden.enclosingElement?.name3);
+        _verifySuperIsCalled(node, name, overridden.enclosingElement?.name);
       }
     }
   }
@@ -90,7 +90,7 @@ class MustCallSuperVerifier {
       return null;
     }
 
-    var name = element.name3;
+    var name = element.name;
     if (name == null) {
       return null;
     }
@@ -146,7 +146,7 @@ class MustCallSuperVerifier {
   bool _hasConcreteSuperMethod(ExecutableElement element) {
     var classElement = element.enclosingElement as InterfaceElement;
 
-    var name = element.name3;
+    var name = element.name;
     if (name == null) {
       return true;
     }

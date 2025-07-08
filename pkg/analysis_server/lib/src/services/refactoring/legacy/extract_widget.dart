@@ -315,7 +315,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
           if (parameter is NormalFormalParameter) {
             var element = parameter.declaredFragment!.element;
             _parameters.add(
-              _Parameter(element.name3!, element.type, isMethodParameter: true),
+              _Parameter(element.name!, element.type, isMethodParameter: true),
             );
           }
         }

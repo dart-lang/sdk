@@ -106,7 +106,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     // Constructor with implicit `super()` call.
     var unnamedSuperConstructor = clazz.supertype?.constructors
-        .firstWhereOrNull((e) => e.name3 == 'new');
+        .firstWhereOrNull((e) => e.name == 'new');
     return unnamedSuperConstructor != null && unnamedSuperConstructor.isConst;
   }
 

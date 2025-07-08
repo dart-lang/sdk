@@ -70,7 +70,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     for (var i = 0; i < positionalSuperParameters.length; i++) {
       var superParameter = positionalSuperParameters[i];
       var superParameterName = superParameter.name.lexeme;
-      var parameterOfSuperName = positionalParametersOfSuper[i].name3;
+      var parameterOfSuperName = positionalParametersOfSuper[i].name;
       if (parameterOfSuperName != null &&
           superParameterName != parameterOfSuperName) {
         rule.reportAtNode(

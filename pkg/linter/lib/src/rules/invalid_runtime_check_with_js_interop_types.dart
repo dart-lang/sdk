@@ -112,18 +112,18 @@ DartType? _jsTypeForStaticInterop(InterfaceType type) {
     var annotationElement = annotation.element2;
     if (annotationElement is ConstructorElement &&
         annotationElement.isFromLibrary(_dartJsInteropUri) &&
-        annotationElement.enclosingElement.name3 == 'JS') {
+        annotationElement.enclosingElement.name == 'JS') {
       hasJS = true;
       dartJsInterop = annotationElement.library;
     } else if (annotationElement is GetterElement &&
         annotationElement.isFromLibrary(_dartJsAnnotationsUri) &&
-        annotationElement.name3 == 'staticInterop') {
+        annotationElement.name == 'staticInterop') {
       hasStaticInterop = true;
     }
   }
   return (hasJS && hasStaticInterop && dartJsInterop != null)
       ? dartJsInterop.extensionTypes
-          .singleWhere((extType) => extType.name3 == 'JSObject')
+          .singleWhere((extType) => extType.name == 'JSObject')
           // Nullability is ignored in this lint, so just return `thisType`.
           .thisType
       : null;

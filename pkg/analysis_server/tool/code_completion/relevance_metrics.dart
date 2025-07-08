@@ -1130,7 +1130,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     var enclosingElement = element.enclosingElement;
     if (!element.isStatic && enclosingElement is InterfaceElement) {
       var overriddenMembers = enclosingElement.getOverridden(
-        Name(fragment.libraryFragment.source.uri, element.name3!),
+        Name(fragment.libraryFragment.source.uri, element.name!),
       );
       if (overriddenMembers != null) {
         // Consider limiting this to the most immediate override. If the
@@ -1878,14 +1878,14 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     for (var param in override.formalParameters) {
       if (param.isPositional) {
         positionalInOverride.add(param);
-      } else if (param.name3 case var name?) {
+      } else if (param.name case var name?) {
         namedInOverride[name] = param;
       }
     }
     for (var param in overridden.formalParameters) {
       if (param.isPositional) {
         positionalInOverridden.add(param);
-      } else if (param.name3 case var name?) {
+      } else if (param.name case var name?) {
         namedInOverridden[name] = param;
       }
     }

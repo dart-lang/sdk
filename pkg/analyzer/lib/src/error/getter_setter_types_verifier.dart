@@ -120,7 +120,7 @@ class GetterSetterTypesVerifier {
   }
 
   void _checkLocalGetter(GetterElement2OrMember getter) {
-    var name = getter.name3;
+    var name = getter.name;
     if (name == null) {
       return;
     }

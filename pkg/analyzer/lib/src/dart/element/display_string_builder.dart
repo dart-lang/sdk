@@ -41,7 +41,7 @@ class ElementDisplayStringBuilder {
   }
 
   void writeAbstractElement2(ElementImpl element) {
-    _write(element.name3 ?? '<unnamed ${element.runtimeType}>');
+    _write(element.name ?? '<unnamed ${element.runtimeType}>');
   }
 
   void writeClassElement(ClassFragmentImpl element) {
@@ -251,7 +251,7 @@ class ElementDisplayStringBuilder {
       return;
     }
 
-    _write(type.element.name3 ?? '<null>');
+    _write(type.element.name ?? '<null>');
     _writeTypeArguments(type.typeArguments);
     _writeNullability(type.nullabilitySuffix);
   }
@@ -449,7 +449,7 @@ class ElementDisplayStringBuilder {
   bool _maybeWriteTypeAlias(DartType type) {
     if (preferTypeAlias) {
       if (type.alias case var alias?) {
-        _write(alias.element.name3 ?? '<null>');
+        _write(alias.element.name ?? '<null>');
         _writeTypeArguments(alias.typeArguments);
         _writeNullability(type.nullabilitySuffix);
         return true;
@@ -754,7 +754,7 @@ class ElementDisplayStringBuilder {
     var newTypeParameters = <TypeParameterElementImpl>[];
     for (var typeParameter in type.typeParameters) {
       // The type parameter name can be null in erroneous cases.
-      var name = typeParameter.name3 ?? '';
+      var name = typeParameter.name ?? '';
       for (var counter = 0; !namesToAvoid.add(name); counter++) {
         const unicodeSubscriptZero = 0x2080;
         const unicodeZero = 0x30;
@@ -765,7 +765,7 @@ class ElementDisplayStringBuilder {
           }),
         );
 
-        name = typeParameter.name3! + subscript;
+        name = typeParameter.name! + subscript;
       }
 
       var newTypeParameter = TypeParameterFragmentImpl(

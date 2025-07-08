@@ -79,11 +79,11 @@ class TypeBoundedHelper {
     List<TypeImpl> typeArguments;
     var alias = type.alias;
     if (alias != null) {
-      elementName = alias.element.name3;
+      elementName = alias.element.name;
       typeParameters = alias.element.typeParameters2;
       typeArguments = alias.typeArguments;
     } else if (type is InterfaceTypeImpl) {
-      elementName = type.element.name3;
+      elementName = type.element.name;
       typeParameters = type.element.typeParameters2;
       typeArguments = type.typeArguments;
     } else {

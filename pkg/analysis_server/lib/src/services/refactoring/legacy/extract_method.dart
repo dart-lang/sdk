@@ -1101,7 +1101,7 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
   void _prepareExcludedNames() {
     _excludedNames.clear();
     var localElements = getDefinedLocalElements(_parentMember!);
-    _excludedNames.addAll(localElements.map((e) => e.name3!));
+    _excludedNames.addAll(localElements.map((e) => e.name!));
   }
 
   void _prepareNames() {
@@ -1809,7 +1809,7 @@ extension on LibraryElement {
           parametersBuffer.write(', ');
         }
         parametersBuffer.write(parameterType);
-        var parameterName = parameter.name3;
+        var parameterName = parameter.name;
         if (parameterName != null && parameterName.isNotEmpty) {
           parametersBuffer.write(' ');
           parametersBuffer.write(parameterName);

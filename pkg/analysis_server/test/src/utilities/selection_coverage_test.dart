@@ -76,7 +76,7 @@ class SelectionCoverageTest {
         if (implementsClause != null) {
           for (var type in implementsClause.interfaces) {
             var element = type.type?.element;
-            if (element is ClassElement && element.name3 == interfaceName) {
+            if (element is ClassElement && element.name == interfaceName) {
               data.instantiableInterfaces.add(element);
             }
           }
@@ -211,8 +211,8 @@ class SelectionCoverageTest {
 
     var buffer = StringBuffer();
     for (var interface in astImplData.instantiableInterfaces) {
-      if (interface.name3 == 'Comment' ||
-          interface.name3 == 'VariableDeclaration') {
+      if (interface.name == 'Comment' ||
+          interface.name == 'VariableDeclaration') {
         // The class `Comment` has references, but we don't support selecting a
         // portion of a comment in order to operate on it.
         //
@@ -228,13 +228,13 @@ class SelectionCoverageTest {
       }
       var visitedNodeLists = visitedLists[interface];
       if (visitedNodeLists == null) {
-        var interfaceName = interface.name3;
+        var interfaceName = interface.name;
         buffer.writeln('Missing implementation of visit$interfaceName:');
         buffer.writeln();
         buffer.writeln('@override');
         buffer.writeln('void visit$interfaceName($interfaceName node) {');
         for (var nodeList in declaredNodeLists) {
-          buffer.writeln('  _fromList(node.${nodeList.name3});');
+          buffer.writeln('  _fromList(node.${nodeList.name});');
         }
         buffer.writeln('}');
         buffer.writeln();
@@ -245,17 +245,17 @@ class SelectionCoverageTest {
           var enclosingElement =
               visitedNodeList.enclosingElement as InterfaceElement;
           var overridden = enclosingElement.getOverridden(
-            Name(visitedNodeList.library.uri, visitedNodeList.name3!),
+            Name(visitedNodeList.library.uri, visitedNodeList.name!),
           );
           if (overridden != null) {
             unvisitedNodeLists.removeAll(overridden);
           }
         }
         if (unvisitedNodeLists.isNotEmpty) {
-          buffer.writeln('Missing lines in visit${interface.name3}:');
+          buffer.writeln('Missing lines in visit${interface.name}:');
           buffer.writeln();
           for (var nodeList in unvisitedNodeLists) {
-            buffer.writeln('  _fromList(node.${nodeList.name3});');
+            buffer.writeln('  _fromList(node.${nodeList.name});');
           }
           buffer.writeln();
         }

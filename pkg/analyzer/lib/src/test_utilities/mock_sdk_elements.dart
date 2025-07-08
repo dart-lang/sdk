@@ -1005,7 +1005,7 @@ class _MockSdkElementsBuilder {
             .toList();
 
     ConstructorElementImpl(
-      name3: fragment.name,
+      name: fragment.name,
       reference: Reference.root(),
       firstFragment: fragment,
     );
@@ -1135,7 +1135,7 @@ class _MockSdkElementsBuilder {
           ..returnType = returnType
           ..typeParameters = typeFormals;
     MethodElementImpl(
-      name3: name,
+      name: name,
       reference: Reference.root(),
       firstFragment: fragment,
     );
@@ -1281,7 +1281,7 @@ class _MockSdkElementsBuilder {
   TypeParameterElementImpl _typeParameter(String name) {
     return TypeParameterElementImpl(
       firstFragment: TypeParameterFragmentImpl(name: name, nameOffset: 0),
-      name3: name.nullIfEmpty,
+      name: name.nullIfEmpty,
     );
   }
 

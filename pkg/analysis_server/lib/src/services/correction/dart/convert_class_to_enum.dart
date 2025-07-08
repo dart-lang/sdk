@@ -645,7 +645,7 @@ class _EnumDescription {
             var fieldElement = field.declaredFragment?.element;
             if (fieldElement is FieldElement) {
               var fieldType = fieldElement.type;
-              if (fieldElement.name3 == 'index' && fieldType.isDartCoreInt) {
+              if (fieldElement.name == 'index' && fieldType.isDartCoreInt) {
                 indexField = _Field(fieldElement, field, fieldList, member);
               }
             }

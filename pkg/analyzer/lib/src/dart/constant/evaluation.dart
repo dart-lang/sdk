@@ -244,10 +244,10 @@ class ConstantEvaluationEngine {
     if (constant is FieldElementImpl && constant.isEnumConstant) {
       var enclosing = constant.enclosingElement;
       if (enclosing is EnumElementImpl) {
-        if (enclosing.name3 == 'values') {
+        if (enclosing.name == 'values') {
           return;
         }
-        if (constant.name3 == enclosing.name3) {
+        if (constant.name == enclosing.name) {
           return;
         }
       }
@@ -504,7 +504,7 @@ class ConstantEvaluationEngine {
       if (enum_ is EnumElementImpl) {
         var index = enum_.constants2.indexOf(element);
         assert(index >= 0);
-        return _EnumConstant(index: index, name: element.name3 ?? '');
+        return _EnumConstant(index: index, name: element.name ?? '');
       }
     }
     return null;
@@ -2895,7 +2895,7 @@ class _InstanceCreationEvaluator {
   Constant evaluateFactoryConstructorCall(List<Expression> arguments) {
     var definingClass = _constructor.enclosingElement;
     var argumentCount = arguments.length;
-    if (_constructor.name3 == "fromEnvironment") {
+    if (_constructor.name == "fromEnvironment") {
       if (!_checkFromEnvironmentArguments(arguments, definingType)) {
         return InvalidConstant.forEntity(
           entity: _errorNode,
@@ -2928,14 +2928,14 @@ class _InstanceCreationEvaluator {
           _declaredVariables,
         ).getString2(variableName, _namedValues, _constructor);
       }
-    } else if (_constructor.name3 == 'hasEnvironment' &&
+    } else if (_constructor.name == 'hasEnvironment' &&
         definingClass == typeProvider.boolElement) {
       var name = argumentCount < 1 ? null : firstArgument?.toStringValue();
       return FromEnvironmentEvaluator(
         typeSystem,
         _declaredVariables,
       ).hasEnvironment(name);
-    } else if (_constructor.name3 == 'new' &&
+    } else if (_constructor.name == 'new' &&
         definingClass == typeProvider.symbolElement &&
         argumentCount == 1) {
       if (!_checkSymbolArguments(arguments)) {
@@ -2992,7 +2992,7 @@ class _InstanceCreationEvaluator {
 
     var definingType = this.definingType;
     if (definingType.element case ExtensionTypeElement element) {
-      var representation = _fieldMap[element.representation.name3];
+      var representation = _fieldMap[element.representation.name];
       if (representation != null) {
         return representation;
       }
@@ -3013,7 +3013,7 @@ class _InstanceCreationEvaluator {
             SimpleIdentifierImpl(
                 token: StringToken(
                   TokenType.STRING,
-                  parameter.name3 ?? '',
+                  parameter.name ?? '',
                   parameter.firstFragment.nameOffset2 ?? -1,
                 ),
               )
@@ -3028,7 +3028,7 @@ class _InstanceCreationEvaluator {
                 label: SimpleIdentifierImpl(
                   token: StringToken(
                     TokenType.STRING,
-                    parameter.name3 ?? '',
+                    parameter.name ?? '',
                     parameter.firstFragment.nameOffset2 ?? -1,
                   ),
                 )..element = parameter,
@@ -3069,13 +3069,13 @@ class _InstanceCreationEvaluator {
                 CompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
             arguments: [
               fieldValue.type.getDisplayString(),
-              field.name3 ?? '',
+              field.name ?? '',
               fieldType.getDisplayString(),
             ],
             isRuntimeException: isRuntimeException,
           );
         }
-        _fieldMap[field.name3 ?? ''] = fieldValue;
+        _fieldMap[field.name ?? ''] = fieldValue;
       }
     }
     return null;
@@ -3354,8 +3354,8 @@ class _InstanceCreationEvaluator {
       DartObjectImpl? argumentValue;
       AstNode? errorTarget;
       if (baseParameter.isNamed) {
-        argumentValue = _namedValues[baseParameter.name3 ?? ''];
-        errorTarget = _namedNodes[baseParameter.name3 ?? ''];
+        argumentValue = _namedValues[baseParameter.name ?? ''];
+        errorTarget = _namedNodes[baseParameter.name ?? ''];
       } else if (i < _argumentValues.length) {
         argumentValue = _argumentValues[i];
         errorTarget = arguments[i];
@@ -3420,7 +3420,7 @@ class _InstanceCreationEvaluator {
                 );
               }
             }
-            var fieldName = field.name3 ?? '';
+            var fieldName = field.name ?? '';
             if (_fieldMap.containsKey(fieldName)) {
               return InvalidConstant.forEntity(
                 entity: _errorNode,
@@ -3431,7 +3431,7 @@ class _InstanceCreationEvaluator {
             _fieldMap[fieldName] = argumentValue;
           }
         }
-        _parameterMap[baseParameter.name3 ?? ''] = argumentValue;
+        _parameterMap[baseParameter.name ?? ''] = argumentValue;
       }
     }
     return null;

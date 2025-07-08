@@ -85,16 +85,16 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   bool _defineKeyArgument(ArgumentList argumentList) => argumentList.arguments
-      .any((a) => a.correspondingParameter?.name3 == 'key');
+      .any((a) => a.correspondingParameter?.name == 'key');
 
   bool _defineKeyParameter(ConstructorElement element) => element
       .formalParameters
-      .any((e) => e.name3 == 'key' && _isKeyType(e.type));
+      .any((e) => e.name == 'key' && _isKeyType(e.type));
 
   bool _hasKeySuperParameterInitializerArg(ConstructorDeclaration node) {
     for (var parameter in node.parameters.parameterFragments) {
       var element = parameter?.element;
-      if (element is SuperFormalParameterElement && element.name3 == 'key') {
+      if (element is SuperFormalParameterElement && element.name == 'key') {
         return true;
       }
     }

@@ -463,7 +463,7 @@ class _TypeParameterCollector extends TypeVisitor<void> {
       var str = '';
 
       var boundStr = bound.getDisplayString();
-      str += '${type.element.name3} extends $boundStr';
+      str += '${type.element.name} extends $boundStr';
 
       typeParameters.add(str);
     }

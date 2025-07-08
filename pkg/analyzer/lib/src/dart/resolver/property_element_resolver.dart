@@ -151,7 +151,7 @@ class PropertyElementResolver with ScopeHelpers {
         _reportUnresolvedIndex(
           node,
           CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR,
-          ['[]', target.element.name3!],
+          ['[]', target.element.name!],
         );
       }
 
@@ -163,7 +163,7 @@ class PropertyElementResolver with ScopeHelpers {
         _reportUnresolvedIndex(
           node,
           CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR,
-          ['[]=', target.element.name3!],
+          ['[]=', target.element.name!],
         );
       }
 
@@ -427,7 +427,7 @@ class PropertyElementResolver with ScopeHelpers {
       } else {
         var enclosingElement = element.enclosingElement;
         if (enclosingElement is ExtensionElement &&
-            enclosingElement.name3 == null) {
+            enclosingElement.name == null) {
           _resolver.diagnosticReporter.atNode(
             propertyName,
             CompileTimeErrorCode
@@ -444,7 +444,7 @@ class PropertyElementResolver with ScopeHelpers {
             arguments: [
               propertyName.name,
               element.kind.displayName,
-              enclosingElement!.name3!,
+              enclosingElement!.name!,
               enclosingElement is MixinElement
                   ? 'mixin'
                   : enclosingElement.kind.displayName,
@@ -670,7 +670,7 @@ class PropertyElementResolver with ScopeHelpers {
         diagnosticReporter.atNode(
           propertyName,
           CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER,
-          arguments: [memberName, extension.name3!],
+          arguments: [memberName, extension.name!],
         );
       } else {
         getType = readElement.returnType;
@@ -690,7 +690,7 @@ class PropertyElementResolver with ScopeHelpers {
         diagnosticReporter.atNode(
           propertyName,
           CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER,
-          arguments: [memberName, extension.name3!],
+          arguments: [memberName, extension.name!],
         );
       } else {
         if (_checkForStaticAccessToInstanceMember(propertyName, writeElement)) {
@@ -739,7 +739,7 @@ class PropertyElementResolver with ScopeHelpers {
         diagnosticReporter.atNode(
           propertyName,
           CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER,
-          arguments: [memberName, element.name3!],
+          arguments: [memberName, element.name!],
         );
       } else {
         getType = readElement.returnType;
@@ -757,7 +757,7 @@ class PropertyElementResolver with ScopeHelpers {
         diagnosticReporter.atNode(
           propertyName,
           CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER,
-          arguments: [memberName, element.name3!],
+          arguments: [memberName, element.name!],
         );
       }
       _checkForStaticMember(target, propertyName, writeElement);
@@ -811,7 +811,7 @@ class PropertyElementResolver with ScopeHelpers {
           diagnosticReporter.atNode(
             propertyName,
             CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_GETTER,
-            arguments: [propertyName.name, typeReference.name3!],
+            arguments: [propertyName.name, typeReference.name!],
           );
         } else {
           var code =
@@ -821,7 +821,7 @@ class PropertyElementResolver with ScopeHelpers {
           diagnosticReporter.atNode(
             propertyName,
             code,
-            arguments: [propertyName.name, typeReference.name3!],
+            arguments: [propertyName.name, typeReference.name!],
           );
         }
       }
@@ -889,13 +889,13 @@ class PropertyElementResolver with ScopeHelpers {
     if (hasRead && readElement == null || hasWrite && writeElement == null) {
       if (!forAnnotation &&
           !_resolver.libraryFragment.shouldIgnoreUndefined(
-            prefix: target.name3,
+            prefix: target.name,
             name: identifier.name,
           )) {
         diagnosticReporter.atNode(
           identifier,
           CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME,
-          arguments: [identifier.name, target.name3!],
+          arguments: [identifier.name, target.name!],
         );
       }
     }

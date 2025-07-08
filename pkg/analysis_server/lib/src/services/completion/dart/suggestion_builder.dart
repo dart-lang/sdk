@@ -300,11 +300,11 @@ class SuggestionBuilder {
       var isConstant =
           _preferConstants ? featureComputer.isConstantFeature(field) : 0.0;
       var startsWithDollar = featureComputer.startsWithDollarFeature(
-        field.name3 ?? '',
+        field.name ?? '',
       );
       var superMatches = featureComputer.superMatchesFeature(
         _containingMemberName,
-        field.name3 ?? '',
+        field.name ?? '',
       );
       relevance ??= relevanceComputer.computeScore(
         contextType: contextType,
@@ -719,7 +719,7 @@ class SuggestionBuilder {
     int? replacementLength,
     required int relevance,
   }) {
-    var name = parameter.name3;
+    var name = parameter.name;
     var type = parameter.type.getDisplayString();
 
     var suggestion = DartCompletionSuggestion(

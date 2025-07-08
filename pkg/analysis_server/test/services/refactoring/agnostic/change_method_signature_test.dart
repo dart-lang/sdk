@@ -124,9 +124,9 @@ class AbstractChangeMethodSignatureTest extends AbstractContextTest {
           enclosingElement != null
               ? _elementToReferenceString(enclosingElement)
               : 'root';
-      return '$enclosingStr::@parameter::${element.name3}';
+      return '$enclosingStr::@parameter::${element.name}';
     } else {
-      return '${element.name3}';
+      return '${element.name}';
     }
   }
 

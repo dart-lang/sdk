@@ -289,7 +289,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
 
   @trackedIncludedIntoId
   bool get isDartCoreRecord {
-    return name3 == 'Record' && library.isDartCore;
+    return name == 'Record' && library.isDartCore;
   }
 
   @trackedDirectlyExpensive
@@ -452,17 +452,17 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
     _constructors =
         superConstructors.map((superConstructor) {
           var constructorFragment = ConstructorFragmentImpl(
-            name: superConstructor.name3 ?? 'new',
+            name: superConstructor.name ?? 'new',
             nameOffset: -1,
           );
           constructorFragment.isSynthetic = true;
-          constructorFragment.typeName = name3;
+          constructorFragment.typeName = name;
           constructorFragment.isConst =
               superConstructor.isConst && !mixins.any(typeHasInstanceVariables);
           constructorFragment.enclosingElement3 = firstFragment;
 
           var constructorElement = ConstructorElementImpl(
-            name3: constructorFragment.name,
+            name: constructorFragment.name,
             reference: reference
                 .getChild('@constructor')
                 .getChild(constructorFragment.name),
@@ -478,7 +478,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
           for (var superFormalParameter in superConstructor.formalParameters) {
             var formalParameterFragment = FormalParameterFragmentImpl(
                 nameOffset: -1,
-                name: superFormalParameter.name3,
+                name: superFormalParameter.name,
                 nameOffset2: null,
                 parameterKind: superFormalParameter.parameterKind,
               )
@@ -517,7 +517,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
           constructorFragment.parameters =
               formalParameterFragments.toFixedList();
 
-          var isNamed = superConstructor.name3 != 'new';
+          var isNamed = superConstructor.name != 'new';
           var superInvocation = SuperConstructorInvocationImpl(
             superKeyword: Tokens.super_(),
             period: isNamed ? Tokens.period() : null,
@@ -526,7 +526,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
                     ? (SimpleIdentifierImpl(
                       token: StringToken(
                         TokenType.STRING,
-                        superConstructor.name3 ?? 'new',
+                        superConstructor.name ?? 'new',
                         -1,
                       ),
                     )..element = superConstructor.baseElement)
@@ -726,7 +726,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   final Reference reference;
 
   @override
-  final String? name3;
+  final String? name;
 
   @override
   final ConstructorFragmentImpl firstFragment;
@@ -743,7 +743,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   ConstructorElementMixin2? _superConstructor;
 
   ConstructorElementImpl({
-    required this.name3,
+    required this.name,
     required this.reference,
     required this.firstFragment,
   }) {
@@ -763,8 +763,8 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @override
   String get displayName {
-    var className = enclosingElement.name3 ?? '<null>';
-    var name = name3 ?? '<null>';
+    var className = enclosingElement.name ?? '<null>';
+    var name = this.name ?? '<null>';
     if (name != 'new') {
       return '$className.$name';
     } else {
@@ -823,6 +823,10 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @override
   LibraryFragmentImpl get libraryFragment => firstFragment.libraryFragment;
+
+  @Deprecated('Use name instead')
+  @override
+  String? get name3 => name;
 
   @override
   Element get nonSynthetic {
@@ -1284,7 +1288,11 @@ class DynamicElementImpl extends TypeDefiningElementImpl {
   MetadataImpl get metadata2 => metadata;
 
   @override
-  String get name3 => 'dynamic';
+  String get name => 'dynamic';
+
+  @Deprecated('Use name instead')
+  @override
+  String get name3 => name;
 
   @override
   T? accept<T>(ElementVisitor2<T> visitor) => null;
@@ -1562,7 +1570,7 @@ class ElementAnnotationImpl
   bool get isDartInternalSince {
     var element2 = this.element2;
     if (element2 is ConstructorElement) {
-      return element2.enclosingElement.name3 == 'Since' &&
+      return element2.enclosingElement.name == 'Since' &&
           element2.library.uri.toString() == 'dart:_internal';
     }
     return false;
@@ -1573,10 +1581,10 @@ class ElementAnnotationImpl
     var element2 = this.element2;
     if (element2 is ConstructorElement) {
       return element2.library.isDartCore &&
-          element2.enclosingElement.name3 == _deprecatedClassName;
+          element2.enclosingElement.name == _deprecatedClassName;
     } else if (element2 is PropertyAccessorElement) {
       return element2.library.isDartCore &&
-          element2.name3 == _deprecatedVariableName;
+          element2.name == _deprecatedVariableName;
     }
     return false;
   }
@@ -1735,8 +1743,8 @@ class ElementAnnotationImpl
   }) {
     var element2 = this.element2;
     return element2 is ConstructorElement &&
-        element2.enclosingElement.name3 == className &&
-        element2.library.name3 == libraryName;
+        element2.enclosingElement.name == className &&
+        element2.library.name == libraryName;
   }
 
   bool _isDartCoreGetter(String name) {
@@ -1758,8 +1766,8 @@ class ElementAnnotationImpl
     );
     var element2 = this.element2;
     return element2 is PropertyAccessorElement &&
-        element2.name3 == name &&
-        (libraryName == null || element2.library.name3 == libraryName) &&
+        element2.name == name &&
+        (libraryName == null || element2.library.name == libraryName) &&
         (libraryUri == null || element2.library.uri == libraryUri);
   }
 }
@@ -1798,7 +1806,7 @@ abstract class ElementImpl implements Element {
   List<Element> get children2 => const [];
 
   @override
-  String get displayName => name3 ?? '<unnamed>';
+  String get displayName => name ?? '<unnamed>';
 
   @override
   List<Fragment> get fragments {
@@ -1814,11 +1822,11 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get isPrivate {
-    var name3 = this.name3;
-    if (name3 == null) {
+    var name = this.name;
+    if (name == null) {
       return true;
     }
-    return Identifier.isPrivateName(name3);
+    return Identifier.isPrivateName(name);
   }
 
   @override
@@ -1826,7 +1834,7 @@ abstract class ElementImpl implements Element {
 
   @override
   String? get lookupName {
-    return name3;
+    return name;
   }
 
   @override
@@ -1883,8 +1891,8 @@ abstract class ElementImpl implements Element {
 
   @override
   bool isAccessibleIn2(LibraryElement library) {
-    var name3 = this.name3;
-    if (name3 == null || Identifier.isPrivateName(name3)) {
+    var name = this.name;
+    if (name == null || Identifier.isPrivateName(name)) {
       return library == this.library;
     }
     return true;
@@ -1964,7 +1972,7 @@ class EnumElementImpl extends InterfaceElementImpl implements EnumElement {
 
   FieldElementImpl? get valuesField {
     for (var field in fields) {
-      if (field.name3 == 'values' && field.isSyntheticEnumField) {
+      if (field.name == 'values' && field.isSyntheticEnumField) {
         return field;
       }
     }
@@ -2648,7 +2656,7 @@ class FieldElementImpl extends PropertyInducingElementImpl
   bool get isEnumConstant => firstFragment.isEnumConstant;
 
   bool get isEnumValues {
-    return enclosingElement is EnumElementImpl && name3 == 'values';
+    return enclosingElement is EnumElementImpl && name == 'values';
   }
 
   @override
@@ -2691,7 +2699,11 @@ class FieldElementImpl extends PropertyInducingElementImpl
   LibraryElementImpl get library2 => library;
 
   @override
-  String? get name3 => firstFragment.name;
+  String? get name => firstFragment.name;
+
+  @Deprecated('Use name instead')
+  @override
+  String? get name3 => name;
 
   @override
   T? accept<T>(ElementVisitor2<T> visitor) {
@@ -3009,8 +3021,14 @@ class FormalParameterElementImpl extends PromotableElementImpl
   LibraryElementImpl? get library2 => library;
 
   @override
-  String? get name3 {
+  String? get name {
     return wrappedElement.name;
+  }
+
+  @Deprecated('Use name instead')
+  @override
+  String? get name3 {
+    return name;
   }
 
   @override
@@ -3894,7 +3912,11 @@ class GenericFunctionTypeElementImpl extends FunctionTypedElementImpl
   MetadataImpl get metadata2 => metadata;
 
   @override
-  String? get name3 => _wrappedElement.name;
+  String? get name => _wrappedElement.name;
+
+  @Deprecated('Use name instead')
+  @override
+  String? get name3 => name;
 
   @override
   DartType get returnType => _wrappedElement.returnType;
@@ -4278,7 +4300,11 @@ abstract class InstanceElementImpl extends ElementImpl
   List<MethodElementImpl> get methods2 => methods;
 
   @override
-  String? get name3 => firstFragment.name;
+  String? get name => firstFragment.name;
+
+  @Deprecated('Use name instead')
+  @override
+  String? get name3 => name;
 
   @override
   Element get nonSynthetic => isSynthetic ? enclosingElement : this as Element;
@@ -4348,7 +4374,7 @@ The result depends only on the requested field, which we have already
 recorded above.
 ''',
       operation: () {
-        return fields.firstWhereOrNull((e) => e.name3 == name);
+        return fields.firstWhereOrNull((e) => e.name == name);
       },
     );
   }
@@ -4371,7 +4397,7 @@ The result depends only on the requested getter, which we have already
 recorded above.
 ''',
       operation: () {
-        return getters.firstWhereOrNull((e) => e.name3 == name);
+        return getters.firstWhereOrNull((e) => e.name == name);
       },
     );
   }
@@ -4417,7 +4443,7 @@ The result depends only on the requested setter, which we have already
 recorded above.
 ''',
       operation: () {
-        return setters.firstWhereOrNull((e) => e.name3 == name);
+        return setters.firstWhereOrNull((e) => e.name == name);
       },
     );
   }
@@ -4428,7 +4454,7 @@ recorded above.
 
   @override
   bool isAccessibleIn2(LibraryElement library) {
-    var name = name3;
+    var name = this.name;
     if (name != null && Identifier.isPrivateName(name)) {
       return library == this.library;
     }
@@ -4907,7 +4933,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
       element: this,
       name: name,
     );
-    return constructors.firstWhereOrNull((e) => e.name3 == name);
+    return constructors.firstWhereOrNull((e) => e.name == name);
   }
 
   @override
@@ -5416,7 +5442,11 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
   LibraryElement get library2 => library;
 
   @override
-  String? get name3 => _wrappedElement.name;
+  String? get name => _wrappedElement.name;
+
+  @Deprecated('Use name instead')
+  @override
+  String? get name3 => name;
 
   @override
   T? accept<T>(ElementVisitor2<T> visitor) {
@@ -5551,6 +5581,7 @@ class LibraryElementImpl extends ElementImpl
   late final LoadLibraryFunctionProvider loadLibraryProvider;
 
   // TODO(scheglov): replace with `LibraryName` or something.
+  @override
   String name;
 
   // TODO(scheglov): replace with `LibraryName` or something.
@@ -5797,6 +5828,7 @@ class LibraryElementImpl extends ElementImpl
   @override
   MetadataImpl get metadata2 => metadata;
 
+  @Deprecated('Use name instead')
   @override
   String? get name3 => name;
 
@@ -6034,7 +6066,7 @@ class LibraryElementImpl extends ElementImpl
     List<T> elements,
     String name,
   ) {
-    return elements.firstWhereOrNull((e) => e.name3 == name);
+    return elements.firstWhereOrNull((e) => e.name == name);
   }
 }
 
@@ -6520,7 +6552,7 @@ class LibraryFragmentImpl extends _ExistingFragmentImpl
   bool shouldIgnoreUndefined({required String? prefix, required String name}) {
     for (var libraryFragment in withEnclosing) {
       for (var importElement in libraryFragment.libraryImports) {
-        if (importElement.prefix2?.element.name3 == prefix &&
+        if (importElement.prefix2?.element.name == prefix &&
             importElement.importedLibrary2?.isSynthetic != false) {
           var showCombinators =
               importElement.combinators
@@ -6730,7 +6762,11 @@ class LocalFunctionElementImpl extends ExecutableElementImpl
   MetadataImpl get metadata2 => metadata;
 
   @override
-  String? get name3 => _wrappedElement.name;
+  String? get name => _wrappedElement.name;
+
+  @Deprecated('Use name instead')
+  @override
+  String? get name3 => name;
 
   @override
   TypeImpl get returnType => _wrappedElement.returnType;
@@ -6852,7 +6888,11 @@ class LocalVariableElementImpl extends PromotableElementImpl
   MetadataImpl get metadata2 => metadata;
 
   @override
-  String? get name3 => _wrappedElement.name;
+  String? get name => _wrappedElement.name;
+
+  @Deprecated('Use name instead')
+  @override
+  String? get name3 => name;
 
   @override
   FragmentImpl? get _enclosingFunction => _wrappedElement.enclosingElement3;
@@ -7350,13 +7390,13 @@ class MethodElementImpl extends ExecutableElementImpl
   final Reference reference;
 
   @override
-  final String? name3;
+  final String? name;
 
   @override
   final MethodFragmentImpl firstFragment;
 
   MethodElementImpl({
-    required this.name3,
+    required this.name,
     required this.reference,
     required this.firstFragment,
   }) {
@@ -7405,11 +7445,15 @@ class MethodElementImpl extends ExecutableElementImpl
 
   @override
   String? get lookupName {
-    if (name3 == '-' && formalParameters.isEmpty) {
+    if (name == '-' && formalParameters.isEmpty) {
       return 'unary-';
     }
-    return name3;
+    return name;
   }
+
+  @Deprecated('Use name instead')
+  @override
+  String? get name3 => name;
 
   @override
   T? accept<T>(ElementVisitor2<T> visitor) {
@@ -7766,7 +7810,7 @@ class MultiplyDefinedElementImpl extends ElementImpl
   final LibraryFragmentImpl libraryFragment;
 
   @override
-  final String name3;
+  final String name;
 
   @override
   final List<Element> conflictingElements2;
@@ -7777,7 +7821,7 @@ class MultiplyDefinedElementImpl extends ElementImpl
 
   MultiplyDefinedElementImpl(
     this.libraryFragment,
-    this.name3,
+    this.name,
     this.conflictingElements2,
   );
 
@@ -7788,7 +7832,7 @@ class MultiplyDefinedElementImpl extends ElementImpl
   List<Element> get children2 => const [];
 
   @override
-  String get displayName => name3;
+  String get displayName => name;
 
   @override
   Null get enclosingElement => null;
@@ -7824,6 +7868,10 @@ class MultiplyDefinedElementImpl extends ElementImpl
   @Deprecated('Use library instead')
   @override
   LibraryElement get library2 => library;
+
+  @Deprecated('Use name instead')
+  @override
+  String get name3 => name;
 
   @override
   Element get nonSynthetic => this;
@@ -7918,7 +7966,7 @@ class MultiplyDefinedFragmentImpl implements MultiplyDefinedFragment {
   LibraryFragment get libraryFragment => enclosingFragment;
 
   @override
-  String? get name => element.name3;
+  String? get name => element.name;
 
   @Deprecated('Use name instead')
   @override
@@ -7985,7 +8033,11 @@ class NeverElementImpl extends TypeDefiningElementImpl {
   MetadataImpl get metadata2 => metadata;
 
   @override
-  String get name3 => 'Never';
+  String get name => 'Never';
+
+  @Deprecated('Use name instead')
+  @override
+  String get name3 => name;
 
   @override
   T? accept<T>(ElementVisitor2<T> visitor) {
@@ -8258,7 +8310,11 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
   LibraryElementImpl get library2 => library;
 
   @override
-  String? get name3 => firstFragment.name;
+  String? get name => firstFragment.name;
+
+  @Deprecated('Use name instead')
+  @override
+  String? get name3 => name;
 
   @override
   PrefixScope get scope {
@@ -8384,14 +8440,18 @@ abstract class PropertyAccessorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  String? get name3 => firstFragment.name;
+  String? get name => firstFragment.name;
+
+  @Deprecated('Use name instead')
+  @override
+  String? get name3 => name;
 
   @override
   @trackedDirectly
   PropertyInducingElementImpl? get variable3 {
     globalResultRequirements?.record_propertyAccessorElement_variable(
       element: this,
-      name: name3,
+      name: name,
     );
 
     return _variable3;
@@ -8520,7 +8580,7 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
     if (isSynthetic) {
       if (enclosingElement case EnumElementImpl enclosingElement) {
         // TODO(scheglov): remove 'index'?
-        if (name3 == 'index' || name3 == 'values') {
+        if (name == 'index' || name == 'values') {
           return enclosingElement;
         }
       }
@@ -8726,7 +8786,7 @@ class SetterElementImpl extends PropertyAccessorElementImpl
 
   @override
   String? get lookupName {
-    if (name3 case var name?) {
+    if (name case var name?) {
       return '$name=';
     }
     return null;
@@ -8890,7 +8950,7 @@ class SuperFormalParameterElementImpl extends FormalParameterElementImpl
         var superParameters = superConstructor.formalParameters;
         if (isNamed) {
           return superParameters.firstWhereOrNull(
-            (e) => e.isNamed && e.name3 == name3,
+            (e) => e.isNamed && e.name == name,
           );
         } else {
           var index = indexIn(enclosingElement);
@@ -9039,7 +9099,7 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl
 
   @override
   bool get isDartCoreIdentical {
-    return name3 == 'identical' && library.isDartCore;
+    return name == 'identical' && library.isDartCore;
   }
 
   @override
@@ -9063,7 +9123,11 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl
   LibraryElementImpl get library2 => library;
 
   @override
-  String? get name3 => firstFragment.name;
+  String? get name => firstFragment.name;
+
+  @Deprecated('Use name instead')
+  @override
+  String? get name3 => name;
 
   @override
   T? accept<T>(ElementVisitor2<T> visitor) {
@@ -9175,7 +9239,11 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
   LibraryElement get library2 => library;
 
   @override
-  String? get name3 => firstFragment.name;
+  String? get name => firstFragment.name;
+
+  @Deprecated('Use name instead')
+  @override
+  String? get name3 => name;
 
   @override
   T? accept<T>(ElementVisitor2<T> visitor) {
@@ -9353,7 +9421,11 @@ class TypeAliasElementImpl extends TypeDefiningElementImpl
   LibraryElementImpl get library2 => library;
 
   @override
-  String? get name3 => firstFragment.name;
+  String? get name => firstFragment.name;
+
+  @Deprecated('Use name instead')
+  @override
+  String? get name3 => name;
 
   @override
   List<TypeParameterElementImpl> get typeParameters2 =>
@@ -9578,9 +9650,9 @@ class TypeParameterElementImpl extends TypeDefiningElementImpl
   final TypeParameterFragmentImpl firstFragment;
 
   @override
-  final String? name3;
+  final String? name;
 
-  TypeParameterElementImpl({required this.firstFragment, required this.name3}) {
+  TypeParameterElementImpl({required this.firstFragment, required this.name}) {
     TypeParameterFragmentImpl? fragment = firstFragment;
     while (fragment != null) {
       fragment.element = this;
@@ -9590,7 +9662,7 @@ class TypeParameterElementImpl extends TypeDefiningElementImpl
 
   factory TypeParameterElementImpl.synthetic({required String name}) {
     var fragment = TypeParameterFragmentImpl.synthetic(name: name);
-    return TypeParameterElementImpl(firstFragment: fragment, name3: name);
+    return TypeParameterElementImpl(firstFragment: fragment, name: name);
   }
 
   @override
@@ -9634,6 +9706,10 @@ class TypeParameterElementImpl extends TypeDefiningElementImpl
   @Deprecated('Use library instead')
   @override
   LibraryElementImpl? get library2 => library;
+
+  @Deprecated('Use name instead')
+  @override
+  String? get name3 => name;
 
   shared.Variance get variance => firstFragment.variance;
 
@@ -9757,7 +9833,7 @@ class TypeParameterFragmentImpl extends FragmentImpl
     // chain will have their `_element` set to the newly created element.
     return TypeParameterElementImpl(
       firstFragment: firstFragment,
-      name3: firstFragment.name,
+      name: firstFragment.name,
     );
   }
 

@@ -681,7 +681,7 @@ class _ClassVerifier {
               reporter.atToken(
                 classNameToken,
                 CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE,
-                arguments: [memberName, enclosingClass.name3!],
+                arguments: [memberName, enclosingClass.name!],
               );
             }
           }
@@ -718,7 +718,7 @@ class _ClassVerifier {
         reporter.atToken(
           classNameToken,
           CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE,
-          arguments: [inherited.enclosingElement!.name3!],
+          arguments: [inherited.enclosingElement!.name!],
         );
       }
     }
@@ -840,14 +840,14 @@ class _ClassVerifier {
         CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
         arguments: [
           name.name,
-          conflict.getter.enclosingElement!.name3!,
-          conflict.method.enclosingElement!.name3!,
+          conflict.getter.enclosingElement!.name!,
+          conflict.method.enclosingElement!.name!,
         ],
       );
     } else if (conflict is CandidatesConflict) {
       var candidatesStr = conflict.candidates
           .map((candidate) {
-            var className = candidate.enclosingElement!.name3;
+            var className = candidate.enclosingElement!.name;
             var typeStr = candidate.type.getDisplayString();
             return '$className.${name.name} ($typeStr)';
           })
@@ -984,7 +984,7 @@ class _ClassVerifier {
           continue;
         }
         if (method.metadata.hasMustBeOverridden) {
-          var methodDeclaration = classElement.getMethod(method.name3!);
+          var methodDeclaration = classElement.getMethod(method.name!);
           if (methodDeclaration == null || methodDeclaration.isAbstract) {
             notOverridden.add(method.baseElement);
           }
@@ -999,7 +999,7 @@ class _ClassVerifier {
         }
         if (getter.metadata.hasMustBeOverridden ||
             (getter.variable3?.metadata.hasMustBeOverridden ?? false)) {
-          var declaration = classElement.getGetter(getter.name3!);
+          var declaration = classElement.getGetter(getter.name!);
           if (declaration == null || declaration.isAbstract) {
             notOverridden.add(getter);
           }
@@ -1014,7 +1014,7 @@ class _ClassVerifier {
         }
         if (setter.metadata.hasMustBeOverridden ||
             (setter.variable3?.metadata.hasMustBeOverridden ?? false)) {
-          var declaration = classElement.getSetter(setter.name3!);
+          var declaration = classElement.getSetter(setter.name!);
           if (declaration == null || declaration.isAbstract) {
             notOverridden.add(setter);
           }
@@ -1029,7 +1029,7 @@ class _ClassVerifier {
     var namesForError =
         notOverridden
             .map((e) {
-              var name = e.name3!;
+              var name = e.name!;
               if (name.endsWith('=')) {
                 name = name.substring(0, name.length - 1);
               }

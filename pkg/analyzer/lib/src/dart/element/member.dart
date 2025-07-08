@@ -617,7 +617,11 @@ abstract class Member implements Element {
   String? get lookupName => baseElement.lookupName;
 
   @override
-  String? get name3 => baseElement.name3;
+  String? get name => baseElement.name;
+
+  @Deprecated('Use name instead')
+  @override
+  String? get name3 => name;
 
   @override
   Element get nonSynthetic => baseElement;
@@ -857,7 +861,7 @@ class ParameterMember extends VariableMember with FormalParameterElementMixin {
   MetadataImpl get metadata2 => metadata;
 
   @override
-  String get nameShared => name3!;
+  String get nameShared => name!;
 
   @deprecated
   @override

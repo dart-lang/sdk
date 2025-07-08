@@ -159,7 +159,7 @@ class LibraryBuilder {
       var classElement = classFragment.element;
       classElement.constructors = [
         ConstructorElementImpl(
-          name3: fragment.name,
+          name: fragment.name,
           reference: classElement.reference
               .getChild('@constructor')
               .addChild('new'),
@@ -223,7 +223,7 @@ class LibraryBuilder {
   void buildEnumSyntheticConstructors() {
     bool hasConstructor(EnumFragmentImpl fragment) {
       for (var constructor in fragment.element.constructors) {
-        if (constructor.isGenerative || constructor.name3 == 'new') {
+        if (constructor.isGenerative || constructor.name == 'new') {
           return true;
         }
       }
@@ -241,7 +241,7 @@ class LibraryBuilder {
       fragment.typeName = enumFragment.name;
 
       var element = ConstructorElementImpl(
-        name3: fragment.name,
+        name: fragment.name,
         reference: enumFragment.element.reference
             .getChild('@constructor')
             .addChild('new'),
@@ -893,7 +893,7 @@ class _FieldPromotability
     // They also don't affect promotability of any other fields.
     for (var extensionType in element.extensionTypes) {
       var representation = extensionType.representation;
-      var representationName = representation.name3;
+      var representationName = representation.name;
       if (representationName != null) {
         if (representationName.startsWith('_')) {
           representation.firstFragment.isPromotable = true;
@@ -906,7 +906,7 @@ class _FieldPromotability
 
     // Set the `isPromotable` bit for each field element that *is* promotable.
     for (var field in _potentiallyPromotableFields) {
-      if (fieldNonPromotabilityInfo[field.name3!] == null) {
+      if (fieldNonPromotabilityInfo[field.name!] == null) {
         field.firstFragment.isPromotable = true;
       }
     }
@@ -932,7 +932,7 @@ class _FieldPromotability
         continue;
       }
 
-      var fieldName = field.name3;
+      var fieldName = field.name;
       if (fieldName != null) {
         var nonPromotabilityReason = addField(
           classInfo,
@@ -953,7 +953,7 @@ class _FieldPromotability
         continue;
       }
 
-      var getterName = getter.name3;
+      var getterName = getter.name;
       if (getterName != null) {
         var nonPromotabilityReason = addGetter(
           classInfo,

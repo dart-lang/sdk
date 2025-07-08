@@ -35,7 +35,7 @@ main(List<String> args) {
 
 String supertypeToString(InterfaceType type) {
   var sb = StringBuffer();
-  sb.write(type.element.name3);
+  sb.write(type.element.name);
   if (type.typeArguments.isNotEmpty) {
     sb.write('<');
     var comma = '';
@@ -115,7 +115,7 @@ class _InheritanceDataExtractor extends AstDataExtractor<String> {
           continue;
         }
 
-        var id = MemberId.internal(name.name, className: element.name3);
+        var id = MemberId.internal(name.name, className: element.name);
 
         var offset =
             enclosingClass == element

@@ -1596,7 +1596,7 @@ class ResolvedUnitResultPrinter {
         variable,
       ) {
         sink.writeIndent();
-        sink.write('${variable.name3}: ');
+        sink.write('${variable.name}: ');
         if (variable is LocalVariableElement) {
           elementPrinter.writeType(variable.type);
         } else if (variable is TopLevelVariableElement) {

@@ -62,7 +62,7 @@ String _getMethodSourceForInvocation(
     for (var arg in arguments) {
       // Compare using names because parameter elements may not be the same
       // instance for methods with generic type arguments.
-      if (arg.correspondingParameter?.name3 == parameter.name3) {
+      if (arg.correspondingParameter?.name == parameter.name) {
         argument = arg;
         break;
       }
@@ -80,7 +80,7 @@ String _getMethodSourceForInvocation(
       // report about a missing required parameter
       if (parameter.isRequiredPositional) {
         status.addError(
-          'No argument for the parameter "${parameter.name3}".',
+          'No argument for the parameter "${parameter.name}".',
           newLocation_fromNode(contextNode),
         );
         return;
@@ -996,7 +996,7 @@ class _VariablesVisitor extends GeneralizingAstVisitor<void> {
     // record the implicit static or instance reference
     var offset = node.offset;
     if (element.isStatic) {
-      var className = element.enclosingElement!.name3!;
+      var className = element.enclosingElement!.name!;
       result.addImplicitClassNameOffset(className, offset);
     } else {
       result.addImplicitThisOffset(offset);

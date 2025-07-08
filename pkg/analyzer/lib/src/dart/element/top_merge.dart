@@ -181,7 +181,7 @@ class TopMergeHelper {
         throw _TopMergeStateError(T, S, 'Different formal parameter kinds');
       }
 
-      if (T_parameter.isNamed && T_parameter.name3 != S_parameter.name3) {
+      if (T_parameter.isNamed && T_parameter.name != S_parameter.name) {
         throw _TopMergeStateError(T, S, 'Different named parameter names');
       }
 

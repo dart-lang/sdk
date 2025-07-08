@@ -143,12 +143,12 @@ class FunctionExpressionResolver {
           .map((fragment) => fragment.element)
           .where((element) => element.isNamed);
       for (var element in nodeNamed) {
-        if (!contextNamedTypes.containsKey(element.name3)) {
+        if (!contextNamedTypes.containsKey(element.name)) {
           continue;
         }
         inferType(
           element as FormalParameterElementImpl,
-          contextNamedTypes[element.name3]!,
+          contextNamedTypes[element.name]!,
         );
       }
     }

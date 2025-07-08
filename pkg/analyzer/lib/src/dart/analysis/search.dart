@@ -513,7 +513,7 @@ class Search {
     String name;
     String id;
     if (type1 != null) {
-      name = type1.name3!;
+      name = type1.name!;
       var librarySource = type1.library.firstFragment.source;
       var source = type1.firstFragment.libraryFragment.source;
       id = '${librarySource.uri};${source.uri};$name';
@@ -919,7 +919,7 @@ class Search {
     );
     assert(
       enclosingNode != null && enclosingNode is! CompilationUnit,
-      'Did not find enclosing node for local "${element.name3}". '
+      'Did not find enclosing node for local "${element.name}". '
       'Perhaps the isRootNode function is missing a condition to locate the '
       'outermost node where this element is in scope?',
     );
@@ -1286,7 +1286,7 @@ class _FindLibraryDeclarations {
   void _addClasses(List<InterfaceElement> elements) {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
-      _addDeclaration(element, element.name3!);
+      _addDeclaration(element, element.name!);
       _addGetters(element.getters);
       _addConstructors(element.constructors);
       _addFields(element.fields);
@@ -1299,7 +1299,7 @@ class _FindLibraryDeclarations {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
       if (!element.isSynthetic) {
-        _addDeclaration(element, element.name3!);
+        _addDeclaration(element, element.name!);
       }
     }
   }
@@ -1320,9 +1320,9 @@ class _FindLibraryDeclarations {
     if (enclosing is EnumElement) {
       // skip
     } else if (enclosing is MixinElement) {
-      mixinName = enclosing.name3;
+      mixinName = enclosing.name;
     } else if (enclosing is InterfaceElement) {
-      className = enclosing.name3;
+      className = enclosing.name;
     }
 
     var kind = _getSearchElementKind(element);
@@ -1384,7 +1384,7 @@ class _FindLibraryDeclarations {
   void _addExtensions(List<ExtensionElement> elements) {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
-      var name = element.name3;
+      var name = element.name;
       if (name != null) {
         _addDeclaration(element, name);
       }
@@ -1399,7 +1399,7 @@ class _FindLibraryDeclarations {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
       if (!element.isSynthetic) {
-        _addDeclaration(element, element.name3!);
+        _addDeclaration(element, element.name!);
       }
     }
   }
@@ -1407,7 +1407,7 @@ class _FindLibraryDeclarations {
   void _addFunctions(List<TopLevelFunctionElement> elements) {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
-      _addDeclaration(element, element.name3!);
+      _addDeclaration(element, element.name!);
     }
   }
 
@@ -1423,7 +1423,7 @@ class _FindLibraryDeclarations {
   void _addMethods(List<MethodElement> elements) {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
-      _addDeclaration(element, element.name3!);
+      _addDeclaration(element, element.name!);
     }
   }
 
@@ -1439,7 +1439,7 @@ class _FindLibraryDeclarations {
   void _addTypeAliases(List<TypeAliasElement> elements) {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
-      _addDeclaration(element, element.name3!);
+      _addDeclaration(element, element.name!);
     }
   }
 
@@ -1447,7 +1447,7 @@ class _FindLibraryDeclarations {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
       if (!element.isSynthetic) {
-        _addDeclaration(element, element.name3!);
+        _addDeclaration(element, element.name!);
       }
     }
   }

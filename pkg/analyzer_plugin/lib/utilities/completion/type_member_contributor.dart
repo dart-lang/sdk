@@ -313,7 +313,7 @@ class _SuggestionBuilder {
           // Boost the relevance of a super expression
           // calling a method of the same name as the containing method
           _addSuggestion(method,
-              relevance: method.name3 == containingMethodName
+              relevance: method.name == containingMethodName
                   ? DART_RELEVANCE_HIGH
                   : null);
         }

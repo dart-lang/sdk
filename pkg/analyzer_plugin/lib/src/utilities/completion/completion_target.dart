@@ -716,7 +716,7 @@ class CompletionTarget {
     if (argumentNode is NamedExpression) {
       var name = argumentNode.name.label.name;
       for (var parameter in parameters) {
-        if (parameter.name3 == name) {
+        if (parameter.name == name) {
           return parameter;
         }
       }

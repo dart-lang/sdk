@@ -134,7 +134,7 @@ class DiagnosticReporter {
     atOffset(
       diagnosticCode: diagnosticCode,
       offset: nonSynthetic.firstFragment.nameOffset2 ?? -1,
-      length: nonSynthetic.name3?.length ?? 0,
+      length: nonSynthetic.name?.length ?? 0,
       arguments: arguments,
       contextMessages: contextMessages,
       data: data,

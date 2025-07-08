@@ -142,7 +142,7 @@ class FunctionTypeImpl extends TypeImpl
       var parameter = parameters[i];
       if (parameter.isNamed) {
         firstNamedParameterIndex ??= i;
-        var name = parameter.name3 ?? '';
+        var name = parameter.name ?? '';
         if (lastNamedParameterName.compareTo(name) > 0) {
           namedParametersAlreadySorted = false;
           break;
@@ -162,7 +162,7 @@ class FunctionTypeImpl extends TypeImpl
     if (!namedParametersAlreadySorted) {
       // Sort named parameters.
       sortedNamedParameters.sort(
-        (a, b) => (a.name3 ?? '').compareTo(b.name3 ?? ''),
+        (a, b) => (a.name ?? '').compareTo(b.name ?? ''),
       );
 
       // Combine into a new list, with sorted named parameters.
@@ -231,7 +231,7 @@ class FunctionTypeImpl extends TypeImpl
   @override
   Map<String, TypeImpl> get namedParameterTypes => {
     for (var parameter in sortedNamedParameters)
-      parameter.name3 ?? '': parameter.type,
+      parameter.name ?? '': parameter.type,
   };
 
   @override
@@ -398,7 +398,7 @@ class FunctionTypeImpl extends TypeImpl
       namedParameterInfo = [];
       for (var namedParameter in sortedNamedParameters) {
         namedParameterInfo.add(namedParameter.isRequired);
-        namedParameterInfo.add(namedParameter.name3 ?? '');
+        namedParameterInfo.add(namedParameter.name ?? '');
       }
     }
 
@@ -441,7 +441,7 @@ class FunctionTypeImpl extends TypeImpl
       TypeParameterElement p1 = params1[i];
       TypeParameterElement p2 = params2[i];
       TypeParameterFragmentImpl pFresh = TypeParameterFragmentImpl.synthetic(
-        name: p2.name3,
+        name: p2.name,
       );
 
       TypeParameterTypeImpl variableFresh = pFresh.instantiate(
@@ -497,7 +497,7 @@ class FunctionTypeImpl extends TypeImpl
         return false;
       }
       if (firstParameter.isNamed &&
-          firstParameter.name3 != secondParameter.name3) {
+          firstParameter.name != secondParameter.name) {
         return false;
       }
     }
@@ -579,7 +579,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     required NullabilitySuffix nullabilitySuffix,
     InstantiatedTypeAliasElementImpl? alias,
   }) {
-    if (element.name3 == 'FutureOr' && element.library.isDartAsync) {
+    if (element.name == 'FutureOr' && element.library.isDartAsync) {
       return FutureOrTypeImpl(
         element: element,
         typeArgument:
@@ -589,7 +589,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         nullabilitySuffix: nullabilitySuffix,
         alias: alias,
       );
-    } else if (element.name3 == 'Null' && element.library.isDartCore) {
+    } else if (element.name == 'Null' && element.library.isDartCore) {
       return NullTypeImpl(element: element, alias: alias);
     } else {
       return InterfaceTypeImpl._(
@@ -614,14 +614,14 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     required this.nullabilitySuffix,
     super.alias,
   }) : typeArguments = [typeArgument] {
-    assert(element.name3 == 'FutureOr' && element.library.isDartAsync);
+    assert(element.name == 'FutureOr' && element.library.isDartAsync);
     assert(this is FutureOrTypeImpl);
   }
 
   InterfaceTypeImpl._null({required this.element, super.alias})
     : typeArguments = const [],
       nullabilitySuffix = NullabilitySuffix.none {
-    assert(element.name3 == 'Null' && element.library.isDartCore);
+    assert(element.name == 'Null' && element.library.isDartCore);
     assert(this is NullTypeImpl);
   }
 
@@ -671,22 +671,22 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   bool get isDartAsyncFuture {
-    return element.name3 == "Future" && element.library.isDartAsync;
+    return element.name == "Future" && element.library.isDartAsync;
   }
 
   @override
   bool get isDartAsyncStream {
-    return element.name3 == "Stream" && element.library.isDartAsync;
+    return element.name == "Stream" && element.library.isDartAsync;
   }
 
   @override
   bool get isDartCoreBool {
-    return element.name3 == "bool" && element.library.isDartCore;
+    return element.name == "bool" && element.library.isDartCore;
   }
 
   @override
   bool get isDartCoreDouble {
-    return element.name3 == "double" && element.library.isDartCore;
+    return element.name == "double" && element.library.isDartCore;
   }
 
   @override
@@ -697,62 +697,62 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   bool get isDartCoreFunction {
-    return element.name3 == "Function" && element.library.isDartCore;
+    return element.name == "Function" && element.library.isDartCore;
   }
 
   @override
   bool get isDartCoreInt {
-    return element.name3 == "int" && element.library.isDartCore;
+    return element.name == "int" && element.library.isDartCore;
   }
 
   @override
   bool get isDartCoreIterable {
-    return element.name3 == "Iterable" && element.library.isDartCore;
+    return element.name == "Iterable" && element.library.isDartCore;
   }
 
   @override
   bool get isDartCoreList {
-    return element.name3 == "List" && element.library.isDartCore;
+    return element.name == "List" && element.library.isDartCore;
   }
 
   @override
   bool get isDartCoreMap {
-    return element.name3 == "Map" && element.library.isDartCore;
+    return element.name == "Map" && element.library.isDartCore;
   }
 
   @override
   bool get isDartCoreNum {
-    return element.name3 == "num" && element.library.isDartCore;
+    return element.name == "num" && element.library.isDartCore;
   }
 
   @override
   bool get isDartCoreObject {
-    return element.name3 == "Object" && element.library.isDartCore;
+    return element.name == "Object" && element.library.isDartCore;
   }
 
   @override
   bool get isDartCoreRecord {
-    return element.name3 == "Record" && element.library.isDartCore;
+    return element.name == "Record" && element.library.isDartCore;
   }
 
   @override
   bool get isDartCoreSet {
-    return element.name3 == "Set" && element.library.isDartCore;
+    return element.name == "Set" && element.library.isDartCore;
   }
 
   @override
   bool get isDartCoreString {
-    return element.name3 == "String" && element.library.isDartCore;
+    return element.name == "String" && element.library.isDartCore;
   }
 
   @override
   bool get isDartCoreSymbol {
-    return element.name3 == "Symbol" && element.library.isDartCore;
+    return element.name == "Symbol" && element.library.isDartCore;
   }
 
   @override
   bool get isDartCoreType {
-    return element.name3 == "Type" && element.library.isDartCore;
+    return element.name == "Type" && element.library.isDartCore;
   }
 
   @override
@@ -774,7 +774,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @Deprecated('Check element, or use getDisplayString()')
   @override
-  String get name => element.name3!;
+  String get name => element.name!;
 
   /// The instantiated representation type, if [element] is an extension type.
   TypeImpl? get representationType {
@@ -1677,7 +1677,7 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
 
   @Deprecated('Check element, or use getDisplayString()')
   @override
-  String get name => element.name3!;
+  String get name => element.name!;
 
   TypeParameterTypeImpl get withoutPromotedBound {
     return TypeParameterTypeImpl(

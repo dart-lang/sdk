@@ -7,19 +7,19 @@ import 'package:analyzer/dart/element/element.dart';
 extension ClassElementExtensions on ClassElement {
   /// Return `true` if this element represents the class `Iterable` from
   /// `dart:core`.
-  bool get isDartCoreIterable => name3 == 'Iterable' && library.isDartCore;
+  bool get isDartCoreIterable => name == 'Iterable' && library.isDartCore;
 
   /// Return `true` if this element represents the class `List` from
   /// `dart:core`.
-  bool get isDartCoreList => name3 == 'List' && library.isDartCore;
+  bool get isDartCoreList => name == 'List' && library.isDartCore;
 
   /// Return `true` if this element represents the class `Map` from
   /// `dart:core`.
-  bool get isDartCoreMap => name3 == 'Map' && library.isDartCore;
+  bool get isDartCoreMap => name == 'Map' && library.isDartCore;
 
   /// Return `true` if this element represents the class `Set` from
   /// `dart:core`.
-  bool get isDartCoreSet => name3 == 'Set' && library.isDartCore;
+  bool get isDartCoreSet => name == 'Set' && library.isDartCore;
 }
 
 extension ElementExtensions on Element {
@@ -91,7 +91,7 @@ extension MethodElementExtensions on MethodElement {
   /// Return `true` if this element represents the method `cast` from either
   /// `Iterable`, `List`, `Map`, or `Set`.
   bool get isCastMethod {
-    if (name3 != 'cast') {
+    if (name != 'cast') {
       return false;
     }
     var definingClass = enclosingElement;
@@ -107,7 +107,7 @@ extension MethodElementExtensions on MethodElement {
   /// Return `true` if this element represents the method `toList` from
   /// `Iterable`.
   bool get isToListMethod {
-    if (name3 != 'toList') {
+    if (name != 'toList') {
       return false;
     }
     var definingClass = enclosingElement;
@@ -120,7 +120,7 @@ extension MethodElementExtensions on MethodElement {
   /// Return `true` if this element represents the method `toSet` from
   /// `Iterable`.
   bool get isToSetMethod {
-    if (name3 != 'toSet') {
+    if (name != 'toSet') {
       return false;
     }
     var definingClass = enclosingElement;

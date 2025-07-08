@@ -1210,7 +1210,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       // Static function called; `target` is the class.
       for (var method in protectedStaticMethods) {
         if (invocation.methodName.name == method.name &&
-            targetElement.name3 == method.type) {
+            targetElement.name == method.type) {
           checkPositionalArguments(
             method.positional,
             positionalArguments,
@@ -1230,7 +1230,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (staticType == null) return;
       for (var method in protectedInstanceMethods) {
         if (invocation.methodName.name == method.name &&
-            staticType.element?.name3 == method.type) {
+            staticType.element?.name == method.type) {
           checkPositionalArguments(
             method.positional,
             positionalArguments,

@@ -101,7 +101,7 @@ class ImportsHandler
     Element element,
     String? prefix,
   ) {
-    var elementName = element.name3;
+    var elementName = element.name;
     if (elementName == null) {
       return [];
     }

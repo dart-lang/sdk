@@ -26,8 +26,8 @@ class ElementCallDescriptor extends CallDescriptor {
 
   @override
   String toString() => switch (element.enclosingElement) {
-    InstanceElement(name3: var typeName) =>
-      '${typeName ?? '<unnamed>'}.${element.name3!}',
-    _ => element.name3!,
+    InstanceElement(name: var typeName) =>
+      '${typeName ?? '<unnamed>'}.${element.name!}',
+    _ => element.name!,
   };
 }

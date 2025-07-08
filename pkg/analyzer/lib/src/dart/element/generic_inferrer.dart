@@ -189,7 +189,7 @@ class GenericInferrer {
       constrainArgument(
         argumentTypes[i],
         parameters[i].type,
-        parameters[i].name3 ?? '',
+        parameters[i].name ?? '',
         genericClass: genericClass,
         nodeForTesting: nodeForTesting,
       );
@@ -210,7 +210,7 @@ class GenericInferrer {
       constrainArgument(
         argumentTypes[i],
         parameters[i].type,
-        parameters[i].name3 ?? '',
+        parameters[i].name ?? '',
         genericClass: genericClass,
         nodeForTesting: nodeForTesting,
       );
@@ -297,7 +297,7 @@ class GenericInferrer {
 
       // If everything else succeeded, check the `extends` constraint.
       if (success) {
-        var name = parameter.name3;
+        var name = parameter.name;
         var parameterBoundRaw = parameter.bound;
         if (name != null && parameterBoundRaw != null) {
           var parameterBound = Substitution.fromPairs2(
@@ -325,7 +325,7 @@ class GenericInferrer {
         }
         hasErrorReported = true;
 
-        var name = parameter.name3;
+        var name = parameter.name;
         if (name == null) {
           return null;
         }
@@ -352,7 +352,7 @@ class GenericInferrer {
         }
         hasErrorReported = true;
 
-        var name = parameter.name3;
+        var name = parameter.name;
         if (name == null) {
           return null;
         }
@@ -404,7 +404,7 @@ class GenericInferrer {
         hasErrorReported = true;
         TypeParameterElementImpl typeParam = _typeFormals[i];
 
-        var name = typeParam.name3;
+        var name = typeParam.name;
         if (name == null) {
           return null;
         }
@@ -455,7 +455,7 @@ class GenericInferrer {
         continue;
       }
 
-      var name = parameter.name3;
+      var name = parameter.name;
       if (name == null) {
         continue;
       }
@@ -565,7 +565,7 @@ class GenericInferrer {
       // variance is added to the interface.
       var typeParam = _typeFormals[i];
       MergedTypeConstraint? extendsClause;
-      var name = typeParam.name3;
+      var name = typeParam.name;
       var bound = typeParam.bound;
       if (name != null && bound != null) {
         extendsClause = MergedTypeConstraint.fromExtends(
@@ -632,7 +632,7 @@ class GenericInferrer {
   ) {
     var inferredStr = inferred.getDisplayString();
     var intro =
-        "Tried to infer '$inferredStr' for '${typeParam.name3}'"
+        "Tried to infer '$inferredStr' for '${typeParam.name}'"
         " which doesn't work:";
 
     var constraintsByOrigin =

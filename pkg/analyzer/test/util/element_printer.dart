@@ -73,7 +73,7 @@ class ElementPrinter {
         _sink.writeln(refStr);
       case TypeParameterElementImpl element:
         var idStr = idMap[element];
-        _sink.writeln('$idStr ${element.name3 ?? '<null-name>'}');
+        _sink.writeln('$idStr ${element.name ?? '<null-name>'}');
       case Member member:
         _writeMember(member);
       case TypeAliasElementImpl element:
@@ -91,20 +91,20 @@ class ElementPrinter {
       case MethodElementImpl element:
         writelnReference(element.reference);
       case LabelFragmentImpl():
-        _sink.writeln('${element.name3}@${element.firstFragment.nameOffset2}');
+        _sink.writeln('${element.name}@${element.firstFragment.nameOffset2}');
       case LabelElementImpl():
         // TODO(scheglov): nameOffset2 can be `null`
-        _sink.writeln('${element.name3}@${element.firstFragment.nameOffset2}');
+        _sink.writeln('${element.name}@${element.firstFragment.nameOffset2}');
       case LibraryElementImpl e:
         writelnReference(e.reference!);
       case LocalFunctionElementImpl():
         // TODO(scheglov): nameOffset2 can be `null`
-        _sink.writeln('${element.name3}@${element.firstFragment.nameOffset2}');
+        _sink.writeln('${element.name}@${element.firstFragment.nameOffset2}');
       case LocalVariableFragmentImpl():
-        _sink.writeln('${element.name3}@${element.firstFragment.nameOffset2}');
+        _sink.writeln('${element.name}@${element.firstFragment.nameOffset2}');
       case LocalVariableElementImpl():
         // TODO(scheglov): nameOffset2 can be `null`
-        _sink.writeln('${element.name3}@${element.firstFragment.nameOffset2}');
+        _sink.writeln('${element.name}@${element.firstFragment.nameOffset2}');
       case NeverElementImpl():
         _sink.writeln('Never');
       case ClassElementImpl element:
@@ -264,7 +264,7 @@ class ElementPrinter {
     // Positional parameters don't have actual references.
     // But we fabricate one to make the output better.
     if (element is FormalParameterElementImpl) {
-      var nameStr = element.name3 ?? '<null-name>';
+      var nameStr = element.name ?? '<null-name>';
       if (enclosingElement is ConstructorElementImpl ||
           enclosingElement is MethodElementImpl ||
           enclosingElement is SetterElementImpl ||
@@ -283,13 +283,13 @@ class ElementPrinter {
       return [
         if (!element.isConsistent) 'notConsistent ',
         if (element.isFinal) 'final ',
-        element.name3 ?? '',
+        element.name ?? '',
         '[',
         element.variables.map(_elementToReferenceString).join(', '),
         ']',
       ].join();
     } else {
-      return '${element.name3 ?? ''}@${element.firstFragment.nameOffset2}';
+      return '${element.name ?? ''}@${element.firstFragment.nameOffset2}';
     }
   }
 
@@ -369,7 +369,7 @@ class ElementPrinter {
   String _substitutionMapStr(Map<TypeParameterElement, DartType> map) {
     var entriesStr = map.entries
         .map((entry) {
-          return '${entry.key.name3}: ${_typeStr(entry.value)}';
+          return '${entry.key.name}: ${_typeStr(entry.value)}';
         })
         .join(', ');
     return '{$entriesStr}';

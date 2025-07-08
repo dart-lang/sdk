@@ -41,7 +41,7 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
 
   @override
   String? get variableName {
-    return _initialState?.element.name3;
+    return _initialState?.element.name;
   }
 
   @override

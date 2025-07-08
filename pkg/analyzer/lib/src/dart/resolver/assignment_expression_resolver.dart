@@ -407,7 +407,7 @@ class AssignmentExpressionShared {
               _errorReporter.atNode(
                 left,
                 CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL,
-                arguments: [element.name3!],
+                arguments: [element.name!],
               );
             }
           }

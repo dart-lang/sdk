@@ -91,7 +91,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     for (var i = 0; i < count; i++) {
       if (parentParameters.length <= i) break;
 
-      var parentParameterName = parentParameters[i].name3;
+      var parentParameterName = parentParameters[i].name;
       if (parentParameterName == null ||
           isWildcardIdentifier(parentParameterName)) {
         continue;

@@ -182,7 +182,7 @@ MockLibraryImportElement? _getMockImportElement(
     if (prefixElement == null) {
       continue;
     }
-    if (prefix != prefixElement.name3) {
+    if (prefix != prefixElement.name) {
       continue;
     }
     // no combinators => only possible candidate
@@ -391,7 +391,7 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
     } else if (e != null && e.enclosingElement == element) {
       kind = MatchKind.REFERENCE;
       offset = node.offset;
-      length = element.name3?.length ?? 0;
+      length = element.name?.length ?? 0;
       references.add(MatchInfo(offset, length, kind));
     }
   }

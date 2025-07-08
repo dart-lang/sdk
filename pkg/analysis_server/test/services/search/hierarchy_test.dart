@@ -136,7 +136,7 @@ class C extends B {
     await resolveTestCode(sb.toString());
     var classLast = findElement2.class_('X$last');
     var member =
-        classLast.methods.where((element) => element.name3 == 'foo').single;
+        classLast.methods.where((element) => element.name == 'foo').single;
     OperationPerformanceImpl performance = OperationPerformanceImpl('<root>');
     var result = await performance.runAsync(
       'getHierarchyMembers',
@@ -364,12 +364,12 @@ class B extends A {
     {
       var classA = findElement2.class_('A');
       var members = getClassMembers(classA);
-      expect(members.map((e) => e.name3), unorderedEquals(['ma1', 'ma2']));
+      expect(members.map((e) => e.name), unorderedEquals(['ma1', 'ma2']));
     }
     {
       var classB = findElement2.class_('B');
       var members = getClassMembers(classB);
-      expect(members.map((e) => e.name3), unorderedEquals(['mb1', 'mb2']));
+      expect(members.map((e) => e.name), unorderedEquals(['mb1', 'mb2']));
     }
   }
 
@@ -480,7 +480,7 @@ class B extends A {
       var classA = findElement2.class_('A');
       var members = getMembers(classA);
       expect(
-        members.map((e) => e.name3),
+        members.map((e) => e.name),
         unorderedEquals([
           'ma1',
           'ma2',
@@ -499,7 +499,7 @@ class B extends A {
       var classB = findElement2.class_('B');
       var members = getMembers(classB);
       expect(
-        members.map((e) => e.name3),
+        members.map((e) => e.name),
         unorderedEquals([
           'mb1',
           'mb2',

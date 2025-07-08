@@ -30,7 +30,7 @@ Element? declaredParameterElement(SimpleIdentifier node, Element? element) {
 
     var parameterName = node.name;
     return executable.baseElement.formalParameters.where((parameter) {
-      return parameter.isNamed && parameter.name3 == parameterName;
+      return parameter.isNamed && parameter.name == parameterName;
     }).first;
   }
 
@@ -73,7 +73,7 @@ Element? declaredParameterElement2(SimpleIdentifier node, Element? element) {
 
     var parameterName = node.name;
     return executable.baseElement.formalParameters.where((parameter) {
-      return parameter.isNamed && parameter.name3 == parameterName;
+      return parameter.isNamed && parameter.name == parameterName;
     }).first;
   }
 
@@ -177,7 +177,7 @@ class IndexElementInfo {
         kind = IndexSyntheticElementKind.constructor;
         element = element.enclosingElement!;
       } else if (element is TopLevelFunctionElement &&
-          element.name3 == TopLevelFunctionElement.LOAD_LIBRARY_NAME) {
+          element.name == TopLevelFunctionElement.LOAD_LIBRARY_NAME) {
         kind = IndexSyntheticElementKind.loadLibrary;
         element = element.library;
       } else if (elementKind == ElementKind.FIELD) {
@@ -189,10 +189,10 @@ class IndexElementInfo {
         var accessor = element as PropertyAccessorElement;
         var enclosing = element.enclosingElement;
         bool isEnumGetter = enclosing is EnumElement;
-        if (isEnumGetter && accessor.name3 == 'index') {
+        if (isEnumGetter && accessor.name == 'index') {
           kind = IndexSyntheticElementKind.enumIndex;
           element = enclosing;
-        } else if (isEnumGetter && accessor.name3 == 'values') {
+        } else if (isEnumGetter && accessor.name == 'values') {
           kind = IndexSyntheticElementKind.enumValues;
           element = enclosing;
         } else {
@@ -207,7 +207,7 @@ class IndexElementInfo {
       } else if (element is MethodElement) {
         var enclosing = element.enclosingElement;
         bool isEnumMethod = enclosing is EnumElement;
-        if (isEnumMethod && element.name3 == 'toString') {
+        if (isEnumMethod && element.name == 'toString') {
           kind = IndexSyntheticElementKind.enumToString;
           element = enclosing;
         }
@@ -387,7 +387,7 @@ class _IndexAssembler {
     }
 
     _ElementInfo elementInfo = _getElementInfo(element);
-    elementInfo.importPrefixes.add(prefix?.name3 ?? '');
+    elementInfo.importPrefixes.add(prefix?.name ?? '');
   }
 
   void addSubtype(String name, List<String> members, List<String> supertypes) {
@@ -1299,7 +1299,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
       var libraryUri = element.library.uri;
       var libraryFragment = element.firstFragment.libraryFragment;
       var libraryFragmentUri = libraryFragment.source.uri;
-      return '$libraryUri;$libraryFragmentUri;${element.name3}';
+      return '$libraryUri;$libraryFragmentUri;${element.name}';
     }
 
     void addSupertype(NamedType? type) {
@@ -1452,7 +1452,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     visitedElements.add(ancestor);
     if (includeThis) {
       var offset = descendant.firstFragment.nameOffset2;
-      var length = descendant.name3?.length;
+      var length = descendant.name?.length;
       if (offset != null && length != null) {
         assembler.addElementRelation(
           ancestor,

@@ -38,7 +38,7 @@ class AmbiguousImportFix extends MultiCorrectionProducer {
       return const [];
     }
     var conflictingElements = element.conflictingElements2;
-    var name = element.name3;
+    var name = element.name;
     if (name == null || name.isEmpty) {
       return const [];
     }

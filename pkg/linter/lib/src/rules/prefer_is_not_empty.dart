@@ -56,7 +56,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     // Element identifier should be "isEmpty".
     var propertyElement = isEmptyIdentifier.element;
-    if (propertyElement == null || 'isEmpty' != propertyElement.name3) {
+    if (propertyElement == null || 'isEmpty' != propertyElement.name) {
       return;
     }
 

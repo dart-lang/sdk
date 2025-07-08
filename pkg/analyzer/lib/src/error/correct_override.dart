@@ -50,7 +50,7 @@ class CorrectOverrideHelper {
     var isCorrect = isCorrectOverrideOf(superMember: superMember);
     if (!isCorrect) {
       var member = _thisMember;
-      var memberName = member.name3;
+      var memberName = member.name;
       if (memberName != null) {
         diagnosticReporter.reportError(
           _diagnosticFactory.invalidOverride(
@@ -126,10 +126,10 @@ class CovariantParametersVerifier {
             errorEntity,
             CompileTimeErrorCode.INVALID_OVERRIDE,
             arguments: [
-              _thisMember.name3!,
-              _thisMember.enclosingElement!.name3!,
+              _thisMember.name!,
+              _thisMember.enclosingElement!.name!,
               _thisMember.type,
-              superMember.enclosingElement!.name3!,
+              superMember.enclosingElement!.name!,
               superMember.type,
             ],
           );
@@ -241,7 +241,7 @@ class CovariantParametersVerifier {
     } else {
       assert(proto.isNamed);
       for (var parameter in parameters) {
-        if (parameter.isNamed && parameter.name3 == proto.name3) {
+        if (parameter.isNamed && parameter.name == proto.name) {
           return parameter;
         }
       }

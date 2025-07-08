@@ -134,7 +134,7 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
 
   void _addImplicitExtensionName(Element? enclosingElement) {
     if (enclosingElement is ExtensionElement) {
-      if (namespace[enclosingElement.name3] == enclosingElement) {
+      if (namespace[enclosingElement.name] == enclosingElement) {
         referencedNames.add(enclosingElement.displayName);
       }
     }

@@ -30,7 +30,7 @@ class NullSafeApiVerifier {
     if (constructor == null) return;
 
     var type = constructor.returnType;
-    var isFutureValue = type.isDartAsyncFuture && constructor.name3 == 'value';
+    var isFutureValue = type.isDartAsyncFuture && constructor.name == 'value';
 
     if (isFutureValue) {
       _checkTypes(
@@ -51,7 +51,7 @@ class NullSafeApiVerifier {
     var targetClass = targetType.element;
 
     if (targetClass.library.isDartAsync == true &&
-        targetClass.name3 == 'Completer' &&
+        targetClass.name == 'Completer' &&
         node.methodName.name == 'complete') {
       _checkTypes(
         node,

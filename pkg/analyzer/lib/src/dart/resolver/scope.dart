@@ -222,7 +222,7 @@ class NamespaceBuilder {
   /// Add the given [element] to the table of [definedNames] if it has a
   /// publicly visible name.
   void _addIfPublic(Map<String, Element> definedNames, Element element) {
-    var name = element.name3;
+    var name = element.name;
     if (name != null && name.isNotEmpty && !Identifier.isPrivateName(name)) {
       definedNames[name] = element;
     }

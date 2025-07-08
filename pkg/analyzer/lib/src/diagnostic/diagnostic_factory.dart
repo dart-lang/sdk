@@ -32,7 +32,7 @@ class DiagnosticFactory {
       length: duplicate.length,
       diagnosticCode:
           CompileTimeErrorCode.DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE,
-      arguments: [variable.name3!],
+      arguments: [variable.name!],
       contextMessages: [
         DiagnosticMessageImpl(
           filePath: source.fullName,
@@ -65,7 +65,7 @@ class DiagnosticFactory {
           filePath: originalFragment.libraryFragment!.source.fullName,
           message: "The first definition of this name.",
           offset: originalFragment.nameOffset2 ?? -1,
-          length: originalElement.nonSynthetic.name3!.length,
+          length: originalElement.nonSynthetic.name!.length,
           url: null,
         ),
       ],
@@ -330,9 +330,9 @@ class DiagnosticFactory {
       diagnosticCode: code,
       arguments: [
         memberName,
-        member.enclosingElement!.name3,
+        member.enclosingElement!.name,
         member.type,
-        superMember.enclosingElement!.name3,
+        superMember.enclosingElement!.name,
         superMember.type,
       ],
       contextMessages: [

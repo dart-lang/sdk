@@ -101,7 +101,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitFunctionExpression(FunctionExpression node) {
     var element = node.declaredFragment?.element;
-    if (element?.name3 != null || node.body.keyword != null) {
+    if (element?.name != null || node.body.keyword != null) {
       return;
     }
     var body = node.body;

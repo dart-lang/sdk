@@ -51,7 +51,7 @@ class AnnotationResolver {
 
     _constructorInvocation(
       node,
-      classElement.name3!,
+      classElement.name!,
       constructorName,
       classElement.typeParameters2,
       constructorElement,
@@ -421,7 +421,7 @@ class AnnotationResolver {
 
     _constructorInvocation(
       node,
-      typeAliasElement.name3!,
+      typeAliasElement.name!,
       constructorName,
       typeAliasElement.typeParameters2,
       constructorElement,

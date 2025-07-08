@@ -114,7 +114,7 @@ class SharedTypeAnalyzerErrors
     _diagnosticReporter.atElement2(
       component,
       CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR,
-      arguments: [variable.name3!],
+      arguments: [variable.name!],
     );
   }
 

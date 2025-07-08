@@ -96,7 +96,7 @@ class ElementMatcher {
           if (element is! InterfaceElement) {
             return false;
           }
-          var types = element.allSupertypes.map((e) => e.element.name3);
+          var types = element.allSupertypes.map((e) => e.element.name);
           for (var t in types) {
             if (elementComponents.contains(t)) {
               return true;
@@ -269,7 +269,7 @@ class _MatcherBuilder {
         );
       }
     } else if (parent is SuperConstructorInvocation) {
-      var superclassName = parent.element?.enclosingElement.name3;
+      var superclassName = parent.element?.enclosingElement.name;
       if (superclassName != null) {
         _addMatcher(
           components: [parent.constructorName?.name ?? '', superclassName],
@@ -445,7 +445,7 @@ class _MatcherBuilder {
     var targetType = node.prefix.staticType;
     if (targetType is InterfaceType) {
       _addMatcher(
-        components: [node.identifier.name, targetType.element.name3!],
+        components: [node.identifier.name, targetType.element.name!],
         kinds: const [
           ElementKind.constantKind,
           ElementKind.fieldKind,
@@ -461,7 +461,7 @@ class _MatcherBuilder {
     var container = node.prefix.element;
     if (container is InterfaceElement) {
       _addMatcher(
-        components: [node.identifier.name, container.name3!],
+        components: [node.identifier.name, container.name!],
         kinds: const [
           ElementKind.constantKind,
           ElementKind.fieldKind,
@@ -588,9 +588,9 @@ class _MatcherBuilder {
     if (element != null) {
       var enclosingElement = element.enclosingElement;
       if (enclosingElement is InterfaceElement) {
-        return [identifier.name, enclosingElement.name3!];
+        return [identifier.name, enclosingElement.name!];
       } else if (enclosingElement is ExtensionElement) {
-        var name = enclosingElement.name3;
+        var name = enclosingElement.name;
         if (name != null) {
           return [identifier.name, name];
         }
@@ -610,7 +610,7 @@ class _MatcherBuilder {
       var type = target.staticType;
       if (type != null) {
         if (type is InterfaceType) {
-          return type.element.name3;
+          return type.element.name;
         } else if (type is DynamicType) {
           // The name is likely to be undefined.
           return target.name;
@@ -621,7 +621,7 @@ class _MatcherBuilder {
     } else if (target != null) {
       var type = target.staticType;
       if (type is InterfaceType) {
-        return type.element.name3;
+        return type.element.name;
       }
       return null;
     }

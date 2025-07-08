@@ -190,7 +190,7 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
           // The class is instantiated through the use of mirrors in
           // 'test_reflective_loader'.
           var unnamedConstructor = element.constructors.firstWhereOrNull(
-            (constructor) => constructor.name3 == 'new',
+            (constructor) => constructor.name == 'new',
           );
           if (unnamedConstructor != null) {
             _addDeclaration(unnamedConstructor);
@@ -405,7 +405,7 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
     var supertype = classElement?.supertype;
     if (supertype != null) {
       var unnamedConstructor = supertype.constructors.firstWhereOrNull(
-        (e) => e.name3 == 'new',
+        (e) => e.name == 'new',
       );
       if (unnamedConstructor != null) {
         _addDeclaration(unnamedConstructor);
@@ -598,7 +598,7 @@ extension on ElementAnnotation {
   bool get isWidgetPreview {
     var element2 = this.element2;
     return element2 is ConstructorElement &&
-        element2.enclosingElement.name3 == 'Preview' &&
+        element2.enclosingElement.name == 'Preview' &&
         element2.library.uri == _flutterWidgetPreviewLibraryUri;
   }
 }
@@ -628,9 +628,9 @@ extension on Element {
           metadata.hasWidgetPreview,
     _ => false,
   };
-  bool get isPragma => (library?.isDartCore ?? false) && name3 == 'pragma';
+  bool get isPragma => (library?.isDartCore ?? false) && name == 'pragma';
   bool get isWidgetPreview =>
-      (library?.isWidgetPreviews ?? false) && name3 == 'Preview';
+      (library?.isWidgetPreviews ?? false) && name == 'Preview';
 }
 
 extension on Annotation {

@@ -76,7 +76,7 @@ class CanRenameResponse {
   ) {
     var parentClass = element.enclosingElement;
     // Check if the "newName" is the name of the enclosing class.
-    if (parentClass.name3 == newName) {
+    if (parentClass.name == newName) {
       result.addError(
         'The constructor should not have the same name '
         'as the name of the enclosing class.',
@@ -104,7 +104,7 @@ class CanRenameResponse {
       if (state != null) {
         var flutterWidgetStateNewName = '${newName}State';
         // If the State was private, ensure that it stays private.
-        if (state.name3!.startsWith('_') &&
+        if (state.name!.startsWith('_') &&
             !flutterWidgetStateNewName.startsWith('_')) {
           flutterWidgetStateNewName = '_$flutterWidgetStateNewName';
         }
@@ -241,7 +241,7 @@ class CheckNameResponse {
           ReplaceInfo(
             newName,
             lineInfo.getLocation(getter.firstFragment.nameOffset2!),
-            getter.name3!.length,
+            getter.name!.length,
           ),
         );
       }
@@ -251,7 +251,7 @@ class CheckNameResponse {
           ReplaceInfo(
             newName,
             lineInfo.getLocation(setter.firstFragment.nameOffset2!),
-            setter.name3!.length,
+            setter.name!.length,
           ),
         );
       }
@@ -291,7 +291,7 @@ class CheckNameResponse {
       var location = (await canRename._fileResolver.resolve(
         path: sourcePath,
       )).lineInfo.getLocation(element.firstFragment.nameOffset2!);
-      infos.add(ReplaceInfo(newName, location, element.name3!.length));
+      infos.add(ReplaceInfo(newName, location, element.name!.length));
     }
     return infos;
   }
@@ -310,7 +310,7 @@ class CheckNameResponse {
     CiderSearchMatch ciderMatch;
     var searchInfo = CiderSearchInfo(
       location,
-      stateClass.name3!.length,
+      stateClass.name!.length,
       MatchKind.DECLARATION,
     );
     try {
@@ -329,7 +329,7 @@ class CheckNameResponse {
                       (p) => ReplaceInfo(
                         stateName,
                         p.startPosition,
-                        stateClass.name3!.length,
+                        stateClass.name!.length,
                       ),
                     )
                     .toList(),
@@ -388,7 +388,7 @@ class CheckNameResponse {
       resolvedUnit: resolvedUnit,
       session: fileResolver.contextObjects!.analysisSession,
       (builder) => builder.writeConstructorDeclaration(
-        interfaceElement.name3!,
+        interfaceElement.name!,
         constructorName: newName,
         isConst: node is EnumDeclaration,
       ),
