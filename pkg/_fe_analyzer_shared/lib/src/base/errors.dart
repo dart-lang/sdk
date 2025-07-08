@@ -16,6 +16,15 @@ import 'customized_codes.dart';
 @Deprecated("Use 'DiagnosticCode' instead.")
 typedef ErrorCode = DiagnosticCode;
 
+/// The severity of a [DiagnosticCode].
+@AnalyzerPublicApi(message: 'exported by package:analyzer/error/error.dart')
+@Deprecated("Use 'DiagnosticSeverity' instead.")
+typedef ErrorSeverity = DiagnosticSeverity;
+
+@AnalyzerPublicApi(message: 'exported by package:analyzer/error/error.dart')
+@Deprecated("Use 'DiagnosticType' instead.")
+typedef ErrorType = DiagnosticType;
+
 /// An error code associated with an `AnalysisError`.
 ///
 /// Generally, messages should follow the [Guide for Writing
@@ -75,25 +84,12 @@ abstract class DiagnosticCode {
   String? get correctionMessage =>
       customizedCorrections[uniqueName] ?? _correctionMessage;
 
-  /**
-   * The severity of the diagnostic.
-   */
-  DiagnosticSeverity get severity;
-
   @Deprecated("Use 'diagnosticSeverity' instead")
   DiagnosticSeverity get errorSeverity => severity;
 
   /// Whether a finding of this diagnostic is ignorable via comments such as
   /// `// ignore:` or `// ignore_for_file:`.
   bool get isIgnorable => severity != DiagnosticSeverity.ERROR;
-
-  /**
-   * The template used to create the problem message to be displayed for this
-   * diagnostic. The problem message should indicate what is wrong and why it is
-   * wrong.
-   */
-  String get problemMessage =>
-      customizedMessages[uniqueName] ?? _problemMessage;
 
   int get numParameters {
     int result = 0;
@@ -108,6 +104,19 @@ abstract class DiagnosticCode {
     }
     return result;
   }
+
+  /**
+   * The template used to create the problem message to be displayed for this
+   * diagnostic. The problem message should indicate what is wrong and why it is
+   * wrong.
+   */
+  String get problemMessage =>
+      customizedMessages[uniqueName] ?? _problemMessage;
+
+  /**
+   * The severity of the diagnostic.
+   */
+  DiagnosticSeverity get severity;
 
   /**
    * The type of the error.
@@ -128,11 +137,6 @@ abstract class DiagnosticCode {
   @override
   String toString() => uniqueName;
 }
-
-/// The severity of a [DiagnosticCode].
-@AnalyzerPublicApi(message: 'exported by package:analyzer/error/error.dart')
-@Deprecated("Use 'DiagnosticSeverity' instead.")
-typedef ErrorSeverity = DiagnosticSeverity;
 
 /**
  * The severity of an [DiagnosticCode].
@@ -224,10 +228,6 @@ class DiagnosticSeverity implements Comparable<DiagnosticSeverity> {
   @override
   String toString() => name;
 }
-
-@AnalyzerPublicApi(message: 'exported by package:analyzer/error/error.dart')
-@Deprecated("Use 'DiagnosticType' instead.")
-typedef ErrorType = DiagnosticType;
 
 /**
  * The type of a [DiagnosticCode].
