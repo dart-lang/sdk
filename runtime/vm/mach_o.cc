@@ -14,6 +14,7 @@
 #include "vm/compiler/runtime_api.h"
 #include "vm/dwarf.h"
 #include "vm/dwarf_so_writer.h"
+#include "vm/flags.h"
 #include "vm/hash_map.h"
 #include "vm/image_snapshot.h"
 #include "vm/os.h"
@@ -21,6 +22,13 @@
 #include "vm/zone_text_buffer.h"
 
 namespace dart {
+
+#if defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
+DEFINE_FLAG(charp,
+            macho_min_os_version,
+            nullptr,
+            "The minimum OS version required for MacOS/iOS Mach-O snapshots");
+#endif
 
 static constexpr intptr_t kLinearInitValue = -1;
 
@@ -53,17 +61,24 @@ static constexpr intptr_t kLinearInitValue = -1;
     return true;                                                               \
   }
 
+#if defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
+#define FOR_EACH_MACOS_ONLY_CONCRETE_MACHO_CONTENTS_TYPE(V)                    \
+  V(MachOBuildVersion)                                                         \
+  V(MachOLoadDylib)
+#else
+#define FOR_EACH_MACOS_ONLY_CONCRETE_MACHO_CONTENTS_TYPE(V)
+#endif
+
 // All concrete subclasses of MachOContents should go here:
 #define FOR_EACH_CONCRETE_MACHO_CONTENTS_TYPE(V)                               \
+  FOR_EACH_MACOS_ONLY_CONCRETE_MACHO_CONTENTS_TYPE(V)                          \
   V(MachOHeader)                                                               \
   V(MachOSegment)                                                              \
   V(MachOSection)                                                              \
   V(MachOSymbolTable)                                                          \
   V(MachODynamicSymbolTable)                                                   \
   V(MachOUuid)                                                                 \
-  V(MachOBuildVersion)                                                         \
   V(MachOIdDylib)                                                              \
-  V(MachOLoadDylib)                                                            \
   V(MachOCodeSignature)
 
 #define DECLARE_CONTENTS_TYPE_CLASS(Type) class Type;
@@ -924,70 +939,6 @@ class MachOUuid : public MachOCommand {
 #define MACHO_XYZ_VERSION_ENCODING(x, y, z)                                    \
   static_cast<uint32_t>(((x) << 16) | ((y) << 8) | (z))
 
-class MachOBuildVersion : public MachOCommand {
- public:
-  static constexpr uint32_t kCommandCode = mach_o::LC_BUILD_VERSION;
-
-  MachOBuildVersion()
-      : MachOCommand(kCommandCode,
-                     /*needs_offset=*/false,
-                     /*in_segment=*/false) {}
-
-  uint32_t cmdsize() const override {
-    return sizeof(mach_o::build_version_command);
-  }
-
-  uint32_t platform() const {
-#if defined(DART_TARGET_OS_MACOS_IOS)
-    return mach_o::PLATFORM_IOS;
-#elif defined(DART_TARGET_OS_MACOS)
-    return mach_o::PLATFORM_MACOS;
-#else
-    return mach_o::PLATFORM_UNKNOWN;
-#endif
-  }
-
-  uint32_t minos() const {
-#if defined(DART_TARGET_OS_MACOS_IOS)
-    // TODO(sstrickl): No minimum version for iOS currently defined.
-    UNIMPLEMENTED();
-#elif defined(DART_TARGET_OS_MACOS)
-    return kMinMacOSVersion;
-#else
-    return 0;  // No version for the unknown platform.
-#endif
-  }
-
-  uint32_t sdk() const {
-#if defined(DART_TARGET_OS_MACOS_IOS)
-    // TODO(sstrickl): No SDK version for iOS currently defined.
-    UNIMPLEMENTED();
-#elif defined(DART_TARGET_OS_MACOS)
-    return kMacOSSdkVersion;
-#else
-    return 0;  // No version for the unknown platform.
-#endif
-  }
-
-  void WriteLoadCommand(MachOWriteStream* stream) const override {
-    MachOCommand::WriteLoadCommand(stream);
-    stream->Write32(platform());
-    stream->Write32(minos());
-    stream->Write32(sdk());
-    stream->Write32(0);  // No tool versions.
-  }
-
-  void Accept(Visitor* visitor) override {
-    visitor->VisitMachOBuildVersion(this);
-  }
-
- private:
-  static constexpr auto kMinMacOSVersion = MACHO_XYZ_VERSION_ENCODING(15, 0, 0);
-  static constexpr auto kMacOSSdkVersion = MACHO_XYZ_VERSION_ENCODING(15, 4, 0);
-
-  DISALLOW_COPY_AND_ASSIGN(MachOBuildVersion);
-};
-
 class MachODylib : public MachOCommand {
  public:
   uint32_t cmdsize() const override {
@@ -1058,6 +1009,7 @@ class MachOIdDylib : public MachODylib {
   DISALLOW_COPY_AND_ASSIGN(MachOIdDylib);
 };
 
+#if defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
 class MachOLoadDylib : public MachODylib {
  public:
   static constexpr uint32_t kCommandCode = mach_o::LC_LOAD_DYLIB;
@@ -1089,6 +1041,139 @@ class MachOLoadDylib : public MachODylib {
   DISALLOW_COPY_AND_ASSIGN(MachOLoadDylib);
 };
 
+class Version {
+ public:
+  explicit Version(intptr_t major) : Version(major, 0, 0) {}
+
+  Version(intptr_t major, intptr_t minor) : Version(major, minor, 0) {}
+
+  Version(intptr_t major, intptr_t minor, intptr_t patch)
+      : major_(major), minor_(minor), patch_(patch) {
+    ASSERT(Utils::IsUint(16, major));
+    ASSERT(Utils::IsUint(8, minor));
+    ASSERT(Utils::IsUint(8, patch));
+  }
+
+  Version(const Version& other)
+      : major_(other.major_), minor_(other.minor_), patch_(other.patch_) {}
+
+  static Version FromString(const char* str) {
+    ASSERT(str != nullptr);
+    int64_t major = 0;
+    int64_t minor = 0;
+    int64_t patch = 0;
+    char* current = nullptr;
+    if (!OS::ParseInitialInt64(str, &major, &current)) {
+      FATAL("Expected an integer, got %s", str);
+    }
+    if (!Utils::IsUint(16, major)) {
+      FATAL("Major version is too large to represent in 16 bits: %" Pd64,
+            major);
+    }
+    if (*current != '\0' && *current != '.') {
+      FATAL("Unexpected characters when parsing version: %s", current);
+    }
+    if (*current == '.') {
+      if (!OS::ParseInitialInt64(current + 1, &minor, &current)) {
+        FATAL("Expected an integer, got %s", str);
+      }
+      if (!Utils::IsUint(8, minor)) {
+        FATAL("Minor version is too large to represent in 8 bits: %" Pd64,
+              minor);
+      }
+      if (*current != '\0' && *current != '.') {
+        FATAL("Unexpected characters when parsing version: %s", current);
+      }
+      if (*current == '.') {
+        if (!OS::ParseInitialInt64(current + 1, &patch, &current)) {
+          FATAL("Expected an integer, got %s", str);
+        }
+        if (!Utils::IsUint(8, patch)) {
+          FATAL("Patch version is too large to represent in 8 bits: %" Pd64,
+                patch);
+        }
+        if (*current != '\0') {
+          FATAL("Unexpected characters when parsing version: %s", current);
+        }
+      }
+    }
+    return Version(major, minor, patch);
+  }
+
+  void Write(MachOWriteStream* stream) const {
+    stream->Write32(MACHO_XYZ_VERSION_ENCODING(major_, minor_, patch_));
+  }
+
+  const char* ToCString() const {
+    return OS::SCreate(Thread::Current()->zone(), "%" Pd ".%" Pd ".%" Pd "",
+                       major_, minor_, patch_);
+  }
+
+ private:
+  const intptr_t major_;
+  const intptr_t minor_;
+  const intptr_t patch_;
+  DISALLOW_ALLOCATION();
+  void operator=(const Version&) = delete;
+};
+
+// These defaults were taken from Flutter at the time of editing, but can be
+// overridden using the --min-ios-version and --min-macos-version flags.
+#if defined(DART_TARGET_OS_MACOS_IOS)
+static const Version kDefaultMinOSVersion(13, 0, 0);  // iOS 13
+#else
+static const Version kDefaultMinOSVersion(10, 15, 0);  // MacOS Catalina (10.15)
+#endif
+
+class MachOBuildVersion : public MachOCommand {
+ public:
+  static constexpr uint32_t kCommandCode = mach_o::LC_BUILD_VERSION;
+
+  MachOBuildVersion()
+      : MachOCommand(kCommandCode,
+                     /*needs_offset=*/false,
+                     /*in_segment=*/false),
+        min_os_(FLAG_macho_min_os_version != nullptr
+                    ? Version::FromString(FLAG_macho_min_os_version)
+                    : kDefaultMinOSVersion) {}
+
+  uint32_t cmdsize() const override {
+    return sizeof(mach_o::build_version_command);
+  }
+
+  uint32_t platform() const {
+#if defined(DART_TARGET_OS_MACOS_IOS)
+    return mach_o::PLATFORM_IOS;
+#else
+    return mach_o::PLATFORM_MACOS;
+#endif
+  }
+
+  const Version& minos() const { return min_os_; }
+
+  const Version& sdk() const {
+    // Just use the minimum version as the targeted version.
+    return minos();
+  }
+
+  void WriteLoadCommand(MachOWriteStream* stream) const override {
+    MachOCommand::WriteLoadCommand(stream);
+    stream->Write32(platform());
+    minos().Write(stream);
+    sdk().Write(stream);
+    stream->Write32(0);  // No tool versions.
+  }
+
+  void Accept(Visitor* visitor) override {
+    visitor->VisitMachOBuildVersion(this);
+  }
+
+ private:
+  const Version min_os_;
+
+  DISALLOW_COPY_AND_ASSIGN(MachOBuildVersion);
+};
+#endif
 #undef MACHO_XYZ_VERSION_ENCODING
 
 class MachOSymbolTable : public MachOCommand {
@@ -2310,15 +2395,14 @@ void MachOHeader::GenerateUnwindingInformation() {
 }
 
 void MachOHeader::GenerateMiscellaneousCommands() {
-  // Not idempotent;
-  ASSERT(!HasCommand(MachOBuildVersion::kCommandCode));
-  ASSERT(!HasCommand(MachOIdDylib::kCommandCode));
-  ASSERT(!HasCommand(MachOLoadDylib::kCommandCode));
-
-  commands_.Add(new (zone_) MachOBuildVersion());
   if (type_ == SnapshotType::Snapshot) {
+    // Not idempotent;
+    ASSERT(!HasCommand(MachOIdDylib::kCommandCode));
     commands_.Add(new (zone_) MachOIdDylib(identifier_));
 #if defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
+    ASSERT(!HasCommand(MachOBuildVersion::kCommandCode));
+    ASSERT(!HasCommand(MachOLoadDylib::kCommandCode));
+    commands_.Add(new (zone_) MachOBuildVersion());
     commands_.Add(MachOLoadDylib::CreateLoadSystemDylib(zone_));
 #endif
   }
