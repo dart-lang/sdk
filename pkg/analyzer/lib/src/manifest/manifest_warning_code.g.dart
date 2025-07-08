@@ -24,7 +24,7 @@
 )
 library;
 
-import "package:analyzer/error/error.dart";
+import "package:_fe_analyzer_shared/src/base/errors.dart";
 
 class ManifestWarningCode extends DiagnosticCode {
   ///  A code indicating that the camera permissions is not supported on Chrome

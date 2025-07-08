@@ -36,6 +36,11 @@ const List<ErrorClassInfo> errorClasses = [
     type: 'COMPILE_TIME_ERROR',
   ),
   ErrorClassInfo(
+    file: scannerErrorFile,
+    name: 'ScannerErrorCode',
+    type: 'SYNTACTIC_ERROR',
+  ),
+  ErrorClassInfo(
     file: codesFile,
     name: 'StaticWarningCode',
     type: 'STATIC_WARNING',
@@ -99,6 +104,12 @@ const optionCodesFile = GeneratedErrorCodeFile(
 const pubspecWarningCodeFile = GeneratedErrorCodeFile(
   path: 'analyzer/lib/src/pubspec/pubspec_warning_code.g.dart',
   preferredImportUri: 'package:analyzer/src/pubspec/pubspec_warning_code.dart',
+);
+
+const scannerErrorFile = GeneratedErrorCodeFile(
+  path: '_fe_analyzer_shared/lib/src/scanner/errors.g.dart',
+  preferredImportUri: 'package:_fe_analyzer_shared/src/scanner/errors.dart',
+  shouldUseExplicitConst: true,
 );
 
 const syntacticErrorsFile = GeneratedErrorCodeFile(
@@ -594,8 +605,10 @@ abstract class ErrorCodeInfo {
     String className,
     String diagnosticCode, {
     String? sharedNameReference,
+    required bool useExplicitConst,
   }) {
     var out = StringBuffer();
+    if (useExplicitConst) out.writeln('const ');
     out.writeln('$className(');
     out.writeln(
       '${sharedNameReference ?? "'${sharedName ?? diagnosticCode}'"},',
@@ -608,13 +621,13 @@ abstract class ErrorCodeInfo {
       maxWidth: maxWidth,
       firstLineWidth: maxWidth + 4,
     );
-    out.writeln('${messageLines.map(json.encode).join('\n')},');
+    out.writeln('${messageLines.map(_encodeString).join('\n')},');
     var correctionMessage = this.correctionMessage;
     if (correctionMessage is String) {
       out.write('correctionMessage: ');
       var code = convertTemplate(placeholderToIndexMap, correctionMessage);
       var codeLines = _splitText(code, maxWidth: maxWidth);
-      out.writeln('${codeLines.map(json.encode).join('\n')},');
+      out.writeln('${codeLines.map(_encodeString).join('\n')},');
     }
     if (hasPublishedDocs ?? false) {
       out.writeln('hasPublishedDocs:true,');
@@ -652,6 +665,13 @@ abstract class ErrorCodeInfo {
     if (comment != null) 'comment': comment,
     if (documentation != null) 'documentation': documentation,
   };
+
+  String _encodeString(String s) {
+    // JSON encoding gives us mostly what we need.
+    var jsonEncoded = json.encode(s);
+    // But we also need to escape `$`.
+    return jsonEncoded.replaceAll(r'$', r'\$');
+  }
 }
 
 /// In-memory representation of error code information obtained from the front
@@ -711,8 +731,13 @@ class GeneratedErrorCodeFile {
   /// file they should import.
   final String preferredImportUri;
 
+  /// Whether the generated file should use the `const` keyword when generating
+  /// constructor invocations.
+  final bool shouldUseExplicitConst;
+
   const GeneratedErrorCodeFile({
     required this.path,
     required this.preferredImportUri,
+    this.shouldUseExplicitConst = false,
   });
 }

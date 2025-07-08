@@ -958,6 +958,7 @@ const List<DiagnosticCode> diagnosticCodeValues = [
   ScannerErrorCode.MISSING_QUOTE,
   ScannerErrorCode.UNABLE_GET_CONTENT,
   ScannerErrorCode.UNEXPECTED_DOLLAR_IN_STRING,
+  ScannerErrorCode.UNEXPECTED_SEPARATOR_IN_NUMBER,
   ScannerErrorCode.UNSUPPORTED_OPERATOR,
   ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT,
   ScannerErrorCode.UNTERMINATED_STRING_LITERAL,

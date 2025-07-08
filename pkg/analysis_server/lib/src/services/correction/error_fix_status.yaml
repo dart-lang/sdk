@@ -3407,6 +3407,8 @@ ScannerErrorCode.UNABLE_GET_CONTENT:
   status: noFix
 ScannerErrorCode.UNEXPECTED_DOLLAR_IN_STRING:
   status: noFix
+ScannerErrorCode.UNEXPECTED_SEPARATOR_IN_NUMBER:
+  status: hasFix
 ScannerErrorCode.UNSUPPORTED_OPERATOR:
   status: noFix
 ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT:
