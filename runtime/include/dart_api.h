@@ -3747,6 +3747,17 @@ DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
 Dart_LoadLibrary(Dart_Handle kernel_buffer);
 
 /**
+ * Called by the embedder to load a partial program. Does not set the root
+ * library.
+ *
+ * \param bytecode_buffer An external typed data containing bytecode binary.
+ *
+ * \return A handle to the main library of the compilation unit, or an error.
+ */
+DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
+Dart_LoadLibraryFromBytecode(Dart_Handle bytecode_buffer);
+
+/**
  * Indicates that all outstanding load requests have been satisfied.
  * This finalizes all the new classes loaded and optionally completes
  * deferred library futures.

@@ -72,9 +72,8 @@ abstract class TestSuite {
             'FIREFOX_PATH':
                 Uri.base.resolve(configuration.firefoxPath!).toFilePath(),
           if (configuration.useQemu)
-            'QEMU_LD_PREFIX':
-                QemuConfig.all[configuration.architecture]!
-                .elfInterpreterPrefix,
+            'QEMU_LD_PREFIX': QemuConfig
+                .all[configuration.architecture]!.elfInterpreterPrefix,
         };
 
   Map<String, String> get environmentOverrides => _environmentOverrides;
@@ -353,6 +352,7 @@ class VMTestSuite extends TestSuite {
       if (expectations.contains(Expectation.crash)) '--suppress-core-dump',
       if (experiments.isNotEmpty)
         '--enable-experiment=${experiments.join(",")}',
+      if (configuration.compiler == Compiler.dart2bytecode) '--interpreter',
       ...configuration.standardOptions,
       ...configuration.vmOptions,
       test.name

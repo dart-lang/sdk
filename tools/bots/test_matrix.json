@@ -1324,6 +1324,7 @@
             "-nvm-dyn-${system}-${mode}-${arch}",
             "corelib",
             "language",
+            "vm",
             "pkg/vm_service/"
           ],
           "fileset": "vm",

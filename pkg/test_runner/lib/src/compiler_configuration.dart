@@ -1575,8 +1575,13 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
 class BytecodeCompilerConfiguration extends CompilerConfiguration {
   BytecodeCompilerConfiguration(super.configuration) : super._subclass();
 
+  bool get _isAot => _configuration.runtime == Runtime.dartPrecompiled;
+
   @override
   String computeCompilerPath() => dartAotRuntime();
+
+  @override
+  bool get hasCompiler => _isAot;
 
   @override
   bool get runRuntimeDespiteMissingCompileTimeError => true;
@@ -1658,18 +1663,16 @@ class BytecodeCompilerConfiguration extends CompilerConfiguration {
       List<String> vmOptions,
       List<String> originalArguments,
       CommandArtifact? artifact) {
-    var filename = artifact!.filename;
-
     return [
       if (_enableAsserts) '--enable_asserts',
       ...vmOptions,
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
-      if (_configuration.runtime == Runtime.dartPrecompiled) ...[
+      if (_isAot) ...[
         ..._replaceDartFiles(originalArguments,
             '${_configuration.buildDirectory}/dynamic_module_runner.snapshot'),
-        filename,
+        artifact!.filename,
       ] else ...[
         '--interpreter',
         ...originalArguments,
