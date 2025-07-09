@@ -323,13 +323,13 @@ class MethodInvocationResolver with ScopeHelpers {
           nameNode,
           CompileTimeErrorCode
               .UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE,
-          arguments: [enclosingElement.displayString2()],
+          arguments: [enclosingElement.displayString()],
         );
       } else {
         _resolver.diagnosticReporter.atNode(
           nameNode,
           CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
-          arguments: [enclosingElement.displayString2()],
+          arguments: [enclosingElement.displayString()],
         );
       }
     } else if (enclosingElement is ExtensionElement &&
@@ -489,7 +489,7 @@ class MethodInvocationResolver with ScopeHelpers {
     }
     element ??= classElement.getGetter(name);
     element ??= classElement.getMethod(name);
-    if (element != null && element.isAccessibleIn2(_definingLibrary)) {
+    if (element != null && element.isAccessibleIn(_definingLibrary)) {
       return element;
     }
     return null;
@@ -1287,7 +1287,7 @@ class MethodInvocationResolver with ScopeHelpers {
     // The dot shorthand is a constructor invocation so we rewrite to a
     // [DotShorthandConstructorInvocation].
     if (receiver.getNamedConstructor2(name) case ConstructorElementImpl element?
-        when element.isAccessibleIn2(_resolver.definingLibrary)) {
+        when element.isAccessibleIn(_resolver.definingLibrary)) {
       var replacement =
           DotShorthandConstructorInvocationImpl(
               constKeyword: null,

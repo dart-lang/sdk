@@ -60,7 +60,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         for (var field in element.fields.where(
           (e) => e.isStatic && e.isConst,
         )) {
-          if (field.isAccessibleIn2(library) &&
+          if (field.isAccessibleIn(library) &&
               field.computeConstantValue() == value) {
             rule.reportAtNode(
               node,

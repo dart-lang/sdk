@@ -168,6 +168,25 @@ abstract class DartType {
   /// For a [TypeParameterType] with a bound (declared or promoted), returns
   /// the interface implemented by the bound.
   @experimental
+  InterfaceType? asInstanceOf(InterfaceElement element);
+
+  /// Return the canonical interface that this type implements for [element],
+  /// or `null` if such an interface does not exist.
+  ///
+  /// For example, given the following definitions
+  /// ```
+  /// class A<E> {}
+  /// class B<E> implements A<E> {}
+  /// class C implements A<String> {}
+  /// ```
+  /// Asking the type `B<int>` for the type associated with `A` will return the
+  /// type `A<int>`. Asking the type `C` for the type associated with `A` will
+  /// return the type `A<String>`.
+  ///
+  /// For a [TypeParameterType] with a bound (declared or promoted), returns
+  /// the interface implemented by the bound.
+  @Deprecated('Use asInstanceOf instead')
+  @experimental
   InterfaceType? asInstanceOf2(InterfaceElement element);
 
   /// Return the presentation of this type as it should appear when presented

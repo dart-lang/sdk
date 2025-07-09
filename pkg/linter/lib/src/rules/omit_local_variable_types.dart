@@ -55,7 +55,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       var loopType = loopParts.iterable.staticType;
       if (loopType is! InterfaceType) return;
 
-      var iterableType = loopType.asInstanceOf2(typeProvider.iterableElement);
+      var iterableType = loopType.asInstanceOf(typeProvider.iterableElement);
       if (iterableType == null) return;
 
       if (iterableType.typeArguments.isNotEmpty &&

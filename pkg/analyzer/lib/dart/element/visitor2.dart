@@ -85,7 +85,7 @@ class GeneralizingElementVisitor2<R> implements ElementVisitor2<R> {
       visitExecutableElement(element);
 
   R? visitElement(Element element) {
-    element.visitChildren2(this);
+    element.visitChildren(this);
     return null;
   }
 
@@ -201,145 +201,145 @@ class GeneralizingElementVisitor2<R> implements ElementVisitor2<R> {
 class RecursiveElementVisitor2<R> implements ElementVisitor2<R> {
   @override
   R? visitClassElement(ClassElement element) {
-    element.visitChildren2(this);
+    element.visitChildren(this);
     return null;
   }
 
   @override
   R? visitConstructorElement(ConstructorElement element) {
-    element.visitChildren2(this);
+    element.visitChildren(this);
     return null;
   }
 
   @override
   R? visitEnumElement(EnumElement element) {
-    element.visitChildren2(this);
+    element.visitChildren(this);
     return null;
   }
 
   @override
   R? visitExtensionElement(ExtensionElement element) {
-    element.visitChildren2(this);
+    element.visitChildren(this);
     return null;
   }
 
   @override
   R? visitExtensionTypeElement(ExtensionTypeElement element) {
-    element.visitChildren2(this);
+    element.visitChildren(this);
     return null;
   }
 
   @override
   R? visitFieldElement(FieldElement element) {
-    element.visitChildren2(this);
+    element.visitChildren(this);
     return null;
   }
 
   @override
   R? visitFieldFormalParameterElement(FieldFormalParameterElement element) {
-    element.visitChildren2(this);
+    element.visitChildren(this);
     return null;
   }
 
   @override
   R? visitFormalParameterElement(FormalParameterElement element) {
-    element.visitChildren2(this);
+    element.visitChildren(this);
     return null;
   }
 
   @override
   R? visitGenericFunctionTypeElement(GenericFunctionTypeElement element) {
-    element.visitChildren2(this);
+    element.visitChildren(this);
     return null;
   }
 
   @override
   R? visitGetterElement(GetterElement element) {
-    element.visitChildren2(this);
+    element.visitChildren(this);
     return null;
   }
 
   @override
   R? visitLabelElement(LabelElement element) {
-    element.visitChildren2(this);
+    element.visitChildren(this);
     return null;
   }
 
   @override
   R? visitLibraryElement(LibraryElement element) {
-    element.visitChildren2(this);
+    element.visitChildren(this);
     return null;
   }
 
   @override
   R? visitLocalFunctionElement(LocalFunctionElement element) {
-    element.visitChildren2(this);
+    element.visitChildren(this);
     return null;
   }
 
   @override
   R? visitLocalVariableElement(LocalVariableElement element) {
-    element.visitChildren2(this);
+    element.visitChildren(this);
     return null;
   }
 
   @override
   R? visitMethodElement(MethodElement element) {
-    element.visitChildren2(this);
+    element.visitChildren(this);
     return null;
   }
 
   @override
   R? visitMixinElement(MixinElement element) {
-    element.visitChildren2(this);
+    element.visitChildren(this);
     return null;
   }
 
   @override
   R? visitMultiplyDefinedElement(MultiplyDefinedElement element) {
-    element.visitChildren2(this);
+    element.visitChildren(this);
     return null;
   }
 
   @override
   R? visitPrefixElement(PrefixElement element) {
-    element.visitChildren2(this);
+    element.visitChildren(this);
     return null;
   }
 
   @override
   R? visitSetterElement(SetterElement element) {
-    element.visitChildren2(this);
+    element.visitChildren(this);
     return null;
   }
 
   @override
   R? visitSuperFormalParameterElement(SuperFormalParameterElement element) {
-    element.visitChildren2(this);
+    element.visitChildren(this);
     return null;
   }
 
   @override
   R? visitTopLevelFunctionElement(TopLevelFunctionElement element) {
-    element.visitChildren2(this);
+    element.visitChildren(this);
     return null;
   }
 
   @override
   R? visitTopLevelVariableElement(TopLevelVariableElement element) {
-    element.visitChildren2(this);
+    element.visitChildren(this);
     return null;
   }
 
   @override
   R? visitTypeAliasElement(TypeAliasElement element) {
-    element.visitChildren2(this);
+    element.visitChildren(this);
     return null;
   }
 
   @override
   R? visitTypeParameterElement(TypeParameterElement element) {
-    element.visitChildren2(this);
+    element.visitChildren(this);
     return null;
   }
 }

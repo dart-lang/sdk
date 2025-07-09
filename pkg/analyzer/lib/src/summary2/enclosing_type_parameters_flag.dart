@@ -15,7 +15,7 @@ class EnclosingTypeParameterReferenceFlag {
   void perform() {
     for (var builder in _linker.builders.values) {
       var library = builder.element;
-      for (var topElement in library.children2) {
+      for (var topElement in library.children) {
         switch (topElement) {
           case InstanceElementImpl():
             for (var field in topElement.fields) {

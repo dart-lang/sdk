@@ -84,7 +84,7 @@ class _AssertVisitor extends RecursiveAstVisitor<void> {
       }
 
       if (parameterElement is FieldFormalParameterElement) {
-        if (parameterElement.field2?.getter2 == element) {
+        if (parameterElement.field?.getter2 == element) {
           return true;
         }
       }

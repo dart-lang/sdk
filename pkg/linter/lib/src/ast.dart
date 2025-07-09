@@ -356,7 +356,7 @@ bool _hasFieldOrMethod(ClassMember element, String name) =>
 /// Uses [processor] to visit all of the children of [element].
 /// If [processor] returns `true`, then children of a child are visited too.
 void _visitChildren(Element element, ElementProcessor processor) {
-  element.visitChildren2(_ElementVisitorAdapter(processor));
+  element.visitChildren(_ElementVisitorAdapter(processor));
 }
 
 /// An [Element] processor function type.
@@ -373,7 +373,7 @@ class _ElementVisitorAdapter extends GeneralizingElementVisitor2<void> {
   void visitElement(Element element) {
     var visitChildren = processor(element);
     if (visitChildren) {
-      element.visitChildren2(this);
+      element.visitChildren(this);
     }
   }
 }

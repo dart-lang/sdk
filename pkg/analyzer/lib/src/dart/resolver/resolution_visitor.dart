@@ -57,7 +57,7 @@ class ElementHolder {
   }
 
   void enclose(FragmentImpl element) {
-    element.enclosingElement3 = _element;
+    element.enclosingElement = _element;
   }
 }
 

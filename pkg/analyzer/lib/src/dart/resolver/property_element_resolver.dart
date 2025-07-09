@@ -456,7 +456,7 @@ class PropertyElementResolver with ScopeHelpers {
   }
 
   bool _isAccessible(ExecutableElement element) {
-    return element.isAccessibleIn2(_definingLibrary);
+    return element.isAccessibleIn(_definingLibrary);
   }
 
   void _reportUnresolvedIndex(

@@ -26,7 +26,7 @@ class ConvertFieldFormalToNormal extends ResolvedCorrectionProducer {
     if (parameter is! FieldFormalParameter || parameter.parameters != null) {
       return;
     }
-    var field = parameter.declaredFragment?.element.field2;
+    var field = parameter.declaredFragment?.element.field;
     if (field == null) {
       return;
     }

@@ -278,7 +278,7 @@ class _FieldFinder extends RecursiveAstVisitor<void> {
   void visitFieldFormalParameter(FieldFormalParameter node) {
     var element = node.declaredFragment?.element;
     if (element is FieldFormalParameterElement) {
-      var field = element.field2;
+      var field = element.field;
       if (field != null) {
         fieldsAssignedInConstructors.add(field);
       }

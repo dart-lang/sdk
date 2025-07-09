@@ -49,8 +49,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (enclosingElement.mixins.isNotEmpty) return;
     if (!_hasImmutableAnnotation(enclosingElement)) return;
     var isRedirected =
-        element.isFactory && element.redirectedConstructor2 != null;
-    if (isRedirected && (element.redirectedConstructor2?.isConst ?? false)) {
+        element.isFactory && element.redirectedConstructor != null;
+    if (isRedirected && (element.redirectedConstructor?.isConst ?? false)) {
       rule.reportAtToken(node.firstTokenAfterCommentAndMetadata);
     }
     if (!isRedirected &&

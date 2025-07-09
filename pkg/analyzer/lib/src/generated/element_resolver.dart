@@ -127,13 +127,13 @@ class ElementResolver {
     if (redirectedNode != null) {
       // set redirected factory constructor
       var redirectedElement = redirectedNode.element;
-      element.redirectedConstructor2 = redirectedElement;
+      element.redirectedConstructor = redirectedElement;
     } else {
       // set redirected generative constructor
       for (ConstructorInitializer initializer in node.initializers) {
         if (initializer is RedirectingConstructorInvocationImpl) {
           var redirectedElement = initializer.element;
-          element.redirectedConstructor2 = redirectedElement;
+          element.redirectedConstructor = redirectedElement;
         }
       }
     }
@@ -391,7 +391,7 @@ class ElementResolver {
     var name = node.constructorName;
     var superName = name?.name;
     var element = superType.lookUpConstructor(superName, _definingLibrary);
-    if (element == null || !element.isAccessibleIn2(_definingLibrary)) {
+    if (element == null || !element.isAccessibleIn(_definingLibrary)) {
       if (name != null) {
         _diagnosticReporter.atNode(
           node,

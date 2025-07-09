@@ -977,7 +977,7 @@ class InheritanceManager3 {
         name: executable.name,
         nameOffset: -1,
       );
-      resultFragment.enclosingElement3 = class_.firstFragment;
+      resultFragment.enclosingElement = class_.firstFragment;
       resultFragment.isSynthetic = true;
       resultFragment.parameters =
           transformedParameters.map((e) => e.firstFragment).toList();
@@ -1010,7 +1010,7 @@ class InheritanceManager3 {
         name: executable.name,
         nameOffset: -1,
       );
-      resultFragment.enclosingElement3 = class_.firstFragment;
+      resultFragment.enclosingElement = class_.firstFragment;
       resultFragment.isSynthetic = true;
       resultFragment.parameters =
           transformedParameters.map((e) => e.firstFragment).toList();
@@ -1022,7 +1022,7 @@ class InheritanceManager3 {
         name: executable.name,
         nameOffset: -1,
       );
-      resultField.enclosingElement3 = class_.firstFragment;
+      resultField.enclosingElement = class_.firstFragment;
 
       var elementName = executable.name!;
       var fieldReference = class_.reference!
@@ -1082,7 +1082,7 @@ class InheritanceManager3 {
         name: fragmentName,
         nameOffset: -1,
       );
-      resultFragment.enclosingElement3 = targetClass.firstFragment;
+      resultFragment.enclosingElement = targetClass.firstFragment;
       resultFragment.typeParameters =
           resultType.typeParameters.map((e) => e.firstFragment).toList();
       resultFragment.returnType = resultType.returnType;
@@ -1134,7 +1134,7 @@ class InheritanceManager3 {
 
         resultElement = SetterElementImpl(elementReference, fragment);
       }
-      resultFragment.enclosingElement3 = targetClass.firstFragment;
+      resultFragment.enclosingElement = targetClass.firstFragment;
       resultFragment.returnType = resultType.returnType;
       // TODO(scheglov): check if can type cast instead
       resultFragment.parameters =
@@ -1142,7 +1142,7 @@ class InheritanceManager3 {
               .map((e) => e.firstFragment as FormalParameterFragmentImpl)
               .toList();
 
-      field.enclosingElement3 = targetClass.firstFragment;
+      field.enclosingElement = targetClass.firstFragment;
 
       var elementName = first.name!;
       var elementReference = targetClass.reference!

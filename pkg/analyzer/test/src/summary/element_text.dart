@@ -379,7 +379,7 @@ class _Element2Writer extends _AbstractElementWriter {
 
       _writeList('constantInitializers', e.constantInitializers, _writeNode);
 
-      var superConstructor = e.superConstructor2;
+      var superConstructor = e.superConstructor;
       if (superConstructor != null) {
         var enclosingElement = superConstructor.enclosingElement;
         if (enclosingElement is ClassElementImpl &&
@@ -388,7 +388,7 @@ class _Element2Writer extends _AbstractElementWriter {
         }
       }
 
-      var redirectedConstructor = e.redirectedConstructor2;
+      var redirectedConstructor = e.redirectedConstructor;
       if (redirectedConstructor != null) {
         _writeElementReference('redirectedConstructor', redirectedConstructor);
       }
@@ -702,7 +702,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeElementList(
         'typeParameters',
         e,
-        e.typeParameters2,
+        e.typeParameters,
         _writeTypeParameterElement,
       );
       _writeElementList(
@@ -1039,10 +1039,10 @@ class _Element2Writer extends _AbstractElementWriter {
   }
 
   void _writeInstanceElement(InstanceElementImpl e) {
-    expect(e.thisOrAncestorOfType2<InstanceElement>(), same(e));
-    expect(e.thisOrAncestorOfType2<GetterElement>(), isNull);
-    expect(e.thisOrAncestorMatching2((_) => true), same(e));
-    expect(e.thisOrAncestorMatching2((_) => false), isNull);
+    expect(e.thisOrAncestorOfType<InstanceElement>(), same(e));
+    expect(e.thisOrAncestorOfType<GetterElement>(), isNull);
+    expect(e.thisOrAncestorMatching((_) => true), same(e));
+    expect(e.thisOrAncestorMatching((_) => false), isNull);
 
     _sink.writeIndentedLine(() {
       switch (e) {

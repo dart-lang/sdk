@@ -321,7 +321,7 @@ class BinaryExpressionResolver {
       // If this is a user-defined operator, set the right operand context
       // using the operator method's parameter type.
       var rightParam = invokeType.formalParameters[0];
-      rightContextType = _typeSystem.refineNumericInvocationContext2(
+      rightContextType = _typeSystem.refineNumericInvocationContext(
         left.staticType,
         node.element,
         contextType,

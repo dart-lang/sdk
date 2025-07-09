@@ -81,7 +81,7 @@ class InstanceCreationExpressionResolver {
       if (node.element == null) {
         if (contextElement.getNamedConstructor2(node.constructorName.name)
             case ConstructorElementImpl element?
-            when element.isAccessibleIn2(_resolver.definingLibrary)) {
+            when element.isAccessibleIn(_resolver.definingLibrary)) {
           node.element = element;
         } else {
           _resolver.diagnosticReporter.atNode(

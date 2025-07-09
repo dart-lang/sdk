@@ -231,7 +231,7 @@ class _ValidUseVisitor extends RecursiveAstVisitor<void> {
     if (variableType == _VariableType.field) {
       var staticElement = node.declaredFragment?.element;
       if (staticElement is FieldFormalParameterElement &&
-          staticElement.field2 == variableElement) {
+          staticElement.field == variableElement) {
         containsValidUse = true;
         return;
       }

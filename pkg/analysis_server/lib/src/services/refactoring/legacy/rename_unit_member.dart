@@ -230,7 +230,7 @@ class _BaseUnitMemberValidator {
   /// Validates if an element with the [name] will conflict with another
   /// top-level [Element] in the same library.
   void _validateWillConflict() {
-    for (var element in library.children2) {
+    for (var element in library.children) {
       if (hasDisplayName(element, name)) {
         var message = format(
           "Library already declares {0} with name '{1}'.",
@@ -256,7 +256,7 @@ class _BaseUnitMemberValidator {
           continue;
         }
         // cannot be shadowed if declared in the same class as reference
-        var refClass = refElement.thisOrAncestorOfType2<InterfaceElement>();
+        var refClass = refElement.thisOrAncestorOfType<InterfaceElement>();
         if (refClass == declaringClass) {
           continue;
         }
@@ -338,7 +338,7 @@ class _RenameUnitMemberValidator extends _BaseUnitMemberValidator {
   void _validateWillBeShadowed() {
     for (var reference in references) {
       var refElement = reference.element;
-      var refClass = refElement.thisOrAncestorOfType2<InterfaceElement>();
+      var refClass = refElement.thisOrAncestorOfType<InterfaceElement>();
       if (refClass != null) {
         visitChildren(refClass, (shadow) {
           if (hasDisplayName(shadow, name)) {

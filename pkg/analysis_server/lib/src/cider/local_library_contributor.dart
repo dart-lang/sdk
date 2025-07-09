@@ -122,7 +122,7 @@ class LibraryElementSuggestionBuilder
   @override
   void visitLibraryElement(LibraryElement element) {
     if (visitedLibraries.add(element)) {
-      element.visitChildren2(this);
+      element.visitChildren(this);
     }
   }
 
@@ -225,7 +225,7 @@ class LibraryElementSuggestionBuilder
         // TODO(scheglov): This looks not ideal - we should suggest getters.
         for (var field in element.fields) {
           if (field.isStatic &&
-              field.isAccessibleIn2(request.libraryElement) &&
+              field.isAccessibleIn(request.libraryElement) &&
               typeSystem.isSubtypeOf(field.type, contextType)) {
             if (field.isSynthetic) {
               var getter = field.getter2;

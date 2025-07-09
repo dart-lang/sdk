@@ -341,7 +341,7 @@ class SubtypeHelper {
 
   /// Check that [f] is a subtype of [g].
   bool _isFunctionSubtypeOf(FunctionTypeImpl f, FunctionTypeImpl g) {
-    var fresh = _typeSystem.relateTypeParameters2(
+    var fresh = _typeSystem.relateTypeParameters(
       f.typeParameters,
       g.typeParameters,
     );

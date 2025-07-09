@@ -27,7 +27,7 @@ List<DiagnosticMessage> convertTypeNames(List<Object?>? arguments) {
       var types = typeGroups.putIfAbsent(displayName, () => []);
       types.add(_TypeToConvert(i, argument, displayName));
     } else if (argument is Element) {
-      var displayName = argument.displayString2();
+      var displayName = argument.displayString();
       var types = typeGroups.putIfAbsent(displayName, () => []);
       types.add(_ElementToConvert(i, argument, displayName));
     }

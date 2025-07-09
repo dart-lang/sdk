@@ -40,7 +40,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var paramElement = node.declaredFragment?.element;
     if (paramElement is! FieldFormalParameterElement) return;
 
-    var field = paramElement.field2;
+    var field = paramElement.field;
     // If no such field exists, the code is invalid; do not report lint.
     if (field != null && nodeType.type == field.type) {
       rule.reportAtNode(nodeType);

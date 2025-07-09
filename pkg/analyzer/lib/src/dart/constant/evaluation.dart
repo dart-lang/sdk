@@ -484,7 +484,7 @@ class ConstantEvaluationEngine {
       // let [evaluateInstanceCreationExpression] handle it specially.
       return null;
     }
-    var redirectedConstructor = constructor.redirectedConstructor2;
+    var redirectedConstructor = constructor.redirectedConstructor;
     if (redirectedConstructor == null) {
       // This can happen if constructor is an external factory constructor.
       return null;
@@ -502,7 +502,7 @@ class ConstantEvaluationEngine {
     if (element is FieldElementImpl && element.isEnumConstant) {
       var enum_ = element.enclosingElement;
       if (enum_ is EnumElementImpl) {
-        var index = enum_.constants2.indexOf(element);
+        var index = enum_.constants.indexOf(element);
         assert(index >= 0);
         return _EnumConstant(index: index, name: element.name ?? '');
       }
@@ -3399,7 +3399,7 @@ class _InstanceCreationEvaluator {
           );
         }
         if (baseParameter.isInitializingFormal) {
-          var field = (parameter as FieldFormalParameterElement).field2;
+          var field = (parameter as FieldFormalParameterElement).field;
           if (field != null) {
             var fieldType = field.type as TypeImpl;
             if (fieldType != parameter.type) {

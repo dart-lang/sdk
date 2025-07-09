@@ -98,7 +98,7 @@ class DartUnitHoverComputer {
 
   /// Gets the name of the containing class of [element].
   String? _containingClass(Element element) {
-    var containingClass = element.thisOrAncestorOfType2<InterfaceElement>();
+    var containingClass = element.thisOrAncestorOfType<InterfaceElement>();
     return containingClass != null && containingClass != element
         ? containingClass.displayName
         : null;
@@ -110,7 +110,7 @@ class DartUnitHoverComputer {
   /// information to disambiguate things like constructors from types (and
   /// whether they are const).
   String? _elementDisplayString(AstNode node, Element? element) {
-    var displayString = element?.displayString2(multiline: true);
+    var displayString = element?.displayString(multiline: true);
 
     if (displayString != null) {
       if (node is InstanceCreationExpression && node.keyword == null) {

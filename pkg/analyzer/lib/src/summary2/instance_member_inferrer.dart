@@ -409,7 +409,7 @@ class InstanceMemberInferrer {
       }
     }
 
-    var classElement = constructor.enclosingElement3;
+    var classElement = constructor.enclosingElement;
     if (classElement is ClassFragmentImpl && classElement.isMixinApplication) {
       _inferMixinApplicationConstructor(classElement, constructor);
     }
@@ -528,7 +528,7 @@ class InstanceMemberInferrer {
           superType.elementImpl.constructors
               .where(
                 (element) =>
-                    element.asElement2.isAccessibleIn2(classElement.library),
+                    element.asElement2.isAccessibleIn(classElement.library),
               )
               .toList();
       if (index < superConstructors.length) {

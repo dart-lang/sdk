@@ -30,7 +30,7 @@ class StaticTypeAnalyzer2TestShared extends PubPackageResolutionTest {
     String typeParametersStr(List<TypeParameterElement> elements) {
       var elementsStr = elements
           .map((e) {
-            return e.displayString2();
+            return e.displayString();
           })
           .join(', ');
       return '[$elementsStr]';

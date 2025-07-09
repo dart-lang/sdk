@@ -59,7 +59,7 @@ class IdentifierHelper {
     if (candidateName == null) {
       return;
     }
-    for (var childElement in state.libraryElement.children2) {
+    for (var childElement in state.libraryElement.children) {
       if (childElement.name == candidateName) {
         // Don't suggest a name that's already declared in the library.
         return;

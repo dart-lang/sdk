@@ -1802,14 +1802,14 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     }
     if (targetType is InterfaceType) {
       var targetClass = targetType.element;
-      var extension = member.thisOrAncestorOfType2<ExtensionElement>();
+      var extension = member.thisOrAncestorOfType<ExtensionElement>();
       if (extension != null) {
         _recordDistance('member (extension)', 0);
         return;
       }
       // TODO(brianwilkerson): It might be interesting to also know whether the
       //  [element] was found in a class, interface, or mixin.
-      var memberClass = member.thisOrAncestorOfType2<InterfaceElement>();
+      var memberClass = member.thisOrAncestorOfType<InterfaceElement>();
       if (memberClass != null) {
         /// Return the distance between the [targetClass] and the [memberClass]
         /// along the superclass chain. This includes all of the implicit

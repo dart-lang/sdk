@@ -252,7 +252,7 @@ class LiteralElementVerifier {
       return;
     }
 
-    var iterableType = expressionType.asInstanceOf2(
+    var iterableType = expressionType.asInstanceOf(
       typeProvider.iterableElement,
     );
 
@@ -354,7 +354,7 @@ class LiteralElementVerifier {
       return;
     }
 
-    var mapType = expressionType.asInstanceOf2(typeProvider.mapElement);
+    var mapType = expressionType.asInstanceOf(typeProvider.mapElement);
 
     if (mapType == null) {
       return _diagnosticReporter.atNode(

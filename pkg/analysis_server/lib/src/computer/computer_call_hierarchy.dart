@@ -35,7 +35,7 @@ Element? _getContainer(Element element) {
     ElementKind.MIXIN,
     ElementKind.SETTER,
   };
-  return element.thisOrAncestorMatching2(
+  return element.thisOrAncestorMatching(
     (ancestor) => containerKinds.contains(ancestor.kind),
   );
 }

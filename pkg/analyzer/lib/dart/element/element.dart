@@ -432,6 +432,14 @@ abstract class ConstructorElement
   /// Returns `null` if this constructor does not redirect to another
   /// constructor or if the library containing this constructor has not yet been
   /// resolved.
+  ConstructorElement? get redirectedConstructor;
+
+  /// The constructor to which this constructor is redirecting.
+  ///
+  /// Returns `null` if this constructor does not redirect to another
+  /// constructor or if the library containing this constructor has not yet been
+  /// resolved.
+  @Deprecated('Use redirectedConstructor instead')
   ConstructorElement? get redirectedConstructor2;
 
   @override
@@ -440,6 +448,12 @@ abstract class ConstructorElement
   /// The constructor of the superclass that this constructor invokes, or
   /// `null` if this constructor redirects to another constructor, or if the
   /// library containing this constructor has not yet been resolved.
+  ConstructorElement? get superConstructor;
+
+  /// The constructor of the superclass that this constructor invokes, or
+  /// `null` if this constructor redirects to another constructor, or if the
+  /// library containing this constructor has not yet been resolved.
+  @Deprecated('Use superConstructor instead')
   ConstructorElement? get superConstructor2;
 }
 
@@ -587,6 +601,13 @@ abstract class Element {
   ///
   /// There is no guarantee of the order in which the children will be returned.
   /// In particular, they are not guaranteed to be in lexical order.
+  List<Element> get children;
+
+  /// The children of this element.
+  ///
+  /// There is no guarantee of the order in which the children will be returned.
+  /// In particular, they are not guaranteed to be in lexical order.
+  @Deprecated('Use children instead')
   List<Element> get children2;
 
   /// The display name of this element, or an empty string if the element does
@@ -738,12 +759,35 @@ abstract class Element {
   ///
   /// Clients should not depend on the content of the returned value as it will
   /// be changed if doing so would improve the UX.
+  String displayString({bool multiline = false, bool preferTypeAlias = false});
+
+  /// The presentation of this element as it should appear when presented to
+  /// users.
+  ///
+  /// If [multiline] is `true`, then the string may be wrapped over multiple
+  /// lines with newlines to improve formatting. For example, function
+  /// signatures may be formatted as if they had trailing commas.
+  ///
+  /// If [preferTypeAlias] is `true` and the element represents a type defined
+  /// by a type alias, then the name of the type alias will be used in the
+  /// returned string rather than the name of the type being aliased.
+  ///
+  /// Clients should not depend on the content of the returned value as it will
+  /// be changed if doing so would improve the UX.
+  @Deprecated('Use displayString instead')
   String displayString2({bool multiline = false, bool preferTypeAlias = false});
 
   /// Returns a display name for the given element that includes the path to the
   /// compilation unit in which the type is defined. If [shortName] is `null`
   /// then [displayName] will be used as the name of this element. Otherwise
   /// the provided name will be used.
+  String getExtendedDisplayName({String? shortName});
+
+  /// Returns a display name for the given element that includes the path to the
+  /// compilation unit in which the type is defined. If [shortName] is `null`
+  /// then [displayName] will be used as the name of this element. Otherwise
+  /// the provided name will be used.
+  @Deprecated('Use getExtendedDisplayName instead')
   String getExtendedDisplayName2({String? shortName});
 
   /// Whether the element, assuming that it is within scope, is accessible to
@@ -754,22 +798,52 @@ abstract class Element {
   /// A declaration <i>m</i> is accessible to a library <i>L</i> if <i>m</i> is
   /// declared in <i>L</i> or if <i>m</i> is public.
   /// </blockquote>
+  bool isAccessibleIn(LibraryElement library);
+
+  /// Whether the element, assuming that it is within scope, is accessible to
+  /// code in the given [library].
+  ///
+  /// This is defined by the Dart Language Specification in section 6.2:
+  /// <blockquote>
+  /// A declaration <i>m</i> is accessible to a library <i>L</i> if <i>m</i> is
+  /// declared in <i>L</i> or if <i>m</i> is public.
+  /// </blockquote>
+  @Deprecated('Use isAccessibleIn instead')
   bool isAccessibleIn2(LibraryElement library);
 
   /// Returns either this element or the most immediate ancestor of this element
   /// for which the [predicate] returns `true`.
   ///
   /// Returns `null` if there is no such element.
+  Element? thisOrAncestorMatching(bool Function(Element) predicate);
+
+  /// Returns either this element or the most immediate ancestor of this element
+  /// for which the [predicate] returns `true`.
+  ///
+  /// Returns `null` if there is no such element.
+  @Deprecated('Use thisOrAncestorMatching instead')
   Element? thisOrAncestorMatching2(bool Function(Element) predicate);
 
   /// Returns either this element or the most immediate ancestor of this element
   /// that has the given type.
   ///
   /// Returns `null` if there is no such element.
+  E? thisOrAncestorOfType<E extends Element>();
+
+  /// Returns either this element or the most immediate ancestor of this element
+  /// that has the given type.
+  ///
+  /// Returns `null` if there is no such element.
+  @Deprecated('Use thisOrAncestorOfType instead')
   E? thisOrAncestorOfType2<E extends Element>();
 
   /// Uses the given [visitor] to visit all of the children of this element.
   /// There is no guarantee of the order in which the children will be visited.
+  void visitChildren<T>(ElementVisitor2<T> visitor);
+
+  /// Uses the given [visitor] to visit all of the children of this element.
+  /// There is no guarantee of the order in which the children will be visited.
+  @Deprecated('Use visitChildren instead')
   void visitChildren2<T>(ElementVisitor2<T> visitor);
 }
 
@@ -1187,6 +1261,10 @@ abstract class ElementVisitor2<R> {
 /// Clients may not extend, implement or mix-in this class.
 abstract class EnumElement implements InterfaceElement {
   /// The constants defined by the enum.
+  List<FieldElement> get constants;
+
+  /// The constants defined by the enum.
+  @Deprecated('Use constants instead')
   List<FieldElement> get constants2;
 
   @override
@@ -1433,6 +1511,12 @@ abstract class FieldFormalParameterElement implements FormalParameterElement {
   /// The field element associated with this field formal parameter.
   ///
   /// Returns `null` if the parameter references a field that doesn't exist.
+  FieldElement? get field;
+
+  /// The field element associated with this field formal parameter.
+  ///
+  /// Returns `null` if the parameter references a field that doesn't exist.
+  @Deprecated('Use field instead')
   FieldElement? get field2;
 
   @override
@@ -1570,6 +1654,13 @@ abstract class FormalParameterElement
   ///
   /// A parameter will only define type parameters if it is a function typed
   /// parameter.
+  List<TypeParameterElement> get typeParameters;
+
+  /// The type parameters defined by this parameter.
+  ///
+  /// A parameter will only define type parameters if it is a function typed
+  /// parameter.
+  @Deprecated('Use typeParameters instead')
   List<TypeParameterElement> get typeParameters2;
 
   /// Appends the type, name and possibly the default value of this parameter
@@ -1616,6 +1707,13 @@ abstract class Fragment {
   ///
   /// There is no guarantee of the order in which the children will be returned.
   /// In particular, they are not guaranteed to be in lexical order.
+  List<Fragment> get children;
+
+  /// The children of this fragment.
+  ///
+  /// There is no guarantee of the order in which the children will be returned.
+  /// In particular, they are not guaranteed to be in lexical order.
+  @Deprecated('Use children instead')
   List<Fragment> get children3;
 
   /// The element composed from this fragment and possibly other fragments.

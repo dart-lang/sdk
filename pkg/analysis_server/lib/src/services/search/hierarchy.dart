@@ -174,7 +174,7 @@ getHierarchyMembersAndParameters(
         for (var constructor in subClass.constructors) {
           for (var parameter in constructor.formalParameters) {
             if (parameter is FieldFormalParameterElement &&
-                parameter.field2 == member2) {
+                parameter.field == member2) {
               parameters.add(parameter);
             }
           }

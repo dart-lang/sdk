@@ -445,7 +445,7 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
       (r) => r.path == elementPath,
       orElse: () {
         var elementStr = fragment.element.displayName.ifNotEmptyOrElse(
-          fragment.element.displayString2(),
+          fragment.element.displayString(),
         );
         throw ArgumentError(
           'Element (${fragment.runtimeType}) $elementStr is '

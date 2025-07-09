@@ -47,7 +47,7 @@ class ElementLocation {
     var result = await session.getLibraryByUri(_libraryUri);
     if (result is! LibraryElementResult) return null;
 
-    return result.element2.children2.firstWhereOrNull(
+    return result.element2.children.firstWhereOrNull(
       (child) => child.lookupName == _topLevelName,
     );
   }
@@ -99,7 +99,7 @@ class _MemberElementLocation extends ElementLocation {
   Future<Element?> locateIn(AnalysisSession session) async {
     var topLevel = await super.locateIn(session);
 
-    return topLevel?.children2.firstWhereOrNull(
+    return topLevel?.children.firstWhereOrNull(
       (child) => child.lookupName == _memberName,
     );
   }

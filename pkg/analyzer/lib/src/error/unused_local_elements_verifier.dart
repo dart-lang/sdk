@@ -891,7 +891,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
         return true;
       }
       if (enclosingElement is ConstructorElement) {
-        var superConstructor = enclosingElement.superConstructor2;
+        var superConstructor = enclosingElement.superConstructor;
         if (superConstructor != null) {
           var correspondingParameter = _getCorrespondingParameter(
             element,

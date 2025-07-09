@@ -109,7 +109,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
             for (var constructor in interfaceElement.constructors) {
               for (var parameter in constructor.formalParameters) {
                 if (parameter is FieldFormalParameterElement &&
-                    parameter.field2 == renameElement) {
+                    parameter.field == renameElement) {
                   await searchEngine
                       .searchReferences(parameter)
                       .then(processor.addReferenceEdits);
@@ -131,7 +131,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
           continue;
         }
         // check the element being renamed is accessible
-        if (!element.isAccessibleIn2(reference.libraryElement)) {
+        if (!element.isAccessibleIn(reference.libraryElement)) {
           continue;
         }
         // add edit

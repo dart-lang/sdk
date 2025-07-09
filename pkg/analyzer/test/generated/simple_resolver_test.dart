@@ -509,7 +509,7 @@ class A {
     var xParameter = findNode.fieldFormalParameter('this.x');
 
     var xParameterElement = xParameter.declaredFragment!.element;
-    expect(xParameterElement.field2, findElement2.field('x'));
+    expect(xParameterElement.field, findElement2.field('x'));
 
     assertResolvedNodeText(findNode.simple('x {}'), r'''
 SimpleIdentifier

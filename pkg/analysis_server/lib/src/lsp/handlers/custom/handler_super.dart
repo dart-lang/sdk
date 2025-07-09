@@ -92,7 +92,7 @@ class _SuperComputer {
   }
 
   Fragment? _findSuperConstructor(ConstructorElement element) {
-    return _lastFragment(element.superConstructor2);
+    return _lastFragment(element.superConstructor);
   }
 
   Fragment? _findSuperMember(Element element) {
@@ -112,7 +112,7 @@ class _SuperComputer {
       return null;
     }
 
-    var interfaceElement = element.thisOrAncestorOfType2<InterfaceElement>();
+    var interfaceElement = element.thisOrAncestorOfType<InterfaceElement>();
     if (interfaceElement == null) {
       return null;
     }

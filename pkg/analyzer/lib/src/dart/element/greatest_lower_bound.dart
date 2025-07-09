@@ -264,7 +264,7 @@ class GreatestLowerBoundHelper {
 
     // The bounds of type parameters must be equal.
     // Otherwise the result is `Never`.
-    var fresh = _typeSystem.relateTypeParameters2(
+    var fresh = _typeSystem.relateTypeParameters(
       f.typeParameters,
       g.typeParameters,
     );

@@ -416,8 +416,8 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   void visitFieldFormalParameter(FieldFormalParameter node) {
     var element = node.declaredFragment?.element;
     if (element != null) {
-      computer._addRegionForElement(node.thisKeyword, element.field2);
-      computer._addRegionForElement(node.name, element.field2);
+      computer._addRegionForElement(node.thisKeyword, element.field);
+      computer._addRegionForElement(node.name, element.field);
     }
 
     node.type?.accept(this);

@@ -64,11 +64,11 @@ class ConstructorInitializerResolver {
       astResolver.resolveConstructorNode(node);
 
       if (node.factoryKeyword != null) {
-        element.redirectedConstructor2 = node.redirectedConstructor?.element;
+        element.redirectedConstructor = node.redirectedConstructor?.element;
       } else {
         for (var initializer in node.initializers) {
           if (initializer is RedirectingConstructorInvocationImpl) {
-            element.redirectedConstructor2 = initializer.element;
+            element.redirectedConstructor = initializer.element;
           }
         }
       }

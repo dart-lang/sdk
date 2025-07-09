@@ -107,7 +107,7 @@ class ElementBuilder {
 
       // Mark extension type members.
       if (instanceElement is ExtensionTypeElementImpl) {
-        for (var executable in instanceElement.children2) {
+        for (var executable in instanceElement.children) {
           if (executable case ExecutableElementImpl executable) {
             // TODO(scheglov): should be a flag on the element instead
             (executable.firstFragment as ExecutableFragmentImpl)
@@ -1087,7 +1087,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       );
       _linker.elementNodes[field] = variableDeclaration;
 
-      field.enclosingElement3 = fragment;
+      field.enclosingElement = fragment;
       _libraryBuilder.addFragmentChild(fragment, field);
 
       AstNodeImpl.linkNodeTokens(initializer);
@@ -1150,7 +1150,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     );
     _linker.elementNodes[valuesField] = variableDeclaration;
 
-    valuesField.enclosingElement3 = fragment;
+    valuesField.enclosingElement = fragment;
     _libraryBuilder.addFragmentChild(fragment, valuesField);
 
     _libraryBuilder.implicitEnumNodes[fragment] = ImplicitEnumNodes(
@@ -1308,7 +1308,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       _linker.elementNodes[fragment] = variable;
 
       var parentFragment = _enclosingContext.fragment;
-      fragment.enclosingElement3 = parentFragment;
+      fragment.enclosingElement = parentFragment;
       _libraryBuilder.addFragmentChild(parentFragment, fragment);
     }
     _buildType(node.fields.type);
@@ -1387,7 +1387,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       getterFragment.isAugmentation = node.augmentKeyword != null;
       getterFragment.isStatic = true;
 
-      getterFragment.enclosingElement3 = _unitElement;
+      getterFragment.enclosingElement = _unitElement;
       executableFragment = getterFragment;
 
       _libraryBuilder.addTopFragment(_unitElement, getterFragment);
@@ -1400,7 +1400,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       setterFragment.isAugmentation = node.augmentKeyword != null;
       setterFragment.isStatic = true;
 
-      setterFragment.enclosingElement3 = _unitElement;
+      setterFragment.enclosingElement = _unitElement;
       executableFragment = setterFragment;
 
       _libraryBuilder.addTopFragment(_unitElement, setterFragment);
@@ -1635,7 +1635,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
       reference = Reference.root(); // TODO(scheglov): remove this
       var parentFragment = _enclosingContext.fragment;
-      fragment.enclosingElement3 = parentFragment;
+      fragment.enclosingElement = parentFragment;
       _libraryBuilder.addFragmentChild(parentFragment, fragment);
 
       executableFragment = fragment;
@@ -1651,7 +1651,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
       reference = Reference.root(); // TODO(scheglov): remove this
       var parentFragment = _enclosingContext.fragment;
-      fragment.enclosingElement3 = parentFragment;
+      fragment.enclosingElement = parentFragment;
       _libraryBuilder.addFragmentChild(parentFragment, fragment);
 
       executableFragment = fragment;
@@ -1677,7 +1677,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
       reference = Reference.root(); // TODO(scheglov): remove this
       var parentFragment = _enclosingContext.fragment;
-      fragment.enclosingElement3 = parentFragment;
+      fragment.enclosingElement = parentFragment;
       _libraryBuilder.addFragmentChild(parentFragment, fragment);
 
       executableFragment = fragment;
@@ -2009,7 +2009,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     representation.fieldFragment = fieldFragment;
     _linker.elementNodes[fieldFragment] = representation;
 
-    fieldFragment.enclosingElement3 = extensionFragment;
+    fieldFragment.enclosingElement = extensionFragment;
     _libraryBuilder.addFragmentChild(extensionFragment, fieldFragment);
 
     var nameOffset2 = fieldNameToken.offset.nullIfNegative;

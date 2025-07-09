@@ -324,7 +324,7 @@ class LibraryFragmentScope implements Scope {
   ImportsTracking? _importsTracking;
 
   factory LibraryFragmentScope(LibraryFragmentImpl fragment) {
-    var parent = fragment.enclosingElement3?.scope;
+    var parent = fragment.enclosingElement?.scope;
     return LibraryFragmentScope._(
       parent: parent,
       fragment: fragment,

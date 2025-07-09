@@ -175,7 +175,7 @@ class EncapsulateField extends ResolvedCorrectionProducer {
       var parameterElement = parameter.declaredFragment?.element;
       if (identifier != null &&
           parameterElement is FieldFormalParameterElement &&
-          parameterElement.field2 == fieldElement) {
+          parameterElement.field == fieldElement) {
         if (parameter.isNamed && parameter is DefaultFormalParameter) {
           var normalParam = parameter.parameter;
           if (normalParam is FieldFormalParameter) {

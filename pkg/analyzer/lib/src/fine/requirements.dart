@@ -980,7 +980,7 @@ class RequirementsManifest {
 
   void _addExports(LibraryElementImpl libraryElement) {
     var declaredTopNames =
-        libraryElement.children2
+        libraryElement.children
             .map((element) => element.lookupName)
             .nonNulls
             .map((nameStr) => nameStr.asLookupName)

@@ -162,6 +162,6 @@ extension on VariableElement {
   bool isSetInParameter(FormalParameter parameter) {
     var formalField = parameter.declaredFragment?.element;
     return formalField is FieldFormalParameterElement &&
-        formalField.field2 == this;
+        formalField.field == this;
   }
 }

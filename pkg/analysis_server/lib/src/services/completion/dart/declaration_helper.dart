@@ -257,7 +257,7 @@ class DeclarationHelper {
       if (parameter is FieldFormalParameter) {
         var parameterElement = parameter.declaredFragment?.element;
         if (parameterElement is FieldFormalParameterElement) {
-          var field = parameterElement.field2;
+          var field = parameterElement.field;
           if (field != null) {
             fieldsToSkip.add(field);
           }
@@ -582,7 +582,7 @@ class DeclarationHelper {
       return;
     }
 
-    var superConstructor = constructorElement.superConstructor2;
+    var superConstructor = constructorElement.superConstructor;
     if (superConstructor == null) {
       return;
     }
@@ -630,7 +630,7 @@ class DeclarationHelper {
       if (typeSystem.isSubtypeOf(classElement.thisType, classType)) {
         for (var constructor in classElement.constructors) {
           if (constructor != redirectingConstructor &&
-              constructor.isAccessibleIn2(library)) {
+              constructor.isAccessibleIn(library)) {
             _suggestConstructor(
               constructor,
               hasClassName: false,
@@ -1620,7 +1620,7 @@ class DeclarationHelper {
     }
 
     var requestLibrary = request.libraryElement;
-    if (!element.isAccessibleIn2(requestLibrary)) {
+    if (!element.isAccessibleIn(requestLibrary)) {
       return false;
     }
 
@@ -1647,7 +1647,7 @@ class DeclarationHelper {
         }
 
         var contextType = contextInterface.thisType;
-        if (contextType.asInstanceOf2(elementInterface) == null) {
+        if (contextType.asInstanceOf(elementInterface) == null) {
           return false;
         }
       }

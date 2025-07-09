@@ -226,7 +226,7 @@ class TypeSystemImpl implements TypeSystem {
 
       // If the left is enum, we know types of all its instances.
       if (leftElement is EnumElementImpl) {
-        for (var constant in leftElement.constants2) {
+        for (var constant in leftElement.constants) {
           var constantType = constant.type;
           if (isSubtypeOf(constantType, right)) {
             return true;
@@ -244,7 +244,7 @@ class TypeSystemImpl implements TypeSystem {
         var allSubtypes = leftElement.allSubtypes;
         if (allSubtypes != null) {
           for (var candidate in [left, ...allSubtypes]) {
-            var asRight = candidate.asInstanceOf2(rightElement);
+            var asRight = candidate.asInstanceOf(rightElement);
             if (asRight != null) {
               if (_canBeEqualArguments(asRight, right)) {
                 return true;
@@ -260,7 +260,7 @@ class TypeSystemImpl implements TypeSystem {
         var allSubtypes = rightElement.allSubtypes;
         if (allSubtypes != null) {
           for (var candidate in [right, ...allSubtypes]) {
-            var asLeft = candidate.asInstanceOf2(leftElement);
+            var asLeft = candidate.asInstanceOf(leftElement);
             if (asLeft != null) {
               if (canBeSubtypeOfInterfaces(left, asLeft)) {
                 return true;
@@ -462,7 +462,7 @@ class TypeSystemImpl implements TypeSystem {
   TypeImpl? futureType(TypeImpl T) {
     // T implements S, and there is a U such that S is Future<U>
     if (T.nullabilitySuffix != NullabilitySuffix.question) {
-      var result = T.asInstanceOf2(typeProvider.futureElement);
+      var result = T.asInstanceOf(typeProvider.futureElement);
       if (result != null) {
         return result;
       }
@@ -549,7 +549,7 @@ class TypeSystemImpl implements TypeSystem {
   /// If a non-null [candidates] set is given, then only type parameters
   /// appearing in it are considered; otherwise all type parameters are
   /// considered.
-  List<TypeParameterElement>? getFreeParameters2(
+  List<TypeParameterElement>? getFreeParameters(
     DartType rootType, {
     Set<TypeParameterElement>? candidates,
   }) {
@@ -695,7 +695,7 @@ class TypeSystemImpl implements TypeSystem {
   }
 
   @override
-  InterfaceTypeImpl instantiateInterfaceToBounds2({
+  InterfaceTypeImpl instantiateInterfaceToBounds({
     required covariant InterfaceElementImpl element,
     required NullabilitySuffix nullabilitySuffix,
   }) {
@@ -705,6 +705,15 @@ class TypeSystemImpl implements TypeSystem {
       typeArguments: typeArguments,
       nullabilitySuffix: nullabilitySuffix,
     );
+  }
+
+  @Deprecated('Use instantiateInterfaceToBounds instead')
+  @override
+  InterfaceTypeImpl instantiateInterfaceToBounds2({
+    required covariant InterfaceElementImpl element,
+    required NullabilitySuffix nullabilitySuffix,
+  }) {
+    return instantiateInterfaceToBounds(element: element, nullabilitySuffix: nullabilitySuffix);
   }
 
   /// Given a [DartType] [type] and a list of types
@@ -726,7 +735,7 @@ class TypeSystemImpl implements TypeSystem {
   }
 
   @override
-  TypeImpl instantiateTypeAliasToBounds2({
+  TypeImpl instantiateTypeAliasToBounds({
     required covariant TypeAliasElementImpl element,
     required NullabilitySuffix nullabilitySuffix,
   }) {
@@ -738,11 +747,20 @@ class TypeSystemImpl implements TypeSystem {
     );
   }
 
+  @Deprecated('Use instantiateTypeAliasToBounds instead')
+  @override
+  TypeImpl instantiateTypeAliasToBounds2({
+    required covariant TypeAliasElementImpl element,
+    required NullabilitySuffix nullabilitySuffix,
+  }) {
+    return instantiateTypeAliasToBounds(element: element, nullabilitySuffix: nullabilitySuffix);
+  }
+
   /// Given uninstantiated [typeFormals], instantiate them to their bounds.
   /// See the issue for the algorithm description.
   ///
   /// https://github.com/dart-lang/sdk/issues/27526#issuecomment-260021397
-  List<TypeImpl> instantiateTypeFormalsToBounds2(
+  List<TypeImpl> instantiateTypeFormalsToBounds(
     List<TypeParameterElementImpl> typeParameters, {
     List<bool>? hasError,
     Map<TypeParameterElement, TypeImpl>? knownTypes,
@@ -771,7 +789,7 @@ class TypeSystemImpl implements TypeSystem {
       hasProgress = false;
       for (TypeParameterElement parameter in partials.keys) {
         var value = partials[parameter]!;
-        var freeParameters = getFreeParameters2(value, candidates: all);
+        var freeParameters = getFreeParameters(value, candidates: all);
         if (freeParameters == null) {
           defaults[parameter] = value;
           partials.remove(parameter);
@@ -1543,7 +1561,7 @@ class TypeSystemImpl implements TypeSystem {
   /// [methodElement], the context surrounding the method invocation is
   /// [invocationContext], and the context type produced so far by resolution is
   /// [currentType].
-  TypeImpl refineNumericInvocationContext2(
+  TypeImpl refineNumericInvocationContext(
     TypeImpl? targetType,
     Element? methodElement,
     TypeImpl invocationContext,
@@ -1592,7 +1610,7 @@ class TypeSystemImpl implements TypeSystem {
   ///
   /// The return value will be a new list of fresh type parameters, that can
   /// be used to instantiate both function types, allowing further comparison.
-  RelatedTypeParameters2? relateTypeParameters2(
+  RelatedTypeParameters2? relateTypeParameters(
     List<TypeParameterElementImpl> typeParameters1,
     List<TypeParameterElementImpl> typeParameters2,
   ) {

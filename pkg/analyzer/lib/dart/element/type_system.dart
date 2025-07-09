@@ -43,12 +43,28 @@ abstract class TypeSystem {
 
   /// Instantiate the given [element] with default type arguments.
   @experimental
+  InterfaceType instantiateInterfaceToBounds({
+    required InterfaceElement element,
+    required NullabilitySuffix nullabilitySuffix,
+  });
+
+  /// Instantiate the given [element] with default type arguments.
+  @Deprecated('Use instantiateInterfaceToBounds instead')
+  @experimental
   InterfaceType instantiateInterfaceToBounds2({
     required InterfaceElement element,
     required NullabilitySuffix nullabilitySuffix,
   });
 
   /// Instantiate the given [element] with default type arguments.
+  @experimental
+  DartType instantiateTypeAliasToBounds({
+    required TypeAliasElement element,
+    required NullabilitySuffix nullabilitySuffix,
+  });
+
+  /// Instantiate the given [element] with default type arguments.
+  @Deprecated('Use instantiateTypeAliasToBounds instead')
   @experimental
   DartType instantiateTypeAliasToBounds2({
     required TypeAliasElement element,
