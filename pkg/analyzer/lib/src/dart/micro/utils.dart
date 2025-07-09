@@ -348,18 +348,14 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
   visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
     var fragment = node.declaredFragment;
     if (fragment?.element == element) {
-      if (fragment!.name == 'new') {
-        references.add(
-          MatchInfo(
-            fragment.nameOffset + fragment.nameLength,
-            0,
-            MatchKind.DECLARATION,
-          ),
-        );
-      } else {
-        var offset = node.period!.offset;
-        var length = node.name!.end - offset;
+      if ((node.period, node.name) case (var period?, var nameToken?)) {
+        var offset = period.offset;
+        var length = nameToken.end - offset;
         references.add(MatchInfo(offset, length, MatchKind.DECLARATION));
+      } else {
+        references.add(
+          MatchInfo(node.returnType.end, 0, MatchKind.DECLARATION),
+        );
       }
     }
     super.visitConstructorDeclaration(node);
