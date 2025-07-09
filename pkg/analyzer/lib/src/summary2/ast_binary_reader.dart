@@ -435,6 +435,7 @@ class AstBinaryReader {
       parameter.declaredFragment = fragment;
     }
     node.declaredFragment = fragment;
+    fragment.element.type = nonDefaultElement.type;
     fragment.type = nonDefaultElement.type;
 
     return node;
@@ -1223,6 +1224,7 @@ class AstBinaryReader {
       nameOffset2: null,
       parameterKind: node.kind,
     );
+    fragment.element.type = actualType;
     fragment.type = actualType;
     node.declaredFragment = fragment;
 

@@ -1149,8 +1149,7 @@ class _MockSdkElementsBuilder {
       nameOffset2: 0,
       parameterKind: ParameterKind.NAMED,
     );
-    fragment.type = type;
-    return FormalParameterElementImpl(fragment);
+    return FormalParameterElementImpl(fragment)..type = type;
   }
 
   void _populateAsync() {
@@ -1235,8 +1234,7 @@ class _MockSdkElementsBuilder {
       nameOffset2: 0,
       parameterKind: ParameterKind.POSITIONAL,
     );
-    fragment.type = type;
-    return FormalParameterElementImpl(fragment);
+    return FormalParameterElementImpl(fragment)..type = type;
   }
 
   FormalParameterElement _requiredParameter(String name, TypeImpl type) {
@@ -1246,8 +1244,7 @@ class _MockSdkElementsBuilder {
       nameOffset2: 0,
       parameterKind: ParameterKind.REQUIRED,
     );
-    fragment.type = type;
-    return FormalParameterElementImpl(fragment);
+    return FormalParameterElementImpl(fragment)..type = type;
   }
 
   /// Set the [getters] and the corresponding fields for the [classElement].

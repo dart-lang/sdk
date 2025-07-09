@@ -498,8 +498,8 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
             );
             formalParameterElements.add(formalParameterElement);
 
-            formalParameterFragment.type = superFormalParameter.type;
             formalParameterElement.type = superFormalParameter.type;
+            formalParameterFragment.type = superFormalParameter.type;
 
             superInvocationArguments.add(
               SimpleIdentifierImpl(
@@ -2991,6 +2991,9 @@ class FormalParameterElementImpl extends PromotableElementImpl
 
   final FormalParameterFragmentImpl wrappedElement;
 
+  @override
+  late TypeImpl type;
+
   FormalParameterElementImpl(this.wrappedElement) {
     FormalParameterFragmentImpl? fragment = wrappedElement;
     while (fragment != null) {
@@ -3007,10 +3010,9 @@ class FormalParameterElementImpl extends PromotableElementImpl
   ) {
     var fragment = FormalParameterFragmentImpl.synthetic(
       name,
-      type,
       parameterKind,
     );
-    return FormalParameterElementImpl(fragment);
+    return FormalParameterElementImpl(fragment)..type = type;
   }
 
   @override
@@ -3132,15 +3134,6 @@ class FormalParameterElementImpl extends PromotableElementImpl
 
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
-  TypeImpl get type => wrappedElement.type;
-
-  @override
-  set type(TypeImpl value) {
-    wrappedElement.type = value;
-  }
-
-  @override
-  // TODO(augmentations): Implement the merge of formal parameters.
   List<TypeParameterElement> get typeParameters =>
       firstFragment.typeParameters.map((fragment) => fragment.element).toList();
 
@@ -3251,7 +3244,6 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
   /// Creates a synthetic parameter with [name2], [type] and [parameterKind].
   factory FormalParameterFragmentImpl.synthetic(
     String? name2,
-    TypeImpl type,
     ParameterKind parameterKind,
   ) {
     // TODO(dantup): This does not keep any reference to the non-synthetic
@@ -3263,7 +3255,6 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
       nameOffset2: null,
       parameterKind: parameterKind,
     );
-    element.type = type;
     element.isSynthetic = true;
     return element;
   }

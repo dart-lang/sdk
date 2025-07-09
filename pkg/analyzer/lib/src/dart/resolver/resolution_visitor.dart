@@ -662,6 +662,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
               node.parameters?.accept(this);
             } else {
               // Only for recovery, this should not happen in valid code.
+              fragment.element.type = node.type?.type ?? _dynamicType;
               fragment.type = node.type?.type ?? _dynamicType;
               _withElementWalker(null, () {
                 node.parameters?.accept(this);
@@ -879,7 +880,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
             node.returnType?.accept(this);
             if (_elementWalker == null) {
-              fragment.type = FunctionTypeImpl(
+              var type = FunctionTypeImpl(
                 typeParameters:
                     fragment.typeParameters.map((f) => f.element).toList(),
                 parameters:
@@ -887,6 +888,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
                 returnType: node.returnType?.type ?? _dynamicType,
                 nullabilitySuffix: _getNullability(node.question != null),
               );
+              fragment.element.type = type;
+              fragment.type = type;
             }
           });
         },
@@ -1262,6 +1265,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     node.type?.accept(this);
     if (_elementWalker == null) {
+      fragment.element.type = node.type?.type ?? _dynamicType;
       fragment.type = node.type?.type ?? _dynamicType;
     }
 
@@ -1319,6 +1323,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
               node.parameters?.accept(this);
             } else {
               // Only for recovery, this should not happen in valid code.
+              element.element.type = node.type?.type ?? _dynamicType;
               element.type = node.type?.type ?? _dynamicType;
               _withElementWalker(null, () {
                 node.parameters?.accept(this);

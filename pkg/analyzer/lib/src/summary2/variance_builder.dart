@@ -139,9 +139,11 @@ class VarianceBuilder {
       }
     }
 
-    for (var typeParameter in formalParameters) {
+    for (var formalParameter in formalParameters) {
       result = result.meet(
-        Variance.contravariant.combine(_compute(variable, typeParameter.type)),
+        Variance.contravariant.combine(
+          _compute(variable, formalParameter.type),
+        ),
       );
     }
 

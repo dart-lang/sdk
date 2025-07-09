@@ -256,6 +256,7 @@ class TypesBuilder {
       _mixinDeclaration(node);
     } else if (node is SimpleFormalParameterImpl) {
       var fragment = node.declaredFragment!;
+      fragment.element.type = node.type?.type ?? _dynamicType;
       fragment.type = node.type?.type ?? _dynamicType;
     } else if (node is SuperFormalParameterImpl) {
       _superFormalParameter(node);
@@ -338,8 +339,10 @@ class TypesBuilder {
         parameterList,
         _nullability(node, node.question != null),
       );
+      fragment.element.type = type;
       fragment.type = type;
     } else {
+      fragment.element.type = node.type?.type ?? _dynamicType;
       fragment.type = node.type?.type ?? _dynamicType;
     }
   }
@@ -367,6 +370,7 @@ class TypesBuilder {
       _nullability(node, node.question != null),
     );
     var fragment = node.declaredFragment!;
+    fragment.element.type = type;
     fragment.type = type;
   }
 
@@ -422,8 +426,10 @@ class TypesBuilder {
         parameterList,
         _nullability(node, node.question != null),
       );
+      fragment.element.type = type;
       fragment.type = type;
     } else {
+      fragment.element.type = node.type?.type ?? _dynamicType;
       fragment.type = node.type?.type ?? _dynamicType;
     }
   }

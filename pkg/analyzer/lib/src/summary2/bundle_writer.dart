@@ -644,7 +644,7 @@ class BundleWriter {
 
     _writeTypeParameters(element.typeParameters, () {
       _writeList(element.parameters, _writeParameterElement);
-      _resolutionSink.writeType(element.type);
+      _resolutionSink.writeType(element.type2);
       _resolutionSink._writeOptionalNode(element.constantInitializer);
 
       if (element is FieldFormalParameterFragmentImpl) {

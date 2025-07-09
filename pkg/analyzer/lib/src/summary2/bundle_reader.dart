@@ -746,7 +746,10 @@ class LibraryReader {
       parameter.metadata = reader._readMetadata(unitElement: unitElement);
       _readTypeParameters2(unitElement, reader, parameter.typeParameters);
       _readFormalParameters2(unitElement, reader, parameter.parameters);
-      parameter.type = reader.readRequiredType();
+      var type = reader.readType() ?? InvalidTypeImpl.instance;
+      parameter.element.type = type;
+      // TODO(scheglov): make the `type` property optional
+      parameter.type = type;
       parameter.constantInitializer = reader.readOptionalExpression();
       if (parameter is FieldFormalParameterFragmentImpl) {
         // TODO(scheglov): use element
@@ -1800,14 +1803,18 @@ class ResolutionReader {
           name: name,
           nameOffset2: null,
           parameterKind: kind,
-        )..type = type;
+        );
+        element.element.type = type;
+        element.type = type;
       } else {
         element = FormalParameterFragmentImpl(
           nameOffset: -1,
           name: name,
           nameOffset2: null,
           parameterKind: kind,
-        )..type = type;
+        );
+        element.element.type = type;
+        element.type = type;
       }
       element.hasImplicitType = hasImplicitType;
       element.typeParameters = typeParameters;

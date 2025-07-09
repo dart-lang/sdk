@@ -516,9 +516,8 @@ mixin ElementsTypesMixin {
       nameOffset2: 0,
       parameterKind: ParameterKind.NAMED,
     );
-    fragment.type = type;
     fragment.isExplicitlyCovariant = isCovariant;
-    return fragment.asElement2;
+    return FormalParameterElementImpl(fragment)..type = type;
   }
 
   FormalParameterElementImpl namedRequiredParameter({
@@ -532,9 +531,8 @@ mixin ElementsTypesMixin {
       nameOffset2: 0,
       parameterKind: ParameterKind.NAMED_REQUIRED,
     );
-    fragment.type = type;
     fragment.isExplicitlyCovariant = isCovariant;
-    return fragment.asElement2;
+    return FormalParameterElementImpl(fragment)..type = type;
   }
 
   FormalParameterElementImpl positionalParameter({
@@ -548,9 +546,8 @@ mixin ElementsTypesMixin {
       nameOffset2: 0,
       parameterKind: ParameterKind.POSITIONAL,
     );
-    fragment.type = type;
     fragment.isExplicitlyCovariant = isCovariant;
-    return fragment.asElement2;
+    return FormalParameterElementImpl(fragment)..type = type;
   }
 
   TypeParameterTypeImpl promotedTypeParameterType({
@@ -638,9 +635,8 @@ mixin ElementsTypesMixin {
       nameOffset2: 0,
       parameterKind: ParameterKind.REQUIRED,
     );
-    fragment.type = type;
     fragment.isExplicitlyCovariant = isCovariant;
-    return fragment.asElement2;
+    return FormalParameterElementImpl(fragment)..type = type;
   }
 
   TypeAliasElementImpl typeAlias({

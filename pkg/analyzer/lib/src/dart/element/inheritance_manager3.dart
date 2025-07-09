@@ -1159,8 +1159,9 @@ class InheritanceManager3 {
         field.type = resultFragment.returnType;
         fieldElement.type = resultFragment.returnType;
       } else {
-        field.type = resultFragment.parameters[0].type;
-        fieldElement.type = resultFragment.parameters[0].type;
+        var type = resultFragment.parameters[0].element.type;
+        field.type = type;
+        fieldElement.type = type;
       }
 
       return resultElement;
