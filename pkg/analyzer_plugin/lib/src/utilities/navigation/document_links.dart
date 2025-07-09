@@ -179,6 +179,8 @@ class PubspecDocumentLinkComputer {
         ...dependencies.nodes.cast<YamlNode, YamlNode>().entries,
       if (node.nodes['dev_dependencies'] case YamlMap devDependencies)
         ...devDependencies.nodes.cast<YamlNode, YamlNode>().entries,
+      if (node.nodes['dependency_overrides'] case YamlMap dependencyOverrides)
+        ...dependencyOverrides.nodes.cast<YamlNode, YamlNode>().entries,
     ];
 
     var links = <DocumentLink>[];
