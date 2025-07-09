@@ -967,7 +967,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeMetadata(e.metadata);
       _writeSinceSdkVersion(e);
 
-      expect(e.typeParameters2, isEmpty);
+      expect(e.typeParameters, isEmpty);
       _writeElementList(
         'formalParameters',
         e,
@@ -1090,7 +1090,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeElementList(
         'typeParameters',
         e,
-        e.typeParameters2,
+        e.typeParameters,
         _writeTypeParameterElement,
       );
 
@@ -1384,7 +1384,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeElementList(
         'typeParameters',
         e,
-        e.typeParameters2,
+        e.typeParameters,
         _writeTypeParameterElement,
       );
       _writeElementList(
@@ -1568,7 +1568,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeMetadata(e.metadata);
       _writeSinceSdkVersion(e);
 
-      expect(e.typeParameters2, isEmpty);
+      expect(e.typeParameters, isEmpty);
       _writeElementList(
         'formalParameters',
         e,
@@ -1659,7 +1659,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeElementList(
         'typeParameters',
         e,
-        e.typeParameters2,
+        e.typeParameters,
         _writeTypeParameterElement,
       );
       _writeElementList(
@@ -1852,7 +1852,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeElementList(
         'typeParameters',
         e,
-        e.typeParameters2,
+        e.typeParameters,
         _writeTypeParameterElement,
       );
 

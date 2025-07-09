@@ -49,7 +49,7 @@ class DartTypeArgumentsSignatureComputer {
       element = ElementLocator.locate(parent.methodName);
     }
     if (element is! TypeParameterizedElement ||
-        element.typeParameters2.isEmpty) {
+        element.typeParameters.isEmpty) {
       return null;
     }
 
@@ -64,7 +64,7 @@ class DartTypeArgumentsSignatureComputer {
     return _toSignatureHelp(
       label,
       cleanDartdoc(documentation),
-      element.typeParameters2,
+      element.typeParameters,
     );
   }
 

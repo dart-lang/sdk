@@ -962,7 +962,7 @@ abstract class B<E> {
 ''');
     var B = findElement2.classOrMixin('B');
     var foo = manager.getMember(B, Name(null, 'foo'))!;
-    var T = foo.typeParameters2.single;
+    var T = foo.typeParameters.single;
     var returnType = foo.returnType;
     expect(returnType.element, same(T));
   }
@@ -992,8 +992,8 @@ abstract class B<XB> extends A<XB> {}
     var foo2 = manager.getMember(B, Name(null, 'foo'))!;
     checkTextendsFooT(foo.type.typeParameters.single);
     checkTextendsFooT(foo2.type.typeParameters.single);
-    checkTextendsFooT(foo2.typeParameters2.single);
-    checkTextendsFooT(foo.typeParameters2.single);
+    checkTextendsFooT(foo2.typeParameters.single);
+    checkTextendsFooT(foo.typeParameters.single);
   }
 
   test_getMember_fromGenericSuper_method_bound2() async {
@@ -1023,8 +1023,8 @@ abstract class D<XD> extends C<XD> {}
     var foo2 = manager.getMember(D, Name(null, 'foo'))!;
     checkTextendsFooT(foo.type.typeParameters.single);
     checkTextendsFooT(foo2.type.typeParameters.single);
-    checkTextendsFooT(foo2.typeParameters2.single);
-    checkTextendsFooT(foo.typeParameters2.single);
+    checkTextendsFooT(foo2.typeParameters.single);
+    checkTextendsFooT(foo.typeParameters.single);
   }
 
   test_getMember_fromGenericSuper_method_returnType() async {
@@ -1037,7 +1037,7 @@ abstract class B<E> extends A<E> {}
 ''');
     var B = findElement2.classOrMixin('B');
     var foo = manager.getMember(B, Name(null, 'foo'))!;
-    var T = foo.typeParameters2.single;
+    var T = foo.typeParameters.single;
     var returnType = foo.returnType;
     // Check that the return type uses the same `T` as `<T>`.
     expect(returnType.element, same(T));
@@ -1053,7 +1053,7 @@ abstract class B extends A {}
 ''');
     var B = findElement2.classOrMixin('B');
     var foo = manager.getMember(B, Name(null, 'foo'))!;
-    var T = foo.typeParameters2.single;
+    var T = foo.typeParameters.single;
     var returnType = foo.returnType;
     expect(returnType.element, same(T));
   }

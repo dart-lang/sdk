@@ -78,7 +78,7 @@ class ConvertClassToMixin extends ResolvedCorrectionProducer {
         (builder) {
           builder.write('mixin ');
           builder.write(classDeclaration.name.lexeme);
-          builder.writeTypeParameters(classElement.typeParameters2);
+          builder.writeTypeParameters(classElement.typeParameters);
           builder.writeTypes(superclassConstraints, prefix: ' on ');
           builder.writeTypes(interfaces, prefix: ' implements ');
           builder.write(' ');

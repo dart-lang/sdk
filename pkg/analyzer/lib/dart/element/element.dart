@@ -1665,6 +1665,11 @@ abstract class FormalParameterElement
 
   /// Appends the type, name and possibly the default value of this parameter
   /// to the given [buffer].
+  void appendToWithoutDelimiters(StringBuffer buffer);
+
+  /// Appends the type, name and possibly the default value of this parameter
+  /// to the given [buffer].
+  @Deprecated('Use appendToWithoutDelimiters instead')
   void appendToWithoutDelimiters2(StringBuffer buffer);
 }
 
@@ -1905,6 +1910,11 @@ abstract class GetterElement implements PropertyAccessorElement {
 
   /// The setter that corresponds to (has the same name as) this getter, or
   /// `null` if there is no corresponding setter.
+  SetterElement? get correspondingSetter;
+
+  /// The setter that corresponds to (has the same name as) this getter, or
+  /// `null` if there is no corresponding setter.
+  @Deprecated('Use correspondingSetter instead')
   SetterElement? get correspondingSetter2;
 
   @override
@@ -2285,6 +2295,13 @@ abstract class InterfaceElement implements InstanceElement {
   ///
   /// If the class does not declare any constructors, a synthetic default
   /// constructor will be returned.
+  ConstructorElement? get unnamedConstructor;
+
+  /// The unnamed constructor declared directly in this class.
+  ///
+  /// If the class does not declare any constructors, a synthetic default
+  /// constructor will be returned.
+  @Deprecated('Use unnamedConstructor instead')
   ConstructorElement? get unnamedConstructor2;
 
   /// Returns the most specific member with the given [name] that this type
@@ -2323,6 +2340,10 @@ abstract class InterfaceElement implements InstanceElement {
   ExecutableElement? getInterfaceMember(Name name);
 
   /// Returns the constructor from [constructors] that has the given [name].
+  ConstructorElement? getNamedConstructor(String name);
+
+  /// Returns the constructor from [constructors] that has the given [name].
+  @Deprecated('Use getNamedConstructor instead')
   ConstructorElement? getNamedConstructor2(String name);
 
   /// Returns all members of mixins, superclasses, and interfaces that a member
@@ -3779,6 +3800,13 @@ abstract class TypeParameterizedElement implements Element, Annotatable {
   ///
   /// This does not include type parameters that are declared by any enclosing
   /// elements.
+  List<TypeParameterElement> get typeParameters;
+
+  /// The type parameters declared by this element directly.
+  ///
+  /// This does not include type parameters that are declared by any enclosing
+  /// elements.
+  @Deprecated('Use typeParameters instead')
   List<TypeParameterElement> get typeParameters2;
 }
 

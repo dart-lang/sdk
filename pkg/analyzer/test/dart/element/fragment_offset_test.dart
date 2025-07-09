@@ -125,7 +125,7 @@ class C {}
       classDeclaration
           .declaredFragment!
           .element
-          .unnamedConstructor2!
+          .unnamedConstructor!
           .firstFragment,
       classDeclaration.name.offset,
     );

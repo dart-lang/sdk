@@ -6874,7 +6874,7 @@ class A {
   test_dependency_class_declared_constructor() async {
     _ManualRequirements.install((state) {
       var A = state.singleUnit.scopeInterfaceElement('A');
-      A.getNamedConstructor2('foo');
+      A.getNamedConstructor('foo');
     });
 
     await _runChangeScenarioTA(
@@ -7001,7 +7001,7 @@ class A {
   test_dependency_class_declared_constructor_notUsed() async {
     _ManualRequirements.install((state) {
       var A = state.singleUnit.scopeInterfaceElement('A');
-      A.getNamedConstructor2('foo');
+      A.getNamedConstructor('foo');
     });
 
     await _runChangeScenarioTA(
@@ -45954,7 +45954,7 @@ class {}
 
     _ManualRequirements.install((state) {
       var e = state.singleUnit.libraryElement.classes.single;
-      e.getNamedConstructor2('foo');
+      e.getNamedConstructor('foo');
     });
 
     await _runManualRequirementsRecording(
@@ -46731,7 +46731,7 @@ import 'a.dart';
 
     _ManualRequirements.install((state) {
       var A = state.singleUnit.scopeInterfaceElement('A');
-      A.getNamedConstructor2('named');
+      A.getNamedConstructor('named');
     });
 
     await _runManualRequirementsRecording(

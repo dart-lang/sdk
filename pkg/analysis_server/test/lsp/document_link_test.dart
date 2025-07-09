@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
+import 'package:collection/collection.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -30,43 +31,43 @@ class DocumentLinkTest extends AbstractLspAnalysisServerTest {
   Future<void> test_analysisOptions_empty() async {
     var content = '';
 
-    await _test_analysisOptions_links(content, isEmpty);
+    await _test_analysisOptions_links(content, []);
   }
 
   Future<void> test_analysisOptions_lint_links_list() async {
     var content = '''
 linter:
   rules:
-    - prefer_relative_imports
-    - prefer_single_quotes
-    - prefer_int_literals
+    - /*[0*/prefer_relative_imports/*0]*/
+    - /*[1*/prefer_single_quotes/*1]*/
+    - /*[2*/prefer_int_literals/*2]*/
 ''';
 
-    var expectedLinks = {
-      'prefer_relative_imports': '${_lintBase}prefer_relative_imports',
-      'prefer_single_quotes': '${_lintBase}prefer_single_quotes',
-      'prefer_int_literals': '${_lintBase}prefer_int_literals',
-    };
+    var expectedLinks = [
+      '${_lintBase}prefer_relative_imports',
+      '${_lintBase}prefer_single_quotes',
+      '${_lintBase}prefer_int_literals',
+    ];
 
-    await _test_analysisOptions_links(content, equals(expectedLinks));
+    await _test_analysisOptions_links(content, expectedLinks);
   }
 
   Future<void> test_analysisOptions_lint_links_map() async {
     var content = '''
 linter:
   rules:
-    prefer_relative_imports: true
-    prefer_single_quotes: true
-    prefer_int_literals: false
+    /*[0*/prefer_relative_imports/*0]*/: true
+    /*[1*/prefer_single_quotes/*1]*/: true
+    /*[2*/prefer_int_literals/*2]*/: false
 ''';
 
-    var expectedLinks = {
-      'prefer_relative_imports': '${_lintBase}prefer_relative_imports',
-      'prefer_single_quotes': '${_lintBase}prefer_single_quotes',
-      'prefer_int_literals': '${_lintBase}prefer_int_literals',
-    };
+    var expectedLinks = [
+      '${_lintBase}prefer_relative_imports',
+      '${_lintBase}prefer_single_quotes',
+      '${_lintBase}prefer_int_literals',
+    ];
 
-    await _test_analysisOptions_links(content, equals(expectedLinks));
+    await _test_analysisOptions_links(content, expectedLinks);
   }
 
   Future<void> test_analysisOptions_linterRules_empty() async {
@@ -75,7 +76,7 @@ linter:
   rules:
 ''';
 
-    await _test_pubspec_links(content, isEmpty);
+    await _test_pubspec_links(content, []);
   }
 
   Future<void> test_analysisOptions_undefinedLint() async {
@@ -83,14 +84,12 @@ linter:
 linter:
   rules:
     - undefined
-    - prefer_single_quotes
+    - /*[0*/prefer_single_quotes/*0]*/
 ''';
 
-    var expectedLinks = {
-      'prefer_single_quotes': '${_lintBase}prefer_single_quotes',
-    };
+    var expectedLinks = ['${_lintBase}prefer_single_quotes'];
 
-    await _test_analysisOptions_links(content, equals(expectedLinks));
+    await _test_analysisOptions_links(content, expectedLinks);
   }
 
   Future<void> test_exampleLink() async {
@@ -118,7 +117,7 @@ class A {}
   Future<void> test_pubspec_empty() async {
     var content = '';
 
-    await _test_pubspec_links(content, isEmpty);
+    await _test_pubspec_links(content, []);
   }
 
   Future<void> test_pubspec_packages_empty() async {
@@ -126,65 +125,65 @@ class A {}
 dependencies:
 ''';
 
-    await _test_pubspec_links(content, isEmpty);
+    await _test_pubspec_links(content, []);
   }
 
   Future<void> test_pubspec_packages_git() async {
     var content = '''
 dependencies:
-  github_package_1:
+  /*[0*/github_package_1/*0]*/:
     git: https://github.com/dart-lang/sdk.git
-  github_package_2:
+  /*[1*/github_package_2/*1]*/:
     git: git@github.com:dart-lang/sdk.git
-  github_package_3:
+  /*[2*/github_package_3/*2]*/:
     git:
       url: https://github.com/dart-lang/sdk.git
 ''';
 
-    var expectedLinks = {
-      'github_package_1': 'https://github.com/dart-lang/sdk.git',
-      'github_package_2': 'https://github.com/dart-lang/sdk.git',
-      'github_package_3': 'https://github.com/dart-lang/sdk.git',
-    };
+    var expectedLinks = [
+      'https://github.com/dart-lang/sdk.git',
+      'https://github.com/dart-lang/sdk.git',
+      'https://github.com/dart-lang/sdk.git',
+    ];
 
-    await _test_pubspec_links(content, equals(expectedLinks));
+    await _test_pubspec_links(content, expectedLinks);
   }
 
   Future<void> test_pubspec_packages_hosted() async {
     var content = '''
 dependencies:
-  hosted_package_1:
+  /*[0*/hosted_package_1/*0]*/:
     hosted: https://custom.dart.dev/
-  hosted_package_2:
+  /*[1*/hosted_package_2/*1]*/:
     hosted:
       url: https://custom.dart.dev/
 ''';
 
-    var expectedLinks = {
-      'hosted_package_1': 'https://custom.dart.dev/packages/hosted_package_1',
-      'hosted_package_2': 'https://custom.dart.dev/packages/hosted_package_2',
-    };
+    var expectedLinks = [
+      'https://custom.dart.dev/packages/hosted_package_1',
+      'https://custom.dart.dev/packages/hosted_package_2',
+    ];
 
-    await _test_pubspec_links(content, equals(expectedLinks));
+    await _test_pubspec_links(content, expectedLinks);
   }
 
   Future<void> test_pubspec_packages_pub() async {
     var content = '''
 dependencies:
-  pub_package_1: 1.2.3
-  pub_package_2: ^1.2.3
-  pub_package_3:
-  pub_package_4: any
+  /*[0*/pub_package_1/*0]*/: 1.2.3
+  /*[1*/pub_package_2/*1]*/: ^1.2.3
+  /*[2*/pub_package_3/*2]*/:
+  /*[3*/pub_package_4/*3]*/: any
 ''';
 
-    var expectedLinks = {
-      'pub_package_1': '${_pubBase}pub_package_1',
-      'pub_package_2': '${_pubBase}pub_package_2',
-      'pub_package_3': '${_pubBase}pub_package_3',
-      'pub_package_4': '${_pubBase}pub_package_4',
-    };
+    var expectedLinks = [
+      '${_pubBase}pub_package_1',
+      '${_pubBase}pub_package_2',
+      '${_pubBase}pub_package_3',
+      '${_pubBase}pub_package_4',
+    ];
 
-    await _test_pubspec_links(content, equals(expectedLinks));
+    await _test_pubspec_links(content, expectedLinks);
   }
 
   Future<void> test_pubspec_packages_unknown() async {
@@ -198,29 +197,43 @@ dependencies:
     future_unknown_kind:
 ''';
 
-    await _test_pubspec_links(content, isEmpty);
+    await _test_pubspec_links(content, []);
+  }
+
+  Future<void> test_pubspec_packages_withDependencyOverrides() async {
+    var content = '''
+dependencies:
+  /*[0*/dep_package/*0]*/: 1.0.0
+
+dependency_overrides:
+  /*[1*/dep_package/*1]*/: 1.2.3
+''';
+
+    var expectedLinks = ['${_pubBase}dep_package', '${_pubBase}dep_package'];
+
+    await _test_pubspec_links(content, expectedLinks);
   }
 
   Future<void> test_pubspec_packages_withDevDependencies() async {
     var content = '''
 dependencies:
-  dep_package: 1.2.3
+  /*[0*/dep_package/*0]*/: 1.2.3
 
 dev_dependencies:
-  dev_dep_package:
+  /*[1*/dev_dep_package/*1]*/:
 ''';
 
-    var expectedLinks = {
-      'dep_package': '${_pubBase}dep_package',
-      'dev_dep_package': '${_pubBase}dev_dep_package',
-    };
+    var expectedLinks = [
+      '${_pubBase}dep_package',
+      '${_pubBase}dev_dep_package',
+    ];
 
-    await _test_pubspec_links(content, equals(expectedLinks));
+    await _test_pubspec_links(content, expectedLinks);
   }
 
   Future<void> _test_analysisOptions_links(
     String content,
-    Matcher expected,
+    List<String> expected,
   ) async {
     await _test_file_links(
       analysisOptionsUri,
@@ -234,24 +247,33 @@ dev_dependencies:
     Uri fileUri,
     String filePath,
     String content,
-    Matcher expected,
+    List<String> expectedLinks,
   ) async {
-    newFile(filePath, content);
+    var code = TestCode.parse(content);
+
+    // Combine expectedLinks with the ranges from the markers in the content
+    // so we can verify both ranges and links.
+    expect(expectedLinks.length, code.ranges.length);
+    var expectedLinksWithRanges = expectedLinks.mapIndexed(
+      (i, link) => (code.ranges[i].range, link),
+    );
+
+    newFile(filePath, code.code);
 
     await initialize();
     var links = await getDocumentLinks(fileUri);
 
-    // Build a map of the links and their text from the document for easy
-    // comparison.
-    var linkMap = {
-      for (var link in links!)
-        getTextForRange(content, link.range): link.target?.toString(),
-    };
+    // Convert the results into the same format as expectedLinksWithRanges.
+    var linkData =
+        links!.map((link) => (link.range, link.target?.toString())).toList();
 
-    expect(linkMap, expected);
+    expect(linkData, equals(expectedLinksWithRanges));
   }
 
-  Future<void> _test_pubspec_links(String content, Matcher expected) async {
+  Future<void> _test_pubspec_links(
+    String content,
+    List<String> expected,
+  ) async {
     await _test_file_links(pubspecFileUri, pubspecFilePath, content, expected);
   }
 }

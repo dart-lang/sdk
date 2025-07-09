@@ -224,7 +224,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       } else {
         var classElem = parent.constructorName.type.element;
         if (classElem is ClassElement) {
-          constructor = classElem.unnamedConstructor2;
+          constructor = classElem.unnamedConstructor;
         }
       }
       if (constructor is ConstructorElement) {

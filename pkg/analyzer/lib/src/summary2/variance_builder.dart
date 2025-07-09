@@ -67,7 +67,7 @@ class VarianceBuilder {
       if (element is InterfaceElementImpl) {
         var result = Variance.unrelated;
         if (arguments.isNotEmpty) {
-          var typeParameters = element.typeParameters2;
+          var typeParameters = element.typeParameters;
           for (
             var i = 0;
             i < arguments.length && i < typeParameters.length;
@@ -86,7 +86,7 @@ class VarianceBuilder {
         var result = Variance.unrelated;
 
         if (arguments.isNotEmpty) {
-          var typeParameters = element.typeParameters2;
+          var typeParameters = element.typeParameters;
           for (
             var i = 0;
             i < arguments.length && i < typeParameters.length;
@@ -139,9 +139,11 @@ class VarianceBuilder {
       }
     }
 
-    for (var typeParameter in formalParameters) {
+    for (var formalParameter in formalParameters) {
       result = result.meet(
-        Variance.contravariant.combine(_compute(variable, typeParameter.type)),
+        Variance.contravariant.combine(
+          _compute(variable, formalParameter.type),
+        ),
       );
     }
 

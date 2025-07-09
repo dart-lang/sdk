@@ -303,7 +303,7 @@ class SubtypeHelper {
     InterfaceTypeImpl subType,
     InterfaceTypeImpl superType,
   ) {
-    var parameters = element.typeParameters2;
+    var parameters = element.typeParameters;
     var subArguments = subType.typeArguments;
     var superArguments = superType.typeArguments;
 

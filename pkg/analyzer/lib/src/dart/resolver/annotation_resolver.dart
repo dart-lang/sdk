@@ -42,18 +42,18 @@ class AnnotationResolver {
   ) {
     ConstructorElementMixin2? constructorElement;
     if (constructorName != null) {
-      constructorElement = classElement.getNamedConstructor2(
+      constructorElement = classElement.getNamedConstructor(
         constructorName.name,
       );
     } else {
-      constructorElement = classElement.unnamedConstructor2;
+      constructorElement = classElement.unnamedConstructor;
     }
 
     _constructorInvocation(
       node,
       classElement.name!,
       constructorName,
-      classElement.typeParameters2,
+      classElement.typeParameters,
       constructorElement,
       argumentList,
       (typeArguments) {
@@ -76,9 +76,9 @@ class AnnotationResolver {
     if (getterName != null) {
       getter = classElement.getGetter(getterName.name);
       // Recovery, try to find a constructor.
-      getter ??= classElement.getNamedConstructor2(getterName.name);
+      getter ??= classElement.getNamedConstructor(getterName.name);
     } else {
-      getter = classElement.unnamedConstructor2;
+      getter = classElement.unnamedConstructor;
     }
 
     getterName?.element = getter;
@@ -423,7 +423,7 @@ class AnnotationResolver {
       node,
       typeAliasElement.name!,
       constructorName,
-      typeAliasElement.typeParameters2,
+      typeAliasElement.typeParameters,
       constructorElement,
       argumentList,
       (typeArguments) {

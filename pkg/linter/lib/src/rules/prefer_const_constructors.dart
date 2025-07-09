@@ -76,7 +76,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    if (enclosingElement.typeParameters2.isNotEmpty &&
+    if (enclosingElement.typeParameters.isNotEmpty &&
         node.constructorName.type.typeArguments == null) {
       var approximateContextType = node.approximateContextType;
       var contextTypeAsInstanceOfEnclosing = approximateContextType

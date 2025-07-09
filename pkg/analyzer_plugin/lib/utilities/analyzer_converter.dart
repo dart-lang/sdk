@@ -260,7 +260,7 @@ class AnalyzerConverter {
       } else if (parameter.metadata.hasDeprecated) {
         sb.write('@required ');
       }
-      parameter.appendToWithoutDelimiters2(sb);
+      parameter.appendToWithoutDelimiters(sb);
     }
     sb.write(closeOptionalString);
     return '($sb)';
@@ -289,9 +289,9 @@ class AnalyzerConverter {
   String? _getTypeParametersString(analyzer.Element element) {
     List<analyzer.TypeParameterElement>? typeParameters;
     if (element is analyzer.InterfaceElement) {
-      typeParameters = element.typeParameters2;
+      typeParameters = element.typeParameters;
     } else if (element is analyzer.TypeAliasElement) {
-      typeParameters = element.typeParameters2;
+      typeParameters = element.typeParameters;
     }
     if (typeParameters == null || typeParameters.isEmpty) {
       return null;

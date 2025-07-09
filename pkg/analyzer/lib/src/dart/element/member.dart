@@ -25,7 +25,7 @@ class ConstructorMember extends ExecutableMember
   ConstructorMember({
     required ConstructorElementImpl super.baseElement,
     required super.substitution,
-  }) : super(typeParameters2: const <TypeParameterElementImpl>[]);
+  }) : super(typeParameters: const <TypeParameterElementImpl>[]);
 
   @override
   ConstructorElementImpl get baseElement =>
@@ -164,7 +164,7 @@ class ConstructorMember extends ExecutableMember
 abstract class ExecutableMember extends Member
     implements ExecutableElement2OrMember {
   @override
-  final List<TypeParameterElementImpl> typeParameters2;
+  final List<TypeParameterElementImpl> typeParameters;
 
   FunctionTypeImpl? _type;
 
@@ -178,12 +178,12 @@ abstract class ExecutableMember extends Member
   ExecutableMember({
     required ExecutableElementImpl super.baseElement,
     required super.substitution,
-    required this.typeParameters2,
+    required this.typeParameters,
   });
 
   @override
   List<Element> get children {
-    return [...typeParameters2, ...formalParameters];
+    return [...typeParameters, ...formalParameters];
   }
 
   @Deprecated('Use children instead')
@@ -285,6 +285,10 @@ abstract class ExecutableMember extends Member
   FunctionTypeImpl get type {
     return _type ??= substitution.mapFunctionType(baseElement.type);
   }
+
+  @Deprecated('Use typeParameters instead')
+  @override
+  List<TypeParameterElementImpl> get typeParameters2 => typeParameters;
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
@@ -564,19 +568,25 @@ class GetterMember extends PropertyAccessorMember
   GetterMember._({
     required super.baseElement,
     required super.substitution,
-    required super.typeParameters2,
+    required super.typeParameters,
   }) : super._();
 
   @override
   GetterElementImpl get baseElement => super.baseElement as GetterElementImpl;
 
   @override
-  SetterElement2OrMember? get correspondingSetter2 {
+  SetterElement2OrMember? get correspondingSetter {
     var baseSetter = baseElement.variable3!.setter2;
     if (baseSetter == null) {
       return null;
     }
     return SetterMember.forSubstitution(baseSetter, substitution);
+  }
+
+  @Deprecated('Use correspondingSetter instead')
+  @override
+  SetterElement2OrMember? get correspondingSetter2 {
+    return correspondingSetter;
   }
 
   @override
@@ -746,20 +756,20 @@ class MethodMember extends ExecutableMember implements MethodElement2OrMember {
   }) {
     var freshTypeParameters = _SubstitutedTypeParameters(
       // TODO(scheglov): avoid the cast
-      baseElement.typeParameters2.cast(),
+      baseElement.typeParameters.cast(),
       substitution,
     );
     return MethodMember._(
       baseElement: baseElement,
       substitution: freshTypeParameters.substitution,
-      typeParameters2: freshTypeParameters.elements,
+      typeParameters: freshTypeParameters.elements,
     );
   }
 
   MethodMember._({
     required MethodElementImpl super.baseElement,
     required super.substitution,
-    required super.typeParameters2,
+    required super.typeParameters,
   });
 
   @override
@@ -1020,20 +1030,20 @@ abstract class PropertyAccessorMember extends ExecutableMember
   }) {
     var freshTypeParameters = _SubstitutedTypeParameters(
       // TODO(scheglov): avoid the cast
-      baseElement.typeParameters2.cast(),
+      baseElement.typeParameters.cast(),
       substitution,
     );
     if (baseElement is GetterElementImpl) {
       return GetterMember._(
         baseElement: baseElement,
         substitution: freshTypeParameters.substitution,
-        typeParameters2: freshTypeParameters.elements,
+        typeParameters: freshTypeParameters.elements,
       );
     } else {
       return SetterMember._(
         baseElement: baseElement,
         substitution: freshTypeParameters.substitution,
-        typeParameters2: freshTypeParameters.elements,
+        typeParameters: freshTypeParameters.elements,
       );
     }
   }
@@ -1041,7 +1051,7 @@ abstract class PropertyAccessorMember extends ExecutableMember
   PropertyAccessorMember._({
     required PropertyAccessorElementImpl super.baseElement,
     required super.substitution,
-    required super.typeParameters2,
+    required super.typeParameters,
   });
 
   @override
@@ -1083,7 +1093,7 @@ class SetterMember extends PropertyAccessorMember
   SetterMember._({
     required super.baseElement,
     required super.substitution,
-    required super.typeParameters2,
+    required super.typeParameters,
   }) : super._();
 
   @override

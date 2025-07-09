@@ -225,6 +225,7 @@ class InstanceMemberInferrer {
       // in the direct superinterfaces.
       if (overriddenGetters.isNotEmpty && overriddenSetters.isEmpty) {
         var valueType = combinedGetterType();
+        parameter.element.type = valueType;
         parameter.type = valueType;
         var fieldElement = accessor.element.variable3 as FieldElementImpl;
         if (fieldElement.getter2 == null) {
@@ -244,6 +245,7 @@ class InstanceMemberInferrer {
       // combined member signature of said setter in the direct superinterfaces.
       if (overriddenSetters.isNotEmpty) {
         var valueType = combinedSetterType();
+        parameter.element.type = valueType;
         parameter.type = valueType;
         var fieldElement = accessor.element.variable3 as FieldElementImpl;
         fieldElement.type = valueType;
@@ -396,13 +398,16 @@ class InstanceMemberInferrer {
         if (parameter is FieldFormalParameterFragmentImpl) {
           var field = parameter.field;
           if (field != null) {
+            parameter.element.type = field.element.type;
             parameter.type = field.element.type;
           }
         } else if (parameter is SuperFormalParameterFragmentImpl) {
           var superParameter = parameter.element.superConstructorParameter2;
           if (superParameter != null) {
+            parameter.element.type = superParameter.type;
             parameter.type = superParameter.type;
           } else {
+            parameter.element.type = DynamicTypeImpl.instance;
             parameter.type = DynamicTypeImpl.instance;
           }
         }
@@ -542,6 +547,7 @@ class InstanceMemberInferrer {
           baseParameter,
         ) {
           var type = substitution.substituteType(baseParameter.type);
+          parameter.element.type = type;
           parameter.type = type;
         });
         // Update arguments of `SuperConstructorInvocation` to have the types
@@ -593,11 +599,14 @@ class InstanceMemberInferrer {
         combinedSignatureType.parameters,
       );
       if (matchingParameter != null) {
+        parameter.element.type = matchingParameter.type;
         parameter.type = matchingParameter.type;
       } else {
+        parameter.element.type = DynamicTypeImpl.instance;
         parameter.type = DynamicTypeImpl.instance;
       }
     } else {
+      parameter.element.type = DynamicTypeImpl.instance;
       parameter.type = DynamicTypeImpl.instance;
     }
   }
@@ -757,7 +766,7 @@ class InstanceMemberInferrer {
     ExecutableElement2OrMember element,
     FunctionTypeImpl overriddenType,
   ) {
-    var elementTypeParameters = element.typeParameters2;
+    var elementTypeParameters = element.typeParameters;
     var overriddenTypeParameters = overriddenType.typeParameters;
 
     if (elementTypeParameters.length != overriddenTypeParameters.length) {

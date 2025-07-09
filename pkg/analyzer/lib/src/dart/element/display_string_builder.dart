@@ -131,7 +131,7 @@ class ElementDisplayStringBuilder {
     _write(name);
 
     if (element.kind != ElementKind.GETTER) {
-      _writeTypeParameters2(element.typeParameters2);
+      _writeTypeParameters2(element.typeParameters);
       _writeFormalParameters2(
         element.formalParameters,
         forElement: true,
@@ -678,7 +678,9 @@ class ElementDisplayStringBuilder {
       _write('required ');
     }
 
-    _writeType(element.type);
+    // TODO(scheglov): write a placeholder, or remove completely
+    // When we do correct separate writing elements.
+    _writeType(element.element.type);
 
     if (forElement || element.isNamed) {
       _write(' ');

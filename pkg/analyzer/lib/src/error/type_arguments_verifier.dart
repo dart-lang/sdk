@@ -39,9 +39,9 @@ class TypeArgumentsVerifier {
     var classElement = node.constructorName.type.element;
     List<TypeParameterElementImpl> typeParameters;
     if (classElement is TypeAliasElementImpl) {
-      typeParameters = classElement.typeParameters2;
+      typeParameters = classElement.typeParameters;
     } else if (classElement is InterfaceElementImpl) {
-      typeParameters = classElement.typeParameters2;
+      typeParameters = classElement.typeParameters;
     } else {
       return;
     }
@@ -107,7 +107,7 @@ class TypeArgumentsVerifier {
     }
 
     var enumElement = constructorElement.enclosingElement;
-    var typeParameters = enumElement.typeParameters2;
+    var typeParameters = enumElement.typeParameters;
 
     for (var typeParameter in typeParameters) {
       if (typeParameter.name == null) {
@@ -309,11 +309,11 @@ class TypeArgumentsVerifier {
     var alias = type.alias;
     if (alias != null) {
       elementName = alias.element.name;
-      typeParameters = alias.element.typeParameters2;
+      typeParameters = alias.element.typeParameters;
       typeArguments = alias.typeArguments;
     } else if (type is InterfaceTypeImpl) {
       elementName = type.element.name;
-      typeParameters = type.element.typeParameters2;
+      typeParameters = type.element.typeParameters;
       typeArguments = type.typeArguments;
     } else {
       return;

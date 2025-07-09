@@ -27,7 +27,7 @@ extension DartCompletionRequestExtensions on DartCompletionRequest {
 
     var bottomInstance = element.instantiate(
       typeArguments: List.filled(
-        element.typeParameters2.length,
+        element.typeParameters.length,
         libraryElement.typeProvider.neverType,
       ),
       nullabilitySuffix: NullabilitySuffix.none,

@@ -1286,7 +1286,7 @@ class MethodInvocationResolver with ScopeHelpers {
 
     // The dot shorthand is a constructor invocation so we rewrite to a
     // [DotShorthandConstructorInvocation].
-    if (receiver.getNamedConstructor2(name) case ConstructorElementImpl element?
+    if (receiver.getNamedConstructor(name) case ConstructorElementImpl element?
         when element.isAccessibleIn(_resolver.definingLibrary)) {
       var replacement =
           DotShorthandConstructorInvocationImpl(

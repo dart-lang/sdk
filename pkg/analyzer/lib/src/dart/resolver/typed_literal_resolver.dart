@@ -473,7 +473,7 @@ class TypedLiteralResolver {
     required TypeImpl contextType,
   }) {
     var element = _typeProvider.listElement;
-    var typeParameters = element.typeParameters2;
+    var typeParameters = element.typeParameters;
     inferenceLogWriter?.enterGenericInference(
       // TODO(paulberry): make this cast unnecessary by changing
       // `TypeProviderImpl.listElement2` to `ClassElementImpl2`.
@@ -504,7 +504,7 @@ class TypedLiteralResolver {
     required DartType contextType,
   }) {
     var element = _typeProvider.listElement;
-    var typeParameters = element.typeParameters2;
+    var typeParameters = element.typeParameters;
     var genericElementType = typeParameters[0].instantiate(
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -551,11 +551,11 @@ class TypedLiteralResolver {
     inferenceLogWriter?.enterGenericInference(
       // TODO(paulberry): make this cast unnecessary by changing
       // `TypeProviderImpl.mapElement2` to `ClassElementImpl2`.
-      element.typeParameters2.cast(),
+      element.typeParameters.cast(),
       element.thisType,
     );
     return _typeSystem.setupGenericTypeInference(
-      typeParameters: element.typeParameters2,
+      typeParameters: element.typeParameters,
       declaredReturnType: element.thisType,
       contextReturnType: contextType,
       isConst: node.isConst,
@@ -664,11 +664,11 @@ class TypedLiteralResolver {
     inferenceLogWriter?.enterGenericInference(
       // TODO(paulberry): make this cast unnecessary by changing
       // `TypeProviderImpl.setElement2` to `ClassElementImpl2`.
-      element.typeParameters2.cast(),
+      element.typeParameters.cast(),
       element.thisType,
     );
     return _typeSystem.setupGenericTypeInference(
-      typeParameters: element.typeParameters2,
+      typeParameters: element.typeParameters,
       declaredReturnType: element.thisType,
       contextReturnType: contextType,
       isConst: node.isConst,
@@ -824,7 +824,7 @@ class TypedLiteralResolver {
     TypeImpl dynamicType = _typeProvider.dynamicType;
 
     var element = _typeProvider.mapElement;
-    var typeParameters = element.typeParameters2;
+    var typeParameters = element.typeParameters;
     var genericKeyType = typeParameters[0].instantiate(
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -886,7 +886,7 @@ class TypedLiteralResolver {
     var dynamicType = _typeProvider.dynamicType;
 
     var element = _typeProvider.setElement;
-    var typeParameters = element.typeParameters2;
+    var typeParameters = element.typeParameters;
     var genericElementType = typeParameters[0].instantiate(
       nullabilitySuffix: NullabilitySuffix.none,
     );

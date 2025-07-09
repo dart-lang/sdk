@@ -246,11 +246,11 @@ class ApiDescription {
     }
     var parentheticals = <List<Object?>>[];
     switch (element) {
-      case TypeAliasElement(:var aliasedType, :var typeParameters2):
+      case TypeAliasElement(:var aliasedType, :var typeParameters):
         List<Object?> description = ['type alias'];
-        if (typeParameters2.isNotEmpty) {
+        if (typeParameters.isNotEmpty) {
           description.addAll(
-            typeParameters2
+            typeParameters
                 .map(_describeTypeParameter)
                 .separate(prefix: '<', suffix: '>'),
           );
@@ -260,7 +260,7 @@ class ApiDescription {
       case InstanceElement():
         switch (element) {
           case InterfaceElement(
-            :var typeParameters2,
+            :var typeParameters,
             :var supertype,
             :var interfaces,
           ):
@@ -272,9 +272,9 @@ class ApiDescription {
                 dynamic(:var runtimeType) => 'TODO: $runtimeType',
               },
             ];
-            if (typeParameters2.isNotEmpty) {
+            if (typeParameters.isNotEmpty) {
               instanceDescription.addAll(
-                typeParameters2
+                typeParameters
                     .map(_describeTypeParameter)
                     .separate(prefix: '<', suffix: '>'),
               );

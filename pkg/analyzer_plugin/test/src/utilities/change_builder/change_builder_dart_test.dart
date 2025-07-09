@@ -1575,7 +1575,7 @@ a''');
     addSource(path, content);
 
     var classA = await _getClassElement(path, 'A');
-    DartType typeT = classA.typeParameters2.single.instantiate(
+    DartType typeT = classA.typeParameters.single.instantiate(
       nullabilitySuffix: NullabilitySuffix.none,
     );
 

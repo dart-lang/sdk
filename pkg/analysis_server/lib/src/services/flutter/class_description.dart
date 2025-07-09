@@ -61,7 +61,7 @@ class ClassDescriptionRegistry {
   ClassDescription? _classDescription(ClassElement element) {
     if (!_isOptedInClass(element)) return null;
 
-    var constructor = element.unnamedConstructor2;
+    var constructor = element.unnamedConstructor;
     if (constructor == null) return null;
 
     for (var parameter in constructor.formalParameters) {

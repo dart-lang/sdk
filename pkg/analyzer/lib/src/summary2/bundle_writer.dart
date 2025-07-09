@@ -154,7 +154,7 @@ class BundleWriter {
 
       // We read members lazily.
       _writeForLazyRead(() {
-        _resolutionSink.withTypeParameters(element.typeParameters2, () {
+        _resolutionSink.withTypeParameters(element.typeParameters, () {
           _writeFieldElements(element.fields);
           _writeGetterElements(element.getters);
           _writeSetterElements(element.setters);
@@ -200,7 +200,7 @@ class BundleWriter {
 
       _writeElementResolution(() {
         // TODO(scheglov): avoid cast
-        _resolutionSink.withTypeParameters(element.typeParameters2.cast(), () {
+        _resolutionSink.withTypeParameters(element.typeParameters.cast(), () {
           _resolutionSink.writeElement(element.superConstructor);
           _resolutionSink.writeElement(element.redirectedConstructor);
           // TODO(scheglov): formal parameters
@@ -270,7 +270,7 @@ class BundleWriter {
       });
 
       // TODO(scheglov): consider reading lazily
-      _resolutionSink.withTypeParameters(element.typeParameters2, () {
+      _resolutionSink.withTypeParameters(element.typeParameters, () {
         _writeFieldElements(element.fields);
         _writeGetterElements(element.getters);
         _writeSetterElements(element.setters);
@@ -332,7 +332,7 @@ class BundleWriter {
       });
 
       // TODO(scheglov): consider reading lazily
-      _resolutionSink.withTypeParameters(element.typeParameters2, () {
+      _resolutionSink.withTypeParameters(element.typeParameters, () {
         _writeFieldElements(element.fields);
         _writeGetterElements(element.getters);
         _writeSetterElements(element.setters);
@@ -341,7 +341,7 @@ class BundleWriter {
       });
 
       _writeElementResolution(() {
-        _resolutionSink.withTypeParameters(element.typeParameters2, () {
+        _resolutionSink.withTypeParameters(element.typeParameters, () {
           _resolutionSink.writeType(element.extendedType);
         });
       });
@@ -368,7 +368,7 @@ class BundleWriter {
       });
 
       // TODO(scheglov): consider reading lazily
-      _resolutionSink.withTypeParameters(element.typeParameters2, () {
+      _resolutionSink.withTypeParameters(element.typeParameters, () {
         _writeFieldElements(element.fields);
         _writeGetterElements(element.getters);
         _writeSetterElements(element.setters);
@@ -549,7 +549,7 @@ class BundleWriter {
 
       _writeElementResolution(() {
         // TODO(scheglov): avoid cast
-        _resolutionSink.withTypeParameters(element.typeParameters2.cast(), () {
+        _resolutionSink.withTypeParameters(element.typeParameters.cast(), () {
           _resolutionSink.writeType(element.returnType);
           // TODO(scheglov): formal parameters
         });
@@ -576,7 +576,7 @@ class BundleWriter {
       });
 
       // TODO(scheglov): consider reading lazily
-      _resolutionSink.withTypeParameters(element.typeParameters2, () {
+      _resolutionSink.withTypeParameters(element.typeParameters, () {
         _writeFieldElements(element.fields);
         _writeGetterElements(element.getters);
         _writeSetterElements(element.setters);
@@ -644,7 +644,7 @@ class BundleWriter {
 
     _writeTypeParameters(element.typeParameters, () {
       _writeList(element.parameters, _writeParameterElement);
-      _resolutionSink.writeType(element.type);
+      _resolutionSink.writeType(element.type2);
       _resolutionSink._writeOptionalNode(element.constantInitializer);
 
       if (element is FieldFormalParameterFragmentImpl) {
@@ -721,7 +721,7 @@ class BundleWriter {
       _sink.writeList(element.fragments, _writeFragmentId);
 
       _writeElementResolution(() {
-        _resolutionSink.withTypeParameters(element.typeParameters2.cast(), () {
+        _resolutionSink.withTypeParameters(element.typeParameters.cast(), () {
           _resolutionSink.writeType(element.returnType);
         });
       });
@@ -1176,7 +1176,7 @@ class ResolutionSink extends _SummaryDataWriter {
 
     var enclosing = declaration.enclosingElement;
     if (enclosing is InstanceElement) {
-      var typeParameters = enclosing.typeParameters2;
+      var typeParameters = enclosing.typeParameters;
       if (typeParameters.isEmpty) {
         return const <DartType>[];
       }

@@ -525,7 +525,7 @@ class TypeSystemImpl implements TypeSystem {
       }
     }
     return candidates
-        .where((type) => type.element.typeParameters2.isNotEmpty)
+        .where((type) => type.element.typeParameters.isNotEmpty)
         .toList();
   }
 
@@ -699,7 +699,7 @@ class TypeSystemImpl implements TypeSystem {
     required covariant InterfaceElementImpl element,
     required NullabilitySuffix nullabilitySuffix,
   }) {
-    var typeParameters = element.typeParameters2;
+    var typeParameters = element.typeParameters;
     var typeArguments = _defaultTypeArguments(typeParameters);
     return element.instantiateImpl(
       typeArguments: typeArguments,
@@ -739,7 +739,7 @@ class TypeSystemImpl implements TypeSystem {
     required covariant TypeAliasElementImpl element,
     required NullabilitySuffix nullabilitySuffix,
   }) {
-    var typeParameters = element.typeParameters2;
+    var typeParameters = element.typeParameters;
     var typeArguments = _defaultTypeArguments(typeParameters);
     return element.instantiateImpl(
       typeArguments: typeArguments,
@@ -1715,8 +1715,7 @@ class TypeSystemImpl implements TypeSystem {
   /// list/map literal, initializing a [GenericInferrer] using the downward
   /// context type.
   GenericInferrer setupGenericTypeInference({
-    // TODO(paulberry): change this to a list of `TypeParameterElementImpl`.
-    required List<TypeParameterElement> typeParameters,
+    required List<TypeParameterElementImpl> typeParameters,
     required TypeImpl declaredReturnType,
     required TypeImpl contextReturnType,
     DiagnosticReporter? diagnosticReporter,

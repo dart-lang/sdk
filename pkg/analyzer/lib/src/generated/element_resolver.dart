@@ -347,9 +347,9 @@ class ElementResolver {
     ConstructorElementImpl? element;
     var name = node.constructorName;
     if (name == null) {
-      element = enclosingClass.unnamedConstructor2;
+      element = enclosingClass.unnamedConstructor;
     } else {
-      element = enclosingClass.getNamedConstructor2(name.name);
+      element = enclosingClass.getNamedConstructor(name.name);
     }
     if (element == null) {
       // TODO(brianwilkerson): Report this error and decide what element to

@@ -498,8 +498,8 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
             );
             formalParameterElements.add(formalParameterElement);
 
-            formalParameterFragment.type = superFormalParameter.type;
             formalParameterElement.type = superFormalParameter.type;
+            formalParameterFragment.type = superFormalParameter.type;
 
             superInvocationArguments.add(
               SimpleIdentifierImpl(
@@ -2128,7 +2128,7 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
   @override
   List<Element> get children => [
     ...super.children,
-    ...typeParameters2,
+    ...typeParameters,
     ...formalParameters,
   ];
 
@@ -2991,6 +2991,9 @@ class FormalParameterElementImpl extends PromotableElementImpl
 
   final FormalParameterFragmentImpl wrappedElement;
 
+  @override
+  late TypeImpl type;
+
   FormalParameterElementImpl(this.wrappedElement) {
     FormalParameterFragmentImpl? fragment = wrappedElement;
     while (fragment != null) {
@@ -3007,10 +3010,9 @@ class FormalParameterElementImpl extends PromotableElementImpl
   ) {
     var fragment = FormalParameterFragmentImpl.synthetic(
       name,
-      type,
       parameterKind,
     );
-    return FormalParameterElementImpl(fragment);
+    return FormalParameterElementImpl(fragment)..type = type;
   }
 
   @override
@@ -3132,15 +3134,6 @@ class FormalParameterElementImpl extends PromotableElementImpl
 
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
-  TypeImpl get type => wrappedElement.type;
-
-  @override
-  set type(TypeImpl value) {
-    wrappedElement.type = value;
-  }
-
-  @override
-  // TODO(augmentations): Implement the merge of formal parameters.
   List<TypeParameterElement> get typeParameters =>
       firstFragment.typeParameters.map((fragment) => fragment.element).toList();
 
@@ -3192,7 +3185,7 @@ mixin FormalParameterElementMixin
   TypeImpl get type;
 
   @override
-  void appendToWithoutDelimiters2(StringBuffer buffer) {
+  void appendToWithoutDelimiters(StringBuffer buffer) {
     buffer.write(type.getDisplayString());
     buffer.write(' ');
     buffer.write(displayName);
@@ -3200,6 +3193,12 @@ mixin FormalParameterElementMixin
       buffer.write(' = ');
       buffer.write(defaultValueCode);
     }
+  }
+
+  @Deprecated('Use appendToWithoutDelimiters instead')
+  @override
+  void appendToWithoutDelimiters2(StringBuffer buffer) {
+    return appendToWithoutDelimiters(buffer);
   }
 }
 
@@ -3251,7 +3250,6 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
   /// Creates a synthetic parameter with [name2], [type] and [parameterKind].
   factory FormalParameterFragmentImpl.synthetic(
     String? name2,
-    TypeImpl type,
     ParameterKind parameterKind,
   ) {
     // TODO(dantup): This does not keep any reference to the non-synthetic
@@ -3263,7 +3261,6 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
       nameOffset2: null,
       parameterKind: parameterKind,
     );
-    element.type = type;
     element.isSynthetic = true;
     return element;
   }
@@ -3609,7 +3606,7 @@ mixin FragmentedTypeParameterizedElementMixin<
     return true;
   }
 
-  List<TypeParameterElement> get typeParameters2 {
+  List<TypeParameterElement> get typeParameters {
     var fragment = firstFragment;
     if (fragment is TypeParameterizedFragmentMixin) {
       return fragment.typeParameters
@@ -3617,6 +3614,11 @@ mixin FragmentedTypeParameterizedElementMixin<
           .toList();
     }
     return const [];
+  }
+
+  @Deprecated('Use typeParameters instead')
+  List<TypeParameterElement> get typeParameters2 {
+    return typeParameters;
   }
 }
 
@@ -4022,10 +4024,14 @@ class GenericFunctionTypeElementImpl extends FunctionTypedElementImpl
   FunctionType get type => _wrappedElement.type;
 
   @override
-  List<TypeParameterElement> get typeParameters2 =>
+  List<TypeParameterElement> get typeParameters =>
       _wrappedElement.typeParameters2
           .map((fragment) => fragment.element)
           .toList();
+
+  @Deprecated('Use typeParameters2 instead')
+  @override
+  List<TypeParameterElement> get typeParameters2 => typeParameters;
 
   @override
   T? accept<T>(ElementVisitor2<T> visitor) {
@@ -4187,8 +4193,14 @@ class GetterElementImpl extends PropertyAccessorElementImpl
   GetterElementImpl get baseElement => this;
 
   @override
-  SetterElement? get correspondingSetter2 {
+  SetterElement? get correspondingSetter {
     return variable3?.setter2;
+  }
+
+  @Deprecated('Use correspondingSetter instead')
+  @override
+  SetterElement? get correspondingSetter2 {
+    return correspondingSetter;
   }
 
   @override
@@ -4435,8 +4447,12 @@ abstract class InstanceElementImpl extends ElementImpl
   List<SetterElementImpl> get setters2 => setters;
 
   @override
-  List<TypeParameterElementImpl> get typeParameters2 =>
+  List<TypeParameterElementImpl> get typeParameters =>
       firstFragment.typeParameters.map((fragment) => fragment.element).toList();
+
+  @Deprecated('Use typeParameters instead')
+  @override
+  List<TypeParameterElementImpl> get typeParameters2 => typeParameters;
 
   void addField(FieldElementImpl element) {
     // TODO(scheglov): optimize
@@ -4586,7 +4602,7 @@ recorded above.
     required String name,
     required LibraryElement library,
   }) {
-    return _implementationsOfGetter2(
+    return _implementationsOfGetter(
           name,
         ).firstWhereOrNull((getter) => getter.isAccessibleIn(library))
         as GetterElement?;
@@ -4606,7 +4622,7 @@ recorded above.
     required String name,
     required LibraryElement library,
   }) {
-    return _implementationsOfMethod2(
+    return _implementationsOfMethod(
       name,
     ).firstWhereOrNull((method) => method.isAccessibleIn(library));
   }
@@ -4625,7 +4641,7 @@ recorded above.
     required String name,
     required LibraryElement library,
   }) {
-    return _implementationsOfSetter2(
+    return _implementationsOfSetter(
           name,
         ).firstWhereOrNull((setter) => setter.isAccessibleIn(library))
         as SetterElement?;
@@ -4675,7 +4691,7 @@ recorded above.
     }
   }
 
-  Iterable<PropertyAccessorElement2OrMember> _implementationsOfGetter2(
+  Iterable<PropertyAccessorElement2OrMember> _implementationsOfGetter(
     String name,
   ) sync* {
     var visitedElements = <InstanceElement>{};
@@ -4701,9 +4717,7 @@ recorded above.
     }
   }
 
-  Iterable<MethodElement2OrMember> _implementationsOfMethod2(
-    String name,
-  ) sync* {
+  Iterable<MethodElement2OrMember> _implementationsOfMethod(String name) sync* {
     var visitedElements = <InstanceElement>{};
     InstanceElement? element = this;
     while (element != null && visitedElements.add(element)) {
@@ -4727,7 +4741,7 @@ recorded above.
     }
   }
 
-  Iterable<PropertyAccessorElement2OrMember> _implementationsOfSetter2(
+  Iterable<PropertyAccessorElement2OrMember> _implementationsOfSetter(
     String name,
   ) sync* {
     var visitedElements = <InstanceElement>{};
@@ -5041,8 +5055,14 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   }
 
   @override
+  ConstructorElementImpl? get unnamedConstructor {
+    return getNamedConstructor('new');
+  }
+
+  @Deprecated('Use unnamedConstructor instead')
+  @override
   ConstructorElementImpl? get unnamedConstructor2 {
-    return getNamedConstructor2('new');
+    return unnamedConstructor;
   }
 
   void addConstructor(ConstructorElementImpl element) {
@@ -5066,12 +5086,18 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
       (session as AnalysisSessionImpl).inheritanceManager.getMember(this, name);
 
   @override
-  ConstructorElementImpl? getNamedConstructor2(String name) {
+  ConstructorElementImpl? getNamedConstructor(String name) {
     globalResultRequirements?.record_interfaceElement_getNamedConstructor(
       element: this,
       name: name,
     );
     return constructors.firstWhereOrNull((e) => e.name == name);
+  }
+
+  @Deprecated('Use getNamedConstructor instead')
+  @override
+  ConstructorElementImpl? getNamedConstructor2(String name) {
+    return getNamedConstructor(name);
   }
 
   @override
@@ -5096,7 +5122,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     required List<TypeImpl> typeArguments,
     required NullabilitySuffix nullabilitySuffix,
   }) {
-    assert(typeArguments.length == typeParameters2.length);
+    assert(typeArguments.length == typeParameters.length);
 
     if (typeArguments.isEmpty) {
       switch (nullabilitySuffix) {
@@ -5140,7 +5166,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     String methodName,
     LibraryElement library,
   ) {
-    return _implementationsOfMethod2(methodName).firstWhereOrNull(
+    return _implementationsOfMethod(methodName).firstWhereOrNull(
       (method) => !method.isAbstract && method.isAccessibleIn(library),
     );
   }
@@ -5149,7 +5175,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     String getterName,
     LibraryElement library,
   ) {
-    return _implementationsOfGetter2(getterName).firstWhereOrNull(
+    return _implementationsOfGetter(getterName).firstWhereOrNull(
       (getter) =>
           !getter.isAbstract &&
           !getter.isStatic &&
@@ -5162,7 +5188,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     String methodName,
     LibraryElement library,
   ) {
-    return _implementationsOfMethod2(methodName).firstWhereOrNull(
+    return _implementationsOfMethod(methodName).firstWhereOrNull(
       (method) =>
           !method.isAbstract &&
           !method.isStatic &&
@@ -5175,7 +5201,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     String setterName,
     LibraryElement library,
   ) {
-    return _implementationsOfSetter2(setterName).firstWhereOrNull(
+    return _implementationsOfSetter(setterName).firstWhereOrNull(
       (setter) =>
           !setter.isAbstract &&
           !setter.isStatic &&
@@ -5188,7 +5214,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     String methodName,
     LibraryElement library,
   ) {
-    return _implementationsOfMethod2(methodName).firstWhereOrNull(
+    return _implementationsOfMethod(methodName).firstWhereOrNull(
       (method) =>
           !method.isStatic &&
           method.isAccessibleIn(library) &&
@@ -5215,7 +5241,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     String name,
     LibraryElement library,
   ) {
-    return _implementationsOfGetter2(name)
+    return _implementationsOfGetter(name)
         .firstWhereOrNull(
           (element) => element.isStatic && element.isAccessibleIn(library),
         )
@@ -5231,7 +5257,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     String name,
     LibraryElement library,
   ) {
-    return _implementationsOfMethod2(name).firstWhereOrNull(
+    return _implementationsOfMethod(name).firstWhereOrNull(
       (element) => element.isStatic && element.isAccessibleIn(library),
     );
   }
@@ -5245,7 +5271,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     String name,
     LibraryElement library,
   ) {
-    return _implementationsOfSetter2(name)
+    return _implementationsOfSetter(name)
         .firstWhereOrNull(
           (element) => element.isStatic && element.isAccessibleIn(library),
         )
@@ -6973,10 +6999,14 @@ class LocalFunctionElementImpl extends ExecutableElementImpl
   FunctionTypeImpl get type => _wrappedFragment.type;
 
   @override
-  List<TypeParameterElement> get typeParameters2 =>
+  List<TypeParameterElement> get typeParameters =>
       _wrappedFragment.typeParameters
           .map((fragment) => (fragment as TypeParameterFragment).element)
           .toList();
+
+  @Deprecated('Use typeParameters instead')
+  @override
+  List<TypeParameterElement> get typeParameters2 => typeParameters;
 
   FunctionFragmentImpl get wrappedElement {
     return _wrappedFragment;
@@ -9650,17 +9680,17 @@ class TypeAliasElementImpl extends TypeDefiningElementImpl
     if (aliasedType_ is! InterfaceTypeImpl) {
       return false;
     }
-    var typeParameters = typeParameters2;
+    var typeParameters = this.typeParameters;
     var aliasedClass = aliasedType_.element;
     var typeArguments = aliasedType_.typeArguments;
     var typeParameterCount = typeParameters.length;
-    if (typeParameterCount != aliasedClass.typeParameters2.length) {
+    if (typeParameterCount != aliasedClass.typeParameters.length) {
       return false;
     }
     for (var i = 0; i < typeParameterCount; i++) {
       var bound = typeParameters[i].bound ?? DynamicTypeImpl.instance;
       var aliasedBound =
-          aliasedClass.typeParameters2[i].bound ??
+          aliasedClass.typeParameters[i].bound ??
           library.typeProvider.dynamicType;
       if (!library.typeSystem.isSubtypeOf(bound, aliasedBound) ||
           !library.typeSystem.isSubtypeOf(aliasedBound, bound)) {
@@ -9702,10 +9732,14 @@ class TypeAliasElementImpl extends TypeDefiningElementImpl
   String? get name3 => name;
 
   @override
-  List<TypeParameterElementImpl> get typeParameters2 =>
+  List<TypeParameterElementImpl> get typeParameters =>
       firstFragment.typeParameters2
           .map((fragment) => fragment.element)
           .toList();
+
+  @Deprecated('Use typeParameters instead')
+  @override
+  List<TypeParameterElementImpl> get typeParameters2 => typeParameters;
 
   @override
   T? accept<T>(ElementVisitor2<T> visitor) {
@@ -9739,7 +9773,7 @@ class TypeAliasElementImpl extends TypeDefiningElementImpl
       }
     }
 
-    var substitution = Substitution.fromPairs2(typeParameters2, typeArguments);
+    var substitution = Substitution.fromPairs2(typeParameters, typeArguments);
     var type = substitution.substituteType(aliasedType);
 
     var resultNullability =
@@ -10178,7 +10212,7 @@ class TypeParameterFragmentImpl extends FragmentImpl
       var result = shared.Variance.unrelated;
       for (int i = 0; i < type.typeArguments.length; ++i) {
         var argument = type.typeArguments[i];
-        var parameter = type.element.typeParameters2[i];
+        var parameter = type.element.typeParameters[i];
 
         var parameterVariance = parameter.variance;
         result = result.meet(

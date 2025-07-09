@@ -58,7 +58,7 @@ class ShadowField extends ResolvedCorrectionProducer {
       return;
     }
 
-    var correspondingSetter = accessor.correspondingSetter2;
+    var correspondingSetter = accessor.correspondingSetter;
     if (correspondingSetter == null) {
       return;
     }

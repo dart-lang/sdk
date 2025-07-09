@@ -161,10 +161,14 @@ extension FormalParameterElementMixinExtension on FormalParameterElementMixin {
     ParameterKind? kind,
     bool? isCovariant,
   }) {
-    var firstFragment = this.firstFragment as FormalParameterFragmentImpl;
-    return FormalParameterElementImpl(
-      firstFragment.copyWith(type: type, kind: kind, isCovariant: isCovariant),
+    var element = FormalParameterElementImpl.synthetic(
+      name,
+      type ?? this.type,
+      kind ?? parameterKind,
     );
+    element.firstFragment.isExplicitlyCovariant =
+        isCovariant ?? this.isCovariant;
+    return element;
   }
 }
 
@@ -177,21 +181,6 @@ extension InterfaceTypeExtension on InterfaceType {
 extension LibraryExtension2 on LibraryElement? {
   bool get hasWildcardVariablesFeatureEnabled =>
       this?.featureSet.isEnabled(Feature.wildcard_variables) ?? false;
-}
-
-extension ParameterElementMixinExtension on FormalParameterFragmentImpl {
-  /// Return [FormalParameterFragmentImpl] with the specified properties replaced.
-  FormalParameterFragmentImpl copyWith({
-    TypeImpl? type,
-    ParameterKind? kind,
-    bool? isCovariant,
-  }) {
-    return FormalParameterFragmentImpl.synthetic(
-      name,
-      type ?? this.type,
-      kind ?? parameterKind,
-    )..isExplicitlyCovariant = isCovariant ?? this.isCovariant;
-  }
 }
 
 extension RecordTypeExtension on RecordType {

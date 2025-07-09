@@ -119,7 +119,7 @@ class ElementWriter with TreeWriter {
       properties['bound'] = element.bound;
     }
     if (element is TypeParameterizedElement) {
-      properties['typeParameters'] = element.typeParameters2;
+      properties['typeParameters'] = element.typeParameters;
     }
     if (element is VariableElement) {
       properties['hasImplicitType'] = element.hasImplicitType;

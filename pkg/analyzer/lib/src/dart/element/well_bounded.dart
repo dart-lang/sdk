@@ -80,11 +80,11 @@ class TypeBoundedHelper {
     var alias = type.alias;
     if (alias != null) {
       elementName = alias.element.name;
-      typeParameters = alias.element.typeParameters2;
+      typeParameters = alias.element.typeParameters;
       typeArguments = alias.typeArguments;
     } else if (type is InterfaceTypeImpl) {
       elementName = type.element.name;
-      typeParameters = type.element.typeParameters2;
+      typeParameters = type.element.typeParameters;
       typeArguments = type.typeArguments;
     } else {
       return const RegularBoundedTypeResult._();

@@ -222,7 +222,7 @@ InterfaceType instantiateInstanceElement(
   InterfaceElement element,
   NeverType neverType,
 ) {
-  var typeParameters = element.typeParameters2;
+  var typeParameters = element.typeParameters;
   var typeArguments = const <DartType>[];
   if (typeParameters.isNotEmpty) {
     typeArguments = List.filled(typeParameters.length, neverType);

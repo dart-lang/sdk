@@ -297,7 +297,7 @@ class ConstantEvaluationEngine {
           var superclass = constant.returnType.superclass;
           if (superclass != null && !superclass.isDartCoreObject) {
             var unnamedConstructor =
-                superclass.element.unnamedConstructor2?.baseElement;
+                superclass.element.unnamedConstructor?.baseElement;
             if (unnamedConstructor != null && unnamedConstructor.isConst) {
               callback(unnamedConstructor);
             }
@@ -1999,7 +1999,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
           givenType ??
           variableElement.instantiateImpl(
             typeArguments:
-                variableElement.typeParameters2
+                variableElement.typeParameters
                     .map((t) => _typeProvider.dynamicType)
                     .toFixedList(),
             nullabilitySuffix: NullabilitySuffix.none,
@@ -2020,7 +2020,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
           givenType ??
           variableElement.instantiate(
             typeArguments:
-                variableElement.typeParameters2
+                variableElement.typeParameters
                     .map((t) => t.bound ?? _typeProvider.dynamicType)
                     .toList(),
             nullabilitySuffix: NullabilitySuffix.none,
@@ -3535,7 +3535,7 @@ class _InstanceCreationEvaluator {
 
   void _checkTypeParameters() {
     var typeParameters =
-        _constructor.baseElement.enclosingElement.typeParameters2;
+        _constructor.baseElement.enclosingElement.typeParameters;
     var typeArguments = _typeArguments;
     if (typeParameters.isNotEmpty &&
         typeArguments != null &&

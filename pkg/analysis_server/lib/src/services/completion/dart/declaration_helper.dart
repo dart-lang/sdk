@@ -1391,12 +1391,12 @@ class DeclarationHelper {
           if (!mustBeType) {
             _addMembersOfEnclosingInstance(element);
           }
-          _suggestTypeParameters(element.typeParameters2);
+          _suggestTypeParameters(element.typeParameters);
         }
       case ClassTypeAlias():
         var element = declaration.declaredFragment?.element;
         if (element != null) {
-          _suggestTypeParameters(element.typeParameters2);
+          _suggestTypeParameters(element.typeParameters);
         }
       case EnumDeclaration():
         var element = declaration.declaredFragment?.element;
@@ -1404,7 +1404,7 @@ class DeclarationHelper {
           if (!mustBeType) {
             _addMembersOfEnclosingInstance(element);
           }
-          _suggestTypeParameters(element.typeParameters2);
+          _suggestTypeParameters(element.typeParameters);
         }
       case ExtensionDeclaration():
         var element = declaration.declaredFragment?.element;
@@ -1412,7 +1412,7 @@ class DeclarationHelper {
           if (!mustBeType) {
             _addMembersOfEnclosingInstance(element);
           }
-          _suggestTypeParameters(element.typeParameters2);
+          _suggestTypeParameters(element.typeParameters);
         }
       case ExtensionTypeDeclaration():
         var element = declaration.declaredFragment?.element;
@@ -1422,17 +1422,17 @@ class DeclarationHelper {
             var fieldElement = element.representation;
             _suggestField(field: fieldElement);
           }
-          _suggestTypeParameters(element.typeParameters2);
+          _suggestTypeParameters(element.typeParameters);
         }
       case FunctionTypeAlias():
         var element = declaration.declaredFragment?.element;
         if (element != null) {
-          _suggestTypeParameters(element.typeParameters2);
+          _suggestTypeParameters(element.typeParameters);
         }
       case GenericTypeAlias():
         var element = declaration.declaredFragment?.element;
         if (element is TypeAliasElement) {
-          _suggestTypeParameters(element.typeParameters2);
+          _suggestTypeParameters(element.typeParameters);
         }
       case MixinDeclaration():
         var element = declaration.declaredFragment?.element;
@@ -1440,7 +1440,7 @@ class DeclarationHelper {
           if (!mustBeType) {
             _addMembersOfEnclosingInstance(element);
           }
-          _suggestTypeParameters(element.typeParameters2);
+          _suggestTypeParameters(element.typeParameters);
         }
     }
   }
@@ -2136,7 +2136,7 @@ class DeclarationHelper {
         )) {
       if ((mustBeAssignable &&
               accessor is GetterElement &&
-              accessor.correspondingSetter2 == null) ||
+              accessor.correspondingSetter == null) ||
           mustBeConstant ||
           (mustBeNonVoid && accessor.returnType is VoidType)) {
         return;
@@ -2350,7 +2350,7 @@ class DeclarationHelper {
     if (visibilityTracker.isVisible(element: element, importData: importData)) {
       if ((mustBeAssignable &&
               element is GetterElement &&
-              element.correspondingSetter2 == null) ||
+              element.correspondingSetter == null) ||
           (mustBeConstant && !element.isConst) ||
           (mustBeNonVoid && element.returnType is VoidType) ||
           mustBeType) {

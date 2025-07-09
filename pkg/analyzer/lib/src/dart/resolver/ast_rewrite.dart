@@ -424,7 +424,7 @@ class AstRewriter {
     required SimpleIdentifierImpl constructorIdentifier,
     required InterfaceElement classElement,
   }) {
-    var constructorElement = classElement.getNamedConstructor2(
+    var constructorElement = classElement.getNamedConstructor(
       constructorIdentifier.name,
     );
     if (constructorElement == null) {
@@ -471,8 +471,8 @@ class AstRewriter {
     var name = node.identifier.name;
     var constructorElement =
         name == 'new'
-            ? classElement.unnamedConstructor2
-            : classElement.getNamedConstructor2(name);
+            ? classElement.unnamedConstructor
+            : classElement.getNamedConstructor(name);
     if (constructorElement == null) {
       return node;
     }
@@ -504,8 +504,8 @@ class AstRewriter {
     var name = node.propertyName.name;
     var constructorElement =
         name == 'new'
-            ? classElement.unnamedConstructor2
-            : classElement.getNamedConstructor2(name);
+            ? classElement.unnamedConstructor
+            : classElement.getNamedConstructor(name);
     if (constructorElement == null && typeArguments == null) {
       // If there is no constructor by this name, and no type arguments,
       // do not rewrite the node. If there _are_ type arguments (like
@@ -593,7 +593,7 @@ class AstRewriter {
     required InterfaceElement classElement,
   }) {
     var name = constructorIdentifier.name;
-    var constructorElement = classElement.getNamedConstructor2(name);
+    var constructorElement = classElement.getNamedConstructor(name);
     if (constructorElement == null) {
       return node;
     }

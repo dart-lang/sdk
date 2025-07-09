@@ -179,7 +179,7 @@ extension ExpressionExtensions on Expression {
         } else {
           DartType? dartType = createdType.typeOrThrow;
           if (dartType is InterfaceType &&
-              dartType.element.typeParameters2.isNotEmpty) {
+              dartType.element.typeParameters.isNotEmpty) {
             // A raw type is not trivial.
             return false;
           }
