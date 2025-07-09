@@ -1715,8 +1715,7 @@ class TypeSystemImpl implements TypeSystem {
   /// list/map literal, initializing a [GenericInferrer] using the downward
   /// context type.
   GenericInferrer setupGenericTypeInference({
-    // TODO(paulberry): change this to a list of `TypeParameterElementImpl`.
-    required List<TypeParameterElement> typeParameters,
+    required List<TypeParameterElementImpl> typeParameters,
     required TypeImpl declaredReturnType,
     required TypeImpl contextReturnType,
     DiagnosticReporter? diagnosticReporter,

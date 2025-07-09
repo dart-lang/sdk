@@ -16,7 +16,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
-import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
@@ -50,9 +49,8 @@ import 'package:collection/collection.dart';
 /// infer a single call and discarded immediately afterwards.
 class GenericInferrer {
   final TypeSystemImpl _typeSystem;
-  final Set<TypeParameterElementImpl> _typeParameters = Set.identity();
-  final Map<TypeParameterElementImpl, List<MergedTypeConstraint>> _constraints =
-      {};
+  final Set<TypeParameterElementImpl> _typeParameters;
+  final Map<TypeParameterElementImpl, List<MergedTypeConstraint>> _constraints;
 
   /// The list of type parameters being inferred.
   final List<TypeParameterElementImpl> _typeFormals;
@@ -68,7 +66,7 @@ class GenericInferrer {
 
   /// Indicates whether the "generic metadata" feature is enabled.  When it is,
   /// type arguments are allowed to be instantiated with generic function types.
-  final bool genericMetadataIsEnabled;
+  final bool _genericMetadataIsEnabled;
 
   /// Indicates whether the "inference using bounds" feature is enabled. When it
   /// is, the bounds of type parameters will be used more extensively when
@@ -107,30 +105,22 @@ class GenericInferrer {
 
   GenericInferrer(
     this._typeSystem,
-    List<TypeParameterElement> typeFormals, {
+    List<TypeParameterElementImpl> typeFormals, {
     DiagnosticReporter? diagnosticReporter,
     this.errorEntity,
-    required this.genericMetadataIsEnabled,
+    required bool genericMetadataIsEnabled,
     required this.inferenceUsingBoundsIsEnabled,
     required bool strictInference,
     required TypeSystemOperations typeSystemOperations,
     required this.dataForTesting,
-  }) : _diagnosticReporter = diagnosticReporter,
-       // TODO(paulberry): make this cast unnecessary by changing `typeFormals`
-       // to `List<TypeParameterElementImpl2>`.
-       _typeFormals = typeFormals.cast(),
+  }) : assert(diagnosticReporter == null || errorEntity != null),
+       _typeParameters = typeFormals.toSet(),
+       _constraints = {for (var formal in typeFormals) formal: []},
+       _diagnosticReporter = diagnosticReporter,
+       _typeFormals = typeFormals,
+       _genericMetadataIsEnabled = genericMetadataIsEnabled,
        _strictInference = strictInference,
-       _typeSystemOperations = typeSystemOperations {
-    if (_diagnosticReporter != null) {
-      assert(errorEntity != null);
-    }
-    _typeParameters.addAll(_typeFormals);
-    for (var formal in _typeFormals) {
-      _constraints[formal] = [];
-    }
-  }
-
-  TypeProviderImpl get typeProvider => _typeSystem.typeProvider;
+       _typeSystemOperations = typeSystemOperations;
 
   /// Performs upwards inference, producing a final set of inferred types that
   /// does not  contain references to the "unknown type".
@@ -344,7 +334,7 @@ class GenericInferrer {
 
       if (inferred is FunctionTypeImpl &&
           inferred.typeParameters.isNotEmpty &&
-          !genericMetadataIsEnabled &&
+          !_genericMetadataIsEnabled &&
           _diagnosticReporter != null) {
         if (failAtError) {
           inferenceLogWriter?.exitGenericInference(failed: true);
@@ -381,7 +371,7 @@ class GenericInferrer {
         _reportInferenceFailure(
           diagnosticReporter: _diagnosticReporter,
           errorEntity: errorEntity,
-          genericMetadataIsEnabled: genericMetadataIsEnabled,
+          genericMetadataIsEnabled: _genericMetadataIsEnabled,
         );
       }
     }
@@ -412,7 +402,9 @@ class GenericInferrer {
         var typeParamBound = Substitution.fromPairs2(
           _typeFormals,
           inferredTypes,
-        ).substituteType(typeParam.bound ?? typeProvider.objectType);
+        ).substituteType(
+          typeParam.bound ?? _typeSystem.typeProvider.objectType,
+        );
         // TODO(jmesserly): improve this error message.
         _diagnosticReporter?.atEntity(
           errorEntity!,
