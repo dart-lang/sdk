@@ -40,7 +40,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitInstanceCreationExpression(InstanceCreationExpression creation) {
     var element = creation.constructorName.element;
     if (element == null ||
-        element.name3 != 'fromIterable' ||
+        element.name != 'fromIterable' ||
         element.enclosingElement != context.typeProvider.mapElement) {
       return;
     }

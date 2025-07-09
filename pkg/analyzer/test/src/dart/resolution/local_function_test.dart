@@ -28,7 +28,7 @@ f() {
     var fragment = element.firstFragment;
     expect(fragment.name, 'g');
     expect(fragment.nameOffset2, 8);
-    expect(element.name3, 'g');
+    expect(element.name, 'g');
 
     var node = findNode.methodInvocation('g();');
     assertResolvedNodeText(node, r'''
@@ -60,7 +60,7 @@ f() {
     var element = fragment.element;
     expect(fragment.name, 'g');
     expect(fragment.nameOffset2, 23);
-    expect(element.name3, 'g');
+    expect(element.name, 'g');
   }
 
   test_element_switchCase() async {
@@ -79,7 +79,7 @@ f(int a) {
     var fragment = element.firstFragment;
     expect(fragment.name, 'g');
     expect(fragment.nameOffset2, 44);
-    expect(element.name3, 'g');
+    expect(element.name, 'g');
 
     var node = findNode.methodInvocation('g();');
     assertResolvedNodeText(node, r'''
@@ -113,7 +113,7 @@ f(int a) {
     var fragment = element.firstFragment;
     expect(fragment.name, 'g');
     expect(fragment.nameOffset2, 60);
-    expect(element.name3, 'g');
+    expect(element.name, 'g');
 
     var node = findNode.methodInvocation('g();');
     assertResolvedNodeText(node, r'''

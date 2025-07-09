@@ -136,7 +136,7 @@ extension on MethodDeclaration {
     if (element != null) {
       var enclosingElement = element.enclosingElement;
       if (enclosingElement is InterfaceElement) {
-        var name = Name(enclosingElement.library.uri, element.name3!);
+        var name = Name(enclosingElement.library.uri, element.name!);
         return enclosingElement.getInheritedMember(name);
       }
     }
@@ -166,7 +166,7 @@ extension on ExecutableElement {
   /// Returns `null` if there is no such parameter.
   FormalParameterElement? parameterNamed(String name) {
     for (var parameter in formalParameters) {
-      if (parameter.name3 == name) {
+      if (parameter.name == name) {
         return parameter;
       }
     }

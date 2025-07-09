@@ -46,7 +46,7 @@ class DartInlayHintComputer {
     SyntacticEntity nodeOrToken,
     FormalParameterElement parameter,
   ) {
-    var name = parameter.name3;
+    var name = parameter.name;
     if (name == null || name.isEmpty) {
       return;
     }
@@ -186,7 +186,7 @@ class DartInlayHintComputer {
         InlayHintLabelPart(
           // Write type without type args or nullability suffix. Type args need
           // adding as their own parts, and the nullability suffix does after them.
-          value: type.element?.name3 ?? type.getDisplayString(),
+          value: type.element?.name ?? type.getDisplayString(),
           location: _locationForElement(type.element),
         ),
       );

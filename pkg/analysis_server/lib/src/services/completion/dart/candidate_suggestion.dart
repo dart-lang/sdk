@@ -61,7 +61,7 @@ final class ClassSuggestion extends ImportableSuggestion
   });
 
   @override
-  String get completion => '$completionPrefix${element.name3}';
+  String get completion => '$completionPrefix${element.name}';
 }
 
 /// The information about a candidate suggestion based on a constructor.
@@ -191,7 +191,7 @@ final class ConstructorSuggestion extends ExecutableSuggestion
     var className = enclosingClass.displayName;
 
     // TODO(scheglov): Wrong, if no name, should be no completion.
-    var completion = element.name3 ?? '';
+    var completion = element.name ?? '';
     if (suggestUnnamedAsNew) {
       if (completion.isEmpty) {
         completion = 'new';
@@ -347,7 +347,7 @@ final class FieldSuggestion extends TypedSuggestion with MemberSuggestion {
   @override
   String get baseCompletion {
     if (element.isEnumConstant) {
-      var constantName = element.name3;
+      var constantName = element.name;
       if (isInDeclaration) {
         return '$constantName';
       }

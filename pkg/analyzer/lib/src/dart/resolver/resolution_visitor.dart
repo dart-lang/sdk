@@ -1880,7 +1880,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
                 .EXTENSION_TYPE_IMPLEMENTS_REPRESENTATION_NOT_SUPERTYPE,
             arguments: [
               implementedRepresentation,
-              type.element.name3 ?? '',
+              type.element.name ?? '',
               declaredRepresentation,
               declaredElement.name ?? '',
             ],
@@ -2004,7 +2004,7 @@ class _VariableBinder
     }
 
     var resultFragment = JoinPatternVariableFragmentImpl(
-      name: first.name3,
+      name: first.name,
       nameOffset: -1,
       variables: expandedVariables.map((e) => e.asElement).toList(),
       inconsistency: inconsistency.maxWithAll(

@@ -30,7 +30,7 @@ class RenameTypeParameterRefactoringImpl extends RenameRefactoringImpl {
     var enclosing = element.enclosingElement;
     if (enclosing is TypeParameterizedElement) {
       for (var sibling in enclosing.typeParameters2) {
-        if (sibling.name3 == newName) {
+        if (sibling.name == newName) {
           var nodeKind = sibling.kind.displayName;
           var message = "Duplicate $nodeKind '$newName'.";
           result.addError(message, newLocation_fromElement(sibling));

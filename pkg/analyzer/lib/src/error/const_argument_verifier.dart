@@ -98,7 +98,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
         continue;
       }
 
-      var parameterName = parameter.name3;
+      var parameterName = parameter.name;
       if (parameterName == null) {
         continue;
       }

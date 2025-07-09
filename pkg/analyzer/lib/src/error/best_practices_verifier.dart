@@ -413,8 +413,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
         ExecutableElement? overriddenElement;
         if (element
-            case PropertyAccessorElement(name3: var name?) ||
-                FieldElement(name3: var name?)) {
+            case PropertyAccessorElement(name: var name?) ||
+                FieldElement(name: var name?)) {
           var nameObj = Name(_currentLibrary.source.uri, name);
           overriddenElement =
               enclosingElement.getInheritedConcreteMember(nameObj) ??
@@ -865,7 +865,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       _diagnosticReporter.atNode(
         entry.key,
         WarningCode.ASSIGNMENT_OF_DO_NOT_STORE,
-        arguments: [entry.value.name3!],
+        arguments: [entry.value.name!],
       );
     }
   }
@@ -940,7 +940,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
             (FieldElement field) =>
                 !field.isSynthetic && !field.isFinal && !field.isStatic,
           )
-          .map((FieldElement field) => '${element.name3}.${field.name3}');
+          .map((FieldElement field) => '${element.name}.${field.name}');
     }
 
     Iterable<String> definedOrInheritedNonFinalInstanceFields(
@@ -1028,7 +1028,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
             _diagnosticReporter.atNode(
               node,
               WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY,
-              arguments: [aliasElement.name3!, element.displayName],
+              arguments: [aliasElement.name!, element.displayName],
             );
           }
         }
@@ -1059,14 +1059,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
             _diagnosticReporter.atNode(
               node,
               WarningCode.MIXIN_ON_SEALED_CLASS,
-              arguments: [superclass.name3.toString()],
+              arguments: [superclass.name.toString()],
             );
           } else {
             // This is a regular violation of the sealed class contract.
             _diagnosticReporter.atNode(
               node,
               WarningCode.SUBTYPE_OF_SEALED_CLASS,
-              arguments: [superclass.name3.toString()],
+              arguments: [superclass.name.toString()],
             );
           }
         }
@@ -1202,7 +1202,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     if (importedLibrary == null || prefix == null) {
       return false;
     }
-    var prefixName = prefix.name3;
+    var prefixName = prefix.name;
     if (prefixName == null) {
       return false;
     }
@@ -1294,7 +1294,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           entry.key,
           WarningCode.RETURN_OF_DO_NOT_STORE,
           arguments: [
-            entry.value.name3!,
+            entry.value.name!,
             parent.declaredFragment!.element.displayName,
           ],
         );
@@ -1829,7 +1829,7 @@ class _InvalidAccessVerifier {
       _errorReporter.atNode(
         node,
         WarningCode.INVALID_USE_OF_INTERNAL_MEMBER,
-        arguments: [element.name3!],
+        arguments: [element.name!],
       );
     }
   }

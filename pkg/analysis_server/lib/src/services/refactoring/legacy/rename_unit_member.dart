@@ -178,7 +178,7 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
     if (flutterWidgetState != null) {
       var flutterWidgetStateNewName = '${newName}State';
       // If the State was private, ensure that it stays private.
-      if (flutterWidgetState.name3!.startsWith('_') &&
+      if (flutterWidgetState.name!.startsWith('_') &&
           !flutterWidgetStateNewName.startsWith('_')) {
         flutterWidgetStateNewName = '_$flutterWidgetStateNewName';
       }

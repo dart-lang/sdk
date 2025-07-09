@@ -147,7 +147,7 @@ class EnclosingExecutableContext {
   }
 
   bool get isClosure => switch (element) {
-    LocalFunctionElement(:var name3) => name3 == null,
+    LocalFunctionElement(:var name) => name == null,
     _ => false,
   };
 
@@ -349,7 +349,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var superClass = _enclosingClass?.supertype?.element;
     return superClass != null &&
         _isDartFfiLibrary(superClass.library) &&
-        superClass.name3 == 'Struct';
+        superClass.name == 'Struct';
   }
 
   /// The language team is thinking about adding abstract fields, or external
@@ -358,7 +358,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var superClass = _enclosingClass?.supertype?.element;
     return superClass != null &&
         _isDartFfiLibrary(superClass.library) &&
-        superClass.name3 == 'Union';
+        superClass.name == 'Union';
   }
 
   @override
@@ -2047,13 +2047,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         diagnosticReporter.atNode(
           highlightedNode,
           CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER,
-          arguments: [variable.name3!, variable.enclosingElement.displayName],
+          arguments: [variable.name!, variable.enclosingElement.displayName],
         );
       } else {
         diagnosticReporter.atNode(
           highlightedNode,
           CompileTimeErrorCode.ASSIGNMENT_TO_FINAL,
-          arguments: [variable.name3!],
+          arguments: [variable.name!],
         );
       }
     } else if (element is LocalFunctionElement ||
@@ -2175,13 +2175,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
               diagnosticReporter.atNode(
                 interface,
                 CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
-                arguments: [interfaceElement.name3!],
+                arguments: [interfaceElement.name!],
               );
             } else if (interfaceElement is MixinElement) {
               diagnosticReporter.atNode(
                 interface,
                 CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
-                arguments: [interfaceElement.name3!],
+                arguments: [interfaceElement.name!],
               );
             }
             break;
@@ -2223,7 +2223,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             diagnosticReporter.atNode(
               withMixin,
               CompileTimeErrorCode.CLASS_USED_AS_MIXIN,
-              arguments: [withElement.name3!],
+              arguments: [withElement.name!],
             );
           }
         }
@@ -2385,7 +2385,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                 message:
                     formatList("The method is inherited from the {0} '{1}'.", [
                       method.enclosingElement!.kind.displayName,
-                      method.enclosingElement!.name3,
+                      method.enclosingElement!.name,
                     ]),
                 offset: method.firstFragment.nameOffset2!,
                 length: method.firstFragment.name!.length,
@@ -2396,7 +2396,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                 message:
                     formatList("The setter is inherited from the {0} '{1}'.", [
                       setter.enclosingElement.kind.displayName,
-                      setter.enclosingElement.name3,
+                      setter.enclosingElement.name,
                     ]),
                 offset: setter.firstFragment.nameOffset2!,
                 length: setter.firstFragment.name!.length,
@@ -2415,11 +2415,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     for (TypeParameterElement typeParameter in enclosingClass.typeParameters2) {
       if (typeParameter.isWildcardVariable) continue;
 
-      var name = typeParameter.name3;
+      var name = typeParameter.name;
       if (name == null) continue;
 
       // name is same as the name of the enclosing class
-      if (enclosingClass.name3 == name) {
+      if (enclosingClass.name == name) {
         var code =
             enclosingClass is MixinElement
                 ? CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MIXIN
@@ -2507,11 +2507,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void _checkForConflictingExtensionTypeVariableErrorCodes() {
     for (TypeParameterElement typeParameter
         in _enclosingExtension!.typeParameters2) {
-      var name = typeParameter.name3;
+      var name = typeParameter.name;
       if (name == null) continue;
 
       // name is same as the name of the enclosing class
-      if (_enclosingExtension!.name3 == name) {
+      if (_enclosingExtension!.name == name) {
         diagnosticReporter.atElement2(
           typeParameter,
           CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION,
@@ -2549,7 +2549,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES,
           arguments: [
             _enclosingClass!.kind.displayName,
-            _enclosingClass!.name3!,
+            _enclosingClass!.name!,
             error.first.getDisplayString(),
             error.second.getDisplayString(),
           ],
@@ -2727,12 +2727,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       diagnosticReporter.atNode(
         constructor.returnType,
         CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD,
-        arguments: ["'${field.enclosingElement.name3}.${field.name3}'"],
+        arguments: ["'${field.enclosingElement.name}.${field.name}'"],
       );
       return true;
     } else if (instanceFields.length > 1) {
       var fieldNames = instanceFields
-          .map((field) => "'${field.enclosingElement.name3}.${field.name3}'")
+          .map((field) => "'${field.enclosingElement.name}.${field.name}'")
           .join(', ');
       diagnosticReporter.atNode(
         constructor.returnType,
@@ -3383,7 +3383,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                   executable.firstFragment.libraryFragment.source.fullName,
               offset: nonSynthetic.firstFragment.nameOffset2!,
               length: nonSynthetic.firstFragment.name!.length,
-              message: "Inherited from '${container.name3}'",
+              message: "Inherited from '${container.name}'",
               url: null,
             );
           }).toList();
@@ -3594,7 +3594,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           diagnosticReporter.atNode(
             superclass,
             CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY,
-            arguments: [element.name3!],
+            arguments: [element.name!],
           );
         }
       }
@@ -3627,7 +3627,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
               diagnosticReporter.atNode(
                 namedType,
                 CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
-                arguments: [element.name3!],
+                arguments: [element.name!],
               );
               break;
             }
@@ -3649,7 +3649,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
               namedType,
               CompileTimeErrorCode
                   .FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY,
-              arguments: [element.name3!],
+              arguments: [element.name!],
             );
           }
         }
@@ -3823,7 +3823,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           diagnosticReporter.atNode(
             superclass,
             CompileTimeErrorCode.INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY,
-            arguments: [superclassElement.name3!],
+            arguments: [superclassElement.name!],
           );
         }
       }
@@ -4187,7 +4187,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         var constantNames =
             enumElement.fields
                 .where((field) => field.isEnumConstant)
-                .map((field) => field.name3)
+                .map((field) => field.name)
                 .toSet();
 
         for (var member in statement.members) {
@@ -4256,7 +4256,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         diagnosticReporter.atNode(
           mixinName,
           CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR,
-          arguments: [mixinElement.name3!],
+          arguments: [mixinElement.name!],
         );
         return true;
       }
@@ -4287,7 +4287,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
               diagnosticReporter.atNode(
                 member.returnType,
                 CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR,
-                arguments: [element.name3!],
+                arguments: [element.name!],
               );
             }
           }
@@ -4298,14 +4298,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         diagnosticReporter.atNode(
           superclass,
           CompileTimeErrorCode.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT,
-          arguments: [element.name3!],
+          arguments: [element.name!],
         );
       } else if (withClause != null &&
           !(element.isMixinApplication && withClause.mixinTypes.length < 2)) {
         diagnosticReporter.atNode(
           withClause,
           CompileTimeErrorCode.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT,
-          arguments: [element.name3!],
+          arguments: [element.name!],
         );
       }
     }
@@ -4338,7 +4338,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     diagnosticReporter.atNode(
       mixinName,
       CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT,
-      arguments: [mixinElement.name3!],
+      arguments: [mixinElement.name!],
     );
     return true;
   }
@@ -4504,7 +4504,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             arguments: [
               name,
               namedType.name.lexeme,
-              inheritedMember.enclosingElement!.name3!,
+              inheritedMember.enclosingElement!.name!,
             ],
           );
           return true;
@@ -4626,7 +4626,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           fragment.asElement2,
           CompileTimeErrorCode.NON_GENERATIVE_IMPLICIT_CONSTRUCTOR,
           arguments: [
-            superElement.name3 ?? '',
+            superElement.name ?? '',
             fragment.name ?? '',
             superUnnamedConstructor,
           ],
@@ -4674,7 +4674,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       diagnosticReporter.atNode(
         superclass!,
         CompileTimeErrorCode.NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS,
-        arguments: [_enclosingClass!.name3!, superElement.name3!],
+        arguments: [_enclosingClass!.name!, superElement.name!],
       );
       return true;
     }
@@ -5105,7 +5105,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       diagnosticReporter.atNode(
         redirectedConstructor,
         CompileTimeErrorCode.REDIRECT_TO_ABSTRACT_CLASS_CONSTRUCTOR,
-        arguments: [constructorStrName, redirectedClass.name3!],
+        arguments: [constructorStrName, redirectedClass.name!],
       );
     }
     _checkForInvalidGenerativeConstructorReference(
@@ -5170,7 +5170,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           diagnosticReporter.atNode(
             namedType,
             code,
-            arguments: [element.name3!],
+            arguments: [element.name!],
           );
         }
       }
@@ -5233,7 +5233,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             diagnosticReporter.atNode(
               namedType,
               CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY,
-              arguments: [element.name3!],
+              arguments: [element.name!],
             );
           }
         }
@@ -5446,7 +5446,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       diagnosticReporter.atNode(
         constructor.returnType,
         CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT,
-        arguments: [superElement.name3!],
+        arguments: [superElement.name!],
       );
       return;
     }
@@ -5467,7 +5467,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var requiredNamedParameters =
         superUnnamedConstructor.formalParameters
             .where((parameter) => parameter.isRequiredNamed)
-            .map((parameter) => parameter.name3)
+            .map((parameter) => parameter.name)
             .toSet();
 
     void reportError(DiagnosticCode code, List<Object> arguments) {
@@ -6241,7 +6241,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (library == null) {
       return '';
     }
-    var name = element.name3;
+    var name = element.name;
     if (name == null) {
       return '';
     }
@@ -6298,7 +6298,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   /// Returns `true` if the given [library] is the `dart:ffi` library.
-  bool _isDartFfiLibrary(LibraryElement library) => library.name3 == 'dart.ffi';
+  bool _isDartFfiLibrary(LibraryElement library) => library.name == 'dart.ffi';
 
   /// Return `true` if the given [identifier] is in a location where it is
   /// allowed to resolve to a static member of a supertype.

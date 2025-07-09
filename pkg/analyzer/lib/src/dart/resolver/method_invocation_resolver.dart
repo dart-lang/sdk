@@ -333,7 +333,7 @@ class MethodInvocationResolver with ScopeHelpers {
         );
       }
     } else if (enclosingElement is ExtensionElement &&
-        enclosingElement.name3 == null) {
+        enclosingElement.name == null) {
       _resolver.diagnosticReporter.atNode(
         nameNode,
         CompileTimeErrorCode
@@ -349,7 +349,7 @@ class MethodInvocationResolver with ScopeHelpers {
         arguments: [
           nameNode.name,
           element.kind.displayName,
-          enclosingElement.name3!,
+          enclosingElement.name!,
           enclosingElement is MixinElement
               ? 'mixin'
               : enclosingElement.kind.displayName,
@@ -547,7 +547,7 @@ class MethodInvocationResolver with ScopeHelpers {
     _resolver.diagnosticReporter.atNode(
       nameNode,
       CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD,
-      arguments: [name, extension.name3!],
+      arguments: [name, extension.name!],
     );
     return null;
   }
@@ -579,7 +579,7 @@ class MethodInvocationResolver with ScopeHelpers {
       _resolver.diagnosticReporter.atNode(
         nameNode,
         CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD,
-        arguments: [name, override.element.name3!],
+        arguments: [name, override.element.name!],
       );
       return null;
     }
@@ -850,7 +850,7 @@ class MethodInvocationResolver with ScopeHelpers {
           contextType: contextType,
         );
         var receiverTypeName = switch (receiverType) {
-          InterfaceTypeImpl() => receiverType.element.name3!,
+          InterfaceTypeImpl() => receiverType.element.name!,
           FunctionType() => 'Function',
           _ => '<unknown>',
         };
@@ -949,7 +949,7 @@ class MethodInvocationResolver with ScopeHelpers {
 
     _reportUndefinedFunction(
       node,
-      prefix: prefix.name3,
+      prefix: prefix.name,
       name: name,
       whyNotPromotedArguments: whyNotPromotedArguments,
       contextType: contextType,
@@ -1157,7 +1157,7 @@ class MethodInvocationResolver with ScopeHelpers {
 
     String receiverClassName = '<unknown>';
     if (receiverType is InterfaceTypeImpl) {
-      receiverClassName = receiverType.element.name3!;
+      receiverClassName = receiverType.element.name!;
     } else if (receiverType is FunctionType) {
       receiverClassName = 'Function';
     }

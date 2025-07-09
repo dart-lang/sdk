@@ -80,7 +80,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       var rightElement = _getRightElement(assignment);
       return leftElement != null &&
           rightElement != null &&
-          leftElement.name3 == rightElement.name3 &&
+          leftElement.name == rightElement.name &&
           !leftElement.isPrivate &&
           leftElement is FieldElement &&
           !leftElement.isSynthetic &&
@@ -89,7 +89,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           parameters.contains(rightElement) &&
           (!parametersUsedMoreThanOnce.contains(rightElement) &&
                   !(rightElement as FormalParameterElement).isNamed ||
-              leftElement.name3 == rightElement.name3);
+              leftElement.name == rightElement.name);
     }
 
     bool isConstructorFieldInitializerToLint(
@@ -108,8 +108,8 @@ class _Visitor extends SimpleAstVisitor<void> {
             parameters.contains(staticElement) &&
             (!parametersUsedMoreThanOnce.contains(expression.element) &&
                     !staticElement.isNamed ||
-                (constructorFieldInitializer.fieldName.element?.name3 ==
-                    expression.element?.name3));
+                (constructorFieldInitializer.fieldName.element?.name ==
+                    expression.element?.name));
       }
       return false;
     }
@@ -152,7 +152,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     for (var initializer in initializers) {
       if (isConstructorFieldInitializerToLint(initializer)) {
-        var name = initializer.fieldName.element!.name3!;
+        var name = initializer.fieldName.element!.name!;
         rule.reportAtNode(initializer, arguments: [name]);
       }
     }

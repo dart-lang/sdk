@@ -36,7 +36,7 @@ class _DeclarationsCollector extends RecursiveAstVisitor<void> {
     if (enclosingElement is! InterfaceElement) return false;
 
     return enclosingElement.getOverridden(
-          Name.forLibrary(field.library, '${field.name3!}='),
+          Name.forLibrary(field.library, '${field.name!}='),
         ) !=
         null;
   }
@@ -52,7 +52,7 @@ class _DeclarationsCollector extends RecursiveAstVisitor<void> {
     for (var variable in node.fields.variables) {
       var element = variable.declaredFragment?.element;
       if (element is FieldElement &&
-          element.name3 != null &&
+          element.name != null &&
           element.isPrivate &&
           !overridesField(element)) {
         fields[element] = variable;

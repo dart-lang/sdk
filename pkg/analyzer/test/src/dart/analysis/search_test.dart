@@ -930,7 +930,7 @@ void f() {
 
     var A = findElement2.class_('A');
     var element = A.constructors.single;
-    expect(element.name3, 'named');
+    expect(element.name, 'named');
 
     await assertElementReferencesText(element, r'''
 <testLibraryFragment>::@class::A::@method::foo
@@ -3238,7 +3238,7 @@ class C implements List {}
         predicate((SearchResult r) {
           var element = r.enclosingFragment.element;
           return element.library!.uri.toString() == uriStr &&
-              element.name3 == name;
+              element.name == name;
         }),
       );
       expect(results, not ? isNot(matcher) : matcher);

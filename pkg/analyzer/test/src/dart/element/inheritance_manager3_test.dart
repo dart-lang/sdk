@@ -2928,18 +2928,18 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
       var type = element.type;
       var typeStr = typeString(type);
 
-      var actual = '${enclosingElement?.name3}.${element.lookupName}: $typeStr';
+      var actual = '${enclosingElement?.name}.${element.lookupName}: $typeStr';
       expect(actual, expected);
 
       if (element is GetterElement) {
         var variable = element.variable3!;
         expect(variable.enclosingElement, same(enclosingElement));
-        expect(variable.name3, element.displayName);
+        expect(variable.name, element.displayName);
         expect(variable.type, element.returnType);
       } else if (element is SetterElement) {
         var variable = element.variable3!;
         expect(variable.enclosingElement, same(enclosingElement));
-        expect(variable.name3, element.displayName);
+        expect(variable.name, element.displayName);
         expect(variable.type, element.formalParameters[0].type);
       }
     } else {
@@ -2956,7 +2956,7 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
             ? null
             : [
               for (var element in elements)
-                '${element.enclosingElement?.name3}.${element.lookupName}: '
+                '${element.enclosingElement?.name}.${element.lookupName}: '
                     '${typeString(element.type)}\n',
             ].sorted().join();
     expect(elementsString, expected);
@@ -3042,10 +3042,10 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
       var type = element.type;
 
       var enclosingElement = element.enclosingElement;
-      if (enclosingElement?.name3 == 'Object') continue;
+      if (enclosingElement?.name == 'Object') continue;
 
       var typeStr = type.getDisplayString();
-      lines.add('${enclosingElement?.name3}.${element.lookupName}: $typeStr');
+      lines.add('${enclosingElement?.name}.${element.lookupName}: $typeStr');
     }
 
     lines.sort();

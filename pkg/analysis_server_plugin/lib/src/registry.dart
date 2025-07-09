@@ -53,12 +53,12 @@ final class PluginRegistryImpl implements PluginRegistry {
   }
 
   @override
-  void registerLintRule(AnalysisRule rule) {
+  void registerLintRule(AbstractAnalysisRule rule) {
     Registry.ruleRegistry.registerLintRule(rule);
   }
 
   @override
-  void registerWarningRule(AnalysisRule rule) {
+  void registerWarningRule(AbstractAnalysisRule rule) {
     Registry.ruleRegistry.registerWarningRule(rule);
   }
 

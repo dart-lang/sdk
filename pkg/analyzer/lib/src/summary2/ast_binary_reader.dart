@@ -1423,7 +1423,7 @@ class AstBinaryReader {
           var formalParameters = executable.formalParameters;
           var name = nameNode.name;
           nameNode.element = formalParameters.firstWhereOrNull((e) {
-            return e.name3 == name;
+            return e.name == name;
           });
         }
       }

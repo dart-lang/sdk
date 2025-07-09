@@ -56,7 +56,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       var parameterName = parameter.name;
       if (parameterName == null) continue;
       var element = parameter.declaredFragment?.element;
-      var name = element?.name3;
+      var name = element?.name;
       if (isJustUnderscores(name)) {
         if (!referencedElements.contains(element)) {
           rule.reportAtToken(parameterName);

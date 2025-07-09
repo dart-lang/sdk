@@ -220,7 +220,7 @@ class _OverriddenElementsFinder {
         if (!identical(element.library, _library) && _name.startsWith('_')) {
           return false;
         }
-        return element.name3 == _name;
+        return element.name == _name;
       });
     }
 

@@ -271,7 +271,6 @@ enum RootSlice : intptr_t {
   kSentinelFieldTable,
   kSharedInitialFieldTable,
   kSharedFieldTable,
-  kBoxedFieldList,
   kBackgroundCompiler,
   kDebugger,
   kReloadContext,
@@ -300,8 +299,6 @@ inline const char* RootSliceToCString(intptr_t slice) {
       return "shared initial field table";
     case kSharedFieldTable:
       return "shared field table";
-    case kBoxedFieldList:
-      return "boxed field list";
     case kBackgroundCompiler:
       return "background compiler";
     case kDebugger:
@@ -983,11 +980,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
   // Ensure exclusive execution of shared field initializers.
   SafepointRwLock shared_field_initializer_rwlock_;
-
-  // Protect access to boxed_field_list_.
-  Mutex field_list_mutex_;
-  // List of fields that became boxed and that trigger deoptimization.
-  GrowableObjectArrayPtr boxed_field_list_;
 
   // Ensures synchronized access to classes functions, fields and other
   // program structure elements to accommodate concurrent modification done

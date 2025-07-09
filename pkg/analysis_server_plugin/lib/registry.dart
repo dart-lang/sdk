@@ -15,8 +15,8 @@ abstract class PluginRegistry {
   void registerFixForRule(LintCode code, ProducerGenerator generator);
 
   /// Registers this [rule] with the analyzer's rule registry.
-  void registerLintRule(AnalysisRule rule);
+  void registerLintRule(AbstractAnalysisRule rule);
 
   /// Registers this [rule] with the analyzer's rule registry.
-  void registerWarningRule(AnalysisRule rule);
+  void registerWarningRule(AbstractAnalysisRule rule);
 }

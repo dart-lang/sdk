@@ -46,7 +46,7 @@ class ^Old {}
 }
 ''');
 
-    expect(refactor!.refactoringElement.element.name3, 'Old');
+    expect(refactor!.refactoringElement.element.name, 'Old');
     expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
 
@@ -60,7 +60,7 @@ class A {
 }
 ''');
 
-    expect(refactor!.refactoringElement.element.name3, 'bar');
+    expect(refactor!.refactoringElement.element.name, 'bar');
     expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
 
@@ -72,7 +72,7 @@ class A{
 ''');
 
     expect(refactor, isNotNull);
-    expect(refactor!.refactoringElement.element.name3, '_val');
+    expect(refactor!.refactoringElement.element.name, '_val');
     expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
 
@@ -82,7 +82,7 @@ void ^foo() {
 }
 ''');
 
-    expect(refactor!.refactoringElement.element.name3, 'foo');
+    expect(refactor!.refactoringElement.element.name, 'foo');
     expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
 
@@ -98,7 +98,7 @@ void f() {
 ''');
 
     expect(refactor, isNotNull);
-    expect(refactor!.refactoringElement.element.name3, 'myLabel');
+    expect(refactor!.refactoringElement.element.name, 'myLabel');
     expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
 
@@ -109,7 +109,7 @@ void foo() {
 }
 ''');
 
-    expect(refactor!.refactoringElement.element.name3, 'a');
+    expect(refactor!.refactoringElement.element.name, 'a');
     expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
 
@@ -120,7 +120,7 @@ extension E on int {
 }
 ''');
 
-    expect(refactor!.refactoringElement.element.name3, 'foo');
+    expect(refactor!.refactoringElement.element.name, 'foo');
     expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
 
@@ -142,7 +142,7 @@ void foo(int ^bar) {
 ''');
 
     expect(refactor, isNotNull);
-    expect(refactor!.refactoringElement.element.name3, 'bar');
+    expect(refactor!.refactoringElement.element.name, 'bar');
     expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
 
@@ -155,7 +155,7 @@ void f() {
 }
 ''');
 
-    expect(refactor!.refactoringElement.element.name3, 'test');
+    expect(refactor!.refactoringElement.element.name, 'test');
     expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
 

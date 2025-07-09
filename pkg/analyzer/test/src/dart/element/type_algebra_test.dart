@@ -501,7 +501,7 @@ class _Base extends AbstractTypeSystemTest {
 
     var alias = type.alias;
     if (alias != null) {
-      result += ' via ${alias.element.name3}';
+      result += ' via ${alias.element.name}';
       var typeArgumentStrList = alias.typeArguments.map(_typeStr).toList();
       if (typeArgumentStrList.isNotEmpty) {
         result += '<${typeArgumentStrList.join(', ')}>';

@@ -290,7 +290,7 @@ class _WidgetDescriptionComputer {
         Expression valueExpression;
         if (argumentExpression is NamedExpression) {
           valueExpression = argumentExpression.expression;
-          existingNamed.add(parameter.name3!);
+          existingNamed.add(parameter.name!);
         } else {
           valueExpression = argumentExpression;
         }
@@ -309,7 +309,7 @@ class _WidgetDescriptionComputer {
 
     for (var parameter in constructorElement.formalParameters) {
       if (!parameter.isNamed) continue;
-      if (existingNamed.contains(parameter.name3)) continue;
+      if (existingNamed.contains(parameter.name)) continue;
 
       _addProperty(
         properties: properties,
@@ -363,7 +363,7 @@ class _WidgetDescriptionComputer {
         PropertyDescription.nextId(),
         parameter.isRequiredPositional,
         isSafeToUpdate,
-        parameter.name3!,
+        parameter.name!,
         documentation: documentation,
         editor: _getEditor(parameter.type),
         expression: valueExpressionCode,
@@ -514,8 +514,8 @@ class _WidgetDescriptionComputer {
 
     return protocol.FlutterWidgetPropertyValueEnumItem(
       libraryUriStr,
-      interfaceElement.name3!,
-      field.name3!,
+      interfaceElement.name!,
+      field.name!,
       documentation: documentation,
     );
   }

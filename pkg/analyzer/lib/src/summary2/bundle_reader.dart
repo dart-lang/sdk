@@ -356,7 +356,7 @@ class LibraryReader {
       var fragments = _readFragmentsById<ConstructorFragmentImpl>();
       // TODO(scheglov): link fragments.
       var element = ConstructorElementImpl(
-        name3: fragments.first.name,
+        name: fragments.first.name,
         reference: reference,
         firstFragment: fragments.first,
       );
@@ -911,7 +911,7 @@ class LibraryReader {
       var fragments = _readFragmentsById<MethodFragmentImpl>();
       // TODO(scheglov): link fragments.
       var element = MethodElementImpl(
-        name3: fragments.first.name,
+        name: fragments.first.name,
         reference: reference,
         firstFragment: fragments.first,
       );
@@ -1922,7 +1922,7 @@ class ResolutionReader {
       );
       var typeParameterElement = TypeParameterElementImpl(
         firstFragment: typeParameterFragment,
-        name3: typeParameterFragment.name,
+        name: typeParameterFragment.name,
       );
       _localElements.add(typeParameterElement);
       // TODO(scheglov): why not element?

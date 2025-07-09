@@ -149,7 +149,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     Set<String>? badNames;
     var exportedLibrary = exportElement.exportedLibrary2!;
     for (var member in exportedLibrary.children2) {
-      var name = member.name3;
+      var name = member.name;
       if (name == null) continue;
       if (exportElement.combinators.any(
         (combinator) => combinator.blocksName(name),
@@ -279,7 +279,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       } else if (fragment case PropertyAccessorFragment()
           when fragment.element.variable3!.firstFragment.nameOffset2 != null) {
         offset = fragment.element.variable3!.firstFragment.nameOffset2!;
-        length = fragment.element.variable3!.name3!.length;
+        length = fragment.element.variable3!.name!.length;
         break;
       } else if (fragment is ConstructorFragment &&
           fragment.typeNameOffset != null) {
@@ -323,7 +323,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         return {
           if (!importedPublicElements.contains(element) &&
               !element.isOkForAnalyzerPublicApi)
-            element.name3!,
+            element.name!,
           for (var t in typeArguments) ..._problemsForAnalyzerPublicApi(t),
         };
       case NeverType():
@@ -400,7 +400,7 @@ extension on Element {
     ) when annotations.any(_isPublicApiAnnotation)) {
       return true;
     }
-    if (name3 case var name? when !name.isPublic) return false;
+    if (name case var name? when !name.isPublic) return false;
     if (library!.uri.isInAnalyzerPublicLib) return true;
     return false;
   }
@@ -422,7 +422,7 @@ extension on Element {
         // in practice it doesn't matter (we don't expect to have multiple
         // declarations of this annotation that we need to distinguish), and the
         // advantage of not checking the URI is that unit testing is easier.
-        element: InterfaceElement(name3: 'AnalyzerPublicApi'),
+        element: InterfaceElement(name: 'AnalyzerPublicApi'),
       ),
     )) {
       return true;

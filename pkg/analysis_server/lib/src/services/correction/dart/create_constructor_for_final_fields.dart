@@ -254,7 +254,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
               builder.write('required ');
             }
             builder.write('super.');
-            builder.write(formalParameter.name3!);
+            builder.write(formalParameter.name!);
             hasWritten = true;
           }
         }

@@ -79,7 +79,7 @@ class ElementTextConfiguration {
         case ClassFragmentImpl():
           return classNames.contains(o.name);
         case ClassElement():
-          return classNames.contains(o.name3);
+          return classNames.contains(o.name);
         case ConstructorFragment():
         case ConstructorElement():
           return true;
@@ -100,17 +100,17 @@ class ElementTextConfiguration {
         case LibraryFragment():
           return false;
         case ClassElement():
-          return classNames.contains(o.name3);
+          return classNames.contains(o.name);
         case ConstructorElement():
           return false;
         case EnumElement():
-          return enumNames.contains(o.name3);
+          return enumNames.contains(o.name);
         case ExtensionTypeElement():
-          return extensionTypeNames.contains(o.name3);
+          return extensionTypeNames.contains(o.name);
         case FieldElement():
-          return fieldNames.isEmpty || fieldNames.contains(o.name3);
+          return fieldNames.isEmpty || fieldNames.contains(o.name);
         case MixinElement():
-          return mixinNames.contains(o.name3);
+          return mixinNames.contains(o.name);
         case PropertyAccessorElement():
           return false;
       }
@@ -490,24 +490,24 @@ class _Element2Writer extends _AbstractElementWriter {
   }
 
   void _writeElementName(Element e) {
-    var name = e.name3 ?? '<null-name>';
+    var name = e.name ?? '<null-name>';
     _sink.write(name);
 
     switch (e) {
       case MethodElement():
-        if (e.name3 == '-' && e.formalParameters.isEmpty) {
+        if (e.name == '-' && e.formalParameters.isEmpty) {
           expect(e.lookupName, 'unary-');
         } else {
-          expect(e.lookupName, e.name3);
+          expect(e.lookupName, e.name);
         }
       case SetterElement():
-        if (e.name3 case var name?) {
+        if (e.name case var name?) {
           expect(e.lookupName, '$name=');
         } else {
           expect(e.lookupName, isNull);
         }
       default:
-        expect(e.lookupName, e.name3);
+        expect(e.lookupName, e.name);
     }
   }
 
@@ -1096,7 +1096,7 @@ class _Element2Writer extends _AbstractElementWriter {
 
       void writeSupertype(InterfaceElement e) {
         if (e.supertype case var supertype?) {
-          if (supertype.element.name3 != 'Object' || e.mixins.isNotEmpty) {
+          if (supertype.element.name != 'Object' || e.mixins.isNotEmpty) {
             _writeType('supertype', supertype);
           }
         }
@@ -1138,7 +1138,7 @@ class _Element2Writer extends _AbstractElementWriter {
       }
 
       if (configuration.withAllSupertypes && e is InterfaceElementImpl) {
-        var sorted = e.allSupertypes.sortedBy((t) => t.element.name3!);
+        var sorted = e.allSupertypes.sortedBy((t) => t.element.name!);
         _elementPrinter.writeTypeList('allSupertypes', sorted);
       }
 
@@ -1500,7 +1500,7 @@ class _Element2Writer extends _AbstractElementWriter {
           e.fragments
               .map((f) {
                 expect(f.element, same(e));
-                expect(f.name, e.name3);
+                expect(f.name, e.name);
                 return '@${f.nameOffset2}';
               })
               .join(' '),

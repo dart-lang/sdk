@@ -9552,6 +9552,94 @@ library
 ''');
   }
 
+  test_instanceField_fromGetter_hasGetterWithType_hasSetterNoType() async {
+    configuration.withConstructors = false;
+    var library = await _encodeDecodeLibrary(r'''
+abstract class A {
+  num get foo;
+}
+class B implements A {
+  int get foo => 0;
+  set foo(value) {}
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A @15
+          element: <testLibrary>::@class::A
+          fields
+            #F2 synthetic foo
+              element: <testLibrary>::@class::A::@field::foo
+          getters
+            #F3 foo @29
+              element: <testLibrary>::@class::A::@getter::foo
+              returnType: num
+        #F4 class B @42
+          element: <testLibrary>::@class::B
+          fields
+            #F5 synthetic foo
+              element: <testLibrary>::@class::B::@field::foo
+          getters
+            #F6 foo @69
+              element: <testLibrary>::@class::B::@getter::foo
+              returnType: int
+          setters
+            #F7 foo @85
+              element: <testLibrary>::@class::B::@setter::foo
+              formalParameters
+                #F8 value @89
+                  element: <testLibrary>::@class::B::@setter::foo::@formalParameter::value
+  classes
+    abstract class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        synthetic foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F2
+          type: num
+          getter: <testLibrary>::@class::A::@getter::foo
+      getters
+        abstract foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F3
+          returnType: num
+          variable: <testLibrary>::@class::A::@field::foo
+    class B
+      reference: <testLibrary>::@class::B
+      firstFragment: #F4
+      interfaces
+        A
+      fields
+        synthetic foo
+          reference: <testLibrary>::@class::B::@field::foo
+          firstFragment: #F5
+          type: int
+          getter: <testLibrary>::@class::B::@getter::foo
+          setter: <testLibrary>::@class::B::@setter::foo
+      getters
+        foo
+          reference: <testLibrary>::@class::B::@getter::foo
+          firstFragment: #F6
+          returnType: int
+          variable: <testLibrary>::@class::B::@field::foo
+      setters
+        foo
+          reference: <testLibrary>::@class::B::@setter::foo
+          firstFragment: #F7
+          formalParameters
+            #E0 requiredPositional hasImplicitType value
+              firstFragment: #F8
+              type: num
+          returnType: void
+''');
+  }
+
   test_instanceField_fromGetter_multiple_different() async {
     var library = await _encodeDecodeLibrary(r'''
 abstract class A {

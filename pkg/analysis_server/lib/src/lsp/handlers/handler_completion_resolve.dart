@@ -94,9 +94,9 @@ class CompletionResolveHandler
                 ).locateIn(session)
                 : null;
 
-        var showName = element?.name3;
-        if (element?.enclosingElement case InstanceElement(:var name3)) {
-          showName = name3;
+        var showName = element?.name;
+        if (element?.enclosingElement case InstanceElement(:var name)) {
+          showName = name;
         }
 
         var builder = ChangeBuilder(session: session);

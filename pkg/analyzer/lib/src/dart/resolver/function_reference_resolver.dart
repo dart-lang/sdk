@@ -204,7 +204,7 @@ class FunctionReferenceResolver {
         );
       }
     } else if (enclosingElement is ExtensionElement &&
-        enclosingElement.name3 == null) {
+        enclosingElement.name == null) {
       _resolver.diagnosticReporter.atNode(
         nameNode,
         CompileTimeErrorCode
@@ -220,7 +220,7 @@ class FunctionReferenceResolver {
         arguments: [
           nameNode.name,
           element.kind.displayName,
-          enclosingElement.name3!,
+          enclosingElement.name!,
           enclosingElement is MixinElement
               ? 'mixin'
               : enclosingElement.kind.displayName,
@@ -620,7 +620,7 @@ class FunctionReferenceResolver {
     _resolve(
       node: node,
       rawType: function.staticType,
-      name: propertyElement?.name3,
+      name: propertyElement?.name,
     );
   }
 
@@ -675,7 +675,7 @@ class FunctionReferenceResolver {
       _resolve(
         node: node,
         rawType: node.function.typeOrThrow as FunctionType,
-        name: element.name3,
+        name: element.name,
       );
       return;
     } else if (element is ExtensionElement) {
@@ -799,17 +799,17 @@ class FunctionReferenceResolver {
     } else if (element is MethodElement) {
       function.element = element;
       function.setPseudoExpressionStaticType(element.type);
-      _resolve(node: node, rawType: element.type, name: element.name3);
+      _resolve(node: node, rawType: element.type, name: element.name);
       return;
     } else if (element is LocalFunctionElement) {
       function.element = element;
       function.setPseudoExpressionStaticType(element.type);
-      _resolve(node: node, rawType: element.type, name: element.name3);
+      _resolve(node: node, rawType: element.type, name: element.name);
       return;
     } else if (element is TopLevelFunctionElement) {
       function.element = element;
       function.setPseudoExpressionStaticType(element.type);
-      _resolve(node: node, rawType: element.type, name: element.name3);
+      _resolve(node: node, rawType: element.type, name: element.name);
       return;
     } else if (element is PropertyAccessorElement) {
       function.element = element;
@@ -879,7 +879,7 @@ class FunctionReferenceResolver {
     var typeArguments = _checkTypeArguments(
       // `node.typeArguments`, coming from the parser, is never null.
       node.typeArguments!,
-      element.name3,
+      element.name,
       element.typeParameters2,
       CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
     );

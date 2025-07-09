@@ -144,7 +144,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
 
     for (FormalParameterElement parameter in parameters) {
       if (parameter.isRequiredNamed) {
-        String parameterName = parameter.name3!;
+        String parameterName = parameter.name!;
         if (!_containsNamedExpression(
           enclosingConstructor,
           arguments,
@@ -165,7 +165,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
       if (parameter.isOptionalNamed) {
         var annotation = _requiredAnnotation(parameter);
         if (annotation != null) {
-          String parameterName = parameter.name3!;
+          String parameterName = parameter.name!;
           if (!_containsNamedExpression(
             enclosingConstructor,
             arguments,
@@ -207,7 +207,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
 
     if (enclosingConstructor != null) {
       return enclosingConstructor.formalParameters.any(
-        (e) => e is SuperFormalParameterElement && e.isNamed && e.name3 == name,
+        (e) => e is SuperFormalParameterElement && e.isNamed && e.name == name,
       );
     }
 

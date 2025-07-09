@@ -54,7 +54,7 @@ LibraryImport? _getImportElement(
     if (prefixElement == null) {
       continue;
     }
-    if (prefix != prefixElement.name3) {
+    if (prefix != prefixElement.name) {
       continue;
     }
     // no combinators => only possible candidate

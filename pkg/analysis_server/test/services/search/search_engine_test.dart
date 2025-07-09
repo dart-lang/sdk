@@ -332,7 +332,7 @@ int test;
           predicate(
             (SearchMatch m) =>
                 m.kind == MatchKind.DECLARATION &&
-                m.element.name3 == name &&
+                m.element.name == name &&
                 m.element.firstFragment.nameOffset2 == nameOffset,
           ),
         ),
@@ -367,7 +367,7 @@ bar(p) {
       contains(
         predicate(
           (SearchMatch m) =>
-              m.element.name3 == 'foo' || m.kind == MatchKind.READ,
+              m.element.name == 'foo' || m.kind == MatchKind.READ,
         ),
       ),
     );
@@ -376,7 +376,7 @@ bar(p) {
       contains(
         predicate(
           (SearchMatch m) =>
-              m.element.name3 == 'bar' || m.kind == MatchKind.WRITE,
+              m.element.name == 'bar' || m.kind == MatchKind.WRITE,
         ),
       ),
     );
@@ -400,11 +400,11 @@ T b;
     expect(matches, hasLength(2));
     expect(
       matches,
-      contains(predicate((SearchMatch m) => m.element.name3 == 'a')),
+      contains(predicate((SearchMatch m) => m.element.name == 'a')),
     );
     expect(
       matches,
-      contains(predicate((SearchMatch m) => m.element.name3 == 'b')),
+      contains(predicate((SearchMatch m) => m.element.name == 'b')),
     );
   }
 
@@ -427,7 +427,7 @@ int t;
             as LibraryElementResult;
     var intElement =
         coreLibResult.element2.classes.firstWhereOrNull(
-          (e) => e.name3 == 'int',
+          (e) => e.name == 'int',
         )!;
 
     var matches = await searchEngine.searchReferences(intElement);
@@ -436,7 +436,7 @@ int t;
       expect(
         matches.where((m) {
           var element = m.element;
-          return element.name3 == name &&
+          return element.name == name &&
               element.library?.firstFragment.source.fullName == path;
         }),
         hasLength(1),
@@ -697,7 +697,7 @@ get b => 42;
     void assertHasOneElement(String name) {
       var nameMatches = matches.where(
         (SearchMatch m) =>
-            m.kind == MatchKind.DECLARATION && m.element.name3 == name,
+            m.kind == MatchKind.DECLARATION && m.element.name == name,
       );
       expect(nameMatches, hasLength(1));
     }
@@ -734,7 +734,7 @@ class B extends A {}
     void assertHasOneElement(String name) {
       var nameMatches = matches.where(
         (SearchMatch m) =>
-            m.kind == MatchKind.DECLARATION && m.element.name3 == name,
+            m.kind == MatchKind.DECLARATION && m.element.name == name,
       );
       expect(nameMatches, hasLength(1));
     }
@@ -773,7 +773,7 @@ class B extends A {}
   ) {
     expect(
       subtypes,
-      contains(predicate((InterfaceElement e) => e.name3 == name)),
+      contains(predicate((InterfaceElement e) => e.name == name)),
     );
   }
 }

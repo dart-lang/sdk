@@ -82,7 +82,7 @@ class ManifestFunctionNamedFormalParameter
     return element.isNamed &&
         element.isRequired == isRequired &&
         type.match(context, element.type) &&
-        element.name3 == name;
+        element.name == name;
   }
 
   void write(BufferedSink sink) {
@@ -165,7 +165,7 @@ final class ManifestFunctionType extends ManifestType {
               return ManifestFunctionNamedFormalParameter._(
                 isRequired: element.isRequired,
                 type: element.type.encode(context),
-                name: element.name3!,
+                name: element.name!,
               );
             }).toFixedList(),
         nullabilitySuffix: type.nullabilitySuffix,

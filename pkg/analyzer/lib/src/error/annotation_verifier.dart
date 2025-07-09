@@ -214,9 +214,9 @@ class AnnotationVerifier {
     if (kinds.isNotEmpty) {
       if (!_isValidTarget(parent, kinds)) {
         var invokedElement = element.element2!;
-        var name = invokedElement.name3;
+        var name = invokedElement.name;
         if (invokedElement is ConstructorElement) {
-          var className = invokedElement.enclosingElement.name3;
+          var className = invokedElement.enclosingElement.name;
           if (name!.isEmpty) {
             name = className;
           } else {
@@ -374,7 +374,7 @@ class AnnotationVerifier {
         var parameterName =
             undefinedParameter is SimpleStringLiteral
                 ? undefinedParameter.value
-                : undefinedParameter.correspondingParameter?.name3;
+                : undefinedParameter.correspondingParameter?.name;
         _diagnosticReporter.atNode(
           undefinedParameter,
           WarningCode.UNDEFINED_REFERENCED_PARAMETER,
@@ -411,7 +411,7 @@ class AnnotationVerifier {
         for (VariableDeclaration variable in parent.variables.variables) {
           var variableElement = variable.declaredTopLevelVariableElement;
 
-          var variableName = variableElement.name3;
+          var variableName = variableElement.name;
           if (variableName != null && Identifier.isPrivateName(variableName)) {
             reportInvalidAnnotation(variableName);
           }
@@ -428,7 +428,7 @@ class AnnotationVerifier {
             reportInvalidVisibleForOverriding();
           }
 
-          var fieldName = fieldElement.name3;
+          var fieldName = fieldElement.name;
           if (fieldName != null && Identifier.isPrivateName(fieldName)) {
             reportInvalidAnnotation(fieldName);
           }
@@ -440,7 +440,7 @@ class AnnotationVerifier {
           reportInvalidVisibleForOverriding();
         }
 
-        var name = declaredElement.name3;
+        var name = declaredElement.name;
         if (name != null && Identifier.isPrivateName(name)) {
           reportInvalidAnnotation(name);
         }

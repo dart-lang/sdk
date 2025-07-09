@@ -91,6 +91,6 @@ class ClassDescriptionRegistry {
   }
 
   static bool _isClass(ClassElement element, String uri, String name) {
-    return element.name3 == name && element.library.uri.toString() == uri;
+    return element.name == name && element.library.uri.toString() == uri;
   }
 }

@@ -70,7 +70,6 @@ class DartCliAppProcess {
 
   Future<TestProcess> start() async {
     final tmpDir = Directory.systemTemp.createTempSync();
-    addTearDown(() => tmpDir.deleteSync(recursive: true));
 
     // A simple Dart command line app that will never exit.
     const fileName = 'app.dart';
@@ -97,6 +96,10 @@ void main() async {
 
     addTearDown(() async {
       await process!.kill();
+      // Delete [tmpDir] after [process] is killed. Otherwise, the call to
+      // `tmpDir.deleteSync` may fail with an error: "The process cannot access
+      // the file because it is being used by another process."
+      tmpDir.deleteSync(recursive: true);
     });
 
     String? uri;

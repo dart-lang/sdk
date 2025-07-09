@@ -55,7 +55,7 @@ class _Generator {
             .map((annotation) {
               var generateObject = annotation.computeConstantValue();
               var generateObjectType = generateObject?.type;
-              if (generateObjectType?.element?.name3 != 'GenerateNodeImpl') {
+              if (generateObjectType?.element?.name != 'GenerateNodeImpl') {
                 return null;
               }
               return generateObject;
@@ -809,7 +809,7 @@ class _ImplClass {
         null;
   }
 
-  String get interfaceName => interfaceElement.name3!;
+  String get interfaceName => interfaceElement.name!;
 
   bool get isAnnotatedNodeSubclass {
     var element = node.declaredFragment!.element;
@@ -864,7 +864,7 @@ class _Property {
       case _PropertyTypeKindOther():
         return type.asCode;
       default:
-        return '${type.element.name3!}Impl$nullSuffix';
+        return '${type.element.name!}Impl$nullSuffix';
     }
   }
 }
@@ -899,7 +899,7 @@ class _PropertyTypeKindNodeList extends _PropertyTypeKind {
   _PropertyTypeKindNodeList({required this.elementType});
 
   String get elementTypeCode {
-    return '${elementType.element.name3!}Impl';
+    return '${elementType.element.name!}Impl';
   }
 }
 
@@ -929,13 +929,13 @@ extension _DartTypeExtension on DartType {
       case InterfaceType self:
         var typeArguments = self.typeArguments;
         if (typeArguments.isEmpty) {
-          return '${self.element.name3!}$nullSuffix';
+          return '${self.element.name!}$nullSuffix';
         } else {
           var typeArgumentsStr = typeArguments.map((t) => t.asCode).join(', ');
-          return '${self.element.name3}<$typeArgumentsStr>$nullSuffix';
+          return '${self.element.name}<$typeArgumentsStr>$nullSuffix';
         }
       case TypeParameterType self:
-        return '${self.element.name3!}$nullSuffix';
+        return '${self.element.name!}$nullSuffix';
       case VoidType():
         return 'void';
       default:
@@ -989,15 +989,15 @@ extension _InterfaceElementExtension on InterfaceElement {
   );
 
   bool get isAnnotatedNodeExactly {
-    return library.uri == uriAst && name3 == 'AnnotatedNode';
+    return library.uri == uriAst && name == 'AnnotatedNode';
   }
 
   bool get isDoNotGenerateExactly {
-    return library.uri == uriAst && name3 == 'DoNotGenerate';
+    return library.uri == uriAst && name == 'DoNotGenerate';
   }
 
   bool get isExpressionExactly {
-    return library.uri == uriAst && name3 == 'Expression';
+    return library.uri == uriAst && name == 'Expression';
   }
 
   bool get isExpressionOrSubtype {
@@ -1006,23 +1006,23 @@ extension _InterfaceElementExtension on InterfaceElement {
   }
 
   bool get isListExactly {
-    return library.uri == Uri.parse('dart:core') && name3 == 'List';
+    return library.uri == Uri.parse('dart:core') && name == 'List';
   }
 
   bool get isNamedCompilationUnitMemberNodeExactly {
-    return library.uri == uriAst && name3 == 'NamedCompilationUnitMember';
+    return library.uri == uriAst && name == 'NamedCompilationUnitMember';
   }
 
   bool get isNodeExactly {
-    return library.uri == uriAst && name3 == 'AstNode';
+    return library.uri == uriAst && name == 'AstNode';
   }
 
   bool get isNodeListExactly {
-    return library.uri == uriAst && name3 == 'NodeList';
+    return library.uri == uriAst && name == 'NodeList';
   }
 
   bool get isTokenExactly {
-    return library.uri == uriToken && name3 == 'Token';
+    return library.uri == uriToken && name == 'Token';
   }
 }
 

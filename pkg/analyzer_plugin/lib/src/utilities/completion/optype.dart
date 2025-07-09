@@ -1207,9 +1207,9 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
         var parameters = element.formalParameters;
         var parameterElement = parameters.firstWhereOrNull((e) {
           if (e is FieldFormalParameterElement) {
-            return e.field2?.name3 == node.name.label.name;
+            return e.field2?.name == node.name.label.name;
           }
-          return e.isNamed && e.name3 == node.name.label.name;
+          return e.isNamed && e.name == node.name.label.name;
         });
         // Suggest tear-offs.
         if (parameterElement?.type is FunctionType) {

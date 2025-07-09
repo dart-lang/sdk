@@ -305,8 +305,8 @@ class GreatestLowerBoundHelper {
         }
       } else if (fParameter.isNamed) {
         if (gParameter.isNamed) {
-          var fName = fParameter.name3;
-          var gName = gParameter.name3;
+          var fName = fParameter.name;
+          var gName = gParameter.name;
           if (fName == null || gName == null) {
             return NeverTypeImpl.instance;
           }

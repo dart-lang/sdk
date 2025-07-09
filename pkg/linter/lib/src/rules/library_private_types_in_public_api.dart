@@ -135,7 +135,7 @@ class Validator extends SimpleAstVisitor<void> {
     var element = node.declaredFragment?.element;
     if (element is FieldFormalParameterElement) {
       var type = element.type;
-      if (type is InterfaceType && isPrivateName(type.element.name3)) {
+      if (type is InterfaceType && isPrivateName(type.element.name)) {
         rule.reportAtToken(node.name);
       }
     }
@@ -247,7 +247,7 @@ class Validator extends SimpleAstVisitor<void> {
     var element = node.declaredFragment?.element;
     if (element is SuperFormalParameterElement) {
       var type = element.type;
-      if (type is InterfaceType && isPrivateName(type.element.name3)) {
+      if (type is InterfaceType && isPrivateName(type.element.name)) {
         rule.reportAtToken(node.name);
       }
     }
@@ -279,7 +279,7 @@ class Validator extends SimpleAstVisitor<void> {
 
   /// Return `true` if the given [element] is private or is defined in a private
   /// library.
-  static bool isPrivate(Element element) => isPrivateName(element.name3);
+  static bool isPrivate(Element element) => isPrivateName(element.name);
 
   static bool isPrivateName(String? name) =>
       name != null && Identifier.isPrivateName(name);

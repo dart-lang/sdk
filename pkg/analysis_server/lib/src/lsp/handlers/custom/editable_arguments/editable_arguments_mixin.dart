@@ -164,8 +164,8 @@ mixin EditableArgumentsMixin {
 
   /// Returns the name of an enum constant prefixed with the enum name.
   static String? getQualifiedEnumConstantName(FieldElement enumConstant) {
-    var enumName = enumConstant.enclosingElement.name3;
-    var name = enumConstant.name3;
+    var enumName = enumConstant.enclosingElement.name;
+    var name = enumConstant.name;
     return enumName != null && name != null ? '$enumName.$name' : null;
   }
 }

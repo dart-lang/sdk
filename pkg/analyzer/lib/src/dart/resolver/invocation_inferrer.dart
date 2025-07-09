@@ -50,7 +50,7 @@ Map<Object, FormalParameterElementMixin> _computeParameterMap(
   int unnamedParameterIndex = 0;
   return {
     for (var parameter in parameters)
-      parameter.isNamed ? parameter.name3 ?? '' : unnamedParameterIndex++:
+      parameter.isNamed ? parameter.name ?? '' : unnamedParameterIndex++:
           parameter,
   };
 }
@@ -253,7 +253,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
                 resolver.diagnosticReporter.atNode(
                   typeArgumentList.arguments[i],
                   CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
-                  arguments: [typeArgument, typeParameter.name3!, bound],
+                  arguments: [typeArgument, typeParameter.name!, bound],
                 );
               }
             }
@@ -615,7 +615,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
         inferrer?.constrainArgument(
           argument.typeOrThrow,
           parameter.type,
-          parameter.name3 ?? '',
+          parameter.name ?? '',
           nodeForTesting: node,
         );
       }
@@ -690,7 +690,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
           inferrer?.constrainArgument(
             argument.typeOrThrow,
             parameter.type,
-            parameter.name3 ?? '',
+            parameter.name ?? '',
             nodeForTesting: node,
           );
         }

@@ -52,7 +52,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var method = methods.first;
     if (!method.isAbstract) return;
 
-    var name = method.name3;
+    var name = method.name;
     if (name == null) return;
 
     rule.reportAtToken(node.name, arguments: [name]);

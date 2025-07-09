@@ -86,7 +86,7 @@ class LibraryElementSuggestionBuilder
   @override
   void visitExtensionElement(ExtensionElement element) {
     if (opType.includeReturnValueSuggestions) {
-      if (element.name3 != null) {
+      if (element.name != null) {
         builder.suggestExtension(element, kind: kind, prefix: prefix);
       }
     }

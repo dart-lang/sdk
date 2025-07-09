@@ -186,7 +186,7 @@ class SearchEngineImpl implements SearchEngine {
   @override
   Future<List<SearchMatch>> searchTopLevelDeclarations(String pattern) async {
     var allElements = HashSet<Element>(
-      hashCode: (e) => e.name3.hashCode,
+      hashCode: (e) => e.name.hashCode,
       equals: (a, b) {
         return a.lookupName == b.lookupName &&
             a.library?.uri == b.library?.uri;

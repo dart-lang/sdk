@@ -64,7 +64,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     ExecutableElement member,
     InterfaceElement extensionType,
   ) {
-    var memberName = member.name3;
+    var memberName = member.name;
     if (memberName == null) return false;
     var name = Name.forLibrary(member.library, memberName);
     return extensionType.getInheritedMember(name) != null;

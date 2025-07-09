@@ -133,7 +133,7 @@ class ExtensionMemberResolver {
         arguments: [
           name.name,
           mostSpecific.map((e) {
-            var name = e.extension.name3;
+            var name = e.extension.name;
             if (name != null) {
               return "extension '$name'";
             }
@@ -287,7 +287,7 @@ class ExtensionMemberResolver {
       for (var i = 0; i < typeArgumentTypes.length; i++) {
         var argument = typeArgumentTypes[i];
         var parameter = typeParameters[i];
-        var name = parameter.name3;
+        var name = parameter.name;
         var parameterBound = parameter.bound;
         if (name != null && parameterBound != null) {
           parameterBound = substitution.substituteType(parameterBound);
@@ -378,7 +378,7 @@ class ExtensionMemberResolver {
         _diagnosticReporter.atNode(
           typeArguments,
           CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION,
-          arguments: [element.name3!, typeParameters.length, arguments.length],
+          arguments: [element.name!, typeParameters.length, arguments.length],
         );
         return _listOfDynamic(typeParameters);
       }

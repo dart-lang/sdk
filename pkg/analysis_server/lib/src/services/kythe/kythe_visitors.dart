@@ -14,8 +14,8 @@ import 'schema.dart' as schema;
 /// This is either '<class-name>' or '<class-name>.<constructor-name>',
 /// depending on whether the constructor is a named constructor.
 String _computeConstructorElementName(ConstructorElement constructor) {
-  var name = constructor.enclosingElement.name3!;
-  var constructorName = constructor.name3;
+  var name = constructor.enclosingElement.name!;
+  var constructorName = constructor.name;
   if (constructorName != null && constructorName != 'new') {
     name = '$name.$constructorName';
   }
@@ -174,7 +174,7 @@ class _SignatureBuilder {
       _appendSignatureTo(buffer, element.enclosingElement!);
       buffer
         ..write('.')
-        ..write(element.name3!);
+        ..write(element.name!);
     } else {
       var enclosingElt = element.enclosingElement!;
       _appendSignatureTo(buffer, enclosingElt);
@@ -182,13 +182,13 @@ class _SignatureBuilder {
         buffer.write('#');
       }
       if (element is MethodElement &&
-          element.name3 == '-' &&
+          element.name == '-' &&
           element.formalParameters.length == 1) {
         buffer.write('unary-');
       } else if (element is ConstructorElement) {
         buffer.write(_computeConstructorElementName(element));
       } else {
-        buffer.write(element.name3);
+        buffer.write(element.name);
       }
       if (enclosingElt is ExecutableElement) {
         buffer

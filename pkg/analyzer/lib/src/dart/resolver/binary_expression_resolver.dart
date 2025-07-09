@@ -405,7 +405,7 @@ class BinaryExpressionResolver {
         _diagnosticReporter.atToken(
           node.operator,
           CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR,
-          arguments: [methodName, extension.name3!],
+          arguments: [methodName, extension.name!],
         );
       }
       node.element = member;

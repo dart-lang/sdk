@@ -147,6 +147,6 @@ extension on Element? {
   /// Returns `true` if this element is the `toString` method.
   bool get isToStringMethod {
     var self = this;
-    return self is MethodElement && self.name3 == _objectToStringName;
+    return self is MethodElement && self.name == _objectToStringName;
   }
 }

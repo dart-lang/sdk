@@ -255,9 +255,9 @@ extension ConstructorElementExtension on ConstructorElement {
     required String className,
     required String constructorName,
   }) =>
-      library.name3 == uri &&
-      enclosingElement.name3 == className &&
-      name3 == constructorName;
+      library.name == uri &&
+      enclosingElement.name == className &&
+      name == constructorName;
 }
 
 extension DartTypeExtension on DartType? {
@@ -302,8 +302,8 @@ extension DartTypeExtension on DartType? {
   bool isSameAs(String? interface, String? library) {
     var self = this;
     return self is InterfaceType &&
-        self.element.name3 == interface &&
-        self.element.library.name3 == library;
+        self.element.name == interface &&
+        self.element.library.name == library;
   }
 
   static bool _extendsClass(
@@ -320,8 +320,8 @@ extension DartTypeExtension on DartType? {
 
 extension ElementAnnotationExtension on ElementAnnotation {
   bool get isReflectiveTest => switch (element2) {
-    GetterElement(:var name3, :var library) =>
-      name3 == 'reflectiveTest' &&
+    GetterElement(:var name, :var library) =>
+      name == 'reflectiveTest' &&
           library.uri.toString() ==
               'package:test_reflective_loader/test_reflective_loader.dart',
     _ => false,
@@ -347,7 +347,7 @@ extension ElementExtension on Element? {
   bool get isDartCorePrint {
     var self = this;
     return self is TopLevelFunctionElement &&
-        self.name3 == 'print' &&
+        self.name == 'print' &&
         self.firstFragment.libraryFragment.element.isDartCore;
   }
 
@@ -387,7 +387,7 @@ extension ExpressionExtension on Expression {
     if (element == null) return false;
     if (element.hasAwaitNotRequired) return true;
 
-    var elementName = element.name3;
+    var elementName = element.name;
     if (elementName == null) return false;
 
     var enclosingElement = element.enclosingElement;
@@ -543,7 +543,7 @@ extension InterfaceElementExtension on InterfaceElement {
   /// Whether this element has the exact [name] and defined in the file with
   /// the given [uri].
   bool isExactly(String name, Uri uri) =>
-      name3 == name && enclosingElement.uri == uri;
+      this.name == name && enclosingElement.uri == uri;
 }
 
 extension InterfaceTypeExtension on InterfaceType {
@@ -575,7 +575,7 @@ extension InterfaceTypeExtension on InterfaceType {
 
   GetterElement? getGetter2(String name, {LibraryElement? library}) =>
       getters.firstWhereOrNull(
-        (s) => s.name3 == name && (library == null || (s.library == library)),
+        (s) => s.name == name && (library == null || (s.library == library)),
       );
 
   SetterElement? getSetter2(String name) =>
@@ -589,7 +589,7 @@ extension MethodDeclarationExtension on MethodDeclaration {
   bool get isOverride {
     var element = declaredFragment?.element;
 
-    var name = element?.name3;
+    var name = element?.name;
     if (name == null) return false;
 
     var parentElement = element?.enclosingElement;
@@ -633,7 +633,7 @@ extension MethodDeclarationExtension on MethodDeclaration {
 extension SetterElementExtension on SetterElement {
   /// Return name in a format suitable for string comparison.
   String? get canonicalName {
-    var name = name3;
+    var name = this.name;
     if (name == null) return null;
     // TODO(pq): remove when `name3` consistently does not include a trailing `=`.
     return name.endsWith('=') ? name.substring(0, name.length - 1) : name;

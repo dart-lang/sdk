@@ -78,7 +78,7 @@ extension Element2Extension on Element {
 
   /// Whether this element is a wildcard variable.
   bool get isWildcardVariable {
-    return name3 == '_' &&
+    return name == '_' &&
         (this is LocalFunctionElement ||
             this is LocalVariableElement ||
             this is PrefixElement ||

@@ -96,7 +96,7 @@ class _TypeConstraintGenerationDataInterpreter
                 .unwrapTypeParameterViewAsTypeParameterStructure<
                   TypeParameterElementImpl
                 >()
-                .name3;
+                .name;
         if (actualData[i].isUpper) {
           sb.write("$name <: ");
           sb.write(actualData[i].constraint.getDisplayString());

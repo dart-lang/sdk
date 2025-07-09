@@ -137,9 +137,9 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
         ExecutableElement? getter;
         ExecutableElement? setter;
         for (var method in extension.methods) {
-          if (method.name3 == '[]') {
+          if (method.name == '[]') {
             getter = method;
-          } else if (method.name3 == '[]=') {
+          } else if (method.name == '[]=') {
             setter = method;
           }
         }

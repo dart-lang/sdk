@@ -144,7 +144,7 @@ class InheritanceManager3 {
 
     var interface = getInterface(element);
     if (interface.superImplemented.isEmpty) {
-      assert(element.name3 == 'Object');
+      assert(element.name == 'Object');
       return const {};
     }
 
@@ -221,7 +221,7 @@ class InheritanceManager3 {
       if (superImplemented.isNotEmpty) {
         return superImplemented.last[name];
       } else {
-        assert(element.name3 == 'Object');
+        assert(element.name == 'Object');
         return null;
       }
     }
@@ -964,7 +964,7 @@ class InheritanceManager3 {
     }
 
     if (executable is MethodElement2OrMember) {
-      var fragmentName = executable.name3 ?? '';
+      var fragmentName = executable.name ?? '';
 
       var elementReference = class_.reference!
           .getChild('@method')
@@ -974,7 +974,7 @@ class InheritanceManager3 {
       }
 
       var resultFragment = MethodFragmentImpl(
-        name: executable.name3,
+        name: executable.name,
         nameOffset: -1,
       );
       resultFragment.enclosingElement3 = class_.firstFragment;
@@ -987,9 +987,9 @@ class InheritanceManager3 {
               .map((e) => e.firstFragment as TypeParameterFragmentImpl)
               .toList();
 
-      var elementName = executable.name3!;
+      var elementName = executable.name!;
       var result = MethodElementImpl(
-        name3: elementName,
+        name: elementName,
         reference: elementReference,
         firstFragment: resultFragment,
       );
@@ -998,7 +998,7 @@ class InheritanceManager3 {
     }
 
     if (executable is SetterElementImpl) {
-      var fragmentName = executable.name3 ?? '';
+      var fragmentName = executable.name ?? '';
       var setterReference = class_.reference!
           .getChild('@setter')
           .getChild(fragmentName);
@@ -1007,7 +1007,7 @@ class InheritanceManager3 {
       }
 
       var resultFragment = SetterFragmentImpl(
-        name: executable.name3,
+        name: executable.name,
         nameOffset: -1,
       );
       resultFragment.enclosingElement3 = class_.firstFragment;
@@ -1019,12 +1019,12 @@ class InheritanceManager3 {
       var result = SetterElementImpl(setterReference, resultFragment);
 
       var resultField = FieldFragmentImpl(
-        name: executable.name3,
+        name: executable.name,
         nameOffset: -1,
       );
       resultField.enclosingElement3 = class_.firstFragment;
 
-      var elementName = executable.name3!;
+      var elementName = executable.name!;
       var fieldReference = class_.reference!
           .getChild('@field')
           .getChild(elementName);
@@ -1092,9 +1092,9 @@ class InheritanceManager3 {
               .map((e) => e.firstFragment as FormalParameterFragmentImpl)
               .toList();
 
-      var elementName = firstElement.name3!;
+      var elementName = firstElement.name!;
       var resultElement = MethodElementImpl(
-        name3: elementName,
+        name: elementName,
         reference: elementReference,
         firstFragment: resultFragment,
       );
@@ -1102,7 +1102,7 @@ class InheritanceManager3 {
       return resultElement;
     } else {
       var firstElement = first as PropertyAccessorElement2OrMember;
-      var fragmentName = first.name3!;
+      var fragmentName = first.name!;
       var field = FieldFragmentImpl(name: fragmentName, nameOffset: -1);
 
       PropertyAccessorFragmentImpl resultFragment;
@@ -1144,7 +1144,7 @@ class InheritanceManager3 {
 
       field.enclosingElement3 = targetClass.firstFragment;
 
-      var elementName = first.name3!;
+      var elementName = first.name!;
       var elementReference = targetClass.reference!
           .getChild('@field')
           .getChild(elementName);
@@ -1439,7 +1439,7 @@ class _ParameterDesc {
 
   factory _ParameterDesc(int index, FormalParameterElement element) {
     return element.isNamed
-        ? _ParameterDesc.name(element.name3)
+        ? _ParameterDesc.name(element.name)
         : _ParameterDesc.index(index);
   }
 

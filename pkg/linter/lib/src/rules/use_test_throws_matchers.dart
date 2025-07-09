@@ -39,7 +39,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     return element is TopLevelFunctionElement &&
         element.library.uri ==
             Uri.parse('package:test_api/src/frontend/expect.dart') &&
-        element.name3 == functionName;
+        element.name == functionName;
   }
 
   @override

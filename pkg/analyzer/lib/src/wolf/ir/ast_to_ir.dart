@@ -756,7 +756,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
         );
         // Stack: arguments
         if (methodElement.library.isDartCore &&
-            methodElement.name3 == 'identical') {
+            methodElement.name == 'identical') {
           ir.identical();
         } else {
           ir.call(

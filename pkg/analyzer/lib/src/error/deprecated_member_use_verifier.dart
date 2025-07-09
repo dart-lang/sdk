@@ -53,7 +53,7 @@ abstract class BaseDeprecatedMemberUseVerifier {
   void functionExpressionInvocation(FunctionExpressionInvocation node) {
     var callElement = node.element;
     if (callElement is MethodElement &&
-        callElement.name3 == MethodElement.CALL_METHOD_NAME) {
+        callElement.name == MethodElement.CALL_METHOD_NAME) {
       _checkForDeprecated(callElement, node);
     }
   }
@@ -219,7 +219,7 @@ abstract class BaseDeprecatedMemberUseVerifier {
       // or have the logic centralized elsewhere, instead of doing this logic
       // here.
       displayName =
-          element.name3 == null
+          element.name == null
               ? '${element.displayName}.new'
               : element.displayName;
     } else if (element is LibraryElement) {
@@ -228,7 +228,7 @@ abstract class BaseDeprecatedMemberUseVerifier {
         displayName == MethodElement.CALL_METHOD_NAME) {
       var invokeType = node.staticInvokeType as InterfaceType;
       var invokeClass = invokeType.element;
-      displayName = "${invokeClass.name3}.${element.displayName}";
+      displayName = "${invokeClass.name}.${element.displayName}";
     }
     var message = _deprecatedMessage(element, strictCasts: _strictCasts);
     reportError(errorEntity, element, displayName, message);
@@ -340,7 +340,7 @@ abstract class BaseDeprecatedMemberUseVerifier {
           namedParameters = {};
           for (var parameter in parameters) {
             if (parameter.isNamed) {
-              if (parameter.name3 case var name?) {
+              if (parameter.name case var name?) {
                 namedParameters[name] = parameter;
               }
             }

@@ -187,7 +187,7 @@ extension DartTypeExtension on DartType? {
     }
 
     return [self, ...self.element.allSupertypes].any(
-      (t) => t.element.name3 == 'Color' && t.element.library.name3 == 'dart.ui',
+      (t) => t.element.name == 'Color' && t.element.library.name == 'dart.ui',
     );
   }
 
@@ -200,7 +200,7 @@ extension DartTypeExtension on DartType? {
 
     return [self, ...self.element.allSupertypes].any(
       (t) =>
-          t.element.name3 == 'Diagnosticable' &&
+          t.element.name == 'Diagnosticable' &&
           t.element.library.firstFragment.source.uri == _uriDiagnostics,
     );
   }
@@ -300,8 +300,8 @@ extension DartTypeExtension on DartType? {
 
     return [self, ...self.element.allSupertypes].any(
       (t) =>
-          t.element.name3 == 'Matrix4' &&
-          t.element.library.name3 == 'vector_math_64',
+          t.element.name == 'Matrix4' &&
+          t.element.library.name == 'vector_math_64',
     );
   }
 
@@ -334,7 +334,7 @@ extension ElementAnnotationExtension on ElementAnnotation {
     if (element2 is! ConstructorElement) {
       return false;
     }
-    return element2.enclosingElement.name3 == 'Preview' &&
+    return element2.enclosingElement.name == 'Preview' &&
         element2.library.uri == _flutterWidgetPreviewLibraryUri;
   }
 }
@@ -440,7 +440,7 @@ extension InstanceCreationExpressionExtension on InstanceCreationExpression {
         return 'Text';
       }
     }
-    return element?.name3;
+    return element?.name;
   }
 }
 
@@ -501,7 +501,7 @@ extension InterfaceElementExtension2 on InterfaceElement? {
       return false;
     }
     for (var type in self.allSupertypes) {
-      if (type.element.name3 == requiredName) {
+      if (type.element.name == requiredName) {
         var uri = type.element.library.firstFragment.source.uri;
         if (uri == requiredUri) {
           return true;
@@ -515,7 +515,7 @@ extension InterfaceElementExtension2 on InterfaceElement? {
   bool _isExactly(String type, Uri uri) {
     var self = this;
     return self is ClassElement &&
-        self.name3 == type &&
+        self.name == type &&
         self.firstFragment.libraryFragment.source.uri == uri;
   }
 }

@@ -923,14 +923,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             reference,
             CompileTimeErrorCode
                 .PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES,
-            arguments: [variable.name3!],
+            arguments: [variable.name!],
           );
         } else if (variable.inconsistency ==
             shared.JoinedPatternVariableInconsistency.sharedCaseHasLabel) {
           diagnosticReporter.atNode(
             reference,
             CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL,
-            arguments: [variable.name3!],
+            arguments: [variable.name!],
           );
         } else if (variable.inconsistency ==
             shared.JoinedPatternVariableInconsistency.differentFinalityOrType) {
@@ -938,7 +938,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             reference,
             CompileTimeErrorCode
                 .PATTERN_VARIABLE_SHARED_CASE_SCOPE_DIFFERENT_FINALITY_OR_TYPE,
-            arguments: [variable.name3!],
+            arguments: [variable.name!],
           );
         }
       }
@@ -4605,7 +4605,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         unnamedParameterCount++;
       } else {
         namedParameters ??= {};
-        namedParameters[parameter.name3 ?? ''] = parameter;
+        namedParameters[parameter.name ?? ''] = parameter;
       }
     }
     int unnamedIndex = 0;
@@ -5919,7 +5919,7 @@ class _WhyNotPromotedVisitor
     if (_dataForTesting != null) {
       _dataForTesting.nonPromotionReasonTargets[node] = reason.shortName;
     }
-    var variableName = reason.variable.name3;
+    var variableName = reason.variable.name;
     return [_contextMessageForWrite(variableName, node, reason)];
   }
 
@@ -5949,7 +5949,7 @@ class _WhyNotPromotedVisitor
           filePath: property.firstFragment.libraryFragment.source.fullName,
           message: message,
           offset: property.nonSynthetic.firstFragment.nameOffset2!,
-          length: property.name3!.length,
+          length: property.name!.length,
           url: reason.documentationLink.url,
         ),
         if (!reason.fieldPromotionEnabled)
@@ -5983,7 +5983,7 @@ class _WhyNotPromotedVisitor
         required NonPromotionDocumentationLink link,
       }) {
         var enclosingKindName = enclosingElement.kind.displayName;
-        var enclosingName = enclosingElement.name3;
+        var enclosingName = enclosingElement.name;
         var message =
             "'$propertyName' couldn't be promoted because there is a "
             "conflicting $kind in $enclosingKindName '$enclosingName'";
@@ -5995,7 +5995,7 @@ class _WhyNotPromotedVisitor
             filePath: source!.fullName,
             message: message,
             offset: nonSyntheticFragment.nameOffset2!,
-            length: nonSyntheticElement.name3!.length,
+            length: nonSyntheticElement.name!.length,
             url: link.url,
           ),
         );
@@ -6087,7 +6087,7 @@ class _WhyNotPromotedVisitor
           "because field promotion is only available in Dart 3.2 and "
           "above.",
       offset: property.nonSynthetic.firstFragment.nameOffset2!,
-      length: property.name3!.length,
+      length: property.name!.length,
       url: NonPromotionDocumentationLink.fieldPromotionUnavailable.url,
     );
   }
@@ -6096,6 +6096,6 @@ class _WhyNotPromotedVisitor
 extension on Element {
   bool get isWildcardFunction =>
       this is LocalFunctionElement &&
-      name3 == '_' &&
+      name == '_' &&
       library.hasWildcardVariablesFeatureEnabled;
 }

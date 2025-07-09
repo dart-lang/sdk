@@ -205,7 +205,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
       // This error is now reported by the parser.
       element = null;
     } else if (element is PrefixElement && !_isValidAsPrefix(node)) {
-      if (element.name3 case var name?) {
+      if (element.name case var name?) {
         diagnosticReporter.atNode(
           node,
           CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,

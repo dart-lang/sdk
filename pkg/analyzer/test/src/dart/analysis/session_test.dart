@@ -555,7 +555,7 @@ class B2 extends X {}
     expect(resolvedLibrary.session, session);
 
     var typeProvider = resolvedLibrary.typeProvider;
-    expect(typeProvider.intType.element.name3, 'int');
+    expect(typeProvider.intType.element.name, 'int');
 
     var libraryElement = resolvedLibrary.element2;
 

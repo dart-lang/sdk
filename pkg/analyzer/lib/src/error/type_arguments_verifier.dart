@@ -51,7 +51,7 @@ class TypeArgumentsVerifier {
     }
 
     for (var typeParameter in typeParameters) {
-      if (typeParameter.name3 == null) {
+      if (typeParameter.name == null) {
         return;
       }
     }
@@ -94,7 +94,7 @@ class TypeArgumentsVerifier {
         _diagnosticReporter.atNode(
           errorNode,
           CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
-          arguments: [typeArgument, typeParameter.name3!, bound],
+          arguments: [typeArgument, typeParameter.name!, bound],
         );
       }
     }
@@ -110,7 +110,7 @@ class TypeArgumentsVerifier {
     var typeParameters = enumElement.typeParameters2;
 
     for (var typeParameter in typeParameters) {
-      if (typeParameter.name3 == null) {
+      if (typeParameter.name == null) {
         return;
       }
     }
@@ -150,7 +150,7 @@ class TypeArgumentsVerifier {
         _diagnosticReporter.atEntity(
           errorTarget,
           CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
-          arguments: [typeArgument, typeParameter.name3!, bound],
+          arguments: [typeArgument, typeParameter.name!, bound],
         );
       }
     }
@@ -308,11 +308,11 @@ class TypeArgumentsVerifier {
     List<TypeImpl> typeArguments;
     var alias = type.alias;
     if (alias != null) {
-      elementName = alias.element.name3;
+      elementName = alias.element.name;
       typeParameters = alias.element.typeParameters2;
       typeArguments = alias.typeArguments;
     } else if (type is InterfaceTypeImpl) {
-      elementName = type.element.name3;
+      elementName = type.element.name;
       typeParameters = type.element.typeParameters2;
       typeArguments = type.typeArguments;
     } else {
@@ -332,7 +332,7 @@ class TypeArgumentsVerifier {
     var substitution = Substitution.fromPairs2(typeParameters, typeArguments);
     for (var i = 0; i < typeArguments.length; i++) {
       var typeParameter = typeParameters[i];
-      var typeParameterName = typeParameter.name3;
+      var typeParameterName = typeParameter.name;
       if (typeParameterName == null) {
         return;
       }
@@ -453,7 +453,7 @@ class TypeArgumentsVerifier {
     );
     for (var i = 0; i < invertedTypeArguments.length; i++) {
       var typeParameter = typeParameters[i];
-      var typeParameterName = typeParameter.name3;
+      var typeParameterName = typeParameter.name;
       if (typeParameterName == null) {
         return;
       }
@@ -527,7 +527,7 @@ class TypeArgumentsVerifier {
       }
 
       var fnTypeParam = fnTypeParams[i];
-      var fnTypeParamName = fnTypeParam.name3;
+      var fnTypeParamName = fnTypeParam.name;
       if (fnTypeParamName == null) {
         continue;
       }

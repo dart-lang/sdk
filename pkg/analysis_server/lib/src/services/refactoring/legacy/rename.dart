@@ -163,7 +163,7 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
 
   static String _getOldName(Element element) {
     if (element is ConstructorElement) {
-      var name = element.name3;
+      var name = element.name;
       if (name == null || name == 'new') {
         return '';
       }

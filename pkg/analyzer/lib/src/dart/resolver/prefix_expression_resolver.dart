@@ -163,7 +163,7 @@ class PrefixExpressionResolver {
           _diagnosticReporter.atToken(
             node.operator,
             CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR,
-            arguments: [methodName, element.name3!],
+            arguments: [methodName, element.name!],
           );
         }
         node.element = member;

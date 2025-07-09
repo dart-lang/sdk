@@ -96,7 +96,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var classElement = member.thisOrAncestorOfType2<ClassElement>();
     if (classElement == null) return false;
 
-    var name = member.name3;
+    var name = member.name;
     if (name == null) return false;
 
     var libraryUri = classElement.library.uri;

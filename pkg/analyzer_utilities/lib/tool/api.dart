@@ -147,7 +147,7 @@ class ApiDescription {
         var namedParams = <String, List<Object?>>{};
         for (var formalParameter in formalParameters) {
           if (formalParameter.isNamed) {
-            namedParams[formalParameter.name3!] = [
+            namedParams[formalParameter.name!] = [
               if (formalParameter.isRequired) 'required ',
               ..._describeType(formalParameter.type),
             ];
@@ -212,7 +212,7 @@ class ApiDescription {
           suffix,
         ];
       case TypeParameterType(:var element):
-        return [element.name3!, suffix];
+        return [element.name!, suffix];
       case VoidType():
         return ['void'];
       case dynamic(:var runtimeType):
@@ -224,7 +224,7 @@ class ApiDescription {
   /// concatenated, describes [typeParameter].
   List<Object?> _describeTypeParameter(TypeParameterElement typeParameter) {
     return [
-      typeParameter.name3!,
+      typeParameter.name!,
       if (typeParameter.bound case var bound?) ...[
         ' extends ',
         ..._describeType(bound),
@@ -336,8 +336,8 @@ class ApiDescription {
           case dynamic(:var runtimeType):
             throw UnimplementedError('Unexpected element: $runtimeType');
         }
-        for (var member in element.children2.sortedBy((m) => m.name3 ?? '')) {
-          if (member.name3 case var name? when name.startsWith('_')) {
+        for (var member in element.children2.sortedBy((m) => m.name ?? '')) {
+          if (member.name case var name? when name.startsWith('_')) {
             // Ignore private members
             continue;
           }
@@ -442,7 +442,7 @@ class ApiDescription {
       ...library.mixins,
       ...library.enums,
       ...library.extensionTypes,
-    ]..sortBy((e) => e.name3!)) {
+    ]..sortBy((e) => e.name!)) {
       for (var superinterface in [
         interface.supertype,
         ...interface.interfaces,
@@ -481,7 +481,7 @@ class MemberSortKey implements Comparable<MemberSortKey> {
   MemberSortKey(Element element)
     : _isInstanceMember = _computeIsInstanceMember(element),
       _category = _computeCategory(element),
-      _name = element.name3!;
+      _name = element.name!;
 
   @override
   int compareTo(MemberSortKey other) {
@@ -638,9 +638,9 @@ extension on Iterable<Iterable<Object?>> {
 extension on Element {
   /// Returns the appropriate name for describing the element in `api.txt`.
   ///
-  /// The name is the same as [name3], but with `=` appended for setters.
+  /// The name is the same as [name], but with `=` appended for setters.
   String get apiName {
-    var apiName = name3!;
+    var apiName = name!;
     if (this is SetterElement) {
       apiName += '=';
     }
@@ -663,7 +663,7 @@ extension on Element {
         return true;
       }
     }
-    if (name3 case var name? when !name.isPublic) return false;
+    if (name case var name? when !name.isPublic) return false;
     if (library!.uri.isInPublicLibOf(packageName)) return true;
     return false;
   }
@@ -671,7 +671,7 @@ extension on Element {
   bool _isPublicApiAnnotation(ElementAnnotation annotation) {
     if (annotation.computeConstantValue() case DartObject(
       type: InterfaceType(
-        element: InterfaceElement(name3: 'AnalyzerPublicApi'),
+        element: InterfaceElement(name: 'AnalyzerPublicApi'),
       ),
     )) {
       return true;

@@ -71,7 +71,7 @@ class _Visitor extends UnifyingAstVisitor<void> {
   void visitNamedType(NamedType node) {
     if (node.offset <= endOffset && node.end >= startOffset) {
       var importPrefix = node.importPrefix;
-      var prefix = importPrefix?.element?.name3 ?? '';
+      var prefix = importPrefix?.element?.name ?? '';
       _addElement(prefix, node.element);
     }
 
@@ -130,7 +130,7 @@ class _Visitor extends UnifyingAstVisitor<void> {
       () => ImportedElements(path, prefix, <String>[]),
     );
     var elementNames = elements.elements;
-    var elementName = element.name3;
+    var elementName = element.name;
     if (elementName != null && !elementNames.contains(elementName)) {
       elementNames.add(elementName);
     }
@@ -140,7 +140,7 @@ class _Visitor extends UnifyingAstVisitor<void> {
     if (identifier.offset <= endOffset && identifier.end >= startOffset) {
       var prefixElement = identifier.element;
       if (prefixElement is PrefixElement) {
-        return prefixElement.name3 ?? '';
+        return prefixElement.name ?? '';
       }
     }
     return '';

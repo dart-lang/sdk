@@ -355,8 +355,6 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       kernel_data_class_cache_mutex_(),
       kernel_constants_mutex_(),
       shared_field_initializer_rwlock_(),
-      field_list_mutex_(),
-      boxed_field_list_(GrowableObjectArray::null()),
       program_lock_(new SafepointRwLock(SafepointLevel::kGCAndDeopt)),
       active_mutators_monitor_(new Monitor()),
       max_active_mutators_(Scavenger::MaxMutatorThreadCount()),
@@ -2967,13 +2965,6 @@ void IsolateGroup::VisitSharedPointers(ObjectPointerVisitor* visitor,
       break;
     case kSharedFieldTable:
       shared_field_table()->VisitObjectPointers(visitor);
-      break;
-    case kBoxedFieldList:
-      // Visit the boxed_field_list_.
-      // 'boxed_field_list_' access via mutator and background compilation
-      // threads is guarded with a monitor. This means that we can visit it only
-      // when at safepoint or the field_list_mutex_ lock has been taken.
-      visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&boxed_field_list_));
       break;
     case kBackgroundCompiler:
       NOT_IN_PRECOMPILED(background_compiler()->VisitPointers(visitor));

@@ -136,7 +136,7 @@ class ConstantsDataExtractor extends AstDataExtractor<String> {
       // TODO(paulberry): Support object constants.
     } else if (type is FunctionType) {
       var element = value.toFunctionValue2()!;
-      return 'Function(${element.name3},type=${_stringifyType(value.type!)})';
+      return 'Function(${element.name},type=${_stringifyType(value.type!)})';
     }
     throw UnimplementedError('_stringify for type $type');
   }

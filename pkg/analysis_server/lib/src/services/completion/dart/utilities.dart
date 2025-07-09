@@ -182,7 +182,7 @@ DefaultArgument? getDefaultStringParameterValue(
     var params = type.formalParameters.indexed
         .map((r) {
           var (index, parameter) = r;
-          var name = parameter.name3 ?? 'p${index + 1}';
+          var name = parameter.name ?? 'p${index + 1}';
           return '${getTypeString(parameter.type)}$name';
         })
         .join(', ');

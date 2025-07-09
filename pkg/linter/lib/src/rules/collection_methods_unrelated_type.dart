@@ -102,8 +102,8 @@ class _MethodDefinitionForName extends _MethodDefinition {
   InterfaceType? collectionTypeFor(InterfaceType targetType) {
     for (var supertype in [targetType, ...targetType.allSupertypes]) {
       var element = supertype.element;
-      if (element.name3 == interfaceName &&
-          element.library.name3 == libraryName) {
+      if (element.name == interfaceName &&
+          element.library.name == libraryName) {
         return targetType.asInstanceOf2(element);
       }
     }

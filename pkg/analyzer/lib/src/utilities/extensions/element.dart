@@ -28,7 +28,7 @@ class MockLibraryImportElement implements Element {
   LibraryFragmentImpl get libraryFragment => import.libraryFragment;
 
   @override
-  String? get name3 => import.prefix2?.name;
+  String? get name => import.prefix2?.name;
 
   @override
   noSuchMethod(invocation) => super.noSuchMethod(invocation);
@@ -433,9 +433,9 @@ extension TypeAliasElementImplExtension on TypeAliasFragmentImpl {
 
 extension TypeParameterElement2Extension on TypeParameterElement {
   TypeParameterElementImpl freshCopy() {
-    var fragment = TypeParameterFragmentImpl(name: name3, nameOffset: -1);
+    var fragment = TypeParameterFragmentImpl(name: name, nameOffset: -1);
     fragment.bound = bound;
-    return TypeParameterElementImpl(firstFragment: fragment, name3: name3);
+    return TypeParameterElementImpl(firstFragment: fragment, name: name);
   }
 }
 

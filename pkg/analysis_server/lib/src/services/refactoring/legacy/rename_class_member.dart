@@ -314,7 +314,7 @@ class _CreateClassMemberValidator extends _BaseClassMemberValidator {
       OperationPerformanceImpl('<root>'),
     );
     // check shadowing of class names
-    if (interfaceElement.name3 == name) {
+    if (interfaceElement.name == name) {
       result.addError(
         'Created ${elementKind.displayName} has the same name as the '
         "declaring ${interfaceElement.kind.displayName} '$name'.",
@@ -370,7 +370,7 @@ class _LocalElementsCollector extends GeneralizingAstVisitor<void> {
     if (element is! PropertyAccessorElement) {
       return;
     }
-    if (element.name3 != name) {
+    if (element.name != name) {
       return;
     }
     if (element is! GetterElement && element is! SetterElement) {
@@ -440,7 +440,7 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
     for (var element in elements) {
       var enclosingElement = element.enclosingElement;
       if (enclosingElement is InterfaceElement &&
-          enclosingElement.name3 == name) {
+          enclosingElement.name == name) {
         result.addError(
           'Renamed ${elementKind.displayName} has the same name as the '
           "declaring ${enclosingElement.kind.displayName} '$name'.",

@@ -88,7 +88,7 @@ class AnalyzerEnumOperations
 
   @override
   String getEnumElementName(FieldElement enumField) {
-    return '${enumField.enclosingElement.name3}.${enumField.name3}';
+    return '${enumField.enclosingElement.name}.${enumField.name}';
   }
 
   @override
@@ -410,7 +410,7 @@ class AnalyzerTypeOperations implements TypeOperations<TypeImpl> {
         if (getter.isPrivate && getter.library != _enclosingLibrary) {
           continue;
         }
-        var name = getter.name3;
+        var name = getter.name;
         if (name == null) {
           continue;
         }
@@ -422,7 +422,7 @@ class AnalyzerTypeOperations implements TypeOperations<TypeImpl> {
         if (method.isPrivate && method.library != _enclosingLibrary) {
           continue;
         }
-        var name = method.name3;
+        var name = method.name;
         if (name == null) {
           continue;
         }
@@ -473,7 +473,7 @@ class MissingPatternEnumValuePart extends MissingPatternPart {
   });
 
   @override
-  String toString() => value2.name3!;
+  String toString() => value2.name!;
 }
 
 abstract class MissingPatternPart {}

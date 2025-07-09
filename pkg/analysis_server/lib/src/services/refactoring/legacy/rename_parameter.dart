@@ -43,7 +43,7 @@ class RenameParameterRefactoringImpl extends RenameRefactoringImpl {
         result.addError(
           format(
             "The parameter '{0}' is named and can not be private.",
-            element.name3,
+            element.name,
           ),
         );
         break;

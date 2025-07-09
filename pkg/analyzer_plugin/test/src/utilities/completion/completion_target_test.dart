@@ -962,15 +962,15 @@ class _Base extends AbstractContextTest {
   static String _executableNameStr(ExecutableElement executable) {
     var executableEnclosing = executable.enclosingElement;
     if (executableEnclosing is LibraryElement) {
-      return executable.name3!;
+      return executable.name!;
     } else if (executable is ConstructorElement) {
-      if (executable.name3 == 'new') {
-        return '${executableEnclosing!.name3}.<init>';
+      if (executable.name == 'new') {
+        return '${executableEnclosing!.name}.<init>';
       } else {
-        return '${executableEnclosing!.name3}.${executable.name3}';
+        return '${executableEnclosing!.name}.${executable.name}';
       }
     } else if (executable is MethodElement) {
-      return '${executableEnclosing!.name3}.${executable.name3}';
+      return '${executableEnclosing!.name}.${executable.name}';
     }
     fail('Unexpected element: $executable');
   }
@@ -983,6 +983,6 @@ class _Base extends AbstractContextTest {
 
   static String _parameterStr(FormalParameterElement element) {
     var typeStr = element.type.getDisplayString();
-    return '${element.name3}: $typeStr';
+    return '${element.name}: $typeStr';
   }
 }

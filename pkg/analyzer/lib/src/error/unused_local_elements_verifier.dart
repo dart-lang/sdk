@@ -165,7 +165,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
       var type = node.type.type;
       if (type is InterfaceTypeImpl) {
         for (var constructor in type.constructors) {
-          if (!Identifier.isPrivateName(constructor.name3!)) {
+          if (!Identifier.isPrivateName(constructor.name!)) {
             usedElements.addElement(constructor);
           }
         }
@@ -312,7 +312,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
         if (isIdentifierRead) {
           usedElements.unresolvedReadMembers.add(node.name);
         }
-      } else if (enclosingElement is EnumElement && element.name3 == 'values') {
+      } else if (enclosingElement is EnumElement && element.name == 'values') {
         // If the 'values' static accessor of the enum is accessed, then all of
         // the enum values have been read.
         for (var field in enclosingElement.fields) {
@@ -455,14 +455,14 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
     var secondPositional = <FormalParameterElement>[];
     for (var element in firstList) {
       if (element.isNamed) {
-        (firstNamed ??= {})[element.name3!] = element;
+        (firstNamed ??= {})[element.name!] = element;
       } else {
         firstPositional.add(element);
       }
     }
     for (var element in secondList) {
       if (element.isNamed) {
-        (secondNamed ??= {})[element.name3!] = element;
+        (secondNamed ??= {})[element.name!] = element;
       } else {
         secondPositional.add(element);
       }
@@ -764,7 +764,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
     FormalParameterElement? correspondingParameter;
     if (parameter.isNamed) {
       correspondingParameter = overridden.formalParameters.firstWhereOrNull(
-        (p) => p.name3 == parameter.name3,
+        (p) => p.name == parameter.name,
       );
     } else {
       var parameterIndex = 0;
@@ -789,7 +789,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
     if (_wildCardVariablesEnabled) {
       return element.isWildcardVariable;
     } else {
-      var name = element.name3;
+      var name = element.name;
       if (name == null) return false;
       return name.codeUnits.every((e) => e == 0x5F /* '_' */);
     }
@@ -852,7 +852,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
       element = getter;
     }
     if (_usedElements.readMembers.contains(element) ||
-        _usedElements.unresolvedReadMembers.contains(element.name3)) {
+        _usedElements.unresolvedReadMembers.contains(element.name)) {
       return true;
     }
 
@@ -955,7 +955,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   Iterable<ExecutableElement> _overriddenElements(Element element) {
     var enclosingElement = element.enclosingElement;
     if (enclosingElement is InterfaceElement) {
-      var elementName = element.name3;
+      var elementName = element.name;
       if (elementName != null) {
         Name name = Name(_libraryUri, elementName);
         var overridden = enclosingElement.getOverridden(name);

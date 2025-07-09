@@ -183,7 +183,7 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
   _ReferenceFinder(this.unit, this.recorder) {
     for (var import in unit.libraryElement2.firstFragment.libraryImports2) {
       _importsByPrefix
-          .putIfAbsent(import.prefix2?.element.name3 ?? '', () => {})
+          .putIfAbsent(import.prefix2?.element.name ?? '', () => {})
           .add(import);
     }
   }
@@ -312,10 +312,10 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
   /// Finds the [LibraryImport] that is used to import [element] for use
   /// in [node].
   LibraryImport? _getImportForElement(AstNode? node, Element element) {
-    var prefix = _getPrefixFromExpression(node)?.name3;
+    var prefix = _getPrefixFromExpression(node)?.name;
 
     var lookupName = () {
-      var name = element.name3;
+      var name = element.name;
       if (name == null) {
         return null;
       }
@@ -352,7 +352,7 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
                     // allowed), use the imports own prefix when checking for the
                     // element.
                     import.namespace.getPrefixed2(
-                      import.prefix2?.element.name3 ?? '',
+                      import.prefix2?.element.name ?? '',
                       lookupName,
                     ) ==
                     element,

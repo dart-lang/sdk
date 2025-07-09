@@ -315,7 +315,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
             return entry.key.enclosingElement is! ExecutableElement;
           })
           .map((entry) {
-            return MapEntry(entry.key.name3, typeString(entry.value));
+            return MapEntry(entry.key.name, typeString(entry.value));
           }),
     );
     expect(actualMapString, expected);

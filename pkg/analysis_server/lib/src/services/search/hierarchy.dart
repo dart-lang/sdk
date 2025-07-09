@@ -11,7 +11,7 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 List<Element> getChildren(Element parent, [String? name]) {
   var children = <Element>[];
   visitChildren(parent, (element) {
-    if (name == null || element.name3 == name) {
+    if (name == null || element.name == name) {
       children.add(element);
     }
     return false;
@@ -202,7 +202,7 @@ Future<List<FormalParameterElement>> getHierarchyNamedParameters(
         if (hierarchyMethod is MethodElement) {
           for (var hierarchyParameter in hierarchyMethod.formalParameters) {
             if (hierarchyParameter.isNamed &&
-                hierarchyParameter.name3 == element.name3) {
+                hierarchyParameter.name == element.name) {
               hierarchyParameters.add(hierarchyParameter);
               break;
             }

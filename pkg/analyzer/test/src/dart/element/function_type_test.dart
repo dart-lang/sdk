@@ -457,9 +457,9 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
     );
     var parameters = f.formalParameters;
     expect(parameters, hasLength(3));
-    expect(parameters[0].name3, 'a');
-    expect(parameters[1].name3, 'b');
-    expect(parameters[2].name3, 'c');
+    expect(parameters[0].name, 'a');
+    expect(parameters[1].name, 'b');
+    expect(parameters[2].name, 'c');
   }
 
   test_synthetic() {
@@ -530,7 +530,7 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
       parameters: hasLength(1),
     );
     expect(f.formalParameters[0].isNamed, isTrue);
-    expect(f.formalParameters[0].name3, 'x');
+    expect(f.formalParameters[0].name, 'x');
     expect(f.formalParameters[0].type, same(objectType));
   }
 
@@ -550,7 +550,7 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
       parameters: hasLength(1),
     );
     expect(f.formalParameters[0].isRequiredPositional, isTrue);
-    expect(f.formalParameters[0].name3, 'x');
+    expect(f.formalParameters[0].name, 'x');
     expect(f.formalParameters[0].type, same(objectType));
   }
 
@@ -570,7 +570,7 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
       parameters: hasLength(1),
     );
     expect(f.formalParameters[0].isOptionalPositional, isTrue);
-    expect(f.formalParameters[0].name3, 'x');
+    expect(f.formalParameters[0].name, 'x');
     expect(f.formalParameters[0].type, same(objectType));
   }
 

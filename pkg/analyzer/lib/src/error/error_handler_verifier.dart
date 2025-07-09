@@ -302,7 +302,7 @@ class ErrorHandlerVerifier {
   /// the 'dart:async' library.
   bool _isDartCoreAsyncType(DartType type, String typeName) =>
       type is InterfaceType &&
-      type.element.name3 == typeName &&
+      type.element.name == typeName &&
       type.element.library.isDartAsync;
 }
 

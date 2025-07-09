@@ -1153,7 +1153,7 @@ class DartObjectImplTest {
   void test_identical_Type_functionType() {
     var toStringType =
         _typeProvider.intType.methods
-            .firstWhere((e) => e.name3 == 'toString')
+            .firstWhere((e) => e.name == 'toString')
             .type;
 
     _assertIdentical(

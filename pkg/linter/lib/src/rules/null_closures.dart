@@ -232,7 +232,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       // Static function called, "target" is the class.
       for (var function in _staticFunctionsWithNonNullableArguments) {
         if (methodName == function.name) {
-          if (element.name3 == function.type) {
+          if (element.name == function.type) {
             _checkNullArgForClosure(
               node.argumentList,
               function.positional,
@@ -293,18 +293,18 @@ class _Visitor extends SimpleAstVisitor<void> {
     var element = type.element;
     if (element.isSynthetic) return null;
 
-    var elementName = element.name3;
+    var elementName = element.name;
     if (elementName == null) {
       return null;
     }
 
-    var method = getMethod(element.library.name3, elementName);
+    var method = getMethod(element.library.name, elementName);
     if (method != null) return method;
 
     for (var supertype in element.allSupertypes) {
       var superElement = supertype.element;
-      if (superElement.name3 case var superElementName?) {
-        method = getMethod(superElement.library.name3, superElementName);
+      if (superElement.name case var superElementName?) {
+        method = getMethod(superElement.library.name, superElementName);
         if (method != null) return method;
       }
     }

@@ -2260,7 +2260,7 @@ void main() {
     );
     var z =
         result.unit.declaredFragment!.element.topLevelVariables
-            .where((e) => e.name3 == 'z')
+            .where((e) => e.name == 'z')
             .single;
     assertType(z.type, 'List<String>');
   }

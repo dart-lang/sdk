@@ -197,7 +197,7 @@ class DuplicateDefinitionVerifier {
 
     var libraryDeclarations = _currentLibrary.libraryDeclarations;
     for (var importPrefix in fragment.prefixes) {
-      var name = importPrefix.name3;
+      var name = importPrefix.name;
       if (name != null) {
         if (libraryDeclarations.withName(name) case var existing?) {
           _diagnosticReporter.reportError(
@@ -682,7 +682,7 @@ class MemberDuplicateDefinitionVerifier {
           arguments: [
             firstFragment.displayName,
             baseName,
-            inherited.enclosingElement!.name3!,
+            inherited.enclosingElement!.name!,
           ],
         );
       }
@@ -704,7 +704,7 @@ class MemberDuplicateDefinitionVerifier {
           arguments: [
             firstFragment.displayName,
             baseName,
-            inherited.enclosingElement.name3!,
+            inherited.enclosingElement.name!,
           ],
         );
       }
@@ -805,7 +805,7 @@ class MemberDuplicateDefinitionVerifier {
     var representationGetter = firstFragment.representation.element.getter2!;
     var elementContext = _getElementContext(firstFragment);
     elementContext.constructorNames.add(primaryConstructorName);
-    if (representationGetter.name3 case var getterName?) {
+    if (representationGetter.name case var getterName?) {
       elementContext.instanceScope[getterName] = _ScopeEntryElement(
         representationGetter,
       );

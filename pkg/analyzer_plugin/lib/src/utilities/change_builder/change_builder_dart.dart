@@ -277,7 +277,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       {ExecutableElement? methodBeingCopied,
       bool includeDefaultValues = true,
       bool requiredTypes = false}) {
-    var parameterNames = parameters.map((e) => e.name3).nonNulls.toSet();
+    var parameterNames = parameters.map((e) => e.name).nonNulls.toSet();
 
     write('(');
     var sawNamed = false;
@@ -300,13 +300,13 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         }
       }
       // Parameter.
-      var name = parameter.name3;
+      var name = parameter.name;
       if (name == null || name == '') {
         name = _generateUniqueName(parameterNames, 'p');
         parameterNames.add(name);
       }
       var groupPrefix =
-          methodBeingCopied != null ? '${methodBeingCopied.name3}:' : '';
+          methodBeingCopied != null ? '${methodBeingCopied.name}:' : '';
       writeFormalParameter(name,
           isCovariant: parameter.isCovariant,
           isRequiredNamed: parameter.isRequiredNamed,
@@ -591,7 +591,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         writeln();
         write(prefix2);
         selectAllIfSetSelection(
-            () => write('super.$memberName = ${parameters[0].name3};'));
+            () => write('super.$memberName = ${parameters[0].name};'));
       } else {
         if (setSelection) selectHere();
       }
@@ -823,7 +823,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   @override
   void writeTypeParameter(TypeParameterElement typeParameter,
       {ExecutableElement? methodBeingCopied}) {
-    write(typeParameter.name3 ?? '');
+    write(typeParameter.name ?? '');
     if (typeParameter.bound != null) {
       write(' extends ');
       _writeType(typeParameter.bound, methodBeingCopied: methodBeingCopied);
@@ -1140,7 +1140,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       } else if (expectedType.isDartCoreString) {
         _addSingleCharacterName(excluded, res, $s);
       } else if (expectedType is InterfaceType) {
-        var className = expectedType.element.name3;
+        var className = expectedType.element.name;
         _addAll(excluded, res, _getCamelWordCombinations(className));
       }
     }
@@ -1220,7 +1220,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     if (import == null) {
       return;
     }
-    import._ensureShown(element.name3!);
+    import._ensureShown(element.name!);
     var prefix = import.prefix;
     if (prefix.isNotEmpty) {
       write('$prefix.');
@@ -1238,10 +1238,10 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         write(', ');
       }
       if (parameters[i].isNamed) {
-        write(parameters[i].name3 ?? '');
+        write(parameters[i].name ?? '');
         write(': ');
       }
-      write(parameters[i].name3 ?? '');
+      write(parameters[i].name ?? '');
     }
     write(isOperator ? ';' : ');');
   }
@@ -1323,7 +1323,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
 
     if (type is TypeParameterType) {
-      write(type.element.name3!);
+      write(type.element.name!);
       _writeTypeNullability(type);
       return true;
     }
@@ -1649,7 +1649,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     }
 
     var existingImport = _getImportElement(element);
-    var name = element.name3;
+    var name = element.name;
     if (existingImport != null && name != null) {
       existingImport._ensureShown(name);
       return;
@@ -1668,7 +1668,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       var newImport = elementLibrariesToImport[element] = _importLibrary(
         uriToImport,
         isExplicitImport: false,
-        showName: element.name3,
+        showName: element.name,
       );
 
       // It's possible this new import can satisfy other pending element's
@@ -1705,7 +1705,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         in resolvedUnit.libraryElement2.firstFragment.libraryImports2) {
       var importedLibrary = import.importedLibrary2;
       if (importedLibrary != null && importedLibrary.uri == uri) {
-        var importPrefix = import.prefix2?.element.name3;
+        var importPrefix = import.prefix2?.element.name;
         if (import.hasCombinator) {
           if (importPrefix == null && showName != null) {
             _handleCombinators(import, showName);
@@ -2479,7 +2479,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         if (library == null) {
           continue;
         }
-        if ((element.prefix2?.element.name3 ?? '') != (prefix ?? '')) {
+        if ((element.prefix2?.element.name ?? '') != (prefix ?? '')) {
           // Imports need to have the same prefix to be replaced.
           continue;
         }

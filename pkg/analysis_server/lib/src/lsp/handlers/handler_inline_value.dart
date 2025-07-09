@@ -390,7 +390,7 @@ class _InlineValueVisitor extends GeneralizingAstVisitor<void> {
     var isInvocation = parent is InvocationExpression;
     if (!isTarget && !isInvocation) {
       switch (node.element) {
-        case analyzer.LocalVariableElement(name3: _?):
+        case analyzer.LocalVariableElement(name: _?):
         case analyzer.FormalParameterElement():
           collector.recordVariableLookup(
             node.element,

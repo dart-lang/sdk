@@ -277,7 +277,7 @@ class ElementBuilder {
     ConstructorFragmentImpl fragment,
   ) {
     var element = ConstructorElementImpl(
-      name3: fragment.name,
+      name: fragment.name,
       reference: _addInstanceReference(
         interfaceElement,
         '@constructor',
@@ -438,7 +438,7 @@ class ElementBuilder {
     } else {
       instanceElement.addMethod(
         MethodElementImpl(
-          name3: fragment.name,
+          name: fragment.name,
           reference: _addInstanceReference(
             instanceElement,
             '@method',

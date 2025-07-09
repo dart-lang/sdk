@@ -255,7 +255,7 @@ class FileResolver {
     Element element, {
     OperationPerformanceImpl? performance,
   }) {
-    return logger.runAsync('findReferences for ${element.name3}', () async {
+    return logger.runAsync('findReferences for ${element.name}', () async {
       var references = <CiderSearchMatch>[];
 
       Future<void> collectReferences2(

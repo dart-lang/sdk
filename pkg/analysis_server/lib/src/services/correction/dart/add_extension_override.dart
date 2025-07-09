@@ -51,7 +51,7 @@ class AddExtensionOverride extends MultiCorrectionProducer {
         );
     var producers = <ResolvedCorrectionProducer>[];
     for (var extension in extensions) {
-      var name = extension.extension.name3;
+      var name = extension.extension.name;
       if (name != null) {
         producers.add(_AddOverride(target, name, context: context));
       }

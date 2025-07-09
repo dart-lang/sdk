@@ -46,7 +46,7 @@ class ConflictValidatorVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     var nodeElement = node.element;
-    if (nodeElement != null && nodeElement.name3 == newName) {
+    if (nodeElement != null && nodeElement.name == newName) {
       if (conflictingLocals.contains(nodeElement)) {
         return;
       }
@@ -193,7 +193,7 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
               referenceElement: element,
               offset: fieldName.colon.offset,
               length: 0,
-              code: element.name3!,
+              code: element.name!,
             );
           }
         }

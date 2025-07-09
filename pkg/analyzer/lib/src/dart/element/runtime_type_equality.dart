@@ -82,7 +82,7 @@ class RuntimeTypeEqualityVisitor
       }
 
       if (T1_parameter.isNamed) {
-        if (T1_parameter.name3 != T2_parameter.name3) {
+        if (T1_parameter.name != T2_parameter.name) {
           return false;
         }
       }

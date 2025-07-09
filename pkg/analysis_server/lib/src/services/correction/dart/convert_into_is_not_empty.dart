@@ -47,7 +47,7 @@ class ConvertIntoIsNotEmpty extends ResolvedCorrectionProducer {
 
     // Should be `isEmpty`.
     var propertyElement = isEmptyIdentifier.element;
-    if (propertyElement == null || 'isEmpty' != propertyElement.name3) {
+    if (propertyElement == null || 'isEmpty' != propertyElement.name) {
       return;
     }
     // Should have `isNotEmpty`.

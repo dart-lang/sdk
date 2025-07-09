@@ -460,7 +460,7 @@ mixin ElementsTypesMixin {
           ..returnType = returnType
           ..typeParameters = typeParameters.map((e) => e.asElement).toList();
     MethodElementImpl(
-      name3: name,
+      name: name,
       reference: Reference.root(),
       firstFragment: fragment,
     );
@@ -676,7 +676,7 @@ mixin ElementsTypesMixin {
 
     var element = TypeParameterElementImpl(
       firstFragment: fragment,
-      name3: name,
+      name: name,
     );
     element.variance = variance;
     return element;
