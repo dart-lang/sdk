@@ -7,11 +7,18 @@
 import "dart:io";
 
 test(int i) async {
-  var socket = await RawSecureSocket.connect("www.google.com", 443);
-  await Future.delayed(
-    Duration(seconds: 6), // More than the thread pool timeout.
-  );
-  socket.close();
+  try {
+    var socket = await RawSecureSocket.connect("www.google.com", 443);
+    await Future.delayed(
+      Duration(seconds: 6), // More than the thread pool timeout.
+    );
+    socket.close();
+  } catch (e, st) {
+    // Ignore failures from the remote side rejecting/closing the connection.
+    if (!e.toString().contains("Connection reset by peer")) {
+      rethrow;
+    }
+  }
 }
 
 main() async {
