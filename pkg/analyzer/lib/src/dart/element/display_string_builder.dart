@@ -678,7 +678,9 @@ class ElementDisplayStringBuilder {
       _write('required ');
     }
 
-    _writeType(element.type);
+    // TODO(scheglov): write a placeholder, or remove completely
+    // When we do correct separate writing elements.
+    _writeType(element.element.type);
 
     if (forElement || element.isNamed) {
       _write(' ');
