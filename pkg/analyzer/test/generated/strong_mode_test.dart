@@ -417,7 +417,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     expect(type.element, elementB);
     _isInstantiationOf(_hasElement(elementB))([
       _isType(
-        elementA.typeParameters2[0].instantiate(
+        elementA.typeParameters[0].instantiate(
           nullabilitySuffix: NullabilitySuffix.none,
         ),
       ),

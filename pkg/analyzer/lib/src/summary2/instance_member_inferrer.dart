@@ -766,7 +766,7 @@ class InstanceMemberInferrer {
     ExecutableElement2OrMember element,
     FunctionTypeImpl overriddenType,
   ) {
-    var elementTypeParameters = element.typeParameters2;
+    var elementTypeParameters = element.typeParameters;
     var overriddenTypeParameters = overriddenType.typeParameters;
 
     if (elementTypeParameters.length != overriddenTypeParameters.length) {

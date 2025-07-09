@@ -67,7 +67,7 @@ class VarianceBuilder {
       if (element is InterfaceElementImpl) {
         var result = Variance.unrelated;
         if (arguments.isNotEmpty) {
-          var typeParameters = element.typeParameters2;
+          var typeParameters = element.typeParameters;
           for (
             var i = 0;
             i < arguments.length && i < typeParameters.length;
@@ -86,7 +86,7 @@ class VarianceBuilder {
         var result = Variance.unrelated;
 
         if (arguments.isNotEmpty) {
-          var typeParameters = element.typeParameters2;
+          var typeParameters = element.typeParameters;
           for (
             var i = 0;
             i < arguments.length && i < typeParameters.length;

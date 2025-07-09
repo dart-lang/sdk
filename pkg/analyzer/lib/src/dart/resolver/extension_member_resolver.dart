@@ -43,7 +43,7 @@ class ExtensionMemberResolver {
   /// not affect the type inference of the override and the receiver.
   TypeImpl? computeOverrideReceiverContextType(ExtensionOverride node) {
     var element = node.element;
-    var typeParameters = element.typeParameters2;
+    var typeParameters = element.typeParameters;
 
     var arguments = node.argumentList.arguments;
     if (arguments.length != 1) {
@@ -172,7 +172,7 @@ class ExtensionMemberResolver {
     }
 
     var substitution = Substitution.fromPairs2(
-      element.typeParameters2,
+      element.typeParameters,
       node.typeArgumentTypes!,
     );
 
@@ -197,7 +197,7 @@ class ExtensionMemberResolver {
     // TODO(paulberry): make this cast unnecessary by changing the type of
     // `ExtensionOverrideImpl.element2`.
     var typeParameters =
-        element.typeParameters2.cast<TypeParameterElementImpl>();
+        element.typeParameters.cast<TypeParameterElementImpl>();
 
     if (!_isValidContext(node)) {
       if (!_isCascadeTarget(node)) {
@@ -361,7 +361,7 @@ class ExtensionMemberResolver {
     required AstNodeImpl? nodeForTesting,
   }) {
     var element = node.element;
-    var typeParameters = element.typeParameters2;
+    var typeParameters = element.typeParameters;
     var typeArguments = node.typeArguments;
 
     if (typeArguments != null) {
@@ -412,7 +412,7 @@ class ExtensionMemberResolver {
   /// type formals of the extension.
   TypeImpl _instantiateToBounds(ExtensionElement extension) {
     extension as ExtensionElementImpl;
-    var typeParameters = extension.typeParameters2;
+    var typeParameters = extension.typeParameters;
     return Substitution.fromPairs2(
       typeParameters,
       _typeSystem.instantiateTypeFormalsToBounds(typeParameters),

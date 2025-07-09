@@ -182,7 +182,7 @@ class NamedTypeResolver with ScopeHelpers {
     if (element == enclosingClass) {
       return element.thisType;
     } else {
-      var typeParameters = element.typeParameters2;
+      var typeParameters = element.typeParameters;
       if (typeParameters.isEmpty) {
         return element.thisType;
       } else {
@@ -220,7 +220,7 @@ class NamedTypeResolver with ScopeHelpers {
         var typeArguments = _buildTypeArguments(
           node,
           argumentList,
-          element.typeParameters2.length,
+          element.typeParameters.length,
         );
         return element.instantiateImpl(
           typeArguments: typeArguments,
@@ -230,7 +230,7 @@ class NamedTypeResolver with ScopeHelpers {
         var typeArguments = _buildTypeArguments(
           node,
           argumentList,
-          element.typeParameters2.length,
+          element.typeParameters.length,
         );
         var type = element.instantiateImpl(
           typeArguments: typeArguments,
@@ -395,7 +395,7 @@ class NamedTypeResolver with ScopeHelpers {
       String name = node.name.lexeme;
       if (importPrefixElement is InstanceElement) {
         if (importPrefixElement is InterfaceElement) {
-          element = importPrefixElement.getNamedConstructor2(name);
+          element = importPrefixElement.getNamedConstructor(name);
         }
         element ??=
             importPrefixElement.getField(name) ??

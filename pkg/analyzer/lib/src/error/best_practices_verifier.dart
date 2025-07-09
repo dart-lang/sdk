@@ -1020,7 +1020,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         var signatureTypes = [
           ...element.formalParameters.map((p) => p.type),
           element.returnType,
-          ...element.typeParameters2.map((tp) => tp.bound),
+          ...element.typeParameters.map((tp) => tp.bound),
         ];
         for (var type in signatureTypes) {
           var aliasElement = type?.alias?.element;

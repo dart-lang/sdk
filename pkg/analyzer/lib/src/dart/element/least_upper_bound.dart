@@ -63,7 +63,7 @@ class InterfaceLeastUpperBoundHelper {
     if (type1.element == type2.element) {
       var args1 = type1.typeArguments;
       var args2 = type2.typeArguments;
-      var params = type1.element.typeParameters2;
+      var params = type1.element.typeParameters;
       assert(args1.length == args2.length);
       assert(args1.length == params.length);
 

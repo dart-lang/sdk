@@ -226,7 +226,7 @@ class DartCallHierarchyComputer {
         element is InterfaceElement &&
         target.kind == CallHierarchyKind.constructor;
     if (isImplicitConstructor) {
-      element = element.unnamedConstructor2;
+      element = element.unnamedConstructor;
     }
 
     // We only find incoming calls to executable elements.

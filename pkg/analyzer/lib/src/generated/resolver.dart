@@ -855,7 +855,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     if (typeNode.typeArguments == null) {
       var typeNameElement = typeNode.element;
       if (typeNameElement is InterfaceElementImpl) {
-        var typeParameters = typeNameElement.typeParameters2;
+        var typeParameters = typeNameElement.typeParameters;
         if (typeParameters.isNotEmpty) {
           var typeArguments = _inferTypeArguments(
             typeParameters: typeParameters,
@@ -872,7 +872,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           );
         }
       } else if (typeNameElement is TypeAliasElementImpl) {
-        var typeParameters = typeNameElement.typeParameters2;
+        var typeParameters = typeNameElement.typeParameters;
         if (typeParameters.isNotEmpty) {
           var typeArguments = _inferTypeArguments(
             typeParameters: typeParameters,
@@ -4921,7 +4921,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       var element = node.declaredFragment!.element;
       node.metadata.accept(this);
 
-      nameScope = TypeParameterScope(nameScope, element.typeParameters2);
+      nameScope = TypeParameterScope(nameScope, element.typeParameters);
       node.nameScope = nameScope;
       node.typeParameters?.accept(this);
       node.extendsClause?.accept(this);
@@ -4944,7 +4944,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     try {
       var element = node.declaredFragment!.element;
       nameScope = InstanceScope(
-        TypeParameterScope(nameScope, element.typeParameters2),
+        TypeParameterScope(nameScope, element.typeParameters),
         element,
       );
       _visitDocumentationComment(node.documentationComment);
@@ -5030,7 +5030,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       var element = node.declaredFragment!.element;
       node.metadata.accept(this);
 
-      nameScope = TypeParameterScope(nameScope, element.typeParameters2);
+      nameScope = TypeParameterScope(nameScope, element.typeParameters);
       node.nameScope = nameScope;
       node.typeParameters?.accept(this);
       node.withClause?.accept(this);
@@ -5058,7 +5058,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       var element = node.declaredFragment!.element;
       node.metadata.accept(this);
 
-      nameScope = TypeParameterScope(nameScope, element.typeParameters2);
+      nameScope = TypeParameterScope(nameScope, element.typeParameters);
       node.nameScope = nameScope;
       node.typeParameters?.accept(this);
       node.onClause?.accept(this);
@@ -5080,7 +5080,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       var element = node.declaredFragment!.element;
       node.metadata.accept(this);
 
-      nameScope = TypeParameterScope(nameScope, element.typeParameters2);
+      nameScope = TypeParameterScope(nameScope, element.typeParameters);
       node.nameScope = nameScope;
       node.typeParameters?.accept(this);
       node.representation.accept(this);
@@ -5186,7 +5186,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       var element = node.declaredFragment!.element;
       _enclosingClosure = element.ifTypeOrNull<LocalFunctionElement>();
       node.metadata.accept(this);
-      nameScope = TypeParameterScope(nameScope, element.typeParameters2);
+      nameScope = TypeParameterScope(nameScope, element.typeParameters);
       node.nameScope = nameScope;
       node.returnType?.accept(this);
       node.functionExpression.accept(this);
@@ -5215,7 +5215,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       }
 
       nameScope = FormalParameterScope(
-        TypeParameterScope(nameScope, element.typeParameters2),
+        TypeParameterScope(nameScope, element.typeParameters),
         element.formalParameters,
       );
       super.visitFunctionExpression(node);
@@ -5231,7 +5231,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     Scope outerScope = nameScope;
     try {
       var element = node.declaredFragment!.element;
-      nameScope = TypeParameterScope(nameScope, element.typeParameters2);
+      nameScope = TypeParameterScope(nameScope, element.typeParameters);
       node.returnType?.accept(this);
       node.typeParameters?.accept(this);
       node.parameters.accept(this);
@@ -5274,7 +5274,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     Scope outerScope = nameScope;
     try {
       var element = node.declaredFragment!.element;
-      nameScope = TypeParameterScope(nameScope, element.typeParameters2);
+      nameScope = TypeParameterScope(nameScope, element.typeParameters);
       node.nameScope = nameScope;
       super.visitGenericFunctionType(node);
     } finally {
@@ -5288,7 +5288,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     Scope outerScope = nameScope;
     try {
       var element = node.declaredFragment!.element;
-      nameScope = TypeParameterScope(nameScope, element.typeParameters2);
+      nameScope = TypeParameterScope(nameScope, element.typeParameters);
       node.nameScope = nameScope;
       node.typeParameters?.accept(this);
       node.type.accept(this);
@@ -5296,7 +5296,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       var aliasedElement = element.aliasedElement2;
       if (aliasedElement is GenericFunctionTypeElement) {
         nameScope = FormalParameterScope(
-          TypeParameterScope(nameScope, aliasedElement.typeParameters2),
+          TypeParameterScope(nameScope, aliasedElement.typeParameters),
           aliasedElement.formalParameters,
         );
       }
@@ -5373,7 +5373,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     Scope outerScope = nameScope;
     try {
       var element = node.declaredFragment!.element;
-      nameScope = TypeParameterScope(nameScope, element.typeParameters2);
+      nameScope = TypeParameterScope(nameScope, element.typeParameters);
       node.nameScope = nameScope;
       node.returnType?.accept(this);
       node.typeParameters?.accept(this);
@@ -5408,7 +5408,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       var element = node.declaredFragment!.element;
       node.metadata.accept(this);
 
-      nameScope = TypeParameterScope(nameScope, element.typeParameters2);
+      nameScope = TypeParameterScope(nameScope, element.typeParameters);
       node.nameScope = nameScope;
       node.typeParameters?.accept(this);
       node.onClause?.accept(this);

@@ -127,7 +127,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     var element = node.declaredFragment!.element;
 
-    scope = TypeParameterScope(scope, element.typeParameters2);
+    scope = TypeParameterScope(scope, element.typeParameters);
     LinkingNodeContext(node, scope);
 
     node.metadata.accept(this);

@@ -130,6 +130,11 @@
 * Deprecate `DartType.asInstanceOf2`, use `asInstanceOf` instead.
 * Deprecate `TypeSystem.instantiateInterfaceToBounds2`, use `instantiateInterfaceToBounds` instead.
 * Deprecate `TypeSystem.instantiateTypeAliasToBounds2`, use `instantiateTypeAliasToBounds` instead.
+* Deprecate `FormalParameterElement.appendToWithoutDelimiters`, use `appendToWithoutDelimiters` instead.
+* Deprecate `GetterElement.correspondingSetter2`, use `correspondingSetter` instead.
+* Deprecate `InterfaceElement.unnamedConstructor2`, use `unnamedConstructor` instead.
+* Deprecate `InterfaceElement.getNamedConstructor2`, use `getNamedConstructor` instead.
+* Deprecate `TypeParameterizedElement.typeParameters2`, use `typeParameters` instead.
 
 ## 7.4.1
 * Restore `InstanceElement.augmented` getter.

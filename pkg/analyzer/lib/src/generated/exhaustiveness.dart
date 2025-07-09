@@ -210,11 +210,11 @@ class AnalyzerSealedClassOperations
       }
       if (trivialSubstitution) {
         Substitution substitution = Substitution.fromPairs2(
-          subClass.typeParameters2,
+          subClass.typeParameters,
           sealedClassType.typeArguments,
         );
-        for (int i = 0; i < subClass.typeParameters2.length; i++) {
-          var bound = subClass.typeParameters2[i].bound;
+        for (int i = 0; i < subClass.typeParameters.length; i++) {
+          var bound = subClass.typeParameters[i].bound;
           if (bound != null &&
               !_typeSystem.isSubtypeOf(
                 sealedClassType.typeArguments[i],

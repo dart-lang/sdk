@@ -173,7 +173,7 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
         }
         var element = node.element;
         if (element is InterfaceElement) {
-          return element.unnamedConstructor2;
+          return element.unnamedConstructor;
         }
       } else if (parent.name == node.endToken) {
         return parent.declaredFragment?.element;

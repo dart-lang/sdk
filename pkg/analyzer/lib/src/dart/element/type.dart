@@ -921,9 +921,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     // prepare base ConstructorElement
     ConstructorElementImpl? constructorElement;
     if (constructorName == null) {
-      constructorElement = element.unnamedConstructor2;
+      constructorElement = element.unnamedConstructor;
     } else {
-      constructorElement = element.getNamedConstructor2(constructorName);
+      constructorElement = element.getNamedConstructor(constructorName);
     }
     // not found or not accessible
     if (constructorElement == null ||
@@ -1134,7 +1134,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (definedTypes.isEmpty) return definedTypes;
 
     MapSubstitution? substitution;
-    if (element.typeParameters2.isNotEmpty) {
+    if (element.typeParameters.isNotEmpty) {
       substitution = Substitution.fromInterfaceType(this);
     }
 

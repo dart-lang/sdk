@@ -38,7 +38,7 @@ class ClassItem extends InterfaceItem<ClassElementImpl> {
     required EncodeContext context,
     required ClassElementImpl element,
   }) {
-    return context.withTypeParameters(element.typeParameters2, (
+    return context.withTypeParameters(element.typeParameters, (
       typeParameters,
     ) {
       return ClassItem(
@@ -103,7 +103,7 @@ class EnumItem extends InterfaceItem<EnumElementImpl> {
     required EncodeContext context,
     required EnumElementImpl element,
   }) {
-    return context.withTypeParameters(element.typeParameters2, (
+    return context.withTypeParameters(element.typeParameters, (
       typeParameters,
     ) {
       return EnumItem(
@@ -168,7 +168,7 @@ class ExtensionItem<E extends ExtensionElementImpl> extends InstanceItem<E> {
     required EncodeContext context,
     required ExtensionElementImpl element,
   }) {
-    return context.withTypeParameters(element.typeParameters2, (
+    return context.withTypeParameters(element.typeParameters, (
       typeParameters,
     ) {
       return ExtensionItem(
@@ -239,7 +239,7 @@ class ExtensionTypeItem extends InterfaceItem<ExtensionTypeElementImpl> {
     required EncodeContext context,
     required ExtensionTypeElementImpl element,
   }) {
-    return context.withTypeParameters(element.typeParameters2, (
+    return context.withTypeParameters(element.typeParameters, (
       typeParameters,
     ) {
       return ExtensionTypeItem(
@@ -471,9 +471,9 @@ sealed class InstanceItem<E extends InstanceElementImpl>
 
   @override
   bool match(MatchContext context, E element) {
-    context.addTypeParameters(element.typeParameters2);
+    context.addTypeParameters(element.typeParameters);
     return super.match(context, element) &&
-        typeParameters.match(context, element.typeParameters2);
+        typeParameters.match(context, element.typeParameters);
   }
 
   @override
@@ -1153,7 +1153,7 @@ class MixinItem extends InterfaceItem<MixinElementImpl> {
     required EncodeContext context,
     required MixinElementImpl element,
   }) {
-    return context.withTypeParameters(element.typeParameters2, (
+    return context.withTypeParameters(element.typeParameters, (
       typeParameters,
     ) {
       return MixinItem(
@@ -1415,7 +1415,7 @@ class TypeAliasItem extends TopLevelItem<TypeAliasElementImpl> {
     required EncodeContext context,
     required TypeAliasElementImpl element,
   }) {
-    return context.withTypeParameters(element.typeParameters2, (
+    return context.withTypeParameters(element.typeParameters, (
       typeParameters,
     ) {
       return TypeAliasItem(
@@ -1438,7 +1438,7 @@ class TypeAliasItem extends TopLevelItem<TypeAliasElementImpl> {
 
   @override
   bool match(MatchContext context, TypeAliasElementImpl element) {
-    context.addTypeParameters(element.typeParameters2);
+    context.addTypeParameters(element.typeParameters);
     return super.match(context, element) &&
         aliasedType.match(context, element.aliasedType);
   }

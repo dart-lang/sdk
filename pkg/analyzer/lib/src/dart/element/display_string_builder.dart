@@ -131,7 +131,7 @@ class ElementDisplayStringBuilder {
     _write(name);
 
     if (element.kind != ElementKind.GETTER) {
-      _writeTypeParameters2(element.typeParameters2);
+      _writeTypeParameters2(element.typeParameters);
       _writeFormalParameters2(
         element.formalParameters,
         forElement: true,

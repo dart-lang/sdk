@@ -88,7 +88,7 @@ class CommentReferenceResolver {
             prefixElement.getMethod(name.name) ??
             prefixElement.getGetter(name.name) ??
             prefixElement.getSetter(name.name) ??
-            prefixElement.getNamedConstructor2(name.name);
+            prefixElement.getNamedConstructor(name.name);
       } else if (prefixElement is ExtensionElement) {
         name.element =
             prefixElement.getMethod(name.name) ??
@@ -98,7 +98,7 @@ class CommentReferenceResolver {
         // TODO(brianwilkerson): Report this error.
       }
     } else if (prefixElement is InterfaceElement) {
-      var constructor = prefixElement.getNamedConstructor2(name.name);
+      var constructor = prefixElement.getNamedConstructor(name.name);
       if (constructor == null) {
         // TODO(brianwilkerson): Report this error.
       } else {
@@ -148,7 +148,7 @@ class CommentReferenceResolver {
           element.getMethod(propertyName.name) ??
           element.getGetter(propertyName.name) ??
           element.getSetter(propertyName.name) ??
-          element.getNamedConstructor2(propertyName.name);
+          element.getNamedConstructor(propertyName.name);
     } else if (element is ExtensionElement) {
       propertyName.element =
           element.getMethod(propertyName.name) ??
@@ -217,7 +217,7 @@ class CommentReferenceResolver {
     expression.element = element;
     if (hasNewKeyword) {
       if (element is InterfaceElement) {
-        var constructor = element.unnamedConstructor2;
+        var constructor = element.unnamedConstructor;
         if (constructor == null) {
           // TODO(brianwilkerson): Report this error.
         } else {

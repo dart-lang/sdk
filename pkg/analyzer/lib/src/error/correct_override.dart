@@ -189,9 +189,9 @@ class CovariantParametersVerifier {
     Substitution result = Substitution.fromInterfaceType(superMember.interface);
 
     // If the executable has type parameters, ensure that super uses the same.
-    var thisTypeParameters = _thisMember.typeParameters2;
+    var thisTypeParameters = _thisMember.typeParameters;
     if (thisTypeParameters.isNotEmpty) {
-      var superTypeParameters = superMember.rawElement.typeParameters2;
+      var superTypeParameters = superMember.rawElement.typeParameters;
       if (thisTypeParameters.length == superTypeParameters.length) {
         var typeParametersSubstitution = Substitution.fromPairs2(
           superTypeParameters,

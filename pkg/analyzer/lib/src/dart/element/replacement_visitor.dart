@@ -365,7 +365,7 @@ class ReplacementVisitor
     var alias = type.alias;
     if (alias != null) {
       var newArguments = _typeArguments(
-        alias.element.typeParameters2,
+        alias.element.typeParameters,
         alias.typeArguments,
       );
       if (newArguments != null) {
@@ -377,7 +377,7 @@ class ReplacementVisitor
     }
 
     var newTypeArguments = _typeArguments(
-      type.element.typeParameters2,
+      type.element.typeParameters,
       type.typeArguments,
     );
 
@@ -401,9 +401,9 @@ class ReplacementVisitor
     var parameters = const <TypeParameterElementImpl>[];
     var element = type.element;
     if (element is InterfaceElementImpl) {
-      parameters = element.typeParameters2;
+      parameters = element.typeParameters;
     } else if (element is TypeAliasElementImpl) {
-      parameters = element.typeParameters2;
+      parameters = element.typeParameters;
     }
 
     var newArguments = _typeArguments(parameters, type.arguments);
@@ -437,7 +437,7 @@ class ReplacementVisitor
     var alias = type.alias;
     if (alias != null) {
       var newArguments = _typeArguments(
-        alias.element.typeParameters2,
+        alias.element.typeParameters,
         alias.typeArguments,
       );
       if (newArguments != null) {

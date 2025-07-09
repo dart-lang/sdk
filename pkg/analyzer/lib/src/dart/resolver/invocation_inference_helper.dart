@@ -85,20 +85,20 @@ class InvocationInferenceHelper {
     ConstructorElementMixin2? rawElement;
 
     if (typeElement is InterfaceElementImpl) {
-      typeParameters = typeElement.typeParameters2;
+      typeParameters = typeElement.typeParameters;
       var constructorIdentifier = constructorName;
       if (constructorIdentifier == null) {
-        rawElement = typeElement.unnamedConstructor2;
+        rawElement = typeElement.unnamedConstructor;
       } else {
         var name = constructorIdentifier.name;
-        rawElement = typeElement.getNamedConstructor2(name);
+        rawElement = typeElement.getNamedConstructor(name);
         if (rawElement != null &&
             !rawElement.isAccessibleIn(definingLibrary)) {
           rawElement = null;
         }
       }
     } else if (typeElement is TypeAliasElementImpl) {
-      typeParameters = typeElement.typeParameters2;
+      typeParameters = typeElement.typeParameters;
       var aliasedType = typeElement.aliasedType;
       if (aliasedType is InterfaceTypeImpl) {
         var constructorIdentifier = constructorName;

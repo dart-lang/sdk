@@ -188,7 +188,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     }
 
     if (inCompound) {
-      if (node.declaredFragment!.element.typeParameters2.isNotEmpty) {
+      if (node.declaredFragment!.element.typeParameters.isNotEmpty) {
         _diagnosticReporter.atToken(
           node.name,
           FfiCode.GENERIC_STRUCT_SUBCLASS,

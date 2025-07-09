@@ -42,7 +42,7 @@ class MoveTypeArgumentsToClass extends ResolvedCorrectionProducer {
     var type = namedType.typeOrThrow;
     if (type is InterfaceTypeImpl) {
       var element = type.element;
-      if (element.typeParameters2.length == typeArguments.arguments.length) {
+      if (element.typeParameters.length == typeArguments.arguments.length) {
         await builder.addDartFileEdit(file, (builder) {
           var argumentText = utils.getNodeText(typeArguments);
           builder.addSimpleInsertion(namedType.end, argumentText);

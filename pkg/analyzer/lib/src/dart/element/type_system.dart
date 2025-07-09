@@ -525,7 +525,7 @@ class TypeSystemImpl implements TypeSystem {
       }
     }
     return candidates
-        .where((type) => type.element.typeParameters2.isNotEmpty)
+        .where((type) => type.element.typeParameters.isNotEmpty)
         .toList();
   }
 
@@ -699,7 +699,7 @@ class TypeSystemImpl implements TypeSystem {
     required covariant InterfaceElementImpl element,
     required NullabilitySuffix nullabilitySuffix,
   }) {
-    var typeParameters = element.typeParameters2;
+    var typeParameters = element.typeParameters;
     var typeArguments = _defaultTypeArguments(typeParameters);
     return element.instantiateImpl(
       typeArguments: typeArguments,
@@ -739,7 +739,7 @@ class TypeSystemImpl implements TypeSystem {
     required covariant TypeAliasElementImpl element,
     required NullabilitySuffix nullabilitySuffix,
   }) {
-    var typeParameters = element.typeParameters2;
+    var typeParameters = element.typeParameters;
     var typeArguments = _defaultTypeArguments(typeParameters);
     return element.instantiateImpl(
       typeArguments: typeArguments,

@@ -55,7 +55,7 @@ class _Visitor extends SimpleAstVisitor<void> {
                 ?.element
                 .supertype
                 ?.element
-                .unnamedConstructor2;
+                .unnamedConstructor;
       }
     }
     if (superConstructor is! ConstructorElement) return;

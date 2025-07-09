@@ -883,7 +883,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
         return true;
       }
       if (enclosingElement is ConstructorElement &&
-          enclosingElement.enclosingElement.typeParameters2.isNotEmpty) {
+          enclosingElement.enclosingElement.typeParameters.isNotEmpty) {
         // There is an issue matching arguments of instance creation
         // expressions for generic classes with parameters, so for now,
         // consider every parameter of a constructor of a generic class
@@ -907,7 +907,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
         }
       }
       if (enclosingElement is ExecutableElement) {
-        if (enclosingElement.typeParameters2.isNotEmpty) {
+        if (enclosingElement.typeParameters.isNotEmpty) {
           // There is an issue matching arguments of generic function
           // invocations with parameters, so for now, consider every parameter
           // of a generic function "used". See

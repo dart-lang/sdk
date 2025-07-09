@@ -221,7 +221,7 @@ extension NotInstantiatedExtensionsExtensions<R>
     for (var notInstantiated in this) {
       var extension = notInstantiated.extension;
 
-      var freshTypes = getFreshTypeParameters2(extension.typeParameters2);
+      var freshTypes = getFreshTypeParameters2(extension.typeParameters);
       var freshTypeParameters = freshTypes.freshTypeParameters;
       var rawExtendedType = freshTypes.substitute(extension.extendedType);
       // Casts aren't relevant in extension applicability.
@@ -255,7 +255,7 @@ extension NotInstantiatedExtensionsExtensions<R>
       }
 
       var substitution = Substitution.fromPairs2(
-        extension.typeParameters2,
+        extension.typeParameters,
         inferredTypes,
       );
       var extendedType = substitution.substituteType(extension.extendedType);

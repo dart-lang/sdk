@@ -313,9 +313,9 @@ class DefaultTypesBuilder {
           }
 
           if (declaration is InterfaceElement) {
-            recurseParameters(declaration.typeParameters2);
+            recurseParameters(declaration.typeParameters);
           } else if (declaration is TypeAliasElement) {
-            recurseParameters(declaration.typeParameters2);
+            recurseParameters(declaration.typeParameters);
           }
           visited.remove(startType.element);
         }

@@ -206,7 +206,7 @@ class LibraryManifestBuilder {
     });
     newItems[lookupName] = classItem;
 
-    encodingContext.withTypeParameters(element.typeParameters2, (
+    encodingContext.withTypeParameters(element.typeParameters, (
       typeParameters,
     ) {
       classItem.beforeUpdatingMembers();
@@ -291,7 +291,7 @@ class LibraryManifestBuilder {
     });
     newItems[lookupName] = enumItem;
 
-    encodingContext.withTypeParameters(element.typeParameters2, (
+    encodingContext.withTypeParameters(element.typeParameters, (
       typeParameters,
     ) {
       enumItem.beforeUpdatingMembers();
@@ -318,7 +318,7 @@ class LibraryManifestBuilder {
     });
     newItems[lookupName] = extensionItem;
 
-    encodingContext.withTypeParameters(element.typeParameters2, (
+    encodingContext.withTypeParameters(element.typeParameters, (
       typeParameters,
     ) {
       extensionItem.beforeUpdatingMembers();
@@ -345,7 +345,7 @@ class LibraryManifestBuilder {
     });
     newItems[lookupName] = extensionTypeItem;
 
-    encodingContext.withTypeParameters(element.typeParameters2, (
+    encodingContext.withTypeParameters(element.typeParameters, (
       typeParameters,
     ) {
       extensionTypeItem.beforeUpdatingMembers();
@@ -542,7 +542,7 @@ class LibraryManifestBuilder {
     });
     newItems[lookupName] = mixinItem;
 
-    encodingContext.withTypeParameters(element.typeParameters2, (
+    encodingContext.withTypeParameters(element.typeParameters, (
       typeParameters,
     ) {
       mixinItem.beforeUpdatingMembers();

@@ -198,7 +198,7 @@ abstract class Substitution {
     if (type.typeArguments.isEmpty) {
       return _NullSubstitution.instance;
     }
-    return fromPairs2(type.element.typeParameters2, type.typeArguments);
+    return fromPairs2(type.element.typeParameters, type.typeArguments);
   }
 
   /// Substitutes each parameter to the type it maps to in [map].

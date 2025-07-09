@@ -334,7 +334,7 @@ class FunctionReferenceResolver {
       // `node.typeArguments`, coming from the parser, is never null.
       node.typeArguments!,
       name.name,
-      element.typeParameters2,
+      element.typeParameters,
       CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
     );
     var type = element.instantiateImpl(
@@ -880,7 +880,7 @@ class FunctionReferenceResolver {
       // `node.typeArguments`, coming from the parser, is never null.
       node.typeArguments!,
       element.name,
-      element.typeParameters2,
+      element.typeParameters,
       CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
     );
     var type = element.instantiateImpl(

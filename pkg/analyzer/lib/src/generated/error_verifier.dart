@@ -2412,7 +2412,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Verify all conflicts between type variable and enclosing class.
   void _checkForConflictingClassTypeVariableErrorCodes() {
     var enclosingClass = _enclosingClass!;
-    for (TypeParameterElement typeParameter in enclosingClass.typeParameters2) {
+    for (TypeParameterElement typeParameter in enclosingClass.typeParameters) {
       if (typeParameter.isWildcardVariable) continue;
 
       var name = typeParameter.name;
@@ -2427,7 +2427,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         diagnosticReporter.atElement2(typeParameter, code, arguments: [name]);
       }
       // check members
-      if (enclosingClass.getNamedConstructor2(name) != null ||
+      if (enclosingClass.getNamedConstructor(name) != null ||
           enclosingClass.getMethod(name) != null ||
           enclosingClass.getGetter(name) != null ||
           enclosingClass.getSetter(name) != null) {
@@ -2486,7 +2486,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
       // check members
       var element = fragment.element;
-      if (element.getNamedConstructor2(name) != null ||
+      if (element.getNamedConstructor(name) != null ||
           element.getMethod(name) != null ||
           element.getGetter(name) != null ||
           element.getSetter(name) != null) {
@@ -2506,7 +2506,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// [CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION].
   void _checkForConflictingExtensionTypeVariableErrorCodes() {
     for (TypeParameterElement typeParameter
-        in _enclosingExtension!.typeParameters2) {
+        in _enclosingExtension!.typeParameters) {
       var name = typeParameter.name;
       if (name == null) continue;
 
@@ -4619,7 +4619,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
     var superElement = superType.element;
     // try to find default generative super constructor
-    var superUnnamedConstructor = superElement.unnamedConstructor2;
+    var superUnnamedConstructor = superElement.unnamedConstructor;
     if (superUnnamedConstructor != null) {
       if (superUnnamedConstructor.isFactory) {
         diagnosticReporter.atElement2(
@@ -5441,7 +5441,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    var superUnnamedConstructor = superElement.unnamedConstructor2;
+    var superUnnamedConstructor = superElement.unnamedConstructor;
     if (superUnnamedConstructor == null) {
       diagnosticReporter.atNode(
         constructor.returnType,

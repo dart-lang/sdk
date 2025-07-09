@@ -104,7 +104,7 @@ class NamedTypeBuilder extends TypeBuilder {
 
     var element = this.element;
     if (element is InterfaceElementImpl) {
-      var parameters = element.typeParameters2;
+      var parameters = element.typeParameters;
       var arguments = _buildArguments(parameters);
       _type = element.instantiateImpl(
         typeArguments: arguments,
@@ -112,7 +112,7 @@ class NamedTypeBuilder extends TypeBuilder {
       );
     } else if (element is TypeAliasElementImpl) {
       var aliasedType = _getAliasedType(element);
-      var parameters = element.typeParameters2;
+      var parameters = element.typeParameters;
       var arguments = _buildArguments(parameters);
       element.aliasedType = aliasedType;
       _type = element.instantiateImpl(

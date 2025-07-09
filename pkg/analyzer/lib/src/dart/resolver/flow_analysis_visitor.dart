@@ -586,7 +586,7 @@ class TypeSystemOperations
     InterfaceElementImpl typeDeclaration,
     int parameterIndex,
   ) {
-    return typeDeclaration.typeParameters2[parameterIndex].variance;
+    return typeDeclaration.typeParameters[parameterIndex].variance;
   }
 
   @override

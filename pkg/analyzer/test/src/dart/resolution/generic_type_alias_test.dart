@@ -313,16 +313,16 @@ class B {}
 typedef F<T extends A> = B Function<U extends B>(T a, U b);
 ''');
     var f = findElement2.typeAlias('F');
-    expect(f.typeParameters2, hasLength(1));
+    expect(f.typeParameters, hasLength(1));
 
-    var t = f.typeParameters2[0];
+    var t = f.typeParameters[0];
     expect(t.name, 'T');
     assertType(t.bound, 'A');
 
     var ff = f.aliasedElement2 as GenericFunctionTypeElement;
-    expect(ff.typeParameters2, hasLength(1));
+    expect(ff.typeParameters, hasLength(1));
 
-    var u = ff.typeParameters2[0];
+    var u = ff.typeParameters[0];
     expect(u.name, 'U');
     assertType(u.bound, 'B');
   }

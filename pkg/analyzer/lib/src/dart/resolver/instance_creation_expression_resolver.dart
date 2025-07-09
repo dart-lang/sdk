@@ -79,7 +79,7 @@ class InstanceCreationExpressionResolver {
       // rewritten [DotShorthandConstructorInvocation] that resulted from
       // resolving a [DotShorthandInvocation].
       if (node.element == null) {
-        if (contextElement.getNamedConstructor2(node.constructorName.name)
+        if (contextElement.getNamedConstructor(node.constructorName.name)
             case ConstructorElementImpl element?
             when element.isAccessibleIn(_resolver.definingLibrary)) {
           node.element = element;

@@ -728,7 +728,7 @@ class RelevanceComputer {
 
   /// Return the [DartType] for an instantiated [TypeAlias].
   DartType _instantiateTypeAlias(TypeAliasElement element) {
-    var typeParameters = element.typeParameters2;
+    var typeParameters = element.typeParameters;
     var typeArguments = const <DartType>[];
     if (typeParameters.isNotEmpty) {
       var neverType = request.libraryElement.typeProvider.neverType;
