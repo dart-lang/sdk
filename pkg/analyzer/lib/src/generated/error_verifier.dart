@@ -757,7 +757,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
 
       if (!declaredFragment.isAugmentation) {
-        if (element.constants2.isEmpty) {
+        if (element.constants.isEmpty) {
           diagnosticReporter.atToken(
             node.name,
             CompileTimeErrorCode.ENUM_WITHOUT_CONSTANTS,
@@ -934,7 +934,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     _checkForPrivateOptionalParameter(node);
     _checkForFieldInitializingFormalRedirectingConstructor(node);
     _checkForTypeAnnotationDeferredClass(node.type);
-    var fieldElement = node.declaredFragment?.element.field2;
+    var fieldElement = node.declaredFragment?.element.field;
     if (fieldElement != null) {
       _checkForAbstractOrExternalFieldConstructorInitializer(
         node.name,
@@ -2753,11 +2753,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     // Redirecting constructors are checked to be const elsewhere.
-    if (element.redirectedConstructor2 != null) {
+    if (element.redirectedConstructor != null) {
       return false;
     }
 
-    var invokedSuper = element.superConstructor2;
+    var invokedSuper = element.superConstructor;
     if (invokedSuper == null || invokedSuper.isConst) {
       return false;
     }
@@ -3065,7 +3065,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           awaitKeyword != null
               ? _typeProvider.streamElement
               : _typeProvider.iterableElement;
-      var sequenceType = iterableType.asInstanceOf2(sequenceElement);
+      var sequenceType = iterableType.asInstanceOf(sequenceElement);
       if (sequenceType != null) {
         sequenceElementType = sequenceType.typeArguments[0];
       }
@@ -5689,7 +5689,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
     var element = parameter.declaredFragment?.element;
     if (element is FieldFormalParameterElementImpl) {
-      var fieldElement = element.field2;
+      var fieldElement = element.field;
       if (fieldElement == null || fieldElement.isSynthetic) {
         diagnosticReporter.atNode(
           parameter,
@@ -6292,7 +6292,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         return identical(current, constructor);
       }
       constructors.add(current);
-      current = current.redirectedConstructor2?.baseElement;
+      current = current.redirectedConstructor?.baseElement;
     }
     return false;
   }
@@ -6476,7 +6476,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         var element =
             (parameter.declaredFragment as FieldFormalParameterFragment)
                 .element;
-        fields.remove(element.field2);
+        fields.remove(element.field);
       }
     }
 

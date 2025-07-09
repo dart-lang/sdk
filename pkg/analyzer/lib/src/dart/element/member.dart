@@ -73,9 +73,15 @@ class ConstructorMember extends ExecutableMember
   LibraryElementImpl get library2 => library;
 
   @override
-  ConstructorElementMixin2? get redirectedConstructor2 {
-    var element = baseElement.redirectedConstructor2;
+  ConstructorElementMixin2? get redirectedConstructor {
+    var element = baseElement.redirectedConstructor;
     return _redirect(element);
+  }
+
+  @Deprecated('Use redirectedConstructor instead')
+  @override
+  ConstructorElementMixin2? get redirectedConstructor2 {
+    return redirectedConstructor;
   }
 
   @override
@@ -88,8 +94,14 @@ class ConstructorMember extends ExecutableMember
   Version? get sinceSdkVersion => baseElement.sinceSdkVersion;
 
   @override
+  ConstructorElementMixin2? get superConstructor {
+    return _redirect(baseElement.superConstructor);
+  }
+
+  @Deprecated('Use superConstructor instead')
+  @override
   ConstructorElementMixin2? get superConstructor2 {
-    return _redirect(baseElement.superConstructor2);
+    return superConstructor;
   }
 
   @override
@@ -170,8 +182,14 @@ abstract class ExecutableMember extends Member
   });
 
   @override
-  List<Element> get children2 {
+  List<Element> get children {
     return [...typeParameters2, ...formalParameters];
+  }
+
+  @Deprecated('Use children instead')
+  @override
+  List<Element> get children2 {
+    return children;
   }
 
   @override
@@ -274,10 +292,7 @@ abstract class ExecutableMember extends Member
   }
 
   @override
-  String displayString2({
-    bool multiline = false,
-    bool preferTypeAlias = false,
-  }) {
+  String displayString({bool multiline = false, bool preferTypeAlias = false}) {
     var builder = ElementDisplayStringBuilder(
       multiline: multiline,
       preferTypeAlias: preferTypeAlias,
@@ -286,11 +301,29 @@ abstract class ExecutableMember extends Member
     return builder.toString();
   }
 
+  @Deprecated('Use displayString instead')
   @override
-  void visitChildren2<T>(ElementVisitor2<T> visitor) {
-    for (var child in children2) {
+  String displayString2({
+    bool multiline = false,
+    bool preferTypeAlias = false,
+  }) {
+    return displayString(
+      multiline: multiline,
+      preferTypeAlias: preferTypeAlias,
+    );
+  }
+
+  @override
+  void visitChildren<T>(ElementVisitor2<T> visitor) {
+    for (var child in children) {
       child.accept(visitor);
     }
+  }
+
+  @Deprecated('Use visitChildren instead')
+  @override
+  void visitChildren2<T>(ElementVisitor2<T> visitor) {
+    return visitChildren(visitor);
   }
 
   static ExecutableElement2OrMember from(
@@ -346,20 +379,20 @@ class FieldFormalParameterMember extends ParameterMember
     required MapSubstitution substitution,
   }) {
     var freshTypeParameters = _SubstitutedTypeParameters(
-      baseElement.typeParameters2.cast(),
+      baseElement.typeParameters.cast(),
       substitution,
     );
     return FieldFormalParameterMember._(
       baseElement: baseElement,
       substitution: freshTypeParameters.substitution,
-      typeParameters2: freshTypeParameters.elements,
+      typeParameters: freshTypeParameters.elements,
     );
   }
 
   FieldFormalParameterMember._({
     required FieldFormalParameterElementImpl super.baseElement,
     required super.substitution,
-    required super.typeParameters2,
+    required super.typeParameters,
   }) : super._();
 
   @override
@@ -367,13 +400,19 @@ class FieldFormalParameterMember extends ParameterMember
       super.baseElement as FieldFormalParameterElementImpl;
 
   @override
-  FieldElement? get field2 {
-    var field = baseElement.field2;
+  FieldElement? get field {
+    var field = baseElement.field;
     if (field == null) {
       return null;
     }
 
     return FieldMember.from(field, substitution);
+  }
+
+  @Deprecated('Use field instead')
+  @override
+  FieldElement? get field2 {
+    return field;
   }
 
   @override
@@ -405,7 +444,11 @@ class FieldMember extends VariableMember implements FieldElement2OrMember {
   FieldElementImpl get baseElement => super.baseElement as FieldElementImpl;
 
   @override
-  List<Element> get children2 => const [];
+  List<Element> get children => const [];
+
+  @Deprecated('Use children instead')
+  @override
+  List<Element> get children2 => children;
 
   @override
   String? get documentationComment => baseElement.documentationComment;
@@ -495,7 +538,13 @@ class FieldMember extends VariableMember implements FieldElement2OrMember {
   T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   @override
-  void visitChildren2<T>(ElementVisitor2<T> visitor) {}
+  void visitChildren<T>(ElementVisitor2<T> visitor) {}
+
+  @Deprecated('Use visitChildren instead')
+  @override
+  void visitChildren2<T>(ElementVisitor2<T> visitor) {
+    visitChildren(visitor);
+  }
 
   static FieldElement2OrMember from(
     FieldElementImpl element,
@@ -637,23 +686,47 @@ abstract class Member implements Element {
   void appendTo(ElementDisplayStringBuilder builder);
 
   @override
-  String getExtendedDisplayName2({String? shortName}) {
-    return baseElement.getExtendedDisplayName2(shortName: shortName);
+  String getExtendedDisplayName({String? shortName}) {
+    return baseElement.getExtendedDisplayName(shortName: shortName);
   }
 
+  @Deprecated('Use getExtendedDisplayName instead')
+  @override
+  String getExtendedDisplayName2({String? shortName}) {
+    return getExtendedDisplayName(shortName: shortName);
+  }
+
+  @override
+  bool isAccessibleIn(LibraryElement library) {
+    return baseElement.isAccessibleIn(library);
+  }
+
+  @Deprecated('Use isAccessibleIn instead')
   @override
   bool isAccessibleIn2(LibraryElement library) {
-    return baseElement.isAccessibleIn2(library);
+    return isAccessibleIn(library);
   }
 
+  @override
+  Element? thisOrAncestorMatching(bool Function(Element e) predicate) {
+    return baseElement.thisOrAncestorMatching(predicate);
+  }
+
+  @Deprecated('Use thisOrAncestorMatching instead')
   @override
   Element? thisOrAncestorMatching2(bool Function(Element e) predicate) {
-    return baseElement.thisOrAncestorMatching2(predicate);
+    return thisOrAncestorMatching(predicate);
   }
 
   @override
+  E? thisOrAncestorOfType<E extends Element>() {
+    return baseElement.thisOrAncestorOfType<E>();
+  }
+
+  @Deprecated('Use thisOrAncestorOfType instead')
+  @override
   E? thisOrAncestorOfType2<E extends Element>() {
-    return baseElement.thisOrAncestorOfType2<E>();
+    return thisOrAncestorOfType();
   }
 
   @override
@@ -744,20 +817,20 @@ class MethodMember extends ExecutableMember implements MethodElement2OrMember {
 /// type parameters are known.
 class ParameterMember extends VariableMember with FormalParameterElementMixin {
   @override
-  final List<TypeParameterElementImpl> typeParameters2;
+  final List<TypeParameterElementImpl> typeParameters;
 
   factory ParameterMember({
     required FormalParameterElementImpl baseElement,
     required MapSubstitution substitution,
   }) {
     var freshTypeParameters = _SubstitutedTypeParameters(
-      baseElement.typeParameters2.cast(),
+      baseElement.typeParameters.cast(),
       substitution,
     );
     return ParameterMember._(
       baseElement: baseElement,
       substitution: freshTypeParameters.substitution,
-      typeParameters2: freshTypeParameters.elements,
+      typeParameters: freshTypeParameters.elements,
     );
   }
 
@@ -766,7 +839,7 @@ class ParameterMember extends VariableMember with FormalParameterElementMixin {
   ParameterMember._({
     required FormalParameterElementImpl super.baseElement,
     required super.substitution,
-    required this.typeParameters2,
+    required this.typeParameters,
   });
 
   @override
@@ -774,8 +847,14 @@ class ParameterMember extends VariableMember with FormalParameterElementMixin {
       super.baseElement as FormalParameterElementImpl;
 
   @override
+  List<Element> get children {
+    return [...typeParameters, ...formalParameters];
+  }
+
+  @Deprecated('Use children instead')
+  @override
   List<Element> get children2 {
-    return [...typeParameters2, ...formalParameters];
+    return children;
   }
 
   @override
@@ -872,6 +951,10 @@ class ParameterMember extends VariableMember with FormalParameterElementMixin {
   @override
   Version? get sinceSdkVersion => baseElement.sinceSdkVersion;
 
+  @Deprecated('Use typeParameters instead')
+  @override
+  List<TypeParameterElementImpl> get typeParameters2 => typeParameters;
+
   @override
   TypeImpl get typeShared => type;
 
@@ -890,8 +973,14 @@ class ParameterMember extends VariableMember with FormalParameterElementMixin {
   }
 
   @override
+  void visitChildren<T>(ElementVisitor2<T> visitor) {
+    baseElement.visitChildren(visitor);
+  }
+
+  @Deprecated('Use visitChildren instead')
+  @override
   void visitChildren2<T>(ElementVisitor2<T> visitor) {
-    baseElement.visitChildren2(visitor);
+    visitChildren(visitor);
   }
 
   static FormalParameterElementMixin from2(
@@ -1068,20 +1157,20 @@ class SuperFormalParameterMember extends ParameterMember
     required MapSubstitution substitution,
   }) {
     var freshTypeParameters = _SubstitutedTypeParameters(
-      baseElement.typeParameters2.cast(),
+      baseElement.typeParameters.cast(),
       substitution,
     );
     return SuperFormalParameterMember._(
       baseElement: baseElement,
       substitution: freshTypeParameters.substitution,
-      typeParameters2: freshTypeParameters.elements,
+      typeParameters: freshTypeParameters.elements,
     );
   }
 
   SuperFormalParameterMember._({
     required SuperFormalParameterElementImpl super.baseElement,
     required super.substitution,
-    required super.typeParameters2,
+    required super.typeParameters,
   }) : super._();
 
   @override
@@ -1167,11 +1256,20 @@ abstract class VariableMember extends Member
   }
 
   @override
+  String displayString({bool multiline = false, bool preferTypeAlias = false}) {
+    return baseElement.displayString(
+      multiline: multiline,
+      preferTypeAlias: preferTypeAlias,
+    );
+  }
+
+  @Deprecated('Use displayString instead')
+  @override
   String displayString2({
     bool multiline = false,
     bool preferTypeAlias = false,
   }) {
-    return baseElement.displayString2(
+    return displayString(
       multiline: multiline,
       preferTypeAlias: preferTypeAlias,
     );

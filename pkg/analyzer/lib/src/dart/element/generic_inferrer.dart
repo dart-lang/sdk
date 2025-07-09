@@ -388,7 +388,7 @@ class GenericInferrer {
 
     // Use instantiate to bounds to finish things off.
     var hasError = List<bool>.filled(_typeFormals.length, false);
-    var result = _typeSystem.instantiateTypeFormalsToBounds2(
+    var result = _typeSystem.instantiateTypeFormalsToBounds(
       _typeFormals,
       hasError: hasError,
       knownTypes: knownTypes,
@@ -622,7 +622,7 @@ class GenericInferrer {
   }
 
   String _elementStr(ElementImpl element) {
-    return element.displayString2();
+    return element.displayString();
   }
 
   String _formatError(

@@ -83,7 +83,7 @@ class _MethodDefinitionForElement extends _MethodDefinition {
 
   @override
   InterfaceType? collectionTypeFor(InterfaceType targetType) =>
-      targetType.asInstanceOf2(element);
+      targetType.asInstanceOf(element);
 }
 
 class _MethodDefinitionForName extends _MethodDefinition {
@@ -104,7 +104,7 @@ class _MethodDefinitionForName extends _MethodDefinition {
       var element = supertype.element;
       if (element.name == interfaceName &&
           element.library.name == libraryName) {
-        return targetType.asInstanceOf2(element);
+        return targetType.asInstanceOf(element);
       }
     }
     return null;
@@ -280,7 +280,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         }
 
       case _ExpectedArgumentKind.assignableToIterableOfTypeArgument:
-        var iterableType = collectionType.asInstanceOf2(
+        var iterableType = collectionType.asInstanceOf(
           typeProvider.iterableElement,
         );
         if (iterableType != null &&

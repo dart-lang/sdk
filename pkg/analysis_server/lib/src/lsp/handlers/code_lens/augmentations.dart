@@ -97,7 +97,7 @@ class AugmentationCodeLensProvider extends AbstractCodeLensProvider {
         addCodeLens('Go to Augmentation', fragment, nextFragment);
       }
 
-      for (var fragment in fragment.children3) {
+      for (var fragment in fragment.children) {
         addCodeLenses(fragment);
       }
     }

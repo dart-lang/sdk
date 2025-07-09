@@ -142,7 +142,7 @@ class LibraryBuilder {
   }
 
   void addTopFragment(LibraryFragmentImpl parent, FragmentImpl fragment) {
-    fragment.enclosingElement3 = parent;
+    fragment.enclosingElement = parent;
     (_topFragments[parent] ??= []).add(fragment);
   }
 
@@ -205,7 +205,7 @@ class LibraryBuilder {
       enum_.element.supertype =
           typeProvider.enumType ?? typeProvider.objectType;
       var valuesType = typeProvider.listType(
-        element.typeSystem.instantiateInterfaceToBounds2(
+        element.typeSystem.instantiateInterfaceToBounds(
           element: enum_.element.asElement2,
           nullabilitySuffix: typeProvider.objectType.nullabilitySuffix,
         ),

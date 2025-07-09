@@ -103,7 +103,7 @@ extension on Element {
   Element? get elementWithDocumentation {
     var self = this;
     if (self is FieldFormalParameterElement) {
-      return self.field2;
+      return self.field;
     } else if (self is SuperFormalParameterElement) {
       // Treat a super formal parameter like a field formal parameter if it's
       // eventually assigned to a field, but as any other formal parameter if it
@@ -113,7 +113,7 @@ extension on Element {
         superParameter = superParameter.superConstructorParameter2;
       }
       if (superParameter is FieldFormalParameterElement) {
-        return superParameter.field2;
+        return superParameter.field;
       }
       return self.enclosingElement;
     } else if (self is FormalParameterElement) {

@@ -171,7 +171,7 @@ class BodyInferenceContext {
   }
 
   static TypeImpl? _argumentOf(TypeImpl type, InterfaceElement element) {
-    var elementType = type.asInstanceOf2(element);
+    var elementType = type.asInstanceOf(element);
     return elementType?.typeArguments[0];
   }
 

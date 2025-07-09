@@ -21,6 +21,7 @@ typedef StaticOptions = Either2<bool, ReferenceOptions>;
 class ReferencesHandler
     extends LspMessageHandler<ReferenceParams, List<Location>?> {
   ReferencesHandler(super.server);
+
   @override
   Method get handlesMessage => Method.textDocument_references;
 
@@ -67,7 +68,7 @@ class ReferencesHandler
     node = _getReferenceTargetNode(node);
 
     var element = switch (node?.getElement()) {
-      FieldFormalParameterElement(:var field2?) => field2,
+      FieldFormalParameterElement(:var field?) => field,
       PropertyAccessorElement(:var variable3?) => variable3,
       var element => element,
     };

@@ -233,7 +233,7 @@ class _Constructor {
       parameter = parameter.notDefault;
       if (parameter is FieldFormalParameterImpl) {
         var parameterFragment = parameter.declaredFragment!;
-        var fieldElement = parameterFragment.element.field2;
+        var fieldElement = parameterFragment.element.field;
         if (fieldElement == null) {
           continue;
         }

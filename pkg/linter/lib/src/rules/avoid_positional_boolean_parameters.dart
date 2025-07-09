@@ -93,7 +93,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   bool _isOverridingMember(Element member) {
-    var classElement = member.thisOrAncestorOfType2<ClassElement>();
+    var classElement = member.thisOrAncestorOfType<ClassElement>();
     if (classElement == null) return false;
 
     var name = member.name;

@@ -1299,7 +1299,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       var declaredElement = node.declaredFragment?.element;
       FieldElement? field;
       if (declaredElement is FieldFormalParameterElement) {
-        field = declaredElement.field2;
+        field = declaredElement.field;
       }
       declarationHelper().addFieldsForInitializers(constructor, field);
     }

@@ -406,11 +406,11 @@ class ElementPrinter {
         if (_configuration.withRedirectedConstructors) {
           writeNamedElement2(
             'redirectedConstructor',
-            element.redirectedConstructor2,
+            element.redirectedConstructor,
           );
         }
         if (_configuration.withSuperConstructors) {
-          writeNamedElement2('superConstructor', element.superConstructor2);
+          writeNamedElement2('superConstructor', element.superConstructor);
         }
       }
     });

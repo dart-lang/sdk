@@ -67,7 +67,7 @@ extension CompilationUnitElementImplExtension on LibraryFragmentImpl {
     var current = this;
     while (true) {
       result.add(current);
-      if (current.enclosingElement3 case var enclosing?) {
+      if (current.enclosingElement case var enclosing?) {
         current = enclosing;
       } else {
         break;
@@ -152,7 +152,7 @@ extension Element2Extension on Element {
 }
 
 extension ElementImplExtension on FragmentImpl {
-  FragmentImpl? get enclosingElementImpl => enclosingElement3;
+  FragmentImpl? get enclosingElementImpl => enclosingElement;
 }
 
 extension ElementOrNullExtension on FragmentImpl? {

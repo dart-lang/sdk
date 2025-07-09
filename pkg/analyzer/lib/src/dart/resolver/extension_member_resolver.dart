@@ -415,7 +415,7 @@ class ExtensionMemberResolver {
     var typeParameters = extension.typeParameters2;
     return Substitution.fromPairs2(
       typeParameters,
-      _typeSystem.instantiateTypeFormalsToBounds2(typeParameters),
+      _typeSystem.instantiateTypeFormalsToBounds(typeParameters),
     ).substituteType(extension.extendedType);
   }
 

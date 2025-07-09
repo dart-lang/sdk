@@ -368,8 +368,8 @@ class LibraryReader {
           var enclosingElement =
               element.enclosingElement as InstanceElementImpl;
           reader._addTypeParameters2(enclosingElement.typeParameters2);
-          element.superConstructor2 = reader.readConstructorElementMixin();
-          element.redirectedConstructor2 = reader.readConstructorElementMixin();
+          element.superConstructor = reader.readConstructorElementMixin();
+          element.redirectedConstructor = reader.readConstructorElementMixin();
         }),
       );
 

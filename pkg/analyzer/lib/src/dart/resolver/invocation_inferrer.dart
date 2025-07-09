@@ -735,7 +735,7 @@ class MethodInvocationInferrer
     var argumentContextType = super._computeContextForArgument(parameterType);
     var targetType = node.realTarget?.staticType;
     if (targetType != null) {
-      argumentContextType = resolver.typeSystem.refineNumericInvocationContext2(
+      argumentContextType = resolver.typeSystem.refineNumericInvocationContext(
         targetType,
         node.methodName.element,
         contextType,
@@ -815,7 +815,7 @@ class _FunctionLiteralDependencies
       for (var entry in parameterMap.entries) {
         if (explicitlyTypedParameters.contains(entry.key)) continue;
         result.addAll(
-          _typeSystem.getFreeParameters2(
+          _typeSystem.getFreeParameters(
                 entry.value.type,
                 candidates: _typeVariables,
               ) ??
@@ -834,13 +834,13 @@ class _FunctionLiteralDependencies
   ) {
     var type = paramInfo.parameter?.type;
     if (type is FunctionTypeImpl) {
-      return _typeSystem.getFreeParameters2(
+      return _typeSystem.getFreeParameters(
             type.returnType,
             candidates: _typeVariables,
           ) ??
           const [];
     } else if (type != null) {
-      return _typeSystem.getFreeParameters2(type, candidates: _typeVariables) ??
+      return _typeSystem.getFreeParameters(type, candidates: _typeVariables) ??
           const [];
     } else {
       return const [];

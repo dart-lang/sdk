@@ -737,7 +737,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     if (defaultConstructor is ConstructorElementImpl &&
         defaultConstructor.isSynthetic) {
       defaultConstructor.isDefaultConstructor;
-      var superConstructor = defaultConstructor.superConstructor2;
+      var superConstructor = defaultConstructor.superConstructor;
       if (superConstructor != null) {
         recordRelation(
           superConstructor,
@@ -806,7 +806,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     // invocation, it implicitly invokes the unnamed constructor.
     if (node.initializers.none((e) => e is SuperConstructorInvocation)) {
       var element = node.declaredFragment!.element;
-      var superConstructor = element.superConstructor2;
+      var superConstructor = element.superConstructor;
       if (superConstructor != null) {
         var offset = node.returnType.offset;
         var end = (node.name ?? node.returnType).end;
@@ -1002,7 +1002,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   visitFieldFormalParameter(covariant FieldFormalParameterImpl node) {
     var element = node.declaredFragment!.element;
-    var field = element.field2;
+    var field = element.field;
     if (field != null) {
       recordRelation(field, IndexRelationKind.IS_WRITTEN_BY, node.name, true);
     }

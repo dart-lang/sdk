@@ -227,7 +227,7 @@ class TypeHierarchyComputerHelper {
         result = clazz.getSetter(pivotName);
       }
     }
-    if (result != null && result.isAccessibleIn2(pivotLibrary)) {
+    if (result != null && result.isAccessibleIn(pivotLibrary)) {
       return result;
     }
     // try to find in the class mixin

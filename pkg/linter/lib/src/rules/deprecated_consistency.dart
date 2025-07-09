@@ -56,7 +56,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var declaredElement = node.declaredFragment?.element;
     if (declaredElement is! FieldFormalParameterElement) return;
 
-    var field = declaredElement.field2;
+    var field = declaredElement.field;
     if (field == null) return;
 
     if (field.hasDeprecated && !declaredElement.hasDeprecated) {

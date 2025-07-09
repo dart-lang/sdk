@@ -80,7 +80,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         node.constructorName.type.typeArguments == null) {
       var approximateContextType = node.approximateContextType;
       var contextTypeAsInstanceOfEnclosing = approximateContextType
-          ?.asInstanceOf2(enclosingElement);
+          ?.asInstanceOf(enclosingElement);
       if (contextTypeAsInstanceOfEnclosing != null) {
         if (contextTypeAsInstanceOfEnclosing.typeArguments.any(
           (e) => e is TypeParameterType,

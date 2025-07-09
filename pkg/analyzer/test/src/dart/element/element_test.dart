@@ -541,7 +541,7 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
     ClassElement element,
     String? expected,
   ) {
-    var result = type.asInstanceOf2(element);
+    var result = type.asInstanceOf(element);
     expect(result?.getDisplayString(), expected);
   }
 }

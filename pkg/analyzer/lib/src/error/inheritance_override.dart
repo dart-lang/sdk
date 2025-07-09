@@ -882,7 +882,7 @@ class _ClassVerifier {
 
       var elementName = element.displayName;
       var enclosingElement = element.enclosingElement!;
-      var enclosingName = enclosingElement.displayString2();
+      var enclosingName = enclosingElement.displayString();
       var description = "$prefix$enclosingName.$elementName";
 
       descriptions.add(description);

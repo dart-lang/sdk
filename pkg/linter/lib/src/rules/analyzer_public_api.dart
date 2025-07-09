@@ -129,7 +129,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitCompilationUnit(CompilationUnit node) {
     importedPublicElements = _computeImportedPublicElements(node);
-    node.declaredFragment!.children3.forEach(_checkTopLevelFragment);
+    node.declaredFragment!.children.forEach(_checkTopLevelFragment);
   }
 
   @override
@@ -148,7 +148,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     // computes which names are filtered by a sequence of combinators.
     Set<String>? badNames;
     var exportedLibrary = exportElement.exportedLibrary2!;
-    for (var member in exportedLibrary.children2) {
+    for (var member in exportedLibrary.children) {
       var name = member.name;
       if (name == null) continue;
       if (exportElement.combinators.any(
@@ -221,7 +221,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       case ExtensionFragment(name: null):
         // Unnamed extensions are not public, so ignore.
         break;
-      case InstanceFragment(:var typeParameters2, :var children3):
+      case InstanceFragment(:var typeParameters2, :var children):
         for (var typeParameter in typeParameters2) {
           _checkTypeParameter(typeParameter, fragment: fragment);
         }
@@ -246,7 +246,7 @@ class _Visitor extends SimpleAstVisitor<void> {
             _checkType(t, fragment: fragment);
           }
         }
-        children3.forEach(_checkMember);
+        children.forEach(_checkMember);
       case ExecutableFragment():
         _checkType(fragment.element.type, fragment: fragment);
       case TypeAliasFragment(:var element, :var typeParameters2):

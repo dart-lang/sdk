@@ -23,7 +23,7 @@ class ElementWriter with TreeWriter {
     _writeFragments(element);
     indentLevel++;
     try {
-      for (var child in element.children2) {
+      for (var child in element.children) {
         write(child);
       }
     } finally {
@@ -65,7 +65,7 @@ class ElementWriter with TreeWriter {
       properties['isConst'] = element.isConst;
       properties['isDefaultConstructor'] = element.isDefaultConstructor;
       properties['isFactory'] = element.isFactory;
-      properties['redirectedConstructor'] = element.redirectedConstructor2;
+      properties['redirectedConstructor'] = element.redirectedConstructor;
     }
     if (element is ExecutableElement) {
       properties['hasImplicitReturnType'] = element.hasImplicitReturnType;
@@ -82,7 +82,7 @@ class ElementWriter with TreeWriter {
       properties['isEnumConstant'] = element.isEnumConstant;
     }
     if (element is FieldFormalParameterElement) {
-      properties['field'] = element.field2;
+      properties['field'] = element.field;
     }
     if (element is TopLevelFunctionElement) {
       properties['isEntryPoint'] = element.isEntryPoint;

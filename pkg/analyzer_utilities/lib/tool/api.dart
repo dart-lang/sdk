@@ -336,7 +336,7 @@ class ApiDescription {
           case dynamic(:var runtimeType):
             throw UnimplementedError('Unexpected element: $runtimeType');
         }
-        for (var member in element.children2.sortedBy((m) => m.name ?? '')) {
+        for (var member in element.children.sortedBy((m) => m.name ?? '')) {
           if (member.name case var name? when name.startsWith('_')) {
             // Ignore private members
             continue;

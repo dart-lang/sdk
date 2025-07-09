@@ -125,7 +125,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   bool _isOverridingMember(Element? member) {
     if (member == null) return false;
 
-    var classElement = member.thisOrAncestorOfType2<InterfaceElement>();
+    var classElement = member.thisOrAncestorOfType<InterfaceElement>();
     if (classElement == null) return false;
 
     var name = member.name;

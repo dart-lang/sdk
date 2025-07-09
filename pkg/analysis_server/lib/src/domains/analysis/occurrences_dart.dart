@@ -150,7 +150,7 @@ class DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
   void visitFieldFormalParameter(FieldFormalParameter node) {
     var declaredElement = node.declaredFragment?.element;
     if (declaredElement is FieldFormalParameterElement) {
-      var field = declaredElement.field2;
+      var field = declaredElement.field;
       if (field != null) {
         _addOccurrence(field, node.name);
       }
@@ -305,7 +305,7 @@ class DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
   Element? _canonicalizeElement(Element element) {
     Element? canonicalElement = element;
     if (canonicalElement is FieldFormalParameterElement) {
-      canonicalElement = canonicalElement.field2;
+      canonicalElement = canonicalElement.field;
     } else if (canonicalElement case PropertyAccessorElement(
       :var variable3?,
     ) when !variable3.isSynthetic) {

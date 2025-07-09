@@ -143,7 +143,7 @@ class AnalyzerSealedClassOperations
     List<InterfaceElementImpl> subclasses = [];
     var library = sealedClass.library;
     outer:
-    for (var declaration in library.children2) {
+    for (var declaration in library.children) {
       if (declaration is ExtensionTypeElement) {
         continue;
       }
@@ -196,7 +196,7 @@ class AnalyzerSealedClassOperations
     covariant InterfaceTypeImpl sealedClassType,
   ) {
     var thisType = subClass.thisType;
-    var asSealedClass = thisType.asInstanceOf2(sealedClassType.element)!;
+    var asSealedClass = thisType.asInstanceOf(sealedClassType.element)!;
     if (thisType.typeArguments.isEmpty) {
       return thisType;
     }
@@ -288,7 +288,7 @@ class AnalyzerTypeOperations implements TypeOperations<TypeImpl> {
 
   @override
   TypeImpl? getListElementType(TypeImpl type) {
-    var listType = type.asInstanceOf2(_typeSystem.typeProvider.listElement);
+    var listType = type.asInstanceOf(_typeSystem.typeProvider.listElement);
     if (listType != null) {
       return listType.typeArguments[0];
     }
@@ -297,12 +297,12 @@ class AnalyzerTypeOperations implements TypeOperations<TypeImpl> {
 
   @override
   TypeImpl? getListType(TypeImpl type) {
-    return type.asInstanceOf2(_typeSystem.typeProvider.listElement);
+    return type.asInstanceOf(_typeSystem.typeProvider.listElement);
   }
 
   @override
   TypeImpl? getMapValueType(TypeImpl type) {
-    var mapType = type.asInstanceOf2(_typeSystem.typeProvider.mapElement);
+    var mapType = type.asInstanceOf(_typeSystem.typeProvider.mapElement);
     if (mapType != null) {
       return mapType.typeArguments[1];
     }

@@ -230,7 +230,7 @@ class TypedLiteralResolver {
       case SpreadElementImpl():
         var expressionType = element.expression.typeOrThrow;
 
-        var iterableType = expressionType.asInstanceOf2(
+        var iterableType = expressionType.asInstanceOf(
           _typeProvider.iterableElement,
         );
         if (iterableType != null) {
@@ -328,10 +328,10 @@ class TypedLiteralResolver {
       var unwrappedContextType = _typeSystem.futureOrBase(contextType);
       // TODO(brianwilkerson): Find out what the "greatest closure" is and use that
       // where [unwrappedContextType] is used below.
-      var iterableType = unwrappedContextType.asInstanceOf2(
+      var iterableType = unwrappedContextType.asInstanceOf(
         _typeProvider.iterableElement,
       );
-      var mapType = unwrappedContextType.asInstanceOf2(
+      var mapType = unwrappedContextType.asInstanceOf(
         _typeProvider.mapElement,
       );
       var isIterable = iterableType != null;
@@ -417,7 +417,7 @@ class TypedLiteralResolver {
       case SpreadElementImpl():
         var expressionType = element.expression.typeOrThrow;
 
-        var iterableType = expressionType.asInstanceOf2(
+        var iterableType = expressionType.asInstanceOf(
           _typeProvider.iterableElement,
         );
         if (iterableType != null) {
@@ -426,7 +426,7 @@ class TypedLiteralResolver {
           );
         }
 
-        var mapType = expressionType.asInstanceOf2(_typeProvider.mapElement);
+        var mapType = expressionType.asInstanceOf(_typeProvider.mapElement);
         if (mapType != null) {
           return _InferredCollectionElementTypeInformation(
             keyType: mapType.typeArguments[0],
@@ -609,10 +609,10 @@ class TypedLiteralResolver {
     // a different subtype relationship to `Iterable<Object>` and
     // `Map<Object, Object>` is if the context type is `_`.
     if (contextType != null) {
-      var contextIterableType = contextType.asInstanceOf2(
+      var contextIterableType = contextType.asInstanceOf(
         _typeProvider.iterableElement,
       );
-      var contextMapType = contextType.asInstanceOf2(_typeProvider.mapElement);
+      var contextMapType = contextType.asInstanceOf(_typeProvider.mapElement);
       var contextIsIterable = contextIterableType != null;
       var contextIsMap = contextMapType != null;
 

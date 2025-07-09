@@ -372,7 +372,7 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
   /// or static method on a public top-level element.
   void _addDeclaration(Element element) {
     // First add the enclosing top-level declaration.
-    var enclosingTopLevelElement = element.thisOrAncestorMatching2(
+    var enclosingTopLevelElement = element.thisOrAncestorMatching(
       (a) => a.enclosingElement == null || a.enclosingElement is LibraryElement,
     );
     var enclosingTopLevelDeclaration = declarationMap[enclosingTopLevelElement];

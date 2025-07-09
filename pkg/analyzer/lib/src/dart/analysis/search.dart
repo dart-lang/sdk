@@ -35,7 +35,7 @@ Fragment _getEnclosingFragment(
 
     var codeEnd = codeOffset + codeLength;
     if (codeOffset <= offset && offset <= codeEnd) {
-      for (var child in fragment.children3) {
+      for (var child in fragment.children) {
         var result = visitFragment(child);
         if (result != null) {
           return result;
@@ -1332,7 +1332,7 @@ class _FindLibraryDeclarations {
 
     String? parameters;
     if (element is ExecutableElement) {
-      var displayString = element.displayString2();
+      var displayString = element.displayString();
       var parameterIndex = displayString.indexOf('(');
       if (parameterIndex > 0) {
         parameters = displayString.substring(parameterIndex);

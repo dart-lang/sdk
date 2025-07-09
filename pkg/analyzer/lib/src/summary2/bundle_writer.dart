@@ -201,8 +201,8 @@ class BundleWriter {
       _writeElementResolution(() {
         // TODO(scheglov): avoid cast
         _resolutionSink.withTypeParameters(element.typeParameters2.cast(), () {
-          _resolutionSink.writeElement(element.superConstructor2);
-          _resolutionSink.writeElement(element.redirectedConstructor2);
+          _resolutionSink.writeElement(element.superConstructor);
+          _resolutionSink.writeElement(element.redirectedConstructor);
           // TODO(scheglov): formal parameters
         });
       });
@@ -1033,7 +1033,7 @@ class ResolutionSink extends _SummaryDataWriter {
       _writeFormalParameterKind2(parameter);
       writeBool(parameter.hasImplicitType);
       writeBool(parameter.isInitializingFormal);
-      _writeTypeParameters2(parameter.typeParameters2.cast(), () {
+      _writeTypeParameters2(parameter.typeParameters.cast(), () {
         writeType(parameter.type);
         _writeElementName(parameter);
         _writeFormalParameters2(

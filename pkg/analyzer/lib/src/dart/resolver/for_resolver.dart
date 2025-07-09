@@ -110,7 +110,7 @@ class ForResolver {
             ? _resolver.typeProvider.streamElement
             : _resolver.typeProvider.iterableElement;
 
-    var iteratedType = iterableType.asInstanceOf2(iteratedElement);
+    var iteratedType = iterableType.asInstanceOf(iteratedElement);
     if (iteratedType == null) {
       return InvalidTypeImpl.instance;
     }

@@ -856,7 +856,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  InterfaceTypeImpl? asInstanceOf2(InterfaceElement targetElement) {
+  InterfaceTypeImpl? asInstanceOf(InterfaceElement targetElement) {
     if (element == targetElement) {
       return this;
     }
@@ -869,6 +869,12 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
 
     return null;
+  }
+
+  @Deprecated('Use asInstanceOf instead')
+  @override
+  InterfaceTypeImpl? asInstanceOf2(InterfaceElement targetElement) {
+    return asInstanceOf(targetElement);
   }
 
   @override
@@ -921,7 +927,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
     // not found or not accessible
     if (constructorElement == null ||
-        !constructorElement.isAccessibleIn2(library)) {
+        !constructorElement.isAccessibleIn(library)) {
       return null;
     }
     // return member
@@ -1556,7 +1562,11 @@ abstract class TypeImpl implements DartType, SharedType {
   void appendTo(ElementDisplayStringBuilder builder);
 
   @override
-  InterfaceTypeImpl? asInstanceOf2(InterfaceElement targetElement) => null;
+  InterfaceTypeImpl? asInstanceOf(InterfaceElement targetElement) => null;
+
+  @Deprecated('Use asInstanceOf instead')
+  @override
+  InterfaceTypeImpl? asInstanceOf2(InterfaceElement targetElement) => asInstanceOf(targetElement);
 
   @override
   TypeImpl asQuestionType(bool isQuestionType) => withNullability(
@@ -1721,8 +1731,14 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   }
 
   @override
+  InterfaceTypeImpl? asInstanceOf(InterfaceElement targetElement) {
+    return bound.asInstanceOf(targetElement);
+  }
+
+  @Deprecated('Use asInstanceOf instead')
+  @override
   InterfaceTypeImpl? asInstanceOf2(InterfaceElement targetElement) {
-    return bound.asInstanceOf2(targetElement);
+    return asInstanceOf(targetElement);
   }
 
   @override

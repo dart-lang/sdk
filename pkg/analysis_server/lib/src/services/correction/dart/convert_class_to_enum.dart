@@ -534,7 +534,7 @@ class _EnumDescription {
     for (var i = 0; i < parameters.length; i++) {
       var element = parameters[i].declaredFragment!.element;
       if (element is FieldFormalParameterElement) {
-        if (element.field2 == indexFieldElement) {
+        if (element.field == indexFieldElement) {
           if (element.isPositional) {
             return _Parameter(i, element);
           } else {

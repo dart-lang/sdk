@@ -251,7 +251,7 @@ class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
     var declaredElement = node.declaredFragment!.element;
-    if (declaredElement.field2 == element) {
+    if (declaredElement.field == element) {
       references.add(node);
     }
 
@@ -277,7 +277,7 @@ class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
         references.add(node);
       }
     } else if (staticElement is FieldFormalParameterElement) {
-      if (staticElement.field2 == element) {
+      if (staticElement.field == element) {
         references.add(node);
       }
     }

@@ -259,7 +259,7 @@ extension on DartObject? {
     ) when element == valueElement) {
       var index = valueObject?.getField('index')?.toIntValue();
       if (index != null) {
-        var enumConstant = element.constants2.elementAtOrNull(index);
+        var enumConstant = element.constants.elementAtOrNull(index);
         if (enumConstant != null) {
           return EditableArgumentsMixin.getQualifiedEnumConstantName(
             enumConstant,

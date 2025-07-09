@@ -100,7 +100,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    var redirectedConstructor = constructor?.redirectedConstructor2;
+    var redirectedConstructor = constructor?.redirectedConstructor;
     if (constructor == null || redirectedConstructor == null) {
       check(node.argumentList);
       return;
@@ -114,7 +114,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
       visitedConstructors.add(redirectedConstructor);
       constructor = redirectedConstructor;
-      redirectedConstructor = redirectedConstructor.redirectedConstructor2;
+      redirectedConstructor = redirectedConstructor.redirectedConstructor;
     }
 
     var parameters = constructor!.formalParameters;

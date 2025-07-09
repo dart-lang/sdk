@@ -274,12 +274,12 @@ class NamedTypeResolver with ScopeHelpers {
         );
       }
 
-      return typeSystem.instantiateInterfaceToBounds2(
+      return typeSystem.instantiateInterfaceToBounds(
         element: element,
         nullabilitySuffix: nullability,
       );
     } else if (element is TypeAliasElementImpl) {
-      var type = typeSystem.instantiateTypeAliasToBounds2(
+      var type = typeSystem.instantiateTypeAliasToBounds(
         element: element,
         nullabilitySuffix: nullability,
       );

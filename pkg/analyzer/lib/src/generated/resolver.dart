@@ -4233,7 +4233,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var targetType = invocation.realTarget?.staticType;
     if (invocation.methodName.name == 'catchError' &&
         targetType is InterfaceTypeImpl) {
-      var instanceOfFuture = targetType.asInstanceOf2(
+      var instanceOfFuture = targetType.asInstanceOf(
         typeProvider.futureElement,
       );
       if (instanceOfFuture != null) {
@@ -5251,7 +5251,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     Scope outerScope = nameScope;
     try {
       var element = node.declaredFragment!.element;
-      nameScope = TypeParameterScope(nameScope, element.typeParameters2);
+      nameScope = TypeParameterScope(nameScope, element.typeParameters);
       _visitDocumentationComment(node.documentationComment);
       node.returnType?.accept(this);
       node.typeParameters?.accept(this);
@@ -5816,7 +5816,7 @@ class SwitchExhaustiveness {
       var enum_ = expressionType.element;
       if (enum_ is EnumElementImpl) {
         return SwitchExhaustiveness._(
-          enum_.constants2.toSet(),
+          enum_.constants.toSet(),
           expressionType.nullabilitySuffix == NullabilitySuffix.none,
         );
       }

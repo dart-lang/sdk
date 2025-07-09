@@ -2053,7 +2053,7 @@ class _InvalidAccessVerifier {
     if (element == null) {
       return false;
     }
-    return element.thisType.asInstanceOf2(superElement) != null;
+    return element.thisType.asInstanceOf(superElement) != null;
   }
 
   bool _hasVisibleForOverriding(Element element) {

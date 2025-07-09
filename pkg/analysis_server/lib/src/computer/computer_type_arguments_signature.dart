@@ -55,7 +55,7 @@ class DartTypeArgumentsSignatureComputer {
 
     _argumentList = argumentList;
 
-    var label = element.displayString2();
+    var label = element.displayString();
     var documentation = _documentationComputer.computePreferred(
       element,
       documentationPreference,
@@ -92,7 +92,7 @@ class DartTypeArgumentsSignatureComputer {
         typeParameters
             .map(
               (param) =>
-                  lsp.ParameterInformation(label: param.displayString2()),
+                  lsp.ParameterInformation(label: param.displayString()),
             )
             .toList();
 

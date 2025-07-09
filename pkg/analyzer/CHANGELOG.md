@@ -115,6 +115,21 @@
 * Deprecate `InterfaceType.methods2`, use `methods` instead.
 * Deprecate `Fragment.name2`, use `name` instead.
 * Deprecate `Element.name3`, use `name` instead.
+* Deprecate `ConstructorElement.redirectedConstructor2`, use `redirectedConstructor` instead.
+* Deprecate `ConstructorElement.superConstructor2`, use `superConstructor˙` instead.
+* Deprecate `Element.children2`, use `children` instead.
+* Deprecate `Element.displayString2`, use `displayString` instead.
+* Deprecate `Element.getExtendedDisplayName2`, use `getExtendedDisplayName` instead.
+* Deprecate `Element.isAccessibleIn2`, use `isAccessibleIn` instead.
+* Deprecate `Element.thisOrAncestorMatching2`, use `thisOrAncestorMatching` instead.
+* Deprecate `Element.thisOrAncestorOfType2`, use `thisOrAncestorOfType` instead.
+* Deprecate `EnumElement.constants2`, use `constants` instead.
+* Deprecate `FieldFormalParameterElement.field2`, use `field` instead.
+* Deprecate `FormalParameterElement.typeParameters2`, use `typeParameters` instead.
+* Deprecate `Fragment.children3`, use `children` instead.
+* Deprecate `DartType.asInstanceOf2`, use `asInstanceOf` instead.
+* Deprecate `TypeSystem.instantiateInterfaceToBounds2`, use `instantiateInterfaceToBounds` instead.
+* Deprecate `TypeSystem.instantiateTypeAliasToBounds2`, use `instantiateTypeAliasToBounds` instead.
 
 ## 7.4.1
 * Restore `InstanceElement.augmented` getter.

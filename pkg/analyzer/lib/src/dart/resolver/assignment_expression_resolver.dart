@@ -214,7 +214,7 @@ class AssignmentExpressionResolver {
         if (method != null) {
           var parameters = method.formalParameters;
           if (parameters.isNotEmpty) {
-            return _typeSystem.refineNumericInvocationContext2(
+            return _typeSystem.refineNumericInvocationContext(
               leftType,
               method,
               leftType,

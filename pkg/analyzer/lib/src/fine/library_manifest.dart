@@ -254,7 +254,7 @@ class LibraryManifestBuilder {
         }
 
         // SAFETY: we build inherited constructors from existing super.
-        var superConstructor = constructor.superConstructor2!.baseElement;
+        var superConstructor = constructor.superConstructor!.baseElement;
 
         // Maybe the super constructor is "inherited" itself.
         var id = inheritedMap[superConstructor];
@@ -268,7 +268,7 @@ class LibraryManifestBuilder {
     }
 
     for (var libraryElement in libraryElements) {
-      for (var element in libraryElement.children2) {
+      for (var element in libraryElement.children) {
         if (element is ClassElementImpl) {
           addForElement(element);
         }
@@ -720,7 +720,7 @@ class LibraryManifestBuilder {
       var newTopLevelFunctions = <LookupName, TopLevelFunctionItem>{};
       var newTopLevelVariables = <LookupName, TopLevelVariableItem>{};
 
-      for (var element in libraryElement.children2) {
+      for (var element in libraryElement.children) {
         var lookupName = element.lookupName?.asLookupName;
         if (lookupName == null) {
           continue;
@@ -897,7 +897,7 @@ class LibraryManifestBuilder {
     }
 
     for (var libraryElement in libraryElements) {
-      for (var element in libraryElement.children2) {
+      for (var element in libraryElement.children) {
         if (element is InterfaceElementImpl) {
           addInterfacesToFill(element);
         }
@@ -1107,7 +1107,7 @@ class _LibraryMatch {
   });
 
   void compareStructures() {
-    for (var element in library.children2) {
+    for (var element in library.children) {
       var name = element.lookupName?.asLookupName;
       switch (element) {
         case ClassElementImpl():
