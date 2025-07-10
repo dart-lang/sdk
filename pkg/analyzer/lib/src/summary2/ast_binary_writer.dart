@@ -898,7 +898,8 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   void _storeForLoopParts(ForLoopParts node) {}
 
   void _storeFormalParameter(FormalParameterImpl node) {
-    var element = node.declaredFragment!;
+    var fragment = node.declaredFragment!;
+    var element = fragment.element;
     _writeActualType(_sink, element.type);
   }
 

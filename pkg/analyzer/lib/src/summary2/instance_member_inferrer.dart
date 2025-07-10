@@ -416,7 +416,10 @@ class InstanceMemberInferrer {
 
     var classElement = constructor.enclosingElement;
     if (classElement is ClassFragmentImpl && classElement.isMixinApplication) {
-      _inferMixinApplicationConstructor(classElement, constructor);
+      _inferMixinApplicationConstructor(
+        classElement.element,
+        constructor.element,
+      );
     }
   }
 
@@ -523,40 +526,38 @@ class InstanceMemberInferrer {
   }
 
   void _inferMixinApplicationConstructor(
-    ClassFragmentImpl classElement,
-    ConstructorFragmentImpl constructor,
+    ClassElementImpl classElement,
+    ConstructorElementImpl constructor,
   ) {
     var superType = classElement.supertype;
     if (superType != null) {
       var index = classElement.constructors.indexOf(constructor);
       var superConstructors =
-          superType.elementImpl.constructors
-              .where(
-                (element) =>
-                    element.asElement2.isAccessibleIn(classElement.library),
-              )
+          superType.element.constructors
+              .where((element) => element.isAccessibleIn(classElement.library))
               .toList();
       if (index < superConstructors.length) {
         var baseConstructor = superConstructors[index];
         var substitution = Substitution.fromInterfaceType(superType);
         forCorrespondingPairs<
-          FormalParameterFragmentImpl,
-          FormalParameterFragmentImpl
-        >(constructor.parameters, baseConstructor.parameters, (
-          parameter,
-          baseParameter,
-        ) {
-          var type = substitution.substituteType(baseParameter.type);
-          parameter.element.type = type;
-          parameter.type = type;
-        });
+          FormalParameterElementImpl,
+          FormalParameterElementImpl
+        >(
+          constructor.formalParameters.cast(),
+          baseConstructor.formalParameters.cast(),
+          (parameter, baseParameter) {
+            var type = substitution.substituteType(baseParameter.type);
+            parameter.type = type;
+            parameter.firstFragment.type = type;
+          },
+        );
         // Update arguments of `SuperConstructorInvocation` to have the types
         // (which we have just set) of the corresponding formal parameters.
         // MixinApp(x, y) : super(x, y);
         var initializers = constructor.constantInitializers;
         var initializer = initializers.single as SuperConstructorInvocation;
-        forCorrespondingPairs<FormalParameterFragmentImpl, Expression>(
-          constructor.parameters,
+        forCorrespondingPairs<FormalParameterElementImpl, Expression>(
+          constructor.formalParameters.cast(),
           initializer.argumentList.arguments,
           (parameter, argument) {
             (argument as SimpleIdentifierImpl).setPseudoExpressionStaticType(

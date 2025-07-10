@@ -126,7 +126,7 @@ library
           type: FutureOr<int>
       returnType: void
 ''');
-    var variables = library.definingCompilationUnit.topLevelVariables;
+    var variables = library.topLevelVariables;
     expect(variables, hasLength(1));
     _assertTypeStr(variables[0].type, 'FutureOr<int>');
   }
@@ -171,11 +171,11 @@ library
       returnType: Type
       variable: <testLibrary>::@topLevelVariable::x
 ''');
-    var variables = library.definingCompilationUnit.topLevelVariables;
+    var variables = library.topLevelVariables;
     expect(variables, hasLength(1));
     var x = variables[0];
     _assertTypeStr(x.type, 'Type');
-    expect(x.constantInitializer.toString(), 'FutureOr');
+    expect(x.constantInitializer?.expression.toString(), 'FutureOr');
   }
 
   test_futureOr_inferred() async {
@@ -266,7 +266,7 @@ library
       firstFragment: #F9
       returnType: FutureOr<int>
 ''');
-    var variables = library.definingCompilationUnit.topLevelVariables;
+    var variables = library.topLevelVariables;
     expect(variables, hasLength(2));
     var x = variables[0];
     expect(x.name, 'x');

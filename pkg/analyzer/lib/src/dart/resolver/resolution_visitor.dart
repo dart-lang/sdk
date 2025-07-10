@@ -1851,7 +1851,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   void _verifyExtensionElementImplements(
-    ExtensionTypeFragmentImpl declaredElement,
+    ExtensionTypeFragmentImpl declaredFragment,
     NamedTypeImpl node,
     TypeImpl type,
   ) {
@@ -1866,6 +1866,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       return;
     }
 
+    var declaredElement = declaredFragment.element;
     var declaredRepresentation = declaredElement.representation.type;
     if (typeSystem.isSubtypeOf(declaredRepresentation, type)) {
       return;
@@ -1887,7 +1888,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
               implementedRepresentation,
               type.element.name ?? '',
               declaredRepresentation,
-              declaredElement.name ?? '',
+              declaredFragment.name ?? '',
             ],
           );
         }

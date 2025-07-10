@@ -192,7 +192,8 @@ class TypesBuilder {
                   as FormalParameterElementImpl?;
           var valueNode =
               node.functionExpression.parameters?.parameters.firstOrNull;
-          var valueNodeType = valueNode?.declaredFragment!.type;
+          var valueNodeElement = valueNode?.declaredFragment!.element;
+          var valueNodeType = valueNodeElement?.type;
           var valueType = valueNodeType ?? InvalidTypeImpl.instance;
           valueElement?.type = valueType;
           valueElement?.firstFragment.type = valueType;
@@ -239,7 +240,8 @@ class TypesBuilder {
               element.formalParameters.singleOrNull
                   as FormalParameterElementImpl?;
           var valueNode = node.parameters?.parameters.firstOrNull;
-          var valueNodeType = valueNode?.declaredFragment!.type;
+          var valueNodeElement = valueNode?.declaredFragment!.element;
+          var valueNodeType = valueNodeElement?.type;
           var valueType = valueNodeType ?? InvalidTypeImpl.instance;
           valueElement?.type = valueType;
           valueElement?.firstFragment.type = valueType;

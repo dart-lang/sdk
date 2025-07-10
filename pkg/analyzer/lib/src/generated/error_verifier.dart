@@ -3425,8 +3425,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   void _checkForExtensionTypeRepresentationTypeBottom(
     ExtensionTypeDeclarationImpl node,
-    ExtensionTypeFragmentImpl element,
+    ExtensionTypeFragmentImpl fragment,
   ) {
+    var element = fragment.element;
     var representationType = element.representation.type;
     if (representationType.isBottom) {
       diagnosticReporter.atNode(
@@ -4733,7 +4734,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    var representationType = fragment.representation.type;
+    var element = fragment.element;
+    var representationType = element.representation.type;
 
     for (var typeParameterNode in typeParameters) {
       var typeParameterElement = typeParameterNode.declaredFragment!.element;
@@ -5836,9 +5838,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         if (!typeParameter.isLegacyCovariant) {
           var fields = node.fields;
           var fieldFragment = fields.variables.first.declaredFragment!;
+          var fieldElement = fieldFragment.element;
           var fieldName = fields.variables.first.name;
           Variance fieldVariance = typeParameter.computeVarianceInType(
-            fieldFragment.type,
+            fieldElement.type,
           );
 
           _checkForWrongVariancePosition(
@@ -5894,7 +5897,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var methodParameters = method.parameters?.parameters;
       if (methodParameters != null) {
         for (var methodParameter in methodParameters) {
-          var methodParameterElement = methodParameter.declaredFragment!;
+          var methodParameterFragment = methodParameter.declaredFragment!;
+          var methodParameterElement = methodParameterFragment.element;
           if (methodParameterElement.isCovariant) {
             continue;
           }

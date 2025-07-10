@@ -510,7 +510,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
                   ),
                 )
                 ..element = formalParameterElement
-                ..setPseudoExpressionStaticType(formalParameterFragment.type),
+                ..setPseudoExpressionStaticType(formalParameterElement.type),
             );
           }
 
@@ -10432,7 +10432,7 @@ abstract class VariableElementImpl extends ElementImpl
   Constant? evaluationResult;
 
   @override
-  ConstantInitializer? get constantInitializer {
+  ConstantInitializerImpl? get constantInitializer {
     if (_constantInitializer case var result?) {
       return result;
     }

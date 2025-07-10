@@ -86,7 +86,7 @@ class _ImplementsNode extends graph.Node<_ImplementsNode> {
     isEvaluated = true;
     element.hasImplementsSelfReference = true;
 
-    var representationType = element.firstFragment.representation.type;
+    var representationType = element.representation.type;
     var typeSystem = element.library.typeSystem;
 
     var superInterface =
