@@ -8,7 +8,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -53,13 +52,8 @@ class ApplyConstantOffsets {
 class InformativeDataApplier {
   final LinkedElementFactory _elementFactory;
   final Map<Uri, Uint8List> _unitsInformativeBytes2;
-  final InfoDeclarationStore _infoDeclarationStore;
 
-  InformativeDataApplier(
-    this._elementFactory,
-    this._unitsInformativeBytes2,
-    this._infoDeclarationStore,
-  );
+  InformativeDataApplier(this._elementFactory, this._unitsInformativeBytes2);
 
   void applyTo(LibraryElementImpl libraryElement) {
     if (_elementFactory.isApplyingInformativeData) {
@@ -83,7 +77,7 @@ class InformativeDataApplier {
 
   void applyToUnit(LibraryFragmentImpl unitElement, Uint8List unitInfoBytes) {
     var unitReader = SummaryDataReader(unitInfoBytes);
-    var unitInfo = _InfoUnit(_infoDeclarationStore, unitReader);
+    var unitInfo = _InfoUnit(unitReader);
 
     var libraryElement = unitElement.library;
     if (identical(libraryElement.definingCompilationUnit, unitElement)) {
@@ -706,24 +700,8 @@ class _InfoClassDeclaration {
   final List<_InfoMethodDeclaration> methods;
   final Uint32List constantOffsets;
 
-  factory _InfoClassDeclaration(
-    InfoDeclarationStore cache,
-    SummaryDataReader reader,
-  ) {
-    // TODO(scheglov): Shared below.
-    // TODO(jensj): Possibly we could just save the bytes and the
-    // offset and then only read it when/if needed.
-    // See https://dart-review.googlesource.com/c/sdk/+/318940.
-    var initialOffset = reader.offset;
-    String cacheKey = cache.createKey(reader, initialOffset);
-    var cached = cache.get<_InfoClassDeclaration>(
-      reader,
-      cacheKey,
-      initialOffset,
-    );
-    if (cached != null) return cached;
-
-    var result = _InfoClassDeclaration._(
+  factory _InfoClassDeclaration(SummaryDataReader reader) {
+    return _InfoClassDeclaration._(
       codeOffset: reader.readUInt30(),
       codeLength: reader.readUInt30(),
       firstTokenOffset: reader.readUInt30(),
@@ -739,9 +717,6 @@ class _InfoClassDeclaration {
       methods: reader.readTypedList(() => _InfoMethodDeclaration(reader)),
       constantOffsets: reader.readUInt30List(),
     );
-
-    cache.put(reader, cacheKey, initialOffset, result);
-    return result;
   }
 
   _InfoClassDeclaration._({
@@ -1840,12 +1815,11 @@ class _InfoUnit {
   final List<_InfoClassDeclaration> mixinDeclarations;
   final List<_InfoTopLevelVariable> topLevelVariable;
 
-  factory _InfoUnit(InfoDeclarationStore cache, SummaryDataReader reader) {
+  factory _InfoUnit(SummaryDataReader reader) {
     return _InfoUnit._(
       codeOffset: reader.readUInt30(),
       codeLength: reader.readUInt30(),
-      // Having duplicated line-starts adds up --- deduplicate if possible.
-      lineStarts: _readUint30ListPossiblyFromCache(cache, reader),
+      lineStarts: reader.readUInt30List(),
       libraryName: _InfoLibraryName(reader),
       libraryConstantOffsets: reader.readUInt30List(),
       docComment: reader.readStringUtf8(),
@@ -1853,13 +1827,11 @@ class _InfoUnit {
       exports: reader.readTypedList(() => _InfoExport(reader)),
       parts: reader.readTypedList(() => _InfoPart(reader)),
       classDeclarations: reader.readTypedList(
-        () => _InfoClassDeclaration(cache, reader),
+        () => _InfoClassDeclaration(reader),
       ),
       classTypeAliases: reader.readTypedList(() => _InfoClassTypeAlias(reader)),
-      enums: reader.readTypedList(() => _InfoClassDeclaration(cache, reader)),
-      extensions: reader.readTypedList(
-        () => _InfoClassDeclaration(cache, reader),
-      ),
+      enums: reader.readTypedList(() => _InfoClassDeclaration(reader)),
+      extensions: reader.readTypedList(() => _InfoClassDeclaration(reader)),
       extensionTypes: reader.readTypedList(
         () => _InfoExtensionTypeDeclaration(reader),
       ),
@@ -1873,7 +1845,7 @@ class _InfoUnit {
         () => _InfoGenericTypeAlias(reader),
       ),
       mixinDeclarations: reader.readTypedList(
-        () => _InfoClassDeclaration(cache, reader),
+        () => _InfoClassDeclaration(reader),
       ),
       topLevelVariable: reader.readTypedList(
         () => _InfoTopLevelVariable(reader),
@@ -1904,27 +1876,6 @@ class _InfoUnit {
     required this.mixinDeclarations,
     required this.topLevelVariable,
   });
-
-  static Uint32List _readUint30ListPossiblyFromCache(
-    InfoDeclarationStore cache,
-    SummaryDataReader reader,
-  ) {
-    var initialOffset = reader.offset;
-    var cacheKey = cache.createKey(reader, initialOffset);
-    var cachedLineStarts = cache.get<Uint32List>(
-      reader,
-      cacheKey,
-      initialOffset,
-    );
-    if (cachedLineStarts != null) {
-      return cachedLineStarts;
-    } else {
-      // Add to cache.
-      var lineStarts = reader.readUInt30List();
-      cache.put(reader, cacheKey, initialOffset, lineStarts);
-      return lineStarts;
-    }
-  }
 }
 
 class _OffsetsApplier extends _OffsetsAstVisitor {

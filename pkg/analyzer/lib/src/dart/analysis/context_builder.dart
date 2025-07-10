@@ -24,7 +24,6 @@ import 'package:analyzer/src/dart/analysis/driver.dart'
         OwnedFiles;
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
-import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
 import 'package:analyzer/src/dart/analysis/library_context.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart'
     show PerformanceLog;
@@ -88,7 +87,6 @@ class ContextBuilderImpl {
     updateAnalysisOptions3,
     FileContentCache? fileContentCache,
     UnlinkedUnitStore? unlinkedUnitStore,
-    InfoDeclarationStore? infoDeclarationStore,
     OwnedFiles? ownedFiles,
     bool enableLintRuleTiming = false,
     LinkedBundleProvider? linkedBundleProvider,
@@ -171,7 +169,6 @@ class ContextBuilderImpl {
       retainDataForTesting: retainDataForTesting,
       fileContentCache: fileContentCache,
       unlinkedUnitStore: unlinkedUnitStore,
-      infoDeclarationStore: infoDeclarationStore,
       declaredVariables: declaredVariables,
       testView: retainDataForTesting ? AnalysisDriverTestView() : null,
       ownedFiles: ownedFiles,

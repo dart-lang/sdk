@@ -13,7 +13,6 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/field_name_non_promotability_info.dart';
@@ -39,7 +38,6 @@ import 'package:pub_semver/pub_semver.dart';
 class BundleReader {
   final SummaryDataReader _reader;
   final Map<Uri, Uint8List> _unitsInformativeBytes;
-  final InfoDeclarationStore _infoDeclarationStore;
 
   final Map<Uri, LibraryReader> libraryMap = {};
 
@@ -47,11 +45,9 @@ class BundleReader {
     required LinkedElementFactory elementFactory,
     required Uint8List resolutionBytes,
     Map<Uri, Uint8List> unitsInformativeBytes = const {},
-    required InfoDeclarationStore infoDeclarationStore,
     required Map<Uri, LibraryManifest> libraryManifests,
   }) : _reader = SummaryDataReader(resolutionBytes),
-       _unitsInformativeBytes = unitsInformativeBytes,
-       _infoDeclarationStore = infoDeclarationStore {
+       _unitsInformativeBytes = unitsInformativeBytes {
     const bytesOfU32 = 4;
     const countOfU32 = 4;
     _reader.offset = _reader.bytes.length - bytesOfU32 * countOfU32;
@@ -87,7 +83,6 @@ class BundleReader {
         referenceReader: referenceReader,
         reference: reference,
         offset: libraryHeader.offset,
-        infoDeclarationStore: _infoDeclarationStore,
         manifest: libraryManifests[uri],
       );
     }
@@ -103,7 +98,6 @@ class LibraryReader {
   final _ReferenceReader _referenceReader;
   final Reference _reference;
   final int _offset;
-  final InfoDeclarationStore _deserializedDataStore;
   final LibraryManifest? manifest;
 
   late final LibraryElementImpl _libraryElement;
@@ -120,7 +114,6 @@ class LibraryReader {
     required _ReferenceReader referenceReader,
     required Reference reference,
     required int offset,
-    required InfoDeclarationStore infoDeclarationStore,
     required this.manifest,
   }) : _elementFactory = elementFactory,
        _reader = reader,
@@ -128,8 +121,7 @@ class LibraryReader {
        _baseResolutionOffset = baseResolutionOffset,
        _referenceReader = referenceReader,
        _reference = reference,
-       _offset = offset,
-       _deserializedDataStore = infoDeclarationStore;
+       _offset = offset;
 
   LibraryElementImpl readElement({required Source librarySource}) {
     var analysisContext = _elementFactory.analysisContext;
@@ -228,7 +220,6 @@ class LibraryReader {
     InformativeDataApplier(
       _elementFactory,
       _unitsInformativeBytes,
-      _deserializedDataStore,
     ).applyTo(_libraryElement);
 
     return _libraryElement;

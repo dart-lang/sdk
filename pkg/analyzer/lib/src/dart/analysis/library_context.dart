@@ -17,7 +17,6 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_event.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
-import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
@@ -45,7 +44,6 @@ class LibraryContext {
   final PerformanceLog logger;
   final ByteStore byteStore;
   final StreamController<Object>? eventsController;
-  final InfoDeclarationStore infoDeclarationStore;
   final FileSystemState fileSystemState;
   final File? packagesFile;
   final SummaryDataStore store = SummaryDataStore();
@@ -62,7 +60,6 @@ class LibraryContext {
     required this.logger,
     required this.byteStore,
     required this.eventsController,
-    required this.infoDeclarationStore,
     required this.fileSystemState,
     required this.linkedBundleProvider,
     required AnalysisOptionsMap analysisOptionsMap,
@@ -91,7 +88,6 @@ class LibraryContext {
             elementFactory: elementFactory,
             resolutionBytes: bundle.resolutionBytes,
             unitsInformativeBytes: {},
-            infoDeclarationStore: infoDeclarationStore,
             libraryManifests: {},
           ),
         );
@@ -302,7 +298,6 @@ class LibraryContext {
             elementFactory: elementFactory,
             unitsInformativeBytes: unitsInformativeBytes,
             resolutionBytes: linkedBytes,
-            infoDeclarationStore: infoDeclarationStore,
             libraryManifests: bundleEntry!.libraryManifests,
           );
         });
