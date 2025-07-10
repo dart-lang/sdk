@@ -138,6 +138,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
+    LinkingNodeContext(node, scope);
     node.parameter.accept(this);
   }
 
@@ -164,9 +165,11 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.members.accept(this);
     nodesToBuildType.addDeclaration(node);
 
-    for (var constant in fragment.constants) {
-      var node = linker.elementNodes[constant]!;
-      LinkingNodeContext(node, scope);
+    for (var field in fragment.fields) {
+      var node = linker.elementNodes[field];
+      if (node != null) {
+        LinkingNodeContext(node, scope);
+      }
     }
 
     scope = outerScope;

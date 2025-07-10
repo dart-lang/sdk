@@ -174,15 +174,15 @@ class MoveTopLevelToFile extends RefactoringProducer {
         );
         // And also for the getter if this might be something like a top-level
         // variable.
-        if (element case PropertyInducingElement(:var getter2?)) {
+        if (element case PropertyInducingElement(:var getter?)) {
           prefixes.addAll(
-            await searchEngine.searchPrefixesUsedInLibrary(library, getter2),
+            await searchEngine.searchPrefixesUsedInLibrary(library, getter),
           );
         }
         // And setters.
-        if (element case PropertyInducingElement(:var setter2?)) {
+        if (element case PropertyInducingElement(:var setter?)) {
           prefixes.addAll(
-            await searchEngine.searchPrefixesUsedInLibrary(library, setter2),
+            await searchEngine.searchPrefixesUsedInLibrary(library, setter),
           );
         }
       }
@@ -221,7 +221,7 @@ class MoveTopLevelToFile extends RefactoringProducer {
       var element = entry.key;
       var imports = entry.value;
       for (var import in imports) {
-        var library = import.importedLibrary2;
+        var library = import.importedLibrary;
         if (library == null || library.isDartCore) {
           continue;
         }

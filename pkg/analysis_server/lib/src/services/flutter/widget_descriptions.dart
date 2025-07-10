@@ -532,7 +532,7 @@ class _WidgetDescriptionComputer {
     } else if (valueExpression is Identifier) {
       var element = valueExpression.element;
       if (element is GetterElement) {
-        var field = element.variable3!;
+        var field = element.variable!;
         if (field is FieldElement && field.isStatic) {
           var enclosingClass = field.enclosingElement as InterfaceElement;
           if (field.isEnumConstant ||

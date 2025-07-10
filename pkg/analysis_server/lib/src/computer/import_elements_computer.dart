@@ -381,7 +381,7 @@ class ImportElementsComputer {
     if (libraryImport == null) {
       return false;
     }
-    var library = libraryImport.importedLibrary2;
+    var library = libraryImport.importedLibrary;
     return library != null &&
         library.firstFragment.source.fullName == importedElements.path &&
         (import.prefix?.name ?? '') == importedElements.prefix;

@@ -990,7 +990,7 @@ class RequirementsManifest {
 
     for (var fragment in libraryElement.fragments) {
       for (var export in fragment.libraryExports) {
-        var exportedLibrary = export.exportedLibrary2;
+        var exportedLibrary = export.exportedLibrary;
 
         // If no library, then there is nothing to re-export.
         if (exportedLibrary == null) {

@@ -277,7 +277,7 @@ var v = a;
 ''');
 
     var vg = findNode.simple('a;').element as PropertyAccessorElement;
-    var v = vg.variable3!.firstFragment as VariableFragmentImpl;
+    var v = vg.variable!.firstFragment as VariableFragmentImpl;
 
     var creation = v.constantInitializer as InstanceCreationExpression;
     return creation;

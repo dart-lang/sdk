@@ -180,7 +180,7 @@ class InstanceMemberInferrer {
         accessor.returnType = returnType;
         accessor.element.returnType = returnType;
         // TODO(scheglov): store type in FieldElementImpl itself
-        var fieldElement = accessor.element.variable3 as FieldElementImpl;
+        var fieldElement = accessor.element.variable as FieldElementImpl;
         fieldElement.type = returnType;
         fieldElement.firstFragment.type = returnType;
         return;
@@ -195,7 +195,7 @@ class InstanceMemberInferrer {
         accessor.returnType = returnType;
         accessor.element.returnType = returnType;
         // TODO(scheglov): store type in FieldElementImpl itself
-        var fieldElement = accessor.element.variable3 as FieldElementImpl;
+        var fieldElement = accessor.element.variable as FieldElementImpl;
         fieldElement.type = returnType;
         fieldElement.firstFragment.type = returnType;
         return;
@@ -227,8 +227,8 @@ class InstanceMemberInferrer {
         var valueType = combinedGetterType();
         parameter.element.type = valueType;
         parameter.type = valueType;
-        var fieldElement = accessor.element.variable3 as FieldElementImpl;
-        if (fieldElement.getter2 == null) {
+        var fieldElement = accessor.element.variable as FieldElementImpl;
+        if (fieldElement.getter == null) {
           fieldElement.type = valueType;
           fieldElement.firstFragment.type = valueType;
         }
@@ -247,7 +247,7 @@ class InstanceMemberInferrer {
         var valueType = combinedSetterType();
         parameter.element.type = valueType;
         parameter.type = valueType;
-        var fieldElement = accessor.element.variable3 as FieldElementImpl;
+        var fieldElement = accessor.element.variable as FieldElementImpl;
         fieldElement.type = valueType;
         return;
       }
@@ -256,7 +256,7 @@ class InstanceMemberInferrer {
     }
 
     if (field != null) {
-      var setter = field.element.setter2?.firstFragment;
+      var setter = field.element.setter?.firstFragment;
       if (setter != null) {
         if (overriddenSetters.any(
           (s) => _isCovariantSetter(s.declarationImpl),
@@ -402,7 +402,7 @@ class InstanceMemberInferrer {
             parameter.type = field.element.type;
           }
         } else if (parameter is SuperFormalParameterFragmentImpl) {
-          var superParameter = parameter.element.superConstructorParameter2;
+          var superParameter = parameter.element.superConstructorParameter;
           if (superParameter != null) {
             parameter.element.type = superParameter.type;
             parameter.type = superParameter.type;
@@ -416,7 +416,10 @@ class InstanceMemberInferrer {
 
     var classElement = constructor.enclosingElement;
     if (classElement is ClassFragmentImpl && classElement.isMixinApplication) {
-      _inferMixinApplicationConstructor(classElement, constructor);
+      _inferMixinApplicationConstructor(
+        classElement.element,
+        constructor.element,
+      );
     }
   }
 
@@ -523,40 +526,38 @@ class InstanceMemberInferrer {
   }
 
   void _inferMixinApplicationConstructor(
-    ClassFragmentImpl classElement,
-    ConstructorFragmentImpl constructor,
+    ClassElementImpl classElement,
+    ConstructorElementImpl constructor,
   ) {
     var superType = classElement.supertype;
     if (superType != null) {
       var index = classElement.constructors.indexOf(constructor);
       var superConstructors =
-          superType.elementImpl.constructors
-              .where(
-                (element) =>
-                    element.asElement2.isAccessibleIn(classElement.library),
-              )
+          superType.element.constructors
+              .where((element) => element.isAccessibleIn(classElement.library))
               .toList();
       if (index < superConstructors.length) {
         var baseConstructor = superConstructors[index];
         var substitution = Substitution.fromInterfaceType(superType);
         forCorrespondingPairs<
-          FormalParameterFragmentImpl,
-          FormalParameterFragmentImpl
-        >(constructor.parameters, baseConstructor.parameters, (
-          parameter,
-          baseParameter,
-        ) {
-          var type = substitution.substituteType(baseParameter.type);
-          parameter.element.type = type;
-          parameter.type = type;
-        });
+          FormalParameterElementImpl,
+          FormalParameterElementImpl
+        >(
+          constructor.formalParameters.cast(),
+          baseConstructor.formalParameters.cast(),
+          (parameter, baseParameter) {
+            var type = substitution.substituteType(baseParameter.type);
+            parameter.type = type;
+            parameter.firstFragment.type = type;
+          },
+        );
         // Update arguments of `SuperConstructorInvocation` to have the types
         // (which we have just set) of the corresponding formal parameters.
         // MixinApp(x, y) : super(x, y);
         var initializers = constructor.constantInitializers;
         var initializer = initializers.single as SuperConstructorInvocation;
-        forCorrespondingPairs<FormalParameterFragmentImpl, Expression>(
-          constructor.parameters,
+        forCorrespondingPairs<FormalParameterElementImpl, Expression>(
+          constructor.formalParameters.cast(),
           initializer.argumentList.arguments,
           (parameter, argument) {
             (argument as SimpleIdentifierImpl).setPseudoExpressionStaticType(
@@ -796,10 +797,10 @@ class InstanceMemberInferrer {
     field.type = type;
     field.element.type = type;
     // TODO(scheglov): We repeat this code.
-    field.element.getter2?.returnType = type;
-    field.element.getter2?.firstFragment.returnType = type;
+    field.element.getter?.returnType = type;
+    field.element.getter?.firstFragment.returnType = type;
 
-    var setterElement = field.element.setter2;
+    var setterElement = field.element.setter;
     if (setterElement != null) {
       setterElement.returnType = VoidTypeImpl.instance;
       setterElement.firstFragment.returnType = VoidTypeImpl.instance;

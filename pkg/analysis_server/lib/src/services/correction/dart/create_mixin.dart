@@ -156,7 +156,7 @@ class _CreateMixin extends ResolvedCorrectionProducer {
       for (var import in libraryElement2.firstFragment.libraryImports2) {
         if (prefixElement is PrefixElement &&
             import.prefix2?.element == prefixElement) {
-          var library = import.importedLibrary2;
+          var library = import.importedLibrary;
           if (library != null) {
             targetUnit = library.firstFragment;
             var targetSource = targetUnit.source;

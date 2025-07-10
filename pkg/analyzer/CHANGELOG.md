@@ -135,6 +135,30 @@
 * Deprecate `InterfaceElement.unnamedConstructor2`, use `unnamedConstructor` instead.
 * Deprecate `InterfaceElement.getNamedConstructor2`, use `getNamedConstructor` instead.
 * Deprecate `TypeParameterizedElement.typeParameters2`, use `typeParameters` instead.
+* Deprecate `FormalParameterElement.appendToWithoutDelimiters2`, use `appendToWithoutDelimiters` instead.
+* Deprecate `GetterElement.correspondingSetter2`, use `correspondingSetter` instead.
+* Deprecate `InterfaceElement.unnamedConstructor2`, use `unnamedConstructor` instead.
+* Deprecate `InterfaceElement.getNamedConstructor2`, use `getNamedConstructor` instead.
+* Deprecate `LibraryElement.entryPoint2`, use `entryPoint` instead.
+* Deprecate `LibraryElement.exportedLibraries2`, use `exportedLibraries` instead.
+* Deprecate `LibraryElement.getClass2`, use `getClass` instead.
+* Deprecate `LibraryElement.getEnum2`, use `getEnum` instead.
+* Deprecate `LibraryElement.getMixin2`, use `getMixin` instead.
+* Deprecate `LibraryExport.exportedLibrary2`, use `exportedLibrary` instead.
+* Deprecate `LibraryFragment.accessibleExtensions2`, use `accessibleExtensions` instead.
+* Deprecate `LibraryFragment.importedLibraries2`, use `importedLibraries` instead.
+* Deprecate `LibraryImport.importedLibrary2`, use `importedLibrary` instead.
+* Deprecate `MixinElement.isImplementableIn2`, use `isImplementableIn` instead.
+* Deprecate `PatternVariableElement.join2`, use `join` instead.
+* Deprecate `PropertyAccessorElement.variable3`, use `variable` instead.
+* Deprecate `PropertyInducingElement.getter2`, use `getter` instead.
+* Deprecate `PropertyInducingElement.setter2`, use `setter` instead.
+* Deprecate `SetterElement.correspondingGetter2`, use `correspondingGetter` instead.
+* Deprecate `SuperFormalParameterElement.superConstructorParameter2`, use `superConstructorParameter` instead.
+* Deprecate `TypeAliasElement.aliasedElement2`, use `aliasedElement` instead.
+* Deprecate `TypeParameterizedElement.typeParameters2`, use `typeParameters` instead.
+* Deprecate `VariableElement.constantInitializer2`, use `constantInitializer` instead.
+* Deprecate `TypeProvider.isNonSubtypableClass2`, use `isNonSubtypableClass` instead.
 
 ## 7.4.1
 * Restore `InstanceElement.augmented` getter.

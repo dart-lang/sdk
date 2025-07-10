@@ -200,7 +200,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         var compoundType = node.declaredFragment!.element.thisType;
         var structType = compoundType.superclass!;
         var ffiLibrary = structType.element.library;
-        var finalizableElement = ffiLibrary.getClass2(_finalizableClassName)!;
+        var finalizableElement = ffiLibrary.getClass(_finalizableClassName)!;
         var finalizableType = finalizableElement.thisType;
         if (typeSystem.isSubtypeOf(compoundType, finalizableType)) {
           _diagnosticReporter.atToken(
@@ -519,7 +519,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
                 returnType:
                     ffiVoidType ??=
                         annotationType.element.library
-                            .getClass2('Void')!
+                            .getClass('Void')!
                             .thisType,
                 nullabilitySuffix: dartSignature.nullabilitySuffix,
               );
@@ -575,7 +575,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     } else if (declarationElement is TopLevelVariableElementImpl) {
       type = declarationElement.type;
     } else if (declarationElement is PropertyAccessorElement2OrMember) {
-      var variable = declarationElement.variable3;
+      var variable = declarationElement.variable;
       if (variable == null) {
         return;
       }
@@ -769,7 +769,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         return true;
       }
       if (element is PropertyAccessorElement) {
-        var variable = element.variable3;
+        var variable = element.variable;
         if (variable != null && variable.isConst) {
           return true;
         }
@@ -950,7 +950,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         return element.computeConstantValue()?.toBoolValue();
       }
       if (element is PropertyAccessorElement) {
-        var variable = element.variable3;
+        var variable = element.variable;
         if (variable == null) {
           return null;
         }
@@ -1549,8 +1549,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
                 .where((field) {
                   if (field.isStatic) return false;
                   if (!field.isExternal) {
-                    if (!(field.getter2?.isExternal ?? false) &&
-                        !(field.setter2?.isExternal ?? false)) {
+                    if (!(field.getter?.isExternal ?? false) &&
+                        !(field.setter?.isExternal ?? false)) {
                       return false;
                     }
                   }
@@ -1793,7 +1793,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
                     returnType:
                         ffiVoidType ??=
                             annotationType.element.library
-                                .getClass2('Void')!
+                                .getClass('Void')!
                                 .thisType,
                     nullabilitySuffix: staticType.nullabilitySuffix,
                   );

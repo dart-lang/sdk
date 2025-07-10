@@ -280,7 +280,6 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash,
     # We don't support stripping on Windows
     if host_os != 'win':
         gn_args['dart_stripped_binary'] = 'exe.stripped/dart'
-        gn_args['dartvm_stripped_binary'] = 'exe.stripped/dartvm'
         gn_args['dart_aotruntime_stripped_binary'] = (
             'exe.stripped/dartaotruntime_product')
         gn_args['gen_snapshot_stripped_binary'] = (

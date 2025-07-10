@@ -274,8 +274,8 @@ class ChangeTo extends ResolvedCorrectionProducer {
         } else if (element is SetterElement) {
           return wantSetter;
         } else if (element is FieldElement) {
-          return wantGetter && element.getter2 != null ||
-              wantSetter && element.setter2 != null;
+          return wantGetter && element.getter != null ||
+              wantSetter && element.setter != null;
         }
         return false;
       });

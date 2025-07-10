@@ -181,13 +181,13 @@ abstract class TypeProviderBase implements TypeProvider {
     return NeverTypeImpl.instance;
   }
 
-  ClassElementImpl get deprecatedElement2 {
+  ClassElementImpl get deprecatedElement {
     return _deprecatedElement ??= _getClassElement(_coreLibrary, 'Deprecated');
   }
 
   @override
   InterfaceTypeImpl get deprecatedType {
-    return _deprecatedType ??= deprecatedElement2.instantiateImpl(
+    return _deprecatedType ??= deprecatedElement.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -488,13 +488,13 @@ abstract class TypeProviderBase implements TypeProvider {
     return setElement;
   }
 
-  ClassElementImpl get stackTraceElement2 {
+  ClassElementImpl get stackTraceElement {
     return _stackTraceElement ??= _getClassElement(_coreLibrary, 'StackTrace');
   }
 
   @override
   InterfaceTypeImpl get stackTraceType {
-    return _stackTraceType ??= stackTraceElement2.instantiateImpl(
+    return _stackTraceType ??= stackTraceElement.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -557,13 +557,13 @@ abstract class TypeProviderBase implements TypeProvider {
     );
   }
 
-  ClassElementImpl get typeElement2 {
+  ClassElementImpl get typeElement {
     return _typeElement ??= _getClassElement(_coreLibrary, 'Type');
   }
 
   @override
   InterfaceTypeImpl get typeType {
-    return _typeType ??= typeElement2.instantiateImpl(
+    return _typeType ??= typeElement.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -589,7 +589,7 @@ abstract class TypeProviderBase implements TypeProvider {
   }
 
   @override
-  bool isNonSubtypableClass2(InterfaceElement element) {
+  bool isNonSubtypableClass(InterfaceElement element) {
     var name = element.name;
     if (_nonSubtypableClassNames.contains(name)) {
       var libraryUriStr = element.library.uri.toString();
@@ -597,6 +597,12 @@ abstract class TypeProviderBase implements TypeProvider {
       return ofLibrary != null && ofLibrary.contains(name);
     }
     return false;
+  }
+
+  @Deprecated('Use isNonSubtypableClass instead')
+  @override
+  bool isNonSubtypableClass2(InterfaceElement element) {
+    return isNonSubtypableClass(element);
   }
 
   @override
@@ -645,7 +651,7 @@ abstract class TypeProviderBase implements TypeProvider {
   /// Return the class with the given [name] from the given [library], or
   /// throw a [StateError] if there is no class with the given name.
   ClassElementImpl _getClassElement(LibraryElementImpl library, String name) {
-    var element = library.getClass2(name);
+    var element = library.getClass(name);
     if (element == null) {
       throw StateError('No definition of type $name');
     }

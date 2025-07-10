@@ -55,7 +55,7 @@ class ElementWriter with TreeWriter {
       properties['evaluationResult'] = element.evaluationResult;
     }
     if (element is LocalVariableElementImpl &&
-        element.constantInitializer2 != null) {
+        element.constantInitializer != null) {
       properties['evaluationResult'] = element.evaluationResult;
     }
     if (element is TopLevelVariableElementImpl) {
@@ -92,7 +92,7 @@ class ElementWriter with TreeWriter {
       properties['type'] = element.type;
     }
     if (element is LibraryElement) {
-      properties['entryPoint'] = element.entryPoint2;
+      properties['entryPoint'] = element.entryPoint;
       properties['isDartAsync'] = element.isDartAsync;
       properties['isDartCore'] = element.isDartCore;
       properties['isInSdk'] = element.isInSdk;
@@ -166,14 +166,14 @@ class ElementWriter with TreeWriter {
             'combinators': import.combinators,
             if (import.prefix2 != null) 'prefix': import.prefix2?.name,
             'isDeferred': import.prefix2?.isDeferred ?? false,
-            'library': import.importedLibrary2,
+            'library': import.importedLibrary,
           },
       };
       properties['imports'] = {
         for (var export in fragment.libraryExports2)
           {
             'combinators': export.combinators,
-            'library': export.exportedLibrary2,
+            'library': export.exportedLibrary,
           },
       };
     }

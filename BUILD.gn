@@ -42,7 +42,6 @@ group("runtime") {
 
   deps = [
     "runtime/bin:dart",
-    "runtime/bin:dartvm",
     "runtime/bin:ffi_test_dynamic_library",
     "runtime/bin:ffi_test_functions",
     "runtime/bin:process_test",
@@ -61,15 +60,12 @@ group("runtime") {
     deps += [
       "runtime/bin:dartaotruntime",
       "runtime/bin:dartaotruntime_product",
-      "utils/dartdev:dartdev_aot_snapshot",
       "utils/dds:dds_aot",
-      "utils/dtd:dtd_aot",
       "utils/kernel-service:frontend_server_aot_product",
     ]
   } else {
     deps += [
       "utils/dds:dds",
-      "utils/dtd:dtd",
       "utils/kernel-service:frontend_server",
     ]
   }
@@ -424,7 +420,7 @@ if (is_fuchsia) {
   }
 
   test_binaries = [
-    "dartvm",
+    "dart",
     "dartaotruntime",
     "run_vm_tests",
   ]

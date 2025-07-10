@@ -88,7 +88,7 @@ class ConstantEvaluationEngine {
     var libraryFragment = constant.libraryFragment!;
     var library = libraryFragment.element;
     if (constant is FormalParameterElementImpl) {
-      var defaultValue = constant.constantInitializer2?.expression;
+      var defaultValue = constant.constantInitializer?.expression;
       if (defaultValue != null) {
         var diagnosticListener = RecordingDiagnosticListener();
         var diagnosticReporter = DiagnosticReporter(
@@ -106,7 +106,7 @@ class ConstantEvaluationEngine {
         constant.evaluationResult = _nullObject(library);
       }
     } else if (constant is VariableElementImpl) {
-      var constantInitializer = constant.constantInitializer2?.expression;
+      var constantInitializer = constant.constantInitializer?.expression;
       if (constantInitializer != null) {
         var diagnosticReporter = DiagnosticReporter(
           RecordingDiagnosticListener(),
@@ -178,7 +178,7 @@ class ConstantEvaluationEngine {
         // The annotation is a reference to a compile-time constant variable.
         // Just copy the evaluation result.
         var variableElement =
-            element.variable3?.baseElement as VariableElementImpl?;
+            element.variable?.baseElement as VariableElementImpl?;
         var evaluationResult = variableElement?.evaluationResult;
         if (evaluationResult != null) {
           constant.evaluationResult = evaluationResult;
@@ -260,7 +260,7 @@ class ConstantEvaluationEngine {
 
     if (constant is VariableElementImpl) {
       var declaration = constant;
-      var initializer = declaration.constantInitializer2?.expression;
+      var initializer = declaration.constantInitializer?.expression;
       if (initializer != null) {
         initializer.accept(referenceFinder);
       }
@@ -322,7 +322,7 @@ class ConstantEvaluationEngine {
       if (element is PropertyAccessorElement) {
         // The annotation is a reference to a compile-time constant variable,
         // so it depends on the variable.
-        if (element.variable3 case var variable?) {
+        if (element.variable case var variable?) {
           var baseElement = variable.baseElement as VariableElementImpl;
           callback(baseElement);
         }
@@ -1920,7 +1920,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     element = element?.baseElement;
 
     var variableElement =
-        element is PropertyAccessorElement ? element.variable3 : element;
+        element is PropertyAccessorElement ? element.variable : element;
 
     // TODO(srawlins): Remove this check when [FunctionReference]s are inserted
     // for generic function instantiation for pre-constructor-references code.
@@ -3062,7 +3062,7 @@ class _InstanceCreationEvaluator {
         var fieldType = substitution.substituteType(field.type);
         if (!typeSystem.runtimeTypeMatch(fieldValue, fieldType)) {
           var isRuntimeException = hasTypeParameterReference(field.type);
-          var errorNode = field.constantInitializer2?.expression ?? _errorNode;
+          var errorNode = field.constantInitializer?.expression ?? _errorNode;
           return InvalidConstant.forEntity(
             entity: errorNode,
             diagnosticCode:
@@ -3152,7 +3152,7 @@ class _InstanceCreationEvaluator {
             _fieldMap[fieldName] = evaluationResult;
             var getter = definingType.getGetter(fieldName);
             if (getter != null) {
-              var field = getter.variable3;
+              var field = getter.variable;
               if (field == null) {
                 return _InitializersEvaluationResult(
                   InvalidConstant.forElement(

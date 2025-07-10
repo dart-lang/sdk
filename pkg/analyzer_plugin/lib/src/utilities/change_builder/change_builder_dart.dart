@@ -1703,7 +1703,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
     for (var import
         in resolvedUnit.libraryElement2.firstFragment.libraryImports2) {
-      var importedLibrary = import.importedLibrary2;
+      var importedLibrary = import.importedLibrary;
       if (importedLibrary != null && importedLibrary.uri == uri) {
         var importPrefix = import.prefix2?.element.name;
         if (import.hasCombinator) {
@@ -1760,7 +1760,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     // Existing import.
     for (var import
         in resolvedUnit.libraryElement2.firstFragment.libraryImports2) {
-      var importedLibrary = import.importedLibrary2;
+      var importedLibrary = import.importedLibrary;
       if (importedLibrary != null && importedLibrary.uri == uri) {
         return true;
       }
@@ -2323,7 +2323,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       var importedElement = definedNames[lookupName];
       if (importedElement != null &&
           importedElement.library?.uri == element.library?.uri) {
-        var importedLibrary = import.importedLibrary2;
+        var importedLibrary = import.importedLibrary;
         if (importedLibrary != null) {
           return _LibraryImport(
             uriText: importedLibrary.uri.toString(),
@@ -2351,7 +2351,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     return [
       for (var import
           in resolvedUnit.libraryElement2.firstFragment.libraryImports2)
-        if (import.importedLibrary2?.uri == uri) import,
+        if (import.importedLibrary?.uri == uri) import,
     ];
   }
 
@@ -2475,7 +2475,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       // the URI and prefix we care about.
       for (var element
           in resolvedUnit.libraryElement2.firstFragment.libraryImports2) {
-        var library = element.importedLibrary2;
+        var library = element.importedLibrary;
         if (library == null) {
           continue;
         }

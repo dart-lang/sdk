@@ -80,12 +80,12 @@ class FlutterConvertToStatefulWidget extends ResolvedCorrectionProducer {
             nodesToMove.add(member);
             elementsToMove.add(fieldElement);
 
-            var getter = fieldElement.getter2;
+            var getter = fieldElement.getter;
             if (getter != null) {
               elementsToMove.add(getter);
             }
 
-            var setter = fieldElement.setter2;
+            var setter = fieldElement.setter;
             if (setter != null) {
               elementsToMove.add(setter);
             }
@@ -298,7 +298,7 @@ class _FieldFinder extends RecursiveAstVisitor<void> {
     if (node.inSetterContext()) {
       var element = node.writeOrReadElement;
       if (element is SetterElement) {
-        var field = element.variable3;
+        var field = element.variable;
         if (field is FieldElement) {
           fieldsAssignedInConstructors.add(field);
         }

@@ -525,7 +525,7 @@ class InstanceItemFieldItem extends InstanceItemMemberItem<FieldElementImpl> {
       metadata: ManifestMetadata.encode(context, element.metadata),
       isStatic: element.isStatic,
       type: element.type.encode(context),
-      constInitializer: element.constantInitializer2?.expression.encode(
+      constInitializer: element.constantInitializer?.expression.encode(
         context,
       ),
     );
@@ -547,7 +547,7 @@ class InstanceItemFieldItem extends InstanceItemMemberItem<FieldElementImpl> {
         type.match(context, element.type) &&
         constInitializer.match(
           context,
-          element.constantInitializer2?.expression,
+          element.constantInitializer?.expression,
         );
   }
 
@@ -1366,7 +1366,7 @@ class TopLevelVariableItem extends TopLevelItem<TopLevelVariableElementImpl> {
       id: id,
       metadata: ManifestMetadata.encode(context, element.metadata),
       type: element.type.encode(context),
-      constInitializer: element.constantInitializer2?.expression.encode(
+      constInitializer: element.constantInitializer?.expression.encode(
         context,
       ),
     );
@@ -1387,7 +1387,7 @@ class TopLevelVariableItem extends TopLevelItem<TopLevelVariableElementImpl> {
         type.match(context, element.type) &&
         constInitializer.match(
           context,
-          element.constantInitializer2?.expression,
+          element.constantInitializer?.expression,
         );
   }
 
@@ -1559,7 +1559,7 @@ extension _LookupNameToInterfaceItemConstructorItemMapExtension
 extension _PropertyAccessExtension on PropertyAccessorElementImpl {
   MetadataImpl get thisOrVariableMetadata {
     if (isSynthetic) {
-      return variable3!.metadata;
+      return variable!.metadata;
     } else {
       return metadata;
     }

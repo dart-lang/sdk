@@ -211,7 +211,7 @@ class ElementResolver {
       // The element is null when the URI is invalid
       // TODO(brianwilkerson): Figure out whether the element can ever be
       // something other than an ExportElement
-      _resolveCombinators(exportElement.exportedLibrary2, node.combinators);
+      _resolveCombinators(exportElement.exportedLibrary, node.combinators);
       _resolveAnnotations(node.metadata);
     }
   }
@@ -265,7 +265,7 @@ class ElementResolver {
     var importElement = node.libraryImport;
     if (importElement != null) {
       // The element is null when the URI is invalid
-      var library = importElement.importedLibrary2;
+      var library = importElement.importedLibrary;
       if (library != null) {
         _resolveCombinators(library, node.combinators);
       }
@@ -530,7 +530,7 @@ class ElementResolver {
           // Ensure that the name always resolves to a top-level variable
           // rather than a getter or setter
           if (element is PropertyAccessorElement) {
-            name.element = element.variable3;
+            name.element = element.variable;
           } else {
             name.element = element;
           }

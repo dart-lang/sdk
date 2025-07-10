@@ -167,14 +167,8 @@ class _DebuggingSession {
     if (FileSystemEntity.typeSync(script) == FileSystemEntityType.notFound) {
       script = [dartDir, 'dds_aot.dart.snapshot'].join(Platform.pathSeparator);
       if (FileSystemEntity.typeSync(script) == FileSystemEntityType.notFound) {
-        // We could be running on IA32 architecture so check if the JIT
-        // snapshot is available.
         executable = [dartDir, dart].join(Platform.pathSeparator);
-        script = [dartDir, 'dds.dart.snapshot'].join(Platform.pathSeparator);
-        if (FileSystemEntity.typeSync(script) ==
-            FileSystemEntityType.notFound) {
-          script = 'development-service';
-        }
+        script = 'development-service';
       }
     }
 

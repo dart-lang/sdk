@@ -271,7 +271,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
       typeArgumentTypes = const <TypeImpl>[];
     } else {
       var typeParameters = rawType.typeParameters;
-      rawType = getFreshTypeParameters2(
+      rawType = getFreshTypeParameters(
         typeParameters,
       ).applyToFunctionType(rawType);
       inferenceLogWriter?.enterGenericInference(

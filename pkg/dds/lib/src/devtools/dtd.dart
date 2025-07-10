@@ -34,19 +34,14 @@ String getDTDSnapshotDir() {
       runFromBuildRoot = true;
     }
 
-    // Try to locate the DDS snapshot to determine if we're able to find
+    // Try to locate the DartDev snapshot to determine if we're able to find
     // the SDK snapshots with this SDK path. This is meant to handle
     // non-standard SDK layouts that can involve symlinks (e.g., Brew
     // installations, google3 tests, etc).
     if (!File(
-      path.join(snapshotsDir, 'dds_aot.dart.snapshot'),
+      path.join(snapshotsDir, 'dartdev.dart.snapshot'),
     ).existsSync()) {
-      // We do not have an AOT snpashot and hence look for the JIT snapshot.
-      if (!File(
-        path.join(snapshotsDir, 'dds.dart.snapshot'),
-      ).existsSync()) {
-        return null;
-      }
+      return null;
     }
     return (sdkPath, runFromBuildRoot);
   }
@@ -73,6 +68,11 @@ Future<DtdInfo?> startDtd({
     snapshotDir,
     'dart_tooling_daemon_aot.dart.snapshot',
   );
+  final dtdSnapshot =  path.absolute(
+    snapshotDir,
+    'dart_tooling_daemon.dart.snapshot',
+  );
+
   final completer = Completer<DtdInfo?>();
   void completeForError() => completer.complete(null);
 
@@ -124,11 +124,8 @@ Future<DtdInfo?> startDtd({
     );
   } catch (_, __) {
     // Spawning an isolate using the AOT snapshot of the tooling daemon failed,
-    // try again using the JIT snapshot of the tooling daemon.
-    final dtdSnapshot =  path.absolute(
-      snapshotDir,
-      'dart_tooling_daemon.dart.snapshot',
-    );
+    // we are probably in a JIT VM, try again using the JIT snapshot of the
+    // tooling daemon.
     try {
       await Isolate.spawnUri(
         Uri.file(dtdSnapshot),

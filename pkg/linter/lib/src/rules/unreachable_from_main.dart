@@ -112,7 +112,7 @@ class _DeclarationGatherer {
           for (var field in member.fields.variables) {
             var element = field.declaredFragment?.element;
             if (element is FieldElement && element.isPublic) {
-              if (!isOverride(element.getter2)) {
+              if (!isOverride(element.getter)) {
                 declarations.add(field);
               }
             }
@@ -470,14 +470,14 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (element != null) {
         declarationByElement[element] = declaration;
         if (element is TopLevelVariableElement) {
-          var getter = element.getter2;
+          var getter = element.getter;
           if (getter != null) declarationByElement[getter] = declaration;
-          var setter = element.setter2;
+          var setter = element.setter;
           if (setter != null) declarationByElement[setter] = declaration;
         } else if (element is FieldElement) {
-          var getter = element.getter2;
+          var getter = element.getter;
           if (getter != null) declarationByElement[getter] = declaration;
-          var setter = element.setter2;
+          var setter = element.setter;
           if (setter != null) declarationByElement[setter] = declaration;
         }
       }

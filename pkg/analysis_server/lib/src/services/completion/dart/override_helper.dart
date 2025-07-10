@@ -65,7 +65,7 @@ class OverrideHelper {
   /// Checks if the [element] has the `@nonVirtual` annotation.
   bool _hasNonVirtualAnnotation(ExecutableElement element) {
     if (element is GetterElement && element.isSynthetic) {
-      var variable = element.variable3;
+      var variable = element.variable;
       if (variable != null && variable.metadata.hasNonVirtual) {
         return true;
       }

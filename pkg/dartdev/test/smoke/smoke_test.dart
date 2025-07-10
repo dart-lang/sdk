@@ -61,9 +61,9 @@ void main() {
               script,
             ],
           );
-          expect(result.exitCode, 0);
           expect(result.stderr, isEmpty);
           expect(result.stdout, contains('Smoke test!'));
+          expect(result.exitCode, 0);
         }
       });
 
@@ -78,8 +78,7 @@ void main() {
           void onData(event) {
             if (event.contains(dartVMServiceMsg)) {
               sawServiceMsg = true;
-            }
-            if (event.contains('Observe smoke test!')) {
+            } else if (event.contains('Observe smoke test!')) {
               sawProgramMsg = true;
             }
             if (sawServiceMsg && sawProgramMsg) {
@@ -154,9 +153,9 @@ void main() {
             script,
           ],
         );
-        expect(result.exitCode, 0);
         expect(result.stderr, isEmpty);
         expect(result.stdout, contains('Smoke test!'));
+        expect(result.exitCode, 0);
       });
 
       // This test verifies that an error is thrown when an invalid experiment
@@ -172,9 +171,9 @@ void main() {
             script,
           ],
         );
-        expect(result.exitCode, 254);
         expect(result.stderr, isNotEmpty);
         expect(result.stdout, isEmpty);
+        expect(result.exitCode, 254);
       });
     },
     timeout: Timeout.none,

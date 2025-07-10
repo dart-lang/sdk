@@ -650,8 +650,8 @@ extension on Element {
   bool isInPublicApiOf(String packageName) {
     if (this case PropertyAccessorElement(
       isSynthetic: true,
-      :var variable3?,
-    ) when variable3.isInPublicApiOf(packageName)) {
+      :var variable?,
+    ) when variable.isInPublicApiOf(packageName)) {
       return true;
     }
     if (packageName == 'analyzer') {

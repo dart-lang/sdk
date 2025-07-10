@@ -98,7 +98,7 @@ extension Element2Extension on Element {
       }
     }
     if (this case PropertyAccessorElement accessor) {
-      var variable = accessor.variable3;
+      var variable = accessor.variable;
       if (variable != null && variable.metadata.hasInternal) {
         return true;
       }
@@ -114,7 +114,7 @@ extension Element2Extension on Element {
       if (self.metadata.hasProtected) {
         return true;
       }
-      var variable = self.variable3;
+      var variable = self.variable;
       if (variable != null && variable.metadata.hasProtected) {
         return true;
       }
@@ -135,7 +135,7 @@ extension Element2Extension on Element {
       }
     }
     if (this case PropertyAccessorElement accessor) {
-      var variable = accessor.variable3;
+      var variable = accessor.variable;
       if (variable != null && variable.metadata.hasVisibleForTesting) {
         return true;
       }

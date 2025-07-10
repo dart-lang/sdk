@@ -811,7 +811,7 @@ class A {}
     );
     libraryElementResult as LibraryElementResult;
 
-    var A = libraryElementResult.element2.getClass2('A')!;
+    var A = libraryElementResult.element2.getClass('A')!;
 
     var searchedFiles = SearchedFiles();
     searchedFiles.ownAnalyzed(myDriver.search);
@@ -1125,7 +1125,7 @@ export 'foo.dart';
     var element =
         findElement2
             .export('package:test/foo.dart')
-            .exportedLibrary2!
+            .exportedLibrary!
             .firstFragment;
     await assertLibraryFragmentReferencesText(element, r'''
 #F0
@@ -3176,7 +3176,7 @@ class A {
 
     var aLibraryResult =
         await driver.getLibraryByUri(aUri) as LibraryElementResult;
-    var aClass = aLibraryResult.element2.getClass2('A')!;
+    var aClass = aLibraryResult.element2.getClass('A')!;
 
     // Search by 'type'.
     List<SubtypeResult> subtypes = await driver.search.subtypes(
@@ -3228,7 +3228,7 @@ class C implements List {}
 
     var coreLibResult =
         await driver.getLibraryByUri('dart:core') as LibraryElementResult;
-    var listElement = coreLibResult.element2.getClass2('List')!;
+    var listElement = coreLibResult.element2.getClass('List')!;
 
     var searchedFiles = SearchedFiles();
     var results = await driver.search.subTypes(listElement, searchedFiles);

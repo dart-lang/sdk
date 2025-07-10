@@ -33,19 +33,28 @@ class ToolingDaemonCommand extends DartdevCommand {
 
   @override
   Future<int> run() async {
+    var script = sdk.dartAotRuntime;
     var snapshot = sdk.dtdAotSnapshot;
+    var useExecProcess = true;
     final args = argResults!.arguments;
+
     if (!Sdk.checkArtifactExists(sdk.dtdAotSnapshot, logError: false)) {
-      log.stderr('Error: launching dart tooling daemon failed : '
-                 'Unable to find snapshot for the tooling daemon');
-      return 255;
+      // On ia32 platforms we do not have an AOT snapshot and so we need
+      // to run the JIT snapshot.
+      useExecProcess = false;
+      script = sdk.dtdSnapshot;
     }
+    final dtdCommand = [
+      if (useExecProcess) snapshot,
+      // Add the remaining args.
+      if (args.isNotEmpty) ...args,
+    ];
     try {
       VmInteropHandler.run(
-        snapshot,
-        args,
+        script,
+        dtdCommand,
         packageConfigOverride: null,
-        useExecProcess : false,
+        useExecProcess: useExecProcess,
       );
       return 0;
     } catch (e, st) {

@@ -704,7 +704,7 @@ class D {}
 mixin E {}
 ''');
     CompilationUnit unit = result.unit;
-    ClassElement classC = unit.declaredFragment!.element.getClass2('C')!;
+    ClassElement classC = unit.declaredFragment!.element.getClass('C')!;
     expect(classC.documentationComment, isNotNull);
   }
 

@@ -253,7 +253,7 @@ class DuplicateDefinitionVerifier {
               definedGetters,
               variable.name,
               originFragment: declaredFragment,
-              fragment: declaredElement.getter2?.firstFragment,
+              fragment: declaredElement.getter?.firstFragment,
               setterScope: definedSetters,
             );
             if (declaredElement.definesSetter) {
@@ -261,7 +261,7 @@ class DuplicateDefinitionVerifier {
                 definedGetters,
                 variable.name,
                 originFragment: declaredFragment,
-                fragment: declaredElement.setter2?.firstFragment,
+                fragment: declaredElement.setter?.firstFragment,
                 setterScope: definedSetters,
               );
             }
@@ -431,10 +431,10 @@ class MemberDuplicateDefinitionVerifier {
             _checkDuplicateIdentifier(
               member.isStatic ? staticScope : instanceScope,
               field.name,
-              fragment: fieldElement.getter2!.firstFragment,
+              fragment: fieldElement.getter!.firstFragment,
               originFragment: fieldFragment,
             );
-            if (fieldElement.setter2 case var setter?) {
+            if (fieldElement.setter case var setter?) {
               _checkDuplicateIdentifier(
                 member.isStatic ? staticScope : instanceScope,
                 field.name,
@@ -647,7 +647,7 @@ class MemberDuplicateDefinitionVerifier {
         );
       }
       var constantFragment = constant.declaredFragment!;
-      var constantGetter = constantFragment.element.getter2!;
+      var constantGetter = constantFragment.element.getter!;
       _checkDuplicateIdentifier(
         staticScope,
         constant.name,
@@ -802,7 +802,7 @@ class MemberDuplicateDefinitionVerifier {
     var fragment = node.declaredFragment!;
     var firstFragment = fragment.element.firstFragment;
     var primaryConstructorName = firstFragment.constructors.first.name;
-    var representationGetter = firstFragment.representation.element.getter2!;
+    var representationGetter = firstFragment.representation.element.getter!;
     var elementContext = _getElementContext(firstFragment);
     elementContext.constructorNames.add(primaryConstructorName);
     if (representationGetter.name case var getterName?) {

@@ -11999,7 +11999,7 @@ class A {
 }
 ''');
 
-    var constructors = library.getClass2('A')!.constructors;
+    var constructors = library.getClass('A')!.constructors;
     expect(constructors, hasLength(1));
   }
 
@@ -12010,7 +12010,7 @@ class A {
 }
 ''');
 
-    var fields = library.getClass2('A')!.fields;
+    var fields = library.getClass('A')!.fields;
     expect(fields, hasLength(1));
   }
 
@@ -12021,7 +12021,7 @@ class A {
 }
 ''');
 
-    var getters = library.getClass2('A')!.getters;
+    var getters = library.getClass('A')!.getters;
     expect(getters, hasLength(1));
   }
 
@@ -12032,7 +12032,7 @@ class A {
 }
 ''');
 
-    var methods = library.getClass2('A')!.methods;
+    var methods = library.getClass('A')!.methods;
     expect(methods, hasLength(1));
   }
 
@@ -12043,7 +12043,7 @@ class A {
 }
 ''');
 
-    var setters = library.getClass2('A')!.setters;
+    var setters = library.getClass('A')!.setters;
     expect(setters, hasLength(1));
   }
 
@@ -18121,7 +18121,7 @@ mixin M {}
 class X = A with M;
 ''');
 
-    var X = library.getClass2('X')!;
+    var X = library.getClass('X')!;
     expect(X.constructors, hasLength(1));
   }
 

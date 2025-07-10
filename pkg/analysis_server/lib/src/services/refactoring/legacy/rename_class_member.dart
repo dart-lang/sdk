@@ -99,8 +99,8 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
     // update declarations
     for (var renameElement in _validator.elements) {
       if (renameElement.isSynthetic && renameElement is FieldElement) {
-        processor.addDeclarationEdit(renameElement.getter2);
-        processor.addDeclarationEdit(renameElement.setter2);
+        processor.addDeclarationEdit(renameElement.getter);
+        processor.addDeclarationEdit(renameElement.setter);
       } else {
         processor.addDeclarationEdit(renameElement);
         if (!newName.startsWith('_')) {
@@ -376,7 +376,7 @@ class _LocalElementsCollector extends GeneralizingAstVisitor<void> {
     if (element is! GetterElement && element is! SetterElement) {
       return;
     }
-    if (element.variable3 case TopLevelVariableElement variable) {
+    if (element.variable case TopLevelVariableElement variable) {
       elements.add(variable);
     }
     super.visitSimpleIdentifier(node);

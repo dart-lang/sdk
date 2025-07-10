@@ -375,8 +375,8 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
-    if (node.declaredElement case BindPatternVariableElement(:var join2?)) {
-      for (var variable in join2.variables) {
+    if (node.declaredElement case BindPatternVariableElement(:var join?)) {
+      for (var variable in join.variables) {
         computer._addRegionForElement(node.name, variable);
       }
     } else {
@@ -623,7 +623,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   void visitSuperFormalParameter(SuperFormalParameter node) {
     var element = node.declaredFragment?.element;
     if (element case SuperFormalParameterElementImpl element) {
-      var superParameter = element.superConstructorParameter2;
+      var superParameter = element.superConstructorParameter;
       computer._addRegionForElement(node.superKeyword, superParameter);
       computer._addRegionForElement(node.name, superParameter);
     }

@@ -3141,7 +3141,7 @@ typedef void F<V>(V v);
         error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 88, 4),
       ],
     );
-    var f = _resultLibraryElement.getClass2('C')!.methods[0];
+    var f = _resultLibraryElement.getClass('C')!.methods[0];
     _assertTypeStr(f.type, 'void Function(U) Function<U>(U)');
   }
 
@@ -3155,7 +3155,7 @@ abstract class D<T> {
 }
 typedef List<V> G<V>();
 ''');
-    var f = _resultLibraryElement.getClass2('C')!.methods[0];
+    var f = _resultLibraryElement.getClass('C')!.methods[0];
     _assertTypeStr(f.type, 'void Function<U>(List<U> Function())');
   }
 
@@ -3175,7 +3175,7 @@ typedef V F<V>();
         error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 88, 4),
       ],
     );
-    var f = _resultLibraryElement.getClass2('C')!.methods[0];
+    var f = _resultLibraryElement.getClass('C')!.methods[0];
     _assertTypeStr(f.type, 'U Function() Function<U>(U)');
   }
 
@@ -4018,7 +4018,7 @@ class D {
         ),
       ],
     );
-    var f = _resultLibraryElement.getClass2('C')!.setters[0];
+    var f = _resultLibraryElement.getClass('C')!.setters[0];
     _assertTypeStr(f.type, 'void Function(int)');
   }
 
@@ -4031,7 +4031,7 @@ class D {
   set foo(int x) {}
 }
 ''');
-    var f = _resultLibraryElement.getClass2('C')!.setters[0];
+    var f = _resultLibraryElement.getClass('C')!.setters[0];
     _assertTypeStr(f.type, 'void Function(int)');
   }
 
@@ -4045,10 +4045,10 @@ class C {
   };
 }
 ''');
-    var x = _resultLibraryElement.getClass2('C')!.fields[0];
+    var x = _resultLibraryElement.getClass('C')!.fields[0];
     expect(x.name, 'x');
     _assertTypeStr(x.type, 'String');
-    var y = _resultLibraryElement.getClass2('C')!.fields[1];
+    var y = _resultLibraryElement.getClass('C')!.fields[1];
     expect(y.name, 'y');
     _assertTypeStr(y.type, 'Map<String, Map<String, String>>');
   }
@@ -4063,7 +4063,7 @@ class C {
     var x = _resultLibraryElement.topLevelVariables[0];
     expect(x.name, 'x');
     _assertTypeStr(x.type, 'String');
-    var y = _resultLibraryElement.getClass2('C')!.fields[0];
+    var y = _resultLibraryElement.getClass('C')!.fields[0];
     expect(y.name, 'y');
     _assertTypeStr(y.type, 'String');
   }
@@ -4475,7 +4475,7 @@ class C {
       (int i) => {i: b};
 }
 ''');
-    var f = _resultLibraryElement.getClass2('C')!.fields[0];
+    var f = _resultLibraryElement.getClass('C')!.fields[0];
     _assertTypeStr(f.type, 'Map<int, bool> Function(int) Function(bool)');
   }
 
@@ -4485,7 +4485,7 @@ class C {
   static final f = (bool b) => b;
 }
 ''');
-    var f = _resultLibraryElement.getClass2('C')!.fields[0];
+    var f = _resultLibraryElement.getClass('C')!.fields[0];
     _assertTypeStr(f.type, 'bool Function(bool)');
   }
 
@@ -4495,7 +4495,7 @@ class C {
   static final f = (bool b) => 1;
 }
 ''');
-    var f = _resultLibraryElement.getClass2('C')!.fields[0];
+    var f = _resultLibraryElement.getClass('C')!.fields[0];
     _assertTypeStr(f.type, 'int Function(bool)');
   }
 

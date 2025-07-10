@@ -254,6 +254,10 @@ abstract class TypeProvider {
   InterfaceType futureType(DartType valueType);
 
   /// Return `true` if [element] cannot be extended, implemented, or mixed in.
+  bool isNonSubtypableClass(InterfaceElement element);
+
+  /// Return `true` if [element] cannot be extended, implemented, or mixed in.
+  @Deprecated('Use isNonSubtypableClass instead')
   bool isNonSubtypableClass2(InterfaceElement element);
 
   /// Return 'true' if [id] is the name of a getter on the `Object` type.

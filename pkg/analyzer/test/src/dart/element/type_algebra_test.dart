@@ -217,7 +217,7 @@ class SubstituteTest extends _Base {
 
     assertType(type, 'bool Function<T extends Triple<T, U, V>, U>()');
 
-    var result = substitute2(type, {V: intNone}) as FunctionType;
+    var result = substitute(type, {V: intNone}) as FunctionType;
     assertType(result, 'bool Function<T extends Triple<T, U, int>, U>()');
     var T2 = result.typeParameters[0];
     var U2 = result.typeParameters[1];
@@ -411,7 +411,7 @@ class SubstituteTest extends _Base {
       InterfaceType typeArgument,
       InterfaceType expectedType,
     ) {
-      var result = Substitution.fromMap2({
+      var result = Substitution.fromMap({
         tElement: typeArgument,
       }).substituteType(
         tElement.instantiate(nullabilitySuffix: typeParameterNullability),
@@ -444,7 +444,7 @@ class SubstituteTest extends _Base {
     DartType type,
     Map<TypeParameterElement, DartType> substitution,
   ) {
-    var result = substitute2(type, substitution);
+    var result = substitute(type, substitution);
     expect(result, same(type));
   }
 }
@@ -491,7 +491,7 @@ class _Base extends AbstractTypeSystemTest {
     Map<TypeParameterElement, DartType> substitution,
     String expected,
   ) {
-    var result = substitute2(type, substitution);
+    var result = substitute(type, substitution);
     assertType(result, expected);
     expect(result, isNot(same(type)));
   }

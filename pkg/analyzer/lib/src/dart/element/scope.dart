@@ -178,7 +178,7 @@ class ImportsTrackingOfPrefix {
     var accessedElements = elementsOf(import);
 
     // SAFETY: the scope adds only imports with libraries.
-    var importedLibrary = import.importedLibrary2!;
+    var importedLibrary = import.importedLibrary!;
     var elementFactory = importedLibrary.session.elementFactory;
 
     for (var exportedReference in importedLibrary.exportedReferences) {
@@ -245,7 +245,7 @@ class ImportsTrackingOfPrefix {
 
   void _buildElementToImportsMap() {
     for (var import in scope._importElements) {
-      var importedLibrary = import.importedLibrary2!;
+      var importedLibrary = import.importedLibrary!;
       var elementFactory = importedLibrary.session.elementFactory;
       var combinators = import.combinators.build();
       for (var exportedReference in importedLibrary.exportedReferences) {

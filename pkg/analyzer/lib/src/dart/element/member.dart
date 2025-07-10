@@ -132,7 +132,7 @@ class ConstructorMember extends ExecutableMember
         };
         return ConstructorMember(
           baseElement: element.baseElement,
-          substitution: Substitution.fromMap2(map),
+          substitution: Substitution.fromMap(map),
         );
       default:
         throw UnimplementedError('(${element.runtimeType}) $element');
@@ -347,7 +347,7 @@ abstract class ExecutableMember extends Member
         for (var MapEntry(:key, :value) in element.substitution.map.entries)
           key: substitution.substituteType(value),
       };
-      combined = Substitution.fromMap2(map);
+      combined = Substitution.fromMap(map);
     } else {
       baseElement = element as ExecutableElementImpl;
       if (!baseElement.hasEnclosingTypeParameterReference) {
@@ -480,12 +480,18 @@ class FieldMember extends VariableMember implements FieldElement2OrMember {
   }
 
   @override
-  GetterElement2OrMember? get getter2 {
-    var baseGetter = baseElement.getter2;
+  GetterElement2OrMember? get getter {
+    var baseGetter = baseElement.getter;
     if (baseGetter == null) {
       return null;
     }
     return GetterMember.forSubstitution(baseGetter, substitution);
+  }
+
+  @Deprecated('Use getter instead')
+  @override
+  GetterElement2OrMember? get getter2 {
+    return getter;
   }
 
   @override
@@ -521,12 +527,18 @@ class FieldMember extends VariableMember implements FieldElement2OrMember {
   MetadataImpl get metadata2 => metadata;
 
   @override
-  SetterElement2OrMember? get setter2 {
-    var baseSetter = baseElement.setter2;
+  SetterElement2OrMember? get setter {
+    var baseSetter = baseElement.setter;
     if (baseSetter == null) {
       return null;
     }
     return SetterMember.forSubstitution(baseSetter, substitution);
+  }
+
+  @Deprecated('Use setter instead')
+  @override
+  SetterElement2OrMember? get setter2 {
+    return setter;
   }
 
   @override
@@ -576,7 +588,7 @@ class GetterMember extends PropertyAccessorMember
 
   @override
   SetterElement2OrMember? get correspondingSetter {
-    var baseSetter = baseElement.variable3!.setter2;
+    var baseSetter = baseElement.variable!.setter;
     if (baseSetter == null) {
       return null;
     }
@@ -608,7 +620,7 @@ class GetterMember extends PropertyAccessorMember
   Element get nonSynthetic {
     if (!isSynthetic) {
       return this;
-    } else if (variable3 case var variable?) {
+    } else if (variable case var variable?) {
       return variable.nonSynthetic;
     }
     throw StateError('Synthetic getter has no variable');
@@ -993,7 +1005,7 @@ class ParameterMember extends VariableMember with FormalParameterElementMixin {
     visitChildren(visitor);
   }
 
-  static FormalParameterElementMixin from2(
+  static FormalParameterElementMixin from(
     FormalParameterElementMixin element,
     MapSubstitution substitution,
   ) {
@@ -1007,7 +1019,7 @@ class ParameterMember extends VariableMember with FormalParameterElementMixin {
         for (var MapEntry(:key, :value) in member.substitution.map.entries)
           key: substitution.substituteType(value),
       };
-      combined = Substitution.fromMap2(map);
+      combined = Substitution.fromMap(map);
     } else {
       baseElement = element as FormalParameterElementImpl;
     }
@@ -1067,14 +1079,20 @@ abstract class PropertyAccessorMember extends ExecutableMember
   PropertyAccessorFragment get firstFragment;
 
   @override
-  PropertyInducingElement2OrMember? get variable3 {
-    var variable = baseElement.variable3;
+  PropertyInducingElement2OrMember? get variable {
+    var variable = baseElement.variable;
     switch (variable) {
       case FieldElementImpl():
         return FieldMember(baseElement: variable, substitution: substitution);
       default:
         return variable;
     }
+  }
+
+  @Deprecated('Use variable instead')
+  @override
+  PropertyInducingElement2OrMember? get variable3 {
+    return variable;
   }
 
   @override
@@ -1100,12 +1118,18 @@ class SetterMember extends PropertyAccessorMember
   SetterElementImpl get baseElement => super.baseElement as SetterElementImpl;
 
   @override
-  GetterElement2OrMember? get correspondingGetter2 {
-    var baseGetter = baseElement.variable3!.getter2;
+  GetterElement2OrMember? get correspondingGetter {
+    var baseGetter = baseElement.variable!.getter;
     if (baseGetter == null) {
       return null;
     }
     return GetterMember.forSubstitution(baseGetter, substitution);
+  }
+
+  @Deprecated('Use correspondingGetter instead')
+  @override
+  GetterElement2OrMember? get correspondingGetter2 {
+    return correspondingGetter;
   }
 
   @override
@@ -1127,7 +1151,7 @@ class SetterMember extends PropertyAccessorMember
   Element get nonSynthetic {
     if (!isSynthetic) {
       return this;
-    } else if (variable3 case var variable?) {
+    } else if (variable case var variable?) {
       return variable.nonSynthetic;
     }
     throw StateError('Synthetic setter has no variable');
@@ -1199,13 +1223,19 @@ class SuperFormalParameterMember extends ParameterMember
   bool get hasDefaultValue => baseElement.hasDefaultValue;
 
   @override
-  FormalParameterElementMixin? get superConstructorParameter2 {
-    var superConstructorParameter = baseElement.superConstructorParameter2;
+  FormalParameterElementMixin? get superConstructorParameter {
+    var superConstructorParameter = baseElement.superConstructorParameter;
     if (superConstructorParameter == null) {
       return null;
     }
 
-    return ParameterMember.from2(superConstructorParameter, substitution);
+    return ParameterMember.from(superConstructorParameter, substitution);
+  }
+
+  @Deprecated('Use superConstructorParameter instead')
+  @override
+  FormalParameterElementMixin? get superConstructorParameter2 {
+    return superConstructorParameter;
   }
 }
 
@@ -1227,8 +1257,14 @@ abstract class VariableMember extends Member
       super.baseElement as VariableElementImpl;
 
   @override
+  ConstantInitializer? get constantInitializer {
+    return baseElement.constantInitializer;
+  }
+
+  @Deprecated('Use constantInitializer instead')
+  @override
   ConstantInitializer? get constantInitializer2 {
-    return baseElement.constantInitializer2;
+    return constantInitializer;
   }
 
   @override
@@ -1329,7 +1365,7 @@ class _SubstitutedTypeParameters {
 
     return _SubstitutedTypeParameters._(
       newElements,
-      Substitution.fromMap2({...substitution.map, ...substitution2.map}),
+      Substitution.fromMap({...substitution.map, ...substitution2.map}),
     );
   }
 

@@ -36,7 +36,7 @@ class SearchFindElementReferencesHandler extends LegacyHandler {
       element = element.field;
     }
     if (element is PropertyAccessorElement) {
-      element = element.variable3;
+      element = element.variable;
     }
     // respond
     var searchId = (server.nextSearchId++).toString();

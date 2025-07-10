@@ -33,8 +33,7 @@ class DartDocumentationComputer {
       element,
       ...overridden.superElements,
       ...overridden.interfaceElements,
-      if (element case PropertyAccessorElement(variable3: var variable?))
-        variable,
+      if (element case PropertyAccessorElement(:var variable?)) variable,
     ];
     for (var candidate in candidates) {
       if (candidate.documentationCommentOrNull != null) {
@@ -42,7 +41,7 @@ class DartDocumentationComputer {
         break;
       }
       if (documentedGetter == null && candidate is SetterElement) {
-        var getter = candidate.correspondingGetter2;
+        var getter = candidate.correspondingGetter;
         if (getter != null && getter.documentationComment != null) {
           documentedGetter = getter;
         }
@@ -108,9 +107,9 @@ extension on Element {
       // Treat a super formal parameter like a field formal parameter if it's
       // eventually assigned to a field, but as any other formal parameter if it
       // isn't.
-      var superParameter = self.superConstructorParameter2;
+      var superParameter = self.superConstructorParameter;
       while (superParameter is SuperFormalParameterElement) {
-        superParameter = superParameter.superConstructorParameter2;
+        superParameter = superParameter.superConstructorParameter;
       }
       if (superParameter is FieldFormalParameterElement) {
         return superParameter.field;

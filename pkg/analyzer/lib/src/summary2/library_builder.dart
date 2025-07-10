@@ -102,7 +102,7 @@ class LibraryBuilder {
     for (var (fragmentIndex, fragment) in element.units.indexed) {
       for (var (exportIndex, exportElement)
           in fragment.libraryExports.indexed) {
-        var exportedLibrary = exportElement.exportedLibrary2;
+        var exportedLibrary = exportElement.exportedLibrary;
         if (exportedLibrary == null) {
           continue;
         }
@@ -214,8 +214,8 @@ class LibraryBuilder {
       enum_.valuesElement.type = valuesType;
       enum_.valuesElement.element.type = valuesType;
       // TODO(scheglov): We repeat this code.
-      enum_.valuesElement.element.getter2!.returnType = valuesType;
-      enum_.valuesElement.element.getter2!.firstFragment.returnType =
+      enum_.valuesElement.element.getter!.returnType = valuesType;
+      enum_.valuesElement.element.getter!.firstFragment.returnType =
           valuesType;
     }
   }
@@ -411,7 +411,7 @@ class LibraryBuilder {
 
     var entryPoint = namespace.get2(TopLevelFunctionElement.MAIN_FUNCTION_NAME);
     if (entryPoint is TopLevelFunctionElementImpl) {
-      element.entryPoint2 = entryPoint;
+      element.entryPoint = entryPoint;
     }
   }
 
@@ -962,7 +962,7 @@ class _FieldPromotability
           isAbstract: getter.isAbstract,
         );
         if (enabled && nonPromotabilityReason == null) {
-          var field = getter.variable3 as FieldElementImpl;
+          var field = getter.variable as FieldElementImpl;
           _potentiallyPromotableFields.add(field);
         }
       }

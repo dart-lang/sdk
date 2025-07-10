@@ -1564,10 +1564,10 @@ library
     // We intentionally don't check the text, because we want to test
     // requesting individual elements, not all accessors/variables at once.
     var getter = library.getters.single;
-    var variable = getter.variable3 as TopLevelVariableElementImpl;
+    var variable = getter.variable as TopLevelVariableElementImpl;
     expect(variable, isNotNull);
     expect(variable.isFinal, isFalse);
-    expect(variable.getter2, same(getter));
+    expect(variable.getter, same(getter));
     _assertTypeStr(variable.type, 'int');
     expect(variable, same(library.topLevelVariables.single));
   }

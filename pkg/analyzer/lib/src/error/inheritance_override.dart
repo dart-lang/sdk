@@ -254,12 +254,12 @@ class _ClassVerifier {
           _checkDeclaredMember(
             field.name,
             libraryUri,
-            fieldElement.element.getter2,
+            fieldElement.element.getter,
           );
           _checkDeclaredMember(
             field.name,
             libraryUri,
-            fieldElement.element.setter2,
+            fieldElement.element.setter,
           );
           if (!member.isStatic && firstFragment is! EnumFragmentImpl) {
             _checkIllegalEnumValuesDeclaration(field.name);
@@ -471,7 +471,7 @@ class _ClassVerifier {
       return true;
     }
 
-    if (typeProvider.isNonSubtypableClass2(typeElement)) {
+    if (typeProvider.isNonSubtypableClass(typeElement)) {
       notSubtypable?.call();
       return true;
     }
@@ -998,7 +998,7 @@ class _ClassVerifier {
           continue;
         }
         if (getter.metadata.hasMustBeOverridden ||
-            (getter.variable3?.metadata.hasMustBeOverridden ?? false)) {
+            (getter.variable?.metadata.hasMustBeOverridden ?? false)) {
           var declaration = classElement.getGetter(getter.name!);
           if (declaration == null || declaration.isAbstract) {
             notOverridden.add(getter);
@@ -1013,7 +1013,7 @@ class _ClassVerifier {
           continue;
         }
         if (setter.metadata.hasMustBeOverridden ||
-            (setter.variable3?.metadata.hasMustBeOverridden ?? false)) {
+            (setter.variable?.metadata.hasMustBeOverridden ?? false)) {
           var declaration = classElement.getSetter(setter.name!);
           if (declaration == null || declaration.isAbstract) {
             notOverridden.add(setter);

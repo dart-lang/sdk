@@ -199,7 +199,7 @@ class LibraryReader {
 
       _libraryElement.metadata = reader._readMetadata(unitElement: unitElement);
 
-      _libraryElement.entryPoint2 =
+      _libraryElement.entryPoint =
           reader.readElement() as TopLevelFunctionElementImpl?;
 
       _libraryElement.fieldNameNonPromotabilityInfo = reader.readOptionalObject(
@@ -1446,15 +1446,15 @@ class LibraryReader {
       var optionalGetter = _readOptionalReference()?.element;
       if (optionalGetter != null) {
         var getter = optionalGetter as GetterElementImpl;
-        variable.getter2 = getter;
-        getter.variable3 = variable;
+        variable.getter = getter;
+        getter.variable = variable;
       }
 
       var optionalSetter = _readOptionalReference()?.element;
       if (optionalSetter != null) {
         var setter = optionalSetter as SetterElementImpl;
-        variable.setter2 = setter;
-        setter.variable3 = variable;
+        variable.setter = setter;
+        setter.variable = variable;
       }
     });
   }

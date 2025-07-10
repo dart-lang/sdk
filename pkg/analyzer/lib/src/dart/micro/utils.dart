@@ -174,7 +174,7 @@ MockLibraryImportElement? _getMockImportElement(
           .toList();
   for (var importElement in libraryImports) {
     // required library
-    if (importElement.importedLibrary2 != usedLibrary) {
+    if (importElement.importedLibrary != usedLibrary) {
       continue;
     }
     // required prefix
@@ -280,7 +280,7 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
     var writeElement = node.writeElement;
     if (writeElement is PropertyAccessorElement) {
       var kind = MatchKind.WRITE;
-      if (writeElement.variable3 == element || writeElement == element) {
+      if (writeElement.variable == element || writeElement == element) {
         if (node.leftHandSide is SimpleIdentifier) {
           references.add(
             MatchInfo(node.leftHandSide.offset, node.leftHandSide.length, kind),
@@ -305,7 +305,7 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
 
     var readElement = node.readElement;
     if (readElement is PropertyAccessorElement) {
-      if (readElement.variable3 == element) {
+      if (readElement.variable == element) {
         references.add(
           MatchInfo(
             node.rightHandSide.offset,
@@ -451,7 +451,7 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
     var e = node.element;
     if (e == element) {
       references.add(MatchInfo(node.offset, node.length, MatchKind.REFERENCE));
-    } else if (e is GetterElement && e.variable3 == element) {
+    } else if (e is GetterElement && e.variable == element) {
       bool inGetterContext = node.inGetterContext();
       bool inSetterContext = node.inSetterContext();
       MatchKind kind;

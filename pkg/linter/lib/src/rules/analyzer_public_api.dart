@@ -147,7 +147,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     // TODO(paulberry): consider adding something to the analyzer API that
     // computes which names are filtered by a sequence of combinators.
     Set<String>? badNames;
-    var exportedLibrary = exportElement.exportedLibrary2!;
+    var exportedLibrary = exportElement.exportedLibrary!;
     for (var member in exportedLibrary.children) {
       var name = member.name;
       if (name == null) continue;
@@ -277,9 +277,9 @@ class _Visitor extends SimpleAstVisitor<void> {
         length = fragment.name!.length;
         break;
       } else if (fragment case PropertyAccessorFragment()
-          when fragment.element.variable3!.firstFragment.nameOffset2 != null) {
-        offset = fragment.element.variable3!.firstFragment.nameOffset2!;
-        length = fragment.element.variable3!.name!.length;
+          when fragment.element.variable!.firstFragment.nameOffset2 != null) {
+        offset = fragment.element.variable!.firstFragment.nameOffset2!;
+        length = fragment.element.variable!.name!.length;
         break;
       } else if (fragment is ConstructorFragment &&
           fragment.typeNameOffset != null) {
@@ -358,7 +358,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     for (var directive in compilationUnit.directives) {
       if (directive is! ImportDirective) continue;
       var libraryImport = directive.libraryImport!;
-      var importedLibrary = libraryImport.importedLibrary2;
+      var importedLibrary = libraryImport.importedLibrary;
       if (importedLibrary == null) {
         // Import was unresolved. Ignore.
         continue;
@@ -379,20 +379,20 @@ extension on Element {
   bool get isInAnalyzerPublicApi {
     if (this case PropertyAccessorElement(
       isSynthetic: true,
-      :var variable3?,
-    ) when variable3.isInAnalyzerPublicApi) {
+      :var variable?,
+    ) when variable.isInAnalyzerPublicApi) {
       return true;
     }
     if (this case PropertyInducingElement(
       isSynthetic: true,
-      :var getter2?,
-    ) when getter2.isInAnalyzerPublicApi) {
+      :var getter?,
+    ) when getter.isInAnalyzerPublicApi) {
       return true;
     }
     if (this case PropertyInducingElement(
       isSynthetic: true,
-      :var setter2?,
-    ) when setter2.isInAnalyzerPublicApi) {
+      :var setter?,
+    ) when setter.isInAnalyzerPublicApi) {
       return true;
     }
     if (this case Annotatable(

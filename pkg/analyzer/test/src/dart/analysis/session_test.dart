@@ -253,9 +253,9 @@ class B {}
     var session = contextFor(testFile).currentSession;
     var result = await session.getLibraryByUriValid('package:test/test.dart');
     var library = result.element2;
-    expect(library.getClass2('A'), isNotNull);
-    expect(library.getClass2('B'), isNotNull);
-    expect(library.getClass2('C'), isNull);
+    expect(library.getClass('A'), isNotNull);
+    expect(library.getClass('B'), isNotNull);
+    expect(library.getClass('C'), isNull);
   }
 
   test_getLibraryByUri_inconsistent() async {
@@ -316,7 +316,7 @@ class B {}
     );
     var parsedLibrary = session.getParsedLibraryValid(testFile);
 
-    var element = libraryResult.element2.getClass2('A')!;
+    var element = libraryResult.element2.getClass('A')!;
     var declaration =
         parsedLibrary.getFragmentDeclaration(element.firstFragment)!;
     var node = declaration.node as ClassDeclaration;
@@ -363,13 +363,13 @@ int foo = 0;
     // Synthetic elements don't have nodes.
     expect(
       parsedLibrary.getFragmentDeclaration(
-        fooElement.element.getter2!.firstFragment,
+        fooElement.element.getter!.firstFragment,
       ),
       isNull,
     );
     expect(
       parsedLibrary.getFragmentDeclaration(
-        fooElement.element.setter2!.firstFragment,
+        fooElement.element.setter!.firstFragment,
       ),
       isNull,
     );
@@ -559,9 +559,9 @@ class B2 extends X {}
 
     var libraryElement = resolvedLibrary.element2;
 
-    var aClass = libraryElement.getClass2('A')!;
+    var aClass = libraryElement.getClass('A')!;
 
-    var bClass = libraryElement.getClass2('B')!;
+    var bClass = libraryElement.getClass('B')!;
 
     var aUnitResult = resolvedLibrary.units[0];
     expect(aUnitResult.path, a.path);
@@ -633,13 +633,13 @@ int foo = 0;
     // Synthetic elements don't have nodes.
     expect(
       resolvedLibrary.getFragmentDeclaration(
-        fooElement.element.getter2!.firstFragment,
+        fooElement.element.getter!.firstFragment,
       ),
       isNull,
     );
     expect(
       resolvedLibrary.getFragmentDeclaration(
-        fooElement.element.setter2!.firstFragment,
+        fooElement.element.setter!.firstFragment,
       ),
       isNull,
     );

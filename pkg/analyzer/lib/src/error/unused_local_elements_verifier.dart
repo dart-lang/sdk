@@ -116,7 +116,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
     var element = node.declaredFragment?.element;
     if (element is SuperFormalParameterElement) {
-      usedElements.addElement(element.superConstructorParameter2);
+      usedElements.addElement(element.superConstructorParameter);
     }
 
     super.visitDefaultFormalParameter(node);
@@ -268,7 +268,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
     if (element is ExecutableMember) {
       element = element.baseElement;
     }
-    var variable = element.ifTypeOrNull<PropertyAccessorElement>()?.variable3;
+    var variable = element.ifTypeOrNull<PropertyAccessorElement>()?.variable;
     bool isIdentifierRead = _isReadIdentifier(node);
     if (element is PropertyAccessorElement &&
         isIdentifierRead &&
@@ -317,7 +317,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
         // the enum values have been read.
         for (var field in enclosingElement.fields) {
           if (field.isEnumConstant) {
-            usedElements.readMembers.add(field.getter2!);
+            usedElements.readMembers.add(field.getter!);
           }
         }
       } else if ((enclosingElement is InterfaceElement ||
@@ -354,8 +354,8 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   /// corresponding getter as a used member.
   void _addMemberAndCorrespondingGetter(Element element) {
     if (element is SetterElement) {
-      usedElements.addMember(element.correspondingGetter2);
-      usedElements.addReadMember(element.correspondingGetter2);
+      usedElements.addMember(element.correspondingGetter);
+      usedElements.addReadMember(element.correspondingGetter);
     } else {
       usedElements.addReadMember(element);
     }
@@ -845,7 +845,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
       return true;
     }
     if (element is FieldElement) {
-      var getter = element.getter2;
+      var getter = element.getter;
       if (getter == null) {
         return false;
       }

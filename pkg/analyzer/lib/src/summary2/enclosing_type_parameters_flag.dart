@@ -23,11 +23,11 @@ class EnclosingTypeParameterReferenceFlag {
                 var result = _hasTypeParameterReference(topElement, field.type);
                 field.firstFragment.hasEnclosingTypeParameterReference = result;
                 field
-                    .getter2
+                    .getter
                     ?.firstFragment
                     .hasEnclosingTypeParameterReference = result;
                 field
-                    .setter2
+                    .setter
                     ?.firstFragment
                     .hasEnclosingTypeParameterReference = result;
               }
@@ -43,7 +43,7 @@ class EnclosingTypeParameterReferenceFlag {
                 propertyAccessor
                     .firstFragment
                     .hasEnclosingTypeParameterReference = result;
-                if (propertyAccessor.variable3 case FieldElementImpl field) {
+                if (propertyAccessor.variable case FieldElementImpl field) {
                   field.firstFragment.hasEnclosingTypeParameterReference =
                       result;
                 }
@@ -64,11 +64,11 @@ class EnclosingTypeParameterReferenceFlag {
             // Top-level variables dont have type parameters.
             if (!topElement.isSynthetic) {
               topElement
-                  .getter2
+                  .getter
                   ?.firstFragment
                   .hasEnclosingTypeParameterReference = false;
               topElement
-                  .setter2
+                  .setter
                   ?.firstFragment
                   .hasEnclosingTypeParameterReference = false;
             }

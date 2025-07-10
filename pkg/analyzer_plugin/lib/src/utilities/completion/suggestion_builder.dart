@@ -139,7 +139,7 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
       var type = element.type;
       return type.getDisplayString();
     } else if (element is TypeAliasElement) {
-      var aliasedElement = element.aliasedElement2;
+      var aliasedElement = element.aliasedElement;
       if (aliasedElement is GenericFunctionTypeElement) {
         var returnType = aliasedElement.returnType;
         return returnType.getDisplayString();

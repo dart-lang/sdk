@@ -100,8 +100,8 @@ class DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
-    if (node.declaredElement case BindPatternVariableElement(:var join2?)) {
-      _addOccurrence(join2.baseElement, node.name);
+    if (node.declaredElement case BindPatternVariableElement(:var join?)) {
+      _addOccurrence(join.baseElement, node.name);
     } else {
       _addOccurrence(node.declaredElement!, node.name);
     }
@@ -307,9 +307,9 @@ class DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
     if (canonicalElement is FieldFormalParameterElement) {
       canonicalElement = canonicalElement.field;
     } else if (canonicalElement case PropertyAccessorElement(
-      :var variable3?,
-    ) when !variable3.isSynthetic) {
-      canonicalElement = variable3;
+      :var variable?,
+    ) when !variable.isSynthetic) {
+      canonicalElement = variable;
     }
     return canonicalElement?.baseElement;
   }

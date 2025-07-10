@@ -143,7 +143,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
     } else if (expression is Identifier) {
       var element = expression.element;
       switch (element) {
-        case GetterElement(variable3: var variable?):
+        case GetterElement(:var variable?):
           return variable.isConst;
         case VariableElement():
           return element.isConst;

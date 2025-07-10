@@ -238,7 +238,7 @@ class ImportLibrary extends MultiCorrectionProducer {
     var alreadyImportedWithPrefix = <LibraryElement>{};
     for (var import in unitResult.libraryFragment.libraryImports2) {
       // Prepare the element.
-      var libraryElement = import.importedLibrary2;
+      var libraryElement = import.importedLibrary;
       if (libraryElement == null) {
         continue;
       }
@@ -247,7 +247,7 @@ class ImportLibrary extends MultiCorrectionProducer {
         continue;
       }
       if (element is PropertyAccessorElement) {
-        element = element.variable3;
+        element = element.variable;
         if (element == null) {
           continue;
         }
@@ -402,7 +402,7 @@ class ImportLibrary extends MultiCorrectionProducer {
     var names = <_PrefixedName>[];
     for (var import in unitResult.libraryFragment.libraryImports2) {
       // prepare element
-      var importedLibrary = import.importedLibrary2;
+      var importedLibrary = import.importedLibrary;
       if (importedLibrary == null || importedLibrary != libraryToImport) {
         continue;
       }
@@ -416,7 +416,7 @@ class ImportLibrary extends MultiCorrectionProducer {
       for (var instantiatedExtension in instantiatedExtensions) {
         // If the import has a combinator that needs to be updated, then offer
         // to update it.
-        var libraryElement = import.importedLibrary2;
+        var libraryElement = import.importedLibrary;
         if (libraryElement == null) {
           continue;
         }

@@ -39,10 +39,10 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
     for (VariableDeclaration field in node.fields.variables) {
       var fieldElement = field.declaredFragment?.element as FieldElement;
       if (fieldElement.metadata.hasOverride) {
-        var getter = fieldElement.getter2;
+        var getter = fieldElement.getter;
         if (getter != null && _isOverride(getter)) continue;
 
-        var setter = fieldElement.setter2;
+        var setter = fieldElement.setter;
         if (setter != null && _isOverride(setter)) continue;
 
         _errorReporter.atToken(

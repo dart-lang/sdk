@@ -100,7 +100,7 @@ extension on Element? {
   Element? get variableElement {
     var self = this;
     if (self is GetterElement) {
-      var variable = self.variable3;
+      var variable = self.variable;
       if (variable != null) {
         return variable;
       }

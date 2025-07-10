@@ -715,8 +715,6 @@ class CommandExecutorImpl implements CommandExecutor {
     steps
         .add(() => device.pushCachedData("$buildPath/dart", '$devicedir/dart'));
     steps.add(() => device
-        .pushCachedData("$buildPath/dartvm", '$devicedir/dartvm'));
-    steps.add(() => device
         .runAdbCommand(['push', hostKernelFile, '$deviceTestDir/out.dill']));
 
     steps.addAll(_pushLibraries(command, device, devicedir, deviceTestDir));

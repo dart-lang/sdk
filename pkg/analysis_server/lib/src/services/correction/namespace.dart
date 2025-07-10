@@ -46,7 +46,7 @@ LibraryImport? _getImportElement(
   List<LibraryImport>? candidates;
   for (var libraryImport in libraryElement.firstFragment.libraryImports2) {
     // required library
-    if (libraryImport.importedLibrary2 != usedLibrary) {
+    if (libraryImport.importedLibrary != usedLibrary) {
       continue;
     }
     // required prefix

@@ -99,8 +99,8 @@ class CanRenameResponse {
       var oldStateName = '${element.displayName}State';
       var library = element.library;
       var state =
-          library.getClass2(oldStateName) ??
-          library.getClass2('_$oldStateName');
+          library.getClass(oldStateName) ??
+          library.getClass('_$oldStateName');
       if (state != null) {
         var flutterWidgetStateNewName = '${newName}State';
         // If the State was private, ensure that it stays private.
@@ -131,8 +131,8 @@ class CheckNameResponse {
     var element = canRename.refactoringElement.element;
     if (element is PropertyInducingElement && element.isSynthetic) {
       var property = element;
-      var getter = property.getter2;
-      var setter = property.setter2;
+      var getter = property.getter;
+      var setter = property.setter;
       elements.addIfNotNull(getter);
       elements.addIfNotNull(setter);
     } else {
@@ -235,7 +235,7 @@ class CheckNameResponse {
   ) async {
     var infos = <ReplaceInfo>[];
     if (element is PropertyInducingElement && element.isSynthetic) {
-      var getter = element.getter2;
+      var getter = element.getter;
       if (getter != null) {
         infos.add(
           ReplaceInfo(
@@ -245,7 +245,7 @@ class CheckNameResponse {
           ),
         );
       }
-      var setter = element.setter2;
+      var setter = element.setter;
       if (setter != null) {
         infos.add(
           ReplaceInfo(
@@ -436,7 +436,7 @@ class CiderRenameComputer {
       return null;
     }
     if (element is PropertyAccessorElement) {
-      element = element.variable3;
+      element = element.variable;
       if (element == null) {
         return null;
       }

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/scope.dart';
+import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -22,68 +22,64 @@ import 'package:collection/collection.dart';
 class ConstantInitializersResolver {
   final Linker linker;
 
-  late LibraryBuilder _libraryBuilder;
-  late LibraryFragmentImpl _libraryFragment;
-  late LibraryElementImpl _library;
-  late Scope _scope;
-
   ConstantInitializersResolver(this.linker);
 
   void perform() {
     for (var builder in linker.builders.values) {
-      _library = builder.element;
-      _libraryBuilder = builder;
-      for (var libraryFragment in _library.fragments) {
-        _libraryFragment = libraryFragment;
-        libraryFragment.classes.forEach(_resolveInterfaceFields);
-        libraryFragment.enums.forEach(_resolveInterfaceFields);
-        libraryFragment.extensions.forEach(_resolveExtensionFields);
-        libraryFragment.extensionTypes.forEach(_resolveInterfaceFields);
-        libraryFragment.mixins.forEach(_resolveInterfaceFields);
+      var analysisOptions = builder.kind.file.analysisOptions;
+      var libraryElement = builder.element;
 
-        _scope = libraryFragment.scope;
-        libraryFragment.topLevelVariables.forEach(_resolveVariable);
+      var instanceElementListList = [
+        libraryElement.classes,
+        libraryElement.enums,
+        libraryElement.extensions,
+        libraryElement.extensionTypes,
+        libraryElement.mixins,
+      ];
+      for (var instanceElementList in instanceElementListList) {
+        for (var instanceElement in instanceElementList) {
+          for (var field in instanceElement.fields) {
+            _resolveVariable(analysisOptions, field);
+          }
+        }
+      }
+
+      for (var variable in libraryElement.topLevelVariables) {
+        _resolveVariable(analysisOptions, variable);
       }
     }
   }
 
-  void _resolveExtensionFields(ExtensionFragmentImpl extension_) {
-    var node = linker.getLinkingNode(extension_)!;
-    _scope = LinkingNodeContext.get(node).scope;
-    extension_.fields.forEach(_resolveVariable);
-  }
-
-  void _resolveInterfaceFields(InterfaceFragmentImpl class_) {
-    var node = linker.getLinkingNode(class_)!;
-    _scope = LinkingNodeContext.get(node).scope;
-    class_.fields.forEach(_resolveVariable);
-  }
-
-  void _resolveVariable(PropertyInducingFragmentImpl element) {
-    if (element is FieldFragmentImpl && element.isEnumConstant) {
+  void _resolveVariable(
+    AnalysisOptionsImpl analysisOptions,
+    PropertyInducingElementImpl element,
+  ) {
+    if (element is FieldElementImpl && element.isEnumConstant) {
       return;
     }
 
-    if (element.constantInitializer == null) return;
+    var constantInitializer = element.constantInitializer;
+    if (constantInitializer == null) {
+      return;
+    }
 
-    var variable = linker.getLinkingNode(element);
-    if (variable is! VariableDeclarationImpl) return;
-    if (variable.initializer == null) return;
+    var fragment = constantInitializer.fragment;
+    var node = linker.elementNodes[fragment] as VariableDeclarationImpl;
+    var scope = LinkingNodeContext.get(node).scope;
 
-    var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
     var astResolver = AstResolver(
       linker,
-      _libraryFragment,
-      _scope,
+      fragment.libraryFragment as LibraryFragmentImpl,
+      scope,
       analysisOptions,
     );
     astResolver.resolveExpression(
-      () => variable.initializer!,
+      () => node.initializer!,
       contextType: element.type,
     );
 
     // We could have rewritten the initializer.
-    element.constantInitializer = variable.initializer;
+    fragment.constantInitializer = node.initializer;
   }
 }
 
@@ -210,7 +206,7 @@ class _PropertyInducingElementTypeInference
     }
 
     if (initializerFragment == null || variableDeclaration == null) {
-      _element.constantInitializer2;
+      _element.constantInitializer;
       _status = _InferenceStatus.inferred;
       return DynamicTypeImpl.instance;
     }

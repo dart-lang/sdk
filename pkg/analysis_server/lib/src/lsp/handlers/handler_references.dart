@@ -69,7 +69,7 @@ class ReferencesHandler
 
     var element = switch (node?.getElement()) {
       FieldFormalParameterElement(:var field?) => field,
-      PropertyAccessorElement(:var variable3?) => variable3,
+      PropertyAccessorElement(:var variable?) => variable,
       var element => element,
     };
 

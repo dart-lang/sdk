@@ -273,7 +273,7 @@ class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
     if (staticElement == element) {
       references.add(node);
     } else if (staticElement is PropertyAccessorElement) {
-      if (staticElement.variable3 == element) {
+      if (staticElement.variable == element) {
         references.add(node);
       }
     } else if (staticElement is FieldFormalParameterElement) {

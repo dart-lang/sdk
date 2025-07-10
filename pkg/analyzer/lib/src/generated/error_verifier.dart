@@ -791,7 +791,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitExportDirective(covariant ExportDirectiveImpl node) {
     var libraryExport = node.libraryExport;
     if (libraryExport != null) {
-      var exportedLibrary = libraryExport.exportedLibrary2;
+      var exportedLibrary = libraryExport.exportedLibrary;
       _checkForAmbiguousExport(node, libraryExport, exportedLibrary);
       _checkForExportInternalLibrary(node, libraryExport);
     }
@@ -1542,7 +1542,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     var element =
         node.declaredFragment?.element as SuperFormalParameterElementImpl;
-    var superParameter = element.superConstructorParameter2;
+    var superParameter = element.superConstructorParameter;
 
     if (superParameter == null) {
       diagnosticReporter.atToken(
@@ -2034,7 +2034,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         );
       }
     } else if (element is GetterElement) {
-      var variable = element.variable3;
+      var variable = element.variable;
       if (variable == null) {
         return;
       }
@@ -3174,7 +3174,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    var exportedLibrary = libraryExport.exportedLibrary2;
+    var exportedLibrary = libraryExport.exportedLibrary;
     if (exportedLibrary == null) {
       return;
     }
@@ -3273,7 +3273,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
     var type = namedType.type;
     return type is InterfaceType &&
-        _typeProvider.isNonSubtypableClass2(type.element);
+        _typeProvider.isNonSubtypableClass(type.element);
   }
 
   void _checkForExtensionDeclaresInstanceField(FieldDeclaration node) {
@@ -3425,8 +3425,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   void _checkForExtensionTypeRepresentationTypeBottom(
     ExtensionTypeDeclarationImpl node,
-    ExtensionTypeFragmentImpl element,
+    ExtensionTypeFragmentImpl fragment,
   ) {
+    var element = fragment.element;
     var representationType = element.representation.type;
     if (representationType.isBottom) {
       diagnosticReporter.atNode(
@@ -3733,7 +3734,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    var importedLibrary = importElement.importedLibrary2;
+    var importedLibrary = importElement.importedLibrary;
     if (importedLibrary == null) {
       return;
     }
@@ -4638,7 +4639,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
     }
 
-    if (!_typeProvider.isNonSubtypableClass2(superType.element)) {
+    if (!_typeProvider.isNonSubtypableClass(superType.element)) {
       // Don't report this diagnostic for non-subtypable classes because the
       // real problem was already reported.
       diagnosticReporter.atElement2(
@@ -4733,7 +4734,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    var representationType = fragment.representation.type;
+    var element = fragment.element;
+    var representationType = element.representation.type;
 
     for (var typeParameterNode in typeParameters) {
       var typeParameterElement = typeParameterNode.declaredFragment!.element;
@@ -5836,9 +5838,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         if (!typeParameter.isLegacyCovariant) {
           var fields = node.fields;
           var fieldFragment = fields.variables.first.declaredFragment!;
+          var fieldElement = fieldFragment.element;
           var fieldName = fields.variables.first.name;
           Variance fieldVariance = typeParameter.computeVarianceInType(
-            fieldFragment.type,
+            fieldElement.type,
           );
 
           _checkForWrongVariancePosition(
@@ -5894,7 +5897,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var methodParameters = method.parameters?.parameters;
       if (methodParameters != null) {
         for (var methodParameter in methodParameters) {
-          var methodParameterElement = methodParameter.declaredFragment!;
+          var methodParameterFragment = methodParameter.declaredFragment!;
+          var methodParameterElement = methodParameterFragment.element;
           if (methodParameterElement.isCovariant) {
             continue;
           }
@@ -6251,13 +6255,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             .toList();
     int count = imports.length;
     for (int i = 0; i < count; i++) {
-      if (identical(imports[i].importedLibrary2, library)) {
+      if (identical(imports[i].importedLibrary, library)) {
         return library.uri.toString();
       }
     }
     List<String> indirectSources = <String>[];
     for (var import in imports) {
-      var importedLibrary = import.importedLibrary2;
+      var importedLibrary = import.importedLibrary;
       if (importedLibrary != null) {
         if (import.namespace.get2(name) == element) {
           indirectSources.add(
@@ -6337,7 +6341,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// and the current library is either `package:js/js.dart` or is in
   /// `package:ui`.
   bool _isWasm(LibraryImport importElement) {
-    var importedUri = importElement.importedLibrary2?.uri.toString();
+    var importedUri = importElement.importedLibrary?.uri.toString();
     if (importedUri != 'dart:_wasm') {
       return false;
     }

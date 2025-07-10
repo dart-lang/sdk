@@ -93,7 +93,7 @@ class FunctionTypeBuilder extends TypeBuilder {
       nullabilitySuffix: nullabilitySuffix,
     );
 
-    var fresh = getFreshTypeParameters2(typeParameters);
+    var fresh = getFreshTypeParameters(typeParameters);
     type = fresh.applyToFunctionType(type);
 
     _type = type;

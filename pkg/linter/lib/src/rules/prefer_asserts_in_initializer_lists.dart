@@ -80,11 +80,11 @@ class _AssertVisitor extends RecursiveAstVisitor<void> {
     for (var p in parameters) {
       FormalParameterElement? parameterElement = p;
       if (parameterElement is SuperFormalParameterElement) {
-        parameterElement = parameterElement.superConstructorParameter2;
+        parameterElement = parameterElement.superConstructorParameter;
       }
 
       if (parameterElement is FieldFormalParameterElement) {
-        if (parameterElement.field?.getter2 == element) {
+        if (parameterElement.field?.getter == element) {
           return true;
         }
       }
