@@ -136,8 +136,8 @@ vars = {
   "dartdoc_rev": "882aea9351262d618c955322f4c9aafe9540b848",
   "ecosystem_rev": "d5233c6dd0767cffa5742e32c4bc7c230c9c4b12",
   "flute_rev": "e4ea0459a7debae5e9592c85141707b01fac86c9",
-  "http_rev": "7d2d87ebfba86035a9ca6b79160ccc2ac1253c0c",
-  "i18n_rev": "42c49328f8c040b663c2a2d94be9b6ddd80a70bd",
+  "http_rev": "4209e846100cb22d60dea7e48727334b8c55be34",
+  "i18n_rev": "c45e050426bdeaaa120e5ce856abb486863d0476",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "native_rev": "723cd56a5edc89699db32bca1b5bf91aa0bcf0cf", # rolled manually while native assets are experimental
@@ -147,9 +147,9 @@ vars = {
   "sync_http_rev": "c07f96f89a7eec7e3daac641fa6c587224fcfbaa",
   "tar_rev": "5a1ea943e70cdf3fa5e1102cdbb9418bd9b4b81a",
   "test_rev": "2be5ca067bdf09e999be2ad760ab8efab854e789",
-  "tools_rev": "6282b35ef2d0108bdd4ee8ba73ccd7d85afaaef9",
+  "tools_rev": "fd7cc89aaac774fb34502502803a3bcf62cb83cd",
   "vector_math_rev": "13f185f7e97d559e003f5ac79201da12f9a01049",
-  "web_rev": "fb8a14921e6a402d35f4d7b61fa2dc9fde567e64",
+  "web_rev": "354e22995859757223cea3fccbff0ad86c540d60",
   "webdev_rev": "7f376d242709e933fff70610503d0c5c09b2e17e",
   "webdriver_rev": "cfab787b30fbfb5509f9fc45cfce51157fb9f369",
   "webkit_inspection_protocol_rev": "effa75205516757795683d527c3dea9546eb0c32",
