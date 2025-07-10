@@ -12,7 +12,10 @@ import 'package:ffi/ffi.dart';
 final class Foo extends Struct {
   @Int32()
   external int // Force `?` to newline.
-      ? //# 1: compile-time error
+      ?
+//    ^
+// [analyzer] COMPILE_TIME_ERROR.NULLABLE_TYPE_IN_STRUCT
+// [cfe] Struct fields cannot be nullable.
       x;
 }
 
