@@ -959,6 +959,7 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
   @override
   int? periodOffset;
 
+  @override
   int? nameEnd;
 
   @override
@@ -1063,16 +1064,6 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
   @Deprecated('Use name instead')
   @override
   String get name2 => name;
-
-  @override
-  int get nameLength {
-    var nameEnd = this.nameEnd;
-    if (nameEnd == null) {
-      return 0;
-    } else {
-      return nameEnd - nameOffset;
-    }
-  }
 
   @override
   int get offset => isSynthetic ? enclosingElement.offset : nameOffset;
@@ -3008,10 +2999,7 @@ class FormalParameterElementImpl extends PromotableElementImpl
     TypeImpl type,
     ParameterKind parameterKind,
   ) {
-    var fragment = FormalParameterFragmentImpl.synthetic(
-      name,
-      parameterKind,
-    );
+    var fragment = FormalParameterFragmentImpl.synthetic(name, parameterKind);
     return FormalParameterElementImpl(fragment)..type = type;
   }
 
@@ -3754,9 +3742,16 @@ abstract class FragmentImpl implements Fragment {
   @override
   String? get name2 => name;
 
-  /// The length of the name of this element in the file that contains the
-  /// declaration of this element, or `0` if this element does not have a name.
-  int get nameLength => displayName.length;
+  /// The offset after the last character of the name, or `null` if there is
+  /// no declaration in code for this fragment, or the name is absent.
+  int? get nameEnd {
+    if (nameOffset2 case var nameOffset?) {
+      if (name case var name?) {
+        return nameOffset + name.length;
+      }
+    }
+    return null;
+  }
 
   /// The analysis session in which this element is defined.
   AnalysisSession? get session {

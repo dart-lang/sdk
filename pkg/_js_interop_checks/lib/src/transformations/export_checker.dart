@@ -213,10 +213,10 @@ class ExportChecker {
     var cls = member.enclosingClass;
     if (memberHasJSExportAnnotation) {
       if (!member.exportable) {
+        String name = member.name.text;
+        if (name.isEmpty) name = '<unnamed>';
         _diagnosticReporter.report(
-          templateJsInteropExportDisallowedMember.withArguments(
-            member.name.text,
-          ),
+          templateJsInteropExportDisallowedMember.withArguments(name),
           member.fileOffset,
           member.name.text.length,
           member.location?.file,

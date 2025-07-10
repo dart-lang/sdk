@@ -135,11 +135,22 @@ class CallHierarchyItem {
     element = _nonSynthetic(element);
     var fragment = element.firstFragment as FragmentImpl;
 
-    // Compilation units will return -1 for nameOffset which is not valid, so
-    // use 0:0.
-    return fragment.nameOffset == -1
-        ? SourceRange(0, 0)
-        : SourceRange(fragment.nameOffset, fragment.nameLength);
+    var nameOffset = fragment.nameOffset2;
+    var nameEnd = fragment.nameEnd;
+    if (nameOffset != null && nameEnd != null) {
+      return SourceRange(nameOffset, nameEnd - nameOffset);
+    }
+
+    // For unnamed constructors, use the type name.
+    if (fragment is ConstructorFragmentImpl) {
+      var typeNameOffset = fragment.typeNameOffset;
+      var typeName = fragment.typeName;
+      if (typeName != null && typeNameOffset != null) {
+        return SourceRange(typeNameOffset, typeName.length);
+      }
+    }
+
+    return SourceRange(0, 0);
   }
 
   static Element _nonSynthetic(Element element) {

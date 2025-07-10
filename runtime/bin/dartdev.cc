@@ -492,8 +492,8 @@ class DartDev {
   // Invoke the Dart VM directly bypassing dartdev.
   static void InvokeDartVM(int argc, char** argv, bool argv_converted) {
     auto dartvm_path = DartDev::ResolvedDartVmPath();
-    if (dartvm_path.get() == nullptr ||
-        !CheckForInvalidPath(dartvm_path.get())) {
+    char* exec_name = dartvm_path.get();
+    if (exec_name == nullptr || !CheckForInvalidPath(exec_name)) {
       // Free environment if any.
       Syslog::PrintErr("Unable to locate the Dart VM executable");
       Options::Cleanup();
@@ -504,23 +504,12 @@ class DartDev {
     err_msg[0] = '\0';
     intptr_t num_args = argc + 2;
     char** exec_argv = new char*[num_args];
-#if defined(DART_HOST_OS_WINDOWS)
-    char* exec_name = StringUtilsWin::ArgumentEscape(dartvm_path.get());
-#else
-    char* exec_name = Utils::StrDup(dartvm_path.get());
-#endif
-    exec_argv[idx] = exec_name;
+    exec_argv[idx] = Utils::StrDup(exec_name);
     const size_t kPathBufSize = PATH_MAX + 1;
     char dart_path[kPathBufSize];
     Platform::ResolveExecutablePathInto(dart_path, kPathBufSize);
     idx += 1;
-#if defined(DART_HOST_OS_WINDOWS)
-    char* dart_name = Utils::SCreate("--executable_name=%s", dart_path);
-    exec_argv[idx] = StringUtilsWin::ArgumentEscape(dart_name);
-    free(dart_name);
-#else
     exec_argv[idx] = Utils::SCreate("--executable_name=%s", dart_path);
-#endif
     for (intptr_t i = 1; i < argc; ++i) {
 #if defined(DART_HOST_OS_WINDOWS)
       exec_argv[i + idx] = StringUtilsWin::ArgumentEscape(argv[i]);
@@ -595,8 +584,8 @@ class DartDev {
   static void RunExecResultCallback(Dart_CObject* message) {
     result_ = DartDev_Result_RunExec;
     auto dartvm_path = DartDev::ResolvedDartVmPath();
-    if (dartvm_path.get() == nullptr ||
-        !CheckForInvalidPath(dartvm_path.get())) {
+    char* exec_name = dartvm_path.get();
+    if (exec_name == nullptr || !CheckForInvalidPath(exec_name)) {
       Syslog::PrintErr("Unable to locate the Dart VM executable");
       Platform::Exit(kErrorExitCode);
     }
@@ -640,11 +629,7 @@ class DartDev {
 
     intptr_t idx = 0;
     // Copy in name of the executable to run (should be the dart vm).
-#if defined(DART_HOST_OS_WINDOWS)
-    script_name_ = StringUtilsWin::ArgumentEscape(dartvm_path.get());
-#else
-    script_name_ = Utils::StrDup(dartvm_path.get());
-#endif
+    script_name_ = Utils::StrDup(exec_name);
     argv_[idx++] = script_name_;
     // Copy in VM options if any.
     // Copy in any vm options that need to be passed to the execed process.
@@ -656,13 +641,7 @@ class DartDev {
       const size_t kPathBufSize = PATH_MAX + 1;
       char dart_path[kPathBufSize];
       Platform::ResolveExecutablePathInto(dart_path, kPathBufSize);
-#if defined(DART_HOST_OS_WINDOWS)
-      char* dart_name = Utils::SCreate("--executable_name=%s", dart_path);
-      argv_[idx++] = StringUtilsWin::ArgumentEscape(dart_name);
-      free(dart_name);
-#else
       argv_[idx++] = Utils::SCreate("--executable_name=%s", dart_path);
-#endif
     }
     if (mark_main_isolate_as_system_isolate) {
       argv_[idx++] = Utils::StrDup("--mark_main_isolate_as_system_isolate");
