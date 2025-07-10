@@ -200,7 +200,7 @@ class DeclarationHelper {
   /// Add suggestions for declarations through [prefixElement].
   void addDeclarationsThroughImportPrefix(PrefixElement prefixElement) {
     for (var importElement in prefixElement.imports) {
-      var importedLibrary = importElement.importedLibrary2;
+      var importedLibrary = importElement.importedLibrary;
       if (importedLibrary == null) {
         continue;
       }
@@ -339,7 +339,7 @@ class DeclarationHelper {
         continue;
       }
 
-      var importedLibrary = element.importedLibrary2;
+      var importedLibrary = element.importedLibrary;
       if (importedLibrary == null) {
         continue;
       }
@@ -709,7 +709,7 @@ class DeclarationHelper {
     TypeAliasElement alias,
     ImportData? importData,
   ) {
-    var aliasedElement = alias.aliasedElement2;
+    var aliasedElement = alias.aliasedElement;
     if (aliasedElement is ClassElement) {
       _suggestConstructors(
         aliasedElement.constructors,
@@ -786,7 +786,7 @@ class DeclarationHelper {
     var libraryElement = request.libraryElement;
     var libraryFragment = request.libraryFragment;
 
-    var accessibleExtensions = libraryFragment.accessibleExtensions2;
+    var accessibleExtensions = libraryFragment.accessibleExtensions;
     var applicableExtensions = accessibleExtensions.applicableTo(
       targetLibrary: libraryElement,
       // Ignore nullability, consistent with non-extension members.
@@ -825,7 +825,7 @@ class DeclarationHelper {
           );
         } else {
           // All fields induce a getter.
-          var variable = getter.variable3;
+          var variable = getter.variable;
           if (variable is FieldElement) {
             _suggestField(
               field: variable,
@@ -941,7 +941,7 @@ class DeclarationHelper {
     //  conflict with different elements imported from a different library. Not
     //  sure whether that's the desired behavior.
     for (var importElement in library.firstFragment.libraryImports2) {
-      var importedLibrary = importElement.importedLibrary2;
+      var importedLibrary = importElement.importedLibrary;
       if (importedLibrary != null) {
         _addConstructorsImportedFrom(
           library: importedLibrary,
@@ -959,7 +959,7 @@ class DeclarationHelper {
     //  conflict with different elements imported from a different library. Not
     //  sure whether that's the desired behavior.
     for (var importElement in library.firstFragment.libraryImports2) {
-      var importedLibrary = importElement.importedLibrary2;
+      var importedLibrary = importElement.importedLibrary;
       if (importedLibrary != null) {
         _addDeclarationsImportedFrom(
           library: importedLibrary,
@@ -1545,7 +1545,7 @@ class DeclarationHelper {
       }
       for (var element in library.setters) {
         if (!element.isSynthetic) {
-          if (element.correspondingGetter2 == null) {
+          if (element.correspondingGetter == null) {
             _suggestTopLevelProperty(element, null);
           }
         }
@@ -1581,10 +1581,10 @@ class DeclarationHelper {
     if (mustBeAssignable) {
       if (firstMember case SetterElementImpl(
         :var isSynthetic,
-        :var correspondingGetter2,
+        :var correspondingGetter,
       )) {
-        if (isSynthetic && correspondingGetter2 != null) {
-          return correspondingGetter2;
+        if (isSynthetic && correspondingGetter != null) {
+          return correspondingGetter;
         } else {
           return firstMember;
         }
@@ -1593,10 +1593,10 @@ class DeclarationHelper {
         var member = list[i];
         if (member case SetterElementImpl(
           :var isSynthetic,
-          :var correspondingGetter2,
+          :var correspondingGetter,
         )) {
-          if (isSynthetic && correspondingGetter2 != null) {
-            return correspondingGetter2;
+          if (isSynthetic && correspondingGetter != null) {
+            return correspondingGetter;
           } else {
             return member;
           }
@@ -1681,7 +1681,7 @@ class DeclarationHelper {
   }) {
     if (element.isSynthetic) {
       if (element is GetterElement) {
-        var variable = element.variable3;
+        var variable = element.variable;
         if (variable is TopLevelVariableElement) {
           return TopLevelVariableSuggestion(
             importData: importData,
@@ -1952,7 +1952,7 @@ class DeclarationHelper {
     bool isTypeNeeded = false,
   }) {
     if (visibilityTracker.isVisible(element: field, importData: null)) {
-      if ((mustBeAssignable && field.setter2 == null) ||
+      if ((mustBeAssignable && field.setter == null) ||
           (mustBeConstant && !field.isConst)) {
         return;
       }
@@ -2074,7 +2074,7 @@ class DeclarationHelper {
     if (visibilityTracker.isVisible(element: element, importData: importData)) {
       if (mustBeExtendable ||
           (mustBeImplementable &&
-              !element.isImplementableIn2(request.libraryElement))) {
+              !element.isImplementableIn(request.libraryElement))) {
         return;
       }
       var matcherScore = state.matcher.score(element.displayName);
@@ -2158,7 +2158,7 @@ class DeclarationHelper {
           // non-final fields induce a setter, so we don't add a suggestion for a
           // synthetic setter.
           if (accessor is GetterElement) {
-            var variable = accessor.variable3;
+            var variable = accessor.variable;
             if (variable is FieldElement) {
               var suggestion = FieldSuggestion(
                 element: variable,
@@ -2259,10 +2259,10 @@ class DeclarationHelper {
         var matcherScore = state.matcher.score(element.displayName);
         if (matcherScore != -1) {
           if (element.isSynthetic) {
-            var getter = element.getter2;
+            var getter = element.getter;
             if (getter != null) {
               if (getter.isSynthetic) {
-                var variable = getter.variable3;
+                var variable = getter.variable;
                 if (variable is FieldElement) {
                   var suggestion = FieldSuggestion(
                     element: variable,
@@ -2376,7 +2376,7 @@ class DeclarationHelper {
     ImportData? importData,
   ) {
     if (visibilityTracker.isVisible(element: element, importData: importData)) {
-      if ((mustBeAssignable && element.setter2 == null) ||
+      if ((mustBeAssignable && element.setter == null) ||
           mustBeConstant && !element.isConst ||
           mustBeType) {
         return;
@@ -2722,7 +2722,7 @@ extension on PropertyAccessorElement {
   /// Whether this accessor is an accessor for a constant variable.
   bool get isConst {
     if (isSynthetic) {
-      if (variable3 case var variable?) {
+      if (variable case var variable?) {
         return variable.isConst;
       }
     }

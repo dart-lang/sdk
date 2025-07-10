@@ -326,7 +326,7 @@ class _SuggestionBuilder {
           if (propertyAccessor.isSynthetic) {
             // Avoid visiting a field twice
             if (propertyAccessor is GetterElement) {
-              if (propertyAccessor.variable3 case var variable?) {
+              if (propertyAccessor.variable case var variable?) {
                 _addSuggestion(variable);
               }
             }

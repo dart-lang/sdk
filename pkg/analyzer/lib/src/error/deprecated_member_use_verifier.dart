@@ -43,7 +43,7 @@ abstract class BaseDeprecatedMemberUseVerifier {
   }
 
   void exportDirective(ExportDirective node) {
-    _checkForDeprecated(node.libraryExport?.exportedLibrary2, node);
+    _checkForDeprecated(node.libraryExport?.exportedLibrary, node);
   }
 
   void extensionOverride(ExtensionOverride node) {
@@ -59,7 +59,7 @@ abstract class BaseDeprecatedMemberUseVerifier {
   }
 
   void importDirective(ImportDirective node) {
-    _checkForDeprecated(node.libraryImport?.importedLibrary2, node);
+    _checkForDeprecated(node.libraryImport?.importedLibrary, node);
   }
 
   void indexExpression(IndexExpression node) {
@@ -258,7 +258,7 @@ abstract class BaseDeprecatedMemberUseVerifier {
   }) {
     // Implicit getters/setters.
     if (element.isSynthetic && element is PropertyAccessorElement) {
-      var variable = element.variable3;
+      var variable = element.variable;
       if (variable == null) {
         return null;
       }
@@ -291,7 +291,7 @@ abstract class BaseDeprecatedMemberUseVerifier {
 
     if (element is PropertyAccessorElement && element.isSynthetic) {
       // TODO(brianwilkerson): Why isn't this the implementation for PropertyAccessorElement?
-      var variable = element.variable3;
+      var variable = element.variable;
       return variable != null && variable.metadata.hasDeprecated;
     }
     if (element is Annotatable) {

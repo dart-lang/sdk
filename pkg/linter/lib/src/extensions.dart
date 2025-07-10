@@ -330,7 +330,7 @@ extension ElementAnnotationExtension on ElementAnnotation {
 
 extension ElementExtension on Element? {
   Element? get canonicalElement2 => switch (this) {
-    PropertyAccessorElement(:var variable3?) => variable3,
+    PropertyAccessorElement(:var variable?) => variable,
     _ => this,
   };
 
@@ -341,7 +341,7 @@ extension ElementExtension on Element? {
       return false;
     }
     return (self as Annotatable).metadata.hasAwaitNotRequired ||
-        (self is PropertyAccessorElement && self.variable3.hasAwaitNotRequired);
+        (self is PropertyAccessorElement && self.variable.hasAwaitNotRequired);
   }
 
   bool get isDartCorePrint {
@@ -355,7 +355,7 @@ extension ElementExtension on Element? {
   /// as defined by [InterfaceElement.getInheritedMember].
   ExecutableElement? get overriddenMember {
     var member = switch (this) {
-      FieldElement(:var getter2) => getter2,
+      FieldElement(:var getter) => getter,
       MethodElement method => method,
       PropertyAccessorElement accessor => accessor,
       _ => null,

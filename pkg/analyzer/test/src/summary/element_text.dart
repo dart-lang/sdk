@@ -595,8 +595,8 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeVariableElementConstantInitializer(e);
       // _writeNonSyntheticElement(e);
       // writeLinking();
-      _writeElementReference('getter', e.getter2);
-      _writeElementReference('setter', e.setter2);
+      _writeElementReference('getter', e.getter);
+      _writeElementReference('setter', e.setter);
     });
   }
 
@@ -809,7 +809,7 @@ class _Element2Writer extends _AbstractElementWriter {
       case FormalParameterFragment():
         if (f.enclosingFragment case SetterFragment setter) {
           if (setter.isSynthetic) {
-            var variable = setter.element.variable3!;
+            var variable = setter.element.variable!;
             if (!variable.isSynthetic) {
               expect(f.offset, variable.firstFragment.offset);
               return;
@@ -819,7 +819,7 @@ class _Element2Writer extends _AbstractElementWriter {
       case GetterFragment():
         expect(f.isSynthetic, isTrue);
 
-        var variable = f.element.variable3!;
+        var variable = f.element.variable!;
         if (!variable.isSynthetic) {
           expect(f.offset, variable.firstFragment.offset);
           return;
@@ -835,7 +835,7 @@ class _Element2Writer extends _AbstractElementWriter {
       case SetterFragment():
         expect(f.isSynthetic, isTrue);
 
-        var variable = f.element.variable3!;
+        var variable = f.element.variable!;
         if (!variable.isSynthetic) {
           expect(f.offset, variable.firstFragment.offset);
           return;
@@ -915,7 +915,7 @@ class _Element2Writer extends _AbstractElementWriter {
   }
 
   void _writeGetterElement(GetterElementImpl e) {
-    var variable = e.variable3;
+    var variable = e.variable;
     if (variable != null) {
       var variableEnclosing = variable.enclosingElement;
       if (variableEnclosing is LibraryElement) {
@@ -975,7 +975,7 @@ class _Element2Writer extends _AbstractElementWriter {
         _writeFormalParameterElement,
       );
       _writeReturnType(e.returnType);
-      _writeElementReference('variable', e.variable3);
+      _writeElementReference('variable', e.variable);
       // _writeNonSyntheticElement(e);
       // writeLinking();
     });
@@ -1516,7 +1516,7 @@ class _Element2Writer extends _AbstractElementWriter {
   }
 
   void _writeSetterElement(SetterElementImpl e) {
-    var variable = e.variable3;
+    var variable = e.variable;
     if (variable != null) {
       var variableEnclosing = variable.enclosingElement;
       if (variableEnclosing is LibraryElement) {
@@ -1759,8 +1759,8 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeVariableElementConstantInitializer(e);
       // _writeNonSyntheticElement(e);
       // writeLinking();
-      _writeElementReference('getter', e.getter2);
-      _writeElementReference('setter', e.setter2);
+      _writeElementReference('getter', e.getter);
+      _writeElementReference('setter', e.setter);
     });
   }
 
@@ -1970,7 +1970,7 @@ class _Element2Writer extends _AbstractElementWriter {
   }
 
   void _writeVariableElementConstantInitializer(VariableElement2OrMember e) {
-    if (e.constantInitializer2 case var initializer?) {
+    if (e.constantInitializer case var initializer?) {
       _sink.writelnWithIndent('constantInitializer');
       _sink.withIndent(() {
         _writeFragmentReference('fragment', initializer.fragment);

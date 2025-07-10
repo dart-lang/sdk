@@ -286,9 +286,9 @@ extension DirectiveExtension on Directive {
   LibraryElement? get referencedLibrary {
     switch (this) {
       case ExportDirective directive:
-        return directive.libraryExport?.exportedLibrary2;
+        return directive.libraryExport?.exportedLibrary;
       case ImportDirective directive:
-        return directive.libraryImport?.importedLibrary2;
+        return directive.libraryImport?.importedLibrary;
       default:
         return null;
     }

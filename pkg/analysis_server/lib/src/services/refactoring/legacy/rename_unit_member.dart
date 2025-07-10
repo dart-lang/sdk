@@ -131,8 +131,8 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
     var elements = <Element>[];
     if (element is PropertyInducingElement && element.isSynthetic) {
       var property = element as PropertyInducingElement;
-      var getter = property.getter2;
-      var setter = property.setter2;
+      var getter = property.getter;
+      var setter = property.setter;
       if (getter != null) {
         elements.add(getter);
       }
@@ -168,8 +168,7 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
       var oldStateName = '${oldName}State';
       var library = element.library;
       _flutterWidgetState =
-          library.getClass2(oldStateName) ??
-          library.getClass2('_$oldStateName');
+          library.getClass(oldStateName) ?? library.getClass('_$oldStateName');
     }
   }
 

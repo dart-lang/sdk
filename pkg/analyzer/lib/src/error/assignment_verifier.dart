@@ -70,7 +70,7 @@ class AssignmentVerifier {
         );
       }
     } else if (recovery is GetterElement) {
-      var variable = recovery.variable3;
+      var variable = recovery.variable;
       if (variable == null) {
         return;
       }

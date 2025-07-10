@@ -173,7 +173,7 @@ class CiderCompletionComputer {
     var importedLibraries =
         target.withEnclosing2
             .expand((fragment) => fragment.libraryImports2)
-            .map((import) => import.importedLibrary2)
+            .map((import) => import.importedLibrary)
             .nonNulls
             .toSet();
     for (var importedLibrary in importedLibraries) {

@@ -196,7 +196,7 @@ class ReplacementVisitor
         );
       }
 
-      substitution = Substitution.fromMap2(map);
+      substitution = Substitution.fromMap(map);
 
       for (var i = 0; i < newTypeParameters.length; i++) {
         var newTypeParameter = newTypeParameters[i];
@@ -302,7 +302,7 @@ class ReplacementVisitor
         );
       }
 
-      substitution = Substitution.fromMap2(map);
+      substitution = Substitution.fromMap(map);
 
       for (var i = 0; i < newTypeParameters.length; i++) {
         var newTypeParameter = newTypeParameters[i];

@@ -2085,7 +2085,7 @@ A'''));
 
   Future<ClassElement> _getClassElement(String path, String name) async {
     var unitResult = await resolveFile(path);
-    return unitResult.libraryElement2.getClass2(name)!;
+    return unitResult.libraryElement2.getClass(name)!;
   }
 
   Future<PropertyAccessorElement> _getTopLevelGetter(
@@ -4130,9 +4130,9 @@ class B extends A {
     {
       var unitResult = await resolveFile(path);
       if (targetMixinName != null) {
-        targetElement = unitResult.libraryElement2.getMixin2(targetMixinName)!;
+        targetElement = unitResult.libraryElement2.getMixin(targetMixinName)!;
       } else {
-        targetElement = unitResult.libraryElement2.getClass2(targetClassName)!;
+        targetElement = unitResult.libraryElement2.getClass(targetClassName)!;
       }
     }
 

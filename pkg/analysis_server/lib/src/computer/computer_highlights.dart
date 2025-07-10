@@ -271,7 +271,7 @@ class DartUnitHighlightsComputer {
       type = HighlightRegionType.TOP_LEVEL_VARIABLE_DECLARATION;
     } else if (element is GetterElement) {
       var accessor = element;
-      var variable = accessor.variable3;
+      var variable = accessor.variable;
       if (variable is TopLevelVariableElement) {
         type = HighlightRegionType.TOP_LEVEL_GETTER_REFERENCE;
       } else if (variable is FieldElement && variable.isEnumConstant) {
@@ -283,7 +283,7 @@ class DartUnitHighlightsComputer {
       }
     } else if (element is SetterElement) {
       var accessor = element;
-      var variable = accessor.variable3;
+      var variable = accessor.variable;
       if (variable is TopLevelVariableElement) {
         type = HighlightRegionType.TOP_LEVEL_SETTER_REFERENCE;
       } else if (variable is FieldElement && variable.isEnumConstant) {

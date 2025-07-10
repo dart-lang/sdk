@@ -85,7 +85,7 @@ class ExtensionMemberResolver {
     SyntacticEntity nameEntity,
     Name name,
   ) {
-    var extensions = _resolver.libraryFragment.accessibleExtensions2
+    var extensions = _resolver.libraryFragment.accessibleExtensions
         .havingMemberWithBaseName(name)
         .toList()
         .applicableTo(

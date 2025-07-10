@@ -992,7 +992,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     var libraryExport = node.libraryExport;
     if (libraryExport == null) return;
 
-    var libraryElement = libraryExport.exportedLibrary2;
+    var libraryElement = libraryExport.exportedLibrary;
     if (libraryElement == null) return;
 
     if (libraryElement.metadata.hasInternal) {
@@ -1197,7 +1197,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     ImportDirective node,
     LibraryImport importElement,
   ) {
-    var importedLibrary = importElement.importedLibrary2;
+    var importedLibrary = importElement.importedLibrary;
     var prefix = importElement.prefix2?.element;
     if (importedLibrary == null || prefix == null) {
       return false;
@@ -1574,7 +1574,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       }
     }
     if (element is PropertyAccessorElement && element.isSynthetic) {
-      element = element.variable3;
+      element = element.variable;
     }
 
     if (element != null && element.hasOrInheritsDoNotStore) {
@@ -1599,7 +1599,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   static bool _hasNonVirtualAnnotation(ExecutableElement element) {
     if (element is PropertyAccessorElement && element.isSynthetic) {
-      var variable = element.variable3;
+      var variable = element.variable;
       if (variable != null && variable.metadata.hasNonVirtual) {
         return true;
       }
@@ -1746,7 +1746,7 @@ class _InvalidAccessVerifier {
   }
 
   void verifyImport(ImportDirective node) {
-    var importedLibrary = node.libraryImport?.importedLibrary2;
+    var importedLibrary = node.libraryImport?.importedLibrary;
     if (importedLibrary != null &&
         importedLibrary.isInternal &&
         !_isLibraryInWorkspacePackage(importedLibrary)) {
@@ -2040,7 +2040,7 @@ class _InvalidAccessVerifier {
       }
     }
     if (element is PropertyAccessorElement) {
-      var variable = element.variable3;
+      var variable = element.variable;
       return variable != null && variable.metadata.hasDoNotSubmit;
     }
     return false;
@@ -2064,7 +2064,7 @@ class _InvalidAccessVerifier {
     }
 
     if (element is PropertyAccessorElement) {
-      var variable = element.variable3;
+      var variable = element.variable;
       return variable != null && variable.metadata.hasVisibleForOverriding;
     }
 
@@ -2081,7 +2081,7 @@ class _InvalidAccessVerifier {
       }
     }
     if (element is PropertyAccessorElement) {
-      var variable = element.variable3;
+      var variable = element.variable;
       if (variable != null && variable.metadata.hasVisibleForTemplate) {
         return true;
       }
@@ -2100,7 +2100,7 @@ class _InvalidAccessVerifier {
       }
     }
     if (element is PropertyAccessorElement) {
-      var variable = element.variable3;
+      var variable = element.variable;
       if (variable != null && variable.metadata.hasVisibleOutsideTemplate) {
         return true;
       }

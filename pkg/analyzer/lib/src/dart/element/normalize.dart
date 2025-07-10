@@ -42,7 +42,7 @@ class NormalizeHelper {
   ///   * and B1 = NORM(B)
   ///   * and S1 = NORM(S)
   FunctionTypeImpl _functionType(FunctionTypeImpl functionType) {
-    var fresh = getFreshTypeParameters2(functionType.typeParameters);
+    var fresh = getFreshTypeParameters(functionType.typeParameters);
     for (var typeParameter in fresh.freshTypeParameters) {
       var bound = typeParameter.firstFragment.bound;
       if (bound != null) {

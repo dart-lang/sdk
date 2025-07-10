@@ -1773,7 +1773,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         node is SimpleIdentifier) {
       if (element is SetterElement2OrMember) {
         if (element.isSynthetic) {
-          var variable = element.variable3;
+          var variable = element.variable;
           if (variable != null) {
             writeType = variable.type;
           }
@@ -5149,7 +5149,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       var element = parent.declaredFragment!.element;
       nameScope = FormalParameterScope(nameScope, element.formalParameters);
     } else if (parent is FunctionTypeAlias) {
-      var aliasedElement = parent.declaredFragment!.element.aliasedElement2;
+      var aliasedElement = parent.declaredFragment!.element.aliasedElement;
       var functionElement = aliasedElement as GenericFunctionTypeElement;
       nameScope = FormalParameterScope(
         nameScope,
@@ -5293,7 +5293,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       node.typeParameters?.accept(this);
       node.type.accept(this);
 
-      var aliasedElement = element.aliasedElement2;
+      var aliasedElement = element.aliasedElement;
       if (aliasedElement is GenericFunctionTypeElement) {
         nameScope = FormalParameterScope(
           TypeParameterScope(nameScope, aliasedElement.typeParameters),
@@ -5866,7 +5866,7 @@ class SwitchExhaustiveness {
     if (caseConstant != null) {
       var element = _referencedElement(caseConstant);
       if (element is PropertyAccessorElement) {
-        _enumConstants!.remove(element.variable3);
+        _enumConstants!.remove(element.variable);
       }
       if (caseConstant is NullLiteral) {
         _isNullEnumValueCovered = true;

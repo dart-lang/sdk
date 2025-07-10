@@ -57,7 +57,7 @@ library
           superConstructor: package:test/foo.dart::@class::A::@constructor::new
 ''');
 
-    var typeA = library.getClass2('B')!.supertype!;
+    var typeA = library.getClass('B')!.supertype!;
     var fragmentA = typeA.element.firstFragment;
     var sourceA = fragmentA.libraryFragment.source;
     expect(sourceA.shortName, 'foo.dart');
@@ -105,7 +105,7 @@ library
           superConstructor: package:test/foo_io.dart::@class::A::@constructor::new
 ''');
 
-    var typeA = library.getClass2('B')!.supertype!;
+    var typeA = library.getClass('B')!.supertype!;
     var fragmentA = typeA.element.firstFragment;
     var sourceA = fragmentA.libraryFragment.source;
     expect(sourceA.shortName, 'foo_io.dart');
@@ -153,7 +153,7 @@ library
           superConstructor: package:test/foo_io.dart::@class::A::@constructor::new
 ''');
 
-    var typeA = library.getClass2('B')!.supertype!;
+    var typeA = library.getClass('B')!.supertype!;
     var fragmentA = typeA.element.firstFragment;
     var sourceA = fragmentA.libraryFragment.source;
     expect(sourceA.shortName, 'foo_io.dart');
@@ -201,7 +201,7 @@ library
           superConstructor: package:test/foo_html.dart::@class::A::@constructor::new
 ''');
 
-    var typeA = library.getClass2('B')!.supertype!;
+    var typeA = library.getClass('B')!.supertype!;
     var fragmentA = typeA.element.firstFragment;
     var sourceA = fragmentA.libraryFragment.source;
     expect(sourceA.shortName, 'foo_html.dart');
@@ -249,7 +249,7 @@ library
           superConstructor: package:test/foo_html.dart::@class::A::@constructor::new
 ''');
 
-    var typeA = library.getClass2('B')!.supertype!;
+    var typeA = library.getClass('B')!.supertype!;
     var fragmentA = typeA.element.firstFragment;
     var sourceA = fragmentA.libraryFragment.source;
     expect(sourceA.shortName, 'foo_html.dart');
@@ -571,7 +571,7 @@ class D extends p.C {} // Prevent "unused import" warning
 ''');
     var libraryImports = library.definingCompilationUnit.libraryImports;
     expect(libraryImports, hasLength(2));
-    expect(libraryImports[1].importedLibrary2!.isDartCore, true);
+    expect(libraryImports[1].importedLibrary!.isDartCore, true);
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1131,7 +1131,7 @@ library
   test_unresolved_import() async {
     var library = await buildLibrary("import 'foo.dart';");
     var libraryImports = library.definingCompilationUnit.libraryImports;
-    var importedLibrary = libraryImports[0].importedLibrary2!;
+    var importedLibrary = libraryImports[0].importedLibrary!;
     expect(importedLibrary.loadLibraryFunction, isNotNull);
     expect(importedLibrary.publicNamespace, isNotNull);
     expect(importedLibrary.exportNamespace, isNotNull);

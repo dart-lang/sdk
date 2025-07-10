@@ -22,7 +22,7 @@ import 'package:analyzer/src/utilities/extensions/element.dart';
 ///
 /// The returned object contains the fresh type parameter list as well as a
 /// mapping to be used for replacing other types to use the new type parameters.
-FreshTypeParameters getFreshTypeParameters2(
+FreshTypeParameters getFreshTypeParameters(
   List<TypeParameterElement> typeParameters,
 ) {
   var freshParameters = List<TypeParameterElementImpl>.generate(
@@ -39,7 +39,7 @@ FreshTypeParameters getFreshTypeParameters2(
     );
   }
 
-  var substitution = Substitution.fromMap2(map);
+  var substitution = Substitution.fromMap(map);
 
   for (int i = 0; i < typeParameters.length; ++i) {
     // TODO(kallentu): : Clean up TypeParameterElementImpl casting once
@@ -104,14 +104,14 @@ FunctionTypeImpl replaceTypeParameters(
 /// In particular, if no type parameters were substituted, this is guaranteed
 /// to return the [type] instance (not a copy), so the caller may use
 /// [identical] to efficiently check if a distinct type was created.
-DartType substitute2(
+DartType substitute(
   DartType type,
   Map<TypeParameterElement, DartType> substitution,
 ) {
   if (substitution.isEmpty) {
     return type;
   }
-  return Substitution.fromMap2(substitution).substituteType(type);
+  return Substitution.fromMap(substitution).substituteType(type);
 }
 
 ///  1. Substituting T=X! into T! yields X!
@@ -202,7 +202,7 @@ abstract class Substitution {
   }
 
   /// Substitutes each parameter to the type it maps to in [map].
-  static MapSubstitution fromMap2(Map<TypeParameterElement, DartType> map) {
+  static MapSubstitution fromMap(Map<TypeParameterElement, DartType> map) {
     if (map.isEmpty) {
       return _NullSubstitution.instance;
     }
@@ -228,7 +228,7 @@ abstract class Substitution {
     if (parameters.isEmpty) {
       return _NullSubstitution.instance;
     }
-    return fromMap2(
+    return fromMap(
       Map<TypeParameterElement, DartType>.fromIterables(parameters, types),
     );
   }

@@ -183,8 +183,8 @@ class TypesBuilder {
       switch (element) {
         case GetterElementImpl():
           element.returnType = returnType;
-          (element.variable3 as TopLevelVariableElementImpl).type = returnType;
-          element.variable3!.firstFragment.type = returnType;
+          (element.variable as TopLevelVariableElementImpl).type = returnType;
+          element.variable!.firstFragment.type = returnType;
         case SetterElementImpl():
           element.returnType = returnType;
           var valueElement =
@@ -198,7 +198,7 @@ class TypesBuilder {
           valueElement?.firstFragment.type = valueType;
 
           var variableElement =
-              element.variable3 as TopLevelVariableElementImpl;
+              element.variable as TopLevelVariableElementImpl;
           if (variableElement.isSynthetic) {
             variableElement.type = valueType;
             variableElement.firstFragment.type = valueType;
@@ -231,8 +231,8 @@ class TypesBuilder {
       switch (element) {
         case GetterElementImpl():
           element.returnType = returnType;
-          (element.variable3 as FieldElementImpl).type = returnType;
-          element.variable3!.firstFragment.type = returnType;
+          (element.variable as FieldElementImpl).type = returnType;
+          element.variable!.firstFragment.type = returnType;
         case SetterElementImpl():
           element.returnType = returnType;
           var valueElement =
@@ -244,8 +244,8 @@ class TypesBuilder {
           valueElement?.type = valueType;
           valueElement?.firstFragment.type = valueType;
 
-          var variableElement = element.variable3 as FieldElementImpl;
-          if (variableElement.isSynthetic && variableElement.getter2 == null) {
+          var variableElement = element.variable as FieldElementImpl;
+          if (variableElement.isSynthetic && variableElement.getter == null) {
             variableElement.type = valueType;
             variableElement.firstFragment.type = valueType;
           }
@@ -271,11 +271,11 @@ class TypesBuilder {
           variableFragment.type = type;
           variableElement.type = type;
           if (variableElement is PropertyInducingElementImpl) {
-            if (variableElement.getter2 case var getterElement?) {
+            if (variableElement.getter case var getterElement?) {
               getterElement.returnType = type;
               getterElement.firstFragment.returnType = type;
             }
-            if (variableElement.setter2 case var setterElement?) {
+            if (variableElement.setter case var setterElement?) {
               setterElement.returnType = VoidTypeImpl.instance;
               setterElement.firstFragment.returnType = VoidTypeImpl.instance;
               (setterElement.formalParameters.single

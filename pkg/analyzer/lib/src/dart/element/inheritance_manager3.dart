@@ -1153,7 +1153,7 @@ class InheritanceManager3 {
         reference: elementReference,
         firstFragment: field,
       );
-      resultFragment.element.variable3 = fieldElement;
+      resultFragment.element.variable = fieldElement;
 
       if (firstElement is GetterElement) {
         field.type = resultFragment.returnType;

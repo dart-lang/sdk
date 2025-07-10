@@ -43,8 +43,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (declaredElement == null) return;
 
     if (declaredElement is SuperFormalParameterElement) {
-      var superConstructorParameter =
-          declaredElement.superConstructorParameter2;
+      var superConstructorParameter = declaredElement.superConstructorParameter;
       if (superConstructorParameter is! FormalParameterElement) return;
       var defaultValue = superConstructorParameter.defaultValueCode ?? 'null';
       if (defaultValue != 'null') return;

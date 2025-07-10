@@ -183,7 +183,7 @@ class IndexElementInfo {
       } else if (elementKind == ElementKind.FIELD) {
         var field = element as FieldElement;
         kind = IndexSyntheticElementKind.field;
-        element = (field.getter2 ?? field.setter2)!;
+        element = (field.getter ?? field.setter)!;
       } else if (elementKind == ElementKind.GETTER ||
           elementKind == ElementKind.SETTER) {
         var accessor = element as PropertyAccessorElement;
@@ -200,7 +200,7 @@ class IndexElementInfo {
               accessor is GetterElement
                   ? IndexSyntheticElementKind.getter
                   : IndexSyntheticElementKind.setter;
-          if (accessor.variable3 case var variable?) {
+          if (accessor.variable case var variable?) {
             element = variable;
           }
         }
@@ -213,7 +213,7 @@ class IndexElementInfo {
         }
       } else if (element is TopLevelVariableElement) {
         kind = IndexSyntheticElementKind.topLevelVariable;
-        element = (element.getter2 ?? element.setter2)!;
+        element = (element.getter ?? element.setter)!;
       } else {
         throw ArgumentError(
           'Unsupported synthetic element ${element.runtimeType}',
@@ -940,7 +940,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   void visitExportDirective(covariant ExportDirectiveImpl node) {
     if (node.libraryExport case var libraryExport?) {
-      if (libraryExport.exportedLibrary2 case var exportedLibrary?) {
+      if (libraryExport.exportedLibrary case var exportedLibrary?) {
         assembler.addLibraryFragmentReference(
           target: exportedLibrary.firstFragment,
           uriOffset: node.uri.offset,
@@ -1021,7 +1021,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   void visitImportDirective(covariant ImportDirectiveImpl node) {
     if (node.libraryImport case var libraryImport?) {
-      if (libraryImport.importedLibrary2 case var importedLibrary?) {
+      if (libraryImport.importedLibrary case var importedLibrary?) {
         assembler.addLibraryFragmentReference(
           target: importedLibrary.firstFragment,
           uriOffset: node.uri.offset,
@@ -1261,7 +1261,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   visitSuperFormalParameter(SuperFormalParameter node) {
     var element = node.declaredFragment!.element;
     if (element is SuperFormalParameterElementImpl) {
-      var superParameter = element.superConstructorParameter2;
+      var superParameter = element.superConstructorParameter;
       if (superParameter != null) {
         recordRelation(
           superParameter,

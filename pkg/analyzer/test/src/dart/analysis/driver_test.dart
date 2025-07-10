@@ -60,7 +60,7 @@ class AnalysisDriver_BlazeWorkspaceTest extends BlazeWorkspaceResolutionTest {
     void assertInnerUri(ResolvedUnitResult result) {
       var innerSource =
           result.libraryFragment.libraryImports2
-              .map((import) => import.importedLibrary2?.firstFragment.source)
+              .map((import) => import.importedLibrary?.firstFragment.source)
               .nonNulls
               .where(
                 (importedSource) => importedSource.fullName == innerFile.path,
@@ -1908,8 +1908,8 @@ class B {}
 
     var result = await driver.getLibraryByUri(aUriStr);
     result as LibraryElementResult;
-    expect(result.element2.getClass2('A'), isNotNull);
-    expect(result.element2.getClass2('B'), isNotNull);
+    expect(result.element2.getClass('A'), isNotNull);
+    expect(result.element2.getClass('B'), isNotNull);
 
     // It is an error to ask for a library when we know that it is a part.
     expect(
@@ -1975,8 +1975,8 @@ class B {}
 
       var result = await driver.getLibraryByUri(aUriStr);
       result as LibraryElementResult;
-      expect(result.element2.getClass2('A'), isNotNull);
-      expect(result.element2.getClass2('B'), isNotNull);
+      expect(result.element2.getClass('A'), isNotNull);
+      expect(result.element2.getClass('B'), isNotNull);
 
       // It is an error to ask for a library when we know that it is a part.
       expect(
@@ -46332,7 +46332,7 @@ import 'a.dart';
 
     _ManualRequirements.install((state) {
       var A = state.singleUnit.scopeInstanceElement('A');
-      A.getGetter('foo')!.variable3;
+      A.getGetter('foo')!.variable;
     });
 
     await _runManualRequirementsRecording(
@@ -46393,7 +46393,7 @@ import 'a.dart';
 
     _ManualRequirements.install((state) {
       var A = state.singleUnit.scopeInstanceElement('A');
-      A.getGetter('foo')!.variable3;
+      A.getGetter('foo')!.variable;
     });
 
     await _runManualRequirementsRecording(
@@ -46557,7 +46557,7 @@ import 'a.dart';
 
     _ManualRequirements.install((state) {
       var A = state.singleUnit.scopeInstanceElement('A');
-      A.getSetter('foo')!.variable3;
+      A.getSetter('foo')!.variable;
     });
 
     await _runManualRequirementsRecording(
@@ -46618,7 +46618,7 @@ import 'a.dart';
 
     _ManualRequirements.install((state) {
       var A = state.singleUnit.scopeInstanceElement('A');
-      A.getSetter('foo')!.variable3;
+      A.getSetter('foo')!.variable;
     });
 
     await _runManualRequirementsRecording(

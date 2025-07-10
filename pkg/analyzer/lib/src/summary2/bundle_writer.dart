@@ -135,7 +135,7 @@ class BundleWriter {
     // Write resolution data for the library.
     _writeResolutionOffset();
     _resolutionSink._writeMetadata(libraryElement.metadata);
-    _resolutionSink.writeElement(libraryElement.entryPoint2);
+    _resolutionSink.writeElement(libraryElement.entryPoint);
     _writeFieldNameNonPromotabilityInfo(
       libraryElement.fieldNameNonPromotabilityInfo,
     );
@@ -821,8 +821,8 @@ class BundleWriter {
   ) {
     _sink.writeList(variables, (variable) {
       _writeReference(variable.reference);
-      _writeOptionalReference(variable.getter2?.reference);
-      _writeOptionalReference(variable.setter2?.reference);
+      _writeOptionalReference(variable.getter?.reference);
+      _writeOptionalReference(variable.setter?.reference);
     });
   }
 
@@ -1194,7 +1194,7 @@ class ResolutionSink extends _SummaryDataWriter {
     var typeParameters = type.typeParameters;
     if (typeParameters.isEmpty) return type;
 
-    var fresh = getFreshTypeParameters2(typeParameters);
+    var fresh = getFreshTypeParameters(typeParameters);
     return fresh.applyToFunctionType(type);
   }
 }

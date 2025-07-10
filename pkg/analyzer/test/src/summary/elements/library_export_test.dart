@@ -547,7 +547,7 @@ library
           superConstructor: package:test/foo.dart::@class::A::@constructor::new
 ''');
 
-    var typeA = library.getClass2('B')!.supertype!;
+    var typeA = library.getClass('B')!.supertype!;
     var fragmentA = typeA.element.firstFragment;
     var sourceA = fragmentA.libraryFragment.source;
     expect(sourceA.shortName, 'foo.dart');
@@ -597,7 +597,7 @@ library
           superConstructor: package:test/foo_io.dart::@class::A::@constructor::new
 ''');
 
-    var typeA = library.getClass2('B')!.supertype!;
+    var typeA = library.getClass('B')!.supertype!;
     var fragmentA = typeA.element.firstFragment;
     var sourceA = fragmentA.libraryFragment.source;
     expect(sourceA.shortName, 'foo_io.dart');
@@ -647,7 +647,7 @@ library
           superConstructor: package:test/foo_html.dart::@class::A::@constructor::new
 ''');
 
-    var typeA = library.getClass2('B')!.supertype!;
+    var typeA = library.getClass('B')!.supertype!;
     var fragmentA = typeA.element.firstFragment;
     var sourceA = fragmentA.libraryFragment.source;
     expect(sourceA.shortName, 'foo_html.dart');

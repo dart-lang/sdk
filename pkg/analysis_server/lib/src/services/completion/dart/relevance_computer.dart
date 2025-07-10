@@ -622,7 +622,7 @@ class RelevanceComputer {
   ) {
     if (accessor.isSynthetic) {
       if (accessor is GetterElement) {
-        var variable = accessor.variable3;
+        var variable = accessor.variable;
         if (variable is FieldElement) {
           return computeFieldElementRelevance(variable, inheritanceDistance);
         }
@@ -655,9 +655,9 @@ class RelevanceComputer {
     bool isNotImportedLibrary,
   ) {
     if (element.isSynthetic) {
-      var getter = element.getter2;
+      var getter = element.getter;
       if (getter != null) {
-        var variable = getter.variable3;
+        var variable = getter.variable;
         if (variable is FieldElement) {
           return computeFieldElementRelevance(variable, inheritanceDistance);
         }
@@ -679,7 +679,7 @@ class RelevanceComputer {
   ) {
     if (accessor.isSynthetic) {
       if (accessor is GetterElement) {
-        var variable = accessor.variable3;
+        var variable = accessor.variable;
         if (variable is TopLevelVariableElement) {
           return computeTopLevelRelevance(
             variable,

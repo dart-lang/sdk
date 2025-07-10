@@ -100,7 +100,7 @@ class _Visitor extends GeneralizingElementVisitor2<void> {
         fragment.typeInference = null;
       }
     }
-    element.constantInitializer2;
+    element.constantInitializer;
     _detachConstVariable(element);
     super.visitPropertyInducingElement(element);
   }

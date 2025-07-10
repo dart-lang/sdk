@@ -99,7 +99,7 @@ class LibraryElementSuggestionBuilder
 
   @override
   void visitGetterElement(GetterElement element) {
-    var variable = element.variable3;
+    var variable = element.variable;
     if (opType.includeReturnValueSuggestions ||
         (opType.includeAnnotationSuggestions &&
             variable != null &&
@@ -130,7 +130,7 @@ class LibraryElementSuggestionBuilder
   visitMixinElement(MixinElement element) {
     AstNode node = request.target.containingNode;
     if (node is ImplementsClause &&
-        !element.isImplementableIn2(request.libraryElement)) {
+        !element.isImplementableIn(request.libraryElement)) {
       return;
     }
     _visitInterfaceElement(element);
@@ -138,7 +138,7 @@ class LibraryElementSuggestionBuilder
 
   @override
   void visitSetterElement(SetterElement element) {
-    var variable = element.variable3;
+    var variable = element.variable;
     if (opType.includeReturnValueSuggestions ||
         (opType.includeAnnotationSuggestions &&
             variable != null &&
@@ -228,7 +228,7 @@ class LibraryElementSuggestionBuilder
               field.isAccessibleIn(request.libraryElement) &&
               typeSystem.isSubtypeOf(field.type, contextType)) {
             if (field.isSynthetic) {
-              var getter = field.getter2;
+              var getter = field.getter;
               if (getter != null) {
                 builder.suggestGetter(
                   getter,

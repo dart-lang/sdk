@@ -641,12 +641,12 @@ class InformativeDataApplier {
     // TODO(scheglov): can we move this sooner than applying constants?
     assert(!element.isSynthetic);
 
-    var getterFragment = element.element.getter2?.firstFragment;
+    var getterFragment = element.element.getter?.firstFragment;
     if (getterFragment != null && getterFragment.isSynthetic) {
       getterFragment.nameOffset = element.nameOffset;
     }
 
-    var setterFragment = element.element.setter2?.firstFragment;
+    var setterFragment = element.element.setter?.firstFragment;
     if (setterFragment != null && setterFragment.isSynthetic) {
       setterFragment.nameOffset = element.nameOffset;
       setterFragment.valueFormalParameter?.nameOffset = element.nameOffset;

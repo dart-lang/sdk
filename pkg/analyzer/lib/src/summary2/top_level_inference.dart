@@ -210,7 +210,7 @@ class _PropertyInducingElementTypeInference
     }
 
     if (initializerFragment == null || variableDeclaration == null) {
-      _element.constantInitializer2;
+      _element.constantInitializer;
       _status = _InferenceStatus.inferred;
       return DynamicTypeImpl.instance;
     }

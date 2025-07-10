@@ -277,7 +277,7 @@ void foo() {}
 typedef F = void Function();
 ''');
     var typeAlias = findElement2.typeAlias('F');
-    var fragment = typeAlias.aliasedElement2!.firstFragment;
+    var fragment = typeAlias.aliasedElement!.firstFragment;
     var result = await getFragmentDeclaration(fragment);
     expect(result, isNull);
   }

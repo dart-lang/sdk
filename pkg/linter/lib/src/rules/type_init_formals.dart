@@ -55,7 +55,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var paramElement = node.declaredFragment?.element;
     if (paramElement is! SuperFormalParameterElement) return;
 
-    var superConstructorParameter = paramElement.superConstructorParameter2;
+    var superConstructorParameter = paramElement.superConstructorParameter;
     if (superConstructorParameter == null) return;
 
     if (superConstructorParameter.type == nodeType.type) {

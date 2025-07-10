@@ -451,7 +451,7 @@ export 'a.dart';
 ''');
 
     var library = result.libraryElement2;
-    var main = library.entryPoint2!;
+    var main = library.entryPoint!;
 
     expect(main, isNotNull);
     expect(main.library, isNot(same(library)));
@@ -463,7 +463,7 @@ main() {}
 ''');
 
     var library = result.libraryElement2;
-    var main = library.entryPoint2!;
+    var main = library.entryPoint!;
 
     expect(main, isNotNull);
     expect(main.library, same(library));
@@ -473,7 +473,7 @@ main() {}
     await assertNoErrorsInCode('');
 
     var library = result.libraryElement2;
-    expect(library.entryPoint2, isNull);
+    expect(library.entryPoint, isNull);
   }
 
   test_enum_externalLibrary() async {

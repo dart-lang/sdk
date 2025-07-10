@@ -310,8 +310,8 @@ class _ValidUseVisitor extends RecursiveAstVisitor<void> {
 enum _VariableType { field, local }
 
 extension on Element? {
-  bool matches(VariableElement? variable) => switch (this) {
-    PropertyAccessorElement(:var variable3) => variable3 == variable,
+  bool matches(VariableElement? requested) => switch (this) {
+    PropertyAccessorElement(:var variable) => variable == requested,
     _ => false,
   };
 }

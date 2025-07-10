@@ -299,7 +299,7 @@ class ElementDisplayStringBuilder {
     _writeDirectiveUri(element.uri);
   }
 
-  void writePrefixElement2(PrefixElementImpl element) {
+  void writePrefixElement(PrefixElementImpl element) {
     var libraryImports = element.imports;
     var displayName = element.displayName;
     if (libraryImports.isEmpty) {

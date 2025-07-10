@@ -215,9 +215,9 @@ class TypeDefinitionHandler
       } else if (node.inSetterContext()) {
         var writeElement = node.writeOrReadElement;
         if (writeElement
-            case analyzer.GetterElement(:var variable3) ||
-                analyzer.SetterElement(:var variable3)) {
-          return variable3?.type;
+            case analyzer.GetterElement(:var variable) ||
+                analyzer.SetterElement(:var variable)) {
+          return variable?.type;
         }
       }
     }

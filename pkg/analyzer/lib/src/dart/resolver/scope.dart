@@ -140,7 +140,7 @@ class NamespaceBuilder {
   /// Create a namespace representing the export namespace of the given
   /// [export].
   Namespace createExportNamespaceForDirective2(LibraryExportImpl export) {
-    var exportedLibrary = export.exportedLibrary2;
+    var exportedLibrary = export.exportedLibrary;
     if (exportedLibrary == null) {
       //
       // The exported library will be null if the URI does not reference a valid

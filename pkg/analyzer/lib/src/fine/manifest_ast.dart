@@ -405,7 +405,7 @@ class _ElementCollector extends ThrowingAstVisitor<void> {
     // evaluation we will access the corresponding constant variable for
     // its initializer. So, we also depend on the variable.
     if (element is GetterElementImpl) {
-      _addElement(element.variable3!);
+      _addElement(element.variable!);
     }
   }
 }

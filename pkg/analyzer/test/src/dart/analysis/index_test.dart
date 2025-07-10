@@ -405,7 +405,7 @@ void f() {
   math.loadLibrary(); // 2
 }
 ''');
-    var mathLib = findElement2.import('dart:math').importedLibrary2!;
+    var mathLib = findElement2.import('dart:math').importedLibrary!;
     var element = mathLib.loadLibraryFunction;
     assertElementIndexText(element, r'''
 55 3:8 |loadLibrary| IS_INVOKED_BY qualified
@@ -1054,7 +1054,7 @@ library lib;
 export 'lib.dart';
 ''');
     var export = findElement2.export('package:test/lib.dart');
-    var fragment = export.exportedLibrary2!.firstFragment;
+    var fragment = export.exportedLibrary!.firstFragment;
     assertLibraryFragmentIndexText(fragment, r'''
 7 1:8 |'lib.dart'|
 ''');
@@ -1068,7 +1068,7 @@ library lib;
 import 'lib.dart';
 ''');
     var import = findElement2.import('package:test/lib.dart');
-    var fragment = import.importedLibrary2!.firstFragment;
+    var fragment = import.importedLibrary!.firstFragment;
     assertLibraryFragmentIndexText(fragment, r'''
 7 1:8 |'lib.dart'|
 ''');
@@ -1617,8 +1617,8 @@ void f(A a) {
 }
 ''');
     var field = findElement2.field('field');
-    var getter = field.getter2!;
-    var setter = field.setter2!;
+    var getter = field.getter!;
+    var setter = field.setter!;
 
     assertElementIndexText(field, r'''
 33 3:11 |field| IS_WRITTEN_BY qualified
@@ -1652,8 +1652,8 @@ class A {
     // aaa
     {
       var field = findElement2.field('aaa');
-      var getter = field.getter2!;
-      var setter = field.setter2!;
+      var getter = field.getter!;
+      var setter = field.setter!;
       assertElementIndexText(field, r'''
 41 4:10 |aaa| IS_WRITTEN_BY qualified
 ''');
@@ -1667,8 +1667,8 @@ class A {
     // bbb
     {
       var field = findElement2.field('bbb');
-      var getter = field.getter2!;
-      var setter = field.setter2!;
+      var getter = field.getter!;
+      var setter = field.setter!;
       assertElementIndexText(field, r'''
 51 4:20 |bbb| IS_WRITTEN_BY qualified
 ''');
@@ -1730,7 +1730,7 @@ void f() {
   A a = .field; // 1
 }
 ''');
-    var element = findElement2.field('field').getter2!;
+    var element = findElement2.field('field').getter!;
     assertElementIndexText(element, r'''
 56 5:10 |field| IS_REFERENCED_BY qualified
 ''');
@@ -1754,8 +1754,8 @@ void f(E e) {
 }
 ''');
     var field = findElement2.field('field');
-    var getter = field.getter2!;
-    var setter = field.setter2!;
+    var getter = field.getter!;
+    var setter = field.setter!;
 
     assertElementIndexText(field, r'''
 62 4:11 |field| IS_WRITTEN_BY qualified
@@ -1862,8 +1862,8 @@ void f() {
 }
 ''');
     var field = findElement2.field('field');
-    var getter = field.getter2!;
-    var setter = field.setter2!;
+    var getter = field.getter!;
+    var setter = field.setter!;
 
     assertElementIndexText(getter, r'''
 83 5:5 |field| IS_REFERENCED_BY
@@ -2418,13 +2418,13 @@ void f() {
 23 1:24 |V| IS_REFERENCED_BY qualified
 ''');
 
-    assertElementIndexText(variable.getter2!, r'''
+    assertElementIndexText(variable.getter!, r'''
 103 5:14 |V| IS_REFERENCED_BY qualified
 135 7:9 |V| IS_REFERENCED_BY
 Prefixes: pref,(unprefixed)
 ''');
 
-    assertElementIndexText(variable.setter2!, r'''
+    assertElementIndexText(variable.setter!, r'''
 78 4:8 |V| IS_REFERENCED_BY qualified
 114 6:3 |V| IS_REFERENCED_BY
 ''');

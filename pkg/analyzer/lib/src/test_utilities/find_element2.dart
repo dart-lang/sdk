@@ -22,7 +22,7 @@ class FindElement2 extends _FindElementBase {
     LibraryExport? result;
 
     for (var export in libraryFragment.libraryExports2) {
-      var exportedUri = export.exportedLibrary2?.uri.toString();
+      var exportedUri = export.exportedLibrary?.uri.toString();
       if (exportedUri == targetUri) {
         if (result != null) {
           throw StateError('Not unique: $targetUri');
@@ -55,7 +55,7 @@ class FindElement2 extends _FindElementBase {
 
     for (var libraryFragment in libraryFragment.withEnclosing2) {
       for (var import in libraryFragment.libraryImports2) {
-        var importedUri = import.importedLibrary2?.uri.toString();
+        var importedUri = import.importedLibrary?.uri.toString();
         if (importedUri == targetUri) {
           if (importElement == null) {
             importElement = import;
@@ -207,7 +207,7 @@ class FindElement2 extends _FindElementBase {
     }
 
     for (var alias in libraryElement.typeAliases) {
-      var aliasedElement = alias.aliasedElement2;
+      var aliasedElement = alias.aliasedElement;
       if (aliasedElement is GenericFunctionTypeElement) {
         findIn(aliasedElement.formalParameters);
       }
@@ -298,7 +298,7 @@ class ImportFindElement extends _FindElementBase {
 
   ImportFindElement(this.import);
 
-  LibraryElement get importedLibrary => import.importedLibrary2!;
+  LibraryElement get importedLibrary => import.importedLibrary!;
 
   @override
   LibraryFragment get libraryFragment {
@@ -483,11 +483,11 @@ abstract class _FindElementBase {
   }
 
   GetterElement topGet(String name) {
-    return topVar(name).getter2!;
+    return topVar(name).getter!;
   }
 
   SetterElement topSet(String name) {
-    return topVar(name).setter2!;
+    return topVar(name).setter!;
   }
 
   TopLevelVariableElementImpl topVar(String name) {

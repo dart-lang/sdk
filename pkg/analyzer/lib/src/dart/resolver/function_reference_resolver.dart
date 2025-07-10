@@ -99,7 +99,7 @@ class FunctionReferenceResolver {
     if (prefixElement is VariableElement) {
       prefixType = prefixElement.type;
     } else if (prefixElement is PropertyAccessorElement) {
-      var variable = prefixElement.variable3;
+      var variable = prefixElement.variable;
       if (variable == null) {
         return false;
       }
@@ -545,7 +545,7 @@ class FunctionReferenceResolver {
       if (targetElement is VariableElement2OrMember) {
         targetType = targetElement.type;
       } else if (targetElement is PropertyAccessorElement2OrMember) {
-        var variable = targetElement.variable3;
+        var variable = targetElement.variable;
         if (variable == null) {
           node.setPseudoExpressionStaticType(InvalidTypeImpl.instance);
           return;
@@ -745,7 +745,7 @@ class FunctionReferenceResolver {
         if (method is PropertyAccessorElement2OrMember) {
           function.element = method;
           function.setPseudoExpressionStaticType(method.returnType);
-          var variable = method.variable3;
+          var variable = method.variable;
           if (variable != null) {
             _resolve(node: node, rawType: variable.type);
           } else {
@@ -813,7 +813,7 @@ class FunctionReferenceResolver {
       return;
     } else if (element is PropertyAccessorElement) {
       function.element = element;
-      var variable = element.variable3;
+      var variable = element.variable;
       if (variable == null) {
         function.setPseudoExpressionStaticType(InvalidTypeImpl.instance);
         return;

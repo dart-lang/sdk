@@ -36,7 +36,7 @@ class _Generator {
     );
     utilitiesLibraryResult as LibraryElementResult;
     parameterKindClass =
-        utilitiesLibraryResult.element2.getClass2('ParameterKind')!;
+        utilitiesLibraryResult.element2.getClass('ParameterKind')!;
 
     await _buildImplClasses(astUnitResult);
     _removeGeneratedMembers(astUnitResult);

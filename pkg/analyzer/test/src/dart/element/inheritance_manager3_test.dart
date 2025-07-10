@@ -1568,7 +1568,7 @@ abstract class B {
 abstract class C extends Object with A implements B {}
 ''');
 
-    var element = library.getClass2('C')!;
+    var element = library.getClass('C')!;
     assertInterfaceText(element, r'''
 overridden
   foo
@@ -1606,7 +1606,7 @@ augment abstract class C implements B {}
 
     var library = await buildFileLibrary(a);
 
-    var element = library.getClass2('C')!;
+    var element = library.getClass('C')!;
     assertInterfaceText(element, r'''
 overridden
   foo
@@ -1633,7 +1633,7 @@ abstract class B {
 abstract class C implements A, B {}
 ''');
 
-    var element = library.getClass2('C')!;
+    var element = library.getClass('C')!;
     assertInterfaceText(element, r'''
 overridden
   foo
@@ -1662,7 +1662,7 @@ abstract class C implements A, B {
 }
 ''');
 
-    var element = library.getClass2('C')!;
+    var element = library.getClass('C')!;
     assertInterfaceText(element, r'''
 map
   foo: <testLibrary>::@class::C::@method::foo
@@ -2932,12 +2932,12 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
       expect(actual, expected);
 
       if (element is GetterElement) {
-        var variable = element.variable3!;
+        var variable = element.variable!;
         expect(variable.enclosingElement, same(enclosingElement));
         expect(variable.name, element.displayName);
         expect(variable.type, element.returnType);
       } else if (element is SetterElement) {
-        var variable = element.variable3!;
+        var variable = element.variable!;
         expect(variable.enclosingElement, same(enclosingElement));
         expect(variable.name, element.displayName);
         expect(variable.type, element.formalParameters[0].type);

@@ -180,9 +180,9 @@ class ElementBuilder {
       case FieldFragmentImpl():
         return fragment.element;
       case GetterFragmentImpl():
-        return fragment.element.variable3.ifTypeOrNull();
+        return fragment.element.variable.ifTypeOrNull();
       case SetterFragmentImpl():
-        return fragment.element.variable3.ifTypeOrNull();
+        return fragment.element.variable.ifTypeOrNull();
     }
     return null;
   }
@@ -330,8 +330,8 @@ class ElementBuilder {
       );
       instanceElement.addGetter(getterElement);
 
-      fieldElement.getter2 = getterElement;
-      getterElement.variable3 = fieldElement;
+      fieldElement.getter = getterElement;
+      getterElement.variable = fieldElement;
     }
 
     if (fieldFragment.hasSetter) {
@@ -363,8 +363,8 @@ class ElementBuilder {
 
       FormalParameterElementImpl(valueFragment);
 
-      fieldElement.setter2 = setterElement;
-      setterElement.variable3 = fieldElement;
+      fieldElement.setter = setterElement;
+      setterElement.variable = fieldElement;
     }
   }
 
@@ -380,7 +380,7 @@ class ElementBuilder {
     instanceFragment.addGetter(getterFragment);
 
     var lastFieldElement = _fieldElement(lastFragment);
-    var lastGetterFragment = lastFieldElement?.getter2?.lastFragment;
+    var lastGetterFragment = lastFieldElement?.getter?.lastFragment;
 
     if (getterFragment.isAugmentation && lastGetterFragment != null) {
       lastGetterFragment.addFragment(getterFragment);
@@ -397,7 +397,7 @@ class ElementBuilder {
     // If `getter` is already set, this is a compile-time error.
     // Reset to `null`, so create a new variable.
     if (lastFieldElement != null) {
-      if (lastFieldElement.getter2 != null) {
+      if (lastFieldElement.getter != null) {
         lastFieldElement = null;
       }
     }
@@ -421,8 +421,8 @@ class ElementBuilder {
       instanceElement.addField(lastFieldElement);
     }
 
-    getterElement.variable3 = lastFieldElement;
-    lastFieldElement.getter2 = getterElement;
+    getterElement.variable = lastFieldElement;
+    lastFieldElement.getter = getterElement;
   }
 
   void _handleInstanceMethodFragment(
@@ -462,7 +462,7 @@ class ElementBuilder {
     instanceFragment.addSetter(setterFragment);
 
     var lastFieldElement = _fieldElement(lastFragment);
-    var lastSetterFragment = lastFieldElement?.setter2?.lastFragment;
+    var lastSetterFragment = lastFieldElement?.setter?.lastFragment;
 
     if (setterFragment.isAugmentation && lastSetterFragment != null) {
       lastSetterFragment.addFragment(setterFragment);
@@ -479,7 +479,7 @@ class ElementBuilder {
     // If `setter` is already set, this is a compile-time error.
     // Reset to `null`, so create a new variable.
     if (lastFieldElement != null) {
-      if (lastFieldElement.setter2 != null) {
+      if (lastFieldElement.setter != null) {
         lastFieldElement = null;
       }
     }
@@ -502,8 +502,8 @@ class ElementBuilder {
       instanceElement.addField(lastFieldElement);
     }
 
-    setterElement.variable3 = lastFieldElement;
-    lastFieldElement.setter2 = setterElement;
+    setterElement.variable = lastFieldElement;
+    lastFieldElement.setter = setterElement;
   }
 
   void _handleMixinFragment(
@@ -557,7 +557,7 @@ class ElementBuilder {
     libraryFragment.addGetter(getterFragment);
 
     var lastVariableElement = _topLevelVariableElement(lastFragment);
-    var lastGetterFragment = lastVariableElement?.getter2?.lastFragment;
+    var lastGetterFragment = lastVariableElement?.getter?.lastFragment;
 
     if (getterFragment.isAugmentation && lastGetterFragment != null) {
       lastGetterFragment.addFragment(getterFragment);
@@ -575,7 +575,7 @@ class ElementBuilder {
     // If `getter` is already set, this is a compile-time error.
     // Reset to `null`, so create a new variable.
     if (lastVariableElement != null) {
-      if (lastVariableElement.getter2 != null) {
+      if (lastVariableElement.getter != null) {
         lastVariableElement = null;
       }
     }
@@ -594,8 +594,8 @@ class ElementBuilder {
       libraryElement.addTopLevelVariable(lastVariableElement);
     }
 
-    getterElement.variable3 = lastVariableElement;
-    lastVariableElement.getter2 = getterElement;
+    getterElement.variable = lastVariableElement;
+    lastVariableElement.getter = getterElement;
   }
 
   void _handleTopLevelSetterFragment(
@@ -607,7 +607,7 @@ class ElementBuilder {
     libraryFragment.addSetter(setterFragment);
 
     var lastVariableElement = _topLevelVariableElement(lastFragment);
-    var lastSetterFragment = lastVariableElement?.setter2?.lastFragment;
+    var lastSetterFragment = lastVariableElement?.setter?.lastFragment;
 
     if (setterFragment.isAugmentation &&
         lastSetterFragment is SetterFragmentImpl) {
@@ -626,7 +626,7 @@ class ElementBuilder {
     // If `setter` is already set, this is a compile-time error.
     // Reset to `null`, so create a new variable.
     if (lastVariableElement != null) {
-      if (lastVariableElement.setter2 != null) {
+      if (lastVariableElement.setter != null) {
         lastVariableElement = null;
       }
     }
@@ -645,8 +645,8 @@ class ElementBuilder {
       libraryElement.addTopLevelVariable(lastVariableElement);
     }
 
-    setterElement.variable3 = lastVariableElement;
-    lastVariableElement.setter2 = setterElement;
+    setterElement.variable = lastVariableElement;
+    lastVariableElement.setter = setterElement;
   }
 
   void _handleTopLevelVariableFragment(
@@ -686,8 +686,8 @@ class ElementBuilder {
       libraryElement.addGetter(getterElement);
       libraryBuilder.declare(getterElement, getterElement.reference);
 
-      variableElement.getter2 = getterElement;
-      getterElement.variable3 = variableElement;
+      variableElement.getter = getterElement;
+      getterElement.variable = variableElement;
     }
 
     if (variableFragment.hasSetter) {
@@ -718,8 +718,8 @@ class ElementBuilder {
 
       FormalParameterElementImpl(valueFragment);
 
-      variableElement.setter2 = setterElement;
-      setterElement.variable3 = variableElement;
+      variableElement.setter = setterElement;
+      setterElement.variable = variableElement;
     }
   }
 
@@ -749,9 +749,9 @@ class ElementBuilder {
       case TopLevelVariableFragmentImpl():
         return fragment.element;
       case GetterFragmentImpl():
-        return fragment.element.variable3.ifTypeOrNull();
+        return fragment.element.variable.ifTypeOrNull();
       case SetterFragmentImpl():
-        return fragment.element.variable3.ifTypeOrNull();
+        return fragment.element.variable.ifTypeOrNull();
     }
     return null;
   }

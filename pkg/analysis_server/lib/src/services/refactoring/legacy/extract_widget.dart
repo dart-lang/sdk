@@ -644,7 +644,7 @@ class _ParametersCollector extends RecursiveAstVisitor<void> {
         }
       }
     } else if (element is PropertyAccessorElement) {
-      var field = element.variable3;
+      var field = element.variable;
       if (field == null) {
         return;
       }

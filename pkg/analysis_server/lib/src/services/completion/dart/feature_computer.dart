@@ -199,7 +199,7 @@ class FeatureComputer {
     } else if (element is FieldElement && element.isEnumConstant) {
       return protocol.ElementKind.ENUM_CONSTANT;
     } else if (element is PropertyAccessorElement) {
-      var variable = element.variable3;
+      var variable = element.variable;
       if (variable == null) {
         return protocol.ElementKind.UNKNOWN;
       }
@@ -255,7 +255,7 @@ class FeatureComputer {
     } else if (element is FieldElement && element.isEnumConstant) {
       return protocol.ElementKind.ENUM_CONSTANT;
     } else if (element is PropertyAccessorElement) {
-      var variable = element.variable3;
+      var variable = element.variable;
       if (variable == null) {
         return protocol.ElementKind.UNKNOWN;
       }
@@ -391,7 +391,7 @@ class FeatureComputer {
     } else if (element is TopLevelVariableElement && element.isConst) {
       return 1.0;
     } else if (element is PropertyAccessorElement && element.isSynthetic) {
-      var variable = element.variable3;
+      var variable = element.variable;
       if (variable != null && variable.isStatic && variable.isConst) {
         return 1.0;
       }

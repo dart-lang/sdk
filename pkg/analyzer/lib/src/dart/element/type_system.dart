@@ -796,7 +796,7 @@ class TypeSystemImpl implements TypeSystem {
           hasProgress = true;
           break;
         } else if (freeParameters.every(defaults.containsKey)) {
-          defaults[parameter] = Substitution.fromMap2(
+          defaults[parameter] = Substitution.fromMap(
             defaults,
           ).substituteType(value);
           partials.remove(parameter);

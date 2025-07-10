@@ -125,7 +125,7 @@ class _ElementRecorder {
   ) {
     if (referencedElement is PropertyAccessorElement) {
       if (referencedElement.isSynthetic) {
-        var variable = referencedElement.variable3;
+        var variable = referencedElement.variable;
         if (variable == null) {
           return;
         }

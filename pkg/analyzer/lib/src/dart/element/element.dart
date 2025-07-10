@@ -890,10 +890,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  String displayString2({
-    bool multiline = false,
-    bool preferTypeAlias = false,
-  }) {
+  String displayString({bool multiline = false, bool preferTypeAlias = false}) {
     // TODO(scheglov): de-duplicate
     var builder = ElementDisplayStringBuilder(
       multiline: multiline,
@@ -2062,6 +2059,7 @@ class EnumFragmentImpl extends InterfaceFragmentImpl implements EnumFragment {
   /// given [offset] in the file that contains the declaration of this element.
   EnumFragmentImpl({required super.name, required super.nameOffset});
 
+  // TODO(fshcheglov): Consider removing.
   List<FieldFragmentImpl> get constants {
     return fields.where((field) => field.isEnumConstant).toList();
   }
@@ -2171,7 +2169,7 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
     // If a synthetic getter, we might need to infer the type.
     if (_returnType == null && isSynthetic) {
       if (this case GetterElementImpl thisGetter) {
-        thisGetter.variable3!.type;
+        thisGetter.variable!.type;
       }
     }
 
@@ -2357,9 +2355,9 @@ abstract class ExecutableFragmentImpl extends _ExistingFragmentImpl
     // If a synthetic getter, we might need to infer the type.
     if (_returnType == null && isSynthetic) {
       if (this case GetterFragmentImpl thisGetter) {
-        thisGetter.element.variable3!.type;
+        thisGetter.element.variable!.type;
       } else if (this case SetterFragmentImpl thisSetter) {
-        thisSetter.element.variable3!.type;
+        thisSetter.element.variable!.type;
       }
     }
 
@@ -2762,8 +2760,8 @@ class FieldElementImpl extends PropertyInducingElementImpl
   bool get isSyntheticEnumField {
     return enclosingElement is EnumElementImpl &&
         isSynthetic &&
-        getter2?.isSynthetic == true &&
-        setter2 == null;
+        getter?.isSynthetic == true &&
+        setter == null;
   }
 
   @override
@@ -3009,7 +3007,7 @@ class FormalParameterElementImpl extends PromotableElementImpl
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
   String? get defaultValueCode {
-    return constantInitializer2?.expression.toSource();
+    return constantInitializer?.expression.toSource();
   }
 
   @override
@@ -3186,7 +3184,7 @@ mixin FormalParameterElementMixin
   @Deprecated('Use appendToWithoutDelimiters instead')
   @override
   void appendToWithoutDelimiters2(StringBuffer buffer) {
-    return appendToWithoutDelimiters(buffer);
+    appendToWithoutDelimiters(buffer);
   }
 }
 
@@ -4189,7 +4187,7 @@ class GetterElementImpl extends PropertyAccessorElementImpl
 
   @override
   SetterElement? get correspondingSetter {
-    return variable3?.setter2;
+    return variable?.setter;
   }
 
   @Deprecated('Use correspondingSetter instead')
@@ -4222,7 +4220,7 @@ class GetterElementImpl extends PropertyAccessorElementImpl
   Element get nonSynthetic {
     if (!isSynthetic) {
       return this;
-    } else if (variable3 case var variable?) {
+    } else if (variable case var variable?) {
       return variable.nonSynthetic;
     }
     throw StateError('Synthetic getter has no variable');
@@ -4231,7 +4229,7 @@ class GetterElementImpl extends PropertyAccessorElementImpl
   @override
   Version? get sinceSdkVersion {
     if (isSynthetic) {
-      return variable3?.sinceSdkVersion;
+      return variable?.sinceSdkVersion;
     }
     return super.sinceSdkVersion;
   }
@@ -5861,23 +5859,35 @@ class LibraryElementImpl extends ElementImpl
   Null get enclosingElement2 => enclosingElement;
 
   @override
-  TopLevelFunctionElementImpl? get entryPoint2 {
+  TopLevelFunctionElementImpl? get entryPoint {
     _ensureReadResolution();
     return _entryPoint;
   }
 
-  set entryPoint2(TopLevelFunctionElementImpl? value) {
+  set entryPoint(TopLevelFunctionElementImpl? value) {
     _entryPoint = value;
   }
 
+  @Deprecated('Use entryPoint instead')
   @override
-  List<LibraryElementImpl> get exportedLibraries2 {
+  TopLevelFunctionElementImpl? get entryPoint2 {
+    return entryPoint;
+  }
+
+  @override
+  List<LibraryElementImpl> get exportedLibraries {
     return fragments
         .expand((fragment) => fragment.libraryExports)
-        .map((export) => export.exportedLibrary2)
+        .map((export) => export.exportedLibrary)
         .nonNulls
         .toSet()
         .toList();
+  }
+
+  @Deprecated('Use exportedLibraries instead')
+  @override
+  List<LibraryElementImpl> get exportedLibraries2 {
+    return exportedLibraries;
   }
 
   @override
@@ -6150,13 +6160,25 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @override
-  ClassElementImpl? getClass2(String name) {
+  ClassElementImpl? getClass(String name) {
     return _getElementByName(classes, name);
   }
 
+  @Deprecated('Use getClass instead')
+  @override
+  ClassElementImpl? getClass2(String name) {
+    return getClass(name);
+  }
+
+  @override
+  EnumElement? getEnum(String name) {
+    return _getElementByName(enums, name);
+  }
+
+  @Deprecated('Use getEnum instead')
   @override
   EnumElement? getEnum2(String name) {
-    return _getElementByName(enums, name);
+    return getEnum(name);
   }
 
   @override
@@ -6188,8 +6210,14 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @override
-  MixinElement? getMixin2(String name) {
+  MixinElement? getMixin(String name) {
     return _getElementByName(mixins, name);
+  }
+
+  @Deprecated('Use getMixin instead')
+  @override
+  MixinElement? getMixin2(String name) {
+    return getMixin(name);
   }
 
   @override
@@ -6297,11 +6325,17 @@ class LibraryExportImpl extends ElementDirectiveImpl implements LibraryExport {
   });
 
   @override
-  LibraryElementImpl? get exportedLibrary2 {
+  LibraryElementImpl? get exportedLibrary {
     if (uri case DirectiveUriWithLibraryImpl uri) {
       return uri.library2;
     }
     return null;
+  }
+
+  @Deprecated('Use exportedLibrary instead')
+  @override
+  LibraryElementImpl? get exportedLibrary2 {
+    return exportedLibrary;
   }
 }
 
@@ -6371,8 +6405,14 @@ class LibraryFragmentImpl extends _ExistingFragmentImpl
   }) : super(nameOffset: -1);
 
   @override
-  List<ExtensionElement> get accessibleExtensions2 {
+  List<ExtensionElement> get accessibleExtensions {
     return scope.accessibleExtensions;
+  }
+
+  @Deprecated('Use accessibleExtensions instead')
+  @override
+  List<ExtensionElement> get accessibleExtensions2 {
+    return accessibleExtensions;
   }
 
   List<PropertyAccessorFragmentImpl> get accessors {
@@ -6510,12 +6550,18 @@ class LibraryFragmentImpl extends _ExistingFragmentImpl
   int get hashCode => source.hashCode;
 
   @override
-  List<LibraryElement> get importedLibraries2 {
+  List<LibraryElement> get importedLibraries {
     return libraryImports2
-        .map((import) => import.importedLibrary2)
+        .map((import) => import.importedLibrary)
         .nonNulls
         .toSet()
         .toList();
+  }
+
+  @Deprecated('Use importedLibraries instead')
+  @override
+  List<LibraryElement> get importedLibraries2 {
+    return importedLibraries;
   }
 
   /// The libraries exported by this unit.
@@ -6629,7 +6675,7 @@ class LibraryFragmentImpl extends _ExistingFragmentImpl
 
   @override
   List<PrefixElementImpl> get prefixes {
-    return _libraryImportPrefixes2 ??= _buildLibraryImportPrefixes2();
+    return _libraryImportPrefixes2 ??= _buildLibraryImportPrefixes();
   }
 
   @override
@@ -6772,7 +6818,7 @@ class LibraryFragmentImpl extends _ExistingFragmentImpl
     for (var libraryFragment in withEnclosing) {
       for (var importElement in libraryFragment.libraryImports) {
         if (importElement.prefix2?.element.name == prefix &&
-            importElement.importedLibrary2?.isSynthetic != false) {
+            importElement.importedLibrary?.isSynthetic != false) {
           var showCombinators =
               importElement.combinators
                   .whereType<ShowElementCombinator>()
@@ -6828,7 +6874,7 @@ class LibraryFragmentImpl extends _ExistingFragmentImpl
     );
   }
 
-  List<PrefixElementImpl> _buildLibraryImportPrefixes2() {
+  List<PrefixElementImpl> _buildLibraryImportPrefixes() {
     var prefixes = <PrefixElementImpl>{};
     for (var import in libraryImports2) {
       var prefix = import.prefix2?.element;
@@ -6864,11 +6910,17 @@ class LibraryImportImpl extends ElementDirectiveImpl implements LibraryImport {
   });
 
   @override
-  LibraryElementImpl? get importedLibrary2 {
+  LibraryElementImpl? get importedLibrary {
     if (uri case DirectiveUriWithLibraryImpl uri) {
       return uri.library2;
     }
     return null;
+  }
+
+  @Deprecated('Use importedLibrary instead')
+  @override
+  LibraryElementImpl? get importedLibrary2 {
+    return importedLibrary;
   }
 
   @override
@@ -7842,11 +7894,17 @@ class MixinElementImpl extends InterfaceElementImpl implements MixinElement {
   T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   @override
-  bool isImplementableIn2(LibraryElement library) {
+  bool isImplementableIn(LibraryElement library) {
     if (library == this.library) {
       return true;
     }
     return !isBase;
+  }
+
+  @Deprecated('Use isImplementableIn instead')
+  @override
+  bool isImplementableIn2(LibraryElement library) {
+    return isImplementableIn(library);
   }
 }
 
@@ -8477,13 +8535,19 @@ class PatternVariableElementImpl extends LocalVariableElementImpl
       _wrappedElement.isVisitingWhenClause = value;
 
   @override
-  JoinPatternVariableElementImpl? get join2 {
+  JoinPatternVariableElementImpl? get join {
     return _wrappedElement.join?.asElement2;
   }
 
-  /// Return the root [join2], or self.
+  @Deprecated('Use join instead')
+  @override
+  JoinPatternVariableElementImpl? get join2 {
+    return join;
+  }
+
+  /// Return the root [join], or self.
   PatternVariableElementImpl get rootVariable {
-    return join2?.rootVariable ?? this;
+    return join?.rootVariable ?? this;
   }
 
   @override
@@ -8630,7 +8694,7 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
       multiline: multiline,
       preferTypeAlias: preferTypeAlias,
     );
-    builder.writePrefixElement2(this);
+    builder.writePrefixElement(this);
     return builder.toString();
   }
 
@@ -8706,6 +8770,10 @@ abstract class PropertyAccessorElement2OrMember
   PropertyAccessorElementImpl get baseElement;
 
   @override
+  PropertyInducingElement2OrMember? get variable;
+
+  @Deprecated('Use variable instead')
+  @override
   PropertyInducingElement2OrMember? get variable3;
 }
 
@@ -8743,7 +8811,7 @@ abstract class PropertyAccessorElementImpl extends ExecutableElementImpl
 
   @override
   @trackedDirectly
-  PropertyInducingElementImpl? get variable3 {
+  PropertyInducingElementImpl? get variable {
     globalResultRequirements?.record_propertyAccessorElement_variable(
       element: this,
       name: name,
@@ -8752,8 +8820,15 @@ abstract class PropertyAccessorElementImpl extends ExecutableElementImpl
     return _variable3;
   }
 
-  set variable3(PropertyInducingElementImpl? value) {
+  set variable(PropertyInducingElementImpl? value) {
     _variable3 = value;
+  }
+
+  @Deprecated('Use variable instead')
+  @override
+  @trackedDirectly
+  PropertyInducingElementImpl? get variable3 {
+    return variable;
   }
 }
 
@@ -8811,7 +8886,7 @@ sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
   @override
   int get offset {
     if (isSynthetic) {
-      var variable = element.variable3!;
+      var variable = element.variable!;
       if (variable.isSynthetic) {
         return enclosingFragment.offset;
       }
@@ -8826,11 +8901,19 @@ sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
 abstract class PropertyInducingElement2OrMember
     implements VariableElement2OrMember, PropertyInducingElement {
   @override
+  GetterElement2OrMember? get getter;
+
+  @Deprecated('Use getter instead')
+  @override
   GetterElement2OrMember? get getter2;
 
   @override
   MetadataImpl get metadata;
 
+  @override
+  SetterElement2OrMember? get setter;
+
+  @Deprecated('Use setter instead')
   @override
   SetterElement2OrMember? get setter2;
 }
@@ -8839,10 +8922,10 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
     with DeferredResolutionReadingMixin
     implements PropertyInducingElement2OrMember, AnnotatableElementImpl {
   @override
-  GetterElementImpl? getter2;
+  GetterElementImpl? getter;
 
   @override
-  SetterElementImpl? setter2;
+  SetterElementImpl? setter;
 
   TypeImpl? _type;
 
@@ -8865,6 +8948,10 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
     ];
   }
 
+  @Deprecated('Use getter instead')
+  @override
+  GetterElementImpl? get getter2 => getter;
+
   @override
   bool get hasInitializer {
     return _fragments.any((f) => f.hasInitializer);
@@ -8879,7 +8966,7 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
           return enclosingElement;
         }
       }
-      return (getter2 ?? setter2)!;
+      return (getter ?? setter)!;
     } else {
       return this;
     }
@@ -8887,6 +8974,10 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
 
   @override
   Reference get reference;
+
+  @Deprecated('Use setter instead')
+  @override
+  SetterElementImpl? get setter2 => setter;
 
   bool get shouldUseTypeForInitializerInference {
     return hasModifier(Modifier.SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE);
@@ -8910,11 +9001,11 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
 
     // TODO(scheglov): We repeat this code.
     var element = this;
-    if (element.getter2 case var getterElement?) {
+    if (element.getter case var getterElement?) {
       getterElement.returnType = type;
       getterElement.firstFragment.returnType = type;
     }
-    if (element.setter2 case var setterElement?) {
+    if (element.setter case var setterElement?) {
       if (setterElement.isSynthetic) {
         setterElement.returnType = VoidTypeImpl.instance;
         setterElement.firstFragment.returnType = VoidTypeImpl.instance;
@@ -9052,8 +9143,14 @@ class SetterElementImpl extends PropertyAccessorElementImpl
   SetterElementImpl get baseElement => this;
 
   @override
+  GetterElement? get correspondingGetter {
+    return variable?.getter;
+  }
+
+  @Deprecated('Use correspondingGetter instead')
+  @override
   GetterElement? get correspondingGetter2 {
-    return variable3?.getter2;
+    return correspondingGetter;
   }
 
   @override
@@ -9095,7 +9192,7 @@ class SetterElementImpl extends PropertyAccessorElementImpl
   Element get nonSynthetic {
     if (!isSynthetic) {
       return this;
-    } else if (variable3 case var variable?) {
+    } else if (variable case var variable?) {
       return variable.nonSynthetic;
     }
     throw StateError('Synthetic setter has no variable');
@@ -9104,7 +9201,7 @@ class SetterElementImpl extends PropertyAccessorElementImpl
   @override
   Version? get sinceSdkVersion {
     if (isSynthetic) {
-      return variable3?.sinceSdkVersion;
+      return variable?.sinceSdkVersion;
     }
     return super.sinceSdkVersion;
   }
@@ -9198,13 +9295,13 @@ class SuperFormalParameterElementImpl extends FormalParameterElementImpl
       return null;
     }
 
-    var constantInitializer = constantInitializer2?.expression;
+    var constantInitializer = this.constantInitializer?.expression;
     if (constantInitializer != null) {
       return constantInitializer.toSource();
     }
 
     if (_superConstructorParameterDefaultValue != null) {
-      return superConstructorParameter2?.defaultValueCode;
+      return superConstructorParameter?.defaultValueCode;
     }
 
     return null;
@@ -9212,11 +9309,11 @@ class SuperFormalParameterElementImpl extends FormalParameterElementImpl
 
   @override
   Constant? get evaluationResult {
-    if (constantInitializer2 != null) {
+    if (constantInitializer != null) {
       return super.evaluationResult;
     }
 
-    var superConstructorParameter = superConstructorParameter2?.baseElement;
+    var superConstructorParameter = this.superConstructorParameter?.baseElement;
     if (superConstructorParameter != null) {
       return superConstructorParameter.evaluationResult;
     }
@@ -9241,7 +9338,7 @@ class SuperFormalParameterElementImpl extends FormalParameterElementImpl
   }
 
   @override
-  FormalParameterElementMixin? get superConstructorParameter2 {
+  FormalParameterElementMixin? get superConstructorParameter {
     var enclosingElement = this.enclosingElement;
     if (enclosingElement is ConstructorElementImpl) {
       var superConstructor = enclosingElement.superConstructor;
@@ -9264,8 +9361,14 @@ class SuperFormalParameterElementImpl extends FormalParameterElementImpl
     return null;
   }
 
+  @Deprecated('Use superConstructorParameter instead')
+  @override
+  FormalParameterElementMixin? get superConstructorParameter2 {
+    return superConstructorParameter;
+  }
+
   DartObject? get _superConstructorParameterDefaultValue {
-    var superDefault = superConstructorParameter2?.computeConstantValue();
+    var superDefault = superConstructorParameter?.computeConstantValue();
     if (superDefault == null) {
       return null;
     }
@@ -9289,7 +9392,7 @@ class SuperFormalParameterElementImpl extends FormalParameterElementImpl
 
   @override
   DartObject? computeConstantValue() {
-    if (constantInitializer2 != null) {
+    if (constantInitializer != null) {
       return super.computeConstantValue();
     }
 
@@ -9625,7 +9728,7 @@ class TypeAliasElementImpl extends TypeDefiningElementImpl
   }
 
   @override
-  Element? get aliasedElement2 {
+  Element? get aliasedElement {
     switch (firstFragment.aliasedElement) {
       case InstanceFragment instance:
         return instance.element;
@@ -9633,6 +9736,12 @@ class TypeAliasElementImpl extends TypeDefiningElementImpl
         return instance.element;
     }
     return null;
+  }
+
+  @Deprecated('Use aliasedElement instead')
+  @override
+  Element? get aliasedElement2 {
+    return aliasedElement;
   }
 
   @override
@@ -10316,14 +10425,14 @@ abstract class VariableElementImpl extends ElementImpl
     implements VariableElement2OrMember, ConstantEvaluationTarget {
   ConstantInitializerImpl? _constantInitializer;
 
-  /// The result of evaluating [constantInitializer2].
+  /// The result of evaluating [constantInitializer].
   ///
-  /// Is `null` if [constantInitializer2] is `null`, or if the value could not
+  /// Is `null` if [constantInitializer] is `null`, or if the value could not
   /// be computed because of errors.
   Constant? evaluationResult;
 
   @override
-  ConstantInitializer? get constantInitializer2 {
+  ConstantInitializer? get constantInitializer {
     if (_constantInitializer case var result?) {
       return result;
     }
@@ -10338,6 +10447,12 @@ abstract class VariableElementImpl extends ElementImpl
     }
 
     return null;
+  }
+
+  @Deprecated('Use constantInitializer instead')
+  @override
+  ConstantInitializer? get constantInitializer2 {
+    return constantInitializer;
   }
 
   @override

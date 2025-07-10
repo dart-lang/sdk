@@ -117,7 +117,7 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitExportDirective(ExportDirective node) {
-    return node.libraryExport?.exportedLibrary2;
+    return node.libraryExport?.exportedLibrary;
   }
 
   @override
@@ -198,7 +198,7 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitImportDirective(ImportDirective node) {
-    return node.libraryImport?.importedLibrary2;
+    return node.libraryImport?.importedLibrary;
   }
 
   @override
@@ -293,9 +293,9 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
   Element? visitStringLiteral(StringLiteral node) {
     var parent = node.parent;
     if (parent is ExportDirective) {
-      return parent.libraryExport?.exportedLibrary2;
+      return parent.libraryExport?.exportedLibrary;
     } else if (parent is ImportDirective) {
-      return parent.libraryImport?.importedLibrary2;
+      return parent.libraryImport?.importedLibrary;
     } else if (parent is PartDirective) {
       return null;
     }

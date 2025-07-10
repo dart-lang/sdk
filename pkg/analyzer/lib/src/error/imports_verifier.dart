@@ -61,7 +61,7 @@ class ImportsVerifier {
     var exportsWithLibraries = <_NamespaceDirective>[];
     for (var directive in node.directives) {
       if (directive is ImportDirectiveImpl) {
-        var libraryElement = directive.libraryImport?.importedLibrary2;
+        var libraryElement = directive.libraryImport?.importedLibrary;
         if (libraryElement == null) {
           continue;
         }
@@ -73,7 +73,7 @@ class ImportsVerifier {
           _NamespaceDirective(node: directive, library: libraryElement),
         );
       } else if (directive is ExportDirective) {
-        var libraryElement = directive.libraryExport?.exportedLibrary2;
+        var libraryElement = directive.libraryExport?.exportedLibrary;
         if (libraryElement == null) {
           continue;
         }
@@ -173,7 +173,7 @@ class ImportsVerifier {
       }
 
       // Ignore unresolved imports.
-      var importedLibrary = firstElement.importedLibrary2;
+      var importedLibrary = firstElement.importedLibrary;
       if (importedLibrary == null) {
         continue;
       }
@@ -291,7 +291,7 @@ class ImportsVerifier {
 
       // Ignore unresolved imports.
       var importElement = importDirective.libraryImport!;
-      var importedLibrary = importElement.importedLibrary2;
+      var importedLibrary = importElement.importedLibrary;
       if (importedLibrary == null) {
         continue;
       }
@@ -311,8 +311,8 @@ class ImportsVerifier {
               var isUsed = importElements.contains(element);
               if (element is PropertyInducingElement) {
                 isUsed =
-                    importElements.contains(element.getter2) ||
-                    importElements.contains(element.setter2);
+                    importElements.contains(element.getter) ||
+                    importElements.contains(element.setter);
               }
 
               if (!isUsed) {

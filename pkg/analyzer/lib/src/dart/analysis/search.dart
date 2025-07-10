@@ -786,8 +786,8 @@ class Search {
     SearchedFiles searchedFiles,
   ) async {
     List<SearchResult> results = <SearchResult>[];
-    var getter = field.getter2;
-    var setter = field.setter2;
+    var getter = field.getter;
+    var setter = field.setter;
     if (!field.isSynthetic) {
       await _addResults(results, field, searchedFiles, const {
         IndexRelationKind.IS_WRITTEN_BY: SearchResultKind.WRITE,

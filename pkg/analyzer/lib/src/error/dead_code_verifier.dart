@@ -60,7 +60,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
     var libraryExport = node.libraryExport;
     if (libraryExport != null) {
       // The element is null when the URI is invalid.
-      var library = libraryExport.exportedLibrary2;
+      var library = libraryExport.exportedLibrary;
       if (library != null && !library.isSynthetic) {
         for (Combinator combinator in node.combinators) {
           _checkCombinator(library, combinator);
@@ -88,7 +88,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
     if (libraryImport != null) {
       // The element is null when the URI is invalid, but not when the URI is
       // valid but refers to a nonexistent file.
-      var library = libraryImport.importedLibrary2;
+      var library = libraryImport.importedLibrary;
       if (library != null && !library.isSynthetic) {
         for (Combinator combinator in node.combinators) {
           _checkCombinator(library, combinator);

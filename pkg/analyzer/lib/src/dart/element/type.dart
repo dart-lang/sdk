@@ -327,7 +327,7 @@ class FunctionTypeImpl extends TypeImpl
       typeParameters: const [],
       parameters:
           parameters
-              .map((p) => ParameterMember.from2(p, substitution))
+              .map((p) => ParameterMember.from(p, substitution))
               .toFixedList(),
       nullabilitySuffix: nullabilitySuffix,
     );

@@ -452,7 +452,7 @@ class C {
       fieldDeclaration,
       (fieldDeclaration.declaredFragment as FieldFragment)
           .element
-          .setter2!
+          .setter!
           .formalParameters
           .single
           .firstFragment,
@@ -470,7 +470,7 @@ int? x;
       topLevelVariableDeclaration,
       (topLevelVariableDeclaration.declaredFragment as TopLevelVariableFragment)
           .element
-          .setter2!
+          .setter!
           .formalParameters
           .single
           .firstFragment,
@@ -531,7 +531,7 @@ class C {
       fieldDeclaration,
       (fieldDeclaration.declaredFragment as FieldFragment)
           .element
-          .getter2!
+          .getter!
           .firstFragment,
       fieldDeclaration.name.offset,
     );
@@ -559,7 +559,7 @@ int? x;
       topLevelVariableDeclaration,
       (topLevelVariableDeclaration.declaredFragment as TopLevelVariableFragment)
           .element
-          .getter2!
+          .getter!
           .firstFragment,
       topLevelVariableDeclaration.name.offset,
     );
@@ -853,7 +853,7 @@ class C {
       fieldDeclaration,
       (fieldDeclaration.declaredFragment as FieldFragment)
           .element
-          .setter2!
+          .setter!
           .firstFragment,
       fieldDeclaration.name.offset,
     );
@@ -881,7 +881,7 @@ int? x;
       topLevelVariableDeclaration,
       (topLevelVariableDeclaration.declaredFragment as TopLevelVariableFragment)
           .element
-          .setter2!
+          .setter!
           .firstFragment,
       topLevelVariableDeclaration.name.offset,
     );

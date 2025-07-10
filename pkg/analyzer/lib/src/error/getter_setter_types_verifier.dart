@@ -73,7 +73,7 @@ class GetterSetterTypesVerifier {
             Element errorElement;
             if (getter.enclosingElement == element) {
               if (element is ExtensionTypeElementImpl &&
-                  element.representation.getter2 == getter) {
+                  element.representation.getter == getter) {
                 errorElement = setter;
               } else {
                 errorElement = getter;
@@ -125,7 +125,7 @@ class GetterSetterTypesVerifier {
       return;
     }
 
-    var setter = getter.variable3?.setter2;
+    var setter = getter.variable?.setter;
     if (setter == null) {
       return;
     }

@@ -924,9 +924,9 @@ class B implements A {
   }) {
     expect(field.isSynthetic, isFalse);
 
-    _assertGetterType(field.getter2, type);
+    _assertGetterType(field.getter, type);
 
-    var setter = field.setter2;
+    var setter = field.setter;
     if (setter != null) {
       _assertSetterType(setter, type, isCovariant: isCovariant);
     }
@@ -935,10 +935,10 @@ class B implements A {
   void _assertFieldTypeDynamic(FieldElement field) {
     expect(field.isSynthetic, isFalse);
 
-    _assertGetterTypeDynamic(field.getter2);
+    _assertGetterTypeDynamic(field.getter);
 
     if (!field.isFinal) {
-      _assertSetterTypeDynamic(field.setter2);
+      _assertSetterTypeDynamic(field.setter);
     }
   }
 

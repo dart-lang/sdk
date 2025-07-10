@@ -166,8 +166,8 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
                 // TODO(paulberry): eliminate this cast by changing the
                 // extension to apply only to `Iterable<ExtensionElementImpl>`.
                 extension as ExtensionElementImpl,
-                getter: field.getter2,
-                setter: field.setter2,
+                getter: field.getter,
+                setter: field.setter,
               ),
             );
             break;
@@ -221,7 +221,7 @@ extension NotInstantiatedExtensionsExtensions<R>
     for (var notInstantiated in this) {
       var extension = notInstantiated.extension;
 
-      var freshTypes = getFreshTypeParameters2(extension.typeParameters);
+      var freshTypes = getFreshTypeParameters(extension.typeParameters);
       var freshTypeParameters = freshTypes.freshTypeParameters;
       var rawExtendedType = freshTypes.substitute(extension.extendedType);
       // Casts aren't relevant in extension applicability.
