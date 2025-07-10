@@ -28,7 +28,7 @@ class ElementMatcher {
   final List<String> components;
 
   /// A list of the kinds of elements that are appropriate for some given
-  /// location in the code An empty list represents all kinds rather than no
+  /// location in the code. An empty list represents all kinds rather than no
   /// kinds.
   final List<ElementKind> validKinds;
 
@@ -291,12 +291,21 @@ class _MatcherBuilder {
     //  get a more exact matcher.
     // TODO(brianwilkerson): Use 'new' for the name of the unnamed constructor.
     var constructorName = node.name?.name ?? ''; // ?? 'new';
-    var className = node.type.name.lexeme;
+    var typeName = node.type.name.lexeme;
     _addMatcher(
-      components: [constructorName, className],
+      components: [constructorName, typeName],
       kinds: const [ElementKind.constructorKind],
     );
-    _addMatcher(components: [className], kinds: const [ElementKind.classKind]);
+    _addMatcher(
+      components: [typeName],
+      kinds: const [
+        ElementKind.classKind,
+        ElementKind.enumKind,
+        ElementKind.extensionTypeKind,
+        ElementKind.typedefKind,
+        ElementKind.mixinKind, // Can't *yet* have factory constructors.
+      ],
+    );
   }
 
   /// Build a matcher for the extension.
@@ -369,10 +378,14 @@ class _MatcherBuilder {
         kinds: [
           ElementKind.classKind,
           ElementKind.constructorKind,
+          ElementKind.enumKind,
           ElementKind.extensionKind,
+          ElementKind.extensionTypeKind,
           ElementKind.functionKind,
           ElementKind.getterKind,
           ElementKind.methodKind,
+          ElementKind.mixinKind,
+          ElementKind.typedefKind,
         ],
       );
     }
@@ -391,6 +404,7 @@ class _MatcherBuilder {
       kinds: const [
         ElementKind.classKind,
         ElementKind.enumKind,
+        ElementKind.extensionTypeKind,
         ElementKind.mixinKind,
         ElementKind.typedefKind,
       ],
@@ -413,20 +427,17 @@ class _MatcherBuilder {
     //  get a more exact matcher.
     var prefix = node.prefix;
     if (prefix.element is PrefixElement) {
-      var parent = node.parent;
-      if ((parent is NamedType && parent.parent is! ConstructorName) ||
-          (parent is PropertyAccess && parent.target == node)) {
-        _addMatcher(
-          components: [node.identifier.name],
-          kinds: const [
-            ElementKind.classKind,
-            ElementKind.enumKind,
-            ElementKind.extensionKind,
-            ElementKind.mixinKind,
-            ElementKind.typedefKind,
-          ],
-        );
-      }
+      _addMatcher(
+        components: [node.identifier.name],
+        kinds: const [
+          ElementKind.classKind,
+          ElementKind.enumKind,
+          ElementKind.extensionKind,
+          ElementKind.extensionTypeKind,
+          ElementKind.mixinKind,
+          ElementKind.typedefKind,
+        ],
+      );
       _addMatcher(
         components: [node.identifier.name],
         kinds: const [

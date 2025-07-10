@@ -60,10 +60,14 @@ class ElementMatcherComponentAndKindTest extends AbstractElementMatcherTest {
   static List<ElementKind> invocationKinds = [
     ElementKind.classKind,
     ElementKind.constructorKind,
+    ElementKind.enumKind,
     ElementKind.extensionKind,
+    ElementKind.extensionTypeKind,
     ElementKind.functionKind,
     ElementKind.getterKind,
     ElementKind.methodKind,
+    ElementKind.mixinKind,
+    ElementKind.typedefKind,
   ];
 
   /// The kinds that are expected where a method or constructor is allowed.
@@ -76,6 +80,7 @@ class ElementMatcherComponentAndKindTest extends AbstractElementMatcherTest {
   static List<ElementKind> typeKinds = [
     ElementKind.classKind,
     ElementKind.enumKind,
+    ElementKind.extensionTypeKind,
     ElementKind.mixinKind,
     ElementKind.typedefKind,
   ];

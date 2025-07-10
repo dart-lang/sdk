@@ -32,7 +32,7 @@ typedef ErrorType = DiagnosticType;
 @AnalyzerPublicApi(message: 'exported by package:analyzer/error/error.dart')
 abstract class DiagnosticCode {
   /// Regular expression for identifying positional arguments in error messages.
-  static final RegExp _positionalArgumentRegExp = new RegExp(r'{(\d+)\}');
+  static final RegExp _positionalArgumentRegExp = new RegExp(r'\{(\d+)\}');
 
   /**
    * The name of the error code.

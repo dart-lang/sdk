@@ -57,6 +57,7 @@ class TransformSetParser {
   static const String _expressionKey = 'expression';
   static const String _extendsKey = 'extends';
   static const String _extensionKey = 'extension';
+  static const String _extensionTypeKey = 'extensionType';
   static const String _fieldKey = 'field';
   static const String _functionKey = 'function';
   static const String _getterKey = 'getter';
@@ -64,6 +65,7 @@ class TransformSetParser {
   static const String _inClassKey = 'inClass';
   static const String _inEnumKey = 'inEnum';
   static const String _inExtensionKey = 'inExtension';
+  static const String _inExtensionTypeKey = 'inExtensionType';
   static const String _indexKey = 'index';
   static const String _inMixinKey = 'inMixin';
   static const String _kindKey = 'kind';
@@ -92,12 +94,27 @@ class TransformSetParser {
   /// A table mapping top-level keys for member elements to the list of keys for
   /// the possible containers of that element.
   static const Map<String, Set<String>> _containerKeyMap = {
-    _constructorKey: {_inClassKey},
+    _constructorKey: {_inClassKey, _inExtensionTypeKey},
     _constantKey: {_inEnumKey},
-    _fieldKey: {_inClassKey, _inExtensionKey, _inMixinKey},
-    _getterKey: {_inClassKey, _inExtensionKey, _inMixinKey},
-    _methodKey: {_inClassKey, _inExtensionKey, _inMixinKey},
-    _setterKey: {_inClassKey, _inExtensionKey, _inMixinKey},
+    _fieldKey: {_inClassKey, _inExtensionKey, _inExtensionTypeKey, _inMixinKey},
+    _getterKey: {
+      _inClassKey,
+      _inExtensionKey,
+      _inExtensionTypeKey,
+      _inMixinKey,
+    },
+    _methodKey: {
+      _inClassKey,
+      _inExtensionKey,
+      _inExtensionTypeKey,
+      _inMixinKey,
+    },
+    _setterKey: {
+      _inClassKey,
+      _inExtensionKey,
+      _inExtensionTypeKey,
+      _inMixinKey,
+    },
   };
 
   static const String _addParameterKind = 'addParameter';
@@ -844,12 +861,13 @@ class TransformSetParser {
       var elementPair = _singleKey(
         map: node,
         translators: {
-          {
+          const {
             _classKey,
             _constantKey,
             _constructorKey,
             _enumKey,
             _extensionKey,
+            _extensionTypeKey,
             _fieldKey,
             _functionKey,
             _getterKey,
@@ -946,7 +964,7 @@ class TransformSetParser {
       }
       return ElementDescriptor(
         libraryUris: uris,
-        kind: ElementKindUtilities.fromName(elementKey)!,
+        kind: ElementKind.fromName(elementKey)!,
         isStatic: isStatic,
         components: components,
       );
@@ -1160,13 +1178,12 @@ class TransformSetParser {
     bool? replaceTarget;
     var replaceTargetNode = node.valueAt(_replaceTarget);
     replaceTarget =
-        replaceTargetNode == null
-            ? false
-            : _translateBool(
-                  replaceTargetNode,
-                  ErrorContext(key: _replaceTarget, parentNode: node),
-                ) ??
-                false;
+        replaceTargetNode != null &&
+        (_translateBool(
+              replaceTargetNode,
+              ErrorContext(key: _replaceTarget, parentNode: node),
+            ) ??
+            false);
     var argumentsNode = node.valueAt(_arguments);
     var argumentList =
         argumentsNode == null
@@ -1473,6 +1490,14 @@ class TransformSetParser {
       ElementKind.fieldKind,
       ElementKind.setterKind,
       ElementKind.variableKind,
+    });
+    // Type declarations can replace each other.
+    addSet({
+      ElementKind.classKind,
+      ElementKind.enumKind,
+      ElementKind.extensionTypeKind,
+      ElementKind.mixinKind,
+      ElementKind.typedefKind,
     });
     return types;
   }
