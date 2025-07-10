@@ -150,7 +150,6 @@ for command; do
       out/ReleaseX64/gen/kernel_service.dill \
       out/ReleaseX64/dart-sdk \
       out/ReleaseX64/dart \
-      out/ReleaseX64/dartvm \
       out/ReleaseX64/gen_snapshot \
       out/ReleaseX64/kernel-service.dart.snapshot \
       out/ReleaseX64/dart2wasm.snapshot \

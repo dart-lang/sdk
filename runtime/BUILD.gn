@@ -59,25 +59,6 @@ config("dart_aotruntime_config") {
   ]
 }
 
-config("dartdev_config") {
-  defines = []
-  cflags = []
-  defines += [
-    "DART_PRECOMPILED_RUNTIME",
-    "EXCLUDE_CFE_AND_KERNEL_PLATFORM",
-  ]
-  if (!dart_debug) {
-    defines += [ "PRODUCT" ]
-    if (is_posix) {
-      cflags = [
-        # This is the equivalent from `build/config/BUILDCONFIG.gn` which includes
-        # `build/config/gcc:symbol_visibility_hidden` in product mode.
-        "-fvisibility=hidden",
-      ]
-    }
-  }
-}
-
 config("add_empty_macho_section_config") {
   if (is_mac || is_ios) {
     # We create an empty __space_for_note section in a __CUSTOM segment to

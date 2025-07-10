@@ -4,7 +4,6 @@
 
 import "dart:io";
 import "package:expect/expect.dart";
-import 'package:path/path.dart' as p;
 
 import "use_flag_test_helper.dart";
 
@@ -36,9 +35,7 @@ main() {
     Platform.isMacOS ? "--extern-only" : "--dynamic",
     "--defined-only",
     "--format=just-symbols",
-    isAOTRuntime
-        ? Platform.executable
-        : p.join(p.dirname(Platform.executable), 'dartvm'),
+    Platform.executable,
   ]);
   if (result.exitCode != 0) {
     print("nm failed");

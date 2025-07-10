@@ -83,25 +83,6 @@ host platforms.
 
 [cross-compilation]: https://dart.dev/tools/dart-compile#cross-compilation-exe
 
-#### Dart CLI and Dart VM
-
-- The Dart CLI and Dart VM have been split into two seperate executables.
-
-  The Dart CLI tool has been split out of the VM into it's own embedder which
-  runs in AOT mode. The pure Dart VM executable is called `dartvm` and
-  has no Dart CLI functionality in it
-
-  The Dart CLI executable parses the CLI commands and invokes the rest
-  of the AOT tools in the same process, for the 'run' and 'test'
-  commands it execs a process which runs `dartvm`
-
-  `dart hello.dart` execs the `dartvm` process and runs 'hello.dart'
-
-  The Dart CLI is not generated for ia32 as we are not shipping a
-  Dart SDK for ia32 anymore (support to execute the `dartvm` for ia32
-  architecture is retained)
-
-
 #### Pub
 
 - Git dependencies can now be version-solved based on git tags.

@@ -519,18 +519,15 @@ class ProcessStarter {
         ReportChildError();
       }
       close(write_out_[0]);
-      close(write_out_[1]);
 
       if (TEMP_FAILURE_RETRY(dup2(read_in_[1], STDOUT_FILENO)) == -1) {
         ReportChildError();
       }
-      close(read_in_[0]);
       close(read_in_[1]);
 
       if (TEMP_FAILURE_RETRY(dup2(read_err_[1], STDERR_FILENO)) == -1) {
         ReportChildError();
       }
-      close(read_err_[0]);
       close(read_err_[1]);
     } else {
       ASSERT(mode_ == kInheritStdio);
@@ -598,13 +595,12 @@ class ProcessStarter {
             environ = program_environment_;
           }
 
+          // Report the final PID and do the exec.
+          ReportPid(getpid());  // getpid cannot fail.
           char realpath[PATH_MAX];
           if (!FindPathInNamespace(realpath, PATH_MAX)) {
             ReportChildError();
           }
-
-          // Report the final PID and do the exec.
-          ReportPid(getpid());  // getpid cannot fail.
           // TODO(dart:io) Test for the existence of execveat, and use it
           // instead.
           execvp(realpath, const_cast<char* const*>(program_arguments_));

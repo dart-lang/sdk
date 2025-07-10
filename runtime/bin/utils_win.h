@@ -6,7 +6,6 @@
 #define RUNTIME_BIN_UTILS_WIN_H_
 
 #include <memory>
-#include <string>
 #include <utility>
 
 #include "platform/utils.h"
@@ -44,7 +43,6 @@ class StringUtilsWin {
   static const wchar_t* Utf8ToWide(const char* utf8,
                                    intptr_t len = -1,
                                    intptr_t* result_len = nullptr);
-  static char* ArgumentEscape(const char* argument);
 
  private:
   DISALLOW_ALLOCATION();

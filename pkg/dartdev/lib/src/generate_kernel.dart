@@ -142,7 +142,17 @@ Future<void> ensureCompilationServerIsRunning(
         mode: ProcessStartMode.detachedWithStdio,
       );
     } else {
-      throw StateError('Unable to find snapshot for frontend server');
+      // AOT snapshots cannot be generated on IA32, so we need this fallback
+      // branch until support for IA32 is dropped (https://dartbug.com/49969).
+      frontendServerProcess = await Process.start(
+        sdk.dart,
+        [
+          sdk.frontendServerSnapshot,
+          '--resident-info-file-name=${serverInfoFile.absolute.path}'
+        ],
+        workingDirectory: homeDir?.path,
+        mode: ProcessStartMode.detachedWithStdio,
+      );
     }
 
     final serverOutput =

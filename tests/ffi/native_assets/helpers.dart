@@ -29,10 +29,7 @@ final ffiTestFunctionsFileName = dylibName('ffi_test_functions');
 final cwdUri = Directory.current.uri;
 
 final platformExecutableUriAbsolute = cwdUri.resolveUri(
-  Uri.file(
-    Platform.resolvedExecutable.replaceAll(r'\', '/'),
-    windows: Platform.isWindows,
-  ),
+  Uri.file(Platform.resolvedExecutable),
 );
 
 /// The build folder on desktop platforms.
@@ -61,7 +58,7 @@ final genSnapshotUri = buildUriAbsolute.resolve(
   'gen_snapshot$standaloneExtensionExe',
 );
 
-final dartUri = buildUriAbsolute.resolve('dartvm$standaloneExtensionExe');
+final dartUri = buildUriAbsolute.resolve('dart$standaloneExtensionExe');
 
 final dartPrecompiledRuntimeUri = buildUriAbsolute.resolve(
   'dartaotruntime$standaloneExtensionExe',

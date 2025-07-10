@@ -186,7 +186,7 @@ template("application_snapshot") {
       assert(training_deps != "", "Ignoring unused argument")
     }
   } else {
-    dartvm_action(target_name) {
+    dart_action(target_name) {
       if (defined(invoker.pool)) {
         pool = invoker.pool
       }

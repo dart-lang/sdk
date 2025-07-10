@@ -3,45 +3,13 @@
 # BSD-style license that can be found in the LICENSE file.
 
 import("../../build/dart/copy_tree.gni")
-import("../aot_snapshot.gni")
 import("../application_snapshot.gni")
-
-group("dartdev_aot") {
-  public_deps = [
-    ":copy_prebuilt_devtools",
-    ":dartdev_aot_snapshot",
-  ]
-}
-
-aot_snapshot("dartdev_aot_profile_snapshot") {
-  main_dart = "../../pkg/dartdev/bin/dartdev.dart"
-  output = "$root_out_dir/dartdev_aot_profile.dart.snapshot"
-}
-
-aot_snapshot("dartdev_aot_snapshot") {
-  main_dart = "../../pkg/dartdev/bin/dartdev.dart"
-  output = "$root_out_dir/dartdev_aot.dart.snapshot"
-
-  # dart has dart_product_config applied to it,
-  # so it is built in product mode in both release and
-  # product builds, and is only built in debug mode in debug
-  # builds. The following line ensures that the dart
-  # and dartdev_aot snapshot in an SDK build are
-  # always compatible with each other.
-  force_product_mode = !dart_debug
-}
 
 group("dartdev") {
   public_deps = [
     ":copy_dartdev_snapshot",
     ":copy_prebuilt_devtools",
   ]
-}
-
-application_snapshot("generate_dartdev_snapshot") {
-  main_dart = "../../pkg/dartdev/bin/dartdev.dart"
-  training_args = [ "--help" ]
-  output = "$root_gen_dir/dartdev.dart.snapshot"
 }
 
 copy("copy_dartdev_snapshot") {
@@ -51,11 +19,14 @@ copy("copy_dartdev_snapshot") {
   outputs = [ "$root_out_dir/dartdev.dart.snapshot" ]
 }
 
+application_snapshot("generate_dartdev_snapshot") {
+  main_dart = "../../pkg/dartdev/bin/dartdev.dart"
+  training_args = [ "--help" ]
+  output = "$root_gen_dir/dartdev.dart.snapshot"
+}
+
 copy_tree("copy_prebuilt_devtools") {
-  visibility = [
-    ":dartdev",
-    ":dartdev_aot",
-  ]
+  visibility = [ ":dartdev" ]
   source = "../../third_party/devtools/web"
   dest = "$root_out_dir/devtools"
   exclude = "{}"

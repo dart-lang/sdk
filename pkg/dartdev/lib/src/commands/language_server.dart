@@ -54,27 +54,26 @@ For more information about the server's capabilities and configuration, see:
       args = [...args, '--$protocol=$lsp'];
     }
     try {
-      var script = sdk.analysisServerAotSnapshot;
-      var useExec = false;
       if (argResults!.flag(useAotSnapshotFlag)) {
-        if (!Sdk.checkArtifactExists(sdk.analysisServerAotSnapshot)) {
-          log.stderr('Error: launching language analysis server failed');
-          log.stderr('${sdk.analysisServerAotSnapshot} not found');
+        if (!Sdk.checkArtifactExists(sdk.dartAotRuntime)) {
           return _genericErrorExitCode;
         }
         args = [...args];
         args.remove('--$useAotSnapshotFlag');
+        VmInteropHandler.run(
+          sdk.dartAotRuntime,
+          [sdk.analysisServerAotSnapshot, ...args],
+          useExecProcess: true,
+        );
       } else {
         args = [...args];
         args.remove('--no-$useAotSnapshotFlag');
-        script = sdk.analysisServerSnapshot;
-        useExec = true;
+        VmInteropHandler.run(
+          sdk.analysisServerSnapshot,
+          args,
+          useExecProcess: false,
+        );
       }
-      VmInteropHandler.run(
-        script,
-        args,
-        useExecProcess: useExec,
-      );
       return 0;
     } catch (e, st) {
       log.stderr('Error: launching language analysis server failed');
@@ -82,7 +81,7 @@ For more information about the server's capabilities and configuration, see:
       if (verbose) {
         log.stderr(st.toString());
       }
-      return _genericErrorExitCode;
+      return 255;
     }
   }
 

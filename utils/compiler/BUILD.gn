@@ -75,6 +75,13 @@ application_snapshot("dart2js") {
   ]
 }
 
+aot_snapshot("dart2js_aot") {
+  deps = [ ":dart2js_create_snapshot_entry" ]
+
+  main_dart = "$target_gen_dir/dart2js.dart"
+  name = "dart2js_aot"
+}
+
 aot_snapshot("dart2js_sdk_aot") {
   deps = [ ":dart2js_create_snapshot_entry" ]
 

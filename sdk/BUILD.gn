@@ -23,7 +23,6 @@ declare_args() {
   dart_platform_sdk = true
 
   # Path to stripped dart binaries relative to build output directory.
-  dartvm_stripped_binary = "dartvm"
   dart_stripped_binary = "dart"
   dart_aotruntime_stripped_binary = "dartaotruntime_product"
   gen_snapshot_stripped_binary = "gen_snapshot_product"
@@ -38,23 +37,27 @@ declare_args() {
 # ..dart-sdk/
 # ....bin/
 # ......dart or dart.exe (executable)
-# ......dartvm or dartvm.exe (executable)
 # ......dart.lib (import library for VM native extensions on Windows)
 # ......dartaotruntime or dartaotruntime.exe (executable)
 # ......utils/gen_snapshot or utils/gen_snapshot.exe (if not on ia32)
 # ......snapshots/
-# ........analysis_server.dart.snapshot (JIT snapshot)
+# ........analysis_server.dart.snapshot
 # ........analysis_server_aot.dart.snapshot (AOT snapshot, if not on ia32)
 # ........dart2bytecode.snapshot (AOT snapshot, for selected targets)
-# ........dart2js_aot.dart.snapshot (AOT snapshot)
-# ........dart2wasm_product.snapshot (AOT snapshot)
-# ........dartdev_aot.dart.snapshot (AOT snapshot)
-# ........dartdevc_aot.dart.snapshot (AOT snapshot)
-# ........dds_aot.dart.snapshot (AOT snapshot)
-# ........dart_tooling_daemon_aot.dart.snapshot (AOT snapshot)
-# ........frontend_server_aot.dart.snapshot (AOT snapshot)
-# ........gen_kernel_aot.dart.snapshot (AOT snapshot)
-# ........kernel-service.dart.snapshot (JIT snapshot)
+# ........dart2js_aot.dart.snapshot (AOT snapshot, if not on ia32)
+# ........dart2js.dart.snapshot (JIT snapshot only on ia32)
+# ........dart2wasm_product.snapshot (if not on ia32)
+# ........dartdev.dart.snapshot (app-jit snapshot or kernel dill file)
+# ........dartdevc_aot.dart.snapshot (AOT snapshot, if not on ia32)
+# ........dartdevc.dart.snapshot (JIT snapshot only on ia32)
+# ........dds_aot.dart.snapshot (AOT snapshot, if not on ia32)
+# ........dds.dart.snapshot (JIT snapshot only on ia32)
+# ........dart_tooling_daemon_aot.dart.snapshot (AOT snapshot, if not on ia32)
+# ........dart_tooling_daemon.dart.snapshot (JIT snapshot only on ia32)
+# ........frontend_server_aot.dart.snapshot (AOT snapshot, if not on ia32)
+# ........frontend_server.dart.snapshot (JIT snapshot only on ia32)
+# ........gen_kernel_aot.dart.snapshot (if not on ia32)
+# ........kernel-service.dart.snapshot
 # ........kernel_worker_aot.dart.snapshot (AOT snapshot)
 # ......resources/
 # ........dartdoc/
@@ -109,11 +112,23 @@ _platform_sdk_scripts = []
 _full_sdk_scripts = []
 
 # Snapshots that go under bin/snapshots
-_platform_sdk_snapshots = [ [
-      "analysis_server",
-      "../utils/analysis_server",
-      "analysis_server",
-    ] ]
+_platform_sdk_snapshots = [
+  [
+    "analysis_server",
+    "../utils/analysis_server",
+    "analysis_server",
+  ],
+  [
+    "dartdev",
+    "../utils/dartdev:dartdev",
+    "dartdev",
+  ],
+  [
+    "dart_tooling_daemon",
+    "../utils/dtd:dtd",
+    "dart_tooling_daemon",
+  ],
+]
 if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
   _platform_sdk_snapshots += [
     [
@@ -125,11 +140,6 @@ if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
       "frontend_server_aot_product",
       "../utils/kernel-service:frontend_server_aot_product",
       "frontend_server_aot",
-    ],
-    [
-      "dartdev_aot",
-      "../utils/dartdev:dartdev_aot",
-      "dartdev_aot",
     ],
     [
       "dds_aot_product",
@@ -148,11 +158,18 @@ if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
     ],
   ]
 } else {
-  _platform_sdk_snapshots += [ [
-        "dds",
-        "../utils/dds:dds",
-        "dds",
-      ] ]
+  _platform_sdk_snapshots += [
+    [
+      "frontend_server",
+      "../utils/kernel-service:frontend_server",
+      "frontend_server",
+    ],
+    [
+      "dds",
+      "../utils/dds:dds",
+      "dds",
+    ],
+  ]
 }
 if (dart_snapshot_kind == "app-jit") {
   _platform_sdk_snapshots += [ [
@@ -173,6 +190,9 @@ if ((dart_target_arch == "x64" || dart_target_arch == "arm64") &&
       ] ]
 }
 
+# AOT snapshots are not supported on the ia32 architecture, we continue
+# to use JIT snapshots on that architecture, the conditional code below
+# accounts for this.
 if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
   _full_sdk_snapshots =
       _platform_sdk_snapshots + [
@@ -201,7 +221,23 @@ if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
         ],
       ]
 } else {
-  _full_sdk_snapshots = _platform_sdk_snapshots
+  _full_sdk_snapshots = _platform_sdk_snapshots + [
+                          [
+                            "dart2js",
+                            "../utils/compiler:dart2js",
+                            "dart2js",
+                          ],
+                          [
+                            "dartdevc",
+                            "../utils/ddc:dartdevc",
+                            "dartdevc",
+                          ],
+                          [
+                            "kernel_worker",
+                            "../utils/bazel:kernel_worker",
+                            "kernel_worker",
+                          ],
+                        ]
 }
 
 # Libraries that go under lib/
@@ -313,13 +349,13 @@ if (target_os != current_os && target_os == "fuchsia") {
   # make a link to the symlink rather than the symlink's target, and the
   # relative symlink interpreted from a different containing directory
   # will not find the actual binary.
-  action("copy_dartvm") {
+  action("copy_dart") {
     visibility = [ ":create_common_sdk" ]
-    dart_label = "../runtime/bin:dartvm"
+    dart_label = "../runtime/bin:dart"
     deps = [ dart_label ]
     dart_out = get_label_info(dart_label, "root_out_dir")
-    sources = [ "$dart_out/$dartvm_stripped_binary" ]
-    outputs = [ "$root_out_dir/$dart_sdk_output/bin/$dartvm_stripped_binary" ]
+    sources = [ "$dart_out/$dart_stripped_binary" ]
+    outputs = [ "$root_out_dir/$dart_sdk_output/bin/$dart_stripped_binary" ]
     script = "/bin/ln"
     args = [
       "-snf",
@@ -328,36 +364,18 @@ if (target_os != current_os && target_os == "fuchsia") {
     ]
   }
 } else {
-  copy("copy_dartvm") {
-    visibility = [ ":create_common_sdk" ]
-    deps = [ "../runtime/bin:dartvm" ]
-    dart_out = get_label_info("../runtime/bin:dartvm", "root_out_dir")
-    sources = [ "$dart_out/${dartvm_stripped_binary}${executable_suffix}" ]
-    if (is_win && dart_lib_export_symbols) {
-      sources += [ "$dart_out/dartvm.lib" ]
-    }
-    if (_has_dot_sym) {
-      sources += [ "$dart_out/dartvm.sym" ]
-    }
-    outputs = [ "$root_out_dir/$dart_sdk_output/bin/{{source_file_part}}" ]
-  }
-}
-
-if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
   copy("copy_dart") {
     visibility = [ ":create_common_sdk" ]
     deps = [ "../runtime/bin:dart" ]
-    src_dir = get_label_info("../runtime/bin:dart", "root_out_dir")
-    sources = [ "$src_dir/${dart_stripped_binary}${executable_suffix}" ]
-    outputs = [ "$root_out_dir/$dart_sdk_output/bin/dart${executable_suffix}" ]
-  }
-} else {
-  copy("copy_dart") {
-    visibility = [ ":create_common_sdk" ]
-    deps = [ "../runtime/bin:dartvm" ]
-    src_dir = get_label_info("../runtime/bin:dartvm", "root_out_dir")
-    sources = [ "$src_dir/${dartvm_stripped_binary}${executable_suffix}" ]
-    outputs = [ "$root_out_dir/$dart_sdk_output/bin/dart${executable_suffix}" ]
+    dart_out = get_label_info("../runtime/bin:dart", "root_out_dir")
+    sources = [ "$dart_out/${dart_stripped_binary}${executable_suffix}" ]
+    if (is_win && dart_lib_export_symbols) {
+      sources += [ "$dart_out/dart.lib" ]
+    }
+    if (_has_dot_sym) {
+      sources += [ "$dart_out/dart.sym" ]
+    }
+    outputs = [ "$root_out_dir/$dart_sdk_output/bin/{{source_file_part}}" ]
   }
 }
 
@@ -481,9 +499,9 @@ foreach(snapshot, _full_sdk_snapshots) {
     root = root_out_dir
   }
 
-  # The dartdev, dds and dtd snapshots are output to root_out_dir in order to
-  # be compatible with the way the dart sdk is distributed internally.
-  if (snapshot[0] == "dartdev_aot" || snapshot[0] == "dds_aot_product" ||
+  # The dds and dtd snapshots are output to root_out_dir in order to be
+  # compatible with the way the dart sdk is distributed internally.
+  if (snapshot[0] == "dds_aot_product" ||
       snapshot[0] == "dart_tooling_daemon_aot_product") {
     root = root_out_dir
   }
@@ -800,7 +818,6 @@ group("create_common_sdk") {
     ":copy_api_readme",
     ":copy_dart",
     ":copy_dartdoc_files",
-    ":copy_dartvm",
     ":copy_headers",
     ":copy_libraries_specification",
     ":copy_license",
