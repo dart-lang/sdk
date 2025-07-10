@@ -47,7 +47,7 @@ class FixProcessor {
   /// If passing [alreadyCalculated] for calculations where we know the output
   /// will be the same, a result will only be calculated if one hasn't been
   /// calculated already (for a similar situation). If calculating the Set will
-  /// be ammended with this information.
+  /// be amended with this information.
   /// If not passing [alreadyCalculated] the calculation will always be
   /// performed.
   FixProcessor(

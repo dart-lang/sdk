@@ -47,19 +47,16 @@ class ElementDescriptor {
     // TODO(brianwilkerson): Check the resolved element, if one exists, for more
     //  accurate results.
     return switch (kind) {
-      ElementKind.classKind =>
-        // TODO(brianwilkerson): Handle this case.
-        false,
+      ElementKind.classKind => _matchesType(node),
       ElementKind.constantKind =>
         // TODO(brianwilkerson): Handle this case.
         false,
       ElementKind.constructorKind => _matchesConstructor(node),
-      ElementKind.enumKind =>
-        // TODO(brianwilkerson): Handle this case.
-        false,
+      ElementKind.enumKind => _matchesType(node),
       ElementKind.extensionKind =>
         // TODO(brianwilkerson): Handle this case.
         false,
+      ElementKind.extensionTypeKind => _matchesType(node),
       ElementKind.fieldKind =>
         // TODO(brianwilkerson): Handle this case.
         false,
@@ -68,15 +65,11 @@ class ElementDescriptor {
         // TODO(brianwilkerson): Handle this case.
         false,
       ElementKind.methodKind => _matchesMethod(node),
-      ElementKind.mixinKind =>
-        // TODO(brianwilkerson): Handle this case.
-        false,
+      ElementKind.mixinKind => _matchesType(node),
       ElementKind.setterKind =>
         // TODO(brianwilkerson): Handle this case.
         false,
-      ElementKind.typedefKind =>
-        // TODO(brianwilkerson): Handle this case.
-        false,
+      ElementKind.typedefKind => _matchesType(node),
       ElementKind.variableKind =>
         // TODO(brianwilkerson): Handle this case.
         false,
@@ -163,6 +156,22 @@ class ElementDescriptor {
           }
         }
       }
+    }
+    return false;
+  }
+
+  bool _matchesType(AstNode node) {
+    if (components.length > 1) {
+      return false;
+    }
+    var name = components[0];
+    if (node is Identifier) {
+      // A plain or prefixed identifier with the correct name.
+      var typeName = _nameFromIdentifier(node);
+      return name == typeName;
+    }
+    if (node is NamedType) {
+      return name == node.name.lexeme;
     }
     return false;
   }

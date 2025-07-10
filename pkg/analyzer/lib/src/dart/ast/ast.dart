@@ -16464,7 +16464,7 @@ abstract final class MethodInvocation
   /// there's no target.
   ///
   /// In an ordinary method invocation this is either a period (`.`) or a
-  /// null-aware opertator (`?.`). In a cascade section this is the cascade
+  /// null-aware operator (`?.`). In a cascade section this is the cascade
   /// operator ('..').
   Token? get operator;
 

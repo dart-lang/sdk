@@ -212,6 +212,8 @@ dependency_overrides:
     path: third_party/pkg/leak_tracker/pkgs/memory_usage
   mime:
     path: third_party/pkg/tools/pkgs/mime
+  native_test_helpers:
+    path: third_party/pkg/native/pkgs/native_test_helpers
   native_toolchain_c:
     path: third_party/pkg/native/pkgs/native_toolchain_c
   oauth2:
@@ -272,8 +274,6 @@ dependency_overrides:
     path: third_party/pkg/tools/pkgs/string_scanner
   swift2objc:
     path: third_party/pkg/native/pkgs/swift2objc
-  swiftgen:
-    path: third_party/pkg/native/pkgs/swiftgen
   sync_http:
     path: third_party/pkg/sync_http
   tar:
