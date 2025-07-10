@@ -1242,7 +1242,10 @@ class A {
 abstract class B implements A {}
 ''');
     var B = findElement2.class_('B');
-    assertElementNull(B._lookUpInheritedMethod('foo'));
+    assertElement(
+      B._lookUpInheritedMethod('foo'),
+      declaration: findElement2.method('foo', of: 'A'),
+    );
   }
 
   test_lookUpInheritedMethod_recursive() async {
@@ -1296,6 +1299,6 @@ extension on ClassElement {
   }
 
   MethodElement? _lookUpInheritedMethod(String name) {
-    return (this as InterfaceElementImpl).lookUpInheritedMethod(name, library);
+    return lookUpInheritedMethod2(methodName: name, library: library);
   }
 }

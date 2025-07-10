@@ -5210,18 +5210,6 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     );
   }
 
-  MethodElement? lookUpInheritedMethod(
-    String methodName,
-    LibraryElement library,
-  ) {
-    return _implementationsOfMethod(methodName).firstWhereOrNull(
-      (method) =>
-          !method.isStatic &&
-          method.isAccessibleIn(library) &&
-          method.enclosingElement != this,
-    );
-  }
-
   @override
   MethodElement? lookUpInheritedMethod2({
     required String methodName,
