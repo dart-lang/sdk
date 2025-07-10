@@ -772,7 +772,7 @@ class ElementDisplayStringBuilder {
 
       var newTypeParameter = TypeParameterFragmentImpl(
         name: name,
-        nameOffset: -1,
+        firstTokenOffset: null,
       );
       newTypeParameter.bound = typeParameter.bound;
       newTypeParameters.add(newTypeParameter.asElement2);

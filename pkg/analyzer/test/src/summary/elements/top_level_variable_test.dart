@@ -35,9 +35,9 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 synthetic a (offset=-1)
+        #F1 synthetic a (offset=8)
           element: <testLibrary>::@topLevelVariable::a
-        #F2 synthetic b (offset=-1)
+        #F2 synthetic b (offset=20)
           element: <testLibrary>::@topLevelVariable::b
       getters
         #F3 a @8
@@ -105,9 +105,9 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 synthetic a (offset=-1)
+        #F1 synthetic a (offset=40)
           element: <testLibrary>::@topLevelVariable::a
-        #F2 synthetic b (offset=-1)
+        #F2 synthetic b (offset=24)
           element: <testLibrary>::@topLevelVariable::b
       getters
         #F3 b @24
@@ -168,7 +168,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 synthetic foo (offset=-1)
+        #F1 synthetic foo (offset=16)
           element: <testLibrary>::@topLevelVariable::foo
       getters
         #F2 foo @16
@@ -203,7 +203,7 @@ library
       libraryImports
         dart:async
       topLevelVariables
-        #F1 synthetic foo (offset=-1)
+        #F1 synthetic foo (offset=37)
           element: <testLibrary>::@topLevelVariable::foo
       getters
         #F2 foo @37
@@ -238,7 +238,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 synthetic x (offset=-1)
+        #F1 synthetic x (offset=64)
           element: <testLibrary>::@topLevelVariable::x
       getters
         #F2 x @64
@@ -270,7 +270,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 synthetic x (offset=-1)
+        #F1 synthetic x (offset=17)
           element: <testLibrary>::@topLevelVariable::x
       getters
         #F2 x @17
@@ -383,7 +383,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 synthetic foo (offset=-1)
+        #F1 synthetic foo (offset=18)
           element: <testLibrary>::@topLevelVariable::foo
       getters
         #F2 foo @18
@@ -413,9 +413,9 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 synthetic x (offset=-1)
+        #F1 synthetic x (offset=8)
           element: <testLibrary>::@topLevelVariable::x
-        #F2 synthetic y (offset=-1)
+        #F2 synthetic y (offset=23)
           element: <testLibrary>::@topLevelVariable::y
       getters
         #F3 x @8
@@ -461,7 +461,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 synthetic x (offset=-1)
+        #F1 synthetic x (offset=8)
           element: <testLibrary>::@topLevelVariable::x
       getters
         #F2 x @8
@@ -509,7 +509,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 synthetic x (offset=-1)
+        #F1 synthetic x (offset=33)
           element: <testLibrary>::@topLevelVariable::x
       getters
         #F2 x @33
@@ -560,7 +560,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 synthetic x (offset=-1)
+        #F1 synthetic x (offset=69)
           element: <testLibrary>::@topLevelVariable::x
       setters
         #F2 x @69
@@ -597,7 +597,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 synthetic x (offset=-1)
+        #F1 synthetic x (offset=18)
           element: <testLibrary>::@topLevelVariable::x
       setters
         #F2 x @18
@@ -632,7 +632,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 synthetic f (offset=-1)
+        #F1 synthetic f (offset=4)
           element: <testLibrary>::@topLevelVariable::f
       setters
         #F2 f @4
@@ -669,9 +669,9 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 synthetic x (offset=-1)
+        #F1 synthetic x (offset=9)
           element: <testLibrary>::@topLevelVariable::x
-        #F2 synthetic y (offset=-1)
+        #F2 synthetic y (offset=29)
           element: <testLibrary>::@topLevelVariable::y
       setters
         #F3 x @9
@@ -775,7 +775,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 synthetic x (offset=-1)
+        #F1 synthetic x (offset=8)
           element: <testLibrary>::@topLevelVariable::x
       getters
         #F2 x @8
@@ -824,7 +824,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 synthetic x (offset=-1)
+        #F1 synthetic x (offset=33)
           element: <testLibrary>::@topLevelVariable::x
       getters
         #F2 x @33
@@ -955,7 +955,7 @@ library
       topLevelVariables
         #F1 hasInitializer foo @4
           element: <testLibrary>::@topLevelVariable::foo::@def::0
-        #F2 synthetic foo (offset=-1)
+        #F2 synthetic foo (offset=21)
           element: <testLibrary>::@topLevelVariable::foo::@def::1
       getters
         #F3 synthetic foo
@@ -1020,7 +1020,7 @@ library
       topLevelVariables
         #F1 hasInitializer foo @4
           element: <testLibrary>::@topLevelVariable::foo::@def::0
-        #F2 synthetic foo (offset=-1)
+        #F2 synthetic foo (offset=17)
           element: <testLibrary>::@topLevelVariable::foo::@def::1
       getters
         #F3 synthetic foo
@@ -1382,7 +1382,7 @@ library
           uri: package:test/a.dart
           unit: #F1
       topLevelVariables
-        #F2 synthetic x (offset=-1)
+        #F2 synthetic x (offset=39)
           element: <testLibrary>::@topLevelVariable::x
       getters
         #F3 x @39
@@ -1446,7 +1446,7 @@ library
           uri: package:test/a.dart
           unit: #F1
       topLevelVariables
-        #F2 synthetic x (offset=-1)
+        #F2 synthetic x (offset=24)
           element: <testLibrary>::@topLevelVariable::x
       setters
         #F3 x @40
@@ -1517,7 +1517,7 @@ library
       previousFragment: #F0
       nextFragment: #F2
       topLevelVariables
-        #F3 synthetic x (offset=-1)
+        #F3 synthetic x (offset=24)
           element: <testLibrary>::@topLevelVariable::x
       getters
         #F4 x @24
@@ -2324,7 +2324,7 @@ library
       previousFragment: #F0
       nextFragment: #F2
       topLevelVariables
-        #F3 synthetic x (offset=-1)
+        #F3 synthetic x (offset=24)
           element: <testLibrary>::@topLevelVariable::x
       setters
         #F4 x @25

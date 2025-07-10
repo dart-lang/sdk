@@ -152,8 +152,10 @@ class LibraryBuilder {
       if (classFragment.isMixinApplication) continue;
       if (classFragment.constructors.isNotEmpty) continue;
 
-      var fragment = ConstructorFragmentImpl(name: 'new', nameOffset: -1)
-        ..isSynthetic = true;
+      var fragment = ConstructorFragmentImpl(
+        name: 'new',
+        firstTokenOffset: null,
+      )..isSynthetic = true;
       fragment.typeName = classFragment.name;
 
       var classElement = classFragment.element;
@@ -215,8 +217,7 @@ class LibraryBuilder {
       enum_.valuesElement.element.type = valuesType;
       // TODO(scheglov): We repeat this code.
       enum_.valuesElement.element.getter!.returnType = valuesType;
-      enum_.valuesElement.element.getter!.firstFragment.returnType =
-          valuesType;
+      enum_.valuesElement.element.getter!.firstFragment.returnType = valuesType;
     }
   }
 
@@ -235,7 +236,7 @@ class LibraryBuilder {
       if (hasConstructor(enumFragment)) continue;
 
       var fragment =
-          ConstructorFragmentImpl(name: 'new', nameOffset: -1)
+          ConstructorFragmentImpl(name: 'new', firstTokenOffset: null)
             ..isConst = true
             ..isSynthetic = true;
       fragment.typeName = enumFragment.name;
@@ -337,8 +338,7 @@ class LibraryBuilder {
       for (var constructor in interfaceFragment.constructors) {
         for (var parameter in constructor.parameters) {
           if (parameter is FieldFormalParameterFragmentImpl) {
-            parameter.field =
-                element.getField(parameter.name ?? '')?.asElement;
+            parameter.field = element.getField(parameter.name ?? '')?.asElement;
           }
         }
       }
@@ -621,6 +621,7 @@ class LibraryBuilder {
     var fragment = PrefixFragmentImpl(
       enclosingFragment: libraryFragment,
       name: unlinkedName?.name,
+      firstTokenOffset: null,
       nameOffset2: unlinkedName?.nameOffset,
       isDeferred: isDeferred,
     )..offset = offset;

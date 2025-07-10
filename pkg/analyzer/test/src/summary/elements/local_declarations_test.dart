@@ -128,7 +128,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 synthetic g (offset=-1)
+        #F1 synthetic g (offset=4)
           element: <testLibrary>::@topLevelVariable::g
       getters
         #F2 g @4

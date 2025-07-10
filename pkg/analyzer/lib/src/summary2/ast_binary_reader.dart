@@ -426,7 +426,7 @@ class AstBinaryReader {
 
     var nonDefaultElement = parameter.declaredFragment!;
     var fragment = FormalParameterFragmentImpl(
-      nameOffset: nonDefaultElement.nameOffset,
+      firstTokenOffset: null,
       name: nonDefaultElement.name,
       nameOffset2: nonDefaultElement.nameOffset2,
       parameterKind: kind,
@@ -695,7 +695,9 @@ class AstBinaryReader {
     var type = _reader.readRequiredType() as FunctionTypeImpl;
     node.type = type;
 
-    var fragment = GenericFunctionTypeFragmentImpl.forOffset(-1);
+    var fragment = GenericFunctionTypeFragmentImpl.forOffset(
+      firstTokenOffset: null,
+    );
     fragment.parameters =
         formalParameters.parameters
             .map((parameter) => parameter.declaredFragment!)
@@ -1219,7 +1221,7 @@ class AstBinaryReader {
     _reader.readByte(); // TODO(scheglov): inherits covariant
 
     var fragment = FormalParameterFragmentImpl(
-      nameOffset: -1,
+      firstTokenOffset: null,
       name: name?.lexeme,
       nameOffset2: null,
       parameterKind: node.kind,

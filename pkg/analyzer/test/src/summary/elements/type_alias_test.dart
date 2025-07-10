@@ -4052,7 +4052,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 <null-name> (offset=8)
+        #F1 <null-name> (offset=0)
           element: <testLibrary>::@typeAlias::0
   typeAliases
     <null-name>

@@ -3203,7 +3203,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 synthetic foo (offset=-1)
+        #F1 synthetic foo (offset=8)
           element: <testLibrary>::@topLevelVariable::foo
       getters
         #F2 foo @8

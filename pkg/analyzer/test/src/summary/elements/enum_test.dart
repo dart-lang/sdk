@@ -3138,7 +3138,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum <null-name> (offset=5)
+        #F1 enum <null-name> (offset=0)
           element: <testLibrary>::@enum::0
           fields
             #F2 hasInitializer v @6

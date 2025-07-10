@@ -4327,7 +4327,7 @@ library
       topLevelVariables
         #F13 hasInitializer topLevelVariable @44
           element: <testLibrary>::@topLevelVariable::topLevelVariable
-        #F14 synthetic topLevelGetter (offset=-1)
+        #F14 synthetic topLevelGetter (offset=74)
           element: <testLibrary>::@topLevelVariable::topLevelGetter
         #F15 hasInitializer r_topLevelFunction @280
           element: <testLibrary>::@topLevelVariable::r_topLevelFunction

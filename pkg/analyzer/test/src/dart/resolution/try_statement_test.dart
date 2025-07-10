@@ -39,7 +39,7 @@ TryStatement
       leftParenthesis: (
       exceptionParameter: CatchClauseParameter
         name: <empty> <synthetic>
-        declaredFragment: isFinal isPublic @27
+        declaredFragment: isFinal isPublic @null
           type: null
           element: hasImplicitType isFinal isPrivate
             type: Object

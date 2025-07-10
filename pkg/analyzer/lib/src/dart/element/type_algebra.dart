@@ -264,7 +264,7 @@ class _FreshTypeParametersSubstitutor extends _TypeSubstitutor {
       var element = elements[index];
       var freshElement = TypeParameterFragmentImpl(
         name: element.name,
-        nameOffset: -1,
+        firstTokenOffset: null,
       );
       var freshType = freshElement.instantiate(
         nullabilitySuffix: NullabilitySuffix.none,

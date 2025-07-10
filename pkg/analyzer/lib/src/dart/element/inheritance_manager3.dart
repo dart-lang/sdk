@@ -975,7 +975,7 @@ class InheritanceManager3 {
 
       var resultFragment = MethodFragmentImpl(
         name: executable.name,
-        nameOffset: -1,
+        firstTokenOffset: null,
       );
       resultFragment.enclosingElement = class_.firstFragment;
       resultFragment.isSynthetic = true;
@@ -1008,7 +1008,7 @@ class InheritanceManager3 {
 
       var resultFragment = SetterFragmentImpl(
         name: executable.name,
-        nameOffset: -1,
+        firstTokenOffset: null,
       );
       resultFragment.enclosingElement = class_.firstFragment;
       resultFragment.isSynthetic = true;
@@ -1020,7 +1020,7 @@ class InheritanceManager3 {
 
       var resultField = FieldFragmentImpl(
         name: executable.name,
-        nameOffset: -1,
+        firstTokenOffset: null,
       );
       resultField.enclosingElement = class_.firstFragment;
 
@@ -1080,7 +1080,7 @@ class InheritanceManager3 {
 
       var resultFragment = MethodFragmentImpl(
         name: fragmentName,
-        nameOffset: -1,
+        firstTokenOffset: null,
       );
       resultFragment.enclosingElement = targetClass.firstFragment;
       resultFragment.typeParameters =
@@ -1103,7 +1103,7 @@ class InheritanceManager3 {
     } else {
       var firstElement = first as PropertyAccessorElement2OrMember;
       var fragmentName = first.name!;
-      var field = FieldFragmentImpl(name: fragmentName, nameOffset: -1);
+      var field = FieldFragmentImpl(name: fragmentName, firstTokenOffset: null);
 
       PropertyAccessorFragmentImpl resultFragment;
       PropertyAccessorElementImpl resultElement;
@@ -1115,7 +1115,10 @@ class InheritanceManager3 {
           return result;
         }
 
-        var fragment = GetterFragmentImpl(name: fragmentName, nameOffset: -1);
+        var fragment = GetterFragmentImpl(
+          name: fragmentName,
+          firstTokenOffset: null,
+        );
         resultFragment = fragment;
 
         var element = GetterElementImpl(elementReference, fragment);
@@ -1129,7 +1132,10 @@ class InheritanceManager3 {
           return result;
         }
 
-        var fragment = SetterFragmentImpl(name: fragmentName, nameOffset: -1);
+        var fragment = SetterFragmentImpl(
+          name: fragmentName,
+          firstTokenOffset: null,
+        );
         resultFragment = fragment;
 
         resultElement = SetterElementImpl(elementReference, fragment);
