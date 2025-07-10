@@ -25,12 +25,13 @@ class MethodCollector {
 
   Procedure addInteropProcedure(String name, String pragmaOptionString,
       FunctionNode function, Uri fileUri, AnnotationType type,
-      {required bool isExternal}) {
+      {required bool isExternal, Library? library}) {
+    library ??= _library;
     final procedure = Procedure(
-        Name(name, _library), ProcedureKind.Method, function,
+        Name(name, library), ProcedureKind.Method, function,
         isStatic: true, isExternal: isExternal, fileUri: fileUri);
     _util.annotateProcedure(procedure, pragmaOptionString, type);
-    _library.addProcedure(procedure);
+    library.addProcedure(procedure);
     return procedure;
   }
 

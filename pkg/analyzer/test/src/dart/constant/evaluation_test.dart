@@ -6051,6 +6051,18 @@ bool true
   }
 
   /// See https://github.com/dart-lang/sdk/issues/50045
+  test_bool_fromEnvironment_dartLibraryJsInterop() async {
+    await assertNoErrorsInCode('''
+const a = bool.fromEnvironment('dart.library.js_interop');
+''');
+    var result = _topLevelVar('a');
+    assertDartObjectText(result, '''
+<unknown> bool
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  /// See https://github.com/dart-lang/sdk/issues/50045
   test_bool_fromEnvironment_dartLibraryJsUtil() async {
     await assertNoErrorsInCode('''
 const a = bool.fromEnvironment('dart.library.js_util');

@@ -2905,8 +2905,9 @@ class _InstanceCreationEvaluator {
       String? variableName =
           argumentCount < 1 ? null : firstArgument?.toStringValue();
       if (definingClass == typeProvider.boolElement) {
-        // Special case: https://github.com/dart-lang/sdk/issues/50045
-        if (variableName == 'dart.library.js_util') {
+        // Special cases: https://github.com/dart-lang/sdk/issues/50045
+        if (variableName == 'dart.library.js_util' ||
+            variableName == 'dart.library.js_interop') {
           return DartObjectImpl(
             typeSystem,
             typeProvider.boolType,
