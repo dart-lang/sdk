@@ -44,12 +44,12 @@ Future<void> main(List<String> args) async {
       switch (options.runtime) {
             RuntimePlatforms.chrome =>
               options.useFeServer
-                  ? ChromeStandaloneSuiteRunner(options)
-                  : ChromeSuiteRunner(options),
+                  ? ChromeSuiteRunner(options)
+                  : ChromeStandaloneSuiteRunner(options),
             RuntimePlatforms.d8 =>
               options.useFeServer
-                  ? D8StandaloneSuiteRunner(options)
-                  : D8SuiteRunner(options),
+                  ? D8SuiteRunner(options)
+                  : D8StandaloneSuiteRunner(options),
             RuntimePlatforms.vm => VMSuiteRunner(options),
           }
           as HotReloadSuiteRunner;
