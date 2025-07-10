@@ -1746,12 +1746,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         null,
       );
       _checkForClassUsedAsMixin(withClause);
-      _checkForSealedSupertypeOutsideOfLibrary(
-        superclass,
-        withClause,
-        implementsClause,
-        null,
-      );
+      _checkForSealedSupertypeOutsideOfLibrary([
+        if (superclass != null) superclass,
+        ...?withClause?.mixinTypes,
+        ...?implementsClause?.interfaces,
+      ]);
       return true;
     }
     return false;
@@ -5214,45 +5213,21 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     );
   }
 
-  /// Check that if a direct supertype of a node is sealed, then it must be in
-  /// the same library.
+  /// Checks that every supertype which is sealed is also declared in the
+  /// current library.
   ///
   /// See [CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY].
-  void _checkForSealedSupertypeOutsideOfLibrary(
-    NamedType? superclass,
-    WithClause? withClause,
-    ImplementsClause? implementsClause,
-    MixinOnClause? onClause,
-  ) {
-    void reportErrorsForSealedClassesAndMixins(List<NamedType> namedTypes) {
-      for (NamedType namedType in namedTypes) {
-        var type = namedType.type;
-        if (type is InterfaceType) {
-          var element = type.element;
-          if (element is ClassElement &&
-              element.isSealed &&
-              element.library != _currentLibrary) {
-            diagnosticReporter.atNode(
-              namedType,
-              CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY,
-              arguments: [element.name!],
-            );
-          }
+  void _checkForSealedSupertypeOutsideOfLibrary(List<NamedType> supertypes) {
+    for (NamedType namedType in supertypes) {
+      if (namedType.type case InterfaceType(:ClassElement element)) {
+        if (element.isSealed && element.library != _currentLibrary) {
+          diagnosticReporter.atNode(
+            namedType,
+            CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY,
+            arguments: [element.name!],
+          );
         }
       }
-    }
-
-    if (superclass != null) {
-      reportErrorsForSealedClassesAndMixins([superclass]);
-    }
-    if (withClause != null) {
-      reportErrorsForSealedClassesAndMixins(withClause.mixinTypes);
-    }
-    if (implementsClause != null) {
-      reportErrorsForSealedClassesAndMixins(implementsClause.interfaces);
-    }
-    if (onClause != null) {
-      reportErrorsForSealedClassesAndMixins(onClause.superclassConstraints);
     }
   }
 
@@ -6067,12 +6042,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         implementsClause,
         onClause,
       );
-      _checkForSealedSupertypeOutsideOfLibrary(
-        null,
-        null,
-        implementsClause,
-        onClause,
-      );
+      _checkForSealedSupertypeOutsideOfLibrary([
+        ...?implementsClause?.interfaces,
+        ...?onClause?.superclassConstraints,
+      ]);
     }
   }
 
