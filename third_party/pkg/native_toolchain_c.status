@@ -10,6 +10,7 @@ test/clinker/objects_cross_ios_test: SkipByDesign # Cross compilation is not tes
 test/clinker/treeshake_cross_android_test: SkipByDesign # Cross compilation is not tested on the Dart CI.
 test/clinker/treeshake_cross_ios_test: SkipByDesign # Cross compilation is not tested on the Dart CI.
 test/clinker/treeshake_cross_test: SkipByDesign # Cross compilation is not tested on the Dart CI.
+test/clinker/windows_module_definition_cross_test: SkipByDesign # Cross compilation is not tested on the Dart CI.
 test/native_toolchain/gcc_test: SkipByDesign # Cross compilation is not tested on the Dart CI.
 test/native_toolchain/ndk_test: SkipByDesign # Cross compilation is not tested on the Dart CI.
 
