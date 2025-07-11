@@ -25,9 +25,13 @@ void f() {try {} catch (e) {} c^}
 replacement
   left: 1
 suggestions
+  switch
+    kind: keyword
   catch
     kind: keyword
   const
+    kind: keyword
+  dynamic
     kind: keyword
 ''');
   }
@@ -40,9 +44,13 @@ void f() {try {} on SomeException {} c^}
 replacement
   left: 1
 suggestions
+  switch
+    kind: keyword
   catch
     kind: keyword
   const
+    kind: keyword
+  dynamic
     kind: keyword
 ''');
   }

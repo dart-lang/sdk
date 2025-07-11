@@ -1017,7 +1017,7 @@ suggestions
   Z0
     kind: constructorInvocation
   g0
-    kind: library
+    kind: prefix
   g0.G0
     kind: constructorInvocation
   D1
@@ -1115,7 +1115,7 @@ suggestions
   g0.G0
     kind: class
   g0
-    kind: library
+    kind: prefix
 ''');
   }
 
@@ -1230,7 +1230,7 @@ suggestions
   g0.G0
     kind: class
   g0
-    kind: library
+    kind: prefix
 ''');
   }
 
@@ -1321,7 +1321,7 @@ suggestions
   g0.G0
     kind: class
   g0
-    kind: library
+    kind: prefix
 ''');
   }
 
@@ -2067,7 +2067,7 @@ suggestions
     kind: class
     deprecated: true
   x0
-    kind: library
+    kind: prefix
 ''');
   }
 
@@ -2092,7 +2092,7 @@ suggestions
   x0.B
     kind: class
   x0
-    kind: library
+    kind: prefix
 ''');
   }
 
@@ -2118,7 +2118,7 @@ suggestions
   x0.B
     kind: class
   x0
-    kind: library
+    kind: prefix
 ''');
   }
 
@@ -2140,7 +2140,7 @@ replacement
   left: 1
 suggestions
   S2
-    kind: library
+    kind: prefix
 ''');
   }
 
@@ -2166,7 +2166,7 @@ suggestions
   x0.B
     kind: class
   x0
-    kind: library
+    kind: prefix
 ''');
   }
 
@@ -2192,7 +2192,7 @@ suggestions
   x0.B
     kind: class
   x0
-    kind: library
+    kind: prefix
 ''');
   }
 
@@ -2884,12 +2884,12 @@ void f(E0 e) {
 ''');
     assertResponse(r'''
 suggestions
+  E0
+    kind: enum
   E0.one
     kind: enumConstant
   E0.two
     kind: enumConstant
-  E0
-    kind: enum
   F0
     kind: enum
 ''');
@@ -3220,7 +3220,7 @@ suggestions
   x0.B
     kind: class
   x0
-    kind: library
+    kind: prefix
 ''');
   }
 
@@ -6095,7 +6095,7 @@ suggestions
   M0
     kind: mixin
   x0
-    kind: library
+    kind: prefix
 ''');
   }
 
@@ -6861,6 +6861,8 @@ void f() {
 replacement
   left: 1
 suggestions
+  _a0
+    kind: localVariable
   a0
     kind: localVariable
 ''');

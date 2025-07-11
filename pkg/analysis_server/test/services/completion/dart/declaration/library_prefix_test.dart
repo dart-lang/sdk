@@ -109,7 +109,7 @@ suggestions
   _T6
     kind: topLevelVariable
   g0
-    kind: library
+    kind: prefix
   g0.G
     kind: constructorInvocation
   D1
@@ -168,7 +168,7 @@ suggestions
   x0.B
     kind: class
   x0
-    kind: library
+    kind: prefix
 ''');
   }
 
@@ -190,7 +190,7 @@ suggestions
   x0.B
     kind: class
   x0
-    kind: library
+    kind: prefix
 ''');
   }
 
@@ -213,7 +213,7 @@ replacement
   left: 1
 suggestions
   S0
-    kind: library
+    kind: prefix
 ''');
   }
 
@@ -235,7 +235,7 @@ suggestions
   x0.B
     kind: class
   x0
-    kind: library
+    kind: prefix
 ''');
   }
 
@@ -257,7 +257,7 @@ suggestions
   x0.B
     kind: class
   x0
-    kind: library
+    kind: prefix
 ''');
   }
 
@@ -278,7 +278,7 @@ suggestions
   x0.B
     kind: class
   x0
-    kind: library
+    kind: prefix
 ''');
   }
 
@@ -313,13 +313,13 @@ void f() {
     assertResponse(r'''
 suggestions
   m0
-    kind: library
+    kind: prefix
   m0.Point
     kind: constructorInvocation
   m0.Random
     kind: constructorInvocation
   t0
-    kind: library
+    kind: prefix
   t0.A
     kind: constructorInvocation
   t0.B
@@ -371,13 +371,13 @@ void f() {
     assertResponse(r'''
 suggestions
   m0
-    kind: library
+    kind: prefix
   m0.Point
     kind: constructorInvocation
   m0.Random
     kind: constructorInvocation
   t0
-    kind: library
+    kind: prefix
   t0.A
     kind: constructorInvocation
   t0.B
@@ -445,7 +445,7 @@ replacement
   left: 1
 suggestions
   j0
-    kind: library
+    kind: prefix
   j0.JsonCodec
     kind: constructorInvocation
   j0.JsonDecoder
@@ -519,7 +519,7 @@ class Z {}
     assertResponse(r'''
 suggestions
   g0
-    kind: library
+    kind: prefix
 ''');
   }
 
@@ -589,7 +589,7 @@ class Z {}
     assertResponse(r'''
 suggestions
   g0
-    kind: library
+    kind: prefix
 ''');
   }
 }

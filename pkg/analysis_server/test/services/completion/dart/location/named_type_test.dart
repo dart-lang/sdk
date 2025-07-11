@@ -26,6 +26,8 @@ mixin NamedTypeTestCases on AbstractCompletionDriverTest {
 replacement
   left: 1
 suggestions
+  void
+    kind: keyword
   dynamic
     kind: keyword
 ''');
@@ -39,6 +41,14 @@ void f() sync* {n^ foo}
 replacement
   left: 1
 suggestions
+  return
+    kind: keyword
+  final
+    kind: keyword
+  const
+    kind: keyword
+  dynamic
+    kind: keyword
   null
     kind: keyword
 ''');
@@ -55,6 +65,8 @@ replacement
 suggestions
   void
     kind: keyword
+  covariant
+    kind: keyword
 ''');
   }
 
@@ -67,6 +79,8 @@ replacement
   left: 1
 suggestions
   void
+    kind: keyword
+  covariant
     kind: keyword
 ''');
   }

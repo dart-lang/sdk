@@ -59,6 +59,8 @@ class A { @override d^ foo() {}}
 replacement
   left: 1
 suggestions
+  void
+    kind: keyword
   dynamic
     kind: keyword
 ''');
@@ -323,6 +325,7 @@ suggestions
 ''');
   }
 
+  // TODO(keertip): Do not suggest 'covariant'.
   Future<void> test_afterParameterList_beforeField_partial_a() async {
     await computeSuggestions('''
 class A { foo() a^ Foo foo;}
@@ -331,11 +334,23 @@ class A { foo() a^ Foo foo;}
 replacement
   left: 1
 suggestions
+  final
+    kind: keyword
+  static
+    kind: keyword
   abstract
     kind: keyword
   async
     kind: keyword
   async*
+    kind: keyword
+  covariant
+    kind: keyword
+  external
+    kind: keyword
+  late
+    kind: keyword
+  var
     kind: keyword
 ''');
   }
@@ -346,6 +361,36 @@ class A { foo() ^}
 ''');
     assertResponse(r'''
 suggestions
+  final
+    kind: keyword
+  static
+    kind: keyword
+  void
+    kind: keyword
+  const
+    kind: keyword
+  set
+    kind: keyword
+  factory
+    kind: keyword
+  async
+    kind: keyword
+  async*
+    kind: keyword
+  covariant
+    kind: keyword
+  dynamic
+    kind: keyword
+  get
+    kind: keyword
+  late
+    kind: keyword
+  operator
+    kind: keyword
+  sync*
+    kind: keyword
+  var
+    kind: keyword
 ''');
   }
 

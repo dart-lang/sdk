@@ -46,6 +46,8 @@ void f() {foo(bar: n^);}
 replacement
   left: 1
 suggestions
+  const
+    kind: keyword
   null
     kind: keyword
 ''');
@@ -229,6 +231,8 @@ void f() {foo(n^);}
 replacement
   left: 1
 suggestions
+  const
+    kind: keyword
   null
     kind: keyword
 ''');

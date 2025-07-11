@@ -285,6 +285,8 @@ class A { d^ foo() {}}
 replacement
   left: 1
 suggestions
+  void
+    kind: keyword
   dynamic
     kind: keyword
 ''');
@@ -414,6 +416,8 @@ replacement
 suggestions
   Object
     kind: class
+  void
+    kind: keyword
 ''', where: context.where);
       },
     );
@@ -536,10 +540,15 @@ ${keywords.asKeywordSuggestions}
   Future<void> test_sx() async {
     _printKeywordsOrClass(sampleClassName: 'String');
 
-    await _checkContainers(
+    await _checkClassMixin(
       line: 's^',
       validator: (context) {
-        var keywords = {Keyword.SET, Keyword.STATIC};
+        var keywords = {
+          Keyword.ABSTRACT,
+          Keyword.CONST,
+          Keyword.SET,
+          Keyword.STATIC,
+        };
 
         assertResponse('''
 replacement
@@ -553,7 +562,27 @@ ${keywords.asKeywordSuggestions}
     );
   }
 
-  Future<void> _checkContainers({
+  Future<void> test_sx2() async {
+    _printKeywordsOrClass(sampleClassName: 'String');
+
+    await _checkContainers(
+      line: 's^',
+      validator: (context) {
+        var keywords = {Keyword.CONST, Keyword.SET, Keyword.STATIC};
+
+        assertResponse('''
+replacement
+  left: 1
+suggestions
+  String
+    kind: class
+${keywords.asKeywordSuggestions}
+''', where: context.where);
+      },
+    );
+  }
+
+  Future<void> _checkClassMixin({
     required String line,
     required void Function(_Context context) validator,
   }) async {
@@ -566,6 +595,21 @@ class A {
 ''');
       validator(_Context(isClass: true));
     }
+    // mixin
+    {
+      await computeSuggestions('''
+mixin M {
+  $line
+}
+''');
+      validator(_Context(isMixin: true));
+    }
+  }
+
+  Future<void> _checkContainers({
+    required String line,
+    required void Function(_Context context) validator,
+  }) async {
     // enum
     {
       await computeSuggestions('''
@@ -593,15 +637,6 @@ extension type E(Object it) {
 }
 ''');
       validator(_Context(isExtensionType: true));
-    }
-    // mixin
-    {
-      await computeSuggestions('''
-mixin M {
-  $line
-}
-''');
-      validator(_Context(isMixin: true));
     }
   }
 

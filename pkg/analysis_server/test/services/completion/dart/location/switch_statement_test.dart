@@ -141,6 +141,8 @@ void f() {switch(n^) {}}
 replacement
   left: 1
 suggestions
+  const
+    kind: keyword
   null
     kind: keyword
 ''');
@@ -155,6 +157,8 @@ void f() {switch(n^)}
 replacement
   left: 1
 suggestions
+  const
+    kind: keyword
   null
     kind: keyword
 ''');

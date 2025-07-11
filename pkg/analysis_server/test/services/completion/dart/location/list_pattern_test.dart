@@ -31,10 +31,10 @@ void f(Object o1) {
 ''');
     assertResponse(r'''
 suggestions
-  c01
-    kind: topLevelVariable
   c11
     kind: localVariable
+  c01
+    kind: topLevelVariable
   false
     kind: keyword
   null
@@ -64,10 +64,10 @@ void f(Object o1) {
 ''');
     assertResponse(r'''
 suggestions
-  c01
-    kind: topLevelVariable
   c11
     kind: localVariable
+  c01
+    kind: topLevelVariable
   false
     kind: keyword
   null
@@ -97,10 +97,10 @@ void f(Object o1) {
 ''');
     assertResponse(r'''
 suggestions
-  c01
-    kind: topLevelVariable
   c11
     kind: localVariable
+  c01
+    kind: topLevelVariable
   false
     kind: keyword
   null
@@ -130,10 +130,10 @@ void f(Object o1) {
 ''');
     assertResponse(r'''
 suggestions
-  c01
-    kind: topLevelVariable
   c11
     kind: localVariable
+  c01
+    kind: topLevelVariable
   false
     kind: keyword
   null

@@ -41,6 +41,8 @@ suggestions
     kind: class
   A02
     kind: constructorInvocation
+  false
+    kind: keyword
 ''');
   }
 

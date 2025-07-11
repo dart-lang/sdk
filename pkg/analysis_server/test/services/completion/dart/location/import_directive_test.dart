@@ -233,6 +233,8 @@ replacement
 suggestions
   deferred as
     kind: keyword
+  hide
+    kind: keyword
 ''');
   }
 
@@ -261,6 +263,8 @@ replacement
   left: 1
 suggestions
   deferred as
+    kind: keyword
+  hide
     kind: keyword
 ''');
   }
@@ -306,6 +310,8 @@ replacement
   left: 1
 suggestions
   deferred as
+    kind: keyword
+  hide
     kind: keyword
 ''');
   }

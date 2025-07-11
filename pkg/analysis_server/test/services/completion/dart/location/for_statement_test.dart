@@ -28,6 +28,8 @@ void f() {for (int x = i^)}
 replacement
   left: 1
 suggestions
+  switch
+    kind: keyword
 ''');
   }
 

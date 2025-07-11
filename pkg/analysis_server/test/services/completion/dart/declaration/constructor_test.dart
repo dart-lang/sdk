@@ -115,6 +115,34 @@ suggestions
 ''');
   }
 
+  Future<void> test_noPrefix() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class A0 {
+  A0.f0();
+  A0.b0();
+  factory A0(String s){
+    return A0.f0();
+  }
+}
+''');
+    await computeSuggestions('''
+import 'a.dart';
+
+void f() {
+  new ^;
+}
+''');
+    assertResponse(r'''
+suggestions
+  A0
+    kind: constructorInvocation
+  A0.b0
+    kind: constructorInvocation
+  A0.f0
+    kind: constructorInvocation
+''');
+  }
+
   Future<void> test_sealed_library() async {
     newFile('$testPackageLibPath/a.dart', '''
 sealed class S0 {}
