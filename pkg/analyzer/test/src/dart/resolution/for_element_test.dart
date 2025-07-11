@@ -86,7 +86,6 @@ ForElement
       pattern: DeclaredVariablePattern
         name: a
         declaredFragment: isPublic a@25
-          type: null
           element: hasImplicitType isPublic
             type: dynamic
         matchedValueType: dynamic
@@ -123,7 +122,6 @@ ForElement
       pattern: DeclaredVariablePattern
         name: a
         declaredFragment: isPublic a@35
-          type: null
           element: hasImplicitType isPublic
             type: int
         matchedValueType: int
@@ -163,7 +161,6 @@ ForElement
       pattern: DeclaredVariablePattern
         name: a
         declaredFragment: isPublic a@32
-          type: null
           element: hasImplicitType isPublic
             type: InvalidType
         matchedValueType: InvalidType
@@ -206,7 +203,6 @@ ForElement
           type: int
         name: a
         declaredFragment: isPublic a@28
-          type: int
           element: isPublic
             type: int
         matchedValueType: int
@@ -253,7 +249,6 @@ ForElement
       pattern: DeclaredVariablePattern
         name: a
         declaredFragment: isPublic a@24
-          type: null
           element: hasImplicitType isPublic
             type: Object?
         matchedValueType: Object?
@@ -298,7 +293,6 @@ ForElement
       pattern: DeclaredVariablePattern
         name: a
         declaredFragment: isFinal isPublic a@37
-          type: null
           element: hasImplicitType isFinal isPublic
             type: int
         matchedValueType: int
@@ -339,7 +333,6 @@ ForElement
           type: num
         name: a
         declaredFragment: isPublic a@39
-          type: num
           element: isPublic
             type: num
         matchedValueType: int
@@ -375,7 +368,6 @@ ForElement
       pattern: DeclaredVariablePattern
         name: a
         declaredFragment: isPublic a@43
-          type: null
           element: hasImplicitType isPublic
             type: int
         matchedValueType: int
@@ -411,7 +403,6 @@ ForElement
       pattern: DeclaredVariablePattern
         name: x
         declaredFragment: isPublic x@43
-          type: null
           element: hasImplicitType isPublic
             type: int
         matchedValueType: int
@@ -453,7 +444,6 @@ ForElement
       pattern: DeclaredVariablePattern
         name: a
         declaredFragment: isPublic a@37
-          type: null
           element: hasImplicitType isPublic
             type: dynamic
         matchedValueType: dynamic
@@ -494,7 +484,6 @@ ForElement
       pattern: DeclaredVariablePattern
         name: a
         declaredFragment: isPublic a@44
-          type: null
           element: hasImplicitType isPublic
             type: InvalidType
         matchedValueType: InvalidType
@@ -532,7 +521,6 @@ ForElement
       pattern: DeclaredVariablePattern
         name: a
         declaredFragment: isPublic a@49
-          type: null
           element: hasImplicitType isPublic
             type: int
         matchedValueType: int
@@ -576,7 +564,6 @@ ForElement
           type: int
         name: a
         declaredFragment: isPublic a@40
-          type: int
           element: isPublic
             type: int
         matchedValueType: int
@@ -624,7 +611,6 @@ ForElement
       pattern: DeclaredVariablePattern
         name: a
         declaredFragment: isPublic a@36
-          type: null
           element: hasImplicitType isPublic
             type: Object?
         matchedValueType: Object?
@@ -670,7 +656,6 @@ ForElement
       pattern: DeclaredVariablePattern
         name: a
         declaredFragment: isFinal isPublic a@51
-          type: null
           element: hasImplicitType isFinal isPublic
             type: int
         matchedValueType: int
@@ -712,7 +697,6 @@ ForElement
           type: num
         name: a
         declaredFragment: isPublic a@53
-          type: num
           element: isPublic
             type: num
         matchedValueType: int
@@ -809,7 +793,6 @@ ForElement
             pattern: DeclaredVariablePattern
               name: a
               declaredFragment: isPublic a@37
-                type: null
                 element: hasImplicitType isPublic
                   type: int
               matchedValueType: int
@@ -818,7 +801,6 @@ ForElement
             pattern: DeclaredVariablePattern
               name: b
               declaredFragment: isPublic b@40
-                type: null
                 element: hasImplicitType isPublic
                   type: bool
               matchedValueType: bool

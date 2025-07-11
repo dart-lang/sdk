@@ -97,7 +97,6 @@ PatternVariableDeclarationStatement
         leftOperand: DeclaredVariablePattern
           name: a
           declaredFragment: isPublic a@18
-            type: null
             element: hasImplicitType isPublic
               type: int
           matchedValueType: int
@@ -105,7 +104,6 @@ PatternVariableDeclarationStatement
         rightOperand: DeclaredVariablePattern
           name: b
           declaredFragment: isPublic b@23
-            type: null
             element: hasImplicitType isPublic
               type: int
           matchedValueType: int

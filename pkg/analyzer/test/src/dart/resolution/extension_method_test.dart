@@ -484,13 +484,15 @@ GenericFunctionType
         element2: dart:core::@class::int
         type: int
       declaredElement: <testLibraryFragment> null@null
-        type: int
+        element: isPrivate
+          type: int
     rightParenthesis: )
   declaredElement: GenericFunctionTypeElement
     parameters
       <empty>
         kind: required positional
-        type: int
+        element:
+          type: int
     returnType: int
     type: int Function(int)
   type: int Function(int)
@@ -595,13 +597,15 @@ GenericFunctionType
         element2: dart:core::@class::String
         type: String
       declaredElement: <testLibraryFragment> null@null
-        type: String
+        element: isPrivate
+          type: String
     rightParenthesis: )
   declaredElement: GenericFunctionTypeElement
     parameters
       <empty>
         kind: required positional
-        type: String
+        element:
+          type: String
     returnType: int
     type: int Function(String)
   type: int Function(String)

@@ -37,7 +37,6 @@ GuardedPattern
     keyword: final
     name: a
     declaredFragment: isFinal isPublic a@35
-      type: null
       element: hasImplicitType isFinal isPublic
         type: int
     matchedValueType: int
@@ -50,7 +49,6 @@ GuardedPattern
     keyword: final
     name: b
     declaredFragment: isFinal isPublic b@61
-      type: null
       element: hasImplicitType isFinal isPublic
         type: int
     matchedValueType: int
@@ -78,7 +76,6 @@ GuardedPattern
     keyword: final
     name: a
     declaredFragment: isFinal isPublic a@35
-      type: null
       element: hasImplicitType isFinal isPublic
         type: int
     matchedValueType: int
@@ -91,7 +88,6 @@ GuardedPattern
     keyword: final
     name: b
     declaredFragment: isFinal isPublic b@60
-      type: null
       element: hasImplicitType isFinal isPublic
         type: int
     matchedValueType: int
@@ -118,7 +114,6 @@ LogicalOrPattern
     keyword: final
     name: a
     declaredFragment: isFinal isPublic a@35
-      type: null
       element: hasImplicitType isFinal isPublic
         type: int
     matchedValueType: int
@@ -127,7 +122,6 @@ LogicalOrPattern
     keyword: final
     name: a
     declaredFragment: isFinal isPublic a@46
-      type: null
       element: hasImplicitType isFinal isPublic
         type: int
     matchedValueType: int
@@ -161,7 +155,6 @@ LogicalOrPattern
       keyword: final
       name: a
       declaredFragment: isFinal isPublic a@40
-        type: null
         element: hasImplicitType isFinal isPublic
           type: int
       matchedValueType: int
@@ -171,7 +164,6 @@ LogicalOrPattern
     keyword: final
     name: a
     declaredFragment: isFinal isPublic a@51
-      type: null
       element: hasImplicitType isFinal isPublic
         type: int
     matchedValueType: int
@@ -202,7 +194,6 @@ LogicalOrPattern
       type: int
     name: a
     declaredFragment: isFinal isPublic a@39
-      type: int
       element: isFinal isPublic
         type: int
     matchedValueType: num
@@ -241,7 +232,6 @@ LogicalOrPattern
     keyword: final
     name: a
     declaredFragment: isFinal isPublic a@40
-      type: null
       element: hasImplicitType isFinal isPublic
         type: int
     matchedValueType: int
@@ -274,7 +264,6 @@ LogicalOrPattern
         type: int
       name: a
       declaredFragment: isFinal isPublic a@39
-        type: int
         element: isFinal isPublic
           type: int
       matchedValueType: num
@@ -320,7 +309,6 @@ LogicalOrPattern
         type: int
       name: a
       declaredFragment: isFinal isPublic a@39
-        type: int
         element: isFinal isPublic
           type: int
       matchedValueType: num
@@ -333,7 +321,6 @@ LogicalOrPattern
         type: int
       name: a
       declaredFragment: isFinal isPublic a@54
-        type: int
         element: isFinal isPublic
           type: int
       matchedValueType: num
@@ -371,7 +358,6 @@ LogicalOrPattern
       keyword: final
       name: a
       declaredFragment: isFinal isPublic a@35
-        type: null
         element: hasImplicitType isFinal isPublic
           type: int
       matchedValueType: int
@@ -380,7 +366,6 @@ LogicalOrPattern
       keyword: final
       name: a
       declaredFragment: isFinal isPublic a@46
-        type: null
         element: hasImplicitType isFinal isPublic
           type: int
       matchedValueType: int
@@ -390,7 +375,6 @@ LogicalOrPattern
     keyword: final
     name: a
     declaredFragment: isFinal isPublic a@57
-      type: null
       element: hasImplicitType isFinal isPublic
         type: int
     matchedValueType: int
@@ -423,7 +407,6 @@ LogicalOrPattern
         type: int
       name: a
       declaredFragment: isFinal isPublic a@39
-        type: int
         element: isFinal isPublic
           type: int
       matchedValueType: num
@@ -443,7 +426,6 @@ LogicalOrPattern
       type: int
     name: a
     declaredFragment: isFinal isPublic a@59
-      type: int
       element: isFinal isPublic
         type: int
     matchedValueType: num
@@ -482,7 +464,6 @@ LogicalOrPattern
         type: int
       name: a
       declaredFragment: isFinal isPublic a@44
-        type: int
         element: isFinal isPublic
           type: int
       matchedValueType: num
@@ -525,7 +506,6 @@ LogicalOrPattern
       keyword: final
       name: a
       declaredFragment: isFinal isPublic a@40
-        type: null
         element: hasImplicitType isFinal isPublic
           type: int
       matchedValueType: int
@@ -535,7 +515,6 @@ LogicalOrPattern
     keyword: final
     name: a
     declaredFragment: isFinal isPublic a@51
-      type: null
       element: hasImplicitType isFinal isPublic
         type: int
     matchedValueType: int
@@ -576,7 +555,6 @@ LogicalOrPattern
     keyword: final
     name: a
     declaredFragment: isFinal isPublic a@45
-      type: null
       element: hasImplicitType isFinal isPublic
         type: int
     matchedValueType: int
@@ -607,7 +585,6 @@ LogicalOrPattern
     keyword: final
     name: a
     declaredFragment: isFinal isPublic a@46
-      type: null
       element: hasImplicitType isFinal isPublic
         type: int
     matchedValueType: int
@@ -616,7 +593,6 @@ LogicalOrPattern
     keyword: final
     name: a
     declaredFragment: isFinal isPublic a@57
-      type: null
       element: hasImplicitType isFinal isPublic
         type: int
     matchedValueType: int
@@ -652,7 +628,6 @@ LogicalOrPattern
       type: int
     name: a
     declaredFragment: isFinal isPublic a@50
-      type: int
       element: isFinal isPublic
         type: int
     matchedValueType: num
@@ -694,7 +669,6 @@ LogicalOrPattern
     keyword: final
     name: a
     declaredFragment: isFinal isPublic a@51
-      type: null
       element: hasImplicitType isFinal isPublic
         type: int
     matchedValueType: int
@@ -728,7 +702,6 @@ GuardedPattern
     keyword: final
     name: a
     declaredFragment: isFinal isPublic a@52
-      type: null
       element: hasImplicitType isFinal isPublic
         type: int
     matchedValueType: int
@@ -741,7 +714,6 @@ GuardedPattern
     keyword: final
     name: a
     declaredFragment: isFinal isPublic a@76
-      type: null
       element: hasImplicitType isFinal isPublic
         type: int
     matchedValueType: int

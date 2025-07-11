@@ -7478,13 +7478,15 @@ library
                                   type: double
                                 name: a @78
                                 declaredElement: <testLibraryFragment> a@78
-                                  type: double
+                                  element: isPublic
+                                    type: double
                               rightParenthesis: ) @79
                             declaredElement: GenericFunctionTypeElement
                               parameters
                                 a
                                   kind: required positional
-                                  type: double
+                                  element:
+                                    type: double
                               returnType: int
                               type: int Function(double)
                             type: int Function(double)

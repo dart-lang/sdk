@@ -733,7 +733,8 @@ DefaultFormalParameter
   parameter: SimpleFormalParameter
     name: a
     declaredElement: <testLibraryFragment> a@8
-      type: dynamic
+      element: hasImplicitType isPublic
+        type: dynamic
   separator: =
   defaultValue: CascadeExpression
     target: SimpleIdentifier
@@ -750,7 +751,8 @@ DefaultFormalParameter
         staticType: InvalidType
     staticType: InvalidType
   declaredElement: <testLibraryFragment> a@8
-    type: dynamic
+    element: hasImplicitType isPublic
+      type: dynamic
 ''');
   }
 

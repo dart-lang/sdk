@@ -78,7 +78,6 @@ IfStatement
             type: int
           name: a
           declaredFragment: isPublic a@37
-            type: int
             element: isPublic
               type: int
           matchedValueType: Object?
@@ -93,7 +92,6 @@ IfStatement
                 type: int
               name: a
               declaredFragment: isPublic a@47
-                type: int
                 element: isPublic
                   type: int
               matchedValueType: Object?
@@ -170,7 +168,6 @@ IfStatement
               keyword: var
               name: a
               declaredFragment: isPublic a@43
-                type: null
                 element: hasImplicitType isPublic
                   type: int
               matchedValueType: int
@@ -179,7 +176,6 @@ IfStatement
               keyword: var
               name: a
               declaredFragment: isPublic a@52
-                type: null
                 element: hasImplicitType isPublic
                   type: int
               matchedValueType: int
@@ -254,7 +250,6 @@ IfStatement
             type: int
           name: a
           declaredFragment: isPublic a@37
-            type: int
             element: isPublic
               type: int
           matchedValueType: Object?
@@ -270,7 +265,6 @@ IfStatement
                 type: int
               name: a
               declaredFragment: isFinal isPublic a@53
-                type: int
                 element: isFinal isPublic
                   type: int
               matchedValueType: Object?
@@ -345,7 +339,6 @@ IfStatement
             type: int
           name: a
           declaredFragment: isPublic a@37
-            type: int
             element: isPublic
               type: int
           matchedValueType: Object?
@@ -360,7 +353,6 @@ IfStatement
                 type: double
               name: a
               declaredFragment: isPublic a@50
-                type: double
                 element: isPublic
                   type: double
               matchedValueType: Object?
@@ -433,7 +425,6 @@ IfStatement
               type: int
             name: a
             declaredFragment: isPublic a@37
-              type: int
               element: isPublic
                 type: int
             matchedValueType: Object?
@@ -513,7 +504,6 @@ IfStatement
               type: int
             name: a
             declaredFragment: isPublic a@37
-              type: int
               element: isPublic
                 type: int
             matchedValueType: Object?
@@ -525,7 +515,6 @@ IfStatement
               type: int
             name: a
             declaredFragment: isPublic a@46
-              type: int
               element: isPublic
                 type: int
             matchedValueType: Object?
@@ -596,7 +585,6 @@ IfStatement
               type: int
             name: a
             declaredFragment: isPublic a@37
-              type: int
               element: isPublic
                 type: int
             matchedValueType: Object?
@@ -608,7 +596,6 @@ IfStatement
               type: int
             name: a
             declaredFragment: isPublic a@46
-              type: int
               element: isPublic
                 type: int
             matchedValueType: Object?
@@ -621,7 +608,6 @@ IfStatement
             type: int
           name: a
           declaredFragment: isPublic a@55
-            type: int
             element: isPublic
               type: int
           matchedValueType: Object?
@@ -688,7 +674,6 @@ IfStatement
               type: int
             name: a
             declaredFragment: isPublic a@37
-              type: int
               element: isPublic
                 type: int
             matchedValueType: Object?
@@ -707,7 +692,6 @@ IfStatement
             type: int
           name: a
           declaredFragment: isPublic a@51
-            type: int
             element: isPublic
               type: int
           matchedValueType: Object?
@@ -783,7 +767,6 @@ IfStatement
               type: int
             name: a
             declaredFragment: isPublic a@42
-              type: int
               element: isPublic
                 type: int
             matchedValueType: Object?
@@ -863,7 +846,6 @@ IfStatement
               type: int
             name: a
             declaredFragment: isPublic a@42
-              type: int
               element: isPublic
                 type: int
             matchedValueType: Object?
@@ -876,7 +858,6 @@ IfStatement
             type: int
           name: a
           declaredFragment: isPublic a@51
-            type: int
             element: isPublic
               type: int
           matchedValueType: Object?
@@ -965,7 +946,6 @@ IfStatement
               type: int
             name: a
             declaredFragment: isPublic a@51
-              type: int
               element: isPublic
                 type: int
             matchedValueType: Object?
@@ -1058,7 +1038,6 @@ IfStatement
             type: bool
           name: a
           declaredFragment: isPublic a@51
-            type: bool
             element: isPublic
               type: bool
           matchedValueType: Object?
@@ -1134,7 +1113,6 @@ IfStatement
           type: int
         name: a
         declaredFragment: isPublic a@37
-          type: int
           element: isPublic
             type: int
         matchedValueType: Object?

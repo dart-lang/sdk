@@ -89,9 +89,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       _isListOf = assertions.isListOf;
       _isMapOf = assertions.isMapOf;
       _isFunction2Of = assertions.isFunction2Of;
-      _isFutureOf = _isInstantiationOf(
-        _hasElement(typeProvider.futureElement),
-      );
+      _isFutureOf = _isInstantiationOf(_hasElement(typeProvider.futureElement));
       _isFutureOrOf = _isInstantiationOf(
         _hasElement(typeProvider.futureOrElement),
       );
@@ -3583,7 +3581,8 @@ FunctionDeclaration
           type: T
         name: x
         declaredElement: <testLibraryFragment> x@9
-          type: T
+          element: isPublic
+            type: T
       rightParenthesis: )
     body: ExpressionFunctionBody
       functionDefinition: =>
@@ -3635,7 +3634,8 @@ FunctionDeclaration
           type: T
         name: x
         declaredElement: <testLibraryFragment> x@21
-          type: T
+          element: isPublic
+            type: T
       rightParenthesis: )
     body: ExpressionFunctionBody
       functionDefinition: =>
@@ -3697,7 +3697,8 @@ MethodDeclaration
         type: T
       name: x
       declaredElement: <testLibraryFragment> x@31
-        type: T
+        element: isPublic
+          type: T
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
@@ -4235,7 +4236,8 @@ MethodInvocation
           parameter: SimpleFormalParameter
             name: e
             declaredElement: <testLibraryFragment> e@93
-              type: dynamic
+              element: hasImplicitType isPublic
+                type: dynamic
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
@@ -4279,7 +4281,8 @@ MethodInvocation
           parameter: SimpleFormalParameter
             name: e
             declaredElement: <testLibraryFragment> e@115
-              type: dynamic
+              element: hasImplicitType isPublic
+                type: dynamic
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
@@ -4592,7 +4595,8 @@ MethodDeclaration
         type: T
       name: y
       declaredElement: <testLibraryFragment> y@66
-        type: T
+        element: isPublic
+          type: T
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>

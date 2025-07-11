@@ -157,7 +157,6 @@ VariableDeclaration
     element: <testLibrary>::@class::C::@getter::_
     staticType: int
   declaredFragment: isPrivate _@51
-    type: int
     element: isPrivate
       type: int
 ''');

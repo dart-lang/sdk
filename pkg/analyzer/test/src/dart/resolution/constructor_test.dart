@@ -106,7 +106,8 @@ ConstructorDeclaration
         type: a
       name: a
       declaredElement: <testLibraryFragment> a@28
-        type: a
+        element: isPublic
+          type: a
     rightParenthesis: )
   body: BlockFunctionBody
     block: Block

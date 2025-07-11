@@ -73,7 +73,6 @@ IfElement
         keyword: var
         name: a
         declaredFragment: isPublic a@40
-          type: null
           element: hasImplicitType isPublic
             type: int
         matchedValueType: int
@@ -141,7 +140,6 @@ IfElement
               type: int
             name: a
             declaredFragment: isPublic a@56
-              type: int
               element: isPublic
                 type: int
             matchedValueType: Object?
@@ -218,7 +216,6 @@ IfElement
           type: int
         name: a
         declaredFragment: isPublic a@42
-          type: int
           element: isPublic
             type: int
         matchedValueType: Object

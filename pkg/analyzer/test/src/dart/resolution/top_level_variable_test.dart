@@ -59,7 +59,8 @@ VariableDeclaration
             parameter: SimpleFormalParameter
               name: z
               declaredElement: <testLibraryFragment> z@100
-                type: Object?
+                element: hasImplicitType isPublic
+                  type: Object?
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
@@ -124,7 +125,8 @@ VariableDeclaration
             parameter: SimpleFormalParameter
               name: z
               declaredElement: <testLibraryFragment> z@108
-                type: String
+                element: hasImplicitType isPublic
+                  type: String
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>

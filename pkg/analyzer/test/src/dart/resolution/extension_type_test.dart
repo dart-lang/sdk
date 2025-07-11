@@ -83,7 +83,8 @@ ExtensionTypeDeclaration
           period: .
           name: it
           declaredElement: <testLibraryFragment> it@42
-            type: int
+            element: hasImplicitType isFinal isPublic
+              type: int
         rightParenthesis: )
       body: EmptyFunctionBody
         semicolon: ;
@@ -136,7 +137,8 @@ ExtensionTypeDeclaration
             type: int
           name: a
           declaredElement: <testLibraryFragment> a@47
-            type: int
+            element: isPublic
+              type: int
         rightParenthesis: )
       separator: :
       initializers
@@ -255,7 +257,8 @@ MethodDeclaration
         type: T
       name: t
       declaredElement: <testLibraryFragment> t@46
-        type: T
+        element: isPublic
+          type: T
     parameter: SimpleFormalParameter
       type: NamedType
         name: U
@@ -263,7 +266,8 @@ MethodDeclaration
         type: U
       name: u
       declaredElement: <testLibraryFragment> u@51
-        type: U
+        element: isPublic
+          type: U
     rightParenthesis: )
   body: BlockFunctionBody
     block: Block

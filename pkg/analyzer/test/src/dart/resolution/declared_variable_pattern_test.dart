@@ -33,7 +33,6 @@ DeclaredVariablePattern
   keyword: final
   name: y
   declaredFragment: isFinal isPublic y@46
-    type: null
     element: hasImplicitType isFinal isPublic
       type: int
   matchedValueType: int
@@ -62,7 +61,6 @@ DeclaredVariablePattern
     type: int
   name: y
   declaredFragment: isFinal isPublic y@46
-    type: int
     element: isFinal isPublic
       type: int
   matchedValueType: dynamic
@@ -84,7 +82,6 @@ ListPattern
     DeclaredVariablePattern
       name: a
       declaredFragment: isFinal isPublic a@54
-        type: null
         element: hasImplicitType isFinal isPublic
           type: int
       matchedValueType: int
@@ -111,7 +108,6 @@ ListPattern
       pattern: DeclaredVariablePattern
         name: a
         declaredFragment: isFinal isPublic a@57
-          type: null
           element: hasImplicitType isFinal isPublic
             type: List<int>
         matchedValueType: List<int>
@@ -141,7 +137,6 @@ MapPattern
       value: DeclaredVariablePattern
         name: a
         declaredFragment: isFinal isPublic a@57
-          type: null
           element: hasImplicitType isFinal isPublic
             type: int
         matchedValueType: int
@@ -174,7 +169,6 @@ ObjectPattern
       pattern: DeclaredVariablePattern
         name: a
         declaredFragment: isFinal isPublic a@63
-          type: null
           element: hasImplicitType isFinal isPublic
             type: int
         matchedValueType: int
@@ -198,7 +192,6 @@ ParenthesizedPattern
   pattern: DeclaredVariablePattern
     name: a
     declaredFragment: isFinal isPublic a@54
-      type: null
       element: hasImplicitType isFinal isPublic
         type: int
     matchedValueType: int
@@ -223,7 +216,6 @@ RecordPattern
       pattern: DeclaredVariablePattern
         name: a
         declaredFragment: isFinal isPublic a@54
-          type: null
           element: hasImplicitType isFinal isPublic
             type: int
         matchedValueType: int
@@ -254,7 +246,6 @@ DeclaredVariablePattern
     type: int
   name: y
   declaredFragment: isPublic y@40
-    type: int
     element: isPublic
       type: int
   matchedValueType: dynamic
@@ -279,7 +270,6 @@ DeclaredVariablePattern
   keyword: var
   name: y
   declaredFragment: isPublic y@54
-    type: null
     element: hasImplicitType isPublic
       type: T
   matchedValueType: T & int
@@ -301,7 +291,6 @@ DeclaredVariablePattern
   keyword: var
   name: y
   declaredFragment: isPublic y@33
-    type: null
     element: hasImplicitType isPublic
       type: int
   matchedValueType: int
@@ -323,7 +312,6 @@ DeclaredVariablePattern
   keyword: var
   name: y
   declaredFragment: isPublic y@36
-    type: null
     element: hasImplicitType isPublic
       type: dynamic
   matchedValueType: Never?
@@ -345,7 +333,6 @@ DeclaredVariablePattern
   keyword: var
   name: y
   declaredFragment: isPublic y@34
-    type: null
     element: hasImplicitType isPublic
       type: dynamic
   matchedValueType: Null
@@ -370,7 +357,6 @@ DeclaredVariablePattern
   keyword: var
   name: y
   declaredFragment: isPublic y@44
-    type: null
     element: hasImplicitType isPublic
       type: int
   matchedValueType: int
@@ -396,7 +382,6 @@ CastPattern
     keyword: var
     name: y
     declaredFragment: isPublic y@44
-      type: null
       element: hasImplicitType isPublic
         type: int
     matchedValueType: int

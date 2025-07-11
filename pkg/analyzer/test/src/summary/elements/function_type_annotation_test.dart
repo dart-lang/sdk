@@ -407,13 +407,15 @@ library
                           type: String
                         name: a @52
                         declaredElement: <testLibraryFragment> a@52
-                          type: String
+                          element: isPublic
+                            type: String
                       rightParenthesis: ) @53
                     declaredElement: GenericFunctionTypeElement
                       parameters
                         a
                           kind: required positional
-                          type: String
+                          element:
+                            type: String
                       returnType: int
                       type: int Function(String)
                     type: int Function(String)
@@ -474,13 +476,15 @@ library
                       type: String
                     name: a @52
                     declaredElement: <testLibraryFragment> a@52
-                      type: String
+                      element: isPublic
+                        type: String
                   rightParenthesis: ) @53
                 declaredElement: GenericFunctionTypeElement
                   parameters
                     a
                       kind: required positional
-                      type: String
+                      element:
+                        type: String
                   returnType: int
                   type: int Function(String)
                 type: int Function(String)
@@ -566,16 +570,19 @@ library
                                 type: int?
                               name: a @63
                               declaredElement: <testLibraryFragment> a@63
-                                type: int?
+                                element: isPublic
+                                  type: int?
                             declaredElement: <testLibraryFragment> a@63
-                              type: int?
+                              element: isPublic
+                                type: int?
                           rightDelimiter: } @64
                           rightParenthesis: ) @65
                         declaredElement: GenericFunctionTypeElement
                           parameters
                             a
                               kind: optional named
-                              type: int?
+                              element:
+                                type: int?
                           returnType: String
                           type: String Function({int? a})
                         type: String Function({int? a})
@@ -676,16 +683,19 @@ library
                                 type: int?
                               name: a @63
                               declaredElement: <testLibraryFragment> a@63
-                                type: int?
+                                element: isPublic
+                                  type: int?
                             declaredElement: <testLibraryFragment> a@63
-                              type: int?
+                              element: isPublic
+                                type: int?
                           rightDelimiter: ] @64
                           rightParenthesis: ) @65
                         declaredElement: GenericFunctionTypeElement
                           parameters
                             a
                               kind: optional positional
-                              type: int?
+                              element:
+                                type: int?
                           returnType: String
                           type: String Function([int?])
                         type: String Function([int?])
@@ -786,16 +796,19 @@ library
                                 type: int
                               name: a @71
                               declaredElement: <testLibraryFragment> a@71
-                                type: int
+                                element: isPublic
+                                  type: int
                             declaredElement: <testLibraryFragment> a@71
-                              type: int
+                              element: isPublic
+                                type: int
                           rightDelimiter: } @72
                           rightParenthesis: ) @73
                         declaredElement: GenericFunctionTypeElement
                           parameters
                             a
                               kind: required named
-                              type: int
+                              element:
+                                type: int
                           returnType: String
                           type: String Function({required int a})
                         type: String Function({required int a})
@@ -893,13 +906,15 @@ library
                               type: int
                             name: a @61
                             declaredElement: <testLibraryFragment> a@61
-                              type: int
+                              element: isPublic
+                                type: int
                           rightParenthesis: ) @62
                         declaredElement: GenericFunctionTypeElement
                           parameters
                             a
                               kind: required positional
-                              type: int
+                              element:
+                                type: int
                           returnType: String
                           type: String Function(int)
                         type: String Function(int)

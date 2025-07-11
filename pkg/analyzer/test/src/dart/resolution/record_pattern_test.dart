@@ -58,7 +58,6 @@ RecordPattern
         keyword: var
         name: y
         declaredFragment: isPublic y@46
-          type: null
           element: hasImplicitType isPublic
             type: dynamic
         matchedValueType: dynamic
@@ -90,7 +89,6 @@ RecordPattern
         keyword: var
         name: y
         declaredFragment: isPublic y@41
-          type: null
           element: hasImplicitType isPublic
             type: dynamic
         matchedValueType: dynamic
@@ -175,7 +173,6 @@ RecordPattern
           type: int
         name: y
         declaredFragment: isPublic y@54
-          type: int
           element: isPublic
             type: int
         matchedValueType: Object?
@@ -210,7 +207,6 @@ RecordPattern
         keyword: var
         name: y
         declaredFragment: isPublic y@54
-          type: null
           element: hasImplicitType isPublic
             type: Object?
         matchedValueType: Object?
@@ -271,7 +267,6 @@ RecordPattern
           type: int
         name: y
         declaredFragment: isPublic y@49
-          type: int
           element: isPublic
             type: int
         matchedValueType: Object?
@@ -303,7 +298,6 @@ RecordPattern
         keyword: var
         name: y
         declaredFragment: isPublic y@49
-          type: null
           element: hasImplicitType isPublic
             type: Object?
         matchedValueType: Object?
@@ -342,7 +336,6 @@ RecordPattern
         keyword: var
         name: b
         declaredFragment: isPublic b@47
-          type: null
           element: hasImplicitType isPublic
             type: Object?
         matchedValueType: Object?
@@ -380,7 +373,6 @@ RecordPattern
         keyword: var
         name: a
         declaredFragment: isPublic a@46
-          type: null
           element: hasImplicitType isPublic
             type: Object?
         matchedValueType: Object?
@@ -417,7 +409,6 @@ RecordPattern
         keyword: var
         name: a
         declaredFragment: isPublic a@53
-          type: null
           element: hasImplicitType isPublic
             type: Object?
         matchedValueType: Object?
@@ -454,7 +445,6 @@ RecordPattern
         keyword: var
         name: a
         declaredFragment: isPublic a@60
-          type: null
           element: hasImplicitType isPublic
             type: Object?
         matchedValueType: Object?
@@ -490,7 +480,6 @@ RecordPattern
         keyword: var
         name: a
         declaredFragment: isPublic a@44
-          type: null
           element: hasImplicitType isPublic
             type: Object?
         matchedValueType: Object?
@@ -525,7 +514,6 @@ RecordPattern
         keyword: var
         name: a
         declaredFragment: isPublic a@55
-          type: null
           element: hasImplicitType isPublic
             type: Object?
         matchedValueType: Object?
@@ -586,7 +574,6 @@ RecordPattern
         keyword: var
         name: a
         declaredFragment: isPublic a@69
-          type: null
           element: hasImplicitType isPublic
             type: int
         matchedValueType: int
@@ -599,7 +586,6 @@ RecordPattern
         keyword: var
         name: b
         declaredFragment: isPublic b@81
-          type: null
           element: hasImplicitType isPublic
             type: String
         matchedValueType: String
@@ -609,7 +595,6 @@ RecordPattern
         keyword: var
         name: c
         declaredFragment: isPublic c@88
-          type: null
           element: hasImplicitType isPublic
             type: double
         matchedValueType: double
@@ -647,7 +632,6 @@ RecordPattern
         keyword: var
         name: a
         declaredFragment: isPublic a@58
-          type: null
           element: hasImplicitType isPublic
             type: Object?
         matchedValueType: Object?
@@ -682,7 +666,6 @@ RecordPattern
         keyword: var
         name: y
         declaredFragment: isPublic y@58
-          type: null
           element: hasImplicitType isPublic
             type: int
         matchedValueType: int
@@ -750,7 +733,6 @@ RecordPattern
         keyword: var
         name: foo
         declaredFragment: isPublic foo@55
-          type: null
           element: hasImplicitType isPublic
             type: int
         matchedValueType: int
@@ -785,7 +767,6 @@ RecordPattern
           keyword: var
           name: foo
           declaredFragment: isPublic foo@56
-            type: null
             element: hasImplicitType isPublic
               type: int
           matchedValueType: int
@@ -826,7 +807,6 @@ RecordPattern
           keyword: var
           name: foo
           declaredFragment: isPublic foo@56
-            type: null
             element: hasImplicitType isPublic
               type: int
           matchedValueType: int
@@ -863,7 +843,6 @@ RecordPattern
           keyword: var
           name: foo
           declaredFragment: isPublic foo@56
-            type: null
             element: hasImplicitType isPublic
               type: int
           matchedValueType: int
@@ -897,7 +876,6 @@ RecordPattern
         keyword: var
         name: a
         declaredFragment: isPublic a@48
-          type: null
           element: hasImplicitType isPublic
             type: int
         matchedValueType: int
@@ -930,7 +908,6 @@ PatternVariableDeclaration
         pattern: DeclaredVariablePattern
           name: a
           declaredFragment: isPublic a@33
-            type: null
             element: hasImplicitType isPublic
               type: int
           matchedValueType: int
@@ -939,7 +916,6 @@ PatternVariableDeclaration
         pattern: DeclaredVariablePattern
           name: b
           declaredFragment: isPublic b@36
-            type: null
             element: hasImplicitType isPublic
               type: String
           matchedValueType: String
@@ -984,7 +960,6 @@ PatternVariableDeclaration
             type: int
           name: a
           declaredFragment: isPublic a@22
-            type: int
             element: isPublic
               type: int
           matchedValueType: int
@@ -997,7 +972,6 @@ PatternVariableDeclaration
             type: String
           name: b
           declaredFragment: isPublic b@32
-            type: String
             element: isPublic
               type: String
           matchedValueType: String
