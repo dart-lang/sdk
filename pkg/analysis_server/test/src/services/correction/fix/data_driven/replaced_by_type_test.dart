@@ -5,8 +5,6 @@
 @Timeout.none
 library;
 
-import 'dart:io';
-
 import 'package:test/test.dart' show Timeout;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -369,13 +367,6 @@ extension type const $name${generic(typeParameters)}._(int _) implements Object 
     var expected =
         '$lib1Import$lib2Import$lib2Usage${_replaceInTemplate(template, lib1PrefixDot, lib2PrefixDot, newNameOf)}';
 
-    File(
-      'gen_old_$lib1Prefix${lib2Prefix ?? 'n'}.dart',
-    ).writeAsStringSync(source.toString().replaceAll('package:p/', 'gen_'));
-    File(
-      'gen_new_$lib1Prefix${lib2Prefix ?? 'n'}.dart',
-    ).writeAsStringSync(expected.toString().replaceAll('package:p/', 'gen_'));
-
     await _assertExpectedFixes(source, expected);
   }
 
@@ -465,9 +456,6 @@ class Lib2Use {} // Can be referred to avoid unused import warnings.
         }
       }
     }
-    File('gen_lib.dart').writeAsStringSync(lib1Buffer.toString());
-    File('gen_lib2.dart').writeAsStringSync(lib2Buffer.toString());
-    File('gen_fix_data.yaml').writeAsStringSync(fixDataBuffer.toString());
     return (
       lib1Buffer.toString(),
       lib2Buffer.toString(),

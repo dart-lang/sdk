@@ -20,6 +20,7 @@
 #include "vm/lockers.h"
 #include "vm/native_arguments.h"
 #include "vm/native_entry.h"
+#include "vm/native_function.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/os_thread.h"
@@ -544,6 +545,24 @@ static DART_NOINLINE bool InvokeRuntime(Thread* thread,
   }
 }
 
+static DART_NOINLINE bool InvokeNative(Thread* thread,
+                                       Interpreter* interpreter,
+                                       NativeFunctionWrapper wrapper,
+                                       NativeFunction function,
+                                       NativeArguments* args) {
+  InterpreterSetjmpBuffer buffer(interpreter);
+  if (!DART_SETJMP(buffer.buffer_)) {
+    thread->set_vm_tag(reinterpret_cast<uword>(function));
+    wrapper(reinterpret_cast<Dart_NativeArguments>(args),
+            reinterpret_cast<Dart_NativeFunction>(function));
+    thread->set_vm_tag(VMTag::kDartInterpretedTagId);
+    interpreter->Unexit(thread);
+    return true;
+  } else {
+    return false;
+  }
+}
+
 extern "C" {
 // Note: The invocation stub follows the C ABI, so we cannot pass C++ struct
 // values like ObjectPtr. In some calling conventions (IA32), ObjectPtr is
@@ -1001,6 +1020,7 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
   }
 
 #define LOAD_CONSTANT(index) (pp_->untag()->data()[(index)].raw_obj_)
+#define LOAD_CONSTANT_RAW(index) (pp_->untag()->data()[(index)].raw_value_)
 
 #define UNBOX_INT64(value, obj, selector)                                      \
   int64_t value;                                                               \
@@ -2155,6 +2175,57 @@ SwitchDispatch:
                         &SP)) {
         HANDLE_EXCEPTION;
       }
+    }
+
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(ExternalCall, D);
+
+    {
+      FunctionPtr function = FrameFunction(FP);
+      NativeFunctionWrapper trampoline =
+          reinterpret_cast<NativeFunctionWrapper>(LOAD_CONSTANT_RAW(rD));
+      NativeFunction native_function =
+          reinterpret_cast<NativeFunction>(LOAD_CONSTANT_RAW(rD + 1));
+
+      if (UNLIKELY(trampoline == nullptr || native_function == nullptr)) {
+        SP[1] = 0;  // Unused space for result.
+        SP[2] = function;
+        SP[3] = Smi::New(rD);
+        Exit(thread, FP, SP + 4, pc);
+        INVOKE_RUNTIME(DRT_ResolveExternalCall,
+                       NativeArguments(thread, 2, SP + 2, SP + 1));
+
+        // Reload after call is resolved.
+        function = FrameFunction(FP);
+        trampoline =
+            reinterpret_cast<NativeFunctionWrapper>(LOAD_CONSTANT_RAW(rD));
+        native_function =
+            reinterpret_cast<NativeFunction>(LOAD_CONSTANT_RAW(rD + 1));
+        ASSERT(trampoline != nullptr);
+        ASSERT(native_function != nullptr);
+      }
+
+      *++SP = null_value;  // Result slot.
+
+      const intptr_t num_arguments = FunctionType::NumParametersOf(
+          FunctionType::RawCast(function->untag()->signature()));
+      ObjectPtr* incoming_args = SP - num_arguments;
+      ObjectPtr* return_slot = SP;
+      Exit(thread, FP, SP + 1, pc);
+      NativeArguments native_args(thread, num_arguments, incoming_args,
+                                  return_slot);
+      if (!InvokeNative(thread, this, trampoline, native_function,
+                        &native_args)) {
+        HANDLE_EXCEPTION;
+      } else {
+        HANDLE_RETURN;
+      }
+
+      *(SP - num_arguments) = *return_slot;
+      SP -= num_arguments;
     }
 
     DISPATCH();

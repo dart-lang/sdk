@@ -30,6 +30,7 @@ enum ConstantTag {
   kInterfaceCall,
   kInstantiatedInterfaceCall,
   kDynamicCall,
+  kExternalCall,
 }
 
 String constantTagToString(ConstantTag tag) =>
@@ -84,6 +85,8 @@ abstract class ConstantPoolEntry {
         return new ConstantInstantiatedInterfaceCall.read(reader);
       case ConstantTag.kDynamicCall:
         return new ConstantDynamicCall.read(reader);
+      case ConstantTag.kExternalCall:
+        return new ConstantExternalCall.read(reader);
     }
     throw 'Unexpected constant tag $tag';
   }
@@ -501,6 +504,32 @@ class ConstantDynamicCall extends ConstantPoolEntry {
       this.argDesc == other.argDesc;
 }
 
+class ConstantExternalCall extends ConstantPoolEntry {
+  ConstantExternalCall();
+
+  @override
+  ConstantTag get tag => ConstantTag.kExternalCall;
+
+  @override
+  int get numReservedEntries => 1;
+
+  @override
+  void writeValue(BufferedWriter writer) {}
+
+  ConstantExternalCall.read(BufferedReader reader);
+
+  @override
+  String toString() => 'ExternalCall';
+
+  // Do not merge ConstantExternalCall entries.
+
+  @override
+  int get hashCode => identityHashCode(this);
+
+  @override
+  bool operator ==(other) => identical(this, other);
+}
+
 /// Reserved constant pool entry.
 class _ReservedConstantPoolEntry extends ConstantPoolEntry {
   const _ReservedConstantPoolEntry();
@@ -575,6 +604,8 @@ class ConstantPool {
       (target == null)
           ? addDynamicCall(invocationKind, targetName, argDesc)
           : addInterfaceCall(invocationKind, target, argDesc);
+
+  int addExternalCall() => _add(ConstantExternalCall());
 
   int addStaticField(Field field) =>
       _add(new ConstantStaticField(objectTable.getHandle(field)!));

@@ -523,6 +523,7 @@ void Thread::EnterIsolateGroupAsMutator(IsolateGroup* isolate_group,
   isolate_group->IncreaseMutatorCount(/*thread=*/nullptr,
                                       /*is_nested_reenter=*/true,
                                       /*was_stolen=*/false);
+  isolate_group->RegisterIsolateGroupMutator();
 
   Thread* thread = AddActiveThread(isolate_group, /*isolate=*/nullptr,
                                    kMutatorTask, bypass_safepoint);
@@ -561,6 +562,7 @@ void Thread::ExitIsolateGroupAsMutator(bool bypass_safepoint) {
   SuspendThreadInternal(thread, VMTag::kInvalidTagId);
   auto group = thread->isolate_group();
   FreeActiveThread(thread, /*isolate=*/nullptr, bypass_safepoint);
+  group->UnregisterIsolateGroupMutator();
   group->DecreaseMutatorCount(/*is_nested_exit=*/true);
 }
 

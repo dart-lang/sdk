@@ -137,8 +137,8 @@ namespace dart {
   V(UncheckedDirectCall_Wide,            D_F, WIDE, num, num, ___)             \
   V(InterfaceCall,                       D_F, ORDN, num, num, ___)             \
   V(InterfaceCall_Wide,                  D_F, WIDE, num, num, ___)             \
-  V(Unused23,                              0, RESV, ___, ___, ___)             \
-  V(Unused24,                              0, RESV, ___, ___, ___)             \
+  V(ExternalCall,                          D, ORDN, lit, ___, ___)             \
+  V(ExternalCall_Wide,                     D, WIDE, lit, ___, ___)             \
   V(InstantiatedInterfaceCall,           D_F, ORDN, num, num, ___)             \
   V(InstantiatedInterfaceCall_Wide,      D_F, WIDE, num, num, ___)             \
   V(UncheckedClosureCall,                D_F, ORDN, num, num, ___)             \

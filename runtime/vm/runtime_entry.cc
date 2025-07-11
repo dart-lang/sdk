@@ -8,6 +8,7 @@
 
 #include "platform/memory_sanitizer.h"
 #include "platform/thread_sanitizer.h"
+#include "vm/bootstrap.h"
 #include "vm/code_descriptors.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler/api/deopt_id.h"
@@ -1136,6 +1137,57 @@ DEFINE_RUNTIME_ENTRY(ResolveCallFunction, 2) {
       Resolver::ResolveDynamicForReceiverClass(cls, Symbols::call(), args_desc,
                                                /*allow_add=*/false));
   arguments.SetReturn(call_function);
+#else
+  UNREACHABLE();
+#endif  // defined(DART_DYNAMIC_MODULES)
+}
+
+// Resolve external method call from the interpreter.
+// Arg0: function.
+// Arg1: pool index to store resolved trampoline and native function.
+DEFINE_RUNTIME_ENTRY(ResolveExternalCall, 2) {
+#if defined(DART_DYNAMIC_MODULES)
+  const auto& function = Function::CheckedHandle(zone, arguments.ArgAt(0));
+  const intptr_t pool_index =
+      Smi::CheckedHandle(zone, arguments.ArgAt(1)).Value();
+
+  const Class& cls = Class::Handle(zone, function.Owner());
+  const Library& library = Library::Handle(zone, cls.library());
+
+  Dart_NativeEntryResolver resolver = library.native_entry_resolver();
+  bool is_bootstrap_native = Bootstrap::IsBootstrapResolver(resolver);
+
+  const String& native_name = String::Handle(zone, function.native_name());
+  ASSERT(!native_name.IsNull());
+
+  const intptr_t num_params =
+      NativeArguments::ParameterCountForResolution(function);
+  bool is_auto_scope = true;
+  const NativeFunction target_function = NativeEntry::ResolveNative(
+      library, native_name, num_params, &is_auto_scope);
+  if (target_function == nullptr) {
+    const auto& error = Error::Handle(LanguageError::NewFormatted(
+        Error::Handle(),  // No previous error.
+        Script::Handle(function.script()), function.token_pos(),
+        Report::AtLocation, Report::kError, Heap::kOld,
+        "native function '%s' (%" Pd " arguments) cannot be found",
+        native_name.ToCString(), num_params));
+    Exceptions::PropagateError(error);
+  }
+
+  NativeFunctionWrapper trampoline;
+  if (is_bootstrap_native) {
+    trampoline = NativeEntry::BootstrapNativeCallWrapper;
+  } else if (is_auto_scope) {
+    trampoline = NativeEntry::AutoScopeNativeCallWrapper;
+  } else {
+    trampoline = NativeEntry::NoScopeNativeCallWrapper;
+  }
+
+  const auto& bytecode = Bytecode::Handle(zone, function.GetBytecode());
+  const auto& pool = ObjectPool::Handle(zone, bytecode.object_pool());
+  pool.SetRawValueAt(pool_index, reinterpret_cast<uword>(trampoline));
+  pool.SetRawValueAt(pool_index + 1, reinterpret_cast<uword>(target_function));
 #else
   UNREACHABLE();
 #endif  // defined(DART_DYNAMIC_MODULES)
