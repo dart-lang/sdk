@@ -2445,6 +2445,9 @@ library
                   element: <testLibrary>::@class::D::@method::f::@formalParameter::x
                 #F14 g @101
                   element: <testLibrary>::@class::D::@method::f::@formalParameter::g
+                  parameters
+                    #F15 s @105
+                      element: s@105
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -2611,6 +2614,9 @@ library
                   element: <testLibrary>::@class::D::@method::f::@formalParameter::x
                 #F10 g @79
                   element: <testLibrary>::@class::D::@method::f::@formalParameter::g
+                  parameters
+                    #F11 s @88
+                      element: s@88
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -2689,6 +2695,11 @@ library
           formalParameters
             #F6 g @7
               element: <testLibrary>::@function::f::@formalParameter::g
+              parameters
+                #F7 x @13
+                  element: x@13
+                #F8 h @21
+                  element: h@21
   topLevelVariables
     hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
@@ -2760,6 +2771,11 @@ library
           formalParameters
             #F6 g @8
               element: <testLibrary>::@function::f::@formalParameter::g
+              parameters
+                #F7 x @14
+                  element: x@14
+                #F8 h @22
+                  element: h@22
   topLevelVariables
     hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
@@ -2843,6 +2859,9 @@ library
               formalParameters
                 #F10 g @73
                   element: <testLibrary>::@class::D::@setter::f::@formalParameter::g
+                  parameters
+                    #F11 s @82
+                      element: s@82
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -3192,11 +3211,17 @@ library
           formalParameters
             #F6 x @10
               element: <testLibrary>::@function::f::@formalParameter::x
-        #F7 g @39
+              parameters
+                #F7 y @19
+                  element: y@19
+        #F8 g @39
           element: <testLibrary>::@function::g
           formalParameters
-            #F8 x @45
+            #F9 x @45
               element: <testLibrary>::@function::g::@formalParameter::x
+              parameters
+                #F10 y @54
+                  element: y@54
   topLevelVariables
     hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
@@ -3229,15 +3254,15 @@ library
           type: int Function(String)
           formalParameters
             #E2 requiredPositional y
-              firstFragment: #F9
+              firstFragment: #F7
               type: String
       returnType: int
     g
       reference: <testLibrary>::@function::g
-      firstFragment: #F7
+      firstFragment: #F8
       formalParameters
         #E3 requiredPositional x
-          firstFragment: #F8
+          firstFragment: #F9
           type: int Function(String)
           formalParameters
             #E4 requiredPositional y

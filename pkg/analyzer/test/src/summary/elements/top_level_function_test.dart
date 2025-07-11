@@ -328,6 +328,9 @@ library
           formalParameters
             #F2 this.a @16
               element: <testLibrary>::@function::f::@formalParameter::a
+              parameters
+                #F3 b @22
+                  element: b@22
   functions
     f
       reference: <testLibrary>::@function::f
@@ -462,6 +465,11 @@ library
           formalParameters
             #F2 g @2
               element: <testLibrary>::@function::f::@formalParameter::g
+              parameters
+                #F3 x @4
+                  element: x@4
+                #F4 y @7
+                  element: y@7
   functions
     f
       reference: <testLibrary>::@function::f
@@ -778,6 +786,9 @@ library
           formalParameters
             #F4 x @15
               element: <testLibrary>::@function::f::@formalParameter::x
+              parameters
+                #F5 u @19
+                  element: u@19
   functions
     f
       reference: <testLibrary>::@function::f

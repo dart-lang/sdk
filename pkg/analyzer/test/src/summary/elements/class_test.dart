@@ -543,15 +543,18 @@ library
               formalParameters
                 #F4 this.x @28
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
+                  parameters
+                    #F5 b @37
+                      element: b@37
           getters
-            #F5 synthetic x
+            #F6 synthetic x
               element: <testLibrary>::@class::C::@getter::x
               returnType: dynamic
           setters
-            #F6 synthetic x
+            #F7 synthetic x
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
-                #F7 _x
+                #F8 _x
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::_x
   classes
     class C
@@ -574,21 +577,21 @@ library
               type: dynamic Function(double)
               formalParameters
                 #E1 requiredPositional b
-                  firstFragment: #F8
+                  firstFragment: #F5
                   type: double
       getters
         synthetic x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F5
+          firstFragment: #F6
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::x
       setters
         synthetic x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F6
+          firstFragment: #F7
           formalParameters
             #E2 requiredPositional _x
-              firstFragment: #F7
+              firstFragment: #F8
               type: dynamic
           returnType: void
 ''');
@@ -621,15 +624,18 @@ library
               formalParameters
                 #F4 this.x @32
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
+                  parameters
+                    #F5 b @41
+                      element: b@41
           getters
-            #F5 synthetic x
+            #F6 synthetic x
               element: <testLibrary>::@class::C::@getter::x
               returnType: dynamic
           setters
-            #F6 synthetic x
+            #F7 synthetic x
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
-                #F7 _x
+                #F8 _x
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::_x
   classes
     class C
@@ -652,21 +658,21 @@ library
               type: int Function(double)
               formalParameters
                 #E1 requiredPositional b
-                  firstFragment: #F8
+                  firstFragment: #F5
                   type: double
       getters
         synthetic x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F5
+          firstFragment: #F6
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::x
       setters
         synthetic x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F6
+          firstFragment: #F7
           formalParameters
             #E2 requiredPositional _x
-              firstFragment: #F7
+              firstFragment: #F8
               type: dynamic
           returnType: void
 ''');
@@ -699,15 +705,23 @@ library
               formalParameters
                 #F4 this.f @43
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::f
+                  typeParameters
+                    #F5 T @45
+                      element: #E0 T
+                    #F6 U @48
+                      element: #E1 U
+                  parameters
+                    #F7 t @53
+                      element: t@53
           getters
-            #F5 synthetic f
+            #F8 synthetic f
               element: <testLibrary>::@class::C::@getter::f
               returnType: dynamic Function()
           setters
-            #F6 synthetic f
+            #F9 synthetic f
               element: <testLibrary>::@class::C::@setter::f
               formalParameters
-                #F7 _f
+                #F10 _f
                   element: <testLibrary>::@class::C::@setter::f::@formalParameter::_f
   classes
     class C
@@ -725,31 +739,31 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
           formalParameters
-            #E0 requiredPositional final f
+            #E2 requiredPositional final f
               firstFragment: #F4
               type: List<U> Function<T, U>(T)
               typeParameters
-                #E1 T
-                  firstFragment: #F8
-                #E2 U
-                  firstFragment: #F9
+                #E0 T
+                  firstFragment: #F5
+                #E1 U
+                  firstFragment: #F6
               formalParameters
                 #E3 requiredPositional t
-                  firstFragment: #F10
+                  firstFragment: #F7
                   type: T
       getters
         synthetic f
           reference: <testLibrary>::@class::C::@getter::f
-          firstFragment: #F5
+          firstFragment: #F8
           returnType: dynamic Function()
           variable: <testLibrary>::@class::C::@field::f
       setters
         synthetic f
           reference: <testLibrary>::@class::C::@setter::f
-          firstFragment: #F6
+          firstFragment: #F9
           formalParameters
             #E4 requiredPositional _f
-              firstFragment: #F7
+              firstFragment: #F10
               type: dynamic Function()
           returnType: void
 ''');
@@ -2898,6 +2912,12 @@ library
               formalParameters
                 #F6 super.a @63
                   element: <testLibrary>::@class::B::@constructor::new::@formalParameter::a
+                  typeParameters
+                    #F7 T @65
+                      element: #E0 T
+                  parameters
+                    #F8 d @82
+                      element: d@82
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -2907,7 +2927,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
           formalParameters
-            #E0 requiredPositional a
+            #E1 requiredPositional a
               firstFragment: #F3
               type: Object?
     class B
@@ -2919,11 +2939,11 @@ library
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F5
           formalParameters
-            #E1 requiredPositional final a
+            #E2 requiredPositional final a
               firstFragment: #F6
               type: int Function<T extends num>(T)?
               typeParameters
-                #E2 T
+                #E0 T
                   firstFragment: #F7
                   bound: num
               formalParameters
@@ -13187,6 +13207,9 @@ library
               formalParameters
                 #F6 x @25
                   element: <testLibrary>::@class::C::@method::f::@formalParameter::x
+                  parameters
+                    #F7 u @29
+                      element: u@29
   classes
     class C
       reference: <testLibrary>::@class::C

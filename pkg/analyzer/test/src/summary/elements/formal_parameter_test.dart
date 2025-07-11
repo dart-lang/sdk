@@ -370,6 +370,11 @@ library
               formalParameters
                 #F4 g @12
                   element: <testLibrary>::@class::C::@method::f::@formalParameter::g
+                  parameters
+                    #F5 x @14
+                      element: x@14
+                    #F6 y @17
+                      element: y@17
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -423,6 +428,9 @@ library
               formalParameters
                 #F6 g @20
                   element: <testLibrary>::@class::C::@method::f::@formalParameter::g
+                  parameters
+                    #F7 x @24
+                      element: x@24
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -551,18 +559,26 @@ library
           formalParameters
             #F2 a @9
               element: <testLibrary>::@function::f::@formalParameter::a
+              typeParameters
+                #F3 T @11
+                  element: #E0 T
+                #F4 U @14
+                  element: #E1 U
+              parameters
+                #F5 u @19
+                  element: u@19
   functions
     f
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       formalParameters
-        #E0 requiredPositional a
+        #E2 requiredPositional a
           firstFragment: #F2
           type: T Function<T, U>(U)
           typeParameters
-            #E1 T
+            #E0 T
               firstFragment: #F3
-            #E2 U
+            #E1 U
               firstFragment: #F4
           formalParameters
             #E3 requiredPositional u

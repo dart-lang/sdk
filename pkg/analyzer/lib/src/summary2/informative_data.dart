@@ -964,19 +964,21 @@ class _InfoBuilder {
 
   _InfoFormalParameter _buildFormalParameter(FormalParameter node) {
     var notDefault = node.notDefault;
+
+    var (typeParameters, parameters) = switch (notDefault) {
+      FunctionTypedFormalParameter p => (p.typeParameters, p.parameters),
+      FieldFormalParameter p => (p.typeParameters, p.parameters),
+      SuperFormalParameter p => (p.typeParameters, p.parameters),
+      _ => (null, null),
+    };
+
     return _InfoFormalParameter(
       firstTokenOffset: node.offset,
       codeOffset: node.offset,
       codeLength: node.length,
       nameOffset2: node.name?.offsetIfNotEmpty,
-      typeParameters:
-          notDefault is FunctionTypedFormalParameter
-              ? _buildTypeParameters(notDefault.typeParameters)
-              : [],
-      parameters:
-          notDefault is FunctionTypedFormalParameter
-              ? _buildFormalParameters(notDefault.parameters)
-              : [],
+      typeParameters: _buildTypeParameters(typeParameters),
+      parameters: _buildFormalParameters(parameters),
     );
   }
 
