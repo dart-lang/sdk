@@ -489,6 +489,8 @@ bool File::Copy(Namespace* namespc,
                 const char* new_path) {
   File::Type type = File::GetType(namespc, old_path, true);
   if (type == kIsFile || type == kIsSock || type == kIsPipe) {
+    // `copyfile` will complete with [ENOTSUP] if the source file is:
+    // "...not a directory, symbolic link, or regular file."
     return (copyfile(old_path, new_path, nullptr, COPYFILE_ALL) == 0);
   }
   SetErrno(type);

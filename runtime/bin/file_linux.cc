@@ -494,7 +494,10 @@ bool File::Copy(Namespace* namespc,
   // From sendfile man pages:
   //   Applications may wish to fall back to read(2)/write(2) in the case
   //   where sendfile() fails with EINVAL or ENOSYS.
-  if ((result < 0) && ((errno == EINVAL) || (errno == ENOSYS))) {
+  //
+  // Also, fallback on ESPIPE (returned when the input file is not seekable).
+  if ((result < 0) &&
+      ((errno == EINVAL) || (errno == ENOSYS) || (errno == ESPIPE))) {
     const intptr_t kBufferSize = 8 * KB;
     uint8_t* buffer = reinterpret_cast<uint8_t*>(malloc(kBufferSize));
     while ((result = TEMP_FAILURE_RETRY(read(old_fd, buffer, kBufferSize))) >
