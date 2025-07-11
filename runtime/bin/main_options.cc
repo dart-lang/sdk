@@ -639,7 +639,9 @@ bool Options::ParseArguments(int argc,
   // The arguments to the VM are at positions 1 through i-1 in argv.
   Platform::SetExecutableArguments(i, argv);
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
   bool run_script = false;
+#endif
   // Get the script name.
   if (i < argc) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -654,7 +656,9 @@ bool Options::ParseArguments(int argc,
     if (Options::disable_dart_dev() ||
         (Options::snapshot_filename() != nullptr) || is_potential_file_path) {
       *script_name = Utils::StrDup(argv[i]);
+#if !defined(DART_PRECOMPILED_RUNTIME)
       run_script = true;
+#endif
       i++;
     }
 #if !defined(DART_PRECOMPILED_RUNTIME)
