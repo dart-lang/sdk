@@ -172,4 +172,9 @@ instead.
 
 See [writing a plugin][] for information about the `Plugin` class.
 
-[writing a plugin]: https://github.com/dart-lang/sdk/blob/main/pkg/analysis_server_plugin/doc/writing_rules.md
+## Testing an analysis rule
+
+Writing tests for an analysis rule is very easy, and is documented at [testing_rules][].
+
+[writing a plugin]: https://github.com/dart-lang/sdk/blob/main/pkg/analysis_server_plugin/doc/writing_a_plugin.md
+[testing rules]: https://github.com/dart-lang/sdk/blob/main/pkg/analysis_server_plugin/doc/testing_rules.md
