@@ -135,8 +135,8 @@ enum Opcode {
   kUncheckedDirectCall_Wide,
   kInterfaceCall,
   kInterfaceCall_Wide,
-  kUnused23, // Reserved for InterfaceCall1
-  kUnused24, // Reserved for InterfaceCall1_Wide
+  kExternalCall,
+  kExternalCall_Wide,
   kInstantiatedInterfaceCall,
   kInstantiatedInterfaceCall_Wide,
   kUncheckedClosureCall,
@@ -372,6 +372,8 @@ const Map<Opcode, Format> BytecodeFormats = const {
       Encoding.kDF, const [Operand.lit, Operand.imm, Operand.none]),
   Opcode.kDynamicCall: const Format(
       Encoding.kDF, const [Operand.lit, Operand.imm, Operand.none]),
+  Opcode.kExternalCall: const Format(
+      Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
   Opcode.kReturnTOS: const Format(
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
   Opcode.kAssertAssignable: const Format(

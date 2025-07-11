@@ -463,6 +463,7 @@ intptr_t BytecodeReaderHelper::ReadConstantPool(const Function& function,
     kInterfaceCall,
     kInstantiatedInterfaceCall,
     kDynamicCall,
+    kExternalCall,
   };
 
   Object& obj = Object::Handle(Z);
@@ -617,6 +618,21 @@ intptr_t BytecodeReaderHelper::ReadConstantPool(const Function& function,
         // The second entry is used for arguments descriptor.
         obj = ReadObject();
       } break;
+      case ConstantPoolTag::kExternalCall: {
+        // ExternalCall constant occupies 2 entries:
+        // trampoline and native function.
+        pool.SetTypeAt(i, ObjectPool::EntryType::kNativeFunction,
+                       ObjectPool::Patchability::kNotPatchable,
+                       ObjectPool::SnapshotBehavior::kNotSnapshotable);
+        pool.SetRawValueAt(i, 0);
+        ++i;
+        ASSERT(i < obj_count);
+        pool.SetTypeAt(i, ObjectPool::EntryType::kNativeFunction,
+                       ObjectPool::Patchability::kNotPatchable,
+                       ObjectPool::SnapshotBehavior::kNotSnapshotable);
+        pool.SetRawValueAt(i, 0);
+        continue;
+      }
       default:
         UNREACHABLE();
     }

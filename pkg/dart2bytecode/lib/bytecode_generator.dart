@@ -781,7 +781,11 @@ class BytecodeGenerator extends RecursiveVisitor {
           _genConstructorInitializers(node);
         }
         if (node.isExternal) {
-          _genNoSuchMethodForExternal(node);
+          if (getExternalName(coreTypes, node) != null) {
+            _genExternalCall(node);
+          } else {
+            _genNoSuchMethodForExternal(node);
+          }
         } else {
           _generateNode(node.function?.body);
           // BytecodeAssembler eliminates this bytecode if it is unreachable.
@@ -850,6 +854,31 @@ class BytecodeGenerator extends RecursiveVisitor {
     // Otherwise, setters for static fields can be omitted
     // and fields can be accessed directly.
     return false;
+  }
+
+  void _genExternalCall(Member node) {
+    final function = node.function!;
+
+    if (locals.hasFactoryTypeArgsVar) {
+      asm.emitPush(locals.getVarIndexInFrame(locals.factoryTypeArgsVar));
+    } else if (locals.hasFunctionTypeArgsVar) {
+      asm.emitPush(locals.functionTypeArgsVarIndexInFrame);
+    }
+    if (locals.hasReceiver) {
+      asm.emitPush(locals.getVarIndexInFrame(locals.receiverVar));
+    }
+    for (var param in function.positionalParameters) {
+      asm.emitPush(locals.getVarIndexInFrame(param));
+    }
+    // Native methods access their parameters by indices, so
+    // native wrappers should pass arguments in the original declaration
+    // order instead of sorted order.
+    for (var param in locals.originalNamedParameters) {
+      asm.emitPush(locals.getVarIndexInFrame(param));
+    }
+
+    final externalCallCpIndex = cp.addExternalCall();
+    asm.emitExternalCall(externalCallCpIndex);
   }
 
   LibraryIndex get libraryIndex => coreTypes.index;
