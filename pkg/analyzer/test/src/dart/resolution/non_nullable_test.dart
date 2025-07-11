@@ -271,7 +271,8 @@ FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
     declaredElement: <testLibraryFragment> p1@13
-      type: void Function()
+      element: isPublic
+        type: void Function()
   rightParenthesis: )
 ''');
 
@@ -290,7 +291,8 @@ FormalParameterList
       rightParenthesis: )
     question: ?
     declaredElement: <testLibraryFragment> p2@35
-      type: void Function()?
+      element: isPublic
+        type: void Function()?
   rightParenthesis: )
 ''');
 
@@ -311,9 +313,11 @@ FormalParameterList
         rightParenthesis: )
       question: ?
       declaredElement: <testLibraryFragment> p3@59
-        type: void Function()?
+        element: isPublic
+          type: void Function()?
     declaredElement: <testLibraryFragment> p3@59
-      type: void Function()?
+      element: isPublic
+        type: void Function()?
   rightDelimiter: }
   rightParenthesis: )
 ''');
@@ -347,7 +351,8 @@ FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
     declaredElement: <testLibraryFragment> f1@57
-      type: void Function()
+      element: isFinal isPublic
+        type: void Function()
   rightParenthesis: )
 ''');
 
@@ -368,7 +373,8 @@ FormalParameterList
       rightParenthesis: )
     question: ?
     declaredElement: <testLibraryFragment> f2@81
-      type: void Function()?
+      element: isFinal isPublic
+        type: void Function()?
   rightParenthesis: )
 ''');
 
@@ -391,9 +397,11 @@ FormalParameterList
         rightParenthesis: )
       question: ?
       declaredElement: <testLibraryFragment> f3@107
-        type: void Function()?
+        element: isFinal isPublic
+          type: void Function()?
     declaredElement: <testLibraryFragment> f3@107
-      type: void Function()?
+      element: isFinal isPublic
+        type: void Function()?
   rightDelimiter: }
   rightParenthesis: )
 ''');
@@ -429,7 +437,8 @@ FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
     declaredElement: <testLibraryFragment> p1@21
-      type: void Function()
+      element: isPublic
+        type: void Function()
   rightParenthesis: )
 ''');
 
@@ -448,7 +457,8 @@ FormalParameterList
       rightParenthesis: )
     question: ?
     declaredElement: <testLibraryFragment> p2@45
-      type: void Function()?
+      element: isPublic
+        type: void Function()?
   rightParenthesis: )
 ''');
 
@@ -469,9 +479,11 @@ FormalParameterList
         rightParenthesis: )
       question: ?
       declaredElement: <testLibraryFragment> p3@71
-        type: void Function()?
+        element: isPublic
+          type: void Function()?
     declaredElement: <testLibraryFragment> p3@71
-      type: void Function()?
+      element: isPublic
+        type: void Function()?
   rightDelimiter: }
   rightParenthesis: )
 ''');

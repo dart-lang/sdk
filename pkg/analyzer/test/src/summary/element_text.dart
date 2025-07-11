@@ -719,6 +719,7 @@ class _Element2Writer extends _AbstractElementWriter {
   }
 
   void _writeFormalParameterFragment(FormalParameterFragment f) {
+    f as FormalParameterFragmentImpl;
     // if (f.isNamed && f.enclosingFragment is ExecutableFragment) {
     //   expect(f.reference, isNotNull);
     // } else {
@@ -756,8 +757,18 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeType('type', f.type);
       _writeMetadata(f.metadata);
       // _writeCodeRange(f);
-      // _writeTypeParameterElements(e.typeParameters);
-      // _writeFragmentList('parameters', f, f.parameters2, _writeFormalParameterFragments);
+      _writeFragmentList(
+        'typeParameters',
+        f,
+        f.typeParameters,
+        _writeTypeParameterFragment,
+      );
+      _writeFragmentList(
+        'parameters',
+        f,
+        f.parameters,
+        _writeFormalParameterFragment,
+      );
       _writeVariableFragmentInitializer(f);
       // _writeNonSyntheticElement(e);
       // _writeFieldFormalParameterField(e);

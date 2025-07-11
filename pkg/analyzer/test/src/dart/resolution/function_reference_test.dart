@@ -4113,13 +4113,15 @@ FunctionReference
             element2: #E0 T
             type: T
           declaredElement: <testLibraryFragment> null@null
-            type: T
+            element: isPrivate
+              type: T
         rightParenthesis: )
       declaredElement: GenericFunctionTypeElement
         parameters
           <empty>
             kind: required positional
-            type: T
+            element:
+              type: T
         returnType: void
         type: void Function<T>(T)
       type: void Function<T>(T)
@@ -4334,7 +4336,8 @@ FunctionReference
           type: T
         name: a
         declaredElement: <testLibraryFragment> a@42
-          type: T
+          element: isPublic
+            type: T
       rightParenthesis: )
     body: BlockFunctionBody
       block: Block

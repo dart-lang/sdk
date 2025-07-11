@@ -57,7 +57,8 @@ FunctionDeclarationStatement
             type: T
           name: a
           declaredElement: <testLibraryFragment> a@25
-            type: T
+            element: isPublic
+              type: T
         parameter: SimpleFormalParameter
           type: NamedType
             name: U
@@ -65,7 +66,8 @@ FunctionDeclarationStatement
             type: U
           name: b
           declaredElement: <testLibraryFragment> b@30
-            type: U
+            element: isPublic
+              type: U
         rightParenthesis: )
       body: ExpressionFunctionBody
         functionDefinition: =>
@@ -137,7 +139,8 @@ FunctionDeclarationStatement
             type: T
           name: x
           declaredElement: <testLibraryFragment> x@51
-            type: T
+            element: isPublic
+              type: T
         parameter: SimpleFormalParameter
           type: NamedType
             name: U
@@ -145,7 +148,8 @@ FunctionDeclarationStatement
             type: U
           name: y
           declaredElement: <testLibraryFragment> y@56
-            type: U
+            element: isPublic
+              type: U
         parameter: SimpleFormalParameter
           type: NamedType
             name: V
@@ -153,7 +157,8 @@ FunctionDeclarationStatement
             type: V
           name: z
           declaredElement: <testLibraryFragment> z@61
-            type: V
+            element: isPublic
+              type: V
         rightParenthesis: )
       body: BlockFunctionBody
         block: Block
@@ -207,9 +212,11 @@ FunctionDeclarationStatement
               type: T?
             name: a
             declaredElement: <testLibraryFragment> a@27
-              type: T?
+              element: isPublic
+                type: T?
           declaredElement: <testLibraryFragment> a@27
-            type: T?
+            element: isPublic
+              type: T?
         rightDelimiter: }
         rightParenthesis: )
       body: BlockFunctionBody
@@ -264,9 +271,11 @@ FunctionDeclarationStatement
               type: T?
             name: a
             declaredElement: <testLibraryFragment> a@27
-              type: T?
+              element: isPublic
+                type: T?
           declaredElement: <testLibraryFragment> a@27
-            type: T?
+            element: isPublic
+              type: T?
         rightDelimiter: ]
         rightParenthesis: )
       body: BlockFunctionBody
@@ -322,9 +331,11 @@ FunctionDeclarationStatement
               type: T?
             name: a
             declaredElement: <testLibraryFragment> a@36
-              type: T?
+              element: isPublic
+                type: T?
           declaredElement: <testLibraryFragment> a@36
-            type: T?
+            element: isPublic
+              type: T?
         rightDelimiter: }
         rightParenthesis: )
       body: BlockFunctionBody
@@ -376,7 +387,8 @@ FunctionDeclarationStatement
             type: T
           name: a
           declaredElement: <testLibraryFragment> a@25
-            type: T
+            element: isPublic
+              type: T
         rightParenthesis: )
       body: BlockFunctionBody
         block: Block

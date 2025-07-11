@@ -31,7 +31,6 @@ CastPattern
     keyword: var
     name: y
     declaredFragment: isPublic y@29
-      type: null
       element: hasImplicitType isPublic
         type: int
     matchedValueType: int
@@ -91,7 +90,6 @@ PatternVariableDeclaration
       pattern: DeclaredVariablePattern
         name: a
         declaredFragment: isPublic a@19
-          type: null
           element: hasImplicitType isPublic
             type: int
         matchedValueType: int

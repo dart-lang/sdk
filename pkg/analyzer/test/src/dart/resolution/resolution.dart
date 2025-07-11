@@ -27,6 +27,7 @@ import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:test/test.dart';
 
 import '../../../generated/test_support.dart';
+import '../../../util/diff.dart';
 import '../../../util/element_printer.dart';
 import '../../summary/resolved_ast_printer.dart';
 import '../analysis/result_printer.dart';
@@ -299,10 +300,10 @@ mixin ResolutionTest implements ResourceProviderMixin {
   void assertResolvedNodeText(AstNode node, String expected) {
     var actual = _resolvedNodeText(node);
     if (actual != expected) {
-      print(actual);
       NodeTextExpectationsCollector.add(actual);
+      printPrettyDiff(expected, actual);
+      fail('See the difference above.');
     }
-    expect(actual, expected);
   }
 
   void assertSubstitution(

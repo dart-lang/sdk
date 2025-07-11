@@ -38,7 +38,6 @@ PatternVariableDeclarationStatement
           type: num
         name: a
         declaredFragment: isFinal isPublic a@24
-          type: num
           element: isFinal isPublic
             type: num
         matchedValueType: int
@@ -70,7 +69,6 @@ PatternVariableDeclarationStatement
       pattern: DeclaredVariablePattern
         name: a
         declaredFragment: isFinal isPublic a@20
-          type: null
           element: hasImplicitType isFinal isPublic
             type: int
         matchedValueType: int
@@ -106,7 +104,6 @@ PatternVariableDeclarationStatement
       pattern: DeclaredVariablePattern
         name: a
         declaredFragment: isPublic a@18
-          type: null
           element: hasImplicitType isPublic
             type: A
         matchedValueType: A
@@ -150,7 +147,6 @@ PatternVariableDeclarationStatement
           type: num
         name: a
         declaredFragment: isPublic a@22
-          type: num
           element: isPublic
             type: num
         matchedValueType: int
@@ -190,7 +186,6 @@ PatternVariableDeclarationStatement
           type: int
         name: a
         declaredFragment: isPublic a@22
-          type: int
           element: isPublic
             type: int
         matchedValueType: int
@@ -231,7 +226,6 @@ PatternVariableDeclarationStatement
       pattern: DeclaredVariablePattern
         name: a
         declaredFragment: isPublic a@18
-          type: null
           element: hasImplicitType isPublic
             type: int
         matchedValueType: int
@@ -270,7 +264,6 @@ PatternVariableDeclarationStatement
           pattern: DeclaredVariablePattern
             name: a
             declaredFragment: isPublic a@33
-              type: null
               element: hasImplicitType isPublic
                 type: int
             matchedValueType: int
@@ -279,7 +272,6 @@ PatternVariableDeclarationStatement
           pattern: DeclaredVariablePattern
             name: b
             declaredFragment: isPublic b@36
-              type: null
               element: hasImplicitType isPublic
                 type: String
             matchedValueType: String
@@ -319,7 +311,6 @@ PatternVariableDeclarationStatement
           pattern: DeclaredVariablePattern
             name: a
             declaredFragment: isPublic a@18
-              type: null
               element: hasImplicitType isPublic
                 type: int
             matchedValueType: int

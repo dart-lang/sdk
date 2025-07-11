@@ -39,7 +39,6 @@ ListPattern
         type: int
       name: a
       declaredFragment: isPublic a@41
-        type: int
         element: isPublic
           type: int
       matchedValueType: dynamic
@@ -70,7 +69,6 @@ ListPattern
       keyword: var
       name: a
       declaredFragment: isPublic a@41
-        type: null
         element: hasImplicitType isPublic
           type: dynamic
       matchedValueType: dynamic
@@ -109,7 +107,6 @@ ListPattern
       keyword: var
       name: a
       declaredFragment: isPublic a@46
-        type: null
         element: hasImplicitType isPublic
           type: int
       matchedValueType: int
@@ -168,7 +165,6 @@ ListPattern
         keyword: var
         name: rest
         declaredFragment: isPublic rest@46
-          type: null
           element: hasImplicitType isPublic
             type: List<int>
         matchedValueType: List<int>
@@ -199,7 +195,6 @@ ListPattern
       keyword: var
       name: a
       declaredFragment: isPublic a@51
-        type: null
         element: hasImplicitType isPublic
           type: int
       matchedValueType: int
@@ -238,7 +233,6 @@ ListPattern
       keyword: var
       name: a
       declaredFragment: isPublic a@56
-        type: null
         element: hasImplicitType isPublic
           type: int
       matchedValueType: int
@@ -316,7 +310,6 @@ ListPattern
         type: int
       name: a
       declaredFragment: isPublic a@48
-        type: int
         element: isPublic
           type: int
       matchedValueType: Object?
@@ -347,7 +340,6 @@ ListPattern
       keyword: var
       name: a
       declaredFragment: isPublic a@48
-        type: null
         element: hasImplicitType isPublic
           type: Object?
       matchedValueType: Object?
@@ -422,7 +414,6 @@ ListPattern
         type: int
       name: a
       declaredFragment: isPublic a@53
-        type: int
         element: isPublic
           type: int
       matchedValueType: num
@@ -461,7 +452,6 @@ ListPattern
       keyword: var
       name: a
       declaredFragment: isPublic a@53
-        type: null
         element: hasImplicitType isPublic
           type: int
       matchedValueType: int
@@ -490,7 +480,6 @@ PatternVariableDeclaration
       DeclaredVariablePattern
         name: a
         declaredFragment: isPublic a@29
-          type: null
           element: hasImplicitType isPublic
             type: int
         matchedValueType: int
@@ -535,7 +524,6 @@ PatternVariableDeclaration
       DeclaredVariablePattern
         name: a
         declaredFragment: isPublic a@23
-          type: null
           element: hasImplicitType isPublic
             type: int
         matchedValueType: int
@@ -584,7 +572,6 @@ PatternVariableDeclaration
           type: int
         name: a
         declaredFragment: isPublic a@22
-          type: int
           element: isPublic
             type: int
         matchedValueType: int

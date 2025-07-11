@@ -894,14 +894,17 @@ library
               formalParameters
                 #F6 this.x @44
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
+                  parameters
+                    #F7 a @53
+                      element: a@53
           getters
-            #F7 synthetic v
+            #F8 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
               returnType: E
-            #F8 synthetic values
+            #F9 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
               returnType: List<E>
-            #F9 synthetic x
+            #F10 synthetic x
               element: <testLibrary>::@enum::E::@getter::x
               returnType: dynamic
   enums
@@ -941,22 +944,22 @@ library
               type: int Function(double)
               formalParameters
                 #E1 requiredPositional a
-                  firstFragment: #F10
+                  firstFragment: #F7
                   type: double
       getters
         synthetic static v
           reference: <testLibrary>::@enum::E::@getter::v
-          firstFragment: #F7
+          firstFragment: #F8
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
-          firstFragment: #F8
+          firstFragment: #F9
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
         synthetic x
           reference: <testLibrary>::@enum::E::@getter::x
-          firstFragment: #F9
+          firstFragment: #F10
           returnType: dynamic
           variable: <testLibrary>::@enum::E::@field::x
 ''');

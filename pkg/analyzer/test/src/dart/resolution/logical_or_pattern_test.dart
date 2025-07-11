@@ -89,7 +89,6 @@ LogicalOrPattern
       keyword: var
       name: a
       declaredFragment: isPublic a@27
-        type: null
         element: hasImplicitType isPublic
           type: int
       matchedValueType: int
@@ -98,7 +97,6 @@ LogicalOrPattern
       keyword: var
       name: a
       declaredFragment: isPublic a@36
-        type: null
         element: hasImplicitType isPublic
           type: int
       matchedValueType: int
@@ -108,7 +106,6 @@ LogicalOrPattern
     keyword: var
     name: a
     declaredFragment: isPublic a@45
-      type: null
       element: hasImplicitType isPublic
         type: int
     matchedValueType: int

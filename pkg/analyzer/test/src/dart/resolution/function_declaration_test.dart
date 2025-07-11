@@ -379,7 +379,8 @@ FunctionDeclaration
           type: double
         name: a
         declaredElement: <testLibraryFragment> a@19
-          type: double
+          element: isPublic
+            type: double
       rightParenthesis: )
     body: ExpressionFunctionBody
       functionDefinition: =>
@@ -590,23 +591,27 @@ TypeParameter
           element2: <null>
           type: InvalidType
         declaredElement: <testLibraryFragment> null@null
-          type: InvalidType
+          element: isPrivate
+            type: InvalidType
       parameter: SimpleFormalParameter
         type: NamedType
           name: _
           element2: <null>
           type: InvalidType
         declaredElement: <testLibraryFragment> null@null
-          type: InvalidType
+          element: isPrivate
+            type: InvalidType
       rightParenthesis: )
     declaredElement: GenericFunctionTypeElement
       parameters
         <empty>
           kind: required positional
-          type: InvalidType
+          element:
+            type: InvalidType
         <empty>
           kind: required positional
-          type: InvalidType
+          element:
+            type: InvalidType
       returnType: void
       type: void Function<_>(InvalidType, InvalidType)
     type: void Function<_>(InvalidType, InvalidType)

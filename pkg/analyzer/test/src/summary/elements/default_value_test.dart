@@ -314,6 +314,9 @@ library
           formalParameters
             #F2 g @8
               element: <testLibrary>::@function::f::@formalParameter::g
+              parameters
+                #F3 a @11
+                  element: a@11
   functions
     f
       reference: <testLibrary>::@function::f

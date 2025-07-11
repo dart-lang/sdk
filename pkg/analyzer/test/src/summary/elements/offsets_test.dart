@@ -3029,16 +3029,22 @@ library
           formalParameters
             #F2 f @12
               element: <testLibrary>::@function::f::@formalParameter::f
+              typeParameters
+                #F3 U @14
+                  element: #E0 U
+              parameters
+                #F4 a @21
+                  element: a@21
   functions
     f
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       formalParameters
-        #E0 requiredPositional f
+        #E1 requiredPositional f
           firstFragment: #F2
           type: void Function<U>(int)
           typeParameters
-            #E1 U
+            #E0 U
               firstFragment: #F3
           formalParameters
             #E2 requiredPositional a
@@ -3064,16 +3070,22 @@ library
           formalParameters
             #F2 f @22
               element: <testLibrary>::@function::f::@formalParameter::f
+              typeParameters
+                #F3 U @24
+                  element: #E0 U
+              parameters
+                #F4 a @31
+                  element: a@31
   functions
     f
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       formalParameters
-        #E0 requiredNamed f
+        #E1 requiredNamed f
           firstFragment: #F2
           type: void Function<U>(int)
           typeParameters
-            #E1 U
+            #E0 U
               firstFragment: #F3
           formalParameters
             #E2 requiredPositional a

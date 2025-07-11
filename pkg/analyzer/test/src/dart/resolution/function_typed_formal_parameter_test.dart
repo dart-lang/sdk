@@ -49,7 +49,8 @@ FunctionTypedFormalParameter
         type: U
       name: a
       declaredElement: <testLibraryFragment> a@22
-        type: U
+        element: isPublic
+          type: U
     parameter: SimpleFormalParameter
       type: NamedType
         name: V
@@ -57,10 +58,12 @@ FunctionTypedFormalParameter
         type: V
       name: b
       declaredElement: <testLibraryFragment> b@27
-        type: V
+        element: isPublic
+          type: V
     rightParenthesis: )
   declaredElement: <testLibraryFragment> p@12
-    type: T Function<T, U>(U, V)
+    element: isPublic
+      type: T Function<T, U>(U, V)
 ''');
   }
 
@@ -86,10 +89,12 @@ FunctionTypedFormalParameter
         type: int
       name: a
       declaredElement: <testLibraryFragment> a@18
-        type: int
+        element: isPublic
+          type: int
     rightParenthesis: )
   declaredElement: <testLibraryFragment> p@12
-    type: void Function(int)
+    element: isPublic
+      type: void Function(int)
 ''');
   }
 }

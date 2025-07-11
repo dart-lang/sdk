@@ -307,7 +307,6 @@ SwitchStatement
             type: int
           name: a
           declaredFragment: isPublic a@48
-            type: int
             element: isPublic
               type: int
           matchedValueType: Object?
@@ -337,7 +336,6 @@ SwitchStatement
             type: int
           name: a
           declaredFragment: isPublic a@75
-            type: int
             element: isPublic
               type: int
           matchedValueType: Object?
@@ -402,7 +400,6 @@ SwitchStatement
             type: int
           name: a
           declaredFragment: isFinal isPublic a@54
-            type: int
             element: isFinal isPublic
               type: int
           matchedValueType: Object?
@@ -433,7 +430,6 @@ SwitchStatement
             type: int
           name: a
           declaredFragment: isFinal isPublic a@87
-            type: int
             element: isFinal isPublic
               type: int
           matchedValueType: Object?
@@ -498,7 +494,6 @@ SwitchStatement
               type: int
             name: a
             declaredFragment: isPublic a@48
-              type: int
               element: isPublic
                 type: int
             matchedValueType: Object?
@@ -513,7 +508,6 @@ SwitchStatement
                   type: int
                 name: a
                 declaredFragment: isPublic a@58
-                  type: int
                   element: isPublic
                     type: int
                 matchedValueType: Object?
@@ -548,7 +542,6 @@ SwitchStatement
               type: int
             name: a
             declaredFragment: isPublic a@86
-              type: int
               element: isPublic
                 type: int
             matchedValueType: Object?
@@ -563,7 +556,6 @@ SwitchStatement
                   type: int
                 name: a
                 declaredFragment: isPublic a@96
-                  type: int
                   element: isPublic
                     type: int
                 matchedValueType: Object?
@@ -642,7 +634,6 @@ SwitchStatement
             type: int
           name: a
           declaredFragment: isFinal isPublic a@54
-            type: int
             element: isFinal isPublic
               type: int
           matchedValueType: Object?
@@ -672,7 +663,6 @@ SwitchStatement
             type: int
           name: a
           declaredFragment: isPublic a@81
-            type: int
             element: isPublic
               type: int
           matchedValueType: Object?
@@ -747,7 +737,6 @@ SwitchStatement
             type: int
           name: a
           declaredFragment: isFinal isPublic a@54
-            type: int
             element: isFinal isPublic
               type: int
           matchedValueType: Object?
@@ -777,7 +766,6 @@ SwitchStatement
             type: num
           name: a
           declaredFragment: isPublic a@81
-            type: num
             element: isPublic
               type: num
           matchedValueType: Object?
@@ -851,7 +839,6 @@ SwitchStatement
             type: int
           name: a
           declaredFragment: isPublic a@48
-            type: int
             element: isPublic
               type: int
           matchedValueType: Object?
@@ -881,7 +868,6 @@ SwitchStatement
             type: num
           name: a
           declaredFragment: isPublic a@75
-            type: num
             element: isPublic
               type: num
           matchedValueType: Object?
@@ -963,7 +949,6 @@ SwitchStatement
             type: int
           name: a
           declaredFragment: isPublic a@60
-            type: int
             element: isPublic
               type: int
           matchedValueType: Object?
@@ -1036,7 +1021,6 @@ SwitchStatement
             type: int
           name: a
           declaredFragment: isPublic a@48
-            type: int
             element: isPublic
               type: int
           matchedValueType: Object?
@@ -1118,7 +1102,6 @@ SwitchStatement
             type: int
           name: a
           declaredFragment: isPublic a@48
-            type: int
             element: isPublic
               type: int
           matchedValueType: Object?
@@ -1195,7 +1178,6 @@ SwitchStatement
           keyword: var
           name: a
           declaredFragment: isPublic a@48
-            type: null
             element: hasImplicitType isPublic
               type: Object?
           matchedValueType: Object?
@@ -1207,7 +1189,6 @@ SwitchStatement
           keyword: var
           name: a
           declaredFragment: isPublic a@64
-            type: null
             element: hasImplicitType isPublic
               type: Object?
           matchedValueType: Object?
@@ -1276,7 +1257,6 @@ SwitchStatement
             type: int
           name: a
           declaredFragment: isPublic a@61
-            type: int
             element: isPublic
               type: int
           matchedValueType: Object?
@@ -1362,7 +1342,6 @@ SwitchStatement
             type: int
           name: a
           declaredFragment: isPublic a@48
-            type: int
             element: isPublic
               type: int
           matchedValueType: Object?
@@ -1377,7 +1356,6 @@ SwitchStatement
             type: double
           name: b
           declaredFragment: isPublic b@67
-            type: double
             element: isPublic
               type: double
           matchedValueType: Object?
@@ -1392,7 +1370,6 @@ SwitchStatement
             type: String
           name: c
           declaredFragment: isPublic c@86
-            type: String
             element: isPublic
               type: String
           matchedValueType: Object?
@@ -1464,7 +1441,6 @@ SwitchStatement
                 keyword: var
                 name: a
                 declaredFragment: isPublic a@54
-                  type: null
                   element: hasImplicitType isPublic
                     type: int
                 matchedValueType: int
@@ -1473,7 +1449,6 @@ SwitchStatement
                 keyword: var
                 name: a
                 declaredFragment: isPublic a@63
-                  type: null
                   element: hasImplicitType isPublic
                     type: int
                 matchedValueType: int
@@ -1544,7 +1519,6 @@ SwitchStatement
                 type: int
               name: a
               declaredFragment: isPublic a@62
-                type: int
                 element: isPublic
                   type: int
               matchedValueType: Object?
@@ -1618,7 +1592,6 @@ SwitchStatement
             type: int
           name: a
           declaredFragment: isPublic a@48
-            type: int
             element: isPublic
               type: int
           matchedValueType: Object?

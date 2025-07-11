@@ -435,7 +435,8 @@ FunctionExpression
     parameter: SimpleFormalParameter
       name: item
       declaredElement: <testLibraryFragment> item@43
-        type: int
+        element: hasImplicitType isPublic
+          type: int
     rightParenthesis: )
   body: BlockFunctionBody
     block: Block
@@ -472,7 +473,8 @@ FunctionExpression
     parameter: SimpleFormalParameter
       name: x
       declaredElement: <testLibraryFragment> x@53
-        type: Object?
+        element: hasImplicitType isPublic
+          type: Object?
     rightParenthesis: )
   body: BlockFunctionBody
     block: Block
@@ -502,7 +504,8 @@ FunctionExpression
     parameter: SimpleFormalParameter
       name: x
       declaredElement: <testLibraryFragment> x@52
-        type: Object?
+        element: hasImplicitType isPublic
+          type: Object?
     rightParenthesis: )
   body: BlockFunctionBody
     block: Block
@@ -545,7 +548,8 @@ FunctionExpression
         type: T
       name: a
       declaredElement: <testLibraryFragment> a@29
-        type: T
+        element: isPublic
+          type: T
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>

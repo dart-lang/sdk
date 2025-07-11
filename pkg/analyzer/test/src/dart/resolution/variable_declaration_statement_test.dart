@@ -45,7 +45,6 @@ VariableDeclarationStatement
           superKeyword: super
           staticType: A
         declaredFragment: isFinal isPublic a@33
-          type: null
           element: hasImplicitType isFinal isPublic
             type: A
   semicolon: ;
@@ -77,7 +76,6 @@ VariableDeclarationStatement
           thisKeyword: this
           staticType: A
         declaredFragment: isFinal isPublic a@33
-          type: null
           element: hasImplicitType isFinal isPublic
             type: A
   semicolon: ;

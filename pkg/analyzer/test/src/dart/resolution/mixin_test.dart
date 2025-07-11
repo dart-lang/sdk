@@ -311,7 +311,8 @@ MethodDeclaration
         type: int
       name: _
       declaredElement: <testLibraryFragment> _@29
-        type: int
+        element: isPrivate
+          type: int
     rightParenthesis: )
   body: BlockFunctionBody
     block: Block

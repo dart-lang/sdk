@@ -71,7 +71,6 @@ ForStatement
       keyword: var
       name: x
       declaredFragment: isPublic x@47
-        type: null
         element: hasImplicitType isPublic
           type: InvalidType
     inKeyword: in
