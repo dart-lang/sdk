@@ -68,7 +68,6 @@ import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_byte_store.dart'
     show EvictingFileByteStore;
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
-import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
@@ -169,8 +168,6 @@ abstract class AnalysisServer {
   late FileContentCache fileContentCache;
 
   final UnlinkedUnitStore unlinkedUnitStore = UnlinkedUnitStoreImpl();
-
-  final InfoDeclarationStore infoDeclarationStore = InfoDeclarationStoreImpl();
 
   late final analysis.AnalysisDriverScheduler analysisDriverScheduler;
 
@@ -388,7 +385,6 @@ abstract class AnalysisServer {
       byteStore,
       fileContentCache,
       unlinkedUnitStore,
-      infoDeclarationStore,
       analysisPerformanceLogger,
       analysisDriverScheduler,
       instrumentationService,

@@ -275,7 +275,7 @@ class TypeConstraintGatherer
     // not contain any variables from `L`.
     var newTypeParameters = <TypeParameterElementImpl>[];
     for (var i = 0; i < P.typeParameters.length; i++) {
-      var Z = TypeParameterFragmentImpl(name: 'Z$i', nameOffset: -1);
+      var Z = TypeParameterFragmentImpl(name: 'Z$i', firstTokenOffset: null);
       if (leftSchema) {
         Z.bound = P.typeParameters[i].bound;
       } else {

@@ -244,24 +244,24 @@ class ExtendedTypeEnvironment<T extends ExtendableTypeEnvironment>
     var baseEnvironmentNeeded = requiredParameters.any(
       _baseTypeEnvironment._typeParameters.contains,
     );
-    var additionalParameters = requiredParameters.where(
-      _typeParameters.contains,
-    );
-    if (additionalParameters.isEmpty) {
-      return baseEnvironmentNeeded
-          // Simply using the base environment has a compact representation
-          // and is already constructed.
-          ? _baseTypeEnvironment
+    var additionalParameters = requiredParameters
+        .where(_typeParameters.contains)
+        .toList();
+    if (!baseEnvironmentNeeded) {
+      return additionalParameters.isEmpty
           // No type parameters are needed from this environment.
-          : const EmptyTypeEnvironment();
+          ? const EmptyTypeEnvironment()
+          // A binding environment with a single parameter will be reduced to
+          // just the parameter.
+          : BindingTypeEnvironment(additionalParameters);
     }
+    // Simply using the base environment has a compact representation and at
+    // runtime it has already been constructed.
+    if (additionalParameters.isEmpty) return _baseTypeEnvironment;
     // This is already the exact environment needed.
     if (additionalParameters.length == _typeParameters.length) return this;
     // An extended environment with fewer additional parameters is needed.
-    return ExtendedTypeEnvironment(
-      _baseTypeEnvironment,
-      additionalParameters.toList(),
-    );
+    return ExtendedTypeEnvironment(_baseTypeEnvironment, additionalParameters);
   }
 
   @override

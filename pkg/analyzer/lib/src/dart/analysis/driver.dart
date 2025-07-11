@@ -25,7 +25,6 @@ import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/file_tracker.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
-import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
 import 'package:analyzer/src/dart/analysis/library_analyzer.dart';
 import 'package:analyzer/src/dart/analysis/library_context.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
@@ -110,7 +109,7 @@ testFineAfterLibraryAnalyzerHook;
 // TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 493;
+  static const int DATA_VERSION = 494;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -130,11 +129,6 @@ class AnalysisDriver {
   ///
   /// It can be shared with other [AnalysisDriver]s.
   final ByteStore _byteStore;
-
-  /// The cache of deserialized data read from SummaryDataReader.
-  ///
-  /// It can be shared with other [AnalysisDriver]s.
-  final InfoDeclarationStore _infoDeclarationStore;
 
   final LinkedBundleProvider linkedBundleProvider;
 
@@ -305,7 +299,6 @@ class AnalysisDriver {
     AnalysisOptionsMap? analysisOptionsMap,
     FileContentCache? fileContentCache,
     UnlinkedUnitStore? unlinkedUnitStore,
-    InfoDeclarationStore? infoDeclarationStore,
     this.enableIndex = false,
     this.shouldReportInconsistentAnalysisException = true,
     SummaryDataStore? externalSummaries,
@@ -319,8 +312,6 @@ class AnalysisDriver {
        _fileContentCache =
            fileContentCache ?? FileContentCache.ephemeral(resourceProvider),
        _unlinkedUnitStore = unlinkedUnitStore ?? UnlinkedUnitStoreImpl(),
-       _infoDeclarationStore =
-           infoDeclarationStore ?? NoOpInfoDeclarationStore(),
        _logger = logger,
        _packages = packages,
        linkedBundleProvider =
@@ -407,7 +398,6 @@ class AnalysisDriver {
       logger: _logger,
       byteStore: _byteStore,
       eventsController: _scheduler.eventsController,
-      infoDeclarationStore: _infoDeclarationStore,
       analysisOptionsMap: analysisOptionsMap,
       declaredVariables: declaredVariables,
       sourceFactory: _sourceFactory,

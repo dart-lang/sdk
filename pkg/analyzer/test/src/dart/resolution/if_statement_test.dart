@@ -106,7 +106,7 @@ IfStatement
         expression: BinaryExpression
           leftOperand: SimpleIdentifier
             token: a
-            element: a@-1
+            element: a@null
             staticType: int
           operator: >
           rightOperand: IntegerLiteral
@@ -123,7 +123,7 @@ IfStatement
       ExpressionStatement
         expression: SimpleIdentifier
           token: a
-          element: a@-1
+          element: a@null
           staticType: int
         semicolon: ;
     rightBracket: }
@@ -192,7 +192,7 @@ IfStatement
         expression: BinaryExpression
           leftOperand: SimpleIdentifier
             token: a
-            element: a@-1
+            element: a@null
             staticType: int
           operator: >
           rightOperand: IntegerLiteral
@@ -209,7 +209,7 @@ IfStatement
       ExpressionStatement
         expression: SimpleIdentifier
           token: a
-          element: a@-1
+          element: a@null
           staticType: int
         semicolon: ;
     rightBracket: }
@@ -283,7 +283,7 @@ IfStatement
         expression: BinaryExpression
           leftOperand: SimpleIdentifier
             token: a
-            element: a@-1
+            element: a@null
             staticType: int
           operator: >
           rightOperand: IntegerLiteral
@@ -300,7 +300,7 @@ IfStatement
       ExpressionStatement
         expression: SimpleIdentifier
           token: a
-          element: a@-1
+          element: a@null
           staticType: int
         semicolon: ;
     rightBracket: }
@@ -373,7 +373,7 @@ IfStatement
         expression: BinaryExpression
           leftOperand: SimpleIdentifier
             token: a
-            element: a@-1
+            element: a@null
             staticType: InvalidType
           operator: >
           rightOperand: IntegerLiteral
@@ -390,7 +390,7 @@ IfStatement
       ExpressionStatement
         expression: SimpleIdentifier
           token: a
-          element: a@-1
+          element: a@null
           staticType: InvalidType
         semicolon: ;
     rightBracket: }
@@ -456,7 +456,7 @@ IfStatement
         expression: BinaryExpression
           leftOperand: SimpleIdentifier
             token: a
-            element: a@-1
+            element: a@null
             staticType: int
           operator: >
           rightOperand: IntegerLiteral
@@ -473,7 +473,7 @@ IfStatement
       ExpressionStatement
         expression: SimpleIdentifier
           token: a
-          element: a@-1
+          element: a@null
           staticType: int
         semicolon: ;
     rightBracket: }
@@ -542,7 +542,7 @@ IfStatement
         expression: BinaryExpression
           leftOperand: SimpleIdentifier
             token: a
-            element: a@-1
+            element: a@null
             staticType: int
           operator: >
           rightOperand: IntegerLiteral
@@ -559,7 +559,7 @@ IfStatement
       ExpressionStatement
         expression: SimpleIdentifier
           token: a
-          element: a@-1
+          element: a@null
           staticType: int
         semicolon: ;
     rightBracket: }
@@ -631,7 +631,7 @@ IfStatement
         expression: BinaryExpression
           leftOperand: SimpleIdentifier
             token: a
-            element: a@-1
+            element: a@null
             staticType: int
           operator: >
           rightOperand: IntegerLiteral
@@ -648,7 +648,7 @@ IfStatement
       ExpressionStatement
         expression: SimpleIdentifier
           token: a
-          element: a@-1
+          element: a@null
           staticType: int
         semicolon: ;
     rightBracket: }
@@ -717,7 +717,7 @@ IfStatement
         expression: BinaryExpression
           leftOperand: SimpleIdentifier
             token: a
-            element: a@-1
+            element: a@null
             staticType: int
           operator: >
           rightOperand: IntegerLiteral
@@ -734,7 +734,7 @@ IfStatement
       ExpressionStatement
         expression: SimpleIdentifier
           token: a
-          element: a@-1
+          element: a@null
           staticType: int
         semicolon: ;
     rightBracket: }
@@ -800,7 +800,7 @@ IfStatement
         expression: BinaryExpression
           leftOperand: SimpleIdentifier
             token: a
-            element: a@-1
+            element: a@null
             staticType: int
           operator: >
           rightOperand: IntegerLiteral
@@ -817,7 +817,7 @@ IfStatement
       ExpressionStatement
         expression: SimpleIdentifier
           token: a
-          element: a@-1
+          element: a@null
           staticType: int
         semicolon: ;
     rightBracket: }
@@ -886,7 +886,7 @@ IfStatement
         expression: BinaryExpression
           leftOperand: SimpleIdentifier
             token: a
-            element: a@-1
+            element: a@null
             staticType: int
           operator: >
           rightOperand: IntegerLiteral
@@ -903,7 +903,7 @@ IfStatement
       ExpressionStatement
         expression: SimpleIdentifier
           token: a
-          element: a@-1
+          element: a@null
           staticType: int
         semicolon: ;
     rightBracket: }
@@ -1066,7 +1066,7 @@ IfStatement
         rightOperand: ConstantPattern
           expression: SimpleIdentifier
             token: a
-            element: a@-1
+            element: a@null
             staticType: InvalidType
           matchedValueType: Object?
         matchedValueType: Object?
@@ -1074,7 +1074,7 @@ IfStatement
         whenKeyword: when
         expression: SimpleIdentifier
           token: a
-          element: a@-1
+          element: a@null
           staticType: bool
   rightParenthesis: )
   thenStatement: Block
@@ -1083,7 +1083,7 @@ IfStatement
       ExpressionStatement
         expression: SimpleIdentifier
           token: a
-          element: a@-1
+          element: a@null
           staticType: bool
         semicolon: ;
     rightBracket: }

@@ -1377,9 +1377,9 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 synthetic foo (offset=-1)
+        #F1 synthetic foo (offset=8)
           element: <testLibrary>::@topLevelVariable::foo::@def::0
-        #F2 synthetic foo (offset=-1)
+        #F2 synthetic foo (offset=26)
           element: <testLibrary>::@topLevelVariable::foo::@def::1
       getters
         #F3 foo @8
@@ -1426,9 +1426,9 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 synthetic foo (offset=-1)
+        #F1 synthetic foo (offset=4)
           element: <testLibrary>::@topLevelVariable::foo::@def::0
-        #F2 synthetic foo (offset=-1)
+        #F2 synthetic foo (offset=22)
           element: <testLibrary>::@topLevelVariable::foo::@def::1
       setters
         #F3 foo @4

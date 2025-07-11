@@ -15,7 +15,6 @@ import 'package:analyzer/src/dart/analysis/context_locator.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
-import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
 import 'package:analyzer/src/dart/analysis/library_context.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
@@ -56,7 +55,6 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     AnalysisDriverScheduler? scheduler,
     FileContentCache? fileContentCache,
     UnlinkedUnitStore? unlinkedUnitStore,
-    InfoDeclarationStore? infoDeclarationStore,
     void Function({
       required AnalysisOptionsImpl analysisOptions,
       required DartSdk sdk,
@@ -118,7 +116,6 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
         updateAnalysisOptions3: updateAnalysisOptions3,
         fileContentCache: fileContentCache,
         unlinkedUnitStore: unlinkedUnitStore ?? UnlinkedUnitStoreImpl(),
-        infoDeclarationStore: infoDeclarationStore,
         ownedFiles: ownedFiles,
         enableLintRuleTiming: enableLintRuleTiming,
       );

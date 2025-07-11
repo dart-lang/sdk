@@ -13266,7 +13266,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class <null-name> (offset=6)
+        #F1 class <null-name> (offset=0)
           element: <testLibrary>::@class::0
           constructors
             #F2 synthetic new
@@ -18443,7 +18443,7 @@ library
               element: <testLibrary>::@class::C2::@constructor::new
               typeName: C2
               formalParameters
-                #F10 i (offset=-1)
+                #F10 i (offset=67)
                   element: <testLibrary>::@class::C2::@constructor::new::@formalParameter::i
         #F11 class C1 @90
           element: <testLibrary>::@class::C1
@@ -18452,7 +18452,7 @@ library
               element: <testLibrary>::@class::C1::@constructor::new
               typeName: C1
               formalParameters
-                #F13 i (offset=-1)
+                #F13 i (offset=90)
                   element: <testLibrary>::@class::C1::@constructor::new::@formalParameter::i
   classes
     class A
@@ -18607,28 +18607,28 @@ library
               element: <testLibrary>::@class::C::@constructor::c1
               typeName: C
               formalParameters
-                #F14 a (offset=-1)
+                #F14 a (offset=118)
                   element: <testLibrary>::@class::C::@constructor::c1::@formalParameter::a
             #F15 synthetic c2
               element: <testLibrary>::@class::C::@constructor::c2
               typeName: C
               formalParameters
-                #F16 a (offset=-1)
+                #F16 a (offset=118)
                   element: <testLibrary>::@class::C::@constructor::c2::@formalParameter::a
-                #F17 b (offset=-1)
+                #F17 b (offset=118)
                   element: <testLibrary>::@class::C::@constructor::c2::@formalParameter::b
-                #F18 c (offset=-1)
+                #F18 c (offset=118)
                   element: <testLibrary>::@class::C::@constructor::c2::@formalParameter::c
                   initializer: expression_0
             #F19 synthetic c3
               element: <testLibrary>::@class::C::@constructor::c3
               typeName: C
               formalParameters
-                #F20 a (offset=-1)
+                #F20 a (offset=118)
                   element: <testLibrary>::@class::C::@constructor::c3::@formalParameter::a
-                #F21 b (offset=-1)
+                #F21 b (offset=118)
                   element: <testLibrary>::@class::C::@constructor::c3::@formalParameter::b
-                #F22 c (offset=-1)
+                #F22 c (offset=118)
                   element: <testLibrary>::@class::C::@constructor::c3::@formalParameter::c
                   initializer: expression_1
       mixins
@@ -18845,9 +18845,9 @@ library
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
               formalParameters
-                #F9 x (offset=-1)
+                #F9 x (offset=61)
                   element: <testLibrary>::@class::B::@constructor::new::@formalParameter::x
-                #F10 y (offset=-1)
+                #F10 y (offset=61)
                   element: <testLibrary>::@class::B::@constructor::new::@formalParameter::y
       mixins
         #F11 mixin M @49
@@ -19873,13 +19873,13 @@ library
               element: <testLibrary>::@class::MixinApp::@constructor::requiredArg
               typeName: MixinApp
               formalParameters
-                #F7 x (offset=-1)
+                #F7 x (offset=34)
                   element: <testLibrary>::@class::MixinApp::@constructor::requiredArg::@formalParameter::x
             #F8 synthetic positionalArg
               element: <testLibrary>::@class::MixinApp::@constructor::positionalArg
               typeName: MixinApp
               formalParameters
-                #F9 x (offset=-1)
+                #F9 x (offset=34)
                   element: <testLibrary>::@class::MixinApp::@constructor::positionalArg::@formalParameter::x
                   initializer: expression_0
                     BooleanLiteral
@@ -19889,7 +19889,7 @@ library
               element: <testLibrary>::@class::MixinApp::@constructor::positionalArg2
               typeName: MixinApp
               formalParameters
-                #F11 x (offset=-1)
+                #F11 x (offset=34)
                   element: <testLibrary>::@class::MixinApp::@constructor::positionalArg2::@formalParameter::x
                   initializer: expression_1
                     BooleanLiteral
@@ -19899,7 +19899,7 @@ library
               element: <testLibrary>::@class::MixinApp::@constructor::namedArg
               typeName: MixinApp
               formalParameters
-                #F13 x (offset=-1)
+                #F13 x (offset=34)
                   element: <testLibrary>::@class::MixinApp::@constructor::namedArg::@formalParameter::x
                   initializer: expression_2
                     IntegerLiteral
@@ -19909,7 +19909,7 @@ library
               element: <testLibrary>::@class::MixinApp::@constructor::namedArg2
               typeName: MixinApp
               formalParameters
-                #F15 x (offset=-1)
+                #F15 x (offset=34)
                   element: <testLibrary>::@class::MixinApp::@constructor::namedArg2::@formalParameter::x
                   initializer: expression_3
                     BooleanLiteral
@@ -20141,9 +20141,9 @@ library
               element: <testLibrary>::@class::MixinApp::@constructor::ctor
               typeName: MixinApp
               formalParameters
-                #F10 t (offset=-1)
+                #F10 t (offset=64)
                   element: <testLibrary>::@class::MixinApp::@constructor::ctor::@formalParameter::t
-                #F11 l (offset=-1)
+                #F11 l (offset=64)
                   element: <testLibrary>::@class::MixinApp::@constructor::ctor::@formalParameter::l
   classes
     class Base
@@ -20261,9 +20261,9 @@ library
               element: <testLibrary>::@class::MixinApp::@constructor::ctor
               typeName: MixinApp
               formalParameters
-                #F11 t (offset=-1)
+                #F11 t (offset=64)
                   element: <testLibrary>::@class::MixinApp::@constructor::ctor::@formalParameter::t
-                #F12 l (offset=-1)
+                #F12 l (offset=64)
                   element: <testLibrary>::@class::MixinApp::@constructor::ctor::@formalParameter::l
   classes
     class Base

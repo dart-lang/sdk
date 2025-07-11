@@ -1623,7 +1623,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       extensionTypes
-        #F1 extension type <null-name> (offset=15)
+        #F1 extension type <null-name> (offset=0)
           element: <testLibrary>::@extensionType::0
           fields
             #F2 it @20
@@ -1670,7 +1670,7 @@ library
         #F1 extension type A @15
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 <null-name> (offset=17)
+            #F2 <null-name> (offset=16)
               element: <testLibrary>::@extensionType::A::@field::0
           constructors
             #F3 new
@@ -1680,7 +1680,7 @@ library
               typeName: A
               typeNameOffset: 15
               formalParameters
-                #F4 this.<null-name> (offset=17)
+                #F4 this.<null-name> (offset=16)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::<null-name>
           getters
             #F5 synthetic <null-name>

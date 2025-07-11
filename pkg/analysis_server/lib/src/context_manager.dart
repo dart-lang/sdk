@@ -23,7 +23,6 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
-import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -190,9 +189,6 @@ class ContextManagerImpl implements ContextManager {
   /// The cache of already deserialized unlinked units.
   final UnlinkedUnitStore _unlinkedUnitStore;
 
-  /// The cache of already deserialized data from a SummaryDataReader.
-  final InfoDeclarationStore _infoDeclarationStore;
-
   /// The logger used to create analysis contexts.
   final PerformanceLog _performanceLog;
 
@@ -275,7 +271,6 @@ class ContextManagerImpl implements ContextManager {
     this._byteStore,
     this._fileContentCache,
     this._unlinkedUnitStore,
-    this._infoDeclarationStore,
     this._performanceLog,
     this._scheduler,
     this._instrumentationService, {
@@ -601,7 +596,6 @@ class ContextManagerImpl implements ContextManager {
               packagesFile: packagesFile,
               fileContentCache: _fileContentCache,
               unlinkedUnitStore: _unlinkedUnitStore,
-              infoDeclarationStore: _infoDeclarationStore,
               updateAnalysisOptions3: ({
                 required analysisOptions,
                 required sdk,

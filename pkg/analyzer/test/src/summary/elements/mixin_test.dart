@@ -1433,7 +1433,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       mixins
-        #F1 mixin <null-name> (offset=6)
+        #F1 mixin <null-name> (offset=0)
           element: <testLibrary>::@mixin::0
   mixins
     mixin <null-name>

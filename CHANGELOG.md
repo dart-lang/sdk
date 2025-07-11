@@ -10,7 +10,7 @@ modern Dart programs. As a result of this change, more dead_code warnings may be
 produced. To take advantage of these improvements, set your package's [SDK
 constraint][language version] lower bound to 3.9 or greater (`sdk: '^3.9.0'`).
 
-[language version]: https://dart.dev/guides/language/evolution
+[language version]: https://dart.dev/to/language-version
 
 ### Tools
 
@@ -69,23 +69,26 @@ constraint][language version] lower bound to 3.9 or greater (`sdk: '^3.9.0'`).
     ...
   }
   ```
+
   Could trigger the issue with a direct invocation:
 
   ```dart
   Container<dynamic>().value('Invocation with missing runtime checks!');
   ```
 
-#### Dart Native Compiler
+#### Dart native compiler
 
-Added [cross-compilation][] for the Linux ARM and Linux RISCV64 target
-platforms. Note that Linux ARM cross-compilation is not available on Windows
-host platforms.
+Added [cross-compilation][] support for
+target architectures of `arm` (ARM32) and `riscv64` (RV64GC)
+when the target OS is Linux.
+Note that Linux ARM cross-compilation is
+not available on Windows host platforms.
 
 [cross-compilation]: https://dart.dev/tools/dart-compile#cross-compilation-exe
 
 #### Pub
 
-- Git dependencies can now be version-solved based on git tags.
+- [Git dependencies][] can now be version-solved based on git tags.
 
   Use a `tag_pattern` in the descriptor and a version constraint, and all
   commits matching the pattern will be considered during resolution. For
@@ -103,18 +106,21 @@ host platforms.
 - Starting from language version 3.9 the `flutter` constraint upper bound is now
   respected in your root package. For example:
 
-```yaml
-name: my_app
-environment:
-  sdk: ^3.9.0
-  flutter: 3.33.0
-```
+  ```yaml
+  name: my_app
+  environment:
+    sdk: ^3.9.0
+    flutter: 3.33.0
+  ```
 
-Will fail `dart pub get` if invoked with any Flutter different from 3.33.0.
+  Results in `dart pub get` failing if invoked with a version of
+  the Flutter SDK different from `3.33.0`.
 
-The upper bound of the flutter constraint is still ignored in packages you use
-as dependencies.
-See https://github.com/flutter/flutter/issues/95472 for details.
+  The upper bound of the flutter constraint is still ignored in
+  packages used as dependencies.
+  See https://github.com/flutter/flutter/issues/95472 for details.
+
+[Git dependencies]: https://dart.dev/tools/pub/dependencies#git-packages
 
 ## 3.8.1
 
@@ -122,9 +128,10 @@ See https://github.com/flutter/flutter/issues/95472 for details.
 
 This is a patch release that:
 
-- Fixes an issue in DDC with late variables being incorrectly captured within async function bodies (issue [#430800])
+- Fixes an issue in DDC with late variables being incorrectly captured within
+  async function bodies (issue [#60748][]).
 
-[#430800]: https://dart-review.googlesource.com/c/sdk/+/430800
+[#60748]: https://github.com/dart-lang/sdk
 
 ## 3.8.0
 
@@ -132,19 +139,19 @@ This is a patch release that:
 
 ### Language
 
-Dart 3.8 adds [null-aware elements] to the language. To use them, set
+Dart 3.8 adds [null-aware elements][] to the language. To use them, set
 your package's [SDK constraint][language version] lower bound to 3.8
 or greater (`sdk: '^3.8.0'`).
 
-#### Null-Aware Elements
+[null-aware elements]: https://dart.dev/language/collections#null-aware-element
 
-[null-aware elements]: https://github.com/dart-lang/language/issues/323
+#### Null-aware elements
 
 Null-aware elements make it easier to omit a value from a collection literal if
 it's `null`. The syntax works in list literals, set literals, and map literals.
-For map literals, both null-aware keys and values are supported. Here is an
-example a list literal written in both styles, without the null-aware elements
-language feature and with it:
+Within map literals, both null-aware keys and values are supported.
+Here is an example a list literal written in both styles,
+without using null-aware elements and using them:
 
 ```dart
 String? lunch = isTuesday ? 'tacos!' : null;
@@ -162,9 +169,12 @@ var withNullAwareElements = [
 ];
 ```
 
-Full details are in the [feature specification][null-aware elements].
+To learn more about null-aware collection elements,
+check out the [documentation][null-aware-element-docs]
+and the [feature specification][null-aware-element-spec].
 
-[null-aware elements]: https://github.com/dart-lang/language/blob/main/accepted/future-releases/0323-null-aware-elements/feature-specification.md
+[null-aware-element-docs]: https://dart.dev/language/collections#null-aware-element
+[null-aware-element-spec]: https://github.com/dart-lang/language/blob/main/accepted/future-releases/0323-null-aware-elements/feature-specification.md
 
 ### Libraries
 
@@ -259,9 +269,10 @@ disallowed.
 
 Removed the `--experiment-new-rti` and `--use-old-rti` flags.
 
-#### Dart Native Compiler
+#### Dart native compiler
 
-Added [cross-compilation][] for the Linux x64 and Linux ARM64 target platforms.
+Added [cross-compilation][] support for the
+Linux x64 and Linux ARM64 target platforms.
 
 [cross-compilation]: https://dart.dev/tools/dart-compile#cross-compilation-exe
 
@@ -291,13 +302,15 @@ applied to code before language version 3.7.
 ##### Bug fixes
 
 * Don't add a trailing comma in lists that don't allow it, even when there is
-  a trailing comment (#1639).
+  a trailing comment (issue [dart-lang/dart_style#1639][]).
+
+[dart-lang/dart_style#1639]: https://github.com/dart-lang/dart_style/issues/1639
 
 ##### Style changes
 
-The following style changes are language versioned and only affect code whose
-language version is 3.8 or later. Dart code at 3.7 or earlier is formatted the
-same as it was before.
+The following style changes are language versioned and only
+affect code whose [language version][] is 3.8 or later.
+Dart code at 3.7 or earlier is formatted the same as it was before.
 
 * Allow more code on the same line as a named argument or `=>`.
 
@@ -479,29 +492,30 @@ This is a patch release that:
 
 ### Language
 
-Dart 3.7 adds [wildcard variables] and [inference using
+Dart 3.7 adds [wildcard variables][] and [inference using
 bounds][inference using bounds specification] to the language. To use
 them, set your package's [SDK constraint][language version] lower
 bound to 3.7 or greater (`sdk: '^3.7.0'`).
 
-#### Wildcard Variables
+[wildcard variables]: https://dart.dev/language/variables#wildcard-variables
 
-[wildcard variables]: https://github.com/dart-lang/language/issues/3712
+#### Wildcard variables
 
 Local variables and parameters named `_` are now non-binding and they can
 be declared multiple times without collisions. You will no longer be able to use
 these variables nor access their values. All wildcard variable declaration types
 that have this behavior are described in the
-[wildcard variables specification](https://github.com/dart-lang/language/blob/main/accepted/future-releases/wildcard-variables/feature-specification.md).
+[wildcard variables specification][wildcard-variables-spec].
 
 Top-level variables, top-level function names, type names, member names, etc.
 are unchanged. They can be named `_` and used as they are today.
 
 These are a few examples of where wildcard variables can be used:
+
 ```dart
 Foo(_, this._, super._, void _()) {}
 
-main() {
+void main() {
   var _ = 1;
   int _ = 2;
 
@@ -509,7 +523,9 @@ main() {
 }
 ```
 
-#### Inference Using Bounds
+[wildcard-variables-spec]: https://github.com/dart-lang/language/blob/main/accepted/3.7/wildcard-variables/feature-specification.md
+
+#### Inference using bounds
 
 [inference using bounds specification]: https://github.com/dart-lang/language/blob/main/accepted/future-releases/3009-inference-using-bounds/design-document.md
 
@@ -546,7 +562,7 @@ void main() {
 The feature is described in more details in the
 [inference using bounds specification][].
 
-#### Other Language Changes
+#### Other language changes
 
 - **Breaking Change** [#56893][]: If a field is promoted to the type `Null`
   using `is` or `as`, this type promotion is now properly accounted for in
@@ -648,7 +664,7 @@ will be removed.
 
 [tall style]: https://github.com/dart-lang/dart_style/issues/1253
 
-[versioning]: https://dart.dev/guides/language/evolution
+[versioning]: https://dart.dev/to/language-version
 
 [formatter lang version]: https://github.com/dart-lang/dart_style/issues/1402
 
@@ -751,16 +767,20 @@ some of them breaking:
 
 #### Dart to Javascript Compiler (dart2js)
 
-The dart2js compiler which is invoked when the command 'dart compile js' is
+The dart2js compiler which is invoked when the command `dart compile js` is
 used has been switched to use an AOT snapshot instead of a JIT snapshot.
 
 #### Dart Development Compiler (dartdevc)
 
-The dartdevc compiler and kernel_worker utility have been switched to use an
-AOT snapshot instead of a JIT snapshot, the SDK build still includes a JIT
-snapshot of these tools as package build/build_web_compiler depends on it. The
-AOT snapshot can be used as follows to run DDC <dart-sdk>/bin/dartaotruntime
-<dart-sdk>/bin/snapshots/dartdevc_aot.dart.snapshot <options>
+The dartdevc compiler and kernel_worker utility have been switched to
+use an AOT snapshot instead of a JIT snapshot,
+the SDK build still includes a JIT snapshot of these tools as
+`package:build` and `package:build_web_compiler` depend on it.
+The AOT snapshot can be used as follows to run DDC:
+
+```bash
+<dart-sdk>/bin/dartaotruntime <dart-sdk>/bin/snapshots/dartdevc_aot.dart.snapshot <options>
+```
 
 ### Libraries
 
@@ -1244,7 +1264,7 @@ advantage of these improvements, set your package's
 [SDK constraint][language version] lower bound to 3.4 or greater
 (`sdk: '^3.4.0'`).
 
-[language version]: https://dart.dev/guides/language/evolution
+[language version]: https://dart.dev/to/language-version
 
 - **Breaking Change** [#54640][]: The pattern context type schema for
   cast patterns has been changed from `Object?` to `_` (the unknown
@@ -1831,7 +1851,7 @@ This is a patch release that:
 Dart 3.2 adds the following features. To use them, set your package's [SDK
 constraint][language version] lower bound to 3.2 or greater (`sdk: '^3.2.0'`).
 
-[language version]: https://dart.dev/guides/language/evolution
+[language version]: https://dart.dev/to/language-version
 
 - **Private field promotion**: In most circumstances, the types of private final
   fields can now be promoted by null checks and `is` tests. For example:
@@ -2365,7 +2385,7 @@ This is a patch release that:
 Dart 3.0 adds the following features. To use them, set your package's [SDK
 constraint][language version] lower bound to 3.0 or greater (`sdk: '^3.0.0'`).
 
-[language version]: https://dart.dev/guides/language/evolution
+[language version]: https://dart.dev/to/language-version
 
 - **[Records]**: Records are anonymous immutable data structures that let you
   aggregate multiple values together, similar to [tuples][] in other languages.
@@ -3339,7 +3359,7 @@ The following features are new in the Dart 2.18 [language version][]. To use
 them, you must set the lower bound on the SDK constraint for your package to
 2.18 or greater (`sdk: '>=2.18.0 <3.0.0'`).
 
-[language version]: https://dart.dev/guides/language/evolution
+[language version]: https://dart.dev/to/language-version
 
 -  **[Enhanced type inference for generic invocations with function literals][]**:
    Invocations of generic methods/constructors that supply function literal
@@ -3652,7 +3672,7 @@ The following features are new in the Dart 2.17 [language version][]. To use
 them, you must set the lower bound on the SDK constraint for your package to
 2.17 or greater (`sdk: '>=2.17.0 <3.0.0'`).
 
-[language version]: https://dart.dev/guides/language/evolution
+[language version]: https://dart.dev/to/language-version
 
 -   **[Enhanced enums with members][]**: Enum declarations can now define
     members including fields, constructors, methods, getters, etc. For example:
@@ -4129,7 +4149,7 @@ The following features are new in the Dart 2.15 [language version][]. To use
 them, you must set the lower bound on the SDK constraint for your package to
 2.15 or greater (`sdk: '>=2.15.0 <3.0.0'`).
 
-[language version]: https://dart.dev/guides/language/evolution
+[language version]: https://dart.dev/to/language-version
 
 - **[Constructor tear-offs][]**: Previous Dart versions allowed a method on an
   instance to be passed as a closure, and similarly for static methods. This is
@@ -4594,7 +4614,7 @@ environment:
 ```
 
 This feature requires
-[language-version](https://dart.dev/guides/language/evolution#language-versioning)
+[language version](https://dart.dev/to/language-version)
 2.15 or later, e.g. the `pubspec.yaml` should have an SDK constraint of
 `>=2.15 <3.0.0`.
 
@@ -5015,7 +5035,7 @@ This is a patch release that fixes:
   ```
 
   The new type alias feature is only available as part of the 2.13
-  [language version](https://dart.dev/guides/language/evolution). To use this
+  [language version](https://dart.dev/to/language-version). To use this
   feature, you must set the lower bound on the sdk constraint for your package
   to 2.13 or greater.
 
@@ -5160,8 +5180,7 @@ This is a patch release that fixes:
   sometimes undergo type promotion in extensions.
 
 [null safety]: https://dart.dev/null-safety/understanding-null-safety
-[language version]:
-  https://dart.dev/guides/language/evolution#language-versioning
+[language version]: https://dart.dev/to/language-version
 [#44660]: https://github.com/dart-lang/sdk/issues/44660
 
 ### Core libraries

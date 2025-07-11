@@ -127,7 +127,7 @@ mixin ElementsTypesMixin {
     List<InterfaceTypeImpl> mixins = const [],
     List<MethodFragmentImpl> methods = const [],
   }) {
-    var fragment = ClassFragmentImpl(name: name, nameOffset: 0);
+    var fragment = ClassFragmentImpl(name: name, firstTokenOffset: null);
     fragment.isAbstract = isAbstract;
     fragment.isAugmentation = isAugmentation;
     fragment.isSealed = isSealed;
@@ -154,7 +154,7 @@ mixin ElementsTypesMixin {
     List<InterfaceTypeImpl> mixins = const [],
     List<MethodElementImpl> methods = const [],
   }) {
-    var fragment = ClassFragmentImpl(name: name, nameOffset: 0);
+    var fragment = ClassFragmentImpl(name: name, firstTokenOffset: null);
     fragment.isAbstract = isAbstract;
     fragment.isAugmentation = isAugmentation;
     fragment.isSealed = isSealed;
@@ -192,7 +192,7 @@ mixin ElementsTypesMixin {
     required String name,
     required List<FieldFragmentImpl> constants,
   }) {
-    var fragment = EnumFragmentImpl(name: name, nameOffset: 0);
+    var fragment = EnumFragmentImpl(name: name, firstTokenOffset: null);
     EnumElementImpl(Reference.root(), fragment);
     fragment.enclosingElement = testLibrary.definingCompilationUnit;
     fragment.fields = constants;
@@ -203,7 +203,7 @@ mixin ElementsTypesMixin {
     required String name,
     required List<FieldFragmentImpl> constants,
   }) {
-    var fragment = EnumFragmentImpl(name: name, nameOffset: 0);
+    var fragment = EnumFragmentImpl(name: name, firstTokenOffset: null);
     var element = EnumElementImpl(Reference.root(), fragment);
     fragment.enclosingElement = testLibrary.definingCompilationUnit;
     fragment.fields = constants;
@@ -211,7 +211,8 @@ mixin ElementsTypesMixin {
   }
 
   FieldFragmentImpl enumConstant_(String name) {
-    return FieldFragmentImpl(name: name, nameOffset: 0)..isEnumConstant = true;
+    return FieldFragmentImpl(name: name, firstTokenOffset: null)
+      ..isEnumConstant = true;
   }
 
   ExtensionFragmentImpl extension({
@@ -221,7 +222,7 @@ mixin ElementsTypesMixin {
     List<TypeParameterFragmentImpl> typeParameters = const [],
     List<MethodFragmentImpl> methods = const [],
   }) {
-    var element = ExtensionFragmentImpl(name: name, nameOffset: 0);
+    var element = ExtensionFragmentImpl(name: name, firstTokenOffset: null);
     ExtensionElementImpl(Reference.root(), element);
     element.element.extendedType = extendedType;
     element.isAugmentation = isAugmentation;
@@ -238,12 +239,18 @@ mixin ElementsTypesMixin {
     List<TypeParameterElementImpl> typeParameters = const [],
     List<InterfaceTypeImpl> interfaces = const [],
   }) {
-    var fragment = ExtensionTypeFragmentImpl(name: name, nameOffset: -1);
+    var fragment = ExtensionTypeFragmentImpl(
+      name: name,
+      firstTokenOffset: null,
+    );
     fragment.enclosingElement = testLibrary.definingCompilationUnit;
     fragment.typeParameters = typeParameters.map((e) => e.asElement).toList();
     fragment.interfaces = interfaces;
 
-    var field = FieldFragmentImpl(name: representationName, nameOffset: -1);
+    var field = FieldFragmentImpl(
+      name: representationName,
+      firstTokenOffset: null,
+    );
     FieldElementImpl(reference: Reference.root(), firstFragment: field);
     field.type = representationType;
     fragment.fields = [field];
@@ -262,14 +269,17 @@ mixin ElementsTypesMixin {
     List<TypeParameterElementImpl> typeParameters = const [],
     List<InterfaceTypeImpl> interfaces = const [],
   }) {
-    var fragment = ExtensionTypeFragmentImpl(name: name, nameOffset: -1);
+    var fragment = ExtensionTypeFragmentImpl(
+      name: name,
+      firstTokenOffset: null,
+    );
     fragment.enclosingElement = testLibrary.definingCompilationUnit;
     fragment.typeParameters = typeParameters.map((e) => e.asElement).toList();
     fragment.interfaces = interfaces;
 
     var fieldFragment = FieldFragmentImpl(
       name: representationName,
-      nameOffset: -1,
+      firstTokenOffset: null,
     );
     fieldFragment.type = representationType;
     fragment.fields = [fieldFragment];
@@ -454,7 +464,7 @@ mixin ElementsTypesMixin {
     List<FormalParameterElementImpl> formalParameters = const [],
   }) {
     var fragment =
-        MethodFragmentImpl(name: name, nameOffset: 0)
+        MethodFragmentImpl(name: name, firstTokenOffset: null)
           ..isStatic = isStatic
           ..parameters = formalParameters.map((e) => e.asElement).toList()
           ..returnType = returnType
@@ -474,7 +484,7 @@ mixin ElementsTypesMixin {
     List<InterfaceTypeImpl>? constraints,
     List<InterfaceTypeImpl> interfaces = const [],
   }) {
-    var fragment = MixinFragmentImpl(name: name, nameOffset: 0);
+    var fragment = MixinFragmentImpl(name: name, firstTokenOffset: null);
     fragment.isAugmentation = isAugmentation;
     fragment.enclosingElement = testLibrary.definingCompilationUnit;
     fragment.typeParameters = typeParameters.map((e) => e.asElement).toList();
@@ -493,7 +503,7 @@ mixin ElementsTypesMixin {
     List<InterfaceTypeImpl>? constraints,
     List<InterfaceTypeImpl> interfaces = const [],
   }) {
-    var fragment = MixinFragmentImpl(name: name, nameOffset: 0);
+    var fragment = MixinFragmentImpl(name: name, firstTokenOffset: null);
     fragment.isAugmentation = isAugmentation;
     fragment.enclosingElement = testLibrary.definingCompilationUnit;
     fragment.typeParameters = typeParameters.map((e) => e.asElement).toList();
@@ -511,7 +521,7 @@ mixin ElementsTypesMixin {
     bool isCovariant = false,
   }) {
     var fragment = FormalParameterFragmentImpl(
-      nameOffset: 0,
+      firstTokenOffset: null,
       name: name,
       nameOffset2: 0,
       parameterKind: ParameterKind.NAMED,
@@ -526,7 +536,7 @@ mixin ElementsTypesMixin {
     bool isCovariant = false,
   }) {
     var fragment = FormalParameterFragmentImpl(
-      nameOffset: 0,
+      firstTokenOffset: null,
       name: name,
       nameOffset2: 0,
       parameterKind: ParameterKind.NAMED_REQUIRED,
@@ -541,7 +551,7 @@ mixin ElementsTypesMixin {
     bool isCovariant = false,
   }) {
     var fragment = FormalParameterFragmentImpl(
-      nameOffset: 0,
+      firstTokenOffset: null,
       name: name,
       nameOffset2: 0,
       parameterKind: ParameterKind.POSITIONAL,
@@ -630,7 +640,7 @@ mixin ElementsTypesMixin {
     bool isCovariant = false,
   }) {
     var fragment = FormalParameterFragmentImpl(
-      nameOffset: 0,
+      firstTokenOffset: null,
       name: name,
       nameOffset2: 0,
       parameterKind: ParameterKind.REQUIRED,
@@ -644,7 +654,7 @@ mixin ElementsTypesMixin {
     required List<TypeParameterElementImpl> typeParameters,
     required TypeImpl aliasedType,
   }) {
-    var fragment = TypeAliasFragmentImpl(name: name, nameOffset: 0);
+    var fragment = TypeAliasFragmentImpl(name: name, firstTokenOffset: null);
     fragment.enclosingElement = testLibrary.definingCompilationUnit;
     fragment.typeParameters = typeParameters.map((e) => e.asElement).toList();
     fragment.aliasedType = aliasedType;
@@ -667,13 +677,13 @@ mixin ElementsTypesMixin {
     TypeImpl? bound,
     Variance? variance,
   }) {
-    var fragment = TypeParameterFragmentImpl(name: name, nameOffset: -1);
+    var fragment = TypeParameterFragmentImpl(
+      name: name,
+      firstTokenOffset: null,
+    );
     fragment.bound = bound;
 
-    var element = TypeParameterElementImpl(
-      firstFragment: fragment,
-      name: name,
-    );
+    var element = TypeParameterElementImpl(firstFragment: fragment, name: name);
     element.variance = variance;
     return element;
   }

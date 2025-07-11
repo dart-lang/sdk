@@ -4357,20 +4357,18 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             if (recipe == '0') return env;
           } else {
             var environmentTypes = environment.functionTypeParameters;
-            // Create a dummy interface type to "hold" type arguments.
-            env = emitRtiEval(
-              _emitTypeParameter(environmentTypes.first),
-              '@<0>',
-            );
-            // Bind remaining type arguments.
-            for (var i = 1; i < environmentTypes.length; i++) {
-              env = emitRtiBind(env, environmentTypes[i]);
+            // By convention we create a binding environment with "dynamic" as
+            // the base.
+            env = _emitType(const DynamicType());
+            // Bind all type arguments to it.
+            for (var typeParameter in environmentTypes) {
+              env = emitRtiBind(env, typeParameter);
             }
           }
           return emitRtiEval(env, recipe);
         case RtiTypeEnvironment():
-          // RTI type environments are already constructed and attached to the
-          // provided RTI.
+          // RTI type environments take the form of a preconstructed RTI that
+          // is accessible via a known parameter name.
           var env = _rtiParam;
           return emitRtiEval(env, recipe);
         case ClassTypeEnvironment():

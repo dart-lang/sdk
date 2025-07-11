@@ -4133,7 +4133,7 @@ library
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
               formalParameters
-                #F12 value (offset=-1)
+                #F12 value (offset=51)
                   element: <testLibrary>::@class::B::@constructor::new::@formalParameter::value
         #F13 class C @78
           element: <testLibrary>::@class::C

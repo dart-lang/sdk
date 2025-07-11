@@ -1039,7 +1039,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 synthetic main (offset=-1)
+        #F1 synthetic main (offset=4)
           element: <testLibrary>::@topLevelVariable::main
       getters
         #F2 main @4

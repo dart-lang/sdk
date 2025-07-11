@@ -2065,7 +2065,7 @@ library
             NullLiteral
               literal: null @10
               staticType: Null
-        #F2 synthetic f (offset=-1)
+        #F2 synthetic f (offset=23)
           element: <testLibrary>::@topLevelVariable::f
       getters
         #F3 synthetic a
@@ -2133,7 +2133,7 @@ library
             NullLiteral
               literal: null @10
               staticType: Null
-        #F2 synthetic f (offset=-1)
+        #F2 synthetic f (offset=23)
           element: <testLibrary>::@topLevelVariable::f
       getters
         #F3 synthetic a
@@ -5063,7 +5063,7 @@ library
             IntegerLiteral
               literal: 0 @12
               staticType: int
-        #F2 synthetic getter (offset=-1)
+        #F2 synthetic getter (offset=29)
           element: <testLibrary>::@topLevelVariable::getter
       getters
         #F3 synthetic foo
@@ -5136,7 +5136,7 @@ library
             IntegerLiteral
               literal: 0 @12
               staticType: int
-        #F2 synthetic setter (offset=-1)
+        #F2 synthetic setter (offset=25)
           element: <testLibrary>::@topLevelVariable::setter
       getters
         #F3 synthetic foo
@@ -5867,7 +5867,7 @@ library
             NullLiteral
               literal: null @10
               staticType: Null
-        #F2 synthetic foo (offset=-1)
+        #F2 synthetic foo (offset=21)
           element: <testLibrary>::@topLevelVariable::foo
       getters
         #F3 synthetic a

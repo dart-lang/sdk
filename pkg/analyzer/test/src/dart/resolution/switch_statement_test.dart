@@ -361,7 +361,7 @@ SwitchStatement
         ExpressionStatement
           expression: SimpleIdentifier
             token: a
-            element: a@-1
+            element: a@null
             staticType: int
           semicolon: ;
   rightBracket: }
@@ -457,7 +457,7 @@ SwitchStatement
         ExpressionStatement
           expression: SimpleIdentifier
             token: a
-            element: a@-1
+            element: a@null
             staticType: int
           semicolon: ;
   rightBracket: }
@@ -526,7 +526,7 @@ SwitchStatement
           expression: BinaryExpression
             leftOperand: SimpleIdentifier
               token: a
-              element: a@-1
+              element: a@null
               staticType: int
             operator: <
             rightOperand: IntegerLiteral
@@ -576,7 +576,7 @@ SwitchStatement
           expression: BinaryExpression
             leftOperand: SimpleIdentifier
               token: a
-              element: a@-1
+              element: a@null
               staticType: int
             operator: >
             rightOperand: IntegerLiteral
@@ -591,7 +591,7 @@ SwitchStatement
         ExpressionStatement
           expression: SimpleIdentifier
             token: a
-            element: a@-1
+            element: a@null
             staticType: int
           semicolon: ;
   rightBracket: }
@@ -696,7 +696,7 @@ SwitchStatement
         ExpressionStatement
           expression: SimpleIdentifier
             token: a
-            element: a@-1
+            element: a@null
             staticType: int
           semicolon: ;
   rightBracket: }
@@ -801,7 +801,7 @@ SwitchStatement
         ExpressionStatement
           expression: SimpleIdentifier
             token: a
-            element: a@-1
+            element: a@null
             staticType: InvalidType
           semicolon: ;
   rightBracket: }
@@ -905,7 +905,7 @@ SwitchStatement
         ExpressionStatement
           expression: SimpleIdentifier
             token: a
-            element: a@-1
+            element: a@null
             staticType: InvalidType
           semicolon: ;
   rightBracket: }
@@ -987,7 +987,7 @@ SwitchStatement
         ExpressionStatement
           expression: SimpleIdentifier
             token: a
-            element: a@-1
+            element: a@null
             staticType: int
           semicolon: ;
   rightBracket: }
@@ -1069,7 +1069,7 @@ SwitchStatement
         ExpressionStatement
           expression: SimpleIdentifier
             token: a
-            element: a@-1
+            element: a@null
             staticType: int
           semicolon: ;
   rightBracket: }
@@ -1145,7 +1145,7 @@ SwitchStatement
         ExpressionStatement
           expression: SimpleIdentifier
             token: a
-            element: a@-1
+            element: a@null
             staticType: int
           semicolon: ;
   rightBracket: }
@@ -1219,7 +1219,7 @@ SwitchStatement
         ExpressionStatement
           expression: SimpleIdentifier
             token: a
-            element: a@-1
+            element: a@null
             staticType: Object?
           semicolon: ;
   rightBracket: }
@@ -1300,7 +1300,7 @@ SwitchStatement
         ExpressionStatement
           expression: SimpleIdentifier
             token: a
-            element: a@-1
+            element: a@null
             staticType: int
           semicolon: ;
   rightBracket: }
@@ -1401,19 +1401,19 @@ SwitchStatement
         ExpressionStatement
           expression: SimpleIdentifier
             token: a
-            element: a@-1
+            element: a@null
             staticType: int
           semicolon: ;
         ExpressionStatement
           expression: SimpleIdentifier
             token: b
-            element: b@-1
+            element: b@null
             staticType: double
           semicolon: ;
         ExpressionStatement
           expression: SimpleIdentifier
             token: c
-            element: c@-1
+            element: c@null
             staticType: String
           semicolon: ;
   rightBracket: }
@@ -1486,7 +1486,7 @@ SwitchStatement
         ExpressionStatement
           expression: SimpleIdentifier
             token: a
-            element: a@-1
+            element: a@null
             staticType: int
           semicolon: ;
   rightBracket: }

@@ -586,7 +586,7 @@ SwitchExpression
       arrow: =>
       expression: SimpleIdentifier
         token: a
-        element: a@-1
+        element: a@null
         staticType: int
     SwitchExpressionCase
       guardedPattern: GuardedPattern

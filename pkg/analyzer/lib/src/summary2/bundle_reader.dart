@@ -13,7 +13,6 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/field_name_non_promotability_info.dart';
@@ -39,7 +38,6 @@ import 'package:pub_semver/pub_semver.dart';
 class BundleReader {
   final SummaryDataReader _reader;
   final Map<Uri, Uint8List> _unitsInformativeBytes;
-  final InfoDeclarationStore _infoDeclarationStore;
 
   final Map<Uri, LibraryReader> libraryMap = {};
 
@@ -47,11 +45,9 @@ class BundleReader {
     required LinkedElementFactory elementFactory,
     required Uint8List resolutionBytes,
     Map<Uri, Uint8List> unitsInformativeBytes = const {},
-    required InfoDeclarationStore infoDeclarationStore,
     required Map<Uri, LibraryManifest> libraryManifests,
   }) : _reader = SummaryDataReader(resolutionBytes),
-       _unitsInformativeBytes = unitsInformativeBytes,
-       _infoDeclarationStore = infoDeclarationStore {
+       _unitsInformativeBytes = unitsInformativeBytes {
     const bytesOfU32 = 4;
     const countOfU32 = 4;
     _reader.offset = _reader.bytes.length - bytesOfU32 * countOfU32;
@@ -87,7 +83,6 @@ class BundleReader {
         referenceReader: referenceReader,
         reference: reference,
         offset: libraryHeader.offset,
-        infoDeclarationStore: _infoDeclarationStore,
         manifest: libraryManifests[uri],
       );
     }
@@ -103,7 +98,6 @@ class LibraryReader {
   final _ReferenceReader _referenceReader;
   final Reference _reference;
   final int _offset;
-  final InfoDeclarationStore _deserializedDataStore;
   final LibraryManifest? manifest;
 
   late final LibraryElementImpl _libraryElement;
@@ -120,7 +114,6 @@ class LibraryReader {
     required _ReferenceReader referenceReader,
     required Reference reference,
     required int offset,
-    required InfoDeclarationStore infoDeclarationStore,
     required this.manifest,
   }) : _elementFactory = elementFactory,
        _reader = reader,
@@ -128,8 +121,7 @@ class LibraryReader {
        _baseResolutionOffset = baseResolutionOffset,
        _referenceReader = referenceReader,
        _reference = reference,
-       _offset = offset,
-       _deserializedDataStore = infoDeclarationStore;
+       _offset = offset;
 
   LibraryElementImpl readElement({required Source librarySource}) {
     var analysisContext = _elementFactory.analysisContext;
@@ -228,7 +220,6 @@ class LibraryReader {
     InformativeDataApplier(
       _elementFactory,
       _unitsInformativeBytes,
-      _deserializedDataStore,
     ).applyTo(_libraryElement);
 
     return _libraryElement;
@@ -310,7 +301,7 @@ class LibraryReader {
     return _reader.readTypedList(() {
       return _readTemplateFragment(
         create: (name) {
-          var fragment = ClassFragmentImpl(name: name, nameOffset: -1);
+          var fragment = ClassFragmentImpl(name: name, firstTokenOffset: null);
           fragment.readModifiers(_reader);
           fragment.typeParameters = _readTypeParameters();
 
@@ -381,7 +372,10 @@ class LibraryReader {
     return _reader.readTypedList(() {
       return _readTemplateFragment(
         create: (name) {
-          var fragment = ConstructorFragmentImpl(name: name!, nameOffset: -1);
+          var fragment = ConstructorFragmentImpl(
+            name: name!,
+            firstTokenOffset: null,
+          );
 
           fragment.readModifiers(_reader);
           fragment.typeName = _reader.readOptionalStringReference();
@@ -517,7 +511,7 @@ class LibraryReader {
     return _reader.readTypedList(() {
       return _readTemplateFragment(
         create: (name) {
-          var fragment = EnumFragmentImpl(name: name, nameOffset: -1);
+          var fragment = EnumFragmentImpl(name: name, firstTokenOffset: null);
           fragment.readModifiers(_reader);
           fragment.typeParameters = _readTypeParameters();
 
@@ -603,7 +597,10 @@ class LibraryReader {
     return _reader.readTypedList(() {
       return _readTemplateFragment(
         create: (name) {
-          var fragment = ExtensionFragmentImpl(name: name, nameOffset: -1);
+          var fragment = ExtensionFragmentImpl(
+            name: name,
+            firstTokenOffset: null,
+          );
           fragment.readModifiers(_reader);
           fragment.typeParameters = _readTypeParameters();
           fragment.fields = _readFieldFragments();
@@ -657,7 +654,10 @@ class LibraryReader {
     return _reader.readTypedList(() {
       return _readTemplateFragment(
         create: (name) {
-          var fragment = ExtensionTypeFragmentImpl(name: name, nameOffset: -1);
+          var fragment = ExtensionTypeFragmentImpl(
+            name: name,
+            firstTokenOffset: null,
+          );
           fragment.readModifiers(_reader);
           fragment.hasRepresentationSelfReference = _reader.readBool();
           fragment.hasImplementsSelfReference = _reader.readBool();
@@ -717,7 +717,7 @@ class LibraryReader {
     return _reader.readTypedList(() {
       return _readTemplateFragment(
         create: (name) {
-          var fragment = FieldFragmentImpl(name: name, nameOffset: -1);
+          var fragment = FieldFragmentImpl(name: name, firstTokenOffset: null);
           fragment.readModifiers(_reader);
           return fragment;
         },
@@ -811,7 +811,7 @@ class LibraryReader {
     return _reader.readTypedList(() {
       return _readTemplateFragment(
         create: (name) {
-          var fragment = GetterFragmentImpl(name: name, nameOffset: -1);
+          var fragment = GetterFragmentImpl(name: name, firstTokenOffset: null);
 
           fragment.readModifiers(_reader);
           fragment.typeParameters = _readTypeParameters();
@@ -889,6 +889,7 @@ class LibraryReader {
       var fragment = PrefixFragmentImpl(
         enclosingFragment: libraryFragment,
         name: fragmentName,
+        firstTokenOffset: null,
         nameOffset2: null,
         isDeferred: isDeferred,
       );
@@ -942,7 +943,7 @@ class LibraryReader {
     return _reader.readTypedList(() {
       return _readTemplateFragment(
         create: (name) {
-          var fragment = MethodFragmentImpl(name: name, nameOffset: -1);
+          var fragment = MethodFragmentImpl(name: name, firstTokenOffset: null);
 
           fragment.readModifiers(_reader);
           fragment.typeInferenceError = _readTopLevelInferenceError();
@@ -1005,7 +1006,7 @@ class LibraryReader {
     return _reader.readTypedList(() {
       return _readTemplateFragment(
         create: (name) {
-          var fragment = MixinFragmentImpl(name: name, nameOffset: -1);
+          var fragment = MixinFragmentImpl(name: name, firstTokenOffset: null);
           fragment.readModifiers(_reader);
           fragment.superInvokedNames = _reader.readStringReferenceList();
           fragment.typeParameters = _readTypeParameters();
@@ -1067,21 +1068,21 @@ class LibraryReader {
       FormalParameterFragmentImpl element;
       if (isInitializingFormal) {
         element = FieldFormalParameterFragmentImpl(
-          nameOffset: -1,
+          firstTokenOffset: null,
           name: fragmentName,
           nameOffset2: null,
           parameterKind: kind,
         );
       } else if (isSuperFormal) {
         element = SuperFormalParameterFragmentImpl(
-          nameOffset: -1,
+          firstTokenOffset: null,
           name: fragmentName,
           nameOffset2: null,
           parameterKind: kind,
         );
       } else {
         element = FormalParameterFragmentImpl(
-          nameOffset: -1,
+          firstTokenOffset: null,
           name: fragmentName,
           nameOffset2: null,
           parameterKind: kind,
@@ -1138,7 +1139,7 @@ class LibraryReader {
     return _reader.readTypedList(() {
       return _readTemplateFragment(
         create: (name) {
-          var fragment = SetterFragmentImpl(name: name, nameOffset: -1);
+          var fragment = SetterFragmentImpl(name: name, firstTokenOffset: null);
 
           fragment.readModifiers(_reader);
           fragment.typeParameters = _readTypeParameters();
@@ -1225,7 +1226,7 @@ class LibraryReader {
         create: (name) {
           var fragment = TopLevelFunctionFragmentImpl(
             name: name,
-            nameOffset: -1,
+            firstTokenOffset: null,
           );
 
           fragment.readModifiers(_reader);
@@ -1286,7 +1287,7 @@ class LibraryReader {
         create: (name) {
           var fragment = TopLevelVariableFragmentImpl(
             name: name,
-            nameOffset: -1,
+            firstTokenOffset: null,
           );
           fragment.readModifiers(_reader);
           return fragment;
@@ -1320,7 +1321,10 @@ class LibraryReader {
     return _reader.readTypedList(() {
       return _readTemplateFragment(
         create: (name) {
-          var fragment = TypeAliasFragmentImpl(name: name, nameOffset: -1);
+          var fragment = TypeAliasFragmentImpl(
+            name: name,
+            firstTokenOffset: null,
+          );
 
           fragment.readModifiers(_reader);
           fragment.isFunctionTypeAliasBased = _reader.readBool();
@@ -1348,7 +1352,7 @@ class LibraryReader {
       var variance = _decodeVariance(varianceEncoding);
       var element = TypeParameterFragmentImpl(
         name: fragmentName,
-        nameOffset: -1,
+        firstTokenOffset: null,
       );
       element.variance = variance;
       return element;
@@ -1716,7 +1720,7 @@ class ResolutionReader {
       _localElements.length -= typeParameters.length;
 
       var fragment =
-          GenericFunctionTypeFragmentImpl.forOffset(-1)
+          GenericFunctionTypeFragmentImpl.forOffset(firstTokenOffset: null)
             ..typeParameters = typeParameters
             ..parameters = formalParameters
             ..returnType = returnType;
@@ -1799,7 +1803,7 @@ class ResolutionReader {
       FormalParameterFragmentImpl element;
       if (isInitializingFormal) {
         element = FieldFormalParameterFragmentImpl(
-          nameOffset: -1,
+          firstTokenOffset: null,
           name: name,
           nameOffset2: null,
           parameterKind: kind,
@@ -1808,7 +1812,7 @@ class ResolutionReader {
         element.type = type;
       } else {
         element = FormalParameterFragmentImpl(
-          nameOffset: -1,
+          firstTokenOffset: null,
           name: name,
           nameOffset2: null,
           parameterKind: kind,
@@ -1925,7 +1929,7 @@ class ResolutionReader {
       var fragmentName = _readFragmentName();
       var typeParameterFragment = TypeParameterFragmentImpl(
         name: fragmentName,
-        nameOffset: -1,
+        firstTokenOffset: null,
       );
       var typeParameterElement = TypeParameterElementImpl(
         firstFragment: typeParameterFragment,
