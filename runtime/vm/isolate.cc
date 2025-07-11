@@ -451,7 +451,8 @@ bool IsolateGroup::ContainsOnlyOneIsolate() {
   // We do allow 0 here as well, because the background compiler might call
   // this method while the mutator thread is in shutdown procedure and
   // unregistered itself already.
-  return isolate_count_ == 0 || isolate_count_ == 1;
+  return (isolate_count_ == 0 || isolate_count_ == 1) &&
+         group_mutator_count_ == 0;
 }
 
 void IsolateGroup::UnregisterIsolate(Isolate* isolate) {
@@ -468,6 +469,16 @@ bool IsolateGroup::UnregisterIsolateDecrementCount() {
   SafepointWriteRwLocker ml(Thread::Current(), isolates_lock_.get());
   isolate_count_--;
   return isolate_count_ == 0;
+}
+
+void IsolateGroup::RegisterIsolateGroupMutator() {
+  SafepointWriteRwLocker ml(Thread::Current(), isolates_lock_.get());
+  group_mutator_count_++;
+}
+
+void IsolateGroup::UnregisterIsolateGroupMutator() {
+  SafepointWriteRwLocker ml(Thread::Current(), isolates_lock_.get());
+  group_mutator_count_--;
 }
 
 void IsolateGroup::CreateHeap(bool is_vm_isolate,
@@ -2915,6 +2926,14 @@ void IsolateGroup::RunWithStoppedMutatorsCallable(Callable* callable) {
     RELEASE_ASSERT(thread->OwnsSafepoint());
     callable->Call();
     return;
+  }
+
+  {
+    SafepointReadRwLocker ml(thread, isolates_lock_.get());
+    if (thread->IsDartMutatorThread() && ContainsOnlyOneIsolate()) {
+      callable->Call();
+      return;
+    }
   }
 
   // We use the more strict safepoint operation scope here (which ensures that

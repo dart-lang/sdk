@@ -369,12 +369,13 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
   IdleTimeHandler* idle_time_handler() { return &idle_time_handler_; }
 
-  // Returns true if this is the first isolate registered.
   void RegisterIsolate(Isolate* isolate);
   void UnregisterIsolate(Isolate* isolate);
   // Returns `true` if this was the last isolate and the caller is responsible
   // for deleting the isolate group.
   bool UnregisterIsolateDecrementCount();
+  void RegisterIsolateGroupMutator();
+  void UnregisterIsolateGroupMutator();
 
   bool ContainsOnlyOneIsolate();
 
@@ -902,6 +903,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   IntrusiveDList<Isolate> isolates_;
   RelaxedAtomic<Dart_Port> interrupt_port_ = ILLEGAL_PORT;
   intptr_t isolate_count_ = 0;
+  intptr_t group_mutator_count_ = 0;
   bool initial_spawn_successful_ = false;
   Dart_LibraryTagHandler library_tag_handler_ = nullptr;
   Dart_DeferredLoadHandler deferred_load_handler_ = nullptr;
