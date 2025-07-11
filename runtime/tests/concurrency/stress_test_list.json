@@ -3226,7 +3226,6 @@
   "../../../tests/lib/async/stream_multi_test.dart",
   "../../../tests/lib/async/stream_periodic2_test.dart",
   "../../../tests/lib/async/stream_periodic3_test.dart",
-  "../../../tests/lib/async/stream_periodic4_test.dart",
   "../../../tests/lib/async/stream_periodic5_test.dart",
   "../../../tests/lib/async/stream_periodic6_test.dart",
   "../../../tests/lib/async/stream_periodic_test.dart",
