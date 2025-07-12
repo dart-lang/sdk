@@ -86,6 +86,7 @@ main() async {
         final file = File("$stdinPipePath");
         if (file.existsSync()) print("Pipe Exists");
         file.copySync("junk");
+        if (File("junk").existsSync()) print("Pipe Copied!");
       } catch (e) {
         print(e);
       }
@@ -108,7 +109,12 @@ main() async {
     renameScript,
     "Cannot rename file",
   );
-  await startProcess(directory, 'copyscript', copyScript, "Cannot copy file");
+  await startProcess(
+    directory,
+    'copyscript',
+    copyScript,
+    Platform.isMacOS ? "Cannot copy file" : "Pipe Copied!",
+  );
 
   directory.deleteSync(recursive: true);
   asyncEnd();

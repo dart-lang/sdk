@@ -93,6 +93,8 @@ replacement
 suggestions
   this
     kind: keyword
+  covariant
+    kind: keyword
 ''');
   }
 
@@ -161,11 +163,14 @@ replacement
 suggestions
   String
     kind: class
+  this
+    kind: keyword
   super
     kind: keyword
 ''');
   }
 
+  // TODO(keertip): Do not suggest 'covariant'.
   Future<void> test_afterType() async {
     allowedIdentifiers = {'T'};
     await computeSuggestions('''
@@ -177,6 +182,8 @@ replacement
 suggestions
   T
     kind: typeParameter
+  covariant
+    kind: keyword
 ''');
   }
 
@@ -367,7 +374,7 @@ suggestions
 
   Future<void> test_afterLeftParen_beforeRightParen_partial() async {
     await computeSuggestions('''
-class A { foo(t^) {}}
+class A { foo(s^) {}}
 ''');
     assertResponse(r'''
 replacement

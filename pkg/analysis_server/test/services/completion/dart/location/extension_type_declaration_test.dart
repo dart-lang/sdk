@@ -81,6 +81,8 @@ void f() {
 suggestions
   E0
     kind: extensionType
+  E0
+    kind: constructorInvocation
 ''');
   }
 
@@ -98,6 +100,8 @@ void f() {
 suggestions
   E0
     kind: extensionType
+  E0
+    kind: constructorInvocation
 ''');
   }
 

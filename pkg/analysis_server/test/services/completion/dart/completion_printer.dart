@@ -117,6 +117,8 @@ class CompletionResponsePrinter {
         return 'mixin';
       } else if (elementKind == ElementKind.PARAMETER) {
         return 'parameter';
+      } else if (elementKind == ElementKind.PREFIX) {
+        return 'prefix';
       } else if (elementKind == ElementKind.SETTER) {
         return 'setter';
       } else if (elementKind == ElementKind.TOP_LEVEL_VARIABLE) {

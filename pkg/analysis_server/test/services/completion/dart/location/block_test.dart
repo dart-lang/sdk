@@ -200,7 +200,19 @@ replacement
 suggestions
   return
     kind: keyword
+  var
+    kind: keyword
+  throw
+    kind: keyword
+  for
+    kind: keyword
+  try
+    kind: keyword
+  assert
+    kind: keyword
   rethrow
+    kind: keyword
+  true
     kind: keyword
 ''');
   }
@@ -655,7 +667,19 @@ replacement
 suggestions
   e01
     kind: parameter
+  return
+    kind: keyword
+  assert
+    kind: keyword
   else
+    kind: keyword
+  false
+    kind: keyword
+  late
+    kind: keyword
+  true
+    kind: keyword
+  while
     kind: keyword
 ''');
   }
@@ -807,6 +831,14 @@ void f() async* {n^ foo}
 replacement
   left: 1
 suggestions
+  return
+    kind: keyword
+  final
+    kind: keyword
+  const
+    kind: keyword
+  dynamic
+    kind: keyword
   null
     kind: keyword
 ''');
@@ -936,6 +968,14 @@ void f() async* {n^}
 replacement
   left: 1
 suggestions
+  return
+    kind: keyword
+  final
+    kind: keyword
+  const
+    kind: keyword
+  dynamic
+    kind: keyword
   null
     kind: keyword
 ''');
@@ -965,6 +1005,8 @@ replacement
 suggestions
   wrapper
     kind: functionInvocation
+  switch
+    kind: keyword
 ''');
   }
 
@@ -1023,6 +1065,14 @@ void f() sync* {n^}
 replacement
   left: 1
 suggestions
+  return
+    kind: keyword
+  final
+    kind: keyword
+  const
+    kind: keyword
+  dynamic
+    kind: keyword
   null
     kind: keyword
 ''');
@@ -1586,6 +1636,9 @@ suggestions
   m0
     kind: getter
     declaringType: A
+  dynamic
+    kind: keyword
+    declaringType: null
 ''');
   }
 

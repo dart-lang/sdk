@@ -46,6 +46,7 @@ suggestions
 ''');
   }
 
+  // TODO(keertip): Do not suggest 'covariant'.
   Future<void> test_afterRightParen_beforeEnd_partial() async {
     await computeSuggestions('''
 void f()a^
@@ -54,11 +55,31 @@ void f()a^
 replacement
   left: 1
 suggestions
+  class
+    kind: keyword
+  final
+    kind: keyword
   abstract
     kind: keyword
   async
     kind: keyword
   async*
+    kind: keyword
+  base
+    kind: keyword
+  covariant
+    kind: keyword
+  dynamic
+    kind: keyword
+  external
+    kind: keyword
+  interface
+    kind: keyword
+  late
+    kind: keyword
+  sealed
+    kind: keyword
+  var
     kind: keyword
 ''');
   }
@@ -101,9 +122,15 @@ void f()a^ Foo foo;
 replacement
   left: 1
 suggestions
+  final
+    kind: keyword
   async
     kind: keyword
   async*
+    kind: keyword
+  external
+    kind: keyword
+  late
     kind: keyword
 ''');
   }

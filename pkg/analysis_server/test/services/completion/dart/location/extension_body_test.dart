@@ -154,7 +154,17 @@ replacement
 suggestions
   aaa
     kind: parameter
+  final
+    kind: keyword
+  var
+    kind: keyword
   assert
+    kind: keyword
+  dynamic
+    kind: keyword
+  false
+    kind: keyword
+  late
     kind: keyword
 ''');
   }

@@ -544,6 +544,8 @@ replacement
 suggestions
   int
     kind: class
+  int.fromEnvironment
+    kind: constructorInvocation
 ''');
   }
 
@@ -785,7 +787,7 @@ suggestions
   Z0
     kind: constructorInvocation
   g0
-    kind: library
+    kind: prefix
   g0.G0
     kind: constructorInvocation
   D1
@@ -880,7 +882,7 @@ suggestions
   g0.G
     kind: class
   g0
-    kind: library
+    kind: prefix
 ''');
   }
 
@@ -1000,7 +1002,7 @@ suggestions
   Z0
     kind: class
   g0
-    kind: library
+    kind: prefix
   G0
     kind: class
 ''');
@@ -1094,7 +1096,7 @@ suggestions
   g0.G
     kind: class
   g0
-    kind: library
+    kind: prefix
 ''');
   }
 
@@ -1715,7 +1717,7 @@ suggestions
     kind: class
     deprecated: true
   x0
-    kind: library
+    kind: prefix
 ''');
   }
 
@@ -1774,7 +1776,7 @@ suggestions
   x0.B
     kind: class
   x0
-    kind: library
+    kind: prefix
 ''');
   }
 
@@ -1800,7 +1802,7 @@ suggestions
   x0.B
     kind: class
   x0
-    kind: library
+    kind: prefix
 ''');
   }
 
@@ -1822,7 +1824,7 @@ replacement
   left: 1
 suggestions
   S2
-    kind: library
+    kind: prefix
 ''');
   }
 
@@ -1848,7 +1850,7 @@ suggestions
   x0.B
     kind: class
   x0
-    kind: library
+    kind: prefix
 ''');
   }
 
@@ -1874,7 +1876,7 @@ suggestions
   x0.B
     kind: class
   x0
-    kind: library
+    kind: prefix
 ''');
   }
 
@@ -3686,7 +3688,7 @@ suggestions
   B0
     kind: constructorInvocation
   m0
-    kind: library
+    kind: prefix
   m0.Point
     kind: constructorInvocation
   m0.Random
@@ -4225,6 +4227,12 @@ replacement
 suggestions
   S0
     kind: localVariable
+  String.fromCharCode
+    kind: constructorInvocation
+  String.fromCharCodes
+    kind: constructorInvocation
+  String.fromEnvironment
+    kind: constructorInvocation
   String
     kind: class
 ''');

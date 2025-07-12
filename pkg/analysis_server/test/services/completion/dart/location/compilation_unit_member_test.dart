@@ -37,6 +37,7 @@ suggestions
 ''');
   }
 
+  // TODO(keertip): Do not suggest 'library'.
   Future<void> test_afterAbstract_base_prefix() async {
     await computeSuggestions('''
 abstract b^
@@ -45,7 +46,11 @@ abstract b^
 replacement
   left: 1
 suggestions
+  abstract
+    kind: keyword
   base
+    kind: keyword
+  library
     kind: keyword
 ''');
   }
@@ -380,7 +385,13 @@ suggestions
     kind: keyword
   const
     kind: keyword
+  abstract
+    kind: keyword
   covariant
+    kind: keyword
+  dynamic
+    kind: keyword
+  interface
     kind: keyword
 ''');
   }
@@ -447,11 +458,17 @@ c^
 replacement
   left: 1
 suggestions
+  abstract
+    kind: keyword
   class
     kind: keyword
   const
     kind: keyword
   covariant
+    kind: keyword
+  dynamic
+    kind: keyword
+  interface
     kind: keyword
 ''');
   }
@@ -669,7 +686,11 @@ b^
 replacement
   left: 1
 suggestions
+  abstract
+    kind: keyword
   base
+    kind: keyword
+  library
     kind: keyword
 ''');
   }
@@ -840,7 +861,11 @@ b^ mixin M {}
 replacement
   left: 1
 suggestions
+  abstract
+    kind: keyword
   base
+    kind: keyword
+  library
     kind: keyword
 ''');
   }
@@ -855,9 +880,17 @@ replacement
 suggestions
   final
     kind: keyword
+  interface
+    kind: keyword
+  part of '';
+    kind: keyword
+    selection: 9
+  typedef
+    kind: keyword
 ''');
   }
 
+  // TODO(keertip): Do not suggest 'covariant'.
   Future<void> test_beforeMixin_prefix_interface() async {
     await computeSuggestions('''
 i^ mixin M {}
@@ -869,7 +902,21 @@ suggestions
   import '';
     kind: keyword
     selection: 8
+  covariant
+    kind: keyword
+  dynamic
+    kind: keyword
+  extension
+    kind: keyword
+  final
+    kind: keyword
   interface
+    kind: keyword
+  library
+    kind: keyword
+  mixin
+    kind: keyword
+  void
     kind: keyword
 ''');
   }
@@ -882,6 +929,16 @@ s^ mixin M {}
 replacement
   left: 1
 suggestions
+  abstract
+    kind: keyword
+  base
+    kind: keyword
+  class
+    kind: keyword
+  const
+    kind: keyword
+  extension
+    kind: keyword
   sealed
     kind: keyword
 ''');
@@ -1000,9 +1057,17 @@ replacement
 suggestions
   final
     kind: keyword
+  interface
+    kind: keyword
+  part of '';
+    kind: keyword
+    selection: 9
+  typedef
+    kind: keyword
 ''');
   }
 
+  // TODO(keertip): Do not suggest 'covariant'.
   Future<void> test_interface_prefix() async {
     await computeSuggestions('''
 i^
@@ -1014,7 +1079,21 @@ suggestions
   import '';
     kind: keyword
     selection: 8
+  covariant
+    kind: keyword
+  dynamic
+    kind: keyword
+  extension
+    kind: keyword
+  final
+    kind: keyword
   interface
+    kind: keyword
+  library
+    kind: keyword
+  mixin
+    kind: keyword
+  void
     kind: keyword
 ''');
   }
@@ -1027,6 +1106,13 @@ m^
 replacement
   left: 1
 suggestions
+  import '';
+    kind: keyword
+    selection: 8
+  dynamic
+    kind: keyword
+  enum
+    kind: keyword
   mixin
     kind: keyword
 ''');
@@ -1040,6 +1126,16 @@ s^
 replacement
   left: 1
 suggestions
+  abstract
+    kind: keyword
+  base
+    kind: keyword
+  class
+    kind: keyword
+  const
+    kind: keyword
+  extension
+    kind: keyword
   sealed
     kind: keyword
 ''');
