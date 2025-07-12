@@ -478,13 +478,7 @@ abstract interface class Map<K, V> {
 /// ]);
 /// print(map); // {1: A, 2: B, 3: C, 4: D}
 /// ```
-///
-/// Do not extend or implement the `MapEntry` class.
-/// If the Dart language introduces value types,
-/// the `MapEntry` class will be changed to such a type,
-/// and will likely no longer be able to be implemented or extended
-/// by classes.
-final class MapEntry<K, V> {
+extension type const MapEntry<K, V>.fromPair((K, V) asPair) implements Object {
   /// The key of the entry.
   ///
   /// ```dart
@@ -492,7 +486,7 @@ final class MapEntry<K, V> {
   /// var entry = map.entries.first; // MapEntry<String, String>
   /// print(entry.key); // 'theKey'
   /// ```
-  final K key;
+  K get key => asPair.$1;
 
   /// The value associated to [key] in a map.
   ///
@@ -501,15 +495,8 @@ final class MapEntry<K, V> {
   /// var entry = map.entries.first; // MapEntry<String, String>
   /// print(entry.value); // 'theValue'
   /// ```
-  final V value;
+  V get value => asPair.$2;
 
   /// Creates an entry with [key] and [value].
-  const factory MapEntry(K key, V value) = MapEntry<K, V>._;
-
-  const MapEntry._(this.key, this.value);
-
-  /// String representation intended for debugging only.
-  ///
-  /// Not guaranteed to be stable over time.
-  String toString() => "MapEntry($key: $value)";
+  const MapEntry(K key, V value) : this.fromPair((key, value));
 }
