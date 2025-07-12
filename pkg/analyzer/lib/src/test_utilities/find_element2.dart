@@ -21,7 +21,7 @@ class FindElement2 extends _FindElementBase {
   LibraryExportImpl export(String targetUri) {
     LibraryExport? result;
 
-    for (var export in libraryFragment.libraryExports2) {
+    for (var export in libraryFragment.libraryExports) {
       var exportedUri = export.exportedLibrary?.uri.toString();
       if (exportedUri == targetUri) {
         if (result != null) {
@@ -54,7 +54,7 @@ class FindElement2 extends _FindElementBase {
     LibraryImport? importElement;
 
     for (var libraryFragment in libraryFragment.withEnclosing2) {
-      for (var import in libraryFragment.libraryImports2) {
+      for (var import in libraryFragment.libraryImports) {
         var importedUri = import.importedLibrary?.uri.toString();
         if (importedUri == targetUri) {
           if (importElement == null) {

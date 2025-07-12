@@ -236,7 +236,7 @@ class ImportLibrary extends MultiCorrectionProducer {
     // Maybe there is an existing import, but it is with prefix and we don't use
     // this prefix.
     var alreadyImportedWithPrefix = <LibraryElement>{};
-    for (var import in unitResult.libraryFragment.libraryImports2) {
+    for (var import in unitResult.libraryFragment.libraryImports) {
       // Prepare the element.
       var libraryElement = import.importedLibrary;
       if (libraryElement == null) {
@@ -400,7 +400,7 @@ class ImportLibrary extends MultiCorrectionProducer {
     // additional analysis.
     var foundImport = false;
     var names = <_PrefixedName>[];
-    for (var import in unitResult.libraryFragment.libraryImports2) {
+    for (var import in unitResult.libraryFragment.libraryImports) {
       // prepare element
       var importedLibrary = import.importedLibrary;
       if (importedLibrary == null || importedLibrary != libraryToImport) {

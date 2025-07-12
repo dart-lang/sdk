@@ -1222,7 +1222,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentList(
         'typeParameters',
         f,
-        f.typeParameters2,
+        f.typeParameters,
         _writeTypeParameterFragment,
       );
       _writeFragmentList('fields', f, f.fields, _writeFieldFragment);
@@ -1278,7 +1278,7 @@ class _Element2Writer extends _AbstractElementWriter {
 
       if (configuration.withImports) {
         var imports =
-            f.libraryImports2.where((import) {
+            f.libraryImports.where((import) {
               return configuration.withSyntheticDartCoreImport ||
                   !import.isSynthetic;
             }).toList();
@@ -1288,21 +1288,21 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeList('libraryExports', f.libraryExports, _writeLibraryExport);
       _writeList('parts', f.parts, _writePartInclude);
 
-      _writeFragmentList('classes', f, f.classes2, _writeInstanceFragment);
-      _writeFragmentList('enums', f, f.enums2, _writeInstanceFragment);
+      _writeFragmentList('classes', f, f.classes, _writeInstanceFragment);
+      _writeFragmentList('enums', f, f.enums, _writeInstanceFragment);
       _writeFragmentList(
         'extensions',
         f,
-        f.extensions2,
+        f.extensions,
         _writeInstanceFragment,
       );
       _writeFragmentList(
         'extensionTypes',
         f,
-        f.extensionTypes2,
+        f.extensionTypes,
         _writeInstanceFragment,
       );
-      _writeFragmentList('mixins', f, f.mixins2, _writeInstanceFragment);
+      _writeFragmentList('mixins', f, f.mixins, _writeInstanceFragment);
       _writeFragmentList(
         'typeAliases',
         f,
@@ -1312,7 +1312,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentList(
         'topLevelVariables',
         f,
-        f.topLevelVariables2,
+        f.topLevelVariables,
         _writeTopLevelVariableFragment,
       );
       _writeFragmentList('getters', f, f.getters, _writeGetterFragment);
@@ -1441,7 +1441,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentList(
         'typeParameters',
         f,
-        f.typeParameters2,
+        f.typeParameters,
         _writeTypeParameterFragment,
       );
       _writeFragmentList(
@@ -1626,7 +1626,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeMetadata(f.metadata);
       // _writeCodeRange(f);
 
-      expect(f.typeParameters2, isEmpty);
+      expect(f.typeParameters, isEmpty);
       _writeFragmentList(
         'formalParameters',
         f,
@@ -1706,7 +1706,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentList(
         'typeParameters',
         f,
-        f.typeParameters2,
+        f.typeParameters,
         _writeTypeParameterFragment,
       );
       _writeFragmentList(
@@ -1904,7 +1904,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentList(
         'typeParameters',
         f,
-        f.typeParameters2,
+        f.typeParameters,
         _writeTypeParameterFragment,
       );
 

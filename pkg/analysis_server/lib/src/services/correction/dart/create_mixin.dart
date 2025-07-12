@@ -153,7 +153,7 @@ class _CreateMixin extends ResolvedCorrectionProducer {
       filePath = file;
       prefix = '$eol$eol';
     } else {
-      for (var import in libraryElement2.firstFragment.libraryImports2) {
+      for (var import in libraryElement2.firstFragment.libraryImports) {
         if (prefixElement is PrefixElement &&
             import.prefix2?.element == prefixElement) {
           var library = import.importedLibrary;

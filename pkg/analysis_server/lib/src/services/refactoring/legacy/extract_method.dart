@@ -1861,7 +1861,7 @@ extension on LibraryElement {
   ///
   /// Returns `null` if was not imported, i.e. declared in the same library.
   LibraryImport? _getImportElement(Element element) {
-    for (var imp in firstFragment.libraryImports2) {
+    for (var imp in firstFragment.libraryImports) {
       var definedNames = imp.namespace.definedNames2;
       if (definedNames.containsValue(element)) {
         return imp;

@@ -212,7 +212,7 @@ class _BaseUnitMemberValidator {
     // check imports
     // TODO(enhanced-parts): This needs to look at the set of imports for the
     //  library fragment in which the reference occurs.
-    for (var libraryImport in atLibrary.firstFragment.libraryImports2) {
+    for (var libraryImport in atLibrary.firstFragment.libraryImports) {
       // ignore if imported with prefix
       if (libraryImport.prefix2 != null) {
         continue;

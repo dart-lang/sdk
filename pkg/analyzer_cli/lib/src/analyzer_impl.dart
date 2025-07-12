@@ -82,7 +82,7 @@ class AnalyzerImpl {
     for (final fragment in library.fragments) {
       addCompilationUnitSource(fragment, units);
       // Add imported libraries.
-      var importedLibraries = fragment.libraryImports2;
+      var importedLibraries = fragment.libraryImports;
       for (var child in importedLibraries) {
         var importedLibrary = child.importedLibrary;
         if (importedLibrary != null) {
@@ -90,7 +90,7 @@ class AnalyzerImpl {
         }
       }
       // Add exported libraries.
-      var exportedLibraries = fragment.libraryExports2;
+      var exportedLibraries = fragment.libraryExports;
       for (var child in exportedLibraries) {
         var exportedLibrary = child.exportedLibrary;
         if (exportedLibrary != null) {

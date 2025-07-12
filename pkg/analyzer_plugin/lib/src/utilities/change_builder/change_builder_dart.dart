@@ -1702,7 +1702,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     }
 
     for (var import
-        in resolvedUnit.libraryElement2.firstFragment.libraryImports2) {
+        in resolvedUnit.libraryElement2.firstFragment.libraryImports) {
       var importedLibrary = import.importedLibrary;
       if (importedLibrary != null && importedLibrary.uri == uri) {
         var importPrefix = import.prefix2?.element.name;
@@ -1759,7 +1759,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
     // Existing import.
     for (var import
-        in resolvedUnit.libraryElement2.firstFragment.libraryImports2) {
+        in resolvedUnit.libraryElement2.firstFragment.libraryImports) {
       var importedLibrary = import.importedLibrary;
       if (importedLibrary != null && importedLibrary.uri == uri) {
         return true;
@@ -2317,7 +2317,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /// The result may be an existing import, or one that is pending.
   _LibraryImport? _getImportElement(Element element) {
     for (var import
-        in resolvedUnit.libraryElement2.firstFragment.libraryImports2) {
+        in resolvedUnit.libraryElement2.firstFragment.libraryImports) {
       var lookupName = element.lookupName;
       var definedNames = import.namespace.definedNames2;
       var importedElement = definedNames[lookupName];
@@ -2350,7 +2350,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   List<LibraryImport> _getImportsForUri(Uri uri) {
     return [
       for (var import
-          in resolvedUnit.libraryElement2.firstFragment.libraryImports2)
+          in resolvedUnit.libraryElement2.firstFragment.libraryImports)
         if (import.importedLibrary?.uri == uri) import,
     ];
   }
@@ -2474,7 +2474,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       // Collect the list of existing shows and hides for any imports that match
       // the URI and prefix we care about.
       for (var element
-          in resolvedUnit.libraryElement2.firstFragment.libraryImports2) {
+          in resolvedUnit.libraryElement2.firstFragment.libraryImports) {
         var library = element.importedLibrary;
         if (library == null) {
           continue;

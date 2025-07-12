@@ -161,7 +161,7 @@ class ElementWriter with TreeWriter {
     if (fragment is LibraryFragment) {
       properties['source'] = fragment.source;
       properties['imports'] = {
-        for (var import in fragment.libraryImports2)
+        for (var import in fragment.libraryImports)
           {
             'combinators': import.combinators,
             if (import.prefix2 != null) 'prefix': import.prefix2?.name,
@@ -170,7 +170,7 @@ class ElementWriter with TreeWriter {
           },
       };
       properties['imports'] = {
-        for (var export in fragment.libraryExports2)
+        for (var export in fragment.libraryExports)
           {
             'combinators': export.combinators,
             'library': export.exportedLibrary,
