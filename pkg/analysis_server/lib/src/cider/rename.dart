@@ -257,7 +257,7 @@ class CheckNameResponse {
       }
     } else if (element is MockLibraryImportElement) {
       var unit = (await canRename._fileResolver.resolve(path: sourcePath)).unit;
-      var index = element.libraryFragment.libraryImports2.indexOf(
+      var index = element.libraryFragment.libraryImports.indexOf(
         element.import,
       );
       var node = unit.directives.whereType<ImportDirective>().elementAt(index);

@@ -8,6 +8,7 @@
 * Remove deprecated `PromotableElement` and `PromotableFragment`.
 * Remove deprecated `LocalVariableElement.hasInitializer`.
 * Remove deprecated `LocalVariableFragment.hasInitializer`.
+* Remove deprecated `LocalVariableFragment.nameOffset`.
 * `LibraryFragment` is not `Annotatable` anymore.
 * Stop implementing `ConstantEvaluationTarget` by `ElementAnnotation`.
   This is an internal interface that should not have been exposed.
@@ -159,6 +160,21 @@
 * Deprecate `TypeParameterizedElement.typeParameters2`, use `typeParameters` instead.
 * Deprecate `VariableElement.constantInitializer2`, use `constantInitializer` instead.
 * Deprecate `TypeProvider.isNonSubtypableClass2`, use `isNonSubtypableClass` instead.
+* Deprecate `EnumFragment.constants2`, use `constants` instead.
+* Deprecate `InterfaceElement.lookUpInheritedMethod2`, use `lookUpInheritedMethod` instead.
+* Deprecate `LibraryFragment.classes2`, use `classes` instead.
+* Deprecate `LibraryFragment.enums2`, use `enums` instead.
+* Deprecate `LibraryFragment.extensionTypes2`, use `extensionTypes` instead.
+* Deprecate `LibraryFragment.extensions2`, use `extensions` instead.
+* Deprecate `LibraryFragment.functions2`, use `functions` instead.
+* Deprecate `LibraryFragment.libraryExports2`, use `libraryExports` instead.
+* Deprecate `LibraryFragment.libraryImports2`, use `libraryImports` instead.
+* Deprecate `LibraryFragment.mixins2`, use `mixins` instead.
+* Deprecate `LibraryFragment.topLevelVariables2`, use `topLevelVariables` instead.
+* Deprecate `LibraryFragment.typeAliases2`, use `typeAliases` instead.
+* Deprecate `PatternVariableFragment.join2`, use `join` instead.
+* Deprecate `LibraryFragment.isNonSubtypableClass2`, use `isNonSubtypableClass` instead.
+* Deprecate `TypeParameterizedFragment.typeParameters2`, use `typeParameters` instead.
 
 ## 7.4.1
 * Restore `InstanceElement.augmented` getter.

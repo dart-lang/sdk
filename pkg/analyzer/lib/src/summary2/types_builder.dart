@@ -184,7 +184,6 @@ class TypesBuilder {
         case GetterElementImpl():
           element.returnType = returnType;
           (element.variable as TopLevelVariableElementImpl).type = returnType;
-          element.variable!.firstFragment.type = returnType;
         case SetterElementImpl():
           element.returnType = returnType;
           var valueElement =
@@ -196,13 +195,10 @@ class TypesBuilder {
           var valueNodeType = valueNodeElement?.type;
           var valueType = valueNodeType ?? InvalidTypeImpl.instance;
           valueElement?.type = valueType;
-          valueElement?.firstFragment.type = valueType;
 
-          var variableElement =
-              element.variable as TopLevelVariableElementImpl;
+          var variableElement = element.variable as TopLevelVariableElementImpl;
           if (variableElement.isSynthetic) {
             variableElement.type = valueType;
-            variableElement.firstFragment.type = valueType;
           }
         case TopLevelFunctionElementImpl():
           element.returnType = returnType;
@@ -233,7 +229,6 @@ class TypesBuilder {
         case GetterElementImpl():
           element.returnType = returnType;
           (element.variable as FieldElementImpl).type = returnType;
-          element.variable!.firstFragment.type = returnType;
         case SetterElementImpl():
           element.returnType = returnType;
           var valueElement =
@@ -244,12 +239,10 @@ class TypesBuilder {
           var valueNodeType = valueNodeElement?.type;
           var valueType = valueNodeType ?? InvalidTypeImpl.instance;
           valueElement?.type = valueType;
-          valueElement?.firstFragment.type = valueType;
 
           var variableElement = element.variable as FieldElementImpl;
           if (variableElement.isSynthetic && variableElement.getter == null) {
             variableElement.type = valueType;
-            variableElement.firstFragment.type = valueType;
           }
         case MethodElementImpl():
           element.returnType = returnType;
@@ -259,7 +252,6 @@ class TypesBuilder {
     } else if (node is SimpleFormalParameterImpl) {
       var fragment = node.declaredFragment!;
       fragment.element.type = node.type?.type ?? _dynamicType;
-      fragment.type = node.type?.type ?? _dynamicType;
     } else if (node is SuperFormalParameterImpl) {
       _superFormalParameter(node);
     } else if (node is TypeParameterImpl) {
@@ -270,7 +262,6 @@ class TypesBuilder {
         for (var variable in node.variables) {
           var variableFragment = variable.declaredFragment!;
           var variableElement = variableFragment.element;
-          variableFragment.type = type;
           variableElement.type = type;
           if (variableElement is PropertyInducingElementImpl) {
             if (variableElement.getter case var getterElement?) {
@@ -282,10 +273,6 @@ class TypesBuilder {
               setterElement.firstFragment.returnType = VoidTypeImpl.instance;
               (setterElement.formalParameters.single
                       as FormalParameterElementImpl)
-                  .type = type;
-              (setterElement.formalParameters.single
-                      as FormalParameterElementImpl)
-                  .firstFragment
                   .type = type;
             }
           }
@@ -342,10 +329,8 @@ class TypesBuilder {
         _nullability(node, node.question != null),
       );
       fragment.element.type = type;
-      fragment.type = type;
     } else {
       fragment.element.type = node.type?.type ?? _dynamicType;
-      fragment.type = node.type?.type ?? _dynamicType;
     }
   }
 
@@ -373,7 +358,6 @@ class TypesBuilder {
     );
     var fragment = node.declaredFragment!;
     fragment.element.type = type;
-    fragment.type = type;
   }
 
   void _genericFunctionType(GenericFunctionTypeImpl node) {
@@ -429,10 +413,8 @@ class TypesBuilder {
         _nullability(node, node.question != null),
       );
       fragment.element.type = type;
-      fragment.type = type;
     } else {
       fragment.element.type = node.type?.type ?? _dynamicType;
-      fragment.type = node.type?.type ?? _dynamicType;
     }
   }
 

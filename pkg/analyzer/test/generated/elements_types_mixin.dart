@@ -247,13 +247,16 @@ mixin ElementsTypesMixin {
     fragment.typeParameters = typeParameters.map((e) => e.asElement).toList();
     fragment.interfaces = interfaces;
 
-    var field = FieldFragmentImpl(
+    var fieldFragment = FieldFragmentImpl(
       name: representationName,
       firstTokenOffset: null,
     );
-    FieldElementImpl(reference: Reference.root(), firstFragment: field);
-    field.type = representationType;
-    fragment.fields = [field];
+    var fieldElement = FieldElementImpl(
+      reference: Reference.root(),
+      firstFragment: fieldFragment,
+    );
+    fieldElement.type = representationType;
+    fragment.fields = [fieldFragment];
 
     fragment.typeErasure = representationType;
 
@@ -281,7 +284,6 @@ mixin ElementsTypesMixin {
       name: representationName,
       firstTokenOffset: null,
     );
-    fieldFragment.type = representationType;
     fragment.fields = [fieldFragment];
 
     var fieldElement = FieldElementImpl(

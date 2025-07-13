@@ -422,7 +422,6 @@ class BundleWriter {
   void _writeFieldFragment(FieldFragmentImpl fragment) {
     _writeTemplateFragment(fragment, () {
       _resolutionSink._writeMetadata(fragment.metadata);
-      _resolutionSink.writeType(fragment.type);
       _resolutionSink._writeOptionalNode(fragment.constantInitializer);
     });
   }
@@ -644,7 +643,7 @@ class BundleWriter {
 
     _writeTypeParameters(element.typeParameters, () {
       _writeList(element.parameters, _writeParameterElement);
-      _resolutionSink.writeType(element.type2);
+      _resolutionSink.writeType(element.element.type);
       _resolutionSink._writeOptionalNode(element.constantInitializer);
 
       if (element is FieldFormalParameterFragmentImpl) {
@@ -741,7 +740,6 @@ class BundleWriter {
   void _writeTopLevelVariableFragment(TopLevelVariableFragmentImpl fragment) {
     _writeTemplateFragment(fragment, () {
       _resolutionSink._writeMetadata(fragment.metadata);
-      _resolutionSink.writeType(fragment.type);
       _resolutionSink._writeOptionalNode(fragment.constantInitializer);
     });
   }
@@ -1011,7 +1009,7 @@ class ResolutionSink extends _SummaryDataWriter {
       writeBool(parameter.hasImplicitType);
       writeBool(parameter.isInitializingFormal);
       _writeTypeParameters(parameter.typeParameters, () {
-        writeType(parameter.type);
+        writeType(parameter.element.type);
         _writeFragmentName(parameter);
         _writeFormalParameters(
           parameter.parameters,

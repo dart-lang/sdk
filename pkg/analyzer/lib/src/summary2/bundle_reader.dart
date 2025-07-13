@@ -727,7 +727,6 @@ class LibraryReader {
           reader._addTypeParameters2(enclosingElement.typeParameters);
 
           _readFragmentMetadata(fragment, reader);
-          fragment.type = reader.readRequiredType();
           if (reader.readOptionalExpression() case var initializer?) {
             fragment.constantInitializer = initializer;
             ConstantContextForExpressionImpl(fragment, initializer);
@@ -748,8 +747,6 @@ class LibraryReader {
       _readFormalParameters2(unitElement, reader, parameter.parameters);
       var type = reader.readType() ?? InvalidTypeImpl.instance;
       parameter.element.type = type;
-      // TODO(scheglov): make the `type` property optional
-      parameter.type = type;
       parameter.constantInitializer = reader.readOptionalExpression();
       if (parameter is FieldFormalParameterFragmentImpl) {
         // TODO(scheglov): use element
@@ -1295,7 +1292,6 @@ class LibraryReader {
         readResolution: (fragment, reader) {
           reader.currentLibraryFragment = fragment.libraryFragment;
           _readFragmentMetadata(fragment, reader);
-          fragment.type = reader.readRequiredType();
           if (reader.readOptionalExpression() case var initializer?) {
             fragment.constantInitializer = initializer;
             ConstantContextForExpressionImpl(fragment, initializer);
@@ -1809,7 +1805,6 @@ class ResolutionReader {
           parameterKind: kind,
         );
         element.element.type = type;
-        element.type = type;
       } else {
         element = FormalParameterFragmentImpl(
           firstTokenOffset: null,
@@ -1818,7 +1813,6 @@ class ResolutionReader {
           parameterKind: kind,
         );
         element.element.type = type;
-        element.type = type;
       }
       element.hasImplicitType = hasImplicitType;
       element.typeParameters = typeParameters;

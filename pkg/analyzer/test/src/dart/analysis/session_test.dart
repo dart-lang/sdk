@@ -111,7 +111,7 @@ class AnalysisSessionImpl_BlazeWorkspaceTest
     var session = contextFor(file).currentSession;
     var result = await session.getUnitElementValid(file);
     expect(result.path, file.path);
-    expect(result.fragment.classes2, hasLength(1));
+    expect(result.fragment.classes, hasLength(1));
     expect(result.uri.toString(), 'package:dart.my/a.dart');
   }
 }
@@ -350,7 +350,7 @@ int foo = 0;
     var parsedLibrary = session.getParsedLibraryValid(testFile);
 
     var unitResult = await session.getUnitElementValid(testFile);
-    var fooElement = unitResult.fragment.topLevelVariables2[0];
+    var fooElement = unitResult.fragment.topLevelVariables[0];
     expect(fooElement.name, 'foo');
 
     // We can get the variable element declaration.
@@ -619,7 +619,7 @@ int foo = 0;
     var resolvedLibrary = await session.getResolvedLibraryValid(testFile);
     var unitElement = resolvedLibrary.element2.firstFragment;
 
-    var fooElement = unitElement.topLevelVariables2[0];
+    var fooElement = unitElement.topLevelVariables[0];
     expect(fooElement.name, 'foo');
 
     // We can get the variable element declaration.
@@ -956,7 +956,7 @@ unitElementResult
             (element as LibraryFragment).element as LibraryElementImpl;
         sink.writelnWithIndent('library: ${library.reference}');
 
-        var classListStr = element.classes2.map((e) => e.name).join(', ');
+        var classListStr = element.classes.map((e) => e.name).join(', ');
         sink.writelnWithIndent('classes: $classListStr');
       });
     });

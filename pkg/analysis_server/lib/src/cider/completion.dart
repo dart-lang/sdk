@@ -172,7 +172,7 @@ class CiderCompletionComputer {
     var suggestionBuilders = <CompletionSuggestionBuilder>[];
     var importedLibraries =
         target.withEnclosing2
-            .expand((fragment) => fragment.libraryImports2)
+            .expand((fragment) => fragment.libraryImports)
             .map((import) => import.importedLibrary)
             .nonNulls
             .toSet();

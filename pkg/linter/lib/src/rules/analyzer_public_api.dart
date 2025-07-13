@@ -221,8 +221,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       case ExtensionFragment(name: null):
         // Unnamed extensions are not public, so ignore.
         break;
-      case InstanceFragment(:var typeParameters2, :var children):
-        for (var typeParameter in typeParameters2) {
+      case InstanceFragment(:var typeParameters, :var children):
+        for (var typeParameter in typeParameters) {
           _checkTypeParameter(typeParameter, fragment: fragment);
         }
         if (fragment case InterfaceFragment(
@@ -249,16 +249,16 @@ class _Visitor extends SimpleAstVisitor<void> {
         children.forEach(_checkMember);
       case ExecutableFragment():
         _checkType(fragment.element.type, fragment: fragment);
-      case TypeAliasFragment(:var element, :var typeParameters2):
+      case TypeAliasFragment(:var element, :var typeParameters):
         var aliasedType = element.aliasedType;
         _checkType(element.aliasedType, fragment: fragment);
-        if (typeParameters2.isNotEmpty &&
+        if (typeParameters.isNotEmpty &&
             aliasedType is FunctionType &&
             aliasedType.typeParameters.isEmpty) {
           // Sometimes `aliasedType` doesn't have the type parameters. Not sure
           // why.
           // TODO(paulberry): consider fixing this in the analyzer.
-          for (var typeParameter in typeParameters2) {
+          for (var typeParameter in typeParameters) {
             _checkTypeParameter(typeParameter, fragment: fragment);
           }
         }

@@ -59,7 +59,7 @@ class AnalysisDriver_BlazeWorkspaceTest extends BlazeWorkspaceResolutionTest {
 
     void assertInnerUri(ResolvedUnitResult result) {
       var innerSource =
-          result.libraryFragment.libraryImports2
+          result.libraryFragment.libraryImports
               .map((import) => import.importedLibrary?.firstFragment.source)
               .nonNulls
               .where(
@@ -2988,7 +2988,7 @@ void bar() {}
     var collector = DriverEventCollector(driver);
 
     configuration.unitElementConfiguration.elementSelector = (unitFragment) {
-      return unitFragment.functions2
+      return unitFragment.functions
           .map((fragment) => fragment.element)
           .toList();
     };

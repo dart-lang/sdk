@@ -497,9 +497,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
               formalParameterFragment,
             );
             formalParameterElements.add(formalParameterElement);
-
             formalParameterElement.type = superFormalParameter.type;
-            formalParameterFragment.type = superFormalParameter.type;
 
             superInvocationArguments.add(
               SimpleIdentifierImpl(
@@ -2069,14 +2067,17 @@ class EnumFragmentImpl extends InterfaceFragmentImpl implements EnumFragment {
   /// given [offset] in the file that contains the declaration of this element.
   EnumFragmentImpl({required super.name, required super.firstTokenOffset});
 
-  // TODO(fshcheglov): Consider removing.
-  List<FieldFragmentImpl> get constants {
-    return fields.where((field) => field.isEnumConstant).toList();
+  @override
+  List<FieldElement> get constants {
+    var constants = fields.where((field) => field.isEnumConstant).toList();
+    return constants.map((e) => e.asElement2).toList();
   }
 
+  @Deprecated('Use constants instead')
   @override
-  List<FieldElement> get constants2 =>
-      constants.map((e) => e.asElement2).toList();
+  List<FieldElement> get constants2 {
+    return constants;
+  }
 
   @override
   EnumFragmentImpl? get nextFragment => super.nextFragment as EnumFragmentImpl?;
@@ -4026,7 +4027,7 @@ class GenericFunctionTypeElementImpl extends FunctionTypedElementImpl
 
   @override
   List<TypeParameterElement> get typeParameters =>
-      _wrappedElement.typeParameters2
+      _wrappedElement.typeParameters
           .map((fragment) => fragment.element)
           .toList();
 
@@ -5211,13 +5212,22 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   }
 
   @override
-  MethodElement? lookUpInheritedMethod2({
+  MethodElement? lookUpInheritedMethod({
     required String methodName,
     required LibraryElement library,
   }) {
     return inheritanceManager
         .getInherited(this, Name.forLibrary(library, methodName))
         .ifTypeOrNull();
+  }
+
+  @override
+  @Deprecated('Use lookUpInheritedMethod instead')
+  MethodElement? lookUpInheritedMethod2({
+    required String methodName,
+    required LibraryElement library,
+  }) {
+    return lookUpInheritedMethod(methodName: methodName, library: library);
   }
 
   /// Return the static getter with the [name], accessible to the [library].
@@ -6439,9 +6449,8 @@ class LibraryFragmentImpl extends _ExistingFragmentImpl
     return children;
   }
 
-  List<ClassFragmentImpl> get classes {
-    return _classes;
-  }
+  @override
+  List<ClassFragmentImpl> get classes => _classes;
 
   /// Set the classes contained in this compilation unit to [classes].
   set classes(List<ClassFragmentImpl> classes) {
@@ -6451,8 +6460,9 @@ class LibraryFragmentImpl extends _ExistingFragmentImpl
     _classes = classes;
   }
 
+  @Deprecated('Use classes instead')
   @override
-  List<ClassFragmentImpl> get classes2 => classes;
+  List<ClassFragment> get classes2 => classes;
 
   @override
   LibraryElementImpl get element => library;
@@ -6472,9 +6482,8 @@ class LibraryFragmentImpl extends _ExistingFragmentImpl
     return this;
   }
 
-  List<EnumFragmentImpl> get enums {
-    return _enums;
-  }
+  @override
+  List<EnumFragmentImpl> get enums => _enums;
 
   /// Set the enums contained in this compilation unit to the given [enums].
   set enums(List<EnumFragmentImpl> enums) {
@@ -6484,12 +6493,12 @@ class LibraryFragmentImpl extends _ExistingFragmentImpl
     _enums = enums;
   }
 
+  @Deprecated('Use enums instead')
   @override
-  List<EnumFragmentImpl> get enums2 => enums;
+  List<EnumFragment> get enums2 => enums;
 
-  List<ExtensionFragmentImpl> get extensions {
-    return _extensions;
-  }
+  @override
+  List<ExtensionFragmentImpl> get extensions => _extensions;
 
   /// Set the extensions contained in this compilation unit to the given
   /// [extensions].
@@ -6500,12 +6509,12 @@ class LibraryFragmentImpl extends _ExistingFragmentImpl
     _extensions = extensions;
   }
 
+  @Deprecated('Use extensions instead')
   @override
-  List<ExtensionFragmentImpl> get extensions2 => extensions;
+  List<ExtensionFragment> get extensions2 => extensions;
 
-  List<ExtensionTypeFragmentImpl> get extensionTypes {
-    return _extensionTypes;
-  }
+  @override
+  List<ExtensionTypeFragmentImpl> get extensionTypes => _extensionTypes;
 
   set extensionTypes(List<ExtensionTypeFragmentImpl> elements) {
     for (var element in elements) {
@@ -6514,9 +6523,11 @@ class LibraryFragmentImpl extends _ExistingFragmentImpl
     _extensionTypes = elements;
   }
 
+  @Deprecated('Use extensionTypes instead')
   @override
-  List<ExtensionTypeFragmentImpl> get extensionTypes2 => extensionTypes;
+  List<ExtensionTypeFragment> get extensionTypes2 => extensionTypes;
 
+  @override
   List<TopLevelFunctionFragmentImpl> get functions {
     return _functions;
   }
@@ -6530,9 +6541,9 @@ class LibraryFragmentImpl extends _ExistingFragmentImpl
     _functions = functions;
   }
 
+  @Deprecated('Use functions instead')
   @override
-  List<TopLevelFunctionFragment> get functions2 =>
-      functions.cast<TopLevelFunctionFragment>();
+  List<TopLevelFunctionFragment> get functions2 => functions;
 
   @override
   List<GetterFragmentImpl> get getters => _getters;
@@ -6549,7 +6560,7 @@ class LibraryFragmentImpl extends _ExistingFragmentImpl
 
   @override
   List<LibraryElement> get importedLibraries {
-    return libraryImports2
+    return libraryImports
         .map((import) => import.importedLibrary)
         .nonNulls
         .toSet()
@@ -6562,7 +6573,7 @@ class LibraryFragmentImpl extends _ExistingFragmentImpl
     return importedLibraries;
   }
 
-  /// The libraries exported by this unit.
+  @override
   List<LibraryExportImpl> get libraryExports {
     _ensureReadResolution();
     return _libraryExports;
@@ -6575,9 +6586,9 @@ class LibraryFragmentImpl extends _ExistingFragmentImpl
     _libraryExports = exports;
   }
 
+  @Deprecated('Use libraryExports instead')
   @override
-  List<LibraryExport> get libraryExports2 =>
-      libraryExports.cast<LibraryExport>();
+  List<LibraryExport> get libraryExports2 => libraryExports;
 
   List<LibraryExportImpl> get libraryExports_unresolved {
     return _libraryExports;
@@ -6586,7 +6597,7 @@ class LibraryFragmentImpl extends _ExistingFragmentImpl
   @override
   LibraryFragment get libraryFragment => this;
 
-  /// The libraries imported by this unit.
+  @override
   List<LibraryImportImpl> get libraryImports {
     _ensureReadResolution();
     return _libraryImports;
@@ -6599,9 +6610,9 @@ class LibraryFragmentImpl extends _ExistingFragmentImpl
     _libraryImports = imports;
   }
 
+  @Deprecated('Use libraryImports instead')
   @override
-  List<LibraryImportImpl> get libraryImports2 =>
-      libraryImports.cast<LibraryImportImpl>();
+  List<LibraryImport> get libraryImports2 => libraryImports;
 
   List<LibraryImportImpl> get libraryImports_unresolved {
     return _libraryImports;
@@ -6610,9 +6621,8 @@ class LibraryFragmentImpl extends _ExistingFragmentImpl
   @override
   Source get librarySource => library.source;
 
-  List<MixinFragmentImpl> get mixins {
-    return _mixins;
-  }
+  @override
+  List<MixinFragmentImpl> get mixins => _mixins;
 
   /// Set the mixins contained in this compilation unit to the given [mixins].
   set mixins(List<MixinFragmentImpl> mixins) {
@@ -6622,8 +6632,9 @@ class LibraryFragmentImpl extends _ExistingFragmentImpl
     _mixins = mixins;
   }
 
+  @Deprecated('Use mixins instead')
   @override
-  List<MixinFragmentImpl> get mixins2 => mixins;
+  List<MixinFragment> get mixins2 => mixins;
 
   @override
   String? get name => null;
@@ -6704,9 +6715,8 @@ class LibraryFragmentImpl extends _ExistingFragmentImpl
     _setters = setters;
   }
 
-  List<TopLevelVariableFragmentImpl> get topLevelVariables {
-    return _variables;
-  }
+  @override
+  List<TopLevelVariableFragmentImpl> get topLevelVariables => _variables;
 
   /// Set the top-level variables contained in this compilation unit to the
   ///  given[variables].
@@ -6717,10 +6727,11 @@ class LibraryFragmentImpl extends _ExistingFragmentImpl
     _variables = variables;
   }
 
+  @Deprecated('Use topLevelVariables instead')
   @override
-  List<TopLevelVariableFragmentImpl> get topLevelVariables2 =>
-      topLevelVariables;
+  List<TopLevelVariableFragment> get topLevelVariables2 => topLevelVariables;
 
+  @override
   List<TypeAliasFragmentImpl> get typeAliases {
     return _typeAliases;
   }
@@ -6733,9 +6744,9 @@ class LibraryFragmentImpl extends _ExistingFragmentImpl
     _typeAliases = typeAliases;
   }
 
+  @Deprecated('Use typeAliases instead')
   @override
-  List<TypeAliasFragment> get typeAliases2 =>
-      typeAliases.cast<TypeAliasFragment>();
+  List<TypeAliasFragment> get typeAliases2 => typeAliases;
 
   void addClass(ClassFragmentImpl fragment) {
     // TODO(scheglov): optimize
@@ -6874,7 +6885,7 @@ class LibraryFragmentImpl extends _ExistingFragmentImpl
 
   List<PrefixElementImpl> _buildLibraryImportPrefixes() {
     var prefixes = <PrefixElementImpl>{};
-    for (var import in libraryImports2) {
+    for (var import in libraryImports) {
       var prefix = import.prefix2?.element;
       if (prefix != null) {
         prefixes.add(prefix);
@@ -7264,9 +7275,6 @@ class LocalVariableFragmentImpl extends NonParameterVariableFragmentImpl
   @Deprecated('Use metadata instead')
   @override
   MetadataImpl get metadata2 => metadata;
-
-  @override
-  int get nameOffset => firstTokenOffset!;
 
   @override
   LocalVariableFragmentImpl? get nextFragment => null;
@@ -8578,8 +8586,7 @@ class PatternVariableElementImpl extends LocalVariableElementImpl
 
 class PatternVariableFragmentImpl extends LocalVariableFragmentImpl
     implements PatternVariableFragment {
-  /// The variable in which this variable joins with other pattern variables
-  /// with the same name, in a logical-or pattern, or shared case scope.
+  @override
   JoinPatternVariableFragmentImpl? join;
 
   /// This flag is set to `true` while we are visiting the [WhenClause] of
@@ -8595,6 +8602,7 @@ class PatternVariableFragmentImpl extends LocalVariableFragmentImpl
   PatternVariableElementImpl get element =>
       super.element as PatternVariableElementImpl;
 
+  @Deprecated('Use join instead')
   @override
   JoinPatternVariableFragment? get join2 => join;
 
@@ -9016,7 +9024,6 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
     var type = firstFragment.typeInference?.perform();
     type ??= InvalidTypeImpl.instance;
     _type = type;
-    firstFragment._type = type;
     shouldUseTypeForInitializerInference = false;
 
     // TODO(scheglov): We repeat this code.
@@ -9030,9 +9037,6 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
         setterElement.returnType = VoidTypeImpl.instance;
         setterElement.firstFragment.returnType = VoidTypeImpl.instance;
         (setterElement.formalParameters.single as FormalParameterElementImpl)
-            .type = type;
-        (setterElement.formalParameters.single as FormalParameterElementImpl)
-            .firstFragment
             .type = type;
       }
     }
@@ -9122,12 +9126,6 @@ abstract class PropertyInducingFragmentImpl
   @Deprecated('Use metadata instead')
   @override
   MetadataImpl get metadata2 => metadata;
-
-  @override
-  TypeImpl get type {
-    _ensureReadResolution();
-    return _type!;
-  }
 }
 
 /// Common base class for all analyzer-internal classes that implement
@@ -9860,9 +9858,7 @@ class TypeAliasElementImpl extends TypeDefiningElementImpl
 
   @override
   List<TypeParameterElementImpl> get typeParameters =>
-      firstFragment.typeParameters2
-          .map((fragment) => fragment.element)
-          .toList();
+      firstFragment.typeParameters.map((fragment) => fragment.element).toList();
 
   @Deprecated('Use typeParameters instead')
   @override
@@ -10413,10 +10409,7 @@ mixin TypeParameterizedFragmentMixin on FragmentImpl
   @override
   MetadataImpl get metadata2 => metadata;
 
-  /// The type parameters declared by this element directly.
-  ///
-  /// This does not include type parameters that are declared by any enclosing
-  /// elements.
+  @override
   List<TypeParameterFragmentImpl> get typeParameters {
     _ensureReadResolution();
     return _typeParameters;
@@ -10429,9 +10422,9 @@ mixin TypeParameterizedFragmentMixin on FragmentImpl
     _typeParameters = typeParameters;
   }
 
+  @Deprecated('Use typeParameters instead')
   @override
-  List<TypeParameterFragmentImpl> get typeParameters2 =>
-      typeParameters.cast<TypeParameterFragmentImpl>();
+  List<TypeParameterFragmentImpl> get typeParameters2 => typeParameters;
 
   List<TypeParameterFragmentImpl> get typeParameters_unresolved {
     return _typeParameters;
@@ -10532,9 +10525,6 @@ abstract class VariableElementImpl extends ElementImpl
 
 abstract class VariableFragmentImpl extends FragmentImpl
     implements AnnotatableFragmentImpl, VariableFragment {
-  /// The type of this variable.
-  TypeImpl? _type;
-
   /// If this element represents a constant variable, and it has an initializer,
   /// a copy of the initializer for the constant.  Otherwise `null`.
   ///
@@ -10649,18 +10639,6 @@ abstract class VariableFragmentImpl extends FragmentImpl
     }
     throw StateError('($runtimeType) $this');
   }
-
-  /// The declared type of this variable.
-  // TODO(scheglov): make it nullable and turn into field
-  TypeImpl get type => _type!;
-
-  set type(TypeImpl type) {
-    _type = type;
-  }
-
-  /// The declared type of this variable.
-  // TODO(scheglov): turn into field
-  TypeImpl? get type2 => _type;
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {

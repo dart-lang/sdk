@@ -168,7 +168,7 @@ class ElementMatcher {
       return null;
     }
     while (part != null) {
-      for (var libraryImport in part.libraryImports2) {
+      for (var libraryImport in part.libraryImports) {
         // TODO(brianwilkerson): Filter based on combinators to help avoid making
         //  invalid suggestions.
         var uri = libraryImport.importedLibrary?.uri;

@@ -1049,7 +1049,7 @@ class _MockSdkElementsBuilder {
       element.setter = setterElement;
     }
 
-    fragment.type = type;
+    element.type = type;
     return fragment;
   }
 
@@ -1096,7 +1096,7 @@ class _MockSdkElementsBuilder {
     );
     fieldFragment.isStatic = isStatic;
     fieldFragment.isSynthetic = true;
-    fieldFragment.type = type;
+    fieldElement.type = type;
 
     var getterFragment = GetterFragmentImpl(name: name, firstTokenOffset: null);
     var getterElement = GetterElementImpl(Reference.root(), getterFragment);
@@ -1273,7 +1273,7 @@ class _MockSdkElementsBuilder {
       ..isSynthetic = true;
     var getterElement = GetterElementImpl(Reference.root(), getterFragment);
     element.getter = getterElement;
-    fragment.type = type;
+    element.type = type;
     return fragment;
   }
 

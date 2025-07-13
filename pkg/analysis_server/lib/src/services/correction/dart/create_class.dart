@@ -199,7 +199,7 @@ class _CreateClass extends ResolvedCorrectionProducer {
       filePath = file;
       prefix = '$eol$eol';
     } else {
-      for (var import in libraryElement2.firstFragment.libraryImports2) {
+      for (var import in libraryElement2.firstFragment.libraryImports) {
         if (_prefixElement is PrefixElement &&
             import.prefix2?.element == _prefixElement) {
           var library = import.importedLibrary;

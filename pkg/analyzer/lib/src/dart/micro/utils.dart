@@ -170,7 +170,7 @@ MockLibraryImportElement? _getMockImportElement(
   List<LibraryImport>? candidates;
   var libraryImports =
       libraryFragment.withEnclosing2
-          .expand((fragment) => fragment.libraryImports2)
+          .expand((fragment) => fragment.libraryImports)
           .toList();
   for (var importElement in libraryImports) {
     // required library

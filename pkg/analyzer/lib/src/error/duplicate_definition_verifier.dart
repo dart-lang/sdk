@@ -151,25 +151,25 @@ class DuplicateDefinitionVerifier {
           definedSetters[name] = element;
         }
       }
-      for (var fragment in libraryFragment.classes2) {
+      for (var fragment in libraryFragment.classes) {
         var element = fragment.element;
         if (element.lookupName case var name?) {
           definedGetters[name] = element;
         }
       }
-      for (var fragment in libraryFragment.enums2) {
+      for (var fragment in libraryFragment.enums) {
         var element = fragment.element;
         if (element.lookupName case var name?) {
           definedGetters[name] = element;
         }
       }
-      for (var fragment in libraryFragment.extensions2) {
+      for (var fragment in libraryFragment.extensions) {
         var element = fragment.element;
         if (element.lookupName case var name?) {
           definedGetters[name] = element;
         }
       }
-      for (var fragment in libraryFragment.extensionTypes2) {
+      for (var fragment in libraryFragment.extensionTypes) {
         var element = fragment.element;
         if (element.lookupName case var name?) {
           definedGetters[name] = element;
@@ -181,7 +181,7 @@ class DuplicateDefinitionVerifier {
           definedGetters[name] = element;
         }
       }
-      for (var fragment in libraryFragment.mixins2) {
+      for (var fragment in libraryFragment.mixins) {
         var element = fragment.element;
         if (element.lookupName case var name?) {
           definedGetters[name] = element;

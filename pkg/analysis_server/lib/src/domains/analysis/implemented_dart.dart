@@ -18,16 +18,16 @@ class ImplementedComputer {
   ImplementedComputer(this.searchEngine, this.unitElement);
 
   Future<void> compute() async {
-    for (var fragment in unitElement.classes2) {
+    for (var fragment in unitElement.classes) {
       await _computeForInterfaceElement(fragment.element);
     }
-    for (var fragment in unitElement.enums2) {
+    for (var fragment in unitElement.enums) {
       await _computeForInterfaceElement(fragment.element);
     }
-    for (var fragment in unitElement.extensionTypes2) {
+    for (var fragment in unitElement.extensionTypes) {
       await _computeForInterfaceElement(fragment.element);
     }
-    for (var fragment in unitElement.mixins2) {
+    for (var fragment in unitElement.mixins) {
       await _computeForInterfaceElement(fragment.element);
     }
   }

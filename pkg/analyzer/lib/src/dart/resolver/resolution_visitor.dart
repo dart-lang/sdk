@@ -247,7 +247,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           fragment.hasImplicitType = true;
           fragment.element.type = _typeProvider.objectType;
         } else {
-          fragment.type = exceptionTypeNode.typeOrThrow;
           fragment.element.type = exceptionTypeNode.typeOrThrow;
         }
 
@@ -398,7 +397,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     if (node.type case var typeNode?) {
       typeNode.accept(this);
-      fragment.type = typeNode.typeOrThrow;
       fragment.element.type = typeNode.typeOrThrow;
     } else {
       fragment.hasImplicitType = true;
@@ -426,7 +424,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     _define(fragment.element);
     fragment.hasImplicitType = node.type == null;
     if (node.type case var typeNode?) {
-      fragment.type = typeNode.typeOrThrow;
       fragment.element.type = typeNode.typeOrThrow;
     }
     node.declaredFragment = fragment;
@@ -667,7 +664,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
             } else {
               // Only for recovery, this should not happen in valid code.
               fragment.element.type = node.type?.type ?? _dynamicType;
-              fragment.type = node.type?.type ?? _dynamicType;
               _withElementWalker(null, () {
                 node.parameters?.accept(this);
               });
@@ -895,7 +891,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
                 nullabilitySuffix: _getNullability(node.question != null),
               );
               fragment.element.type = type;
-              fragment.type = type;
             }
           });
         },
@@ -1274,7 +1269,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     node.type?.accept(this);
     if (_elementWalker == null) {
       fragment.element.type = node.type?.type ?? _dynamicType;
-      fragment.type = node.type?.type ?? _dynamicType;
     }
 
     _setOrCreateMetadataElements(fragment, node.metadata);
@@ -1332,7 +1326,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
             } else {
               // Only for recovery, this should not happen in valid code.
               element.element.type = node.type?.type ?? _dynamicType;
-              element.type = node.type?.type ?? _dynamicType;
               _withElementWalker(null, () {
                 node.parameters?.accept(this);
               });
@@ -1445,7 +1438,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       localFragment.hasInitializer = initializerNode != null;
       if (varList.type case var typeNode?) {
         var type = typeNode.typeOrThrow;
-        localFragment.type = type;
         localFragment.element.type = type;
       } else {
         localFragment.hasImplicitType = true;
@@ -2028,9 +2020,7 @@ class _VariableBinder
         ),
       ),
     );
-    resultFragment
-      ..enclosingFragment = first.firstFragment.enclosingFragment
-      ..type = InvalidTypeImpl.instance;
+    resultFragment.enclosingFragment = first.firstFragment.enclosingFragment;
 
     return resultFragment.element;
   }

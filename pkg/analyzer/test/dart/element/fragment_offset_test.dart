@@ -580,7 +580,7 @@ void f() {
     );
     checkOffset<JoinPatternVariableFragment>(
       firstDeclaredVariablePattern,
-      firstDeclaredVariablePattern.declaredFragment!.join2!,
+      firstDeclaredVariablePattern.declaredFragment!.join!,
       firstDeclaredVariablePattern.name.offset,
     );
   }

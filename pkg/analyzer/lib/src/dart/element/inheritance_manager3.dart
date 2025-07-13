@@ -1031,7 +1031,6 @@ class InheritanceManager3 {
       assert(fieldReference.element == null);
       FieldElementImpl(reference: fieldReference, firstFragment: resultField);
 
-      resultField.type = executable.formalParameters[0].type;
       return result;
     }
 
@@ -1162,11 +1161,9 @@ class InheritanceManager3 {
       resultFragment.element.variable = fieldElement;
 
       if (firstElement is GetterElement) {
-        field.type = resultFragment.returnType;
         fieldElement.type = resultFragment.returnType;
       } else {
         var type = resultFragment.parameters[0].element.type;
-        field.type = type;
         fieldElement.type = type;
       }
 

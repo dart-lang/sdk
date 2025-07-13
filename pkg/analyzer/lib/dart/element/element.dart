@@ -1279,6 +1279,10 @@ abstract class EnumElement implements InterfaceElement {
 /// Clients may not extend, implement or mix-in this class.
 abstract class EnumFragment implements InterfaceFragment {
   /// The constants defined by this fragment of the enum.
+  List<FieldElement> get constants;
+
+  /// The constants defined by this fragment of the enum.
+  @Deprecated('Use constants instead')
   List<FieldElement> get constants2;
 
   @override
@@ -2408,7 +2412,27 @@ abstract class InterfaceElement implements InstanceElement {
   /// <i>S</i> with respect to <i>L</i>. Otherwise, we say that the lookup has
   /// failed.
   /// </blockquote>
-  // TODO(scheglov): Deprecate and remove it.
+  MethodElement? lookUpInheritedMethod({
+    required String methodName,
+    required LibraryElement library,
+  });
+
+  /// Returns the element representing the method that results from looking up
+  /// the given [methodName] in the superclass of this class with respect to the
+  /// given [library], or `null` if the look up fails.
+  ///
+  /// The behavior of this method is defined by the Dart Language Specification
+  /// in section 16.15.1:
+  /// <blockquote>
+  /// The result of looking up method <i>m</i> in class <i>C</i> with respect to
+  /// library <i>L</i> is:  If <i>C</i> declares an instance method named
+  /// <i>m</i> that is accessible to <i>L</i>, then that method is the result of
+  /// the lookup. Otherwise, if <i>C</i> has a superclass <i>S</i>, then the
+  /// result of the lookup is the result of looking up method <i>m</i> in
+  /// <i>S</i> with respect to <i>L</i>. Otherwise, we say that the lookup has
+  /// failed.
+  /// </blockquote>
+  @Deprecated('Use lookUpInheritedMethod instead')
   MethodElement? lookUpInheritedMethod2({
     required String methodName,
     required LibraryElement library,
@@ -2797,6 +2821,10 @@ abstract class LibraryFragment implements Fragment {
   List<ExtensionElement> get accessibleExtensions2;
 
   /// The fragments of the classes declared in this fragment.
+  List<ClassFragment> get classes;
+
+  /// The fragments of the classes declared in this fragment.
+  @Deprecated('Use classes instead')
   List<ClassFragment> get classes2;
 
   @override
@@ -2806,15 +2834,31 @@ abstract class LibraryFragment implements Fragment {
   LibraryFragment? get enclosingFragment;
 
   /// The fragments of the enums declared in this fragment.
+  List<EnumFragment> get enums;
+
+  /// The fragments of the enums declared in this fragment.
+  @Deprecated('Use enums instead')
   List<EnumFragment> get enums2;
 
   /// The fragments of the extensions declared in this fragment.
+  List<ExtensionFragment> get extensions;
+
+  /// The fragments of the extensions declared in this fragment.
+  @Deprecated('Use extensions instead')
   List<ExtensionFragment> get extensions2;
 
   /// The fragments of the extension types declared in this fragment.
+  List<ExtensionTypeFragment> get extensionTypes;
+
+  /// The fragments of the extension types declared in this fragment.
+  @Deprecated('Use extensionTypes instead')
   List<ExtensionTypeFragment> get extensionTypes2;
 
   /// The fragments of the top-level functions declared in this fragment.
+  List<TopLevelFunctionFragment> get functions;
+
+  /// The fragments of the top-level functions declared in this fragment.
+  @Deprecated('Use functions instead')
   List<TopLevelFunctionFragment> get functions2;
 
   /// The fragments of the top-level getters declared in this fragment.
@@ -2834,15 +2878,27 @@ abstract class LibraryFragment implements Fragment {
   List<LibraryElement> get importedLibraries2;
 
   /// The libraries exported by this unit.
+  List<LibraryExport> get libraryExports;
+
+  /// The libraries exported by this unit.
+  @Deprecated('Use libraryExports instead')
   List<LibraryExport> get libraryExports2;
 
   /// The libraries imported by this unit.
+  List<LibraryImport> get libraryImports;
+
+  /// The libraries imported by this unit.
+  @Deprecated('Use libraryImports instead')
   List<LibraryImport> get libraryImports2;
 
   /// The [LineInfo] for the fragment.
   LineInfo get lineInfo;
 
   /// The fragments of the mixins declared in this fragment.
+  List<MixinFragment> get mixins;
+
+  /// The fragments of the mixins declared in this fragment.
+  @Deprecated('Use mixins instead')
   List<MixinFragment> get mixins2;
 
   @override
@@ -2856,7 +2912,7 @@ abstract class LibraryFragment implements Fragment {
   /// The `part` directives within this fragment.
   List<PartInclude> get partIncludes;
 
-  /// The prefixes used by [libraryImports2].
+  /// The prefixes used by [libraryImports].
   ///
   /// Each prefix can be used in more than one `import` directive.
   List<PrefixElement> get prefixes;
@@ -2877,9 +2933,17 @@ abstract class LibraryFragment implements Fragment {
   Source get source;
 
   /// The fragments of the top-level variables declared in this fragment.
+  List<TopLevelVariableFragment> get topLevelVariables;
+
+  /// The fragments of the top-level variables declared in this fragment.
+  @Deprecated('Use topLevelVariables instead')
   List<TopLevelVariableFragment> get topLevelVariables2;
 
   /// The fragments of the type aliases declared in this fragment.
+  List<TypeAliasFragment> get typeAliases;
+
+  /// The fragments of the type aliases declared in this fragment.
+  @Deprecated('Use typeAliases instead')
   List<TypeAliasFragment> get typeAliases2;
 }
 
@@ -3004,9 +3068,6 @@ abstract class LocalVariableFragment
     implements VariableFragment, LocalFragment {
   @override
   LocalVariableElement get element;
-
-  /// The offset of the name in this element.
-  int get nameOffset;
 
   @override
   LocalVariableFragment? get nextFragment;
@@ -3322,6 +3383,11 @@ abstract class PatternVariableFragment implements LocalVariableFragment {
 
   /// The variable in which this variable joins with other pattern variables
   /// with the same name, in a logical-or pattern, or shared case scope.
+  JoinPatternVariableFragment? get join;
+
+  /// The variable in which this variable joins with other pattern variables
+  /// with the same name, in a logical-or pattern, or shared case scope.
+  @Deprecated('Use join instead')
   JoinPatternVariableFragment? get join2;
 
   @override
@@ -3935,6 +4001,13 @@ abstract class TypeParameterizedFragment implements Fragment, Annotatable {
   ///
   /// This does not include type parameters that are declared by any enclosing
   /// fragments.
+  List<TypeParameterFragment> get typeParameters;
+
+  /// The type parameters declared by this fragment directly.
+  ///
+  /// This does not include type parameters that are declared by any enclosing
+  /// fragments.
+  @Deprecated('Use typeParameters instead')
   List<TypeParameterFragment> get typeParameters2;
 }
 
