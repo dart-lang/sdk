@@ -7279,9 +7279,6 @@ class LocalVariableFragmentImpl extends NonParameterVariableFragmentImpl
   MetadataImpl get metadata2 => metadata;
 
   @override
-  int get nameOffset => firstTokenOffset!;
-
-  @override
   LocalVariableFragmentImpl? get nextFragment => null;
 
   @override

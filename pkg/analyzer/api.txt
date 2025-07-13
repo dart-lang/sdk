@@ -3913,7 +3913,6 @@ package:analyzer/dart/element/element.dart:
   LocalVariableFragment (class extends Object implements VariableFragment, LocalFragment):
     new (constructor: LocalVariableFragment Function())
     element (getter: LocalVariableElement)
-    nameOffset (getter: int)
     nextFragment (getter: LocalVariableFragment?)
     previousFragment (getter: LocalVariableFragment?)
   Metadata (class extends Object):

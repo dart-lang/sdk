@@ -3069,9 +3069,6 @@ abstract class LocalVariableFragment
   @override
   LocalVariableElement get element;
 
-  /// The offset of the name in this element.
-  int get nameOffset;
-
   @override
   LocalVariableFragment? get nextFragment;
 
