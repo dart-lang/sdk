@@ -156,7 +156,6 @@ class _Node extends graph.Node<_Node> {
     var representationFragment = element.firstFragment.representation;
     var representationElement = representationFragment.element;
 
-    representationFragment.type = type;
     representationElement.type = type;
     // TODO(scheglov): we repeat similar code in many places
     representationElement.getter!.returnType = type;

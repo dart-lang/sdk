@@ -114,7 +114,6 @@ class FunctionExpressionResolver {
         }
         if (inferredType is! DynamicType) {
           p.type = inferredType;
-          p.firstFragment.type = inferredType;
         }
       }
     }

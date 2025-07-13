@@ -187,7 +187,7 @@ class ElementDisplayStringBuilder {
 
     _writeTypeParameters(element.typeParameters);
     _write('(');
-    _writeType(element.representation.type);
+    _writeType(element.representation.element.type);
     _write(' ');
     _write(element.representation.name ?? '<null-name}>');
     _write(')');
@@ -431,7 +431,7 @@ class ElementDisplayStringBuilder {
   }
 
   void writeVariableElement(VariableFragmentImpl element) {
-    _writeType(element.type);
+    _writeType(element.element.type);
     _write(' ');
     _write(element.displayName);
   }

@@ -497,9 +497,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
               formalParameterFragment,
             );
             formalParameterElements.add(formalParameterElement);
-
             formalParameterElement.type = superFormalParameter.type;
-            formalParameterFragment.type = superFormalParameter.type;
 
             superInvocationArguments.add(
               SimpleIdentifierImpl(
@@ -9026,7 +9024,6 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
     var type = firstFragment.typeInference?.perform();
     type ??= InvalidTypeImpl.instance;
     _type = type;
-    firstFragment._type = type;
     shouldUseTypeForInitializerInference = false;
 
     // TODO(scheglov): We repeat this code.
@@ -9040,9 +9037,6 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
         setterElement.returnType = VoidTypeImpl.instance;
         setterElement.firstFragment.returnType = VoidTypeImpl.instance;
         (setterElement.formalParameters.single as FormalParameterElementImpl)
-            .type = type;
-        (setterElement.formalParameters.single as FormalParameterElementImpl)
-            .firstFragment
             .type = type;
       }
     }
@@ -9132,12 +9126,6 @@ abstract class PropertyInducingFragmentImpl
   @Deprecated('Use metadata instead')
   @override
   MetadataImpl get metadata2 => metadata;
-
-  @override
-  TypeImpl get type {
-    _ensureReadResolution();
-    return _type!;
-  }
 }
 
 /// Common base class for all analyzer-internal classes that implement
@@ -10537,9 +10525,6 @@ abstract class VariableElementImpl extends ElementImpl
 
 abstract class VariableFragmentImpl extends FragmentImpl
     implements AnnotatableFragmentImpl, VariableFragment {
-  /// The type of this variable.
-  TypeImpl? _type;
-
   /// If this element represents a constant variable, and it has an initializer,
   /// a copy of the initializer for the constant.  Otherwise `null`.
   ///
@@ -10654,18 +10639,6 @@ abstract class VariableFragmentImpl extends FragmentImpl
     }
     throw StateError('($runtimeType) $this');
   }
-
-  /// The declared type of this variable.
-  // TODO(scheglov): make it nullable and turn into field
-  TypeImpl get type => _type!;
-
-  set type(TypeImpl type) {
-    _type = type;
-  }
-
-  /// The declared type of this variable.
-  // TODO(scheglov): turn into field
-  TypeImpl? get type2 => _type;
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {

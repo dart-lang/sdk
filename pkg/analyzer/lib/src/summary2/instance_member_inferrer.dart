@@ -179,10 +179,8 @@ class InstanceMemberInferrer {
         var returnType = combinedGetterType();
         accessor.returnType = returnType;
         accessor.element.returnType = returnType;
-        // TODO(scheglov): store type in FieldElementImpl itself
         var fieldElement = accessor.element.variable as FieldElementImpl;
         fieldElement.type = returnType;
-        fieldElement.firstFragment.type = returnType;
         return;
       }
 
@@ -194,10 +192,8 @@ class InstanceMemberInferrer {
         var returnType = combinedSetterType();
         accessor.returnType = returnType;
         accessor.element.returnType = returnType;
-        // TODO(scheglov): store type in FieldElementImpl itself
         var fieldElement = accessor.element.variable as FieldElementImpl;
         fieldElement.type = returnType;
-        fieldElement.firstFragment.type = returnType;
         return;
       }
 
@@ -226,11 +222,9 @@ class InstanceMemberInferrer {
       if (overriddenGetters.isNotEmpty && overriddenSetters.isEmpty) {
         var valueType = combinedGetterType();
         parameter.element.type = valueType;
-        parameter.type = valueType;
         var fieldElement = accessor.element.variable as FieldElementImpl;
         if (fieldElement.getter == null) {
           fieldElement.type = valueType;
-          fieldElement.firstFragment.type = valueType;
         }
         return;
       }
@@ -246,7 +240,6 @@ class InstanceMemberInferrer {
       if (overriddenSetters.isNotEmpty) {
         var valueType = combinedSetterType();
         parameter.element.type = valueType;
-        parameter.type = valueType;
         var fieldElement = accessor.element.variable as FieldElementImpl;
         fieldElement.type = valueType;
         return;
@@ -399,16 +392,13 @@ class InstanceMemberInferrer {
           var field = parameter.field;
           if (field != null) {
             parameter.element.type = field.element.type;
-            parameter.type = field.element.type;
           }
         } else if (parameter is SuperFormalParameterFragmentImpl) {
           var superParameter = parameter.element.superConstructorParameter;
           if (superParameter != null) {
             parameter.element.type = superParameter.type;
-            parameter.type = superParameter.type;
           } else {
             parameter.element.type = DynamicTypeImpl.instance;
-            parameter.type = DynamicTypeImpl.instance;
           }
         }
       }
@@ -548,7 +538,6 @@ class InstanceMemberInferrer {
           (parameter, baseParameter) {
             var type = substitution.substituteType(baseParameter.type);
             parameter.type = type;
-            parameter.firstFragment.type = type;
           },
         );
         // Update arguments of `SuperConstructorInvocation` to have the types
@@ -601,14 +590,11 @@ class InstanceMemberInferrer {
       );
       if (matchingParameter != null) {
         parameter.element.type = matchingParameter.type;
-        parameter.type = matchingParameter.type;
       } else {
         parameter.element.type = DynamicTypeImpl.instance;
-        parameter.type = DynamicTypeImpl.instance;
       }
     } else {
       parameter.element.type = DynamicTypeImpl.instance;
-      parameter.type = DynamicTypeImpl.instance;
     }
   }
 
@@ -794,7 +780,6 @@ class InstanceMemberInferrer {
   }
 
   static void _setFieldType(FieldFragmentImpl field, TypeImpl type) {
-    field.type = type;
     field.element.type = type;
     // TODO(scheglov): We repeat this code.
     field.element.getter?.returnType = type;
@@ -805,7 +790,6 @@ class InstanceMemberInferrer {
       setterElement.returnType = VoidTypeImpl.instance;
       setterElement.firstFragment.returnType = VoidTypeImpl.instance;
       setterElement.valueFormalParameter.type = type;
-      setterElement.valueFormalParameter.firstFragment.type = type;
     }
   }
 }
