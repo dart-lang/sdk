@@ -375,6 +375,11 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
   }
 
   @override
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeClassElement(this);
+  }
+
+  @override
   @trackedIndirectly
   bool isExtendableIn(LibraryElement library) {
     if (library == this.library) {
@@ -667,11 +672,6 @@ class ClassFragmentImpl extends ClassOrMixinFragmentImpl
     fragment.previousFragment = this;
     nextFragment = fragment;
   }
-
-  @override
-  void appendTo(ElementDisplayStringBuilder builder) {
-    builder.writeClassElement(this);
-  }
 }
 
 abstract class ClassOrMixinFragmentImpl extends InterfaceFragmentImpl {
@@ -888,21 +888,15 @@ class ConstructorElementImpl extends ExecutableElementImpl
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
+  @override
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeConstructorElement(this);
+  }
+
   /// Ensures that dependencies of this constructor, such as default values
   /// of formal parameters, are evaluated.
   void computeConstantDependencies() {
     firstFragment.computeConstantDependencies();
-  }
-
-  @override
-  String displayString({bool multiline = false, bool preferTypeAlias = false}) {
-    // TODO(scheglov): de-duplicate
-    var builder = ElementDisplayStringBuilder(
-      multiline: multiline,
-      preferTypeAlias: preferTypeAlias,
-    );
-    builder.writeConstructorElement(this);
-    return builder.toString();
   }
 
   @override
@@ -1076,11 +1070,6 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
       typeNameOffset ??
       firstTokenOffset ??
       enclosingElement.offset;
-
-  @override
-  void appendTo(ElementDisplayStringBuilder builder) {
-    builder.writeConstructorFragment(this);
-  }
 
   /// Ensures that dependencies of this constructor, such as default values
   /// of formal parameters, are evaluated.
@@ -1293,6 +1282,11 @@ class DynamicElementImpl extends TypeDefiningElementImpl {
   @Deprecated('Use accept instead')
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
+
+  @override
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeDynamicElement(this);
+  }
 }
 
 /// The synthetic element representing the declaration of the type `dynamic`.
@@ -1864,7 +1858,7 @@ abstract class ElementImpl implements Element {
 
   /// Append a textual representation of this element to the given [builder].
   void appendTo(ElementDisplayStringBuilder builder) {
-    builder.writeAbstractElement2(this);
+    builder.writeAbstractElement(this);
   }
 
   @override
@@ -2033,6 +2027,11 @@ class EnumElementImpl extends InterfaceElementImpl implements EnumElement {
   @Deprecated('Use accept instead')
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
+
+  @override
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeEnumElement(this);
+  }
 }
 
 /// An [InterfaceFragmentImpl] which is an enum.
@@ -2067,11 +2066,6 @@ class EnumFragmentImpl extends InterfaceFragmentImpl implements EnumFragment {
     fragment.element = element;
     fragment.previousFragment = this;
     nextFragment = fragment;
-  }
-
-  @override
-  void appendTo(ElementDisplayStringBuilder builder) {
-    builder.writeEnumElement(this);
   }
 }
 
@@ -2190,6 +2184,11 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
       returnType: returnType,
       nullabilitySuffix: NullabilitySuffix.none,
     );
+  }
+
+  @override
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeExecutableElement(this, name!);
   }
 }
 
@@ -2353,11 +2352,6 @@ abstract class ExecutableFragmentImpl extends _ExistingFragmentImpl
   List<FormalParameterFragmentImpl> get parameters_unresolved {
     return _parameters;
   }
-
-  @override
-  void appendTo(ElementDisplayStringBuilder builder) {
-    builder.writeExecutableFragment(this, displayName);
-  }
 }
 
 class ExtensionElementImpl extends InstanceElementImpl
@@ -2412,6 +2406,11 @@ class ExtensionElementImpl extends InstanceElementImpl
   @Deprecated('Use accept instead')
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
+
+  @override
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeExtensionElement(this);
+  }
 }
 
 class ExtensionFragmentImpl extends InstanceFragmentImpl
@@ -2471,11 +2470,6 @@ class ExtensionFragmentImpl extends InstanceFragmentImpl
     fragment.element = element;
     fragment.previousFragment = this;
     nextFragment = fragment;
-  }
-
-  @override
-  void appendTo(ElementDisplayStringBuilder builder) {
-    builder.writeExtensionElement(this);
   }
 }
 
@@ -2564,6 +2558,11 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   @Deprecated('Use accept instead')
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
+
+  @override
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeExtensionTypeElement(this);
+  }
 }
 
 class ExtensionTypeFragmentImpl extends InterfaceFragmentImpl
@@ -2616,11 +2615,6 @@ class ExtensionTypeFragmentImpl extends InterfaceFragmentImpl
     fragment.element = element;
     fragment.previousFragment = this;
     nextFragment = fragment;
-  }
-
-  @override
-  void appendTo(ElementDisplayStringBuilder builder) {
-    builder.writeExtensionTypeElement(this);
   }
 }
 
@@ -3104,6 +3098,11 @@ class FormalParameterElementImpl extends PromotableElementImpl
   T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   @override
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeFormalParameterElement(this);
+  }
+
+  @override
   void visitChildren<T>(ElementVisitor2<T> visitor) {
     for (var child in children) {
       child.accept(visitor);
@@ -3378,11 +3377,6 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
     _typeParameters = typeParameters;
   }
 
-  @override
-  void appendTo(ElementDisplayStringBuilder builder) {
-    builder.writeFormalParameter(this);
-  }
-
   FormalParameterElementImpl _createElement(
     FormalParameterFragment firstFragment,
   ) => FormalParameterElementImpl(firstFragment as FormalParameterFragmentImpl);
@@ -3451,19 +3445,6 @@ mixin FragmentedElementMixin<E extends Fragment> implements _Fragmented<E> {
       current = current.nextFragment as E?;
     }
     return result;
-  }
-
-  String displayString({bool multiline = false, bool preferTypeAlias = false}) {
-    var builder = ElementDisplayStringBuilder(
-      multiline: multiline,
-      preferTypeAlias: preferTypeAlias,
-    );
-    var fragment = firstFragment;
-    if (fragment is! FragmentImpl) {
-      throw UnsupportedError('Fragment is not an ElementImpl');
-    }
-    (fragment as FragmentImpl).appendTo(builder);
-    return builder.toString();
   }
 }
 
@@ -3723,11 +3704,6 @@ abstract class FragmentImpl implements Fragment {
     return identical(this, other);
   }
 
-  /// Append a textual representation of this element to the given [builder].
-  void appendTo(ElementDisplayStringBuilder builder) {
-    builder.writeAbstractElement(this);
-  }
-
   /// Set this element as the enclosing element for given [element].
   void encloseElement(FragmentImpl element) {
     element.enclosingElement = this;
@@ -3738,36 +3714,6 @@ abstract class FragmentImpl implements Fragment {
     for (var element in elements) {
       element.enclosingElement = this;
     }
-  }
-
-  /// Returns the presentation of this element as it should appear when
-  /// presented to users.
-  ///
-  /// If [withNullability] is `true`, then [NullabilitySuffix.question] and
-  /// [NullabilitySuffix.star] in types will be represented as `?` and `*`.
-  /// [NullabilitySuffix.none] does not have any explicit presentation.
-  ///
-  /// If [withNullability] is `false`, nullability suffixes will not be
-  /// included into the presentation.
-  ///
-  /// If [multiline] is `true`, the string may be wrapped over multiple lines
-  /// with newlines to improve formatting. For example function signatures may
-  /// be formatted as if they had trailing commas.
-  ///
-  /// Clients should not depend on the content of the returned value as it will
-  /// be changed if doing so would improve the UX.
-  String getDisplayString({
-    @Deprecated('Only non-nullable by default mode is supported')
-    bool withNullability = true,
-    bool multiline = false,
-    bool preferTypeAlias = false,
-  }) {
-    var builder = ElementDisplayStringBuilder(
-      multiline: multiline,
-      preferTypeAlias: preferTypeAlias,
-    );
-    appendTo(builder);
-    return builder.toString();
   }
 
   /// Return `true` if this element has the given [modifier] associated with it.
@@ -3791,7 +3737,7 @@ abstract class FragmentImpl implements Fragment {
 
   @override
   String toString() {
-    return getDisplayString();
+    return "fragmentOf: $element";
   }
 
   void writeModifiers(BufferedSink writer) {
@@ -3889,7 +3835,7 @@ class GenericFunctionTypeElementImpl extends FunctionTypedElementImpl
 
   @override
   List<FormalParameterElement> get formalParameters =>
-      _wrappedElement.formalParameters
+        _wrappedElement.formalParameters
           .map((fragment) => fragment.element)
           .toList();
 
@@ -3936,7 +3882,7 @@ class GenericFunctionTypeElementImpl extends FunctionTypedElementImpl
   String? get name3 => name;
 
   @override
-  DartType get returnType => _wrappedElement.returnType;
+  TypeImpl get returnType => _wrappedElement.returnType;
 
   @override
   FunctionType get type => _wrappedElement.type;
@@ -3959,6 +3905,11 @@ class GenericFunctionTypeElementImpl extends FunctionTypedElementImpl
   @Deprecated('Use accept instead')
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
+
+  @override
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeGenericFunctionTypeElement(this);
+  }
 }
 
 /// The element used for a generic function type.
@@ -4065,11 +4016,6 @@ class GenericFunctionTypeFragmentImpl extends _ExistingFragmentImpl
   set type(FunctionTypeImpl type) {
     _type = type;
   }
-
-  @override
-  void appendTo(ElementDisplayStringBuilder builder) {
-    builder.writeGenericFunctionTypeElement(this);
-  }
 }
 
 /// Common base class for all analyzer-internal classes that implement
@@ -4163,6 +4109,11 @@ class GetterElementImpl extends PropertyAccessorElementImpl
   @Deprecated('Use accept instead')
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
+
+  @override
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeGetterElement(this);
+  }
 }
 
 class GetterFragmentImpl extends PropertyAccessorFragmentImpl
@@ -4184,11 +4135,6 @@ class GetterFragmentImpl extends PropertyAccessorFragmentImpl
     fragment.element = element;
     fragment.previousFragment = this;
     nextFragment = fragment;
-  }
-
-  @override
-  void appendTo(ElementDisplayStringBuilder builder) {
-    builder.writeExecutableFragment(this, 'get $displayName');
   }
 }
 
@@ -4387,15 +4333,6 @@ abstract class InstanceElementImpl extends ElementImpl
     // TODO(scheglov): optimize
     _setters = [..._setters, element];
   }
-
-  @override
-  String displayString({
-    bool multiline = false,
-    bool preferTypeAlias = false,
-  }) => firstFragment.getDisplayString(
-    multiline: multiline,
-    preferTypeAlias: preferTypeAlias,
-  );
 
   @Deprecated('Use displayString instead')
   @override
@@ -5537,13 +5474,9 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
   T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   @override
-  String displayString({
-    bool multiline = false,
-    bool preferTypeAlias = false,
-  }) => _wrappedFragment.getDisplayString(
-    multiline: multiline,
-    preferTypeAlias: preferTypeAlias,
-  );
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeLabelElement(this);
+  }
 
   @Deprecated('Use displayString instead')
   @override
@@ -6056,16 +5989,6 @@ class LibraryElementImpl extends ElementImpl
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeLibraryElement(this);
-  }
-
-  @override
-  String displayString({bool multiline = false, bool preferTypeAlias = false}) {
-    var builder = ElementDisplayStringBuilder(
-      multiline: multiline,
-      preferTypeAlias: preferTypeAlias,
-    );
-    appendTo(builder);
-    return builder.toString();
   }
 
   @Deprecated('Use displayString instead')
@@ -6721,11 +6644,6 @@ class LibraryFragmentImpl extends _ExistingFragmentImpl
     fragment.enclosingElement = this;
   }
 
-  @override
-  void appendTo(ElementDisplayStringBuilder builder) {
-    builder.writeCompilationUnitElement(this);
-  }
-
   /// Indicates whether it is unnecessary to report an undefined identifier
   /// error for an identifier reference with the given [name] and optional
   /// [prefix].
@@ -6987,13 +6905,9 @@ class LocalFunctionElementImpl extends ExecutableElementImpl
   T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   @override
-  String displayString({
-    bool multiline = false,
-    bool preferTypeAlias = false,
-  }) => _wrappedFragment.getDisplayString(
-    multiline: multiline,
-    preferTypeAlias: preferTypeAlias,
-  );
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeLocalFunctionElement(this);
+  }
 
   @Deprecated('Use displayString instead')
   @override
@@ -7109,16 +7023,6 @@ class LocalVariableElementImpl extends PromotableElementImpl
   @Deprecated('Use accept instead')
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
-
-  @override
-  String displayString({bool multiline = false, bool preferTypeAlias = false}) {
-    var builder = ElementDisplayStringBuilder(
-      multiline: multiline,
-      preferTypeAlias: preferTypeAlias,
-    );
-    builder.writeVariableElement2(this);
-    return builder.toString();
-  }
 
   @Deprecated('Use displayString instead')
   @override
@@ -7681,6 +7585,11 @@ class MethodElementImpl extends ExecutableElementImpl
   @Deprecated('Use accept instead')
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
+
+  @override
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeMethodElement(this);
+  }
 }
 
 class MethodFragmentImpl extends ExecutableFragmentImpl
@@ -7817,6 +7726,11 @@ class MixinElementImpl extends InterfaceElementImpl implements MixinElement {
   T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   @override
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeMixinElement(this);
+  }
+
+  @override
   bool isImplementableIn(LibraryElement library) {
     if (library == this.library) {
       return true;
@@ -7893,11 +7807,6 @@ class MixinFragmentImpl extends ClassOrMixinFragmentImpl
     fragment.element = element;
     fragment.previousFragment = this;
     nextFragment = fragment;
-  }
-
-  @override
-  void appendTo(ElementDisplayStringBuilder builder) {
-    builder.writeMixinElement(this);
   }
 }
 
@@ -8311,6 +8220,11 @@ class NeverElementImpl extends TypeDefiningElementImpl {
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
+  @override
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeNeverElement(this);
+  }
+
   DartType instantiate({required NullabilitySuffix nullabilitySuffix}) {
     switch (nullabilitySuffix) {
       case NullabilitySuffix.question:
@@ -8619,13 +8533,8 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
   }
 
   @override
-  String displayString({bool multiline = false, bool preferTypeAlias = false}) {
-    var builder = ElementDisplayStringBuilder(
-      multiline: multiline,
-      preferTypeAlias: preferTypeAlias,
-    );
+  void appendTo(ElementDisplayStringBuilder builder) {
     builder.writePrefixElement(this);
-    return builder.toString();
   }
 
   @Deprecated('Use displayString instead')
@@ -8957,6 +8866,11 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
   }
 
   List<PropertyInducingFragmentImpl> get _fragments;
+
+  @override
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeVariableElement2(this);
+  }
 }
 
 /// Instances of this class are set for fields and top-level variables
@@ -9145,6 +9059,11 @@ class SetterElementImpl extends PropertyAccessorElementImpl
   @Deprecated('Use accept instead')
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
+
+  @override
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeSetterElement(this);
+  }
 }
 
 class SetterFragmentImpl extends PropertyAccessorFragmentImpl
@@ -9178,11 +9097,6 @@ class SetterFragmentImpl extends PropertyAccessorFragmentImpl
     fragment.element = element;
     fragment.previousFragment = this;
     nextFragment = fragment;
-  }
-
-  @override
-  void appendTo(ElementDisplayStringBuilder builder) {
-    builder.writeExecutableFragment(this, 'set $displayName');
   }
 }
 
@@ -9465,6 +9379,11 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl
   @Deprecated('Use accept instead')
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
+
+  @override
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeTopLevelFunctionElement(this);
+  }
 }
 
 /// A concrete implementation of a [TopLevelFunctionFragment].
@@ -9656,11 +9575,11 @@ class TypeAliasElementImpl extends TypeDefiningElementImpl
   }
 
   @override
-  Element? get aliasedElement {
+  ElementImpl? get aliasedElement {
     switch (firstFragment.aliasedElement) {
-      case InstanceFragment instance:
+      case InstanceFragmentImpl instance:
         return instance.element;
-      case GenericFunctionTypeFragment instance:
+      case GenericFunctionTypeFragmentImpl instance:
         return instance.element;
     }
     return null;
@@ -9784,6 +9703,11 @@ class TypeAliasElementImpl extends TypeDefiningElementImpl
   @Deprecated('Use accept instead')
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
+
+  @override
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeTypeAliasElement(this);
+  }
 
   @override
   TypeImpl instantiate({
@@ -9960,11 +9884,6 @@ class TypeAliasFragmentImpl extends _ExistingFragmentImpl
     fragment.previousFragment = this;
     nextFragment = fragment;
   }
-
-  @override
-  void appendTo(ElementDisplayStringBuilder builder) {
-    builder.writeTypeAliasElement(this);
-  }
 }
 
 abstract class TypeDefiningElementImpl extends ElementImpl
@@ -10061,7 +9980,7 @@ class TypeParameterElementImpl extends TypeDefiningElementImpl
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
-    builder.writeTypeParameter2(this);
+    builder.writeTypeParameterElement(this);
   }
 
   @override
@@ -10216,11 +10135,6 @@ class TypeParameterFragmentImpl extends FragmentImpl
   }
 
   set variance(shared.Variance? newVariance) => _variance = newVariance;
-
-  @override
-  void appendTo(ElementDisplayStringBuilder builder) {
-    builder.writeTypeParameter(this);
-  }
 
   /// Computes the variance of the type parameters in the [type].
   shared.Variance computeVarianceInType(DartType type) {
@@ -10381,6 +10295,11 @@ abstract class VariableElementImpl extends ElementImpl
     // TODO(scheglov): eventually move logic from PropertyInducingElementImpl
   }
 
+  @override
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeVariableElement2(this);
+  }
+
   /// Return a representation of the value of this variable, forcing the value
   /// to be computed if it had not previously been computed, or `null` if either
   /// this variable was not declared with the 'const' modifier or if the value
@@ -10534,11 +10453,6 @@ abstract class VariableFragmentImpl extends FragmentImpl
       return enclosingFragment!.offset;
     }
     throw StateError('($runtimeType) $this');
-  }
-
-  @override
-  void appendTo(ElementDisplayStringBuilder builder) {
-    builder.writeVariableElement(this);
   }
 }
 

@@ -5294,7 +5294,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       node.type.accept(this);
 
       var aliasedElement = element.aliasedElement;
-      if (aliasedElement is GenericFunctionTypeElement) {
+      if (aliasedElement is GenericFunctionTypeElementImpl) {
         nameScope = FormalParameterScope(
           TypeParameterScope(nameScope, aliasedElement.typeParameters),
           aliasedElement.formalParameters,
