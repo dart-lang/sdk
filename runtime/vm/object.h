@@ -7838,10 +7838,13 @@ class MegamorphicCache : public CallSiteData {
 
   // The caller must hold IsolateGroup::type_feedback_mutex().
   void InsertLocked(const Smi& class_id, const Object& target) const;
-  void EnsureCapacityLocked() const;
   ObjectPtr LookupLocked(const Smi& class_id) const;
 
-  void InsertEntryLocked(const Smi& class_id, const Object& target) const;
+  template <std::memory_order order>
+  static void InsertEntryLocked(const Array& array,
+                                intptr_t mask,
+                                const Smi& class_id,
+                                const Object& target);
 
   static inline void SetEntry(const Array& array,
                               intptr_t index,
@@ -7849,7 +7852,15 @@ class MegamorphicCache : public CallSiteData {
                               const Object& target);
 
   static inline ObjectPtr GetClassId(const Array& array, intptr_t index);
+  template <std::memory_order order>
+  static inline void SetClassId(const Array& array,
+                                intptr_t index,
+                                const Smi& class_id);
   static inline ObjectPtr GetTargetFunction(const Array& array, intptr_t index);
+  template <std::memory_order order>
+  static inline void SetTargetFunction(const Array& array,
+                                       intptr_t index,
+                                       const Object& target);
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(MegamorphicCache, CallSiteData);
 };
@@ -13549,9 +13560,23 @@ ObjectPtr MegamorphicCache::GetClassId(const Array& array, intptr_t index) {
   return array.At((index * kEntryLength) + kClassIdIndex);
 }
 
+template <std::memory_order order>
+void MegamorphicCache::SetClassId(const Array& array,
+                                  intptr_t index,
+                                  const Smi& class_id) {
+  array.SetAt<order>((index * kEntryLength) + kClassIdIndex, class_id);
+}
+
 ObjectPtr MegamorphicCache::GetTargetFunction(const Array& array,
                                               intptr_t index) {
   return array.At((index * kEntryLength) + kTargetFunctionIndex);
+}
+
+template <std::memory_order order>
+void MegamorphicCache::SetTargetFunction(const Array& array,
+                                         intptr_t index,
+                                         const Object& target) {
+  array.SetAt<order>((index * kEntryLength) + kTargetFunctionIndex, target);
 }
 
 inline uword AbstractType::Hash() const {

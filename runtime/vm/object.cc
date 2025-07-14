@@ -19759,24 +19759,9 @@ ObjectPtr MegamorphicCache::LookupLocked(const Smi& class_id) const {
   UNREACHABLE();
 }
 
+// Note this may run with Dart execution reading this cache.
 void MegamorphicCache::InsertLocked(const Smi& class_id,
                                     const Object& target) const {
-  auto isolate_group = IsolateGroup::Current();
-  ASSERT(isolate_group->type_feedback_mutex()->IsOwnedByCurrentThread());
-
-  // As opposed to ICData we are stopping mutator threads from other isolates
-  // while modifying the megamorphic cache, since updates are not atomic.
-  //
-  // NOTE: In the future we might change the megamorphic cache insertions to
-  // carefully use store-release barriers on the writer as well as
-  // load-acquire barriers on the reader, ...
-  isolate_group->RunWithStoppedMutators([&]() {
-    EnsureCapacityLocked();
-    InsertEntryLocked(class_id, target);
-  });
-}
-
-void MegamorphicCache::EnsureCapacityLocked() const {
   auto thread = Thread::Current();
   auto zone = thread->zone();
   auto isolate_group = thread->isolate_group();
@@ -19787,6 +19772,7 @@ void MegamorphicCache::EnsureCapacityLocked() const {
   if (static_cast<double>(filled_entry_count() + 1) > load_limit) {
     const Array& old_buckets = Array::Handle(zone, buckets());
     intptr_t new_capacity = old_capacity * 2;
+    intptr_t new_mask = new_capacity - 1;
     const Array& new_buckets =
         Array::Handle(zone, Array::New(kEntryLength * new_capacity));
 
@@ -19794,9 +19780,6 @@ void MegamorphicCache::EnsureCapacityLocked() const {
     for (intptr_t i = 0; i < new_capacity; ++i) {
       SetEntry(new_buckets, i, smi_illegal_cid(), target);
     }
-    set_buckets(new_buckets);
-    set_mask(new_capacity - 1);
-    set_filled_entry_count(0);
 
     // Rehash the valid entries.
     Smi& class_id = Smi::Handle(zone);
@@ -19804,33 +19787,39 @@ void MegamorphicCache::EnsureCapacityLocked() const {
       class_id ^= GetClassId(old_buckets, i);
       if (class_id.Value() != kIllegalCid) {
         target = GetTargetFunction(old_buckets, i);
-        InsertEntryLocked(class_id, target);
+        InsertEntryLocked<std::memory_order_relaxed>(new_buckets, new_mask,
+                                                     class_id, target);
       }
     }
+
+    // Publish buckets first. Old mask with new buckets is just a spurious miss.
+    untag()->set_buckets<std::memory_order_release>(new_buckets.ptr());
+    untag()->set_mask<std::memory_order_release>(Smi::New(new_mask));
   }
+
+  const Array& new_buckets = Array::Handle(zone, buckets());
+  InsertEntryLocked<std::memory_order_release>(new_buckets, mask(), class_id,
+                                               target);
+  set_filled_entry_count(filled_entry_count() + 1);
 }
 
-void MegamorphicCache::InsertEntryLocked(const Smi& class_id,
-                                         const Object& target) const {
-  auto thread = Thread::Current();
-  auto isolate_group = thread->isolate_group();
-  ASSERT(isolate_group->type_feedback_mutex()->IsOwnedByCurrentThread());
-
-  ASSERT(Thread::Current()->IsDartMutatorThread());
-  ASSERT(static_cast<double>(filled_entry_count() + 1) <=
-         (kLoadFactor * static_cast<double>(mask() + 1)));
-  const Array& backing_array = Array::Handle(buckets());
-  intptr_t id_mask = mask();
-  intptr_t index = (class_id.Value() * kSpreadFactor) & id_mask;
-  intptr_t i = index;
+template <std::memory_order order>
+void MegamorphicCache::InsertEntryLocked(const Array& backing_array,
+                                         intptr_t mask,
+                                         const Smi& class_id,
+                                         const Object& target) {
+  const intptr_t start = (class_id.Value() * kSpreadFactor) & mask;
+  intptr_t i = start;
   do {
     if (Smi::Value(Smi::RawCast(GetClassId(backing_array, i))) == kIllegalCid) {
-      SetEntry(backing_array, i, class_id, target);
-      set_filled_entry_count(filled_entry_count() + 1);
+      // Publish target first. Old class id with new target is just a spurious
+      // miss.
+      SetTargetFunction<order>(backing_array, i, target);
+      SetClassId<order>(backing_array, i, class_id);
       return;
     }
-    i = (i + 1) & id_mask;
-  } while (i != index);
+    i = (i + 1) & mask;
+  } while (i != start);
   UNREACHABLE();
 }
 

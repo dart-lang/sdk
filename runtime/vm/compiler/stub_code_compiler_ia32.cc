@@ -3177,8 +3177,8 @@ void StubCodeCompiler::GenerateMegamorphicCallStub() {
           FieldAddress(IC_DATA_REG, target::MegamorphicCache::mask_offset()));
   __ movl(EDI, FieldAddress(IC_DATA_REG,
                             target::MegamorphicCache::buckets_offset()));
+  // EBX: mask as a smi - load first to support insert w/o stopping Dart code.
   // EDI: cache buckets array.
-  // EBX: mask as a smi.
 
   // Tag cid as a smi.
   __ addl(EAX, EAX);

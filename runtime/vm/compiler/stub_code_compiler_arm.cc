@@ -3288,12 +3288,12 @@ void StubCodeCompiler::GenerateOptimizedIdenticalWithNumberCheckStub() {
 void StubCodeCompiler::GenerateMegamorphicCallStub() {
   __ LoadTaggedClassIdMayBeSmi(R8, R0);
   // R8: receiver cid as Smi.
-  __ ldr(R2,
-         FieldAddress(IC_DATA_REG, target::MegamorphicCache::buckets_offset()));
   __ ldr(R1,
          FieldAddress(IC_DATA_REG, target::MegamorphicCache::mask_offset()));
+  __ ldr(R2,
+         FieldAddress(IC_DATA_REG, target::MegamorphicCache::buckets_offset()));
+  // R1: mask as a smi - load first to support insertion w/o stopping Dart code.
   // R2: cache buckets array.
-  // R1: mask as a smi.
 
   // Compute the table index.
   ASSERT(target::MegamorphicCache::kSpreadFactor == 7);

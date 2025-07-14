@@ -3683,12 +3683,12 @@ void StubCodeCompiler::GenerateMegamorphicCallStub() {
 
   Label cid_loaded;
   __ Bind(&cid_loaded);
-  __ ldr(R2,
-         FieldAddress(IC_DATA_REG, target::MegamorphicCache::buckets_offset()));
   __ ldr(R1,
          FieldAddress(IC_DATA_REG, target::MegamorphicCache::mask_offset()));
+  __ ldr(R2,
+         FieldAddress(IC_DATA_REG, target::MegamorphicCache::buckets_offset()));
+  // R1: mask as a smi - load first to support insertion w/o stopping Dart code.
   // R2: cache buckets array.
-  // R1: mask as a smi.
 
   // Make the cid into a smi.
   __ SmiTag(R8);
