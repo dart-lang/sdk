@@ -16,6 +16,7 @@ import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../util/diff.dart';
 import '../../../util/element_printer.dart';
 import '../resolution/context_collection_resolution.dart';
 import '../resolution/node_text_expectations.dart';
@@ -82,10 +83,10 @@ class SearchTest extends PubPackageResolutionTest {
   ) {
     var actual = _getDeclarationsText(symbols, inFiles);
     if (actual != expected) {
-      print(actual);
       NodeTextExpectationsCollector.add(actual);
+      printPrettyDiff(expected, actual);
+      fail('See the difference above.');
     }
-    expect(actual, expected);
   }
 
   Future<void> assertElementReferencesText(
@@ -475,7 +476,7 @@ testFile
     parameters: (int it)
   FIELD it
     offset: 21 1:22
-    codeOffset: 17 + 6
+    codeOffset: 16 + 8
     className: E
   GETTER g
     offset: 37 2:11

@@ -10013,6 +10013,10 @@ class TypeAliasFragmentImpl extends _ExistingFragmentImpl
     aliasedElement?.enclosingElement = this;
   }
 
+  FragmentImpl? get aliasedElement_unresolved {
+    return _aliasedElement;
+  }
+
   /// The aliased type.
   ///
   /// If non-function type aliases feature is enabled for the enclosing library,

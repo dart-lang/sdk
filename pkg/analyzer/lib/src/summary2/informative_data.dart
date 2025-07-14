@@ -56,30 +56,7 @@ class InformativeDataApplier {
 
   InformativeDataApplier(this._elementFactory, this._unitsInformativeBytes2);
 
-  void applyTo(LibraryElementImpl libraryElement) {
-    if (_elementFactory.isApplyingInformativeData) {
-      throw StateError('Unexpected recursion.');
-    }
-    _elementFactory.isApplyingInformativeData = true;
-
-    var unitElements = libraryElement.units;
-    for (var i = 0; i < unitElements.length; i++) {
-      var unitElement = unitElements[i];
-      var unitInfoBytes = _getInfoUnitBytes(unitElement);
-      if (unitInfoBytes != null) {
-        applyToUnit(unitElement, unitInfoBytes);
-      } else {
-        unitElement.lineInfo = LineInfo([0]);
-      }
-    }
-
-    _elementFactory.isApplyingInformativeData = false;
-  }
-
-  void applyToUnit(LibraryFragmentImpl unitElement, Uint8List unitInfoBytes) {
-    var unitReader = SummaryDataReader(unitInfoBytes);
-    var unitInfo = _InfoUnit.read(unitReader);
-
+  void applyFromInfoUnit(LibraryFragmentImpl unitElement, _InfoUnit unitInfo) {
     var libraryElement = unitElement.library;
     if (identical(libraryElement.definingCompilationUnit, unitElement)) {
       _applyToLibrary(libraryElement, unitInfo);
@@ -178,6 +155,43 @@ class InformativeDataApplier {
       unitInfo.genericTypeAliases,
       _applyToGenericTypeAlias,
     );
+  }
+
+  void applyFromUnit(LibraryFragmentImpl unitElement, CompilationUnit unit) {
+    var unitInfo = _InfoBuilder().build(unit);
+    applyFromInfoUnit(unitElement, unitInfo);
+
+    // TODO(scheglov): generalize
+    for (var classFragment in unitElement.classes) {
+      classFragment.applyMembersConstantOffsets?.call();
+      classFragment.applyMembersConstantOffsets = null;
+    }
+  }
+
+  void applyTo(LibraryElementImpl libraryElement) {
+    if (_elementFactory.isApplyingInformativeData) {
+      throw StateError('Unexpected recursion.');
+    }
+    _elementFactory.isApplyingInformativeData = true;
+
+    var unitElements = libraryElement.units;
+    for (var i = 0; i < unitElements.length; i++) {
+      var unitElement = unitElements[i];
+      var unitInfoBytes = _getInfoUnitBytes(unitElement);
+      if (unitInfoBytes != null) {
+        applyToUnit(unitElement, unitInfoBytes);
+      } else {
+        unitElement.lineInfo = LineInfo([0]);
+      }
+    }
+
+    _elementFactory.isApplyingInformativeData = false;
+  }
+
+  void applyToUnit(LibraryFragmentImpl unitElement, Uint8List unitInfoBytes) {
+    var unitReader = SummaryDataReader(unitInfoBytes);
+    var unitInfo = _InfoUnit.read(unitReader);
+    applyFromInfoUnit(unitElement, unitInfo);
   }
 
   void _applyToAccessors(
@@ -492,6 +506,10 @@ class InformativeDataApplier {
       element.typeParameters_unresolved,
       info.typeParameters,
     );
+    if (element.aliasedElement_unresolved
+        case GenericFunctionTypeFragmentImpl aliased) {
+      _applyToFormalParameters(aliased.parameters, info.parameters);
+    }
 
     _setupApplyConstantOffsetsForTypeAlias(
       element,
@@ -512,6 +530,17 @@ class InformativeDataApplier {
       element.typeParameters_unresolved,
       info.typeParameters,
     );
+    if (element.aliasedElement_unresolved
+        case GenericFunctionTypeFragmentImpl aliased) {
+      _applyToTypeParameters(
+        aliased.typeParameters,
+        info.aliasedTypeParameters,
+      );
+      _applyToFormalParameters(
+        aliased.parameters,
+        info.aliasedFormalParameters,
+      );
+    }
 
     _setupApplyConstantOffsetsForTypeAlias(
       element,
@@ -535,10 +564,7 @@ class InformativeDataApplier {
   void _applyToLibrary(LibraryElementImpl element, _InfoUnit info) {
     element.nameOffset = info.libraryName.offset;
     element.nameLength = info.libraryName.length;
-
-    if (info.docComment.isNotEmpty) {
-      element.documentationComment = info.docComment;
-    }
+    element.documentationComment = info.docComment;
 
     element.applyConstantOffsets = ApplyConstantOffsets(
       info.libraryConstantOffsets,
@@ -1317,12 +1343,9 @@ class _InfoBuilder {
     return codeOffset;
   }
 
-  String _getDocumentationComment(AnnotatedNode? node) {
-    if (node == null) {
-      return '';
-    }
-    var comment = node.documentationComment;
-    return getCommentNodeRawText(comment) ?? '';
+  String? _getDocumentationComment(AnnotatedNode? node) {
+    var comment = node?.documentationComment;
+    return getCommentNodeRawText(comment);
   }
 }
 
@@ -1856,7 +1879,7 @@ class _InfoUnit {
   final List<int> lineStarts;
   final _InfoLibraryName libraryName;
   final Uint32List libraryConstantOffsets;
-  final String docComment;
+  final String? docComment;
   final List<_InfoImport> imports;
   final List<_InfoExport> exports;
   final List<_InfoPart> parts;
@@ -1903,7 +1926,7 @@ class _InfoUnit {
       lineStarts = reader.readUInt30List(),
       libraryName = _InfoLibraryName.read(reader),
       libraryConstantOffsets = reader.readUInt30List(),
-      docComment = reader.readStringUtf8(),
+      docComment = reader.readOptionalStringUtf8(),
       imports = reader.readList(_InfoImport.read),
       exports = reader.readList(_InfoExport.read),
       parts = reader.readList(_InfoPart.read),
@@ -1926,7 +1949,7 @@ class _InfoUnit {
     sink.writeUint30List(lineStarts);
     libraryName.write(sink);
     sink.writeUint30List(libraryConstantOffsets);
-    sink.writeStringUtf8(docComment);
+    sink.writeOptionalStringUtf8(docComment);
     sink.writeList(imports, (v) => v.write(sink));
     sink.writeList(exports, (v) => v.write(sink));
     sink.writeList(parts, (v) => v.write(sink));
