@@ -371,7 +371,7 @@ class ElementDisplayStringBuilder {
     if (aliasedElement != null) {
       aliasedElement.appendTo(this);
     } else {
-      _writeType(element.aliasedType);
+      _writeType(element.element.aliasedType);
     }
   }
 

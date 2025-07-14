@@ -744,7 +744,12 @@ class BundleWriter {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
       _sink.writeList(element.fragments, _writeFragmentId);
-      // TODO(scheglov): resolution too?
+
+      _writeElementResolution(() {
+        _resolutionSink.withTypeParameters(element.typeParameters.cast(), () {
+          _resolutionSink.writeType(element.aliasedType);
+        });
+      });
     });
   }
 
@@ -754,7 +759,6 @@ class BundleWriter {
       _writeTypeParameters(fragment.typeParameters, () {
         _resolutionSink._writeMetadata(fragment.metadata);
         _resolutionSink._writeAliasedElement(fragment.aliasedElement);
-        _resolutionSink.writeType(fragment.aliasedType);
       });
     });
   }

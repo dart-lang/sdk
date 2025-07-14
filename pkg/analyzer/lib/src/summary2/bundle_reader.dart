@@ -1301,8 +1301,16 @@ class LibraryReader {
     _libraryElement.typeAliases = _reader.readTypedList(() {
       var reference = _readReference();
       var fragments = _readFragmentsById<TypeAliasFragmentImpl>();
-      // TODO(scheglov): link fragments.
       var element = TypeAliasElementImpl(reference, fragments.first);
+
+      element.deferReadResolution(
+        _createDeferredReadResolutionCallback((reader) {
+          // TODO(scheglov): remove cast
+          reader._addTypeParameters2(element.typeParameters.cast());
+          element.aliasedType = reader.readRequiredType();
+        }),
+      );
+
       return element;
     });
   }
@@ -1331,7 +1339,6 @@ class LibraryReader {
           );
           _readFragmentMetadata(fragment, reader);
           fragment.aliasedElement = reader._readAliasedElement(unitElement);
-          fragment.aliasedType = reader.readRequiredType();
         },
       );
     });

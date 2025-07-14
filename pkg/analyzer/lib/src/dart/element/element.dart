@@ -9648,6 +9648,8 @@ class TypeAliasElementImpl extends TypeDefiningElementImpl
   @override
   final TypeAliasFragmentImpl firstFragment;
 
+  TypeImpl? _aliasedType;
+
   TypeAliasElementImpl(this.reference, this.firstFragment) {
     reference.element = this;
     firstFragment.element = this;
@@ -9671,14 +9673,19 @@ class TypeAliasElementImpl extends TypeDefiningElementImpl
   }
 
   @override
-  TypeImpl get aliasedType => firstFragment.aliasedType;
+  TypeImpl get aliasedType {
+    _ensureReadResolution();
+    return _aliasedType!;
+  }
 
-  set aliasedType(TypeImpl value) {
-    firstFragment.aliasedType = value;
+  set aliasedType(DartType rawType) {
+    // TODO(paulberry): eliminate this cast by changing the type of the
+    // `rawType` parameter.
+    _aliasedType = rawType as TypeImpl;
   }
 
   /// The aliased type, might be `null` if not yet linked.
-  TypeImpl? get aliasedTypeRaw => firstFragment.aliasedTypeRaw;
+  TypeImpl? get aliasedTypeRaw => _aliasedType;
 
   @override
   TypeAliasElementImpl get baseElement => this;
@@ -9889,7 +9896,6 @@ class TypeAliasFragmentImpl extends _ExistingFragmentImpl
   bool isFunctionTypeAliasBased = false;
 
   FragmentImpl? _aliasedElement;
-  TypeImpl? _aliasedType;
 
   @override
   late TypeAliasElementImpl element;
@@ -9913,25 +9919,6 @@ class TypeAliasFragmentImpl extends _ExistingFragmentImpl
   FragmentImpl? get aliasedElement_unresolved {
     return _aliasedElement;
   }
-
-  /// The aliased type.
-  ///
-  /// If non-function type aliases feature is enabled for the enclosing library,
-  /// this type might be just anything. If the feature is disabled, return
-  /// a [FunctionType].
-  TypeImpl get aliasedType {
-    _ensureReadResolution();
-    return _aliasedType!;
-  }
-
-  set aliasedType(DartType rawType) {
-    // TODO(paulberry): eliminate this cast by changing the type of the
-    // `rawType` parameter.
-    _aliasedType = rawType as TypeImpl;
-  }
-
-  /// The aliased type, might be `null` if not yet linked.
-  TypeImpl? get aliasedTypeRaw => _aliasedType;
 
   @override
   List<Fragment> get children => const [];
