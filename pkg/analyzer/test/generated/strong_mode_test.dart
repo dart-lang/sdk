@@ -3591,10 +3591,12 @@ FunctionDeclaration
         staticType: Null
       semicolon: ;
     declaredElement: <testLibraryFragment> f@2
-      type: T Function<T>(T)
+      element: <testLibrary>::@function::f
+        type: T Function<T>(T)
     staticType: T Function<T>(T)
   declaredElement: <testLibraryFragment> f@2
-    type: T Function<T>(T)
+    element: <testLibrary>::@function::f
+      type: T Function<T>(T)
 ''');
   }
 
@@ -3644,10 +3646,12 @@ FunctionDeclaration
         staticType: Null
       semicolon: ;
     declaredElement: <testLibraryFragment> f@2
-      type: T Function<T extends num>(T)
+      element: <testLibrary>::@function::f
+        type: T Function<T extends num>(T)
     staticType: T Function<T extends num>(T)
   declaredElement: <testLibraryFragment> f@2
-    type: T Function<T extends num>(T)
+    element: <testLibrary>::@function::f
+      type: T Function<T extends num>(T)
 ''');
   }
 
@@ -3707,7 +3711,8 @@ MethodDeclaration
       staticType: Null
     semicolon: ;
   declaredElement: <testLibraryFragment> f@24
-    type: T Function<T>(T)
+    element: <testLibrary>::@class::C::@method::f
+      type: T Function<T>(T)
 ''');
   }
 
@@ -4246,7 +4251,8 @@ MethodInvocation
             element: e@93
             staticType: dynamic
         declaredElement: <testLibraryFragment> null@null
-          type: dynamic Function(dynamic)
+          element: null@null
+            type: dynamic Function(dynamic)
         correspondingParameter: ParameterMember
           baseElement: f@null
           substitution: {T: dynamic}
@@ -4290,7 +4296,8 @@ MethodInvocation
             literal: 3
             staticType: int
         declaredElement: <testLibraryFragment> null@null
-          type: int Function(dynamic)
+          element: null@null
+            type: int Function(dynamic)
         correspondingParameter: ParameterMember
           baseElement: f@null
           substitution: {T: int}
@@ -4605,7 +4612,8 @@ MethodDeclaration
       staticType: Null
     semicolon: ;
   declaredElement: <testLibraryFragment> f@59
-    type: T Function<T>(T)
+    element: <testLibrary>::@class::D::@method::f
+      type: T Function<T>(T)
 ''');
   }
 

@@ -177,7 +177,7 @@ class ElementWriter with TreeWriter {
           },
       };
     }
-    properties['nameOffset'] = fragment.nameOffset2;
+    properties['nameOffset'] = fragment.nameOffset;
     if (fragment is ExecutableFragment) {
       properties['isAsynchronous'] = fragment.isAsynchronous;
       properties['isGenerator'] = fragment.isGenerator;

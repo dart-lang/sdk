@@ -133,7 +133,7 @@ class DiagnosticReporter {
     var nonSynthetic = element.nonSynthetic;
     atOffset(
       diagnosticCode: diagnosticCode,
-      offset: nonSynthetic.firstFragment.nameOffset2 ?? -1,
+      offset: nonSynthetic.firstFragment.nameOffset ?? -1,
       length: nonSynthetic.name?.length ?? 0,
       arguments: arguments,
       contextMessages: contextMessages,

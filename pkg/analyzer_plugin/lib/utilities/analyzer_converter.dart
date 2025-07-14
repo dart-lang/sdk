@@ -203,7 +203,7 @@ class AnalyzerConverter {
       return null;
     }
     var fragment = element.firstFragment;
-    var offset = fragment.nameOffset2 ?? -1;
+    var offset = fragment.nameOffset ?? -1;
     var length = fragment.name?.length ?? 0;
     var range = analyzer.SourceRange(offset, length);
     return _locationForArgs(fragment, range);

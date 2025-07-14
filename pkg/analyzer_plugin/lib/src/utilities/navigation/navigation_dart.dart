@@ -712,7 +712,7 @@ extension on Fragment {
       return null;
     }
 
-    var nameOffset = nameOffset2;
+    var nameOffset = this.nameOffset;
     var nameLength = name?.length;
 
     if (nameOffset == null) {

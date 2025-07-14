@@ -887,7 +887,7 @@ class LibraryReader {
         enclosingFragment: libraryFragment,
         name: fragmentName,
         firstTokenOffset: null,
-        nameOffset2: null,
+        nameOffset: null,
         isDeferred: isDeferred,
       );
 
@@ -1067,21 +1067,21 @@ class LibraryReader {
         element = FieldFormalParameterFragmentImpl(
           firstTokenOffset: null,
           name: fragmentName,
-          nameOffset2: null,
+          nameOffset: null,
           parameterKind: kind,
         );
       } else if (isSuperFormal) {
         element = SuperFormalParameterFragmentImpl(
           firstTokenOffset: null,
           name: fragmentName,
-          nameOffset2: null,
+          nameOffset: null,
           parameterKind: kind,
         );
       } else {
         element = FormalParameterFragmentImpl(
           firstTokenOffset: null,
           name: fragmentName,
-          nameOffset2: null,
+          nameOffset: null,
           parameterKind: kind,
         );
       }
@@ -1801,7 +1801,7 @@ class ResolutionReader {
         element = FieldFormalParameterFragmentImpl(
           firstTokenOffset: null,
           name: name,
-          nameOffset2: null,
+          nameOffset: null,
           parameterKind: kind,
         );
         element.element.type = type;
@@ -1809,7 +1809,7 @@ class ResolutionReader {
         element = FormalParameterFragmentImpl(
           firstTokenOffset: null,
           name: name,
-          nameOffset2: null,
+          nameOffset: null,
           parameterKind: kind,
         );
         element.element.type = type;

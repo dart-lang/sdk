@@ -709,7 +709,6 @@ library
           getters
             #F7 synthetic x
               element: <testLibrary>::@class::C::@getter::x
-              returnType: dynamic
           setters
             #F8 synthetic x
               element: <testLibrary>::@class::C::@setter::x

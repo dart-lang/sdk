@@ -797,7 +797,7 @@ class _Element2Writer extends _AbstractElementWriter {
   void _writeFragmentBestOffset(Fragment f) {
     // Usually the name offset is available.
     // And then the offset must be the same.
-    if (f.nameOffset2 case var nameOffset?) {
+    if (f.nameOffset case var nameOffset?) {
       expect(f.offset, nameOffset);
       return;
     }
@@ -898,11 +898,11 @@ class _Element2Writer extends _AbstractElementWriter {
 
   void _writeFragmentName(Fragment f) {
     if (f.name == null) {
-      expect(f.nameOffset2, isNull);
+      expect(f.nameOffset, isNull);
     }
 
     _sink.write(f.name ?? '<null-name>');
-    if (f.nameOffset2 case var nameOffset?) {
+    if (f.nameOffset case var nameOffset?) {
       _sink.write(' @$nameOffset');
     }
 
@@ -1033,7 +1033,6 @@ class _Element2Writer extends _AbstractElementWriter {
         f.formalParameters,
         _writeFormalParameterFragment,
       );
-      _writeReturnType(f.returnType);
       // _writeNonSyntheticElement(f);
       // writeLinking();
       _writeFragmentReference('previousFragment', f.previousFragment);
@@ -1290,12 +1289,7 @@ class _Element2Writer extends _AbstractElementWriter {
 
       _writeFragmentList('classes', f, f.classes, _writeInstanceFragment);
       _writeFragmentList('enums', f, f.enums, _writeInstanceFragment);
-      _writeFragmentList(
-        'extensions',
-        f,
-        f.extensions,
-        _writeInstanceFragment,
-      );
+      _writeFragmentList('extensions', f, f.extensions, _writeInstanceFragment);
       _writeFragmentList(
         'extensionTypes',
         f,
@@ -1512,7 +1506,7 @@ class _Element2Writer extends _AbstractElementWriter {
               .map((f) {
                 expect(f.element, same(e));
                 expect(f.name, e.name);
-                return '@${f.nameOffset2}';
+                return '@${f.nameOffset}';
               })
               .join(' '),
         );

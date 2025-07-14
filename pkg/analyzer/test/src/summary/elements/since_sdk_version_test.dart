@@ -107,7 +107,6 @@ library
           getters
             #F3 synthetic foo
               element: dart:foo::@class::A::@getter::foo
-              returnType: int
           setters
             #F4 synthetic foo
               element: dart:foo::@class::A::@setter::foo
@@ -172,7 +171,6 @@ library
           getters
             #F3 foo @61
               element: dart:foo::@class::A::@getter::foo
-              returnType: int
   classes
     class A
       reference: dart:foo::@class::A
@@ -426,13 +424,10 @@ library
           getters
             #F5 synthetic v1
               element: dart:foo::@enum::E::@getter::v1
-              returnType: E
             #F6 synthetic v2
               element: dart:foo::@enum::E::@getter::v2
-              returnType: E
             #F7 synthetic values
               element: dart:foo::@enum::E::@getter::values
-              returnType: List<E>
   enums
     enum E
       reference: dart:foo::@enum::E
@@ -534,10 +529,8 @@ library
           getters
             #F4 synthetic v
               element: dart:foo::@enum::E::@getter::v
-              returnType: E
             #F5 synthetic values
               element: dart:foo::@enum::E::@getter::values
-              returnType: List<E>
           methods
             #F6 foo @62
               element: dart:foo::@enum::E::@method::foo
@@ -929,7 +922,6 @@ library
       getters
         #F2 synthetic foo
           element: dart:foo::@getter::foo
-          returnType: int
   topLevelVariables
     final hasInitializer foo
       reference: dart:foo::@topLevelVariable::foo

@@ -32,7 +32,6 @@ library
       getters
         #F2 synthetic f
           element: <testLibrary>::@getter::f
-          returnType: void Function()
       setters
         #F3 synthetic f
           element: <testLibrary>::@setter::f
@@ -80,7 +79,6 @@ library
       getters
         #F2 synthetic f
           element: <testLibrary>::@getter::f
-          returnType: void Function()?
       setters
         #F3 synthetic f
           element: <testLibrary>::@setter::f
@@ -271,7 +269,6 @@ library
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
-          returnType: int Function(int, String)
       setters
         #F3 synthetic v
           element: <testLibrary>::@setter::v
@@ -432,7 +429,6 @@ library
       getters
         #F5 synthetic v
           element: <testLibrary>::@getter::v
-          returnType: int
       setters
         #F6 synthetic v
           element: <testLibrary>::@setter::v
@@ -602,7 +598,6 @@ library
       getters
         #F5 synthetic v
           element: <testLibrary>::@getter::v
-          returnType: A<String Function({int? a})>
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -715,7 +710,6 @@ library
       getters
         #F5 synthetic v
           element: <testLibrary>::@getter::v
-          returnType: A<String Function([int?])>
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -828,7 +822,6 @@ library
       getters
         #F5 synthetic v
           element: <testLibrary>::@getter::v
-          returnType: A<String Function({required int a})>
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -934,7 +927,6 @@ library
       getters
         #F5 synthetic v
           element: <testLibrary>::@getter::v
-          returnType: A<String Function(int)>
   classes
     class A
       reference: <testLibrary>::@class::A

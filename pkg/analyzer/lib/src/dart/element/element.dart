@@ -479,7 +479,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
             var formalParameterFragment = FormalParameterFragmentImpl(
                 firstTokenOffset: null,
                 name: superFormalParameter.name,
-                nameOffset2: null,
+                nameOffset: null,
                 parameterKind: superFormalParameter.parameterKind,
               )
               ..constantInitializer =
@@ -964,7 +964,7 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
   final String name;
 
   @override
-  int? nameOffset2;
+  int? nameOffset;
 
   @override
   ConstructorFragmentImpl? previousFragment;
@@ -1068,7 +1068,7 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
 
   @override
   int get offset =>
-      nameOffset2 ??
+      nameOffset ??
       typeNameOffset ??
       firstTokenOffset ??
       enclosingElement.offset;
@@ -1365,7 +1365,7 @@ class DynamicFragmentImpl extends FragmentImpl implements TypeDefiningFragment {
   String get name2 => name;
 
   @override
-  Null get nameOffset2 => null;
+  Null get nameOffset => null;
 
   @override
   Null get nextFragment => null;
@@ -2338,7 +2338,7 @@ abstract class ExecutableFragmentImpl extends _ExistingFragmentImpl
   }
 
   @override
-  int get offset => nameOffset2 ?? firstTokenOffset!;
+  int get offset => nameOffset ?? firstTokenOffset!;
 
   /// The formal parameters defined by this executable fragment.
   List<FormalParameterFragmentImpl> get parameters {
@@ -2845,7 +2845,7 @@ class FieldFormalParameterFragmentImpl extends FormalParameterFragmentImpl
   FieldFormalParameterFragmentImpl({
     required super.firstTokenOffset,
     required super.name,
-    required super.nameOffset2,
+    required super.nameOffset,
     required super.parameterKind,
   });
 
@@ -2966,7 +2966,7 @@ class FieldFragmentImpl extends PropertyInducingFragmentImpl
       super.nextFragment as FieldFragmentImpl?;
 
   @override
-  int get offset => nameOffset2 ?? firstTokenOffset ?? enclosingFragment.offset;
+  int get offset => nameOffset ?? firstTokenOffset ?? enclosingFragment.offset;
 
   @override
   FieldFragmentImpl? get previousFragment =>
@@ -3205,7 +3205,7 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
   final String? name;
 
   @override
-  int? nameOffset2;
+  int? nameOffset;
 
   @override
   MetadataImpl metadata = MetadataImpl(const []);
@@ -3239,9 +3239,9 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
   FormalParameterFragmentImpl({
     required super.firstTokenOffset,
     required this.name,
-    required this.nameOffset2,
+    required this.nameOffset,
     required this.parameterKind,
-  }) : assert(nameOffset2 == null || nameOffset2 >= 0),
+  }) : assert(nameOffset == null || nameOffset >= 0),
        assert(name == null || name.isNotEmpty);
 
   /// Creates a synthetic parameter with [name2], [type] and [parameterKind].
@@ -3255,7 +3255,7 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
     var element = FormalParameterFragmentImpl(
       firstTokenOffset: null,
       name: name2,
-      nameOffset2: null,
+      nameOffset: null,
       parameterKind: parameterKind,
     );
     element.isSynthetic = true;
@@ -3753,13 +3753,17 @@ abstract class FragmentImpl implements Fragment {
   /// The offset after the last character of the name, or `null` if there is
   /// no declaration in code for this fragment, or the name is absent.
   int? get nameEnd {
-    if (nameOffset2 case var nameOffset?) {
+    if (nameOffset case var nameOffset?) {
       if (name case var name?) {
         return nameOffset + name.length;
       }
     }
     return null;
   }
+
+  @override
+  @Deprecated('Use nameOffset instead')
+  int? get nameOffset2 => nameOffset;
 
   /// The analysis session in which this element is defined.
   AnalysisSession? get session {
@@ -3884,7 +3888,7 @@ sealed class FunctionFragmentImpl extends ExecutableFragmentImpl
   final String? name;
 
   @override
-  int? nameOffset2;
+  int? nameOffset;
 
   /// Initialize a newly created function element to have the given [name] and
   /// [offset].
@@ -4094,7 +4098,7 @@ class GenericFunctionTypeFragmentImpl extends _ExistingFragmentImpl
   String? get name2 => name;
 
   @override
-  int? get nameOffset2 => null;
+  int? get nameOffset => null;
 
   @override
   GenericFunctionTypeFragmentImpl? get nextFragment => null;
@@ -4781,7 +4785,7 @@ abstract class InstanceFragmentImpl extends _ExistingFragmentImpl
   final String? name;
 
   @override
-  int? nameOffset2;
+  int? nameOffset;
 
   @override
   InstanceFragmentImpl? previousFragment;
@@ -4880,7 +4884,7 @@ abstract class InstanceFragmentImpl extends _ExistingFragmentImpl
   List<MethodFragment> get methods2 => methods.cast<MethodFragment>();
 
   @override
-  int get offset => nameOffset2 ?? firstTokenOffset!;
+  int get offset => nameOffset ?? firstTokenOffset!;
 
   @override
   List<SetterFragmentImpl> get setters {
@@ -5701,7 +5705,7 @@ class LabelFragmentImpl extends FragmentImpl implements LabelFragment {
 
   @override
   // TODO(scheglov): make it a nullable field
-  int? get nameOffset2 => firstTokenOffset;
+  int? get nameOffset => firstTokenOffset;
 
   @override
   LabelFragmentImpl? get nextFragment => null;
@@ -6644,7 +6648,7 @@ class LibraryFragmentImpl extends _ExistingFragmentImpl
   String? get name2 => name;
 
   @override
-  int? get nameOffset2 => null;
+  int? get nameOffset => null;
 
   @override
   LibraryFragment? get nextFragment {
@@ -7240,7 +7244,7 @@ class LocalVariableFragmentImpl extends NonParameterVariableFragmentImpl
   final String? name;
 
   @override
-  int? nameOffset2;
+  int? nameOffset;
 
   @override
   MetadataImpl metadata = MetadataImpl(const []);
@@ -7787,7 +7791,7 @@ class MethodFragmentImpl extends ExecutableFragmentImpl
   final String? name;
 
   @override
-  int? nameOffset2;
+  int? nameOffset;
 
   @override
   MethodFragmentImpl? previousFragment;
@@ -8327,7 +8331,11 @@ class MultiplyDefinedFragmentImpl implements MultiplyDefinedFragment {
   String? get name2 => name;
 
   @override
-  Null get nameOffset2 => null;
+  Null get nameOffset => null;
+
+  @Deprecated('Use nameOffset instead')
+  @override
+  int? get nameOffset2 => nameOffset;
 
   @override
   Null get nextFragment => null;
@@ -8462,7 +8470,7 @@ class NeverFragmentImpl extends FragmentImpl implements TypeDefiningFragment {
   String get name2 => name;
 
   @override
-  Null get nameOffset2 => null;
+  Null get nameOffset => null;
 
   @override
   Null get nextFragment => null;
@@ -8743,7 +8751,7 @@ class PrefixFragmentImpl extends FragmentImpl implements PrefixFragment {
   final String? name;
 
   @override
-  int? nameOffset2;
+  int? nameOffset;
 
   @override
   int offset = 0;
@@ -8763,7 +8771,7 @@ class PrefixFragmentImpl extends FragmentImpl implements PrefixFragment {
   PrefixFragmentImpl({
     required this.enclosingFragment,
     required this.name,
-    required this.nameOffset2,
+    required this.nameOffset,
     required super.firstTokenOffset,
     required this.isDeferred,
   });
@@ -8860,7 +8868,7 @@ sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
   final String? name;
 
   @override
-  int? nameOffset2;
+  int? nameOffset;
 
   /// Initialize a newly created property accessor element to have the given
   /// [name] and [offset].
@@ -8910,7 +8918,7 @@ sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
 
   @override
   int get offset {
-    if (nameOffset2 case var nameOffset?) {
+    if (nameOffset case var nameOffset?) {
       return nameOffset;
     }
     if (isSynthetic) {
@@ -9066,7 +9074,7 @@ abstract class PropertyInducingFragmentImpl
   final String? name;
 
   @override
-  int? nameOffset2;
+  int? nameOffset;
 
   @override
   MetadataImpl metadata = MetadataImpl(const []);
@@ -9436,7 +9444,7 @@ class SuperFormalParameterFragmentImpl extends FormalParameterFragmentImpl
   SuperFormalParameterFragmentImpl({
     required super.firstTokenOffset,
     required super.name,
-    required super.nameOffset2,
+    required super.nameOffset,
     required super.parameterKind,
   });
 
@@ -9969,7 +9977,7 @@ class TypeAliasFragmentImpl extends _ExistingFragmentImpl
   final String? name;
 
   @override
-  int? nameOffset2;
+  int? nameOffset;
 
   @override
   TypeAliasFragmentImpl? previousFragment;
@@ -10003,6 +10011,10 @@ class TypeAliasFragmentImpl extends _ExistingFragmentImpl
   set aliasedElement(FragmentImpl? aliasedElement) {
     _aliasedElement = aliasedElement;
     aliasedElement?.enclosingElement = this;
+  }
+
+  FragmentImpl? get aliasedElement_unresolved {
+    return _aliasedElement;
   }
 
   /// The aliased type.
@@ -10057,7 +10069,7 @@ class TypeAliasFragmentImpl extends _ExistingFragmentImpl
   }
 
   @override
-  int get offset => nameOffset2 ?? firstTokenOffset!;
+  int get offset => nameOffset ?? firstTokenOffset!;
 
   void addFragment(TypeAliasFragmentImpl fragment) {
     fragment.element = element;
@@ -10192,7 +10204,7 @@ class TypeParameterFragmentImpl extends FragmentImpl
   final String? name;
 
   @override
-  int? nameOffset2;
+  int? nameOffset;
 
   @override
   MetadataImpl metadata = MetadataImpl(const []);
@@ -10309,7 +10321,7 @@ class TypeParameterFragmentImpl extends FragmentImpl
   TypeParameterFragmentImpl? get nextFragment => null;
 
   @override
-  int get offset => nameOffset2 ?? firstTokenOffset!;
+  int get offset => nameOffset ?? firstTokenOffset!;
 
   @override
   // TODO(augmentations): Support chaining between the fragments.
@@ -10626,7 +10638,7 @@ abstract class VariableFragmentImpl extends FragmentImpl
 
   @override
   int get offset {
-    if (nameOffset2 ?? firstTokenOffset case var result?) {
+    if (nameOffset ?? firstTokenOffset case var result?) {
       return result;
     }
     if (this case PropertyInducingFragmentImpl property) {

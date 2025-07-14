@@ -405,7 +405,7 @@ class NamedTypeResolver with ScopeHelpers {
       }
       var fragment = element?.firstFragment;
       var source = fragment?.libraryFragment?.source;
-      var nameOffset = fragment?.nameOffset2;
+      var nameOffset = fragment?.nameOffset;
       diagnosticReporter.atOffset(
         offset: importPrefix.offset,
         length: nameToken.end - importPrefix.offset,
@@ -672,7 +672,7 @@ class _ErrorHelper {
       var name = node.name.lexeme;
       var fragment = element.firstFragment;
       var source = fragment.libraryFragment?.source;
-      var nameOffset = fragment.nameOffset2;
+      var nameOffset = fragment.nameOffset;
       diagnosticReporter.atOffset(
         offset: errorRange.offset,
         length: errorRange.length,

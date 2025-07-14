@@ -88,7 +88,6 @@ library
           getters
             #F3 synthetic x
               element: <testLibrary>::@extension::E::@getter::x
-              returnType: int
   extensions
     extension E
       reference: <testLibrary>::@extension::E
@@ -192,7 +191,6 @@ library
           getters
             #F4 foo @38
               element: <testLibrary>::@extension::E::@getter::foo
-              returnType: int
   extensions
     extension E
       reference: <testLibrary>::@extension::E
@@ -241,7 +239,6 @@ library
           getters
             #F4 foo @36
               element: <testLibrary>::@extension::E::@getter::foo
-              returnType: T
   extensions
     extension E
       reference: <testLibrary>::@extension::E
@@ -308,7 +305,6 @@ library
           getters
             #F4 synthetic foo
               element: <testLibrary>::@extension::E::@getter::foo
-              returnType: int
           methods
             #F5 bar @88
               element: <testLibrary>::@extension::E::@method::bar
@@ -330,7 +326,6 @@ library
       getters
         #F7 synthetic foo
           element: <testLibrary>::@getter::foo
-          returnType: int
   extensions
     extension E
       reference: <testLibrary>::@extension::E
@@ -426,7 +421,6 @@ library
       getters
         #F5 synthetic a
           element: <testLibrary>::@getter::a
-          returnType: dynamic
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -595,7 +589,6 @@ library
           getters
             #F3 foo @31
               element: <testLibrary>::@extension::E::@getter::foo
-              returnType: int
   extensions
     extension E
       reference: <testLibrary>::@extension::E

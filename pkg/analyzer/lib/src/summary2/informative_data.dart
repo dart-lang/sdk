@@ -56,30 +56,7 @@ class InformativeDataApplier {
 
   InformativeDataApplier(this._elementFactory, this._unitsInformativeBytes2);
 
-  void applyTo(LibraryElementImpl libraryElement) {
-    if (_elementFactory.isApplyingInformativeData) {
-      throw StateError('Unexpected recursion.');
-    }
-    _elementFactory.isApplyingInformativeData = true;
-
-    var unitElements = libraryElement.units;
-    for (var i = 0; i < unitElements.length; i++) {
-      var unitElement = unitElements[i];
-      var unitInfoBytes = _getInfoUnitBytes(unitElement);
-      if (unitInfoBytes != null) {
-        applyToUnit(unitElement, unitInfoBytes);
-      } else {
-        unitElement.lineInfo = LineInfo([0]);
-      }
-    }
-
-    _elementFactory.isApplyingInformativeData = false;
-  }
-
-  void applyToUnit(LibraryFragmentImpl unitElement, Uint8List unitInfoBytes) {
-    var unitReader = SummaryDataReader(unitInfoBytes);
-    var unitInfo = _InfoUnit.read(unitReader);
-
+  void applyFromInfoUnit(LibraryFragmentImpl unitElement, _InfoUnit unitInfo) {
     var libraryElement = unitElement.library;
     if (identical(libraryElement.definingCompilationUnit, unitElement)) {
       _applyToLibrary(libraryElement, unitInfo);
@@ -180,6 +157,43 @@ class InformativeDataApplier {
     );
   }
 
+  void applyFromUnit(LibraryFragmentImpl unitElement, CompilationUnit unit) {
+    var unitInfo = _InfoBuilder().build(unit);
+    applyFromInfoUnit(unitElement, unitInfo);
+
+    // TODO(scheglov): generalize
+    for (var classFragment in unitElement.classes) {
+      classFragment.applyMembersConstantOffsets?.call();
+      classFragment.applyMembersConstantOffsets = null;
+    }
+  }
+
+  void applyTo(LibraryElementImpl libraryElement) {
+    if (_elementFactory.isApplyingInformativeData) {
+      throw StateError('Unexpected recursion.');
+    }
+    _elementFactory.isApplyingInformativeData = true;
+
+    var unitElements = libraryElement.units;
+    for (var i = 0; i < unitElements.length; i++) {
+      var unitElement = unitElements[i];
+      var unitInfoBytes = _getInfoUnitBytes(unitElement);
+      if (unitInfoBytes != null) {
+        applyToUnit(unitElement, unitInfoBytes);
+      } else {
+        unitElement.lineInfo = LineInfo([0]);
+      }
+    }
+
+    _elementFactory.isApplyingInformativeData = false;
+  }
+
+  void applyToUnit(LibraryFragmentImpl unitElement, Uint8List unitInfoBytes) {
+    var unitReader = SummaryDataReader(unitInfoBytes);
+    var unitInfo = _InfoUnit.read(unitReader);
+    applyFromInfoUnit(unitElement, unitInfo);
+  }
+
   void _applyToAccessors(
     List<PropertyAccessorFragmentImpl> elementList,
     List<_InfoExecutableDeclaration> infoList,
@@ -187,7 +201,7 @@ class InformativeDataApplier {
     forCorrespondingPairs(elementList.notSynthetic, infoList, (element, info) {
       element.setCodeRange(info.codeOffset, info.codeLength);
       element.firstTokenOffset = info.firstTokenOffset;
-      element.nameOffset2 = info.nameOffset2;
+      element.nameOffset = info.nameOffset2;
       element.documentationComment = info.documentationComment;
       _applyToFormalParameters(element.parameters_unresolved, info.parameters);
 
@@ -208,7 +222,7 @@ class InformativeDataApplier {
   ) {
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.firstTokenOffset = info.firstTokenOffset;
-    element.nameOffset2 = info.nameOffset2;
+    element.nameOffset = info.nameOffset2;
     element.documentationComment = info.documentationComment;
     _applyToTypeParameters(
       element.typeParameters_unresolved,
@@ -239,7 +253,7 @@ class InformativeDataApplier {
   ) {
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.firstTokenOffset = info.firstTokenOffset;
-    element.nameOffset2 = info.nameOffset2;
+    element.nameOffset = info.nameOffset2;
     element.documentationComment = info.documentationComment;
     _applyToTypeParameters(
       element.typeParameters_unresolved,
@@ -284,7 +298,7 @@ class InformativeDataApplier {
       element.periodOffset = info.periodOffset;
       element.firstTokenOffset = info.firstTokenOffset;
       element.nameEnd = info.nameEnd;
-      element.nameOffset2 = info.nameOffset2;
+      element.nameOffset = info.nameOffset2;
       element.documentationComment = info.documentationComment;
 
       _applyToFormalParameters(element.parameters_unresolved, info.parameters);
@@ -306,7 +320,7 @@ class InformativeDataApplier {
   ) {
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.firstTokenOffset = info.firstTokenOffset;
-    element.nameOffset2 = info.nameOffset2;
+    element.nameOffset = info.nameOffset2;
     element.documentationComment = info.documentationComment;
 
     // TODO(scheglov): use it everywhere
@@ -340,7 +354,7 @@ class InformativeDataApplier {
   ) {
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.firstTokenOffset = info.firstTokenOffset;
-    element.nameOffset2 = info.nameOffset2;
+    element.nameOffset = info.nameOffset2;
     element.documentationComment = info.documentationComment;
     _applyToTypeParameters(
       element.typeParameters_unresolved,
@@ -365,7 +379,7 @@ class InformativeDataApplier {
   ) {
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.firstTokenOffset = info.firstTokenOffset;
-    element.nameOffset2 = info.nameOffset2;
+    element.nameOffset = info.nameOffset2;
     element.documentationComment = info.documentationComment;
     _applyToTypeParameters(
       element.typeParameters_unresolved,
@@ -375,7 +389,7 @@ class InformativeDataApplier {
     var representationField = element.fields.first;
     var infoRep = info.representation;
     representationField.firstTokenOffset = infoRep.firstTokenOffset;
-    representationField.nameOffset2 = infoRep.fieldNameOffset2;
+    representationField.nameOffset = infoRep.fieldNameOffset2;
     representationField.setCodeRange(infoRep.codeOffset, infoRep.codeLength);
 
     representationField.applyConstantOffsets = ApplyConstantOffsets(
@@ -392,13 +406,13 @@ class InformativeDataApplier {
       primaryConstructor.typeNameOffset = info.nameOffset2;
       primaryConstructor.periodOffset = infoRep.constructorPeriodOffset;
       primaryConstructor.firstTokenOffset = infoRep.firstTokenOffset;
-      primaryConstructor.nameOffset2 = infoRep.constructorNameOffset2;
+      primaryConstructor.nameOffset = infoRep.constructorNameOffset2;
       primaryConstructor.nameEnd = infoRep.constructorNameEnd;
 
       var primaryConstructorParameter =
           primaryConstructor.parameters_unresolved.first;
       primaryConstructorParameter.firstTokenOffset = infoRep.firstTokenOffset;
-      primaryConstructorParameter.nameOffset2 = infoRep.fieldNameOffset2;
+      primaryConstructorParameter.nameOffset = infoRep.fieldNameOffset2;
       primaryConstructorParameter.setCodeRange(
         infoRep.codeOffset,
         infoRep.codeLength,
@@ -430,7 +444,7 @@ class InformativeDataApplier {
     forCorrespondingPairs(elementList.notSynthetic, infoList, (element, info) {
       element.setCodeRange(info.codeOffset, info.codeLength);
       element.firstTokenOffset = info.firstTokenOffset;
-      element.nameOffset2 = info.nameOffset2;
+      element.nameOffset = info.nameOffset2;
       element.documentationComment = info.documentationComment;
 
       element.applyConstantOffsets = ApplyConstantOffsets(
@@ -451,7 +465,7 @@ class InformativeDataApplier {
     forCorrespondingPairs(parameters, infoList, (element, info) {
       element.setCodeRange(info.codeOffset, info.codeLength);
       element.firstTokenOffset = info.firstTokenOffset;
-      element.nameOffset2 = info.nameOffset2;
+      element.nameOffset = info.nameOffset2;
       _applyToTypeParameters(element.typeParameters, info.typeParameters);
       _applyToFormalParameters(element.parameters, info.parameters);
     });
@@ -463,7 +477,7 @@ class InformativeDataApplier {
   ) {
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.firstTokenOffset = info.firstTokenOffset;
-    element.nameOffset2 = info.nameOffset2;
+    element.nameOffset = info.nameOffset2;
     element.documentationComment = info.documentationComment;
     _applyToTypeParameters(
       element.typeParameters_unresolved,
@@ -486,12 +500,16 @@ class InformativeDataApplier {
   ) {
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.firstTokenOffset = info.firstTokenOffset;
-    element.nameOffset2 = info.nameOffset2;
+    element.nameOffset = info.nameOffset2;
     element.documentationComment = info.documentationComment;
     _applyToTypeParameters(
       element.typeParameters_unresolved,
       info.typeParameters,
     );
+    if (element.aliasedElement_unresolved
+        case GenericFunctionTypeFragmentImpl aliased) {
+      _applyToFormalParameters(aliased.parameters, info.parameters);
+    }
 
     _setupApplyConstantOffsetsForTypeAlias(
       element,
@@ -506,12 +524,23 @@ class InformativeDataApplier {
   ) {
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.firstTokenOffset = info.firstTokenOffset;
-    element.nameOffset2 = info.nameOffset2;
+    element.nameOffset = info.nameOffset2;
     element.documentationComment = info.documentationComment;
     _applyToTypeParameters(
       element.typeParameters_unresolved,
       info.typeParameters,
     );
+    if (element.aliasedElement_unresolved
+        case GenericFunctionTypeFragmentImpl aliased) {
+      _applyToTypeParameters(
+        aliased.typeParameters,
+        info.aliasedTypeParameters,
+      );
+      _applyToFormalParameters(
+        aliased.parameters,
+        info.aliasedFormalParameters,
+      );
+    }
 
     _setupApplyConstantOffsetsForTypeAlias(
       element,
@@ -525,7 +554,7 @@ class InformativeDataApplier {
     forCorrespondingPairs(imports, info.imports, (element, info) {
       element.importKeywordOffset = info.nameOffset;
       if (element.prefix2 case var prefixFragment?) {
-        prefixFragment.nameOffset2 = info.prefixOffset2;
+        prefixFragment.nameOffset = info.prefixOffset2;
         prefixFragment.offset = info.prefixOffset;
       }
       _applyToCombinators(element.combinators, info.combinators);
@@ -535,10 +564,7 @@ class InformativeDataApplier {
   void _applyToLibrary(LibraryElementImpl element, _InfoUnit info) {
     element.nameOffset = info.libraryName.offset;
     element.nameLength = info.libraryName.length;
-
-    if (info.docComment.isNotEmpty) {
-      element.documentationComment = info.docComment;
-    }
+    element.documentationComment = info.docComment;
 
     element.applyConstantOffsets = ApplyConstantOffsets(
       info.libraryConstantOffsets,
@@ -555,7 +581,7 @@ class InformativeDataApplier {
     forCorrespondingPairs(elementList, infoList, (element, info) {
       element.setCodeRange(info.codeOffset, info.codeLength);
       element.firstTokenOffset = info.firstTokenOffset;
-      element.nameOffset2 = info.nameOffset2;
+      element.nameOffset = info.nameOffset2;
       element.documentationComment = info.documentationComment;
       _applyToTypeParameters(
         element.typeParameters_unresolved,
@@ -580,7 +606,7 @@ class InformativeDataApplier {
   ) {
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.firstTokenOffset = info.firstTokenOffset;
-    element.nameOffset2 = info.nameOffset2;
+    element.nameOffset = info.nameOffset2;
     element.documentationComment = info.documentationComment;
 
     // TODO(scheglov): use it everywhere
@@ -607,7 +633,7 @@ class InformativeDataApplier {
   ) {
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.firstTokenOffset = info.firstTokenOffset;
-    element.nameOffset2 = info.nameOffset2;
+    element.nameOffset = info.nameOffset2;
     element.documentationComment = info.documentationComment;
 
     element.applyConstantOffsets = ApplyConstantOffsets(info.constantOffsets, (
@@ -626,7 +652,7 @@ class InformativeDataApplier {
     forCorrespondingPairs(elementList, infoList, (element, info) {
       element.setCodeRange(info.codeOffset, info.codeLength);
       element.firstTokenOffset = info.firstTokenOffset;
-      element.nameOffset2 = info.nameOffset2;
+      element.nameOffset = info.nameOffset2;
     });
   }
 
@@ -1317,12 +1343,9 @@ class _InfoBuilder {
     return codeOffset;
   }
 
-  String _getDocumentationComment(AnnotatedNode? node) {
-    if (node == null) {
-      return '';
-    }
-    var comment = node.documentationComment;
-    return getCommentNodeRawText(comment) ?? '';
+  String? _getDocumentationComment(AnnotatedNode? node) {
+    var comment = node?.documentationComment;
+    return getCommentNodeRawText(comment);
   }
 }
 
@@ -1856,7 +1879,7 @@ class _InfoUnit {
   final List<int> lineStarts;
   final _InfoLibraryName libraryName;
   final Uint32List libraryConstantOffsets;
-  final String docComment;
+  final String? docComment;
   final List<_InfoImport> imports;
   final List<_InfoExport> exports;
   final List<_InfoPart> parts;
@@ -1903,7 +1926,7 @@ class _InfoUnit {
       lineStarts = reader.readUInt30List(),
       libraryName = _InfoLibraryName.read(reader),
       libraryConstantOffsets = reader.readUInt30List(),
-      docComment = reader.readStringUtf8(),
+      docComment = reader.readOptionalStringUtf8(),
       imports = reader.readList(_InfoImport.read),
       exports = reader.readList(_InfoExport.read),
       parts = reader.readList(_InfoPart.read),
@@ -1926,7 +1949,7 @@ class _InfoUnit {
     sink.writeUint30List(lineStarts);
     libraryName.write(sink);
     sink.writeUint30List(libraryConstantOffsets);
-    sink.writeStringUtf8(docComment);
+    sink.writeOptionalStringUtf8(docComment);
     sink.writeList(imports, (v) => v.write(sink));
     sink.writeList(exports, (v) => v.write(sink));
     sink.writeList(parts, (v) => v.write(sink));
@@ -2074,7 +2097,7 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
     var identifier = node.name;
     if (fragment is FormalParameterFragmentImpl && identifier != null) {
       fragment.firstTokenOffset = identifier.offset;
-      fragment.nameOffset2 = identifier.offsetIfNotEmpty;
+      fragment.nameOffset = identifier.offsetIfNotEmpty;
     }
   }
 

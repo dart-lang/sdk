@@ -175,6 +175,7 @@
 * Deprecate `PatternVariableFragment.join2`, use `join` instead.
 * Deprecate `LibraryFragment.isNonSubtypableClass2`, use `isNonSubtypableClass` instead.
 * Deprecate `TypeParameterizedFragment.typeParameters2`, use `typeParameters` instead.
+* Deprecate `Fragment.nameOffset2`, use `nameOffset` instead.
 
 ## 7.4.1
 * Restore `InstanceElement.augmented` getter.

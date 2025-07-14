@@ -19,6 +19,7 @@ import 'package:analyzer/src/summary2/constructor_initializer_resolver.dart';
 import 'package:analyzer/src/summary2/default_value_resolver.dart';
 import 'package:analyzer/src/summary2/element_builder.dart';
 import 'package:analyzer/src/summary2/export.dart';
+import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/metadata_resolver.dart';
 import 'package:analyzer/src/summary2/reference.dart';
@@ -197,6 +198,17 @@ class LibraryBuilder {
       topFragments: _topFragments,
       parentChildFragments: _parentChildFragments,
     );
+
+    var informativeDataApplier = InformativeDataApplier(
+      linker.elementFactory,
+      {}, // No bytes from summary, we are building from source.
+    );
+    for (var linkingUnit in units) {
+      informativeDataApplier.applyFromUnit(
+        linkingUnit.element,
+        linkingUnit.node,
+      );
+    }
 
     _declareDartCoreDynamicNever();
   }
@@ -621,7 +633,7 @@ class LibraryBuilder {
       enclosingFragment: libraryFragment,
       name: unlinkedName?.name,
       firstTokenOffset: null,
-      nameOffset2: unlinkedName?.nameOffset,
+      nameOffset: unlinkedName?.nameOffset,
       isDeferred: isDeferred,
     )..offset = offset;
 

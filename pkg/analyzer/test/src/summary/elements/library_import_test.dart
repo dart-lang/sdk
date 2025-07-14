@@ -359,7 +359,6 @@ library
       getters
         #F2 synthetic f
           element: <testLibrary>::@getter::f
-          returnType: Future<dynamic>
       setters
         #F3 synthetic f
           element: <testLibrary>::@setter::f
@@ -455,7 +454,6 @@ library
       getters
         #F2 synthetic f
           element: <testLibrary>::@getter::f
-          returnType: Future<dynamic>
       setters
         #F3 synthetic f
           element: <testLibrary>::@setter::f
@@ -493,7 +491,7 @@ library
 
     var prefixElement =
         library.definingCompilationUnit.libraryImports[0].prefix2!;
-    expect(prefixElement.nameOffset2, 19);
+    expect(prefixElement.nameOffset, 19);
 
     checkElementText(library, r'''
 library
@@ -512,7 +510,6 @@ library
       getters
         #F2 synthetic c
           element: <testLibrary>::@getter::c
-          returnType: C
       setters
         #F3 synthetic c
           element: <testLibrary>::@setter::c
@@ -640,10 +637,8 @@ library
       getters
         #F3 synthetic f
           element: <testLibrary>::@getter::f
-          returnType: Future<dynamic>
         #F4 synthetic s
           element: <testLibrary>::@getter::s
-          returnType: Stream<dynamic>
       setters
         #F5 synthetic f
           element: <testLibrary>::@setter::f
@@ -742,10 +737,8 @@ library
       getters
         #F3 synthetic c
           element: <testLibrary>::@getter::c
-          returnType: C
         #F4 synthetic d
           element: <testLibrary>::@getter::d
-          returnType: D
       setters
         #F5 synthetic c
           element: <testLibrary>::@setter::c
@@ -988,7 +981,6 @@ library
       getters
         #F2 synthetic a
           element: <testLibrary>::@getter::a
-          returnType: int
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -1050,7 +1042,6 @@ library
       getters
         #F2 synthetic a
           element: <testLibrary>::@getter::a
-          returnType: int
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -1096,7 +1087,6 @@ library
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
-          returnType: A
       setters
         #F3 synthetic v
           element: <testLibrary>::@setter::v

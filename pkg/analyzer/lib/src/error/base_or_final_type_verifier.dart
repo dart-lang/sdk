@@ -210,7 +210,7 @@ class BaseOrFinalTypeVerifier {
 
     var fragment = baseOrFinalSuperElement.firstFragment;
     var fragmentName = fragment.name;
-    var fragmentNameOffset = fragment.nameOffset2;
+    var fragmentNameOffset = fragment.nameOffset;
     if (fragmentName == null || fragmentNameOffset == null) {
       return false;
     }

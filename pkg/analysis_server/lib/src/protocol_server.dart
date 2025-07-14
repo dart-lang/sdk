@@ -266,10 +266,10 @@ Location? newLocation_fromElement(engine.Element? element) {
     // For unnamed constructors, treat the type name as the element location
     // instead of using 0,0.
     engine.ConstructorFragment(:var typeNameOffset, :var typeName) =>
-      fragment.nameOffset2 != null
-          ? (fragment.nameOffset2 ?? 0, fragment.name.length)
+      fragment.nameOffset != null
+          ? (fragment.nameOffset ?? 0, fragment.name.length)
           : (typeNameOffset ?? 0, typeName?.length ?? 0),
-    _ => (fragment.nameOffset2 ?? 0, fragment.name?.length ?? 0),
+    _ => (fragment.nameOffset ?? 0, fragment.name?.length ?? 0),
   };
   var range = engine.SourceRange(offset, length);
   return _locationForArgs2(fragment, range);
@@ -284,7 +284,7 @@ Location? newLocation_fromFragment(engine.Fragment? fragment) {
       fragment.enclosingFragment == null) {
     return null;
   }
-  var offset = fragment.nameOffset2 ?? 0;
+  var offset = fragment.nameOffset ?? 0;
   var length = fragment.name?.length ?? 0;
   var range = engine.SourceRange(offset, length);
   return _locationForArgs2(fragment, range);

@@ -121,7 +121,8 @@ ConstructorDeclaration
           semicolon: ;
       rightBracket: }
   declaredElement: <testLibraryFragment> new@null
-    type: B Function(a)
+    element: <testLibrary>::@class::B::@constructor::new
+      type: B Function(a)
 ''');
   }
 
@@ -162,7 +163,8 @@ ConstructorDeclaration
   body: EmptyFunctionBody
     semicolon: ;
   declaredElement: <testLibraryFragment> new@null
-    type: B Function()
+    element: <testLibrary>::@class::B::@constructor::new
+      type: B Function()
 ''');
   }
 
@@ -215,7 +217,8 @@ ConstructorDeclaration
   body: EmptyFunctionBody
     semicolon: ;
   declaredElement: <testLibraryFragment> new@null
-    type: B<U> Function()
+    element: <testLibrary>::@class::B::@constructor::new
+      type: B<U> Function()
 ''');
   }
 
@@ -259,7 +262,8 @@ ConstructorDeclaration
   body: EmptyFunctionBody
     semicolon: ;
   declaredElement: <testLibraryFragment> new@null
-    type: B Function()
+    element: <testLibrary>::@class::B::@constructor::new
+      type: B Function()
 ''');
   }
 
@@ -297,7 +301,8 @@ ConstructorDeclaration
   body: EmptyFunctionBody
     semicolon: ;
   declaredElement: <testLibraryFragment> named@55
-    type: B Function()
+    element: <testLibrary>::@class::B::@constructor::named
+      type: B Function()
 ''');
   }
 
@@ -345,7 +350,8 @@ ConstructorDeclaration
   body: EmptyFunctionBody
     semicolon: ;
   declaredElement: <testLibraryFragment> named@64
-    type: B<U> Function()
+    element: <testLibrary>::@class::B::@constructor::named
+      type: B<U> Function()
 ''');
   }
 
@@ -386,7 +392,8 @@ ConstructorDeclaration
   body: EmptyFunctionBody
     semicolon: ;
   declaredElement: <testLibraryFragment> named@61
-    type: B Function()
+    element: <testLibrary>::@class::B::@constructor::named
+      type: B Function()
 ''');
   }
 }

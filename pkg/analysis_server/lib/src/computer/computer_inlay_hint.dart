@@ -208,7 +208,7 @@ class DartInlayHintComputer {
       return null;
     }
     var firstFragment = element.firstFragment;
-    var nameOffset = firstFragment.nameOffset2;
+    var nameOffset = firstFragment.nameOffset;
     var libraryFragment = firstFragment.libraryFragment;
     var path = libraryFragment?.source.fullName;
     var lineInfo = libraryFragment?.lineInfo;

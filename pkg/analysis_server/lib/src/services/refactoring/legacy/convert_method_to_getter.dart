@@ -124,7 +124,7 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
       }
       // insert "get "
       {
-        var edit = SourceEdit(fragment.nameOffset2 ?? -1, 0, 'get ');
+        var edit = SourceEdit(fragment.nameOffset ?? -1, 0, 'get ');
         doSourceChange_addFragmentEdit(change, fragment, edit);
       }
       // remove parameters

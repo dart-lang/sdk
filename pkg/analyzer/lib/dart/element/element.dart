@@ -1746,15 +1746,15 @@ abstract class Fragment {
   /// If a fragment, e.g. an [ExtensionFragment], does not have a name,
   /// then the name is `null`.
   ///
-  /// For an unnamed [ConstructorFragment] the name is `new`, but [nameOffset2]
+  /// For an unnamed [ConstructorFragment] the name is `new`, but [nameOffset]
   /// is `null`. If there is an explicit `ClassName.new`, the name is also
-  /// `new`, and [nameOffset2] is not `null`. For a synthetic default unnamed
+  /// `new`, and [nameOffset] is not `null`. For a synthetic default unnamed
   /// [ConstructorElement] there is always a synthetic [ConstructorFragment]
-  /// with the name `new`, and [nameOffset2] is `null`.
+  /// with the name `new`, and [nameOffset] is `null`.
   ///
   /// If the fragment declaration node does not have the name specified, and
   /// the parser inserted a synthetic token, then the name is `null`, and
-  /// [nameOffset2] is `null`.
+  /// [nameOffset] is `null`.
   ///
   /// For a synthetic [GetterFragment] or [SetterFragment] the name is the
   /// name of the corresponding non-synthetic [PropertyInducingFragment],
@@ -1773,15 +1773,15 @@ abstract class Fragment {
   /// If a fragment, e.g. an [ExtensionFragment], does not have a name,
   /// then the name is `null`.
   ///
-  /// For an unnamed [ConstructorFragment] the name is `new`, but [nameOffset2]
+  /// For an unnamed [ConstructorFragment] the name is `new`, but [nameOffset]
   /// is `null`. If there is an explicit `ClassName.new`, the name is also
-  /// `new`, and [nameOffset2] is not `null`. For a synthetic default unnamed
+  /// `new`, and [nameOffset] is not `null`. For a synthetic default unnamed
   /// [ConstructorElement] there is always a synthetic [ConstructorFragment]
-  /// with the name `new`, and [nameOffset2] is `null`.
+  /// with the name `new`, and [nameOffset] is `null`.
   ///
   /// If the fragment declaration node does not have the name specified, and
   /// the parser inserted a synthetic token, then the name is `null`, and
-  /// [nameOffset2] is `null`.
+  /// [nameOffset] is `null`.
   ///
   /// For a synthetic [GetterFragment] or [SetterFragment] the name is the
   /// name of the corresponding non-synthetic [PropertyInducingFragment],
@@ -1805,6 +1805,20 @@ abstract class Fragment {
   ///
   /// For a synthetic fragment, e.g. [ConstructorFragment] the name offset
   /// is `null`.
+  int? get nameOffset;
+
+  /// The offset of the [name] of this element.
+  ///
+  /// If a fragment, e.g. an [ExtensionFragment], does not have a name,
+  /// then the name offset is `null`.
+  ///
+  /// If the fragment declaration node does not have the name specified, and
+  /// the parser inserted a synthetic token, then the name is `null`, and
+  /// the name offset is `null`.
+  ///
+  /// For a synthetic fragment, e.g. [ConstructorFragment] the name offset
+  /// is `null`.
+  @Deprecated('Use nameOffset instead')
   int? get nameOffset2;
 
   /// The next fragment in the augmentation chain.
@@ -1814,7 +1828,7 @@ abstract class Fragment {
 
   /// A canonical offset to the fragment within the source file.
   ///
-  /// If the fragment has a name, this is equal to [nameOffset2]. Otherwise it
+  /// If the fragment has a name, this is equal to [nameOffset]. Otherwise it
   /// is the offset of some character within the fragment; see subclasses for
   /// more information.
   ///

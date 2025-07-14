@@ -240,7 +240,7 @@ class CheckNameResponse {
         infos.add(
           ReplaceInfo(
             newName,
-            lineInfo.getLocation(getter.firstFragment.nameOffset2!),
+            lineInfo.getLocation(getter.firstFragment.nameOffset!),
             getter.name!.length,
           ),
         );
@@ -250,7 +250,7 @@ class CheckNameResponse {
         infos.add(
           ReplaceInfo(
             newName,
-            lineInfo.getLocation(setter.firstFragment.nameOffset2!),
+            lineInfo.getLocation(setter.firstFragment.nameOffset!),
             setter.name!.length,
           ),
         );
@@ -290,7 +290,7 @@ class CheckNameResponse {
     } else {
       var location = (await canRename._fileResolver.resolve(
         path: sourcePath,
-      )).lineInfo.getLocation(element.firstFragment.nameOffset2!);
+      )).lineInfo.getLocation(element.firstFragment.nameOffset!);
       infos.add(ReplaceInfo(newName, location, element.name!.length));
     }
     return infos;
@@ -305,7 +305,7 @@ class CheckNameResponse {
     var libraryFragment = firstFragment.libraryFragment;
     var sourcePath = libraryFragment.source.fullName;
     var location = libraryFragment.lineInfo.getLocation(
-      firstFragment.nameOffset2!,
+      firstFragment.nameOffset!,
     );
     CiderSearchMatch ciderMatch;
     var searchInfo = CiderSearchInfo(

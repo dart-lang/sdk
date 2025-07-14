@@ -2386,7 +2386,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                       method.enclosingElement!.kind.displayName,
                       method.enclosingElement!.name,
                     ]),
-                offset: method.firstFragment.nameOffset2!,
+                offset: method.firstFragment.nameOffset!,
                 length: method.firstFragment.name!.length,
                 url: null,
               ),
@@ -2397,7 +2397,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                       setter.enclosingElement.kind.displayName,
                       setter.enclosingElement.name,
                     ]),
-                offset: setter.firstFragment.nameOffset2!,
+                offset: setter.firstFragment.nameOffset!,
                 length: setter.firstFragment.name!.length,
                 url: null,
               ),
@@ -3380,7 +3380,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             return DiagnosticMessageImpl(
               filePath:
                   executable.firstFragment.libraryFragment.source.fullName,
-              offset: nonSynthetic.firstFragment.nameOffset2!,
+              offset: nonSynthetic.firstFragment.nameOffset!,
               length: nonSynthetic.firstFragment.name!.length,
               message: "Inherited from '${container.name}'",
               url: null,

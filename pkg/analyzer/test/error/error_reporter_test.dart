@@ -37,7 +37,7 @@ class ErrorReporterTest extends PubPackageResolutionTest {
     );
 
     var diagnostic = listener.diagnostics[0];
-    expect(diagnostic.offset, firstFragment.nameOffset2);
+    expect(diagnostic.offset, firstFragment.nameOffset);
   }
 
   test_atElement_unnamed() async {

@@ -1746,7 +1746,11 @@ Expected parent: (${parent.runtimeType}) $parent
         _writeFragment('declaredElement', fragment);
         if (fragment is ExecutableFragmentImpl) {
           _sink.withIndent(() {
-            _writeType('type', fragment.type);
+            var element = fragment.element;
+            _elementPrinter.writeNamedElement2('element', element);
+            _sink.withIndent(() {
+              _writeType('type', element.type);
+            });
           });
         } else if (fragment is FormalParameterFragmentImpl) {
           _sink.withIndent(() {
@@ -1774,7 +1778,7 @@ Expected parent: (${parent.runtimeType}) $parent
       _sink.writeIf(fragment.isPublic, 'isPublic ');
       _sink.writeIf(fragment.isStatic, 'isStatic ');
       _sink.writeIf(fragment.isSynthetic, 'isSynthetic ');
-      _sink.write('${fragment.name ?? ''}@${fragment.nameOffset2}');
+      _sink.write('${fragment.name ?? ''}@${fragment.nameOffset}');
     });
 
     _sink.withIndent(() {

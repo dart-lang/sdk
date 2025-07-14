@@ -231,10 +231,10 @@ class TypeHierarchyItem {
 
     // Some non-synthetic items can still have invalid nameOffsets (for example
     // a compilation unit). This should never happen here, but guard against it.
-    assert(fragment.nameOffset2 != -1);
-    return fragment.nameOffset2 == -1
+    assert(fragment.nameOffset != -1);
+    return fragment.nameOffset == -1
         ? SourceRange(0, 0)
-        : SourceRange(fragment.nameOffset2 ?? 0, fragment.name?.length ?? 0);
+        : SourceRange(fragment.nameOffset ?? 0, fragment.name?.length ?? 0);
   }
 }
 

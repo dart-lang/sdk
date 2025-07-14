@@ -42,7 +42,6 @@ library
           getters
             #F4 synthetic foo
               element: <testLibrary>::@class::C::@getter::foo
-              returnType: int
           setters
             #F5 synthetic foo
               element: <testLibrary>::@class::C::@setter::foo
@@ -108,7 +107,6 @@ library
           getters
             #F4 foo @20
               element: <testLibrary>::@class::C::@getter::foo
-              returnType: int
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -255,13 +253,10 @@ library
           getters
             #F6 synthetic a
               element: <testLibrary>::@enum::E::@getter::a
-              returnType: E
             #F7 synthetic b
               element: <testLibrary>::@enum::E::@getter::b
-              returnType: E
             #F8 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E>
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -337,7 +332,6 @@ library
           getters
             #F3 synthetic foo
               element: <testLibrary>::@mixin::M::@getter::foo
-              returnType: int
           setters
             #F4 synthetic foo
               element: <testLibrary>::@mixin::M::@setter::foo
@@ -397,7 +391,6 @@ library
           getters
             #F3 foo @20
               element: <testLibrary>::@mixin::M::@getter::foo
-              returnType: int
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
@@ -485,7 +478,6 @@ library
       getters
         #F2 foo @8
           element: <testLibrary>::@getter::foo
-          returnType: int
   topLevelVariables
     synthetic foo
       reference: <testLibrary>::@topLevelVariable::foo
@@ -519,7 +511,6 @@ library
       getters
         #F2 foo @8
           element: <testLibrary>::@getter::foo
-          returnType: int
       setters
         #F3 foo @22
           element: <testLibrary>::@setter::foo
@@ -606,7 +597,6 @@ library
       getters
         #F2 synthetic foo
           element: <testLibrary>::@getter::foo
-          returnType: int
       setters
         #F3 synthetic foo
           element: <testLibrary>::@setter::foo

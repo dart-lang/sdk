@@ -913,19 +913,14 @@ library
           getters
             #F8 synthetic withInit
               element: <testLibrary>::@class::C::@getter::withInit
-              returnType: int
             #F9 synthetic withoutInit
               element: <testLibrary>::@class::C::@getter::withoutInit
-              returnType: int
             #F10 synthetic multiWithInit
               element: <testLibrary>::@class::C::@getter::multiWithInit
-              returnType: int
             #F11 synthetic multiWithoutInit
               element: <testLibrary>::@class::C::@getter::multiWithoutInit
-              returnType: int
             #F12 synthetic multiWithInit2
               element: <testLibrary>::@class::C::@getter::multiWithInit2
-              returnType: int
           setters
             #F13 synthetic withInit
               element: <testLibrary>::@class::C::@setter::withInit
@@ -1125,34 +1120,24 @@ library
           getters
             #F13 synthetic hasDocComment
               element: <testLibrary>::@class::C::@getter::hasDocComment
-              returnType: int
             #F14 synthetic hasDocComment2
               element: <testLibrary>::@class::C::@getter::hasDocComment2
-              returnType: int
             #F15 synthetic hasAnnotation
               element: <testLibrary>::@class::C::@getter::hasAnnotation
-              returnType: int
             #F16 synthetic hasAnnotation2
               element: <testLibrary>::@class::C::@getter::hasAnnotation2
-              returnType: int
             #F17 synthetic annotationThenComment
               element: <testLibrary>::@class::C::@getter::annotationThenComment
-              returnType: int
             #F18 synthetic annotationThenComment2
               element: <testLibrary>::@class::C::@getter::annotationThenComment2
-              returnType: int
             #F19 synthetic commentThenAnnotation
               element: <testLibrary>::@class::C::@getter::commentThenAnnotation
-              returnType: int
             #F20 synthetic commentThenAnnotation2
               element: <testLibrary>::@class::C::@getter::commentThenAnnotation2
-              returnType: int
             #F21 synthetic commentAroundAnnotation
               element: <testLibrary>::@class::C::@getter::commentAroundAnnotation
-              returnType: int
             #F22 synthetic commentAroundAnnotation2
               element: <testLibrary>::@class::C::@getter::commentAroundAnnotation2
-              returnType: int
           setters
             #F23 synthetic hasDocComment
               element: <testLibrary>::@class::C::@setter::hasDocComment
@@ -1942,19 +1927,14 @@ library
       getters
         #F6 synthetic withInit
           element: <testLibrary>::@getter::withInit
-          returnType: int
         #F7 synthetic withoutInit
           element: <testLibrary>::@getter::withoutInit
-          returnType: int
         #F8 synthetic multiWithInit
           element: <testLibrary>::@getter::multiWithInit
-          returnType: int
         #F9 synthetic multiWithoutInit
           element: <testLibrary>::@getter::multiWithoutInit
-          returnType: int
         #F10 synthetic multiWithInit2
           element: <testLibrary>::@getter::multiWithInit2
-          returnType: int
       setters
         #F11 synthetic withInit
           element: <testLibrary>::@setter::withInit
@@ -2233,34 +2213,24 @@ library
       getters
         #F11 synthetic hasDocComment
           element: <testLibrary>::@getter::hasDocComment
-          returnType: int
         #F12 synthetic hasDocComment2
           element: <testLibrary>::@getter::hasDocComment2
-          returnType: int
         #F13 synthetic hasAnnotation
           element: <testLibrary>::@getter::hasAnnotation
-          returnType: int
         #F14 synthetic hasAnnotation2
           element: <testLibrary>::@getter::hasAnnotation2
-          returnType: int
         #F15 synthetic annotationThenComment
           element: <testLibrary>::@getter::annotationThenComment
-          returnType: int
         #F16 synthetic annotationThenComment2
           element: <testLibrary>::@getter::annotationThenComment2
-          returnType: int
         #F17 synthetic commentThenAnnotation
           element: <testLibrary>::@getter::commentThenAnnotation
-          returnType: int
         #F18 synthetic commentThenAnnotation2
           element: <testLibrary>::@getter::commentThenAnnotation2
-          returnType: int
         #F19 synthetic commentAroundAnnotation
           element: <testLibrary>::@getter::commentAroundAnnotation
-          returnType: int
         #F20 synthetic commentAroundAnnotation2
           element: <testLibrary>::@getter::commentAroundAnnotation2
-          returnType: int
       setters
         #F21 synthetic hasDocComment
           element: <testLibrary>::@setter::hasDocComment
@@ -2758,7 +2728,6 @@ library
           getters
             #F4 synthetic foo
               element: <testLibrary>::@class::A::@getter::foo
-              returnType: int
           setters
             #F5 synthetic foo
               element: <testLibrary>::@class::A::@setter::foo
@@ -2823,7 +2792,6 @@ library
           getters
             #F4 foo @20
               element: <testLibrary>::@class::A::@getter::foo
-              returnType: int
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -3220,7 +3188,6 @@ library
       getters
         #F2 foo @8
           element: <testLibrary>::@getter::foo
-          returnType: int
   topLevelVariables
     synthetic foo
       reference: <testLibrary>::@topLevelVariable::foo
