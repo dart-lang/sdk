@@ -203,7 +203,7 @@ main() {
 
       // Add breakpoints to the 4 lines after the current one, one at a time.
       // Capture the IDs of all breakpoints added.
-      final breakpointLinesToSend = <int>[];
+      final breakpointLinesToSend = <int>[breakpointLine];
       final addedBreakpoints = <int>{};
       for (var i = 1; i <= 4; i++) {
         breakpointLinesToSend.add(breakpointLine + i);

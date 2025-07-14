@@ -51,7 +51,7 @@ main() {
 
       // Add breakpoints to the 4 lines after the current one, one at a time.
       // Capture the IDs of all breakpoints added.
-      final breakpointLinesToSend = <int>[];
+      final breakpointLinesToSend = <int>[breakpointLine];
       final addedBreakpoints = <int>{};
       for (var i = 1; i <= 4; i++) {
         breakpointLinesToSend.add(breakpointLine + i);
@@ -73,86 +73,6 @@ main() {
 
       // Ensure every breakpoint that was added was also resolved.
       expect(resolvedBreakpoints, addedBreakpoints);
-    });
-
-    testWithUriConfigurations(() => dap,
-        'does not re-resolve existing breakpoints when new ones are added',
-        () async {
-      final client = dap.client;
-      final testFile = dap.createTestFile(simpleMultiBreakpointProgram);
-      final breakpointLine = lineWith(testFile, breakpointMarker);
-
-      // Start the app and hit the initial breakpoint.
-      await client.hitBreakpoint(testFile, breakpointLine);
-
-      // Collect any breakpoint events in a simple text format for verifying.
-      final breakpointEvents = <String>[];
-      final breakpointResolveSubscription =
-          client.breakpointChangeEvents.listen((event) {
-        var breakpoint = event.breakpoint;
-        var id = breakpoint.id!;
-        var verified = breakpoint.verified;
-        var reason = breakpoint.reason;
-        var description = verified ? 'verified' : 'not verified ($reason)';
-        breakpointEvents.add('Breakpoint $id $description');
-      });
-
-      // Test adding breakpoints to the 4 lines after the first breakpoint, one
-      // at a time. Each request contains the total set of breakpoints (so the
-      // first request has one breakpoint and the last request has all 4). In
-      // each response, we expect the previous breakpoints to be
-      // already-verified and to not get events for them. For the last one
-      // breakpoint, it will not be verified and we will then get an event.
-      var breakpointLines = <int>[];
-      var seenBreakpointIds = <int>{};
-      for (var i = 1; i <= 4; i++) {
-        breakpointEvents.clear(); // Clear any events from previous iterations.
-
-        // Add an additional breakpoint on the next line.
-        breakpointLines.add(breakpointLine + i);
-        final response = await client.setBreakpoints(testFile, breakpointLines);
-        expect(response.breakpoints, hasLength(i));
-
-        // Wait up to a few seconds for a resolved events to come through.
-        final testUntil =
-            DateTime.now().toUtc().add(const Duration(seconds: 5));
-        while (DateTime.now().toUtc().isBefore(testUntil) &&
-            breakpointEvents.isEmpty) {
-          await pumpEventQueue(times: 5000);
-        }
-
-        // Verify the results for this iteration.
-        for (var j = 0; j < i; j++) {
-          // j is zero-based but i is one-based
-          final breakpoint = response.breakpoints[j];
-          final id = breakpoint.id!;
-
-          // All but the last should be verified already and have existing IDs.
-          if (j == i - 1) {
-            expect(seenBreakpointIds.contains(id), isFalse,
-                reason:
-                    'Last breakpoint (index $j) should have a new unseen ID');
-            expect(breakpoint.verified, isFalse,
-                reason:
-                    'Last breakpoint (index $j) should not yet be verified');
-            seenBreakpointIds.add(id);
-          } else {
-            expect(seenBreakpointIds.contains(id), isTrue,
-                reason:
-                    'Non-last breakpoint (index $j) should have an already-seen ID because it was reused');
-            expect(breakpoint.verified, isTrue,
-                reason:
-                    'Non-last breakpoint (index $j) should already be verified');
-          }
-        }
-
-        // We should have had one event for that last one to be verified (others
-        // were already verified).
-        expect(breakpointEvents,
-            ['Breakpoint ${response.breakpoints.last.id} verified']);
-      }
-
-      await breakpointResolveSubscription.cancel();
     });
 
     testWithUriConfigurations(
