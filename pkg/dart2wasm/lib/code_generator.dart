@@ -4335,10 +4335,11 @@ class SwitchInfo {
             e is L ||
             e is NullLiteral ||
             (e is ConstantExpression &&
-                (e.constant is C || e.constant is NullConstant) &&
-                (translator.hierarchy.isSubInterfaceOf(
-                    translator.classForType(codeGen.dartTypeOf(e)),
-                    switchExprClass))));
+                ((e.constant is C &&
+                        (translator.hierarchy.isSubInterfaceOf(
+                            translator.classForType(codeGen.dartTypeOf(e)),
+                            switchExprClass))) ||
+                    e.constant is NullConstant)));
 
     // Type objects should be compared using `==` rather than identity even
     // though the specification is not very clear about it. In language versions
@@ -4367,7 +4368,7 @@ class SwitchInfo {
       nonNullableType = translator.runtimeTypeType;
       nullableType = translator.runtimeTypeTypeNullable;
       compare = (switchExprLocal, pushCaseExpr) {
-        // Virtual call to `Object.==`.
+        // Virtual call to `Type.==`.
         codeGen._virtualCall(
             node, translator.coreTypes.objectEquals, _VirtualCallKind.Call,
             (functionType) {
@@ -4377,11 +4378,16 @@ class SwitchInfo {
         }, useUncheckedEntry: false);
       };
     } else if (switchExprType is DynamicType) {
-      // Object equality switch
+      // Per spec, compare with `<case expr> == <switch expr>`. For performance,
+      // if we know that the cases all have the same type, we call the case
+      // expression's `==` implementation directly (instead of virtually calling
+      // `Object.==`).
+      //
+      // Note: this could be improved by directly calling a different `==` in
+      // each of the cases based on the case value. For now we only directly
+      // call a `==` if all of the cases have a compatible type.
       nonNullableType = translator.topTypeNonNullable;
       nullableType = translator.topType;
-
-      // Per spec, compare with `<case expr> == <switch expr>`.
       final Member equalsMember;
       if (check<BoolLiteral, BoolConstant>()) {
         equalsMember = translator.boxedBoolEquals;
@@ -4390,7 +4396,17 @@ class SwitchInfo {
       } else if (check<StringLiteral, StringConstant>()) {
         equalsMember = translator.jsStringEquals;
       } else {
-        equalsMember = translator.coreTypes.identicalProcedure;
+        compare = (switchExprLocal, pushCaseExpr) {
+          // Virtual call to `Object.==`.
+          codeGen._virtualCall(node, codeGen.translator.coreTypes.objectEquals,
+              _VirtualCallKind.Call, (functionType) {
+            codeGen.b.local_get(switchExprLocal);
+          }, (functionType, paramInfo) {
+            pushCaseExpr();
+          }, useUncheckedEntry: false);
+        };
+        _initializeSpecialCases(node);
+        return;
       }
 
       final equalsMemberSignature =
@@ -4462,6 +4478,10 @@ class SwitchInfo {
       };
     }
 
+    _initializeSpecialCases(node);
+  }
+
+  void _initializeSpecialCases(SwitchStatement node) {
     // Special cases
     defaultCase = node.cases
         .cast<SwitchCase?>()
