@@ -12,18 +12,6 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-/// This correction producer can act on a variety of code, and various edits
-/// might be applied.
-typedef _ParametersFixData =
-    ({
-      SourceRange parensRange,
-      List<SourceRange> deleteRanges,
-      bool negated,
-      bool needsParens,
-      (SourceRange, String)? replace,
-      bool bangBeforeParens,
-    });
-
 class ConvertToBooleanExpression extends ResolvedCorrectionProducer {
   ConvertToBooleanExpression({required super.context});
 
@@ -41,7 +29,6 @@ class ConvertToBooleanExpression extends ResolvedCorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     AstNode? node = this.node;
     if (node is BooleanLiteral) node = node.parent;
-    _ParametersFixData parameters;
 
     if (node case BinaryExpression(
       :var rightOperand,
@@ -49,23 +36,24 @@ class ConvertToBooleanExpression extends ResolvedCorrectionProducer {
       operator: Token(type: var operator),
     )) {
       if (rightOperand is BooleanLiteral) {
-        parameters = _processBinaryExp(
+        return await _processBinaryExp(
+          builder,
           node,
           operator,
           rightOperand,
           leftOperand,
           currentIsLeft: false,
         );
-      } else if (leftOperand is BooleanLiteral) {
-        parameters = _processBinaryExp(
+      }
+      if (leftOperand is BooleanLiteral) {
+        return await _processBinaryExp(
+          builder,
           node,
           operator,
           leftOperand,
           rightOperand,
           currentIsLeft: true,
         );
-      } else {
-        return;
       }
     } else if (node
         case ConditionalExpression(
@@ -74,8 +62,8 @@ class ConvertToBooleanExpression extends ResolvedCorrectionProducer {
               :var elseExpression,
             ) &&
             var conditionalExp) {
-      _ParametersFixData? result = (switch ((thenExpression, elseExpression)) {
-        (BooleanLiteral then, BooleanLiteral elseExp) => () {
+      await (switch ((thenExpression, elseExpression)) {
+        (BooleanLiteral then, BooleanLiteral elseExp) => () async {
           var equalValues = then.value == elseExp.value;
           var rangeStart =
               equalValues
@@ -85,76 +73,88 @@ class ConvertToBooleanExpression extends ResolvedCorrectionProducer {
                   : range.endEnd(condition, then);
           // remove ` : elseExp`
           var rangeEnd = range.endEnd(then, elseExp);
-          return (
+          await _addEdit(
+            builder,
             parensRange: range.node(equalValues ? then : condition),
             deleteRanges: [rangeStart, rangeEnd],
             negated: !then.value && elseExp.value,
-            replace: null,
-            needsParens: !equalValues && condition.needsParens,
+            needsParens: !equalValues && condition.needsParens(),
             bangBeforeParens: false,
           );
         }(),
-        (BooleanLiteral then, Expression elseExp) => () {
+        (BooleanLiteral then, Expression elseExp) => () async {
           var replaceRange = range.endStart(condition, elseExp);
           var operator = then.ifBarElseAmpersand;
-          return (
-            parensRange: range.node(conditionalExp),
+          await _addEdit(
+            builder,
+            parensRange: range.node(conditionalExp.condition),
             deleteRanges: const <SourceRange>[],
             negated: !then.value,
             replace: (replaceRange, ' ${operator.lexeme} '),
-            // conditional expressions always need parens so there will
-            // be no need to add them
-            needsParens: false,
-            bangBeforeParens: false,
+            needsParens: conditionalExp.condition.needsParens(
+              then.value ? operator : null,
+            ),
+            bangBeforeParens: true,
+            parensRange2:
+                elseExp.needsParens(operator) ? range.node(elseExp) : null,
           );
         }(),
-        (Expression then, BooleanLiteral elseExp) => () {
+        (Expression then, BooleanLiteral elseExp) => () async {
           var rangeStart = range.endStart(condition, then);
           var rangeEnd = range.endEnd(then, elseExp);
           var operator = elseExp.ifBarElseAmpersand;
-          return (
-            parensRange: range.node(conditionalExp),
+          await _addEdit(
+            builder,
+            parensRange: range.node(conditionalExp.condition),
             deleteRanges: [rangeEnd],
             negated: elseExp.value,
             replace: (rangeStart, ' ${operator.lexeme} '),
-            // conditional expressions always need parens so there will
-            // be no need to add them
-            needsParens: false,
-            bangBeforeParens: false,
+            needsParens: conditionalExp.condition.needsParens(
+              elseExp.value ? null : operator,
+            ),
+            bangBeforeParens: true,
+            parensRange2: then.needsParens(operator) ? range.node(then) : null,
           );
         }(),
         (_, _) => null,
       });
-      if (result == null) {
-        return;
-      }
-      parameters = result;
-    } else {
-      return;
     }
-    await _addEdit(builder, parameters);
   }
 
+  /// This correction producer can act on a variety of code, and various edits
+  /// might be applied.
+  ///
+  /// The [deleteRanges] are ranges that should be deleted from the code.
+  ///
+  /// The [replace] will be normally used to replace part of the expression
+  /// with a new operator.
+  ///
+  /// The [parensRange] is related to [needsParens] and [bangBeforeParens]. The
+  /// `bang` is added only if [negated] is true. It was meant for adding the
+  /// parens when the `bang` or the new operator given by [replace] makes the
+  /// precedence of the expression different than the original one.
+  ///
+  /// The [parensRange2] is meant to be used when converting conditional
+  /// expressions and should be non-`null` if the second expression needs
+  /// parentheses considering the new operator added by the given [replace].
   Future<void> _addEdit(
-    ChangeBuilder builder,
-    _ParametersFixData parameters,
-  ) async {
-    var (
-      :parensRange,
-      :deleteRanges,
-      :negated,
-      :replace,
-      :needsParens,
-      :bangBeforeParens,
-    ) = parameters;
+    ChangeBuilder builder, {
+    required SourceRange parensRange,
+    required bool needsParens,
+    required List<SourceRange> deleteRanges,
+    required bool negated,
+    required bool bangBeforeParens,
+    (SourceRange, String)? replace,
+    SourceRange? parensRange2,
+  }) async {
     await builder.addDartFileEdit(file, (builder) {
       if (bangBeforeParens) {
         if (negated) {
           builder.addSimpleInsertion(parensRange.offset, TokenType.BANG.lexeme);
-          if (needsParens) {
-            builder.addSimpleInsertion(parensRange.offset, '(');
-            builder.addSimpleInsertion(parensRange.end, ')');
-          }
+        }
+        if (needsParens) {
+          builder.addSimpleInsertion(parensRange.offset, '(');
+          builder.addSimpleInsertion(parensRange.end, ')');
         }
       } else {
         if (needsParens) {
@@ -170,19 +170,24 @@ class ConvertToBooleanExpression extends ResolvedCorrectionProducer {
       if (replace != null) {
         builder.addSimpleReplacement(replace.$1, replace.$2);
       }
+      if (parensRange2 != null) {
+        builder.addSimpleInsertion(parensRange2.offset, '(');
+        builder.addSimpleInsertion(parensRange2.end, ')');
+      }
       for (var range in deleteRanges) {
         builder.addDeletion(range);
       }
     });
   }
 
-  _ParametersFixData _processBinaryExp(
+  Future<void> _processBinaryExp(
+    ChangeBuilder builder,
     BinaryExpression binaryExp,
     TokenType operator,
     BooleanLiteral current,
     Expression other, {
     required bool currentIsLeft,
-  }) {
+  }) async {
     List<SourceRange> deleteRanges;
     SourceRange parensRange;
     bool needsParens;
@@ -196,7 +201,7 @@ class ConvertToBooleanExpression extends ResolvedCorrectionProducer {
               : range.startStart(other, current),
         ];
         parensRange = range.node(current);
-        needsParens = current.needsParens;
+        needsParens = current.needsParens();
       default:
         deleteRanges = [
           currentIsLeft
@@ -204,14 +209,14 @@ class ConvertToBooleanExpression extends ResolvedCorrectionProducer {
               : range.endEnd(other, current),
         ];
         parensRange = range.node(other);
-        needsParens = other.needsParens;
+        needsParens = other.needsParens();
     }
-    return (
+    await _addEdit(
+      builder,
       negated: !isPositiveCase(binaryExp, current),
       parensRange: parensRange,
       deleteRanges: deleteRanges,
       needsParens: needsParens,
-      replace: null,
       bangBeforeParens: true,
     );
   }
@@ -238,5 +243,9 @@ extension on BooleanLiteral {
 }
 
 extension on Expression {
-  bool get needsParens => precedence <= Precedence.prefix;
+  bool needsParens([TokenType? tokenType]) =>
+      precedence <=
+      (tokenType != null
+          ? Precedence.forTokenType(tokenType)
+          : Precedence.prefix);
 }

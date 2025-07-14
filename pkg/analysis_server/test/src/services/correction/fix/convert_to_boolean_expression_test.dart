@@ -174,6 +174,58 @@ void f(bool value1, bool value2) {
 ''');
   }
 
+  Future<void> test_conditional_expressionCondition_else() async {
+    await resolveTestCode(r'''
+void f(int? value1, bool value2) {
+  print(value1 == null ? false : value2);
+}
+''');
+    await assertHasFix(r'''
+void f(int? value1, bool value2) {
+  print(!(value1 == null) && value2);
+}
+''');
+  }
+
+  Future<void> test_conditional_expressionCondition_then() async {
+    await resolveTestCode(r'''
+void f(int? value1, bool value2) {
+  print(value1 == null || value1 == 0 ? value2 : false);
+}
+''');
+    await assertHasFix(r'''
+void f(int? value1, bool value2) {
+  print((value1 == null || value1 == 0) && value2);
+}
+''');
+  }
+
+  Future<void> test_conditional_expressionElse() async {
+    await resolveTestCode(r'''
+void f(bool value1, bool? value2) {
+  print(value1 ? false : value2 ?? false);
+}
+''');
+    await assertHasFix(r'''
+void f(bool value1, bool? value2) {
+  print(!value1 && (value2 ?? false));
+}
+''');
+  }
+
+  Future<void> test_conditional_expressionThen() async {
+    await resolveTestCode(r'''
+void f(bool value1, bool? value2) {
+  print(value1 ? value2 ?? false : false);
+}
+''');
+    await assertHasFix(r'''
+void f(bool value1, bool? value2) {
+  print(value1 && (value2 ?? false));
+}
+''');
+  }
+
   Future<void> test_conditional_thenFalse() async {
     await resolveTestCode(r'''
 void f(bool value1, bool value2) {
