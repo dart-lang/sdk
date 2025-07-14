@@ -1451,7 +1451,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     }
     visitedElements.add(ancestor);
     if (includeThis) {
-      var offset = descendant.firstFragment.nameOffset2;
+      var offset = descendant.firstFragment.nameOffset;
       var length = descendant.name?.length;
       if (offset != null && length != null) {
         assembler.addElementRelation(

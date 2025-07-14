@@ -135,7 +135,7 @@ class CallHierarchyItem {
     element = _nonSynthetic(element);
     var fragment = element.firstFragment as FragmentImpl;
 
-    var nameOffset = fragment.nameOffset2;
+    var nameOffset = fragment.nameOffset;
     var nameEnd = fragment.nameEnd;
     if (nameOffset != null && nameEnd != null) {
       return SourceRange(nameOffset, nameEnd - nameOffset);

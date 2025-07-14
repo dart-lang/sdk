@@ -333,7 +333,7 @@ int test;
             (SearchMatch m) =>
                 m.kind == MatchKind.DECLARATION &&
                 m.element.name == name &&
-                m.element.firstFragment.nameOffset2 == nameOffset,
+                m.element.firstFragment.nameOffset == nameOffset,
           ),
         ),
       );

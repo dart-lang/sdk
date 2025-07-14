@@ -1038,7 +1038,7 @@ class _MockSdkElementsBuilder {
       var valueFragment = FormalParameterFragmentImpl(
         firstTokenOffset: null,
         name: null,
-        nameOffset2: null,
+        nameOffset: null,
         parameterKind: ParameterKind.REQUIRED,
       );
       var setterFragment =
@@ -1146,7 +1146,7 @@ class _MockSdkElementsBuilder {
     var fragment = FormalParameterFragmentImpl(
       firstTokenOffset: null,
       name: name,
-      nameOffset2: 0,
+      nameOffset: 0,
       parameterKind: ParameterKind.NAMED,
     );
     return FormalParameterElementImpl(fragment)..type = type;
@@ -1231,7 +1231,7 @@ class _MockSdkElementsBuilder {
     var fragment = FormalParameterFragmentImpl(
       firstTokenOffset: null,
       name: name,
-      nameOffset2: 0,
+      nameOffset: 0,
       parameterKind: ParameterKind.POSITIONAL,
     );
     return FormalParameterElementImpl(fragment)..type = type;
@@ -1241,7 +1241,7 @@ class _MockSdkElementsBuilder {
     var fragment = FormalParameterFragmentImpl(
       firstTokenOffset: null,
       name: name,
-      nameOffset2: 0,
+      nameOffset: 0,
       parameterKind: ParameterKind.REQUIRED,
     );
     return FormalParameterElementImpl(fragment)..type = type;

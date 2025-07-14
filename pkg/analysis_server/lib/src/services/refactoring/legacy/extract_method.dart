@@ -1045,7 +1045,7 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
 
   /// Checks if the given [element] is declared in [_selectionRange].
   bool _isDeclaredInSelection(Element element) {
-    return _selectionRange.contains(element.firstFragment.nameOffset2!);
+    return _selectionRange.contains(element.firstFragment.nameOffset!);
   }
 
   /// Checks if it is OK to extract the node with the given [SourceRange].

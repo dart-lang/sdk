@@ -187,7 +187,7 @@ class InformativeDataApplier {
     forCorrespondingPairs(elementList.notSynthetic, infoList, (element, info) {
       element.setCodeRange(info.codeOffset, info.codeLength);
       element.firstTokenOffset = info.firstTokenOffset;
-      element.nameOffset2 = info.nameOffset2;
+      element.nameOffset = info.nameOffset2;
       element.documentationComment = info.documentationComment;
       _applyToFormalParameters(element.parameters_unresolved, info.parameters);
 
@@ -208,7 +208,7 @@ class InformativeDataApplier {
   ) {
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.firstTokenOffset = info.firstTokenOffset;
-    element.nameOffset2 = info.nameOffset2;
+    element.nameOffset = info.nameOffset2;
     element.documentationComment = info.documentationComment;
     _applyToTypeParameters(
       element.typeParameters_unresolved,
@@ -239,7 +239,7 @@ class InformativeDataApplier {
   ) {
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.firstTokenOffset = info.firstTokenOffset;
-    element.nameOffset2 = info.nameOffset2;
+    element.nameOffset = info.nameOffset2;
     element.documentationComment = info.documentationComment;
     _applyToTypeParameters(
       element.typeParameters_unresolved,
@@ -284,7 +284,7 @@ class InformativeDataApplier {
       element.periodOffset = info.periodOffset;
       element.firstTokenOffset = info.firstTokenOffset;
       element.nameEnd = info.nameEnd;
-      element.nameOffset2 = info.nameOffset2;
+      element.nameOffset = info.nameOffset2;
       element.documentationComment = info.documentationComment;
 
       _applyToFormalParameters(element.parameters_unresolved, info.parameters);
@@ -306,7 +306,7 @@ class InformativeDataApplier {
   ) {
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.firstTokenOffset = info.firstTokenOffset;
-    element.nameOffset2 = info.nameOffset2;
+    element.nameOffset = info.nameOffset2;
     element.documentationComment = info.documentationComment;
 
     // TODO(scheglov): use it everywhere
@@ -340,7 +340,7 @@ class InformativeDataApplier {
   ) {
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.firstTokenOffset = info.firstTokenOffset;
-    element.nameOffset2 = info.nameOffset2;
+    element.nameOffset = info.nameOffset2;
     element.documentationComment = info.documentationComment;
     _applyToTypeParameters(
       element.typeParameters_unresolved,
@@ -365,7 +365,7 @@ class InformativeDataApplier {
   ) {
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.firstTokenOffset = info.firstTokenOffset;
-    element.nameOffset2 = info.nameOffset2;
+    element.nameOffset = info.nameOffset2;
     element.documentationComment = info.documentationComment;
     _applyToTypeParameters(
       element.typeParameters_unresolved,
@@ -375,7 +375,7 @@ class InformativeDataApplier {
     var representationField = element.fields.first;
     var infoRep = info.representation;
     representationField.firstTokenOffset = infoRep.firstTokenOffset;
-    representationField.nameOffset2 = infoRep.fieldNameOffset2;
+    representationField.nameOffset = infoRep.fieldNameOffset2;
     representationField.setCodeRange(infoRep.codeOffset, infoRep.codeLength);
 
     representationField.applyConstantOffsets = ApplyConstantOffsets(
@@ -392,13 +392,13 @@ class InformativeDataApplier {
       primaryConstructor.typeNameOffset = info.nameOffset2;
       primaryConstructor.periodOffset = infoRep.constructorPeriodOffset;
       primaryConstructor.firstTokenOffset = infoRep.firstTokenOffset;
-      primaryConstructor.nameOffset2 = infoRep.constructorNameOffset2;
+      primaryConstructor.nameOffset = infoRep.constructorNameOffset2;
       primaryConstructor.nameEnd = infoRep.constructorNameEnd;
 
       var primaryConstructorParameter =
           primaryConstructor.parameters_unresolved.first;
       primaryConstructorParameter.firstTokenOffset = infoRep.firstTokenOffset;
-      primaryConstructorParameter.nameOffset2 = infoRep.fieldNameOffset2;
+      primaryConstructorParameter.nameOffset = infoRep.fieldNameOffset2;
       primaryConstructorParameter.setCodeRange(
         infoRep.codeOffset,
         infoRep.codeLength,
@@ -430,7 +430,7 @@ class InformativeDataApplier {
     forCorrespondingPairs(elementList.notSynthetic, infoList, (element, info) {
       element.setCodeRange(info.codeOffset, info.codeLength);
       element.firstTokenOffset = info.firstTokenOffset;
-      element.nameOffset2 = info.nameOffset2;
+      element.nameOffset = info.nameOffset2;
       element.documentationComment = info.documentationComment;
 
       element.applyConstantOffsets = ApplyConstantOffsets(
@@ -451,7 +451,7 @@ class InformativeDataApplier {
     forCorrespondingPairs(parameters, infoList, (element, info) {
       element.setCodeRange(info.codeOffset, info.codeLength);
       element.firstTokenOffset = info.firstTokenOffset;
-      element.nameOffset2 = info.nameOffset2;
+      element.nameOffset = info.nameOffset2;
       _applyToTypeParameters(element.typeParameters, info.typeParameters);
       _applyToFormalParameters(element.parameters, info.parameters);
     });
@@ -463,7 +463,7 @@ class InformativeDataApplier {
   ) {
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.firstTokenOffset = info.firstTokenOffset;
-    element.nameOffset2 = info.nameOffset2;
+    element.nameOffset = info.nameOffset2;
     element.documentationComment = info.documentationComment;
     _applyToTypeParameters(
       element.typeParameters_unresolved,
@@ -486,7 +486,7 @@ class InformativeDataApplier {
   ) {
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.firstTokenOffset = info.firstTokenOffset;
-    element.nameOffset2 = info.nameOffset2;
+    element.nameOffset = info.nameOffset2;
     element.documentationComment = info.documentationComment;
     _applyToTypeParameters(
       element.typeParameters_unresolved,
@@ -506,7 +506,7 @@ class InformativeDataApplier {
   ) {
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.firstTokenOffset = info.firstTokenOffset;
-    element.nameOffset2 = info.nameOffset2;
+    element.nameOffset = info.nameOffset2;
     element.documentationComment = info.documentationComment;
     _applyToTypeParameters(
       element.typeParameters_unresolved,
@@ -525,7 +525,7 @@ class InformativeDataApplier {
     forCorrespondingPairs(imports, info.imports, (element, info) {
       element.importKeywordOffset = info.nameOffset;
       if (element.prefix2 case var prefixFragment?) {
-        prefixFragment.nameOffset2 = info.prefixOffset2;
+        prefixFragment.nameOffset = info.prefixOffset2;
         prefixFragment.offset = info.prefixOffset;
       }
       _applyToCombinators(element.combinators, info.combinators);
@@ -555,7 +555,7 @@ class InformativeDataApplier {
     forCorrespondingPairs(elementList, infoList, (element, info) {
       element.setCodeRange(info.codeOffset, info.codeLength);
       element.firstTokenOffset = info.firstTokenOffset;
-      element.nameOffset2 = info.nameOffset2;
+      element.nameOffset = info.nameOffset2;
       element.documentationComment = info.documentationComment;
       _applyToTypeParameters(
         element.typeParameters_unresolved,
@@ -580,7 +580,7 @@ class InformativeDataApplier {
   ) {
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.firstTokenOffset = info.firstTokenOffset;
-    element.nameOffset2 = info.nameOffset2;
+    element.nameOffset = info.nameOffset2;
     element.documentationComment = info.documentationComment;
 
     // TODO(scheglov): use it everywhere
@@ -607,7 +607,7 @@ class InformativeDataApplier {
   ) {
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.firstTokenOffset = info.firstTokenOffset;
-    element.nameOffset2 = info.nameOffset2;
+    element.nameOffset = info.nameOffset2;
     element.documentationComment = info.documentationComment;
 
     element.applyConstantOffsets = ApplyConstantOffsets(info.constantOffsets, (
@@ -626,7 +626,7 @@ class InformativeDataApplier {
     forCorrespondingPairs(elementList, infoList, (element, info) {
       element.setCodeRange(info.codeOffset, info.codeLength);
       element.firstTokenOffset = info.firstTokenOffset;
-      element.nameOffset2 = info.nameOffset2;
+      element.nameOffset = info.nameOffset2;
     });
   }
 
@@ -2074,7 +2074,7 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
     var identifier = node.name;
     if (fragment is FormalParameterFragmentImpl && identifier != null) {
       fragment.firstTokenOffset = identifier.offset;
-      fragment.nameOffset2 = identifier.offsetIfNotEmpty;
+      fragment.nameOffset = identifier.offsetIfNotEmpty;
     }
   }
 

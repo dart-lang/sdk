@@ -194,8 +194,8 @@ class _SignatureBuilder {
         buffer
           ..write('@')
           ..write(
-            element.firstFragment.nameOffset2! -
-                enclosingElt.firstFragment.nameOffset2!,
+            element.firstFragment.nameOffset! -
+                enclosingElt.firstFragment.nameOffset!,
           );
       }
     }

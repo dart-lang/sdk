@@ -56,7 +56,7 @@ class DiagnosticFactory {
     var originalFragment = originalElement.nonSynthetic.firstFragment;
     return Diagnostic.tmp(
       source: duplicateFragment.libraryFragment!.source,
-      offset: duplicateFragment.nameOffset2 ?? -1,
+      offset: duplicateFragment.nameOffset ?? -1,
       length: duplicateFragment.name!.length,
       diagnosticCode: code,
       arguments: arguments,
@@ -64,7 +64,7 @@ class DiagnosticFactory {
         DiagnosticMessageImpl(
           filePath: originalFragment.libraryFragment!.source.fullName,
           message: "The first definition of this name.",
-          offset: originalFragment.nameOffset2 ?? -1,
+          offset: originalFragment.nameOffset ?? -1,
           length: originalElement.nonSynthetic.name!.length,
           url: null,
         ),
@@ -345,7 +345,7 @@ class DiagnosticFactory {
           DiagnosticMessageImpl(
             filePath: superFragment.libraryFragment!.source.fullName,
             message: "The member being overridden.",
-            offset: superFragment.nameOffset2 ?? -1,
+            offset: superFragment.nameOffset ?? -1,
             length: superFragment.name!.length,
             url: null,
           ),
@@ -353,7 +353,7 @@ class DiagnosticFactory {
           DiagnosticMessageImpl(
             filePath: superFragment.libraryFragment!.source.fullName,
             message: "The setter being overridden.",
-            offset: superFragment.nameOffset2 ?? -1,
+            offset: superFragment.nameOffset ?? -1,
             length: superFragment.name!.length,
             url: null,
           ),
@@ -370,7 +370,7 @@ class DiagnosticFactory {
   }) {
     String name = nameToken.lexeme;
     List<DiagnosticMessage>? contextMessages;
-    int declarationOffset = element2.firstFragment.nameOffset2 ?? -1;
+    int declarationOffset = element2.firstFragment.nameOffset ?? -1;
     if (declarationOffset >= 0) {
       contextMessages = [
         DiagnosticMessageImpl(

@@ -636,7 +636,7 @@ class _ParametersCollector extends RecursiveAstVisitor<void> {
         );
       }
     } else if (element is LocalVariableElement) {
-      if (!expressionRange.contains(element.firstFragment.nameOffset2!)) {
+      if (!expressionRange.contains(element.firstFragment.nameOffset!)) {
         if (node.inSetterContext()) {
           status.addError("Write to '$elementName' cannot be extracted.");
         } else {

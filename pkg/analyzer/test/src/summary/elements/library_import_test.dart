@@ -491,7 +491,7 @@ library
 
     var prefixElement =
         library.definingCompilationUnit.libraryImports[0].prefix2!;
-    expect(prefixElement.nameOffset2, 19);
+    expect(prefixElement.nameOffset, 19);
 
     checkElementText(library, r'''
 library

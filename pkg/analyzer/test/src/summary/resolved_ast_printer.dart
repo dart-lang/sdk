@@ -1778,7 +1778,7 @@ Expected parent: (${parent.runtimeType}) $parent
       _sink.writeIf(fragment.isPublic, 'isPublic ');
       _sink.writeIf(fragment.isStatic, 'isStatic ');
       _sink.writeIf(fragment.isSynthetic, 'isSynthetic ');
-      _sink.write('${fragment.name ?? ''}@${fragment.nameOffset2}');
+      _sink.write('${fragment.name ?? ''}@${fragment.nameOffset}');
     });
 
     _sink.withIndent(() {

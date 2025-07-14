@@ -3015,7 +3015,7 @@ class _InstanceCreationEvaluator {
                 token: StringToken(
                   TokenType.STRING,
                   parameter.name ?? '',
-                  parameter.firstFragment.nameOffset2 ?? -1,
+                  parameter.firstFragment.nameOffset ?? -1,
                 ),
               )
               ..element = parameter
@@ -3030,7 +3030,7 @@ class _InstanceCreationEvaluator {
                   token: StringToken(
                     TokenType.STRING,
                     parameter.name ?? '',
-                    parameter.firstFragment.nameOffset2 ?? -1,
+                    parameter.firstFragment.nameOffset ?? -1,
                   ),
                 )..element = parameter,
                 colon: StringToken(TokenType.COLON, ':', -1),

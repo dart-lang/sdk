@@ -343,7 +343,7 @@ class ElementBuilder {
         // TODO(scheglov): replace with null
         name: '_${fieldFragment.name ?? ''}',
         firstTokenOffset: null,
-        nameOffset2: null,
+        nameOffset: null,
         parameterKind: ParameterKind.REQUIRED,
       );
       valueFragment.isExplicitlyCovariant = fieldFragment.isCovariant;
@@ -698,7 +698,7 @@ class ElementBuilder {
         // TODO(scheglov): replace with null
         name: '_${variableFragment.name ?? ''}',
         firstTokenOffset: null,
-        nameOffset2: null,
+        nameOffset: null,
         parameterKind: ParameterKind.REQUIRED,
       );
       setterFragment.parameters = [valueFragment];
@@ -838,7 +838,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       name: fragmentName,
       firstTokenOffset: node.offset,
     );
-    fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
+    fragment.nameOffset = _getFragmentNameOffset(nameToken);
     fragment.isAbstract = node.abstractKeyword != null;
     fragment.isAugmentation = node.augmentKeyword != null;
     fragment.isBase = node.baseKeyword != null;
@@ -883,7 +883,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       name: fragmentName,
       firstTokenOffset: node.offset,
     );
-    fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
+    fragment.nameOffset = _getFragmentNameOffset(nameToken);
     fragment.isAbstract = node.abstractKeyword != null;
     fragment.isBase = node.baseKeyword != null;
     fragment.isFinal = node.finalKeyword != null;
@@ -950,7 +950,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     fragment.typeNameOffset = node.returnType.offset;
     fragment.periodOffset = node.period?.offset;
     fragment.nameEnd = nameNode.end;
-    fragment.nameOffset2 = fragmentNameOffset;
+    fragment.nameOffset = fragmentNameOffset;
     _setCodeRange(fragment, node);
     _setDocumentation(fragment, node);
 
@@ -987,7 +987,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       name: fragmentName,
       firstTokenOffset: node.offset,
     );
-    fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
+    fragment.nameOffset = _getFragmentNameOffset(nameToken);
     fragment.isAugmentation = node.augmentKeyword != null;
     fragment.metadata = _buildMetadata(node.metadata);
     _setCodeRange(fragment, node);
@@ -1022,7 +1022,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
             ..isConst = true
             ..isEnumConstant = true
             ..isStatic = true;
-      field.nameOffset2 = _getFragmentNameOffset(nameToken);
+      field.nameOffset = _getFragmentNameOffset(nameToken);
       _setCodeRange(field, constant);
       _setDocumentation(field, constant);
       field.metadata = _buildMetadata(constant.metadata);
@@ -1186,7 +1186,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       name: fragmentName,
       firstTokenOffset: node.offset,
     );
-    fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
+    fragment.nameOffset = _getFragmentNameOffset(nameToken);
     fragment.isAugmentation = node.augmentKeyword != null;
     fragment.metadata = _buildMetadata(node.metadata);
     _setCodeRange(fragment, node);
@@ -1226,7 +1226,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       name: fragmentName,
       firstTokenOffset: node.offset,
     );
-    fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
+    fragment.nameOffset = _getFragmentNameOffset(nameToken);
     fragment.isAugmentation = node.augmentKeyword != null;
     fragment.metadata = _buildMetadata(node.metadata);
     _setCodeRange(fragment, node);
@@ -1266,7 +1266,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
         name: _getFragmentName(nameToken),
         firstTokenOffset: variable.offset,
       );
-      fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
+      fragment.nameOffset = _getFragmentNameOffset(nameToken);
       fragment.hasInitializer = variable.initializer != null;
       fragment.isAbstract = node.abstractKeyword != null;
       fragment.isAugmentation = node.augmentKeyword != null;
@@ -1312,7 +1312,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     var fragment = FieldFormalParameterFragmentImpl(
       firstTokenOffset: node.offset,
       name: name2,
-      nameOffset2: nameOffset2,
+      nameOffset: nameOffset2,
       parameterKind: node.kind,
     );
     _linker.elementNodes[fragment] = node;
@@ -1322,7 +1322,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       fragment.constantInitializer = parent.defaultValue;
     }
 
-    fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
+    fragment.nameOffset = _getFragmentNameOffset(nameToken);
     fragment.hasImplicitType = node.type == null && node.parameters == null;
     fragment.metadata = _buildMetadata(node.metadata);
     _setCodeRange(fragment, node);
@@ -1371,7 +1371,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
         name: name2,
         firstTokenOffset: node.offset,
       );
-      getterFragment.nameOffset2 = _getFragmentNameOffset(nameToken);
+      getterFragment.nameOffset = _getFragmentNameOffset(nameToken);
       getterFragment.isAugmentation = node.augmentKeyword != null;
       getterFragment.isStatic = true;
 
@@ -1384,7 +1384,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
         name: name2,
         firstTokenOffset: node.offset,
       );
-      setterFragment.nameOffset2 = _getFragmentNameOffset(nameToken);
+      setterFragment.nameOffset = _getFragmentNameOffset(nameToken);
       setterFragment.isAugmentation = node.augmentKeyword != null;
       setterFragment.isStatic = true;
 
@@ -1397,7 +1397,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
         name: name2,
         firstTokenOffset: node.offset,
       );
-      fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
+      fragment.nameOffset = _getFragmentNameOffset(nameToken);
       fragment.isAugmentation = node.augmentKeyword != null;
       fragment.isStatic = true;
       executableFragment = fragment;
@@ -1437,7 +1437,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       name: name2,
       firstTokenOffset: node.offset,
     );
-    fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
+    fragment.nameOffset = _getFragmentNameOffset(nameToken);
     fragment.isFunctionTypeAliasBased = true;
     fragment.metadata = _buildMetadata(node.metadata);
     _setCodeRange(fragment, node);
@@ -1478,7 +1478,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     var fragment = FormalParameterFragmentImpl(
       firstTokenOffset: node.offset,
       name: name2,
-      nameOffset2: nameOffset2,
+      nameOffset: nameOffset2,
       parameterKind: node.kind,
     );
     _linker.elementNodes[fragment] = node;
@@ -1488,7 +1488,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       fragment.constantInitializer = parent.defaultValue;
     }
 
-    fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
+    fragment.nameOffset = _getFragmentNameOffset(nameToken);
     fragment.isExplicitlyCovariant = node.covariantKeyword != null;
     fragment.isFinal = node.isFinal;
     fragment.metadata = _buildMetadata(node.metadata);
@@ -1553,7 +1553,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       name: name2,
       firstTokenOffset: node.offset,
     );
-    fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
+    fragment.nameOffset = _getFragmentNameOffset(nameToken);
     fragment.isAugmentation = node.augmentKeyword != null;
     fragment.metadata = _buildMetadata(node.metadata);
     _setCodeRange(fragment, node);
@@ -1609,7 +1609,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
         name: _getFragmentName(nameToken),
         firstTokenOffset: node.offset,
       );
-      fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
+      fragment.nameOffset = _getFragmentNameOffset(nameToken);
       fragment.isAbstract = node.isAbstract;
       fragment.isAugmentation = node.augmentKeyword != null;
       fragment.isStatic = node.isStatic;
@@ -1633,7 +1633,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
         name: _getFragmentName(nameToken),
         firstTokenOffset: node.offset,
       );
-      fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
+      fragment.nameOffset = _getFragmentNameOffset(nameToken);
       fragment.isAbstract = node.isAbstract;
       fragment.isAugmentation = node.augmentKeyword != null;
       fragment.isStatic = node.isStatic;
@@ -1659,7 +1659,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
         name: _getFragmentName(nameToken),
         firstTokenOffset: node.offset,
       );
-      fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
+      fragment.nameOffset = _getFragmentNameOffset(nameToken);
       fragment.isAbstract = node.isAbstract;
       fragment.isAugmentation = node.augmentKeyword != null;
       fragment.isStatic = node.isStatic;
@@ -1703,7 +1703,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       name: fragmentName,
       firstTokenOffset: node.offset,
     );
-    fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
+    fragment.nameOffset = _getFragmentNameOffset(nameToken);
     fragment.isAugmentation = node.augmentKeyword != null;
     fragment.isBase = node.baseKeyword != null;
     fragment.metadata = _buildMetadata(node.metadata);
@@ -1789,7 +1789,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     var fragment = FormalParameterFragmentImpl(
       firstTokenOffset: node.offset,
       name: name2,
-      nameOffset2: nameOffset2,
+      nameOffset: nameOffset2,
       parameterKind: node.kind,
     );
     _linker.elementNodes[fragment] = node;
@@ -1801,7 +1801,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       }
     }
 
-    fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
+    fragment.nameOffset = _getFragmentNameOffset(nameToken);
     fragment.hasImplicitType = node.type == null;
     fragment.isExplicitlyCovariant = node.covariantKeyword != null;
     fragment.isFinal = node.isFinal;
@@ -1822,7 +1822,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     var fragment = SuperFormalParameterFragmentImpl(
       firstTokenOffset: node.offset,
       name: name2,
-      nameOffset2: nameOffset2,
+      nameOffset: nameOffset2,
       parameterKind: node.kind,
     );
     _linker.elementNodes[fragment] = node;
@@ -1832,7 +1832,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       fragment.constantInitializer = parent.defaultValue;
     }
 
-    fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
+    fragment.nameOffset = _getFragmentNameOffset(nameToken);
     fragment.hasImplicitType = node.type == null && node.parameters == null;
     fragment.metadata = _buildMetadata(node.metadata);
     _setCodeRange(fragment, node);
@@ -1875,7 +1875,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
         firstTokenOffset: variable.offset,
       );
 
-      fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
+      fragment.nameOffset = _getFragmentNameOffset(nameToken);
       fragment.hasInitializer = variable.initializer != null;
       fragment.isAugmentation = node.augmentKeyword != null;
       fragment.isConst = node.variables.isConst;
@@ -1919,7 +1919,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       name: _getFragmentName(nameToken),
       firstTokenOffset: node.offset,
     );
-    fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
+    fragment.nameOffset = _getFragmentNameOffset(nameToken);
     fragment.metadata = _buildMetadata(node.metadata);
     _setCodeRange(fragment, node);
 
@@ -1984,7 +1984,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       name: _getFragmentName(fieldNameToken),
       firstTokenOffset: representation.offset,
     );
-    fieldFragment.nameOffset2 = _getFragmentNameOffset(fieldNameToken);
+    fieldFragment.nameOffset = _getFragmentNameOffset(fieldNameToken);
     fieldFragment.isFinal = true;
     fieldFragment.metadata = _buildMetadata(representation.fieldMetadata);
 
@@ -2006,12 +2006,12 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
         FieldFormalParameterFragmentImpl(
             firstTokenOffset: representation.offset,
             name: _getFragmentName(fieldNameToken),
-            nameOffset2: nameOffset2,
+            nameOffset: nameOffset2,
             parameterKind: ParameterKind.REQUIRED,
           )
           ..field = fieldFragment
           ..hasImplicitType = true;
-    formalParameterElement.nameOffset2 = _getFragmentNameOffset(fieldNameToken);
+    formalParameterElement.nameOffset = _getFragmentNameOffset(fieldNameToken);
     formalParameterElement.setCodeRange(
       fieldCodeRangeOffset,
       fieldCodeRangeLength,
@@ -2049,8 +2049,8 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
             ..nameEnd = nameEnd
             ..parameters = [formalParameterElement];
       constructorFragment.typeName = extensionFragment.name;
-      constructorFragment.typeNameOffset = extensionFragment.nameOffset2;
-      constructorFragment.nameOffset2 = constructorFragmentOffset;
+      constructorFragment.typeNameOffset = extensionFragment.nameOffset;
+      constructorFragment.nameOffset = constructorFragmentOffset;
       _setCodeRange(constructorFragment, representation);
 
       representation.constructorFragment = constructorFragment;

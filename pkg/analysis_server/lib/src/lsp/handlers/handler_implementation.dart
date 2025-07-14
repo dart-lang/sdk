@@ -106,7 +106,7 @@ class ImplementationHandler
                   return null;
                 }
 
-                var nameOffset = firstFragment.nameOffset2;
+                var nameOffset = firstFragment.nameOffset;
                 var name = firstFragment.name;
                 if (nameOffset == null || name == null) {
                   return null;

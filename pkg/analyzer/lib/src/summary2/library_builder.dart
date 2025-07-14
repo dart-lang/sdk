@@ -621,7 +621,7 @@ class LibraryBuilder {
       enclosingFragment: libraryFragment,
       name: unlinkedName?.name,
       firstTokenOffset: null,
-      nameOffset2: unlinkedName?.nameOffset,
+      nameOffset: unlinkedName?.nameOffset,
       isDeferred: isDeferred,
     )..offset = offset;
 

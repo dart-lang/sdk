@@ -525,7 +525,7 @@ mixin ElementsTypesMixin {
     var fragment = FormalParameterFragmentImpl(
       firstTokenOffset: null,
       name: name,
-      nameOffset2: 0,
+      nameOffset: 0,
       parameterKind: ParameterKind.NAMED,
     );
     fragment.isExplicitlyCovariant = isCovariant;
@@ -540,7 +540,7 @@ mixin ElementsTypesMixin {
     var fragment = FormalParameterFragmentImpl(
       firstTokenOffset: null,
       name: name,
-      nameOffset2: 0,
+      nameOffset: 0,
       parameterKind: ParameterKind.NAMED_REQUIRED,
     );
     fragment.isExplicitlyCovariant = isCovariant;
@@ -555,7 +555,7 @@ mixin ElementsTypesMixin {
     var fragment = FormalParameterFragmentImpl(
       firstTokenOffset: null,
       name: name,
-      nameOffset2: 0,
+      nameOffset: 0,
       parameterKind: ParameterKind.POSITIONAL,
     );
     fragment.isExplicitlyCovariant = isCovariant;
@@ -644,7 +644,7 @@ mixin ElementsTypesMixin {
     var fragment = FormalParameterFragmentImpl(
       firstTokenOffset: null,
       name: name,
-      nameOffset2: 0,
+      nameOffset: 0,
       parameterKind: ParameterKind.REQUIRED,
     );
     fragment.isExplicitlyCovariant = isCovariant;

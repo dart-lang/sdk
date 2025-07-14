@@ -78,7 +78,7 @@ List<DiagnosticMessage> convertTypeNames(List<Object?>? arguments) {
             filePath: sourcePath,
             length: element.name?.length ?? 0,
             message: '$name is defined in $sourcePath',
-            offset: element.firstFragment.nameOffset2 ?? -1,
+            offset: element.firstFragment.nameOffset ?? -1,
             url: null,
           ),
         );

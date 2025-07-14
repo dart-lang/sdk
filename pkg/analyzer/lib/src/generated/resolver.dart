@@ -5948,7 +5948,7 @@ class _WhyNotPromotedVisitor
         DiagnosticMessageImpl(
           filePath: property.firstFragment.libraryFragment.source.fullName,
           message: message,
-          offset: property.nonSynthetic.firstFragment.nameOffset2!,
+          offset: property.nonSynthetic.firstFragment.nameOffset!,
           length: property.name!.length,
           url: reason.documentationLink.url,
         ),
@@ -5994,7 +5994,7 @@ class _WhyNotPromotedVisitor
           DiagnosticMessageImpl(
             filePath: source!.fullName,
             message: message,
-            offset: nonSyntheticFragment.nameOffset2!,
+            offset: nonSyntheticFragment.nameOffset!,
             length: nonSyntheticElement.name!.length,
             url: link.url,
           ),
@@ -6086,7 +6086,7 @@ class _WhyNotPromotedVisitor
           "'$propertyName' couldn't be promoted "
           "because field promotion is only available in Dart 3.2 and "
           "above.",
-      offset: property.nonSynthetic.firstFragment.nameOffset2!,
+      offset: property.nonSynthetic.firstFragment.nameOffset!,
       length: property.name!.length,
       url: NonPromotionDocumentationLink.fieldPromotionUnavailable.url,
     );

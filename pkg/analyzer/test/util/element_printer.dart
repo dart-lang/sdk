@@ -91,20 +91,20 @@ class ElementPrinter {
       case MethodElementImpl element:
         writelnReference(element.reference);
       case LabelFragmentImpl():
-        _sink.writeln('${element.name}@${element.firstFragment.nameOffset2}');
+        _sink.writeln('${element.name}@${element.firstFragment.nameOffset}');
       case LabelElementImpl():
         // TODO(scheglov): nameOffset2 can be `null`
-        _sink.writeln('${element.name}@${element.firstFragment.nameOffset2}');
+        _sink.writeln('${element.name}@${element.firstFragment.nameOffset}');
       case LibraryElementImpl e:
         writelnReference(e.reference!);
       case LocalFunctionElementImpl():
         // TODO(scheglov): nameOffset2 can be `null`
-        _sink.writeln('${element.name}@${element.firstFragment.nameOffset2}');
+        _sink.writeln('${element.name}@${element.firstFragment.nameOffset}');
       case LocalVariableFragmentImpl():
-        _sink.writeln('${element.name}@${element.firstFragment.nameOffset2}');
+        _sink.writeln('${element.name}@${element.firstFragment.nameOffset}');
       case LocalVariableElementImpl():
         // TODO(scheglov): nameOffset2 can be `null`
-        _sink.writeln('${element.name}@${element.firstFragment.nameOffset2}');
+        _sink.writeln('${element.name}@${element.firstFragment.nameOffset}');
       case NeverElementImpl():
         _sink.writeln('Never');
       case ClassElementImpl element:
@@ -272,7 +272,7 @@ class ElementPrinter {
         var enclosingStr = _elementToReferenceString(enclosingElement!);
         return '$enclosingStr::@formalParameter::$nameStr';
       } else {
-        return '$nameStr@${element.firstFragment.nameOffset2}';
+        return '$nameStr@${element.firstFragment.nameOffset}';
       }
     }
 
@@ -289,7 +289,7 @@ class ElementPrinter {
         ']',
       ].join();
     } else {
-      return '${element.name ?? ''}@${element.firstFragment.nameOffset2}';
+      return '${element.name ?? ''}@${element.firstFragment.nameOffset}';
     }
   }
 
@@ -304,7 +304,7 @@ class ElementPrinter {
       if (uriStr == 'package:test/test.dart') {
         uriStr = '<testLibraryFragment>';
       }
-      return '$uriStr ${fragment.name}@${fragment.nameOffset2}';
+      return '$uriStr ${fragment.name}@${fragment.nameOffset}';
     }
 
     var enclosingFragment = fragment.enclosingFragment;
@@ -327,7 +327,7 @@ class ElementPrinter {
         ']',
       ].join();
     } else {
-      return '${fragment.name}@${fragment.nameOffset2}';
+      return '${fragment.name}@${fragment.nameOffset}';
     }
   }
 

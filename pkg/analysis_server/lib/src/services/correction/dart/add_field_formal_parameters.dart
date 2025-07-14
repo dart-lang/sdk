@@ -44,7 +44,7 @@ class AddFieldFormalParameters extends ResolvedCorrectionProducer {
     var fields = ErrorVerifier.computeNotInitializedFields(constructor);
     fields.retainWhere((FieldElement field) => field.isFinal);
     fields.sort(
-      (a, b) => a.firstFragment.nameOffset2! - b.firstFragment.nameOffset2!,
+      (a, b) => a.firstFragment.nameOffset! - b.firstFragment.nameOffset!,
     );
 
     // Specialize for Flutter widgets.

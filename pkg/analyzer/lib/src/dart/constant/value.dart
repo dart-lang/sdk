@@ -2513,7 +2513,7 @@ class InvalidConstant implements Constant {
     bool isRuntimeException = false,
   }) : this._(
          length: element.name!.length,
-         offset: element.firstFragment.nameOffset2 ?? -1,
+         offset: element.firstFragment.nameOffset ?? -1,
          diagnosticCode: diagnosticCode,
          arguments: arguments,
          contextMessages: contextMessages,

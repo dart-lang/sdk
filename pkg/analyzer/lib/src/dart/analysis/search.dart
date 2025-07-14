@@ -907,7 +907,7 @@ class Search {
     }
     var unit = unitResult.unit;
 
-    var node = unit.nodeCovering(offset: element.firstFragment.nameOffset2!);
+    var node = unit.nodeCovering(offset: element.firstFragment.nameOffset!);
     if (node == null) {
       return const <SearchResult>[];
     }
@@ -1347,7 +1347,7 @@ class _FindLibraryDeclarations {
 
     var filePath = libraryFragment.source.fullName;
 
-    var locationOffset = firstFragment.nameOffset2;
+    var locationOffset = firstFragment.nameOffset;
     if (locationOffset == null) {
       if (firstFragment is ConstructorFragment) {
         locationOffset = firstFragment.typeNameOffset;

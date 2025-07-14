@@ -125,7 +125,7 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
       if (getKeyword != null) {
         var getRange = range.startOffsetEndOffset(
           getKeyword.offset,
-          fragment.nameOffset2!,
+          fragment.nameOffset!,
         );
         var edit = newSourceEdit_range(getRange, '');
         doSourceChange_addFragmentEdit(change, fragment, edit);

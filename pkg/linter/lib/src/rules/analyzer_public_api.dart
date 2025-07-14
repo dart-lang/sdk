@@ -212,7 +212,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (name != null && name.endsWith('Impl')) {
       // Nothing in the analyzer public API may have a name ending in `Impl`.
       rule.reportAtOffset(
-        fragment.nameOffset2!,
+        fragment.nameOffset!,
         name.length,
         diagnosticCode: AnalyzerPublicApi.implInPublicApi,
       );
@@ -272,13 +272,13 @@ class _Visitor extends SimpleAstVisitor<void> {
     int offset;
     int length;
     while (true) {
-      if (fragment.nameOffset2 != null) {
-        offset = fragment.nameOffset2!;
+      if (fragment.nameOffset != null) {
+        offset = fragment.nameOffset!;
         length = fragment.name!.length;
         break;
       } else if (fragment case PropertyAccessorFragment()
-          when fragment.element.variable!.firstFragment.nameOffset2 != null) {
-        offset = fragment.element.variable!.firstFragment.nameOffset2!;
+          when fragment.element.variable!.firstFragment.nameOffset != null) {
+        offset = fragment.element.variable!.firstFragment.nameOffset!;
         length = fragment.element.variable!.name!.length;
         break;
       } else if (fragment is ConstructorFragment &&
