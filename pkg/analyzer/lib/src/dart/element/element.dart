@@ -553,8 +553,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
 }
 
 /// An [InterfaceFragmentImpl] which is a class.
-class ClassFragmentImpl extends ClassOrMixinFragmentImpl
-    implements ClassFragment {
+class ClassFragmentImpl extends InterfaceFragmentImpl implements ClassFragment {
   @override
   late final ClassElementImpl element;
 
@@ -582,9 +581,12 @@ class ClassFragmentImpl extends ClassOrMixinFragmentImpl
     setModifier(Modifier.ABSTRACT, isAbstract);
   }
 
-  @override
   bool get isBase {
     return hasModifier(Modifier.BASE);
+  }
+
+  set isBase(bool isBase) {
+    setModifier(Modifier.BASE, isBase);
   }
 
   bool get isConstructable => !isSealed && !isAbstract;
@@ -671,23 +673,6 @@ class ClassFragmentImpl extends ClassOrMixinFragmentImpl
     fragment.element = element;
     fragment.previousFragment = this;
     nextFragment = fragment;
-  }
-}
-
-abstract class ClassOrMixinFragmentImpl extends InterfaceFragmentImpl {
-  /// Initialize a newly created class element to have the given [name] at the
-  /// given [offset] in the file that contains the declaration of this element.
-  ClassOrMixinFragmentImpl({
-    required super.name,
-    required super.firstTokenOffset,
-  });
-
-  bool get isBase {
-    return hasModifier(Modifier.BASE);
-  }
-
-  set isBase(bool isBase) {
-    setModifier(Modifier.BASE, isBase);
   }
 }
 
@@ -7746,8 +7731,7 @@ class MixinElementImpl extends InterfaceElementImpl implements MixinElement {
 }
 
 /// A [ClassFragmentImpl] representing a mixin declaration.
-class MixinFragmentImpl extends ClassOrMixinFragmentImpl
-    implements MixinFragment {
+class MixinFragmentImpl extends InterfaceFragmentImpl implements MixinFragment {
   @override
   late final MixinElementImpl element;
 
@@ -7762,9 +7746,12 @@ class MixinFragmentImpl extends ClassOrMixinFragmentImpl
   /// given [offset] in the file that contains the declaration of this element.
   MixinFragmentImpl({required super.name, required super.firstTokenOffset});
 
-  @override
   bool get isBase {
     return hasModifier(Modifier.BASE);
+  }
+
+  set isBase(bool isBase) {
+    setModifier(Modifier.BASE, isBase);
   }
 
   @override

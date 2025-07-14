@@ -791,20 +791,31 @@ class _CycleException implements Exception {}
 
 extension on InterfaceFragmentImpl {
   bool get isBase {
-    var self = this;
-    if (self is ClassOrMixinFragmentImpl) return self.isBase;
-    return false;
+    switch (this) {
+      case ClassFragmentImpl self:
+        return self.isBase;
+      case MixinFragmentImpl self:
+        return self.isBase;
+      default:
+        return false;
+    }
   }
 
   bool get isFinal {
-    var self = this;
-    if (self is ClassFragmentImpl) return self.isFinal;
-    return false;
+    switch (this) {
+      case ClassFragmentImpl self:
+        return self.isFinal;
+      default:
+        return false;
+    }
   }
 
   bool get isInterface {
-    var self = this;
-    if (self is ClassFragmentImpl) return self.isInterface;
-    return false;
+    switch (this) {
+      case ClassFragmentImpl self:
+        return self.isInterface;
+      default:
+        return false;
+    }
   }
 }
