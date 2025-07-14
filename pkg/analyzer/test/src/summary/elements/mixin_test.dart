@@ -83,10 +83,8 @@ library
           getters
             #F15 synthetic f
               element: <testLibrary>::@mixin::M::@getter::f
-              returnType: T
             #F16 g @112
               element: <testLibrary>::@mixin::M::@getter::g
-              returnType: U
           setters
             #F17 synthetic f
               element: <testLibrary>::@mixin::M::@setter::f
@@ -253,7 +251,6 @@ library
           getters
             #F3 synthetic x
               element: <testLibrary>::@mixin::M::@getter::x
-              returnType: int
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
@@ -310,7 +307,6 @@ library
           getters
             #F3 foo @25
               element: <testLibrary>::@mixin::M::@getter::foo
-              returnType: int
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
@@ -355,7 +351,6 @@ library
           getters
             #F3 foo @25
               element: <testLibrary>::@mixin::M::@getter::foo
-              returnType: int
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
@@ -400,7 +395,6 @@ library
           getters
             #F3 foo @25
               element: <testLibrary>::@mixin::M::@getter::foo
-              returnType: int
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
@@ -1212,7 +1206,6 @@ library
           getters
             #F5 synthetic it
               element: <testLibrary>::@extensionType::B::@getter::it
-              returnType: int
       mixins
         #F6 mixin M @56
           element: <testLibrary>::@mixin::M
@@ -1572,7 +1565,6 @@ library
           getters
             #F5 synthetic it
               element: <testLibrary>::@extensionType::B::@getter::it
-              returnType: int
       mixins
         #F6 mixin M @56
           element: <testLibrary>::@mixin::M

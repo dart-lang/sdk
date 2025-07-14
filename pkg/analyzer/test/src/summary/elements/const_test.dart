@@ -54,10 +54,8 @@ library
       getters
         #F3 synthetic a
           element: <testLibrary>::@getter::a
-          returnType: num
         #F4 synthetic b
           element: <testLibrary>::@getter::b
-          returnType: int
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -132,10 +130,8 @@ library
       getters
         #F3 synthetic a
           element: <testLibrary>::@getter::a
-          returnType: int
         #F4 synthetic b
           element: <testLibrary>::@getter::b
-          returnType: int
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -208,7 +204,6 @@ library
       getters
         #F2 synthetic a
           element: <testLibrary>::@getter::a
-          returnType: int
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -287,13 +282,10 @@ library
           getters
             #F6 synthetic f1
               element: <testLibrary>::@class::C::@getter::f1
-              returnType: int
             #F7 synthetic f2
               element: <testLibrary>::@class::C::@getter::f2
-              returnType: int
             #F8 synthetic f3
               element: <testLibrary>::@class::C::@getter::f3
-              returnType: int
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -390,7 +382,6 @@ library
           getters
             #F8 synthetic t
               element: <testLibrary>::@class::C::@getter::t
-              returnType: T
       topLevelVariables
         #F9 hasInitializer x @85
           element: <testLibrary>::@topLevelVariable::x
@@ -444,10 +435,8 @@ library
       getters
         #F11 synthetic x
           element: <testLibrary>::@getter::x
-          returnType: Object
         #F12 synthetic y
           element: <testLibrary>::@getter::y
-          returnType: Object
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -565,7 +554,6 @@ library
       getters
         #F4 synthetic v
           element: <testLibrary>::@getter::v
-          returnType: A Function()
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -633,7 +621,6 @@ library
       getters
         #F4 synthetic a
           element: <testLibrary>::@getter::a
-          returnType: A
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -700,7 +687,6 @@ library
       getters
         #F4 synthetic a
           element: <testLibrary>::@getter::a
-          returnType: A
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -770,7 +756,6 @@ library
       getters
         #F5 synthetic a
           element: <testLibrary>::@getter::a
-          returnType: A
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -843,7 +828,6 @@ library
           getters
             #F4 synthetic a
               element: <testLibrary>::@class::A::@getter::a
-              returnType: A
       topLevelVariables
         #F5 hasInitializer a @60
           element: <testLibrary>::@topLevelVariable::a
@@ -859,7 +843,6 @@ library
       getters
         #F6 synthetic a
           element: <testLibrary>::@getter::a
-          returnType: A
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -932,7 +915,6 @@ library
           getters
             #F4 synthetic f
               element: <testLibrary>::@class::C::@getter::f
-              returnType: int
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -986,7 +968,6 @@ library
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
-          returnType: void Function(int)
       functions
         #F3 f @5
           element: <testLibrary>::@function::f
@@ -1060,7 +1041,6 @@ library
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
-          returnType: void Function(int)
       functions
         #F3 f @5
           element: <testLibrary>::@function::f
@@ -1151,13 +1131,10 @@ library
       getters
         #F4 synthetic a
           element: <testLibrary>::@getter::a
-          returnType: List<int>
         #F5 synthetic b
           element: <testLibrary>::@getter::b
-          returnType: int
         #F6 synthetic c
           element: <testLibrary>::@getter::c
-          returnType: int
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -1304,7 +1281,6 @@ library
       getters
         #F11 synthetic values
           element: <testLibrary>::@getter::values
-          returnType: List<P<dynamic>>
   classes
     class P
       reference: <testLibrary>::@class::P
@@ -1407,7 +1383,6 @@ library
           getters
             #F4 synthetic f
               element: <testLibrary>::@class::C::@getter::f
-              returnType: int
       functions
         #F5 foo @46
           element: <testLibrary>::@function::foo
@@ -1468,7 +1443,6 @@ library
           getters
             #F4 synthetic f
               element: <testLibrary>::@class::C::@getter::f
-              returnType: int
       functions
         #F5 foo @39
           element: <testLibrary>::@function::foo
@@ -1521,7 +1495,6 @@ library
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
-          returnType: int Function()
   topLevelVariables
     const hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
@@ -1652,7 +1625,6 @@ library
           getters
             #F4 synthetic foo
               element: <testLibrary>::@class::A::@getter::foo
-              returnType: Object?
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -1708,7 +1680,6 @@ library
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
-          returnType: InvalidType
   topLevelVariables
     const hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
@@ -1916,7 +1887,6 @@ library
       getters
         #F2 synthetic a
           element: <testLibrary>::@getter::a
-          returnType: int
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -1956,7 +1926,6 @@ library
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
-          returnType: (int,)
   topLevelVariables
     const hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
@@ -2011,7 +1980,6 @@ library
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
-          returnType: int
       functions
         #F3 foo @25
           element: <testLibrary>::@function::foo
@@ -2059,7 +2027,6 @@ library
       getters
         #F2 synthetic a
           element: <testLibrary>::@getter::a
-          returnType: int
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -2114,10 +2081,8 @@ library
       getters
         #F3 synthetic a
           element: <testLibrary>::@getter::a
-          returnType: int
         #F4 synthetic b
           element: <testLibrary>::@getter::b
-          returnType: bool
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -2227,7 +2192,6 @@ library
       getters
         #F8 synthetic V
           element: <testLibrary>::@getter::V
-          returnType: C<int, String>
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -2330,7 +2294,6 @@ library
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
-          returnType: C<int, String>
   topLevelVariables
     const hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
@@ -2420,7 +2383,6 @@ library
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
-          returnType: C<int, String>
   topLevelVariables
     const hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
@@ -2486,7 +2448,6 @@ library
       getters
         #F6 synthetic V
           element: <testLibrary>::@getter::V
-          returnType: C<dynamic, dynamic>
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -2552,7 +2513,6 @@ library
           getters
             #F6 synthetic t
               element: <testLibrary>::@class::A::@getter::t
-              returnType: T
       topLevelVariables
         #F7 hasInitializer a @60
           element: <testLibrary>::@topLevelVariable::a
@@ -2578,7 +2538,6 @@ library
       getters
         #F8 synthetic a
           element: <testLibrary>::@getter::a
-          returnType: Object
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -2685,7 +2644,6 @@ library
       getters
         #F6 synthetic V
           element: <testLibrary>::@getter::V
-          returnType: C<int, String>
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -2768,7 +2726,6 @@ library
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
-          returnType: C<int, String>
   topLevelVariables
     const hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
@@ -2845,7 +2802,6 @@ library
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
-          returnType: C<int, String>
   topLevelVariables
     const hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
@@ -2950,7 +2906,6 @@ library
       getters
         #F9 synthetic V
           element: <testLibrary>::@getter::V
-          returnType: C
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -3035,7 +2990,6 @@ library
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
-          returnType: C
   topLevelVariables
     const hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
@@ -3103,7 +3057,6 @@ library
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
-          returnType: C
   topLevelVariables
     const hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
@@ -3164,7 +3117,6 @@ library
       getters
         #F4 synthetic V
           element: <testLibrary>::@getter::V
-          returnType: C
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -3224,7 +3176,6 @@ library
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
-          returnType: InvalidType
   topLevelVariables
     const hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
@@ -3291,7 +3242,6 @@ library
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
-          returnType: C
   topLevelVariables
     const hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
@@ -3355,7 +3305,6 @@ library
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
-          returnType: InvalidType
   topLevelVariables
     const hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
@@ -3412,7 +3361,6 @@ library
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
-          returnType: InvalidType
   topLevelVariables
     const hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
@@ -3476,7 +3424,6 @@ library
       getters
         #F5 synthetic V
           element: <testLibrary>::@getter::V
-          returnType: C<dynamic>
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -3546,7 +3493,6 @@ library
       getters
         #F4 synthetic V
           element: <testLibrary>::@getter::V
-          returnType: C
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -3610,7 +3556,6 @@ library
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
-          returnType: C
   topLevelVariables
     const hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
@@ -3673,7 +3618,6 @@ library
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
-          returnType: C
   topLevelVariables
     const hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
@@ -3721,7 +3665,6 @@ library
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
-          returnType: InvalidType
   topLevelVariables
     const hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
@@ -3780,7 +3723,6 @@ library
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
-          returnType: InvalidType
   topLevelVariables
     const hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
@@ -3832,7 +3774,6 @@ library
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
-          returnType: InvalidType
   topLevelVariables
     const hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
@@ -3886,10 +3827,8 @@ library
       getters
         #F3 synthetic a
           element: <testLibrary>::@getter::a
-          returnType: int
         #F4 synthetic b
           element: <testLibrary>::@getter::b
-          returnType: bool
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -3950,7 +3889,6 @@ library
           getters
             #F4 synthetic F
               element: <testLibrary>::@class::C::@getter::F
-              returnType: String
       topLevelVariables
         #F5 hasInitializer v @52
           element: <testLibrary>::@topLevelVariable::v
@@ -3977,7 +3915,6 @@ library
       getters
         #F6 synthetic v
           element: <testLibrary>::@getter::v
-          returnType: int
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -4063,7 +4000,6 @@ library
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
-          returnType: int
   topLevelVariables
     const hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
@@ -4136,7 +4072,6 @@ library
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
-          returnType: int
   topLevelVariables
     const hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
@@ -4181,7 +4116,6 @@ library
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
-          returnType: int
   topLevelVariables
     const hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
@@ -4235,10 +4169,8 @@ library
       getters
         #F3 synthetic S
           element: <testLibrary>::@getter::S
-          returnType: String
         #F4 synthetic v
           element: <testLibrary>::@getter::v
-          returnType: int
   topLevelVariables
     const hasInitializer S
       reference: <testLibrary>::@topLevelVariable::S
@@ -4305,7 +4237,6 @@ library
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
-          returnType: int
   topLevelVariables
     const hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
@@ -4369,7 +4300,6 @@ library
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
-          returnType: int
   topLevelVariables
     const hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
@@ -4430,7 +4360,6 @@ library
       getters
         #F5 synthetic v
           element: <testLibrary>::@getter::v
-          returnType: int Function()
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -4503,7 +4432,6 @@ library
       getters
         #F2 synthetic x
           element: <testLibrary>::@getter::x
-          returnType: Object
   topLevelVariables
     const hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -4567,7 +4495,6 @@ library
       getters
         #F2 synthetic x
           element: <testLibrary>::@getter::x
-          returnType: Object
   topLevelVariables
     const hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -4615,7 +4542,6 @@ library
       getters
         #F2 synthetic x
           element: <testLibrary>::@getter::x
-          returnType: Object
   topLevelVariables
     const hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -4683,7 +4609,6 @@ library
       getters
         #F2 synthetic x
           element: <testLibrary>::@getter::x
-          returnType: Object
   topLevelVariables
     const hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -4751,7 +4676,6 @@ library
       getters
         #F2 synthetic x
           element: <testLibrary>::@getter::x
-          returnType: Object
   topLevelVariables
     const hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -4821,7 +4745,6 @@ library
       getters
         #F2 synthetic x
           element: <testLibrary>::@getter::x
-          returnType: Object
   topLevelVariables
     const hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -4875,7 +4798,6 @@ library
       getters
         #F2 synthetic x
           element: <testLibrary>::@getter::x
-          returnType: Object
   topLevelVariables
     const hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -4958,7 +4880,6 @@ library
       getters
         #F2 synthetic x
           element: <testLibrary>::@getter::x
-          returnType: Object
   topLevelVariables
     const hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -5041,7 +4962,6 @@ library
       getters
         #F2 synthetic x
           element: <testLibrary>::@getter::x
-          returnType: Object
   topLevelVariables
     const hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -5102,7 +5022,6 @@ library
       getters
         #F2 synthetic b
           element: <testLibrary>::@getter::b
-          returnType: int
       functions
         #F3 f @2
           element: <testLibrary>::@function::f
@@ -5178,7 +5097,6 @@ library
           getters
             #F5 synthetic x
               element: <testLibrary>::@class::C::@getter::x
-              returnType: dynamic
       functions
         #F6 foo @53
           element: <testLibrary>::@function::foo
@@ -5259,7 +5177,6 @@ library
           getters
             #F5 synthetic x
               element: <testLibrary>::@class::C::@getter::x
-              returnType: dynamic
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -5332,7 +5249,6 @@ library
           getters
             #F5 synthetic x
               element: <testLibrary>::@class::C::@getter::x
-              returnType: dynamic
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -5572,10 +5488,8 @@ library
       getters
         #F3 synthetic a
           element: <testLibrary>::@getter::a
-          returnType: int
         #F4 synthetic b
           element: <testLibrary>::@getter::b
-          returnType: int
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -5639,10 +5553,8 @@ library
       getters
         #F3 synthetic a
           element: <testLibrary>::@getter::a
-          returnType: int?
         #F4 synthetic b
           element: <testLibrary>::@getter::b
-          returnType: int
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -5706,10 +5618,8 @@ library
       getters
         #F3 synthetic a
           element: <testLibrary>::@getter::a
-          returnType: int
         #F4 synthetic b
           element: <testLibrary>::@getter::b
-          returnType: int
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -5775,7 +5685,6 @@ library
       getters
         #F2 synthetic b
           element: <testLibrary>::@getter::b
-          returnType: int
   topLevelVariables
     const hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
@@ -5830,10 +5739,8 @@ library
       getters
         #F3 synthetic a
           element: <testLibrary>::@getter::a
-          returnType: int
         #F4 synthetic b
           element: <testLibrary>::@getter::b
-          returnType: int
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -5909,10 +5816,8 @@ library
       getters
         #F3 synthetic a
           element: <testLibrary>::@getter::a
-          returnType: int
         #F4 synthetic b
           element: <testLibrary>::@getter::b
-          returnType: (int, {int a})
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -5989,10 +5894,8 @@ library
       getters
         #F3 synthetic a
           element: <testLibrary>::@getter::a
-          returnType: int
         #F4 synthetic b
           element: <testLibrary>::@getter::b
-          returnType: (int, {int a})
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -6054,7 +5957,6 @@ library
           getters
             #F4 synthetic F
               element: <testLibrary>::@class::C::@getter::F
-              returnType: int
       topLevelVariables
         #F5 hasInitializer V @45
           element: <testLibrary>::@topLevelVariable::V
@@ -6074,7 +5976,6 @@ library
       getters
         #F6 synthetic V
           element: <testLibrary>::@getter::V
-          returnType: int
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -6153,7 +6054,6 @@ library
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
-          returnType: int
   topLevelVariables
     const hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
@@ -6219,7 +6119,6 @@ library
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
-          returnType: int
   topLevelVariables
     const hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
@@ -6285,7 +6184,6 @@ library
       getters
         #F7 synthetic V
           element: <testLibrary>::@getter::V
-          returnType: int Function(int, String)
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -6361,7 +6259,6 @@ library
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
-          returnType: int Function(int, String)
   topLevelVariables
     const hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
@@ -6427,7 +6324,6 @@ library
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
-          returnType: int Function(int, String)
   topLevelVariables
     const hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
@@ -6492,7 +6388,6 @@ library
       getters
         #F6 synthetic x
           element: <testLibrary>::@getter::x
-          returnType: void Function()
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -6551,7 +6446,6 @@ library
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
-          returnType: dynamic Function()
       functions
         #F3 foo @0
           element: <testLibrary>::@function::foo
@@ -6600,7 +6494,6 @@ library
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
-          returnType: R Function<P, R>(P)
       functions
         #F3 foo @2
           element: <testLibrary>::@function::foo
@@ -6671,7 +6564,6 @@ library
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
-          returnType: dynamic Function()
   topLevelVariables
     const hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
@@ -6728,7 +6620,6 @@ library
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
-          returnType: dynamic Function()
   topLevelVariables
     const hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
@@ -6783,10 +6674,8 @@ library
       getters
         #F3 synthetic A
           element: <testLibrary>::@getter::A
-          returnType: int
         #F4 synthetic B
           element: <testLibrary>::@getter::B
-          returnType: int
   topLevelVariables
     const hasInitializer A
       reference: <testLibrary>::@topLevelVariable::A
@@ -6853,7 +6742,6 @@ library
       getters
         #F2 synthetic B
           element: <testLibrary>::@getter::B
-          returnType: int
   topLevelVariables
     const hasInitializer B
       reference: <testLibrary>::@topLevelVariable::B
@@ -6918,7 +6806,6 @@ library
       getters
         #F2 synthetic B
           element: <testLibrary>::@getter::B
-          returnType: int
   topLevelVariables
     const hasInitializer B
       reference: <testLibrary>::@topLevelVariable::B
@@ -7046,16 +6933,12 @@ library
           getters
             #F12 synthetic a
               element: <testLibrary>::@enum::E::@getter::a
-              returnType: E
             #F13 synthetic b
               element: <testLibrary>::@enum::E::@getter::b
-              returnType: E
             #F14 synthetic c
               element: <testLibrary>::@enum::E::@getter::c
-              returnType: E
             #F15 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E>
       typeAliases
         #F16 F @50
           element: <testLibrary>::@typeAlias::F
@@ -7112,25 +6995,18 @@ library
       getters
         #F24 synthetic vDynamic
           element: <testLibrary>::@getter::vDynamic
-          returnType: Type
         #F25 synthetic vNull
           element: <testLibrary>::@getter::vNull
-          returnType: Type
         #F26 synthetic vObject
           element: <testLibrary>::@getter::vObject
-          returnType: Type
         #F27 synthetic vClass
           element: <testLibrary>::@getter::vClass
-          returnType: Type
         #F28 synthetic vGenericClass
           element: <testLibrary>::@getter::vGenericClass
-          returnType: Type
         #F29 synthetic vEnum
           element: <testLibrary>::@getter::vEnum
-          returnType: Type
         #F30 synthetic vFunctionTypeAlias
           element: <testLibrary>::@getter::vFunctionTypeAlias
-          returnType: Type
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -7339,7 +7215,6 @@ library
           getters
             #F4 synthetic f
               element: <testLibrary>::@class::C::@getter::f
-              returnType: List<dynamic Function()>
       typeAliases
         #F5 F @8
           element: <testLibrary>::@typeAlias::F
@@ -7416,13 +7291,10 @@ library
       getters
         #F4 synthetic vClass
           element: <testLibrary>::@getter::vClass
-          returnType: Type
         #F5 synthetic vEnum
           element: <testLibrary>::@getter::vEnum
-          returnType: Type
         #F6 synthetic vFunctionTypeAlias
           element: <testLibrary>::@getter::vFunctionTypeAlias
-          returnType: Type
   topLevelVariables
     const hasInitializer vClass
       reference: <testLibrary>::@topLevelVariable::vClass
@@ -7539,13 +7411,10 @@ library
       getters
         #F4 synthetic vClass
           element: <testLibrary>::@getter::vClass
-          returnType: Type
         #F5 synthetic vEnum
           element: <testLibrary>::@getter::vEnum
-          returnType: Type
         #F6 synthetic vFunctionTypeAlias
           element: <testLibrary>::@getter::vFunctionTypeAlias
-          returnType: Type
   topLevelVariables
     const hasInitializer vClass
       reference: <testLibrary>::@topLevelVariable::vClass
@@ -7618,7 +7487,6 @@ library
           getters
             #F5 synthetic f
               element: <testLibrary>::@class::C::@getter::f
-              returnType: List<T>
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -7668,7 +7536,6 @@ library
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
-          returnType: InvalidType
   topLevelVariables
     const hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
@@ -7724,7 +7591,6 @@ library
       getters
         #F4 synthetic V
           element: <testLibrary>::@getter::V
-          returnType: InvalidType
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -7796,7 +7662,6 @@ library
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
-          returnType: InvalidType
   topLevelVariables
     const hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
@@ -7857,7 +7722,6 @@ library
       getters
         #F2 synthetic x
           element: <testLibrary>::@getter::x
-          returnType: Object
   topLevelVariables
     const hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -7906,7 +7770,6 @@ library
       getters
         #F2 synthetic x
           element: <testLibrary>::@getter::x
-          returnType: Object
   topLevelVariables
     const hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -7976,7 +7839,6 @@ library
       getters
         #F2 synthetic x
           element: <testLibrary>::@getter::x
-          returnType: Object
   topLevelVariables
     const hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -8046,7 +7908,6 @@ library
       getters
         #F2 synthetic x
           element: <testLibrary>::@getter::x
-          returnType: Object
   topLevelVariables
     const hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -8348,58 +8209,40 @@ library
       getters
         #F19 synthetic vEqual
           element: <testLibrary>::@getter::vEqual
-          returnType: bool
         #F20 synthetic vAnd
           element: <testLibrary>::@getter::vAnd
-          returnType: bool
         #F21 synthetic vOr
           element: <testLibrary>::@getter::vOr
-          returnType: bool
         #F22 synthetic vBitXor
           element: <testLibrary>::@getter::vBitXor
-          returnType: int
         #F23 synthetic vBitAnd
           element: <testLibrary>::@getter::vBitAnd
-          returnType: int
         #F24 synthetic vBitOr
           element: <testLibrary>::@getter::vBitOr
-          returnType: int
         #F25 synthetic vBitShiftLeft
           element: <testLibrary>::@getter::vBitShiftLeft
-          returnType: int
         #F26 synthetic vBitShiftRight
           element: <testLibrary>::@getter::vBitShiftRight
-          returnType: int
         #F27 synthetic vAdd
           element: <testLibrary>::@getter::vAdd
-          returnType: int
         #F28 synthetic vSubtract
           element: <testLibrary>::@getter::vSubtract
-          returnType: int
         #F29 synthetic vMiltiply
           element: <testLibrary>::@getter::vMiltiply
-          returnType: int
         #F30 synthetic vDivide
           element: <testLibrary>::@getter::vDivide
-          returnType: double
         #F31 synthetic vFloorDivide
           element: <testLibrary>::@getter::vFloorDivide
-          returnType: int
         #F32 synthetic vModulo
           element: <testLibrary>::@getter::vModulo
-          returnType: int
         #F33 synthetic vGreater
           element: <testLibrary>::@getter::vGreater
-          returnType: bool
         #F34 synthetic vGreaterEqual
           element: <testLibrary>::@getter::vGreaterEqual
-          returnType: bool
         #F35 synthetic vLess
           element: <testLibrary>::@getter::vLess
-          returnType: bool
         #F36 synthetic vLessEqual
           element: <testLibrary>::@getter::vLessEqual
-          returnType: bool
   topLevelVariables
     const hasInitializer vEqual
       reference: <testLibrary>::@topLevelVariable::vEqual
@@ -8681,7 +8524,6 @@ library
       getters
         #F2 synthetic vConditional
           element: <testLibrary>::@getter::vConditional
-          returnType: int
   topLevelVariables
     const hasInitializer vConditional
       reference: <testLibrary>::@topLevelVariable::vConditional
@@ -8742,7 +8584,6 @@ library
       getters
         #F2 synthetic vIdentical
           element: <testLibrary>::@getter::vIdentical
-          returnType: int
   topLevelVariables
     const hasInitializer vIdentical
       reference: <testLibrary>::@topLevelVariable::vIdentical
@@ -8789,7 +8630,6 @@ library
       getters
         #F2 synthetic vIfNull
           element: <testLibrary>::@getter::vIfNull
-          returnType: num
   topLevelVariables
     const hasInitializer vIfNull
       reference: <testLibrary>::@topLevelVariable::vIfNull
@@ -8945,43 +8785,30 @@ library
       getters
         #F14 synthetic vNull
           element: <testLibrary>::@getter::vNull
-          returnType: dynamic
         #F15 synthetic vBoolFalse
           element: <testLibrary>::@getter::vBoolFalse
-          returnType: bool
         #F16 synthetic vBoolTrue
           element: <testLibrary>::@getter::vBoolTrue
-          returnType: bool
         #F17 synthetic vIntPositive
           element: <testLibrary>::@getter::vIntPositive
-          returnType: int
         #F18 synthetic vIntNegative
           element: <testLibrary>::@getter::vIntNegative
-          returnType: int
         #F19 synthetic vIntLong1
           element: <testLibrary>::@getter::vIntLong1
-          returnType: int
         #F20 synthetic vIntLong2
           element: <testLibrary>::@getter::vIntLong2
-          returnType: int
         #F21 synthetic vIntLong3
           element: <testLibrary>::@getter::vIntLong3
-          returnType: int
         #F22 synthetic vDouble
           element: <testLibrary>::@getter::vDouble
-          returnType: double
         #F23 synthetic vString
           element: <testLibrary>::@getter::vString
-          returnType: String
         #F24 synthetic vStringConcat
           element: <testLibrary>::@getter::vStringConcat
-          returnType: String
         #F25 synthetic vStringInterpolation
           element: <testLibrary>::@getter::vStringInterpolation
-          returnType: String
         #F26 synthetic vSymbol
           element: <testLibrary>::@getter::vSymbol
-          returnType: Symbol
   topLevelVariables
     const hasInitializer vNull
       reference: <testLibrary>::@topLevelVariable::vNull
@@ -9195,10 +9022,8 @@ library
       getters
         #F3 synthetic a
           element: <testLibrary>::@getter::a
-          returnType: int?
         #F4 synthetic b
           element: <testLibrary>::@getter::b
-          returnType: String?
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -9272,10 +9097,8 @@ library
       getters
         #F3 synthetic a
           element: <testLibrary>::@getter::a
-          returnType: int?
         #F4 synthetic b
           element: <testLibrary>::@getter::b
-          returnType: int?
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -9349,10 +9172,8 @@ library
       getters
         #F3 synthetic a
           element: <testLibrary>::@getter::a
-          returnType: String?
         #F4 synthetic b
           element: <testLibrary>::@getter::b
-          returnType: List<int?>
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -9471,13 +9292,10 @@ library
       getters
         #F4 synthetic v1
           element: <testLibrary>::@getter::v1
-          returnType: int
         #F5 synthetic v2
           element: <testLibrary>::@getter::v2
-          returnType: int
         #F6 synthetic v3
           element: <testLibrary>::@getter::v3
-          returnType: int
   topLevelVariables
     const hasInitializer v1
       reference: <testLibrary>::@topLevelVariable::v1
@@ -9583,16 +9401,12 @@ library
       getters
         #F5 synthetic vNotEqual
           element: <testLibrary>::@getter::vNotEqual
-          returnType: bool
         #F6 synthetic vNot
           element: <testLibrary>::@getter::vNot
-          returnType: bool
         #F7 synthetic vNegate
           element: <testLibrary>::@getter::vNegate
-          returnType: int
         #F8 synthetic vComplement
           element: <testLibrary>::@getter::vComplement
-          returnType: int
   topLevelVariables
     const hasInitializer vNotEqual
       reference: <testLibrary>::@topLevelVariable::vNotEqual
@@ -9670,7 +9484,6 @@ library
       getters
         #F2 synthetic vSuper
           element: <testLibrary>::@getter::vSuper
-          returnType: InvalidType
   topLevelVariables
     const hasInitializer vSuper
       reference: <testLibrary>::@topLevelVariable::vSuper
@@ -9709,7 +9522,6 @@ library
       getters
         #F2 synthetic vThis
           element: <testLibrary>::@getter::vThis
-          returnType: dynamic
   topLevelVariables
     const hasInitializer vThis
       reference: <testLibrary>::@topLevelVariable::vThis
@@ -9751,7 +9563,6 @@ library
       getters
         #F2 synthetic c
           element: <testLibrary>::@getter::c
-          returnType: Never
   topLevelVariables
     const hasInitializer c
       reference: <testLibrary>::@topLevelVariable::c
@@ -9933,22 +9744,16 @@ library
       getters
         #F7 synthetic vNull
           element: <testLibrary>::@getter::vNull
-          returnType: List<Null>
         #F8 synthetic vDynamic
           element: <testLibrary>::@getter::vDynamic
-          returnType: List<dynamic>
         #F9 synthetic vInterfaceNoTypeParameters
           element: <testLibrary>::@getter::vInterfaceNoTypeParameters
-          returnType: List<int>
         #F10 synthetic vInterfaceNoTypeArguments
           element: <testLibrary>::@getter::vInterfaceNoTypeArguments
-          returnType: List<List<dynamic>>
         #F11 synthetic vInterfaceWithTypeArguments
           element: <testLibrary>::@getter::vInterfaceWithTypeArguments
-          returnType: List<List<String>>
         #F12 synthetic vInterfaceWithTypeArguments2
           element: <testLibrary>::@getter::vInterfaceWithTypeArguments2
-          returnType: List<Map<int, List<String>>>
   topLevelVariables
     const hasInitializer vNull
       reference: <testLibrary>::@topLevelVariable::vNull
@@ -10066,7 +9871,6 @@ library
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
-          returnType: List<C>
   topLevelVariables
     const hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
@@ -10126,7 +9930,6 @@ library
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
-          returnType: List<C>
   topLevelVariables
     const hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
@@ -10180,7 +9983,6 @@ library
       getters
         #F3 synthetic v
           element: <testLibrary>::@getter::v
-          returnType: List<int Function(String)>
   typeAliases
     F
       reference: <testLibrary>::@typeAlias::F
@@ -10313,16 +10115,12 @@ library
       getters
         #F5 synthetic vDynamic1
           element: <testLibrary>::@getter::vDynamic1
-          returnType: Map<dynamic, int>
         #F6 synthetic vDynamic2
           element: <testLibrary>::@getter::vDynamic2
-          returnType: Map<int, dynamic>
         #F7 synthetic vInterface
           element: <testLibrary>::@getter::vInterface
-          returnType: Map<int, String>
         #F8 synthetic vInterfaceWithTypeArguments
           element: <testLibrary>::@getter::vInterfaceWithTypeArguments
-          returnType: Map<int, List<String>>
   topLevelVariables
     const hasInitializer vDynamic1
       reference: <testLibrary>::@topLevelVariable::vDynamic1
@@ -10455,13 +10253,10 @@ library
       getters
         #F4 synthetic vDynamic1
           element: <testLibrary>::@getter::vDynamic1
-          returnType: Set<dynamic>
         #F5 synthetic vInterface
           element: <testLibrary>::@getter::vInterface
-          returnType: Set<int>
         #F6 synthetic vInterfaceWithTypeArguments
           element: <testLibrary>::@getter::vInterfaceWithTypeArguments
-          returnType: Set<List<String>>
   topLevelVariables
     const hasInitializer vDynamic1
       reference: <testLibrary>::@topLevelVariable::vDynamic1
@@ -10538,7 +10333,6 @@ library
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
-          returnType: List<int>
   topLevelVariables
     const hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
@@ -10602,7 +10396,6 @@ library
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
-          returnType: Map<int, String>
   topLevelVariables
     const hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
@@ -10654,7 +10447,6 @@ library
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
-          returnType: Set<int>
   topLevelVariables
     const hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
@@ -10704,7 +10496,6 @@ library
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
-          returnType: Type
   topLevelVariables
     const hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
@@ -10809,16 +10600,12 @@ library
           getters
             #F7 synthetic a
               element: <testLibrary>::@enum::E::@getter::a
-              returnType: E
             #F8 synthetic b
               element: <testLibrary>::@enum::E::@getter::b
-              returnType: E
             #F9 synthetic c
               element: <testLibrary>::@enum::E::@getter::c
-              returnType: E
             #F10 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E>
       topLevelVariables
         #F11 hasInitializer vValue @23
           element: <testLibrary>::@topLevelVariable::vValue
@@ -10829,13 +10616,10 @@ library
       getters
         #F14 synthetic vValue
           element: <testLibrary>::@getter::vValue
-          returnType: E
         #F15 synthetic vValues
           element: <testLibrary>::@getter::vValues
-          returnType: List<E>
         #F16 synthetic vIndex
           element: <testLibrary>::@getter::vIndex
-          returnType: int
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -10982,17 +10766,14 @@ library
           getters
             #F5 synthetic a
               element: <testLibrary>::@enum::E::@getter::a
-              returnType: E
             #F6 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E>
       topLevelVariables
         #F7 hasInitializer vToString @17
           element: <testLibrary>::@topLevelVariable::vToString
       getters
         #F8 synthetic vToString
           element: <testLibrary>::@getter::vToString
-          returnType: String
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -11082,10 +10863,8 @@ library
           getters
             #F5 synthetic a
               element: <testLibrary>::@class::C::@getter::a
-              returnType: dynamic
             #F6 synthetic b
               element: <testLibrary>::@class::C::@getter::b
-              returnType: dynamic
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -11156,7 +10935,6 @@ library
           getters
             #F4 synthetic a
               element: <testLibrary>::@class::C::@getter::a
-              returnType: dynamic Function()
           methods
             #F5 m @41
               element: <testLibrary>::@class::C::@method::m

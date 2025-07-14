@@ -80,7 +80,8 @@ FunctionExpression
           semicolon: ;
       rightBracket: }
   declaredElement: <testLibraryFragment> null@null
-    type: Future<Object?> Function()
+    element: null@null
+      type: Future<Object?> Function()
   staticType: Future<Object?> Function()
 ''');
   }
@@ -132,7 +133,8 @@ FunctionExpression
       typeArgumentTypes
         FutureOr<int>
   declaredElement: <testLibraryFragment> null@null
-    type: Future<int> Function()
+    element: null@null
+      type: Future<int> Function()
   staticType: Future<int> Function()
 ''');
   }
@@ -173,7 +175,8 @@ FunctionExpression
       typeArgumentTypes
         FutureOr<Object?>
   declaredElement: <testLibraryFragment> null@null
-    type: Future<Object?> Function()
+    element: null@null
+      type: Future<Object?> Function()
   staticType: Future<Object?> Function()
 ''');
   }
@@ -207,7 +210,8 @@ FunctionExpression
       typeArgumentTypes
         FutureOr<Object?>
   declaredElement: <testLibraryFragment> null@null
-    type: Future<Object?> Function()
+    element: null@null
+      type: Future<Object?> Function()
   staticType: Future<Object?> Function()
 ''');
   }
@@ -259,7 +263,8 @@ FunctionExpression
           semicolon: ;
       rightBracket: }
   declaredElement: <testLibraryFragment> null@null
-    type: Stream<int> Function()
+    element: null@null
+      type: Stream<int> Function()
   staticType: Stream<int> Function()
 ''');
   }
@@ -309,7 +314,8 @@ FunctionExpression
           semicolon: ;
       rightBracket: }
   declaredElement: <testLibraryFragment> null@null
-    type: int Function()
+    element: null@null
+      type: int Function()
   staticType: int Function()
 ''');
   }
@@ -361,7 +367,8 @@ FunctionExpression
       typeArgumentTypes
         int
   declaredElement: <testLibraryFragment> null@null
-    type: int Function()
+    element: null@null
+      type: int Function()
   staticType: int Function()
 ''');
   }
@@ -413,7 +420,8 @@ FunctionExpression
           semicolon: ;
       rightBracket: }
   declaredElement: <testLibraryFragment> null@null
-    type: Iterable<int> Function()
+    element: null@null
+      type: Iterable<int> Function()
   staticType: Iterable<int> Function()
 ''');
   }
@@ -450,7 +458,8 @@ FunctionExpression
           semicolon: ;
       rightBracket: }
   declaredElement: <testLibraryFragment> null@null
-    type: void Function(int)
+    element: null@null
+      type: void Function(int)
   correspondingParameter: f@null
   staticType: void Function(int)
 ''');
@@ -481,7 +490,8 @@ FunctionExpression
       leftBracket: {
       rightBracket: }
   declaredElement: <testLibraryFragment> null@null
-    type: void Function(Object?)
+    element: null@null
+      type: void Function(Object?)
   correspondingParameter: <testLibrary>::@function::foo::@formalParameter::a
   staticType: void Function(Object?)
 ''');
@@ -512,7 +522,8 @@ FunctionExpression
       leftBracket: {
       rightBracket: }
   declaredElement: <testLibraryFragment> null@null
-    type: void Function(Object?)
+    element: null@null
+      type: void Function(Object?)
   correspondingParameter: <testLibrary>::@function::foo::@formalParameter::a
   staticType: void Function(Object?)
 ''');
@@ -571,7 +582,8 @@ FunctionExpression
       rightBracket: ]
       staticType: List<T>
   declaredElement: <testLibraryFragment> null@null
-    type: List<T> Function<T>(T)
+    element: null@null
+      type: List<T> Function<T>(T)
   staticType: List<T> Function<T>(T)
 ''');
   }
@@ -595,7 +607,8 @@ FunctionExpression
       literal: 42
       staticType: int
   declaredElement: <testLibraryFragment> null@null
-    type: int Function()
+    element: null@null
+      type: int Function()
   staticType: int Function()
 ''');
   }
@@ -617,7 +630,8 @@ FunctionExpression
       literal: 42
       staticType: int
   declaredElement: <testLibraryFragment> null@null
-    type: int Function()
+    element: null@null
+      type: int Function()
   staticType: int Function()
 ''');
   }

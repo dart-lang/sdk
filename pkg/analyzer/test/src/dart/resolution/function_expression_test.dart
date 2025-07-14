@@ -53,7 +53,8 @@ FunctionExpression
       leftBracket: {
       rightBracket: }
   declaredElement: <testLibraryFragment> null@null
-    type: Null Function<T extends List<T>>()
+    element: null@null
+      type: Null Function<T extends List<T>>()
   staticType: Null Function<T extends List<T>>()
 ''');
   }
@@ -89,7 +90,8 @@ FunctionExpression
       leftBracket: {
       rightBracket: }
   declaredElement: <testLibraryFragment> null@null
-    type: Null Function<T extends num>()
+    element: null@null
+      type: Null Function<T extends num>()
   staticType: Null Function<T extends num>()
 ''');
   }

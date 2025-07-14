@@ -120,10 +120,6 @@ library
           getters
             #F5 synthetic f
               element: <testLibrary>::@class::X::@getter::f
-              returnType: void Function(dynamic)
-                alias: <testLibrary>::@typeAlias::F
-                  typeArguments
-                    dynamic
       typeAliases
         #F6 F @13
           element: <testLibrary>::@typeAlias::F

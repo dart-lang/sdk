@@ -1764,10 +1764,6 @@ library
           getters
             #F4 synthetic f
               element: <testLibrary>::@class::A::@getter::f
-              returnType: int Function<T>(T)
-                alias: <testLibrary>::@typeAlias::Foo
-                  typeArguments
-                    int
           setters
             #F5 synthetic f
               element: <testLibrary>::@class::A::@setter::f

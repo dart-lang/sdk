@@ -89,7 +89,8 @@ ExtensionTypeDeclaration
       body: EmptyFunctionBody
         semicolon: ;
       declaredElement: <testLibraryFragment> named@31
-        type: A Function(int)
+        element: <testLibrary>::@extensionType::A::@constructor::named
+          type: A Function(int)
   rightBracket: }
   declaredElement: <testLibraryFragment> A@15
 ''');
@@ -155,7 +156,8 @@ ExtensionTypeDeclaration
       body: EmptyFunctionBody
         semicolon: ;
       declaredElement: <testLibraryFragment> named@37
-        type: A Function(int)
+        element: <testLibrary>::@extensionType::A::@constructor::named
+          type: A Function(int)
   rightBracket: }
   declaredElement: <testLibraryFragment> A@15
 ''');
@@ -287,7 +289,8 @@ MethodDeclaration
           semicolon: ;
       rightBracket: }
   declaredElement: <testLibraryFragment> foo@37
-    type: void Function<U>(T, U)
+    element: <testLibrary>::@extensionType::A::@method::foo
+      type: void Function<U>(T, U)
 ''');
   }
 

@@ -105,16 +105,12 @@ library
           getters
             #F7 synthetic aaa
               element: <testLibrary>::@enum::E::@getter::aaa
-              returnType: E
             #F8 synthetic bbb
               element: <testLibrary>::@enum::E::@getter::bbb
-              returnType: E
             #F9 synthetic ccc
               element: <testLibrary>::@enum::E::@getter::ccc
-              returnType: E
             #F10 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E>
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -267,13 +263,10 @@ library
           getters
             #F8 synthetic int
               element: <testLibrary>::@enum::E::@getter::int
-              returnType: E<int>
             #F9 synthetic string
               element: <testLibrary>::@enum::E::@getter::string
-              returnType: E<String>
             #F10 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E<dynamic>>
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -384,10 +377,8 @@ library
           getters
             #F5 synthetic _name
               element: <testLibrary>::@enum::E::@getter::_name
-              returnType: E
             #F6 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E>
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -499,10 +490,8 @@ library
           getters
             #F7 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
-              returnType: E<double>
             #F8 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E<dynamic>>
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -599,10 +588,8 @@ library
           getters
             #F5 synthetic _
               element: <testLibrary>::@enum::E::@getter::_
-              returnType: E
             #F6 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E>
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -698,10 +685,8 @@ library
           getters
             #F6 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
-              returnType: E
             #F7 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E>
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -796,10 +781,8 @@ library
           getters
             #F5 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
-              returnType: E
             #F6 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E>
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -900,13 +883,10 @@ library
           getters
             #F8 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
-              returnType: E
             #F9 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E>
             #F10 synthetic x
               element: <testLibrary>::@enum::E::@getter::x
-              returnType: dynamic
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -1026,16 +1006,12 @@ library
           getters
             #F8 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
-              returnType: E
             #F9 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E>
             #F10 synthetic x
               element: <testLibrary>::@enum::E::@getter::x::@def::0
-              returnType: int
             #F11 synthetic x
               element: <testLibrary>::@enum::E::@getter::x::@def::1
-              returnType: String
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -1154,10 +1130,8 @@ library
           getters
             #F6 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
-              returnType: E
             #F7 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E>
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -1271,13 +1245,10 @@ library
           getters
             #F7 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
-              returnType: E
             #F8 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E>
             #F9 synthetic x
               element: <testLibrary>::@enum::E::@getter::x
-              returnType: int
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -1392,13 +1363,10 @@ library
           getters
             #F7 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
-              returnType: E
             #F8 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E>
             #F9 synthetic x
               element: <testLibrary>::@enum::E::@getter::x
-              returnType: num
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -1510,13 +1478,10 @@ library
           getters
             #F7 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
-              returnType: E
             #F8 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E>
             #F9 synthetic x
               element: <testLibrary>::@enum::E::@getter::x
-              returnType: dynamic
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -1628,13 +1593,10 @@ library
           getters
             #F7 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
-              returnType: E
             #F8 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E>
             #F9 synthetic x
               element: <testLibrary>::@enum::E::@getter::x
-              returnType: dynamic
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -1753,10 +1715,8 @@ library
           getters
             #F6 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
-              returnType: E
             #F7 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E>
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -1859,10 +1819,8 @@ library
           getters
             #F6 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
-              returnType: E
             #F7 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E>
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -1969,13 +1927,10 @@ library
           getters
             #F8 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
-              returnType: E<dynamic>
             #F9 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E<dynamic>>
             #F10 synthetic x
               element: <testLibrary>::@enum::E::@getter::x
-              returnType: int
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -2108,10 +2063,8 @@ library
           getters
             #F5 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
-              returnType: E
             #F6 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E>
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -2209,13 +2162,10 @@ library
           getters
             #F6 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
-              returnType: E
             #F7 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E>
             #F8 synthetic foo
               element: <testLibrary>::@enum::E::@getter::foo
-              returnType: int
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -2347,13 +2297,10 @@ library
           getters
             #F6 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
-              returnType: E
             #F7 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E>
             #F8 foo @23
               element: <testLibrary>::@enum::E::@getter::foo
-              returnType: int
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -2461,10 +2408,8 @@ library
           getters
             #F7 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
-              returnType: E
             #F8 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E>
   classes
     class I
       reference: <testLibrary>::@class::I
@@ -2569,10 +2514,8 @@ library
           getters
             #F6 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
-              returnType: E
             #F7 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E>
       extensionTypes
         #F8 extension type B @26
           element: <testLibrary>::@extensionType::B
@@ -2582,7 +2525,6 @@ library
           getters
             #F10 synthetic it
               element: <testLibrary>::@extensionType::B::@getter::it
-              returnType: int
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -2713,10 +2655,8 @@ library
           getters
             #F9 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
-              returnType: E<dynamic>
             #F10 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E<dynamic>>
   classes
     class I
       reference: <testLibrary>::@class::I
@@ -2837,10 +2777,8 @@ library
           getters
             #F9 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
-              returnType: E
             #F10 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E>
   classes
     class X
       reference: <testLibrary>::@class::X
@@ -2954,10 +2892,8 @@ library
           getters
             #F6 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
-              returnType: E<dynamic>
             #F7 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E<dynamic>>
           methods
             #F8 foo @23
               element: <testLibrary>::@enum::E::@method::foo
@@ -3078,10 +3014,8 @@ library
           getters
             #F5 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
-              returnType: E
             #F6 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E>
           methods
             #F7 toString @23
               element: <testLibrary>::@enum::E::@method::toString
@@ -3177,10 +3111,8 @@ library
           getters
             #F5 synthetic v
               element: <testLibrary>::@enum::0::@getter::v
-              returnType: InvalidType
             #F6 synthetic values
               element: <testLibrary>::@enum::0::@getter::values
-              returnType: List<<null>>
   enums
     enum <null-name>
       reference: <testLibrary>::@enum::0
@@ -3271,10 +3203,8 @@ library
           getters
             #F5 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
-              returnType: E
             #F6 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E>
       mixins
         #F7 mixin M @6
           element: <testLibrary>::@mixin::M
@@ -3380,10 +3310,8 @@ library
           getters
             #F6 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
-              returnType: E
             #F7 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E>
       extensionTypes
         #F8 extension type B @26
           element: <testLibrary>::@extensionType::B
@@ -3393,7 +3321,6 @@ library
           getters
             #F10 synthetic it
               element: <testLibrary>::@extensionType::B::@getter::it
-              returnType: int
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -3510,10 +3437,8 @@ library
           getters
             #F5 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
-              returnType: E
             #F6 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E>
       mixins
         #F7 mixin M1 @6
           element: <testLibrary>::@mixin::M1
@@ -3637,10 +3562,8 @@ library
           getters
             #F6 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
-              returnType: E
             #F7 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E>
           setters
             #F8 foo @19
               element: <testLibrary>::@enum::E::@setter::foo
@@ -3755,10 +3678,8 @@ library
           getters
             #F6 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
-              returnType: E<dynamic>
             #F7 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E<dynamic>>
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -3858,10 +3779,8 @@ library
           getters
             #F7 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
-              returnType: E<num, num>
             #F8 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E<num, num>>
   enums
     notSimplyBounded enum E
       reference: <testLibrary>::@enum::E
@@ -3940,7 +3859,6 @@ library
           getters
             #F5 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E<dynamic>>
   enums
     notSimplyBounded enum E
       reference: <testLibrary>::@enum::E
@@ -4007,7 +3925,6 @@ library
           getters
             #F7 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E<dynamic, num, dynamic>>
   enums
     notSimplyBounded enum E
       reference: <testLibrary>::@enum::E
@@ -4076,7 +3993,6 @@ library
           getters
             #F5 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E<dynamic>>
   enums
     notSimplyBounded enum E
       reference: <testLibrary>::@enum::E
@@ -4139,7 +4055,6 @@ library
           getters
             #F5 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E<dynamic>>
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -4201,7 +4116,6 @@ library
           getters
             #F5 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E<dynamic>>
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -4263,7 +4177,6 @@ library
           getters
             #F5 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E<dynamic>>
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -4329,7 +4242,6 @@ library
           getters
             #F7 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E<dynamic, dynamic, dynamic>>
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -4435,13 +4347,10 @@ library
           getters
             #F6 synthetic a
               element: <testLibrary>::@enum::E::@getter::a
-              returnType: E
             #F7 synthetic b
               element: <testLibrary>::@enum::E::@getter::b
-              returnType: E
             #F8 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E>
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -4571,13 +4480,10 @@ library
           getters
             #F6 synthetic a
               element: <testLibrary>::@enum::E::@getter::a
-              returnType: E
             #F7 synthetic b
               element: <testLibrary>::@enum::E::@getter::b
-              returnType: E
             #F8 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E>
       topLevelVariables
         #F9 hasInitializer annotation @91
           element: <testLibrary>::@topLevelVariable::annotation
@@ -4588,7 +4494,6 @@ library
       getters
         #F10 synthetic annotation
           element: <testLibrary>::@getter::annotation
-          returnType: int
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -4722,13 +4627,10 @@ library
           getters
             #F6 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
-              returnType: E
             #F7 synthetic <null-name>
               element: <testLibrary>::@enum::E::@getter::1
-              returnType: E
             #F8 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E>
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -4845,13 +4747,10 @@ library
           getters
             #F6 synthetic v1
               element: <testLibrary>::@enum::E::@getter::v1
-              returnType: E
             #F7 synthetic v2
               element: <testLibrary>::@enum::E::@getter::v2
-              returnType: E
             #F8 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E>
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -4950,10 +4849,8 @@ library
           getters
             #F5 synthetic v1
               element: <testLibrary>::@enum::E1::@getter::v1
-              returnType: E1
             #F6 synthetic values
               element: <testLibrary>::@enum::E1::@getter::values
-              returnType: List<E1>
         #F7 enum E2 @20
           element: <testLibrary>::@enum::E2
           fields
@@ -4990,10 +4887,8 @@ library
           getters
             #F11 synthetic v2
               element: <testLibrary>::@enum::E2::@getter::v2
-              returnType: E2
             #F12 synthetic values
               element: <testLibrary>::@enum::E2::@getter::values
-              returnType: List<E2>
   enums
     enum E1
       reference: <testLibrary>::@enum::E1
@@ -5209,16 +5104,12 @@ library
           getters
             #F20 synthetic a
               element: <testLibrary>::@enum::E::@getter::a
-              returnType: E
             #F21 synthetic b
               element: <testLibrary>::@enum::E::@getter::b
-              returnType: E
             #F22 synthetic c
               element: <testLibrary>::@enum::E::@getter::c
-              returnType: E
             #F23 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E>
   classes
     class M
       reference: <testLibrary>::@class::M
@@ -5396,10 +5287,8 @@ library
           getters
             #F5 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
-              returnType: E
             #F6 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E>
       topLevelVariables
         #F7 hasInitializer a @6
           element: <testLibrary>::@topLevelVariable::a
@@ -5410,7 +5299,6 @@ library
       getters
         #F8 synthetic a
           element: <testLibrary>::@getter::a
-          returnType: int
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -5502,7 +5390,6 @@ library
           getters
             #F5 synthetic value
               element: <testLibrary>::@class::A::@getter::value
-              returnType: dynamic
       enums
         #F6 enum E @64
           element: <testLibrary>::@enum::E
@@ -5576,16 +5463,12 @@ library
           getters
             #F12 synthetic a
               element: <testLibrary>::@enum::E::@getter::a
-              returnType: E
             #F13 synthetic b
               element: <testLibrary>::@enum::E::@getter::b
-              returnType: E
             #F14 synthetic c
               element: <testLibrary>::@enum::E::@getter::c
-              returnType: E
             #F15 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E>
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -5726,10 +5609,8 @@ library
           getters
             #F5 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
-              returnType: E
             #F6 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E>
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -5831,10 +5712,8 @@ library
           getters
             #F5 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
-              returnType: E
             #F6 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E>
       topLevelVariables
         #F7 hasInitializer a @6
           element: <testLibrary>::@topLevelVariable::a
@@ -5845,7 +5724,6 @@ library
       getters
         #F8 synthetic a
           element: <testLibrary>::@getter::a
-          returnType: int
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -5961,10 +5839,8 @@ library
           getters
             #F5 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
-              returnType: E
             #F6 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E>
           methods
             #F7 foo @40
               element: <testLibrary>::@enum::E::@method::foo
@@ -5986,7 +5862,6 @@ library
       getters
         #F9 synthetic a
           element: <testLibrary>::@getter::a
-          returnType: int
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -6129,13 +6004,10 @@ library
           getters
             #F7 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
-              returnType: E<dynamic>
             #F8 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E<dynamic>>
             #F9 synthetic foo
               element: <testLibrary>::@enum::E::@getter::foo
-              returnType: int
           methods
             #F10 bar @81
               element: <testLibrary>::@enum::E::@method::bar
@@ -6157,7 +6029,6 @@ library
       getters
         #F12 synthetic foo
           element: <testLibrary>::@getter::foo
-          returnType: int
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -6313,10 +6184,8 @@ library
           getters
             #F6 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
-              returnType: E<dynamic>
             #F7 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E<dynamic>>
       topLevelVariables
         #F8 hasInitializer a @6
           element: <testLibrary>::@topLevelVariable::a
@@ -6327,7 +6196,6 @@ library
       getters
         #F9 synthetic a
           element: <testLibrary>::@getter::a
-          returnType: int
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -6439,10 +6307,8 @@ library
           getters
             #F5 synthetic v
               element: <testLibrary>::@enum::E::@getter::v
-              returnType: E
             #F6 synthetic values
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E>
       topLevelVariables
         #F7 hasInitializer a @6
           element: <testLibrary>::@topLevelVariable::a
@@ -6453,7 +6319,6 @@ library
       getters
         #F8 synthetic a
           element: <testLibrary>::@getter::a
-          returnType: int
   enums
     enum E
       reference: <testLibrary>::@enum::E

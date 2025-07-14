@@ -62,10 +62,12 @@ FunctionDeclaration
             semicolon: ;
         rightBracket: }
     declaredElement: <testLibraryFragment> f@34
-      type: Stream<int> Function()
+      element: <testLibrary>::@function::f
+        type: Stream<int> Function()
     staticType: Stream<int> Function()
   declaredElement: <testLibraryFragment> f@34
-    type: Stream<int> Function()
+    element: <testLibrary>::@function::f
+      type: Stream<int> Function()
 ''');
   }
 
@@ -108,10 +110,12 @@ FunctionDeclaration
         staticType: int
       semicolon: ;
     declaredElement: <testLibraryFragment> f@34
-      type: Stream<int> Function()
+      element: <testLibrary>::@function::f
+        type: Stream<int> Function()
     staticType: Stream<int> Function()
   declaredElement: <testLibraryFragment> f@34
-    type: Stream<int> Function()
+    element: <testLibrary>::@function::f
+      type: Stream<int> Function()
 ''');
   }
 
@@ -201,10 +205,12 @@ FunctionDeclaration
         leftBracket: {
         rightBracket: }
     declaredElement: <testLibraryFragment> m@5
-      type: void Function<T extends List<T>>()
+      element: <testLibrary>::@function::m
+        type: void Function<T extends List<T>>()
     staticType: void Function<T extends List<T>>()
   declaredElement: <testLibraryFragment> m@5
-    type: void Function<T extends List<T>>()
+    element: <testLibrary>::@function::m
+      type: void Function<T extends List<T>>()
 ''');
   }
 
@@ -243,10 +249,12 @@ FunctionDeclaration
         leftBracket: {
         rightBracket: }
     declaredElement: <testLibraryFragment> m@5
-      type: void Function<T extends num>()
+      element: <testLibrary>::@function::m
+        type: void Function<T extends num>()
     staticType: void Function<T extends num>()
   declaredElement: <testLibraryFragment> m@5
-    type: void Function<T extends num>()
+    element: <testLibrary>::@function::m
+      type: void Function<T extends num>()
 ''');
   }
 
@@ -298,10 +306,12 @@ FunctionDeclaration
         leftBracket: {
         rightBracket: }
     declaredElement: <testLibraryFragment> m@18
-      type: void Function<T extends List<T>>()
+      element: m@18
+        type: void Function<T extends List<T>>()
     staticType: void Function<T extends List<T>>()
   declaredElement: <testLibraryFragment> m@18
-    type: void Function<T extends List<T>>()
+    element: m@18
+      type: void Function<T extends List<T>>()
 ''');
   }
 
@@ -345,10 +355,12 @@ FunctionDeclaration
         leftBracket: {
         rightBracket: }
     declaredElement: <testLibraryFragment> m@18
-      type: void Function<T extends num>()
+      element: m@18
+        type: void Function<T extends num>()
     staticType: void Function<T extends num>()
   declaredElement: <testLibraryFragment> m@18
-    type: void Function<T extends num>()
+    element: m@18
+      type: void Function<T extends num>()
 ''');
   }
 
@@ -389,10 +401,12 @@ FunctionDeclaration
         staticType: int
       semicolon: ;
     declaredElement: <testLibraryFragment> foo@8
-      type: int Function(double)
+      element: <testLibrary>::@getter::foo
+        type: int Function(double)
     staticType: int Function(double)
   declaredElement: <testLibraryFragment> foo@8
-    type: int Function(double)
+    element: <testLibrary>::@getter::foo
+      type: int Function(double)
 ''');
   }
 
@@ -440,10 +454,12 @@ FunctionDeclaration
             semicolon: ;
         rightBracket: }
     declaredElement: <testLibraryFragment> f@14
-      type: Iterable<int> Function()
+      element: <testLibrary>::@function::f
+        type: Iterable<int> Function()
     staticType: Iterable<int> Function()
   declaredElement: <testLibraryFragment> f@14
-    type: Iterable<int> Function()
+    element: <testLibrary>::@function::f
+      type: Iterable<int> Function()
 ''');
   }
 
@@ -484,10 +500,12 @@ FunctionDeclaration
         staticType: int
       semicolon: ;
     declaredElement: <testLibraryFragment> f@14
-      type: Iterable<int> Function()
+      element: <testLibrary>::@function::f
+        type: Iterable<int> Function()
     staticType: Iterable<int> Function()
   declaredElement: <testLibraryFragment> f@14
-    type: Iterable<int> Function()
+    element: <testLibrary>::@function::f
+      type: Iterable<int> Function()
 ''');
   }
 
@@ -512,10 +530,12 @@ FunctionDeclaration
         leftBracket: {
         rightBracket: }
     declaredElement: <testLibraryFragment> _@0
-      type: dynamic Function()
+      element: <testLibrary>::@function::_
+        type: dynamic Function()
     staticType: dynamic Function()
   declaredElement: <testLibraryFragment> _@0
-    type: dynamic Function()
+    element: <testLibrary>::@function::_
+      type: dynamic Function()
 ''');
   }
 
@@ -543,10 +563,12 @@ FunctionDeclaration
         leftBracket: {
         rightBracket: }
     declaredElement: <testLibraryFragment> _@44
-      type: dynamic Function()
+      element: <testLibrary>::@function::_
+        type: dynamic Function()
     staticType: dynamic Function()
   declaredElement: <testLibraryFragment> _@44
-    type: dynamic Function()
+    element: <testLibrary>::@function::_
+      type: dynamic Function()
 ''');
   }
 

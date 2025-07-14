@@ -96,7 +96,6 @@ library
       getters
         #F2 synthetic x
           element: <testLibrary>::@getter::x
-          returnType: FutureOr<int>
       setters
         #F3 synthetic x
           element: <testLibrary>::@setter::x
@@ -154,7 +153,6 @@ library
       getters
         #F2 synthetic x
           element: <testLibrary>::@getter::x
-          returnType: Type
   topLevelVariables
     const hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -201,10 +199,8 @@ library
       getters
         #F3 synthetic x
           element: <testLibrary>::@getter::x
-          returnType: FutureOr<int>
         #F4 synthetic y
           element: <testLibrary>::@getter::y
-          returnType: InvalidType
       setters
         #F5 synthetic x
           element: <testLibrary>::@setter::x
@@ -464,7 +460,6 @@ library
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
-          returnType: int Function()
       setters
         #F3 synthetic v
           element: <testLibrary>::@setter::v
@@ -510,7 +505,6 @@ library
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
-          returnType: Future<dynamic> Function(dynamic)
       setters
         #F3 synthetic v
           element: <testLibrary>::@setter::v
@@ -562,7 +556,6 @@ library
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
-          returnType: Future<int> Function(Future<Future<Future<int>>>)
       setters
         #F3 synthetic v
           element: <testLibrary>::@setter::v
@@ -613,7 +606,6 @@ library
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
-          returnType: Future<int> Function(Future<int>)
       setters
         #F3 synthetic v
           element: <testLibrary>::@setter::v
@@ -664,7 +656,6 @@ library
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
-          returnType: Future<dynamic> Function(Future<dynamic>)
       setters
         #F3 synthetic v
           element: <testLibrary>::@setter::v
@@ -721,7 +712,6 @@ library
           getters
             #F4 synthetic v
               element: <testLibrary>::@class::C::@getter::v
-              returnType: int Function()
           setters
             #F5 synthetic v
               element: <testLibrary>::@class::C::@setter::v
@@ -941,7 +931,6 @@ library
       getters
         #F6 synthetic c
           element: <testLibrary>::@getter::c
-          returnType: C<num, C<num, dynamic>>
       setters
         #F7 synthetic c
           element: <testLibrary>::@setter::c
@@ -1025,7 +1014,6 @@ library
           getters
             #F7 synthetic c3
               element: <testLibrary>::@class::B::@getter::c3
-              returnType: C<C<Object?>>
           setters
             #F8 synthetic c3
               element: <testLibrary>::@class::B::@setter::c3
@@ -1040,10 +1028,8 @@ library
       getters
         #F12 synthetic c
           element: <testLibrary>::@getter::c
-          returnType: C<C<dynamic>>
         #F13 synthetic c2
           element: <testLibrary>::@getter::c2
-          returnType: C<C<Object?>>
       setters
         #F14 synthetic c
           element: <testLibrary>::@setter::c
@@ -1169,7 +1155,6 @@ library
       getters
         #F6 synthetic c
           element: <testLibrary>::@getter::c
-          returnType: C<C<dynamic, num>, num>
       setters
         #F7 synthetic c
           element: <testLibrary>::@setter::c
@@ -1290,10 +1275,6 @@ library
       getters
         #F4 synthetic f
           element: <testLibrary>::@getter::f
-          returnType: dynamic Function(num)
-            alias: <testLibrary>::@typeAlias::F
-              typeArguments
-                num
       setters
         #F5 synthetic f
           element: <testLibrary>::@setter::f
@@ -1382,7 +1363,6 @@ library
       getters
         #F9 synthetic b
           element: <testLibrary>::@getter::b
-          returnType: B<int Function(), A<int Function()>>
       setters
         #F10 synthetic b
           element: <testLibrary>::@setter::b
@@ -1462,10 +1442,6 @@ library
       getters
         #F4 synthetic f
           element: <testLibrary>::@getter::f
-          returnType: S Function<S>(num)
-            alias: <testLibrary>::@typeAlias::F
-              typeArguments
-                num
       setters
         #F5 synthetic f
           element: <testLibrary>::@setter::f
@@ -1544,7 +1520,6 @@ library
           getters
             #F5 synthetic values
               element: <testLibrary>::@class::A::@getter::values
-              returnType: List<B<num>>
         #F6 class B @55
           element: <testLibrary>::@class::B
           typeParameters
@@ -1619,7 +1594,6 @@ library
       getters
         #F5 synthetic c
           element: <testLibrary>::@getter::c
-          returnType: C<num>
       setters
         #F6 synthetic c
           element: <testLibrary>::@setter::c
@@ -1694,7 +1668,6 @@ library
           getters
             #F4 synthetic v
               element: <testLibrary>::@class::C::@getter::v
-              returnType: List<dynamic>
           setters
             #F5 synthetic v
               element: <testLibrary>::@class::C::@setter::v
@@ -1844,7 +1817,6 @@ library
       getters
         #F2 synthetic V
           element: <testLibrary>::@getter::V
-          returnType: dynamic
       setters
         #F3 synthetic V
           element: <testLibrary>::@setter::V
@@ -1929,7 +1901,6 @@ library
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
-          returnType: C
       setters
         #F3 synthetic v
           element: <testLibrary>::@setter::v
@@ -1986,7 +1957,6 @@ library
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
-          returnType: C
       setters
         #F3 synthetic v
           element: <testLibrary>::@setter::v
@@ -2047,7 +2017,6 @@ library
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
-          returnType: C
       setters
         #F3 synthetic v
           element: <testLibrary>::@setter::v
@@ -2326,7 +2295,6 @@ library
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
-          returnType: int Function<T>(T)
       functions
         #F3 f @52
           element: <testLibrary>::@function::f
@@ -2421,7 +2389,6 @@ library
           getters
             #F6 synthetic v
               element: <testLibrary>::@class::C::@getter::v
-              returnType: int Function(T, U)
           setters
             #F7 synthetic v
               element: <testLibrary>::@class::C::@setter::v
@@ -2534,7 +2501,6 @@ library
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
-          returnType: int Function()
       functions
         #F3 f @40
           element: <testLibrary>::@function::f
@@ -2575,7 +2541,6 @@ library
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
-          returnType: int Function(int, String)
       functions
         #F3 f @70
           element: <testLibrary>::@function::f
@@ -2613,7 +2578,6 @@ library
       getters
         #F2 synthetic m
           element: <testLibrary>::@getter::m
-          returnType: Map<dynamic, dynamic>
       setters
         #F3 synthetic m
           element: <testLibrary>::@setter::m
@@ -2659,7 +2623,6 @@ library
       getters
         #F2 synthetic m
           element: <testLibrary>::@getter::m
-          returnType: Map<dynamic, int>
       setters
         #F3 synthetic m
           element: <testLibrary>::@setter::m
@@ -2705,7 +2668,6 @@ library
       getters
         #F2 synthetic m
           element: <testLibrary>::@getter::m
-          returnType: Map<String, dynamic>
       setters
         #F3 synthetic m
           element: <testLibrary>::@setter::m
@@ -2751,7 +2713,6 @@ library
       getters
         #F2 synthetic m
           element: <testLibrary>::@getter::m
-          returnType: Map<String, int>
       setters
         #F3 synthetic m
           element: <testLibrary>::@setter::m
@@ -2797,7 +2758,6 @@ library
       getters
         #F2 synthetic m
           element: <testLibrary>::@getter::m
-          returnType: Map<dynamic, dynamic>
       setters
         #F3 synthetic m
           element: <testLibrary>::@setter::m
@@ -2843,7 +2803,6 @@ library
       getters
         #F2 synthetic d
           element: <testLibrary>::@getter::d
-          returnType: dynamic
       setters
         #F3 synthetic d
           element: <testLibrary>::@setter::d
@@ -2889,7 +2848,6 @@ library
       getters
         #F2 synthetic c
           element: <testLibrary>::@getter::c
-          returnType: InvalidType
       setters
         #F3 synthetic c
           element: <testLibrary>::@setter::c
@@ -2940,7 +2898,6 @@ library
       getters
         #F2 synthetic c
           element: <testLibrary>::@getter::c
-          returnType: InvalidType
       setters
         #F3 synthetic c
           element: <testLibrary>::@setter::c

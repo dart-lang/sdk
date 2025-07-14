@@ -42,7 +42,6 @@ library
       getters
         #F3 a @8
           element: <testLibrary>::@getter::a
-          returnType: int
       setters
         #F4 b @20
           element: <testLibrary>::@setter::b
@@ -112,10 +111,8 @@ library
       getters
         #F3 b @24
           element: <testLibrary>::@getter::b
-          returnType: int
         #F4 a @40
           element: <testLibrary>::@getter::a
-          returnType: int
       setters
         #F5 a @4
           element: <testLibrary>::@setter::a
@@ -173,7 +170,6 @@ library
       getters
         #F2 foo @16
           element: <testLibrary>::@getter::foo
-          returnType: Future<int>
   topLevelVariables
     synthetic foo
       reference: <testLibrary>::@topLevelVariable::foo
@@ -208,7 +204,6 @@ library
       getters
         #F2 foo @37
           element: <testLibrary>::@getter::foo
-          returnType: Stream<int>
   topLevelVariables
     synthetic foo
       reference: <testLibrary>::@topLevelVariable::foo
@@ -244,7 +239,6 @@ library
         #F2 x @64
           element: <testLibrary>::@getter::x
           documentationComment: /**\n * Docs\n */
-          returnType: dynamic
   topLevelVariables
     synthetic x
       reference: <testLibrary>::@topLevelVariable::x
@@ -275,7 +269,6 @@ library
       getters
         #F2 x @17
           element: <testLibrary>::@getter::x
-          returnType: int
   topLevelVariables
     synthetic x
       reference: <testLibrary>::@topLevelVariable::x
@@ -314,7 +307,6 @@ library
           getters
             #F4 f @24
               element: <testLibrary>::@class::C::@getter::f
-              returnType: int
         #F5 class D @52
           element: <testLibrary>::@class::D
           fields
@@ -327,7 +319,6 @@ library
           getters
             #F8 f @64
               element: <testLibrary>::@class::D::@getter::f
-              returnType: int
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -388,7 +379,6 @@ library
       getters
         #F2 foo @18
           element: <testLibrary>::@getter::foo
-          returnType: Iterator<int>
   topLevelVariables
     synthetic foo
       reference: <testLibrary>::@topLevelVariable::foo
@@ -420,10 +410,8 @@ library
       getters
         #F3 x @8
           element: <testLibrary>::@getter::x
-          returnType: int
         #F4 y @23
           element: <testLibrary>::@getter::y
-          returnType: dynamic
   topLevelVariables
     synthetic x
       reference: <testLibrary>::@topLevelVariable::x
@@ -466,7 +454,6 @@ library
       getters
         #F2 x @8
           element: <testLibrary>::@getter::x
-          returnType: int
       setters
         #F3 x @25
           element: <testLibrary>::@setter::x
@@ -514,7 +501,6 @@ library
       getters
         #F2 x @33
           element: <testLibrary>::@getter::x
-          returnType: int
       setters
         #F3 x @9
           element: <testLibrary>::@setter::x
@@ -731,7 +717,6 @@ library
       getters
         #F2 synthetic i
           element: <testLibrary>::@getter::i
-          returnType: int
       setters
         #F3 synthetic i
           element: <testLibrary>::@setter::i
@@ -780,7 +765,6 @@ library
       getters
         #F2 x @8
           element: <testLibrary>::@getter::x
-          returnType: int
       setters
         #F3 x @25
           element: <testLibrary>::@setter::x
@@ -829,7 +813,6 @@ library
       getters
         #F2 x @33
           element: <testLibrary>::@getter::x
-          returnType: int
       setters
         #F3 x @9
           element: <testLibrary>::@setter::x
@@ -881,10 +864,8 @@ library
       getters
         #F3 synthetic foo
           element: <testLibrary>::@getter::foo::@def::0
-          returnType: int
         #F4 synthetic foo
           element: <testLibrary>::@getter::foo::@def::1
-          returnType: int
       setters
         #F5 synthetic foo
           element: <testLibrary>::@setter::foo::@def::0
@@ -960,10 +941,8 @@ library
       getters
         #F3 synthetic foo
           element: <testLibrary>::@getter::foo::@def::0
-          returnType: int
         #F4 foo @21
           element: <testLibrary>::@getter::foo::@def::1
-          returnType: int
       setters
         #F5 synthetic foo
           element: <testLibrary>::@setter::foo
@@ -1025,7 +1004,6 @@ library
       getters
         #F3 synthetic foo
           element: <testLibrary>::@getter::foo
-          returnType: int
       setters
         #F4 synthetic foo
           element: <testLibrary>::@setter::foo::@def::0
@@ -1093,7 +1071,6 @@ library
       getters
         #F2 synthetic foo
           element: <testLibrary>::@getter::foo
-          returnType: int
       setters
         #F3 foo @23
           element: <testLibrary>::@setter::foo
@@ -1139,7 +1116,6 @@ library
       getters
         #F2 synthetic x
           element: <testLibrary>::@getter::x
-          returnType: int
       setters
         #F3 synthetic x
           element: <testLibrary>::@setter::x
@@ -1189,7 +1165,6 @@ library
       getters
         #F2 synthetic i
           element: <testLibrary>::@getter::i
-          returnType: int
   topLevelVariables
     const hasInitializer i
       reference: <testLibrary>::@topLevelVariable::i
@@ -1226,7 +1201,6 @@ library
       getters
         #F2 synthetic i
           element: <testLibrary>::@getter::i
-          returnType: int
   topLevelVariables
     late const hasInitializer i
       reference: <testLibrary>::@topLevelVariable::i
@@ -1265,7 +1239,6 @@ library
       getters
         #F2 synthetic x
           element: <testLibrary>::@getter::x
-          returnType: dynamic
       setters
         #F3 synthetic x
           element: <testLibrary>::@setter::x
@@ -1312,7 +1285,6 @@ library
       getters
         #F2 synthetic x
           element: <testLibrary>::@getter::x
-          returnType: int
   topLevelVariables
     final hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -1344,7 +1316,6 @@ library
       getters
         #F2 synthetic foo
           element: <testLibrary>::@getter::foo
-          returnType: int Function(int, {void Function() fn})?
   topLevelVariables
     final foo
       reference: <testLibrary>::@topLevelVariable::foo
@@ -1387,7 +1358,6 @@ library
       getters
         #F3 x @39
           element: <testLibrary>::@getter::x
-          returnType: int
     #F1 package:test/a.dart
       element: <testLibrary>
       enclosingFragment: #F0
@@ -1461,7 +1431,6 @@ library
       getters
         #F5 x @24
           element: <testLibrary>::@getter::x
-          returnType: int
   topLevelVariables
     synthetic x
       reference: <testLibrary>::@topLevelVariable::x
@@ -1522,7 +1491,6 @@ library
       getters
         #F4 x @24
           element: <testLibrary>::@getter::x
-          returnType: int
     #F2 package:test/b.dart
       element: <testLibrary>
       enclosingFragment: #F0
@@ -1586,7 +1554,6 @@ library
       getters
         #F2 synthetic x
           element: <testLibrary>::@getter::x
-          returnType: dynamic
       setters
         #F3 synthetic x
           element: <testLibrary>::@setter::x
@@ -1632,7 +1599,6 @@ library
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
-          returnType: int
       setters
         #F3 synthetic v
           element: <testLibrary>::@setter::v
@@ -1678,7 +1644,6 @@ library
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
-          returnType: int
   topLevelVariables
     final hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
@@ -1708,7 +1673,6 @@ library
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
-          returnType: int
   topLevelVariables
     final hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
@@ -1752,7 +1716,6 @@ library
       getters
         #F2 synthetic x
           element: <testLibrary>::@getter::x
-          returnType: (int, bool)
   topLevelVariables
     const hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -1804,7 +1767,6 @@ library
       getters
         #F6 synthetic x
           element: <testLibrary>::@getter::x
-          returnType: int
       setters
         #F7 synthetic x
           element: <testLibrary>::@setter::x
@@ -1868,7 +1830,6 @@ library
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
-          returnType: int
       setters
         #F3 synthetic v
           element: <testLibrary>::@setter::v
@@ -1914,7 +1875,6 @@ library
       getters
         #F2 synthetic x
           element: <testLibrary>::@getter::x
-          returnType: int
       setters
         #F3 synthetic x
           element: <testLibrary>::@setter::x
@@ -1960,7 +1920,6 @@ library
       getters
         #F2 synthetic x
           element: <testLibrary>::@getter::x
-          returnType: int
       setters
         #F3 synthetic x
           element: <testLibrary>::@setter::x
@@ -2006,7 +1965,6 @@ library
       getters
         #F2 synthetic x
           element: <testLibrary>::@getter::x
-          returnType: int
   topLevelVariables
     late final hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -2040,10 +1998,8 @@ library
       getters
         #F3 synthetic a
           element: <testLibrary>::@getter::a
-          returnType: Object?
         #F4 synthetic <null-name>
           element: <testLibrary>::@getter::1
-          returnType: Object?
       setters
         #F5 synthetic a
           element: <testLibrary>::@setter::a
@@ -2117,7 +2073,6 @@ library
       getters
         #F2 synthetic i
           element: <testLibrary>::@getter::i
-          returnType: int
   topLevelVariables
     const hasInitializer i
       reference: <testLibrary>::@topLevelVariable::i
@@ -2153,7 +2108,6 @@ library
       getters
         #F2 synthetic b
           element: <testLibrary>::@getter::b
-          returnType: double
   topLevelVariables
     final hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
@@ -2192,7 +2146,6 @@ library
       getters
         #F3 synthetic b
           element: <testLibrary>::@getter::b
-          returnType: double
     #F1 package:test/a.dart
       element: <testLibrary>
       enclosingFragment: #F0
@@ -2203,7 +2156,6 @@ library
       getters
         #F5 synthetic a
           element: <testLibrary>::@getter::a
-          returnType: int
   topLevelVariables
     final hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
@@ -2243,7 +2195,6 @@ library
       getters
         #F2 synthetic i
           element: <testLibrary>::@getter::i
-          returnType: int
   topLevelVariables
     final hasInitializer i
       reference: <testLibrary>::@topLevelVariable::i
@@ -2278,7 +2229,6 @@ library
       getters
         #F2 synthetic x
           element: <testLibrary>::@getter::x
-          returnType: C
   topLevelVariables
     final hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -2339,7 +2289,6 @@ library
       getters
         #F6 x @24
           element: <testLibrary>::@getter::x
-          returnType: int
   topLevelVariables
     synthetic x
       reference: <testLibrary>::@topLevelVariable::x
@@ -2379,7 +2328,6 @@ library
       getters
         #F2 synthetic v
           element: <testLibrary>::@getter::v
-          returnType: int
       setters
         #F3 synthetic v
           element: <testLibrary>::@setter::v
@@ -2428,7 +2376,6 @@ library
       getters
         #F2 synthetic a
           element: <testLibrary>::@getter::a
-          returnType: Never
       setters
         #F3 synthetic a
           element: <testLibrary>::@setter::a
@@ -2477,7 +2424,6 @@ library
       getters
         #F2 synthetic a
           element: <testLibrary>::@getter::a
-          returnType: dynamic
       setters
         #F3 synthetic a
           element: <testLibrary>::@setter::a
@@ -2553,7 +2499,6 @@ library
       getters
         #F5 synthetic a
           element: <testLibrary>::@getter::a
-          returnType: A<int>
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -2599,10 +2544,8 @@ library
       getters
         #F3 synthetic i
           element: <testLibrary>::@getter::i
-          returnType: int
         #F4 synthetic j
           element: <testLibrary>::@getter::j
-          returnType: int
       setters
         #F5 synthetic i
           element: <testLibrary>::@setter::i

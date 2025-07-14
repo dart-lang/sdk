@@ -103,7 +103,8 @@ MethodDeclaration
       leftBracket: {
       rightBracket: }
   declaredElement: <testLibraryFragment> _@12
-    type: dynamic Function()
+    element: <testLibrary>::@class::C::@method::_
+      type: dynamic Function()
 ''');
   }
 
@@ -132,7 +133,8 @@ MethodDeclaration
       leftBracket: {
       rightBracket: }
   declaredElement: <testLibraryFragment> _@56
-    type: dynamic Function()
+    element: <testLibrary>::@class::C::@method::_
+      type: dynamic Function()
 ''');
   }
 

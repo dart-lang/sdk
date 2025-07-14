@@ -77,10 +77,12 @@ FunctionDeclarationStatement
           staticType: T
         semicolon: ;
       declaredElement: <testLibraryFragment> g@15
-        type: T Function<T, U>(T, U)
+        element: g@15
+          type: T Function<T, U>(T, U)
       staticType: T Function<T, U>(T, U)
     declaredElement: <testLibraryFragment> g@15
-      type: T Function<T, U>(T, U)
+      element: g@15
+        type: T Function<T, U>(T, U)
 ''');
   }
 
@@ -165,10 +167,12 @@ FunctionDeclarationStatement
           leftBracket: {
           rightBracket: }
       declaredElement: <testLibraryFragment> g@18
-        type: void Function<T extends U, U, V extends U>(T, U, V)
+        element: g@18
+          type: void Function<T extends U, U, V extends U>(T, U, V)
       staticType: void Function<T extends U, U, V extends U>(T, U, V)
     declaredElement: <testLibraryFragment> g@18
-      type: void Function<T extends U, U, V extends U>(T, U, V)
+      element: g@18
+        type: void Function<T extends U, U, V extends U>(T, U, V)
 ''');
   }
 
@@ -224,10 +228,12 @@ FunctionDeclarationStatement
           leftBracket: {
           rightBracket: }
       declaredElement: <testLibraryFragment> g@18
-        type: void Function<T>({T? a})
+        element: g@18
+          type: void Function<T>({T? a})
       staticType: void Function<T>({T? a})
     declaredElement: <testLibraryFragment> g@18
-      type: void Function<T>({T? a})
+      element: g@18
+        type: void Function<T>({T? a})
 ''');
   }
 
@@ -283,10 +289,12 @@ FunctionDeclarationStatement
           leftBracket: {
           rightBracket: }
       declaredElement: <testLibraryFragment> g@18
-        type: void Function<T>([T?])
+        element: g@18
+          type: void Function<T>([T?])
       staticType: void Function<T>([T?])
     declaredElement: <testLibraryFragment> g@18
-      type: void Function<T>([T?])
+      element: g@18
+        type: void Function<T>([T?])
 ''');
   }
 
@@ -343,10 +351,12 @@ FunctionDeclarationStatement
           leftBracket: {
           rightBracket: }
       declaredElement: <testLibraryFragment> g@18
-        type: void Function<T>({required T? a})
+        element: g@18
+          type: void Function<T>({required T? a})
       staticType: void Function<T>({required T? a})
     declaredElement: <testLibraryFragment> g@18
-      type: void Function<T>({required T? a})
+      element: g@18
+        type: void Function<T>({required T? a})
 ''');
   }
 
@@ -395,10 +405,12 @@ FunctionDeclarationStatement
           leftBracket: {
           rightBracket: }
       declaredElement: <testLibraryFragment> g@18
-        type: void Function<T>(T)
+        element: g@18
+          type: void Function<T>(T)
       staticType: void Function<T>(T)
     declaredElement: <testLibraryFragment> g@18
-      type: void Function<T>(T)
+      element: g@18
+        type: void Function<T>(T)
 ''');
   }
 
@@ -426,10 +438,12 @@ FunctionDeclarationStatement
           leftBracket: {
           rightBracket: }
       declaredElement: <testLibraryFragment> g@13
-        type: Null Function()
+        element: g@13
+          type: Null Function()
       staticType: Null Function()
     declaredElement: <testLibraryFragment> g@13
-      type: Null Function()
+      element: g@13
+        type: Null Function()
 ''');
   }
 
@@ -459,10 +473,12 @@ FunctionDeclarationStatement
           staticType: int
         semicolon: ;
       declaredElement: <testLibraryFragment> g@13
-        type: int Function()
+        element: g@13
+          type: int Function()
       staticType: int Function()
     declaredElement: <testLibraryFragment> g@13
-      type: int Function()
+      element: g@13
+        type: int Function()
 ''');
   }
 }

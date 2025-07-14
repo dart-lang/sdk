@@ -374,7 +374,8 @@ MethodDeclaration
       staticType: Never
     semicolon: ;
   declaredElement: <testLibraryFragment> foo@25
-    type: T Function()
+    element: <testLibrary>::@enum::E::@getter::foo
+      type: T Function()
 ''');
   }
 
@@ -475,7 +476,8 @@ MethodDeclaration
       staticType: int
     semicolon: ;
   declaredElement: <testLibraryFragment> foo@23
-    type: int Function<U>(T, U)
+    element: <testLibrary>::@enum::E::@method::foo
+      type: int Function<U>(T, U)
 ''');
   }
 
@@ -504,7 +506,8 @@ MethodDeclaration
       literal: 'E'
     semicolon: ;
   declaredElement: <testLibraryFragment> toString@23
-    type: String Function()
+    element: <testLibrary>::@enum::E::@method::toString
+      type: String Function()
 ''');
   }
 
@@ -591,7 +594,8 @@ MethodDeclaration
       leftBracket: {
       rightBracket: }
   declaredElement: <testLibraryFragment> foo@23
-    type: void Function(T)
+    element: <testLibrary>::@enum::E::@setter::foo
+      type: void Function(T)
 ''');
   }
 

@@ -43,7 +43,6 @@ library
           getters
             #F3 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
-              returnType: int?
         #F4 extension type B @44
           element: <testLibrary>::@extensionType::B
           fields
@@ -52,7 +51,6 @@ library
           getters
             #F6 synthetic it
               element: <testLibrary>::@extensionType::B::@getter::it
-              returnType: int
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -129,7 +127,6 @@ library
           getters
             #F5 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
-              returnType: int
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -192,7 +189,6 @@ library
           getters
             #F5 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
-              returnType: int
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -261,7 +257,6 @@ library
           getters
             #F7 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
-              returnType: num
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -337,7 +332,6 @@ library
           getters
             #F7 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
-              returnType: num
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -413,7 +407,6 @@ library
           getters
             #F7 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
-              returnType: num
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -493,7 +486,6 @@ library
           getters
             #F5 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
-              returnType: int
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -554,7 +546,6 @@ library
           getters
             #F5 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
-              returnType: int
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -615,10 +606,8 @@ library
           getters
             #F4 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
-              returnType: int
             #F5 synthetic foo
               element: <testLibrary>::@extensionType::A::@getter::foo
-              returnType: int
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -683,10 +672,8 @@ library
           getters
             #F4 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
-              returnType: int
             #F5 synthetic foo
               element: <testLibrary>::@extensionType::A::@getter::foo
-              returnType: int
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -747,10 +734,8 @@ library
           getters
             #F4 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
-              returnType: int
             #F5 synthetic foo
               element: <testLibrary>::@extensionType::A::@getter::foo
-              returnType: int
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -818,7 +803,6 @@ library
           getters
             #F5 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
-              returnType: int
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -874,10 +858,8 @@ library
           getters
             #F4 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
-              returnType: int
             #F5 foo @37
               element: <testLibrary>::@extensionType::A::@getter::foo
-              returnType: int
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -941,7 +923,6 @@ library
           getters
             #F6 synthetic it
               element: <testLibrary>::@extensionType::X::@getter::it
-              returnType: C
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -1002,7 +983,6 @@ library
           getters
             #F3 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
-              returnType: int
         #F4 extension type B @56
           element: <testLibrary>::@extensionType::B
           fields
@@ -1011,7 +991,6 @@ library
           getters
             #F6 synthetic it
               element: <testLibrary>::@extensionType::B::@getter::it
-              returnType: int
   extensionTypes
     hasImplementsSelfReference extension type A
       reference: <testLibrary>::@extensionType::A
@@ -1077,7 +1056,6 @@ library
           getters
             #F3 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
-              returnType: int
   extensionTypes
     hasImplementsSelfReference extension type A
       reference: <testLibrary>::@extensionType::A
@@ -1124,7 +1102,6 @@ library
           getters
             #F3 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
-              returnType: num
         #F4 extension type B @43
           element: <testLibrary>::@extensionType::B
           fields
@@ -1133,7 +1110,6 @@ library
           getters
             #F6 synthetic it
               element: <testLibrary>::@extensionType::B::@getter::it
-              returnType: int
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -1197,7 +1173,6 @@ library
           getters
             #F3 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
-              returnType: int
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -1243,7 +1218,6 @@ library
           getters
             #F3 synthetic it
               element: <testLibrary>::@extensionType::X::@getter::it
-              returnType: int?
   extensionTypes
     extension type X
       reference: <testLibrary>::@extensionType::X
@@ -1290,7 +1264,6 @@ library
           getters
             #F4 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
-              returnType: T
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -1340,7 +1313,6 @@ library
           getters
             #F3 synthetic it
               element: <testLibrary>::@extensionType::X::@getter::it
-              returnType: int
       typeAliases
         #F4 A @8
           element: <testLibrary>::@typeAlias::A
@@ -1450,7 +1422,6 @@ library
           getters
             #F5 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
-              returnType: int
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -1504,7 +1475,6 @@ library
           getters
             #F3 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
-              returnType: int
           methods
             #F4 foo @34
               element: <testLibrary>::@extensionType::A::@method::foo
@@ -1565,7 +1535,6 @@ library
           getters
             #F3 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
-              returnType: int
           methods
             #F4 foo @34
               element: <testLibrary>::@extensionType::A::@method::foo
@@ -1631,7 +1600,6 @@ library
           getters
             #F3 synthetic it
               element: <testLibrary>::@extensionType::0::@getter::it
-              returnType: int
   extensionTypes
     extension type <null-name>
       reference: <testLibrary>::@extensionType::0
@@ -1685,7 +1653,6 @@ library
           getters
             #F5 synthetic <null-name>
               element: <testLibrary>::@extensionType::A::@getter::1
-              returnType: InvalidType
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -1740,7 +1707,6 @@ library
           getters
             #F4 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
-              returnType: int
   extensionTypes
     notSimplyBounded extension type A
       reference: <testLibrary>::@extensionType::A
@@ -1792,7 +1758,6 @@ library
           getters
             #F4 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
-              returnType: int
           setters
             #F5 foo @33
               element: <testLibrary>::@extensionType::A::@setter::foo
@@ -1858,7 +1823,6 @@ library
           getters
             #F3 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
-              returnType: InvalidType
         #F4 extension type B @42
           element: <testLibrary>::@extensionType::B
           fields
@@ -1867,7 +1831,6 @@ library
           getters
             #F6 synthetic it
               element: <testLibrary>::@extensionType::B::@getter::it
-              returnType: InvalidType
   extensionTypes
     hasRepresentationSelfReference extension type A
       reference: <testLibrary>::@extensionType::A
@@ -1931,7 +1894,6 @@ library
           getters
             #F3 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
-              returnType: B
         #F4 extension type B @42
           element: <testLibrary>::@extensionType::B
           fields
@@ -1940,7 +1902,6 @@ library
           getters
             #F6 synthetic it
               element: <testLibrary>::@extensionType::B::@getter::it
-              returnType: InvalidType
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -2002,7 +1963,6 @@ library
           getters
             #F3 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
-              returnType: InvalidType
   extensionTypes
     hasRepresentationSelfReference extension type A
       reference: <testLibrary>::@extensionType::A
@@ -2048,7 +2008,6 @@ library
           getters
             #F3 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
-              returnType: int
         #F4 extension type B @44
           element: <testLibrary>::@extensionType::B
           fields
@@ -2057,7 +2016,6 @@ library
           getters
             #F6 synthetic it
               element: <testLibrary>::@extensionType::B::@getter::it
-              returnType: A Function(A)
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -2124,7 +2082,6 @@ library
           getters
             #F4 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
-              returnType: T
         #F5 extension type B @45
           element: <testLibrary>::@extensionType::B
           fields
@@ -2133,7 +2090,6 @@ library
           getters
             #F7 synthetic it
               element: <testLibrary>::@extensionType::B::@getter::it
-              returnType: A<double>
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -2202,7 +2158,6 @@ library
           getters
             #F3 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
-              returnType: int
         #F4 extension type B @44
           element: <testLibrary>::@extensionType::B
           fields
@@ -2211,7 +2166,6 @@ library
           getters
             #F6 synthetic it
               element: <testLibrary>::@extensionType::B::@getter::it
-              returnType: List<A>
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -2273,7 +2227,6 @@ library
           getters
             #F3 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
-              returnType: int
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -2329,7 +2282,6 @@ library
           getters
             #F7 synthetic it
               element: <testLibrary>::@extensionType::A::@getter::it
-              returnType: Map<T, U>
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A

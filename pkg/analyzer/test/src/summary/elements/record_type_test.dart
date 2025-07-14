@@ -41,7 +41,6 @@ library
           getters
             #F4 synthetic x
               element: <testLibrary>::@class::A::@getter::x
-              returnType: (int, String)
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -90,7 +89,6 @@ library
           getters
             #F4 synthetic x
               element: <testLibrary>::@class::A::@getter::x
-              returnType: (int, bool)
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -527,7 +525,6 @@ library
       getters
         #F2 synthetic x
           element: <testLibrary>::@getter::x
-          returnType: (int, String)
   topLevelVariables
     final x
       reference: <testLibrary>::@topLevelVariable::x
@@ -559,7 +556,6 @@ library
       getters
         #F2 synthetic x
           element: <testLibrary>::@getter::x
-          returnType: (int, bool)
   topLevelVariables
     final hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -622,7 +618,6 @@ library
       getters
         #F2 synthetic x
           element: <testLibrary>::@getter::x
-          returnType: Type
   topLevelVariables
     const hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -684,7 +679,6 @@ library
       getters
         #F2 synthetic x
           element: <testLibrary>::@getter::x
-          returnType: Type
   topLevelVariables
     const hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x

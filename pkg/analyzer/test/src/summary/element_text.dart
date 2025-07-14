@@ -1033,7 +1033,6 @@ class _Element2Writer extends _AbstractElementWriter {
         f.formalParameters,
         _writeFormalParameterFragment,
       );
-      _writeReturnType(f.returnType);
       // _writeNonSyntheticElement(f);
       // writeLinking();
       _writeFragmentReference('previousFragment', f.previousFragment);
@@ -1290,12 +1289,7 @@ class _Element2Writer extends _AbstractElementWriter {
 
       _writeFragmentList('classes', f, f.classes, _writeInstanceFragment);
       _writeFragmentList('enums', f, f.enums, _writeInstanceFragment);
-      _writeFragmentList(
-        'extensions',
-        f,
-        f.extensions,
-        _writeInstanceFragment,
-      );
+      _writeFragmentList('extensions', f, f.extensions, _writeInstanceFragment);
       _writeFragmentList(
         'extensionTypes',
         f,

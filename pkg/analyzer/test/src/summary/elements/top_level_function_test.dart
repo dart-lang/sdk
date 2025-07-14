@@ -1055,7 +1055,6 @@ library
       getters
         #F2 main @4
           element: <testLibrary>::@getter::main
-          returnType: dynamic
   topLevelVariables
     synthetic main
       reference: <testLibrary>::@topLevelVariable::main
@@ -1132,7 +1131,6 @@ library
       getters
         #F2 synthetic main
           element: <testLibrary>::@getter::main
-          returnType: dynamic
       setters
         #F3 synthetic main
           element: <testLibrary>::@setter::main

@@ -133,7 +133,6 @@ library
       getters
         #F2 g @4
           element: <testLibrary>::@getter::g
-          returnType: dynamic
   topLevelVariables
     synthetic g
       reference: <testLibrary>::@topLevelVariable::g

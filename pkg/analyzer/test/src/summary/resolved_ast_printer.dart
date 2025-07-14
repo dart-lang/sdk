@@ -1746,7 +1746,11 @@ Expected parent: (${parent.runtimeType}) $parent
         _writeFragment('declaredElement', fragment);
         if (fragment is ExecutableFragmentImpl) {
           _sink.withIndent(() {
-            _writeType('type', fragment.type);
+            var element = fragment.element;
+            _elementPrinter.writeNamedElement2('element', element);
+            _sink.withIndent(() {
+              _writeType('type', element.type);
+            });
           });
         } else if (fragment is FormalParameterFragmentImpl) {
           _sink.withIndent(() {

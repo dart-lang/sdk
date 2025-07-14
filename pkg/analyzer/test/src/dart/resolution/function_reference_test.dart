@@ -4344,7 +4344,8 @@ FunctionReference
         leftBracket: {
         rightBracket: }
     declaredElement: <testLibraryFragment> null@null
-      type: Null Function<T>(T)
+      element: null@null
+        type: Null Function<T>(T)
     staticType: Null Function<T>(T)
   staticType: Null Function(int)
   typeArgumentTypes

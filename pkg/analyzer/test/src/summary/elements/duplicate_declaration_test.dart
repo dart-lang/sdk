@@ -64,10 +64,8 @@ library
           getters
             #F5 synthetic f01
               element: <testLibrary>::@class::A::@def::0::@getter::f01
-              returnType: int
             #F6 synthetic f02
               element: <testLibrary>::@class::A::@def::0::@getter::f02
-              returnType: int
         #F7 class A @69
           element: <testLibrary>::@class::A::@def::1
           fields
@@ -91,10 +89,8 @@ library
           getters
             #F11 synthetic f11
               element: <testLibrary>::@class::A::@def::1::@getter::f11
-              returnType: int
             #F12 synthetic f12
               element: <testLibrary>::@class::A::@def::1::@getter::f12
-              returnType: int
         #F13 class A @132
           element: <testLibrary>::@class::A::@def::2
           fields
@@ -118,10 +114,8 @@ library
           getters
             #F17 synthetic f21
               element: <testLibrary>::@class::A::@def::2::@getter::f21
-              returnType: int
             #F18 synthetic f22
               element: <testLibrary>::@class::A::@def::2::@getter::f22
-              returnType: int
   classes
     class A
       reference: <testLibrary>::@class::A::@def::0
@@ -302,10 +296,8 @@ library
           getters
             #F5 synthetic foo
               element: <testLibrary>::@class::A::@getter::foo::@def::0
-              returnType: int
             #F6 synthetic foo
               element: <testLibrary>::@class::A::@getter::foo::@def::1
-              returnType: double
           setters
             #F7 synthetic foo
               element: <testLibrary>::@class::A::@setter::foo::@def::0
@@ -584,13 +576,10 @@ library
           getters
             #F6 synthetic a
               element: <testLibrary>::@enum::E::@def::0::@getter::a
-              returnType: E
             #F7 synthetic b
               element: <testLibrary>::@enum::E::@def::0::@getter::b
-              returnType: E
             #F8 synthetic values
               element: <testLibrary>::@enum::E::@def::0::@getter::values
-              returnType: List<E>
         #F9 enum E @19
           element: <testLibrary>::@enum::E::@def::1
           fields
@@ -663,16 +652,12 @@ library
           getters
             #F15 synthetic c
               element: <testLibrary>::@enum::E::@def::1::@getter::c
-              returnType: E
             #F16 synthetic d
               element: <testLibrary>::@enum::E::@def::1::@getter::d
-              returnType: E
             #F17 synthetic e
               element: <testLibrary>::@enum::E::@def::1::@getter::e
-              returnType: E
             #F18 synthetic values
               element: <testLibrary>::@enum::E::@def::1::@getter::values
-              returnType: List<E>
   enums
     enum E
       reference: <testLibrary>::@enum::E::@def::0
@@ -816,7 +801,6 @@ library
           getters
             #F4 synthetic x
               element: <testLibrary>::@extension::E::@def::1::@getter::x
-              returnType: dynamic
           setters
             #F5 synthetic x
               element: <testLibrary>::@extension::E::@def::1::@setter::x
@@ -831,7 +815,6 @@ library
           getters
             #F9 synthetic y
               element: <testLibrary>::@extension::E::@def::2::@getter::y
-              returnType: int
           setters
             #F10 synthetic y
               element: <testLibrary>::@extension::E::@def::2::@setter::y
@@ -927,7 +910,6 @@ library
           getters
             #F5 synthetic it
               element: <testLibrary>::@extensionType::E::@def::0::@getter::it
-              returnType: int
         #F6 extension type E @43
           element: <testLibrary>::@extensionType::E::@def::1
           fields
@@ -944,7 +926,6 @@ library
           getters
             #F10 synthetic it
               element: <testLibrary>::@extensionType::E::@def::1::@getter::it
-              returnType: double
   extensionTypes
     extension type E
       reference: <testLibrary>::@extensionType::E::@def::0
@@ -1154,7 +1135,6 @@ library
           getters
             #F4 synthetic x
               element: <testLibrary>::@mixin::A::@def::1::@getter::x
-              returnType: dynamic
           setters
             #F5 synthetic x
               element: <testLibrary>::@mixin::A::@def::1::@setter::x
@@ -1169,7 +1149,6 @@ library
           getters
             #F9 synthetic y
               element: <testLibrary>::@mixin::A::@def::2::@getter::y
-              returnType: int
           setters
             #F10 synthetic y
               element: <testLibrary>::@mixin::A::@def::2::@setter::y
@@ -1265,16 +1244,12 @@ library
       getters
         #F5 synthetic x
           element: <testLibrary>::@getter::x::@def::0
-          returnType: bool
         #F6 synthetic x
           element: <testLibrary>::@getter::x::@def::1
-          returnType: dynamic
         #F7 synthetic x
           element: <testLibrary>::@getter::x::@def::2
-          returnType: int
         #F8 synthetic x
           element: <testLibrary>::@getter::x::@def::3
-          returnType: double
       setters
         #F9 synthetic x
           element: <testLibrary>::@setter::x::@def::0
@@ -1384,10 +1359,8 @@ library
       getters
         #F3 foo @8
           element: <testLibrary>::@getter::foo::@def::0
-          returnType: int
         #F4 foo @26
           element: <testLibrary>::@getter::foo::@def::1
-          returnType: double
   topLevelVariables
     synthetic foo
       reference: <testLibrary>::@topLevelVariable::foo::@def::0

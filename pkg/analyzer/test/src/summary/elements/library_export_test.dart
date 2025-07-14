@@ -1307,7 +1307,6 @@ library
       getters
         #F3 synthetic a
           element: <testLibrary>::@getter::a
-          returnType: int
       setters
         #F4 synthetic a
           element: <testLibrary>::@setter::a
@@ -1381,7 +1380,6 @@ library
       getters
         #F3 synthetic a
           element: <testLibrary>::@getter::a
-          returnType: int
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
