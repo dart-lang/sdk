@@ -447,10 +447,13 @@ class FileResolver {
   /// partially resynthesized data, and so prepare for loading linked summaries
   /// from bytes, which will be done by [getErrors2]. It is OK for it to
   /// spend some more time on this.
-  Future<void> linkLibraries2({required String path}) async {
+  Future<void> linkLibraries2({
+    required String path,
+    OperationPerformanceImpl? performance,
+  }) async {
     _throwIfNotAbsoluteNormalizedPath(path);
 
-    var performance = OperationPerformanceImpl('<unused>');
+    performance ??= OperationPerformanceImpl('<unused>');
 
     var fileContext = getFileContext(path: path, performance: performance);
     var file = fileContext.file;
