@@ -1055,7 +1055,7 @@ class _MockSdkElementsBuilder {
 
   TopLevelFunctionFragmentImpl _function(
     String name,
-    DartType returnType, {
+    TypeImpl returnType, {
     List<TypeParameterFragmentImpl> typeFormals = const [],
     List<FormalParameterElement> parameters = const [],
   }) {
@@ -1065,9 +1065,11 @@ class _MockSdkElementsBuilder {
               parameters
                   .map((p) => p.firstFragment as FormalParameterFragmentImpl)
                   .toList()
-          ..returnType = returnType
           ..typeParameters = typeFormals;
-    TopLevelFunctionElementImpl(Reference.root(), fragment);
+
+    var element = TopLevelFunctionElementImpl(Reference.root(), fragment);
+    element.returnType = returnType;
+
     return fragment;
   }
 
@@ -1099,12 +1101,13 @@ class _MockSdkElementsBuilder {
     fieldElement.type = type;
 
     var getterFragment = GetterFragmentImpl(name: name, firstTokenOffset: null);
+    getterFragment.isStatic = isStatic;
+    getterFragment.isSynthetic = false;
+
     var getterElement = GetterElementImpl(Reference.root(), getterFragment);
     fieldElement.getter = getterElement;
     getterElement.variable = fieldElement;
-    getterFragment.isStatic = isStatic;
-    getterFragment.isSynthetic = false;
-    getterFragment.returnType = type;
+    getterElement.returnType = type;
 
     return getterFragment;
   }
@@ -1122,7 +1125,7 @@ class _MockSdkElementsBuilder {
 
   MethodFragmentImpl _method(
     String name,
-    DartType returnType, {
+    TypeImpl returnType, {
     List<TypeParameterFragmentImpl> typeFormals = const [],
     List<FormalParameterElement> parameters = const [],
   }) {
@@ -1132,13 +1135,15 @@ class _MockSdkElementsBuilder {
               parameters
                   .map((p) => p.firstFragment as FormalParameterFragmentImpl)
                   .toList()
-          ..returnType = returnType
           ..typeParameters = typeFormals;
-    MethodElementImpl(
+
+    var element = MethodElementImpl(
       name: name,
       reference: Reference.root(),
       firstFragment: fragment,
     );
+    element.returnType = returnType;
+
     return fragment;
   }
 

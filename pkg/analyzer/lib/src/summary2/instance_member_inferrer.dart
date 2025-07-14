@@ -177,7 +177,6 @@ class InstanceMemberInferrer {
       // signature of said getter in the direct superinterfaces.
       if (overriddenGetters.isNotEmpty) {
         var returnType = combinedGetterType();
-        accessor.returnType = returnType;
         accessor.element.returnType = returnType;
         var fieldElement = accessor.element.variable as FieldElementImpl;
         fieldElement.type = returnType;
@@ -190,7 +189,6 @@ class InstanceMemberInferrer {
       // setter in the direct superinterfaces.
       if (overriddenGetters.isEmpty && overriddenSetters.isNotEmpty) {
         var returnType = combinedSetterType();
-        accessor.returnType = returnType;
         accessor.element.returnType = returnType;
         var fieldElement = accessor.element.variable as FieldElementImpl;
         fieldElement.type = returnType;
@@ -478,12 +476,8 @@ class InstanceMemberInferrer {
     //
     if (element.hasImplicitReturnType && element.displayName != '[]=') {
       if (combinedSignatureType != null) {
-        element.returnType = combinedSignatureType.returnType;
-        // TODO(scheglov): leave only element
         element.element.returnType = combinedSignatureType.returnType;
       } else {
-        element.returnType = DynamicTypeImpl.instance;
-        // TODO(scheglov): leave only element
         element.element.returnType = DynamicTypeImpl.instance;
       }
     }
@@ -783,12 +777,10 @@ class InstanceMemberInferrer {
     field.element.type = type;
     // TODO(scheglov): We repeat this code.
     field.element.getter?.returnType = type;
-    field.element.getter?.firstFragment.returnType = type;
 
     var setterElement = field.element.setter;
     if (setterElement != null) {
       setterElement.returnType = VoidTypeImpl.instance;
-      setterElement.firstFragment.returnType = VoidTypeImpl.instance;
       setterElement.valueFormalParameter.type = type;
     }
   }

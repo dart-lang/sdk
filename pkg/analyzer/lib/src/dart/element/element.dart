@@ -716,7 +716,6 @@ class ConstantInitializerImpl implements ConstantInitializer {
 class ConstructorElementImpl extends ExecutableElementImpl
     with
         FragmentedExecutableElementMixin<ConstructorFragmentImpl>,
-        FragmentedFunctionTypedElementMixin<ConstructorFragmentImpl>,
         FragmentedTypeParameterizedElementMixin<ConstructorFragmentImpl>,
         FragmentedAnnotatableElementMixin<ConstructorFragmentImpl>,
         FragmentedElementMixin<ConstructorFragmentImpl>,
@@ -856,7 +855,12 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @override
   InterfaceTypeImpl get returnType {
-    return firstFragment.returnType;
+    var result = _returnType;
+    if (result != null) {
+      return result as InterfaceTypeImpl;
+    }
+
+    return _returnType = enclosingElement.thisType;
   }
 
   @override
@@ -1072,33 +1076,6 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
       typeNameOffset ??
       firstTokenOffset ??
       enclosingElement.offset;
-
-  @override
-  InterfaceTypeImpl get returnType {
-    var result = _returnType;
-    if (result != null) {
-      return result as InterfaceTypeImpl;
-    }
-
-    result = enclosingElement.element.thisType;
-    return _returnType = result as InterfaceTypeImpl;
-  }
-
-  @override
-  FunctionTypeImpl get type {
-    // TODO(scheglov): Remove "element" in the breaking changes branch.
-    return _type ??= FunctionTypeImpl(
-      typeParameters: typeParameters.map((f) => f.asElement2).toList(),
-      parameters: parameters.map((f) => f.asElement2).toList(),
-      returnType: returnType,
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-  }
-
-  @override
-  set type(FunctionType type) {
-    assert(false);
-  }
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
@@ -2121,6 +2098,7 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
     with DeferredResolutionReadingMixin
     implements ExecutableElement2OrMember, AnnotatableElementImpl {
   TypeImpl? _returnType;
+  FunctionTypeImpl? _type;
 
   @override
   ExecutableElementImpl get baseElement => this;
@@ -2136,6 +2114,9 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
   @override
   List<Element> get children2 => children;
 
+  @override
+  ExecutableFragmentImpl get firstFragment;
+
   /// Whether the type of this element references a type parameter of the
   /// enclosing element. This includes not only explicitly specified type
   /// annotations, but also inferred types.
@@ -2143,17 +2124,17 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
   /// Top-level declarations don't have enclosing element type parameters,
   /// so for them this flag is always `false`.
   bool get hasEnclosingTypeParameterReference {
-    var firstFragment = this.firstFragment as ExecutableFragmentImpl;
+    var firstFragment = this.firstFragment;
     return firstFragment.hasEnclosingTypeParameterReference;
   }
 
   bool get invokesSuperSelf {
-    var firstFragment = this.firstFragment as ExecutableFragmentImpl;
+    var firstFragment = this.firstFragment;
     return firstFragment.hasModifier(Modifier.INVOKES_SUPER_SELF);
   }
 
   ExecutableFragmentImpl get lastFragment {
-    var result = firstFragment as ExecutableFragmentImpl;
+    var result = firstFragment;
     while (true) {
       if (result.nextFragment case ExecutableFragmentImpl nextFragment) {
         result = nextFragment;
@@ -2165,7 +2146,7 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
 
   @override
   LibraryElementImpl get library {
-    var firstFragment = this.firstFragment as ExecutableFragmentImpl;
+    var firstFragment = this.firstFragment;
     return firstFragment.library;
   }
 
@@ -2181,6 +2162,8 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
     if (_returnType == null && isSynthetic) {
       if (this case GetterElementImpl thisGetter) {
         thisGetter.variable!.type;
+      } else if (this case SetterElementImpl thisSetter) {
+        thisSetter.variable!.type;
       }
     }
 
@@ -2189,6 +2172,24 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
 
   set returnType(TypeImpl value) {
     _returnType = value;
+    // We do this because of return type inference. At the moment when we
+    // create a local function element we don't know yet its return type,
+    // because we have not done static type analysis yet.
+    // It somewhere it between we access the type of this element, so it gets
+    // cached in the element. When we are done static type analysis, we then
+    // should clear this cached type to make it right.
+    // TODO(scheglov): Remove when type analysis is done in the single pass.
+    _type = null;
+  }
+
+  @override
+  FunctionTypeImpl get type {
+    return _type ??= FunctionTypeImpl(
+      typeParameters: typeParameters.cast(),
+      parameters: formalParameters,
+      returnType: returnType,
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
   }
 }
 
@@ -2198,12 +2199,6 @@ abstract class ExecutableFragmentImpl extends _ExistingFragmentImpl
   /// A list containing all of the parameters defined by this executable
   /// element.
   List<FormalParameterFragmentImpl> _parameters = const [];
-
-  /// The inferred return type of this executable element.
-  TypeImpl? _returnType;
-
-  /// The type of function defined by this executable element.
-  FunctionTypeImpl? _type;
 
   /// Initialize a newly created executable element to have the given [name] and
   /// [offset].
@@ -2357,52 +2352,6 @@ abstract class ExecutableFragmentImpl extends _ExistingFragmentImpl
 
   List<FormalParameterFragmentImpl> get parameters_unresolved {
     return _parameters;
-  }
-
-  /// The return type specified by this fragment.
-  TypeImpl get returnType {
-    _ensureReadResolution();
-
-    // If a synthetic getter, we might need to infer the type.
-    if (_returnType == null && isSynthetic) {
-      if (this case GetterFragmentImpl thisGetter) {
-        thisGetter.element.variable!.type;
-      } else if (this case SetterFragmentImpl thisSetter) {
-        thisSetter.element.variable!.type;
-      }
-    }
-
-    return _returnType!;
-  }
-
-  set returnType(DartType returnType) {
-    // TODO(paulberry): eliminate this cast by changing the setter parameter
-    // type to `TypeImpl`.
-    _returnType = returnType as TypeImpl;
-    // We do this because of return type inference. At the moment when we
-    // create a local function element we don't know yet its return type,
-    // because we have not done static type analysis yet.
-    // It somewhere it between we access the type of this element, so it gets
-    // cached in the element. When we are done static type analysis, we then
-    // should clear this cached type to make it right.
-    // TODO(scheglov): Remove when type analysis is done in the single pass.
-    _type = null;
-  }
-
-  /// The type defined by this element.
-  FunctionTypeImpl get type {
-    if (_type != null) return _type!;
-
-    return _type = FunctionTypeImpl(
-      typeParameters: typeParameters.map((f) => f.asElement2).toList(),
-      parameters: parameters.map((f) => f.asElement2).toList(),
-      returnType: returnType,
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-  }
-
-  set type(FunctionTypeImpl type) {
-    _type = type;
   }
 
   @override
@@ -3559,38 +3508,6 @@ mixin FragmentedExecutableElementMixin<E extends ExecutableFragmentImpl>
   bool get isStatic => (firstFragment as ExecutableFragmentImpl).isStatic;
 }
 
-mixin FragmentedFunctionTypedElementMixin<E extends ExecutableFragment>
-    implements FragmentedElementMixin<E> {
-  // TODO(augmentations): This might be wrong. The parameters need to be a
-  //  merge of the parameters of all of the fragments, but this probably doesn't
-  //  account for missing data (such as the parameter types).
-  List<FormalParameterElementMixin> get formalParameters {
-    var fragment = firstFragment;
-    return switch (fragment) {
-      FunctionTypedFragmentImpl(:var parameters) =>
-        parameters.map((fragment) => fragment.asElement2).toList(),
-      ExecutableFragmentImpl(:var parameters) =>
-        parameters.map((fragment) => fragment.asElement2).toList(),
-      _ =>
-        throw UnsupportedError(
-          'Cannot get formal parameters for ${fragment.runtimeType}',
-        ),
-    };
-  }
-
-  // TODO(augmentations): This is wrong. The function type needs to be a merge
-  //  of the function types of all of the fragments, but I don't know how to
-  //  perform that merge.
-  FunctionTypeImpl get type {
-    if (firstFragment is ExecutableFragmentImpl) {
-      return (firstFragment as ExecutableFragmentImpl).type;
-    } else if (firstFragment is FunctionTypedFragmentImpl) {
-      return (firstFragment as FunctionTypedFragmentImpl).type;
-    }
-    throw UnimplementedError();
-  }
-}
-
 mixin FragmentedTypeParameterizedElementMixin<
   E extends TypeParameterizedFragment
 >
@@ -3941,11 +3858,6 @@ abstract class FunctionTypedFragmentImpl implements _ExistingFragmentImpl {
   /// The parameters defined by this executable element.
   List<FormalParameterFragmentImpl> get parameters;
 
-  set returnType(DartType returnType);
-
-  /// The type defined by this element.
-  FunctionTypeImpl get type;
-
   /// The type parameters declared by this element directly.
   ///
   /// This does not include type parameters that are declared by any enclosing
@@ -4130,14 +4042,12 @@ class GenericFunctionTypeFragmentImpl extends _ExistingFragmentImpl
 
   /// Set the return type defined by this function type element to the given
   /// [returnType].
-  @override
   set returnType(DartType returnType) {
     // TODO(paulberry): eliminate this cast by changing the setter parameter
     // type to `TypeImpl`.
     _returnType = returnType as TypeImpl;
   }
 
-  @override
   FunctionTypeImpl get type {
     if (_type != null) return _type!;
 
@@ -4173,7 +4083,6 @@ abstract class GetterElement2OrMember
 class GetterElementImpl extends PropertyAccessorElementImpl
     with
         FragmentedExecutableElementMixin<GetterFragmentImpl>,
-        FragmentedFunctionTypedElementMixin<GetterFragmentImpl>,
         FragmentedTypeParameterizedElementMixin<GetterFragmentImpl>,
         FragmentedAnnotatableElementMixin<GetterFragmentImpl>,
         FragmentedElementMixin<GetterFragmentImpl>,
@@ -6971,7 +6880,6 @@ final class LoadLibraryFunctionProvider {
     );
     fragment.isSynthetic = true;
     fragment.isStatic = true;
-    fragment.returnType = library.typeProvider.futureDynamicType;
     fragment.enclosingElement = library.definingCompilationUnit;
 
     return TopLevelFunctionElementImpl(elementReference, fragment)
@@ -7054,12 +6962,6 @@ class LocalFunctionElementImpl extends ExecutableElementImpl
   @Deprecated('Use name instead')
   @override
   String? get name3 => name;
-
-  @override
-  TypeImpl get returnType => _wrappedFragment.returnType;
-
-  @override
-  FunctionTypeImpl get type => _wrappedFragment.type;
 
   @override
   List<TypeParameterElement> get typeParameters =>
@@ -7697,7 +7599,6 @@ abstract class MethodElement2OrMember
 class MethodElementImpl extends ExecutableElementImpl
     with
         FragmentedExecutableElementMixin<MethodFragmentImpl>,
-        FragmentedFunctionTypedElementMixin<MethodFragmentImpl>,
         FragmentedTypeParameterizedElementMixin<MethodFragmentImpl>,
         FragmentedAnnotatableElementMixin<MethodFragmentImpl>,
         FragmentedElementMixin<MethodFragmentImpl>,
@@ -9038,12 +8939,10 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
     var element = this;
     if (element.getter case var getterElement?) {
       getterElement.returnType = type;
-      getterElement.firstFragment.returnType = type;
     }
     if (element.setter case var setterElement?) {
       if (setterElement.isSynthetic) {
         setterElement.returnType = VoidTypeImpl.instance;
-        setterElement.firstFragment.returnType = VoidTypeImpl.instance;
         (setterElement.formalParameters.single as FormalParameterElementImpl)
             .type = type;
       }
@@ -9147,7 +9046,6 @@ abstract class SetterElement2OrMember
 class SetterElementImpl extends PropertyAccessorElementImpl
     with
         FragmentedExecutableElementMixin<SetterFragmentImpl>,
-        FragmentedFunctionTypedElementMixin<SetterFragmentImpl>,
         FragmentedTypeParameterizedElementMixin<SetterFragmentImpl>,
         FragmentedAnnotatableElementMixin<SetterFragmentImpl>,
         FragmentedElementMixin<SetterFragmentImpl>,
@@ -9487,7 +9385,6 @@ class SuperFormalParameterFragmentImpl extends FormalParameterFragmentImpl
 class TopLevelFunctionElementImpl extends ExecutableElementImpl
     with
         FragmentedExecutableElementMixin<FunctionFragmentImpl>,
-        FragmentedFunctionTypedElementMixin<FunctionFragmentImpl>,
         FragmentedTypeParameterizedElementMixin<FunctionFragmentImpl>,
         FragmentedAnnotatableElementMixin<FunctionFragmentImpl>,
         FragmentedElementMixin<FunctionFragmentImpl>,

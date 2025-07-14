@@ -359,6 +359,7 @@ class LibraryReader {
           var enclosingElement =
               element.enclosingElement as InstanceElementImpl;
           reader._addTypeParameters2(enclosingElement.typeParameters);
+          element.returnType = reader.readRequiredType();
           element.superConstructor = reader.readConstructorElementMixin();
           element.redirectedConstructor = reader.readConstructorElementMixin();
         }),
@@ -400,7 +401,6 @@ class LibraryReader {
             fragment.parameters,
           );
           _readFragmentMetadata(fragment, reader);
-          fragment.returnType = reader.readRequiredType();
           fragment.constantInitializers = reader.readNodeList();
         },
       );
@@ -832,7 +832,6 @@ class LibraryReader {
             fragment.parameters,
           );
           _readFragmentMetadata(fragment, reader);
-          fragment.returnType = reader.readRequiredType();
         },
       );
     });
@@ -964,7 +963,6 @@ class LibraryReader {
             fragment.parameters,
           );
           _readFragmentMetadata(fragment, reader);
-          fragment.returnType = reader.readRequiredType();
         },
       );
     });
@@ -1160,7 +1158,6 @@ class LibraryReader {
             fragment.parameters,
           );
           _readFragmentMetadata(fragment, reader);
-          fragment.returnType = reader.readRequiredType();
         },
       );
     });
@@ -1243,7 +1240,6 @@ class LibraryReader {
             fragment.parameters,
           );
           _readFragmentMetadata(fragment, reader);
-          fragment.returnType = reader.readRequiredType();
         },
       );
     });

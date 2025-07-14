@@ -94,7 +94,7 @@ class ElementDisplayStringBuilder {
   }
 
   void writeConstructorFragment(ConstructorFragmentImpl element) {
-    _writeType(element.returnType);
+    _writeType(element.element.returnType);
     _write(' ');
 
     _write(element.displayName);
@@ -146,7 +146,7 @@ class ElementDisplayStringBuilder {
     }
 
     if (fragment is! SetterFragmentImpl) {
-      _writeType(fragment.returnType);
+      _writeType(fragment.element.returnType);
       _write(' ');
     }
 

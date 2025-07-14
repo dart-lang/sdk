@@ -184,13 +184,11 @@ class FunctionExpressionResolver {
     );
   }
 
-  void _resolve2(FunctionExpressionImpl node, DartType? imposedType) {
+  void _resolve2(FunctionExpressionImpl node, TypeImpl? imposedType) {
     var functionElement = node.declaredFragment!.element;
 
     if (_shouldUpdateReturnType(node)) {
-      var firstFragment =
-          functionElement.firstFragment as ExecutableFragmentImpl;
-      firstFragment.returnType = imposedType ?? DynamicTypeImpl.instance;
+      functionElement.returnType = imposedType ?? DynamicTypeImpl.instance;
     }
 
     node.recordStaticType(functionElement.type, resolver: _resolver);

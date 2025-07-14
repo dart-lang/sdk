@@ -200,8 +200,7 @@ extension EnumElementImplExtension on EnumFragmentImpl {
 }
 
 extension ExecutableElement2OrMemberExtension on ExecutableElement2OrMember {
-  ExecutableFragmentImpl get declarationImpl =>
-      baseElement.firstFragment as ExecutableFragmentImpl;
+  ExecutableFragmentImpl get declarationImpl => baseElement.firstFragment;
 }
 
 extension ExecutableElementImpl2Extension on ExecutableElementImpl {

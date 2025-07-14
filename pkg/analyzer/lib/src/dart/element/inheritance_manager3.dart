@@ -981,7 +981,6 @@ class InheritanceManager3 {
       resultFragment.isSynthetic = true;
       resultFragment.parameters =
           transformedParameters.map((e) => e.firstFragment).toList();
-      resultFragment.returnType = executable.returnType;
       resultFragment.typeParameters =
           executable.typeParameters
               .map((e) => e.firstFragment as TypeParameterFragmentImpl)
@@ -993,6 +992,7 @@ class InheritanceManager3 {
         reference: elementReference,
         firstFragment: resultFragment,
       );
+      result.returnType = executable.returnType;
 
       return result;
     }
@@ -1014,9 +1014,9 @@ class InheritanceManager3 {
       resultFragment.isSynthetic = true;
       resultFragment.parameters =
           transformedParameters.map((e) => e.firstFragment).toList();
-      resultFragment.returnType = executable.returnType;
 
       var result = SetterElementImpl(setterReference, resultFragment);
+      result.returnType = executable.returnType;
 
       var resultField = FieldFragmentImpl(
         name: executable.name,
@@ -1084,7 +1084,6 @@ class InheritanceManager3 {
       resultFragment.enclosingElement = targetClass.firstFragment;
       resultFragment.typeParameters =
           resultType.typeParameters.map((e) => e.firstFragment).toList();
-      resultFragment.returnType = resultType.returnType;
       // TODO(scheglov): check if can type cast instead
       resultFragment.parameters =
           resultType.parameters
@@ -1097,6 +1096,7 @@ class InheritanceManager3 {
         reference: elementReference,
         firstFragment: resultFragment,
       );
+      resultElement.returnType = resultType.returnType;
 
       return resultElement;
     } else {
@@ -1137,10 +1137,11 @@ class InheritanceManager3 {
         );
         resultFragment = fragment;
 
-        resultElement = SetterElementImpl(elementReference, fragment);
+        var element = SetterElementImpl(elementReference, fragment);
+        element.returnType = resultType.returnType;
+        resultElement = element;
       }
       resultFragment.enclosingElement = targetClass.firstFragment;
-      resultFragment.returnType = resultType.returnType;
       // TODO(scheglov): check if can type cast instead
       resultFragment.parameters =
           resultType.parameters
@@ -1161,9 +1162,9 @@ class InheritanceManager3 {
       resultFragment.element.variable = fieldElement;
 
       if (firstElement is GetterElement) {
-        fieldElement.type = resultFragment.returnType;
+        fieldElement.type = resultType.returnType;
       } else {
-        var type = resultFragment.parameters[0].element.type;
+        var type = resultType.formalParameters[0].type;
         fieldElement.type = type;
       }
 

@@ -178,7 +178,7 @@ class TypesBuilder {
       }
       var fragment = node.declaredFragment!;
       var element = fragment.element;
-      fragment.returnType = returnType;
+      element.returnType = returnType;
 
       switch (element) {
         case GetterElementImpl():
@@ -224,7 +224,6 @@ class TypesBuilder {
       }
       var fragment = node.declaredFragment!;
       var element = fragment.element;
-      fragment.returnType = returnType;
       switch (element) {
         case GetterElementImpl():
           element.returnType = returnType;
@@ -266,11 +265,9 @@ class TypesBuilder {
           if (variableElement is PropertyInducingElementImpl) {
             if (variableElement.getter case var getterElement?) {
               getterElement.returnType = type;
-              getterElement.firstFragment.returnType = type;
             }
             if (variableElement.setter case var setterElement?) {
               setterElement.returnType = VoidTypeImpl.instance;
-              setterElement.firstFragment.returnType = VoidTypeImpl.instance;
               (setterElement.formalParameters.single
                       as FormalParameterElementImpl)
                   .type = type;

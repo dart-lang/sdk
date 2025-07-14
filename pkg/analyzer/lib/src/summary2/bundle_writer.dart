@@ -201,6 +201,7 @@ class BundleWriter {
       _writeElementResolution(() {
         // TODO(scheglov): avoid cast
         _resolutionSink.withTypeParameters(element.typeParameters.cast(), () {
+          _resolutionSink.writeType(element.returnType);
           _resolutionSink.writeElement(element.superConstructor);
           _resolutionSink.writeElement(element.redirectedConstructor);
           // TODO(scheglov): formal parameters
@@ -215,7 +216,6 @@ class BundleWriter {
       _writeTypeParameters(fragment.typeParameters, () {
         _sink.writeList(fragment.formalParameters, _writeParameterElement);
         _resolutionSink._writeMetadata(fragment.metadata);
-        _resolutionSink.writeType(fragment.returnType);
         _resolutionSink._writeNodeList(fragment.constantInitializers);
       });
     });
@@ -488,7 +488,6 @@ class BundleWriter {
       _writeTypeParameters(fragment.typeParameters, () {
         _sink.writeList(fragment.formalParameters, _writeParameterElement);
         _resolutionSink._writeMetadata(fragment.metadata);
-        _resolutionSink.writeType(fragment.returnType);
       });
     });
   }
@@ -562,7 +561,6 @@ class BundleWriter {
       _writeTypeParameters(fragment.typeParameters, () {
         _sink.writeList(fragment.formalParameters, _writeParameterElement);
         _resolutionSink._writeMetadata(fragment.metadata);
-        _resolutionSink.writeType(fragment.returnType);
       });
     });
   }
@@ -696,7 +694,6 @@ class BundleWriter {
       _writeTypeParameters(fragment.typeParameters, () {
         _sink.writeList(fragment.formalParameters, _writeParameterElement);
         _resolutionSink._writeMetadata(fragment.metadata);
-        _resolutionSink.writeType(fragment.returnType);
       });
     });
   }
@@ -732,7 +729,6 @@ class BundleWriter {
       _writeTypeParameters(fragment.typeParameters, () {
         _sink.writeList(fragment.formalParameters, _writeParameterElement);
         _resolutionSink._writeMetadata(fragment.metadata);
-        _resolutionSink.writeType(fragment.returnType);
       });
     });
   }

@@ -469,13 +469,13 @@ mixin ElementsTypesMixin {
         MethodFragmentImpl(name: name, firstTokenOffset: null)
           ..isStatic = isStatic
           ..parameters = formalParameters.map((e) => e.asElement).toList()
-          ..returnType = returnType
           ..typeParameters = typeParameters.map((e) => e.asElement).toList();
-    MethodElementImpl(
+    var element = MethodElementImpl(
       name: name,
       reference: Reference.root(),
       firstFragment: fragment,
     );
+    element.returnType = returnType;
     return fragment;
   }
 
