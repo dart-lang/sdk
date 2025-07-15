@@ -2524,12 +2524,6 @@ abstract class JoinPatternVariableFragment implements PatternVariableFragment {
   @override
   JoinPatternVariableElement get element;
 
-  /// Whether the [variables2] are consistent.
-  ///
-  /// The variables are consistent if they are present in all branches, and have
-  /// the same type and finality.
-  bool get isConsistent;
-
   @override
   JoinPatternVariableFragment? get nextFragment;
 
@@ -2539,9 +2533,6 @@ abstract class JoinPatternVariableFragment implements PatternVariableFragment {
 
   @override
   JoinPatternVariableFragment? get previousFragment;
-
-  /// The variables that join into this variable.
-  List<PatternVariableFragment> get variables2;
 }
 
 /// A label associated with a statement.

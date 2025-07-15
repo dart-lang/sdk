@@ -319,7 +319,7 @@ class ElementPrinter {
       return '$enclosingStr::@formalParameter::${fragment.name}';
     } else if (fragment is JoinPatternVariableFragmentImpl) {
       return [
-        if (!fragment.isConsistent) 'notConsistent ',
+        if (!fragment.element.isConsistent) 'notConsistent ',
         if (fragment.isFinal) 'final ',
         fragment.name ?? '',
         '[',

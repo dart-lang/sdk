@@ -5345,7 +5345,10 @@ class JoinPatternVariableElementImpl extends PatternVariableElementImpl
       _wrappedElement.inconsistency = value;
 
   @override
-  bool get isConsistent => _wrappedElement.isConsistent;
+  bool get isConsistent {
+    return _wrappedElement.inconsistency ==
+        shared.JoinedPatternVariableInconsistency.none;
+  }
 
   set isFinal(bool value) => _wrappedElement.isFinal = value;
 
@@ -5411,11 +5414,6 @@ class JoinPatternVariableFragmentImpl extends PatternVariableFragmentImpl
       super.element as JoinPatternVariableElementImpl;
 
   @override
-  bool get isConsistent {
-    return inconsistency == shared.JoinedPatternVariableInconsistency.none;
-  }
-
-  @override
   JoinPatternVariableFragmentImpl? get nextFragment =>
       super.nextFragment as JoinPatternVariableFragmentImpl?;
 
@@ -5442,10 +5440,6 @@ class JoinPatternVariableFragmentImpl extends PatternVariableFragmentImpl
     append(this);
     return result;
   }
-
-  @override
-  List<PatternVariableFragment> get variables2 =>
-      variables.cast<PatternVariableFragment>();
 }
 
 class LabelElementImpl extends ElementImpl implements LabelElement {
