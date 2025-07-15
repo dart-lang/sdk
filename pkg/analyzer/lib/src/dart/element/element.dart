@@ -1180,13 +1180,13 @@ class DirectiveUriImpl implements DirectiveUri {}
 class DirectiveUriWithLibraryImpl extends DirectiveUriWithSourceImpl
     implements DirectiveUriWithLibrary {
   @override
-  late LibraryElementImpl library2;
+  late LibraryElementImpl library;
 
   DirectiveUriWithLibraryImpl({
     required super.relativeUriString,
     required super.relativeUri,
     required super.source,
-    required this.library2,
+    required this.library,
   });
 
   DirectiveUriWithLibraryImpl.read({
@@ -1194,6 +1194,10 @@ class DirectiveUriWithLibraryImpl extends DirectiveUriWithSourceImpl
     required super.relativeUri,
     required super.source,
   });
+
+  @override
+  @Deprecated('Use library instead')
+  LibraryElement get library2 => library;
 }
 
 class DirectiveUriWithRelativeUriImpl
@@ -1528,7 +1532,7 @@ class ElementAnnotationImpl
       'visibleOutsideTemplate';
 
   @override
-  Element? element2;
+  Element? element;
 
   @override
   LibraryFragmentImpl libraryFragment;
@@ -1577,6 +1581,10 @@ class ElementAnnotationImpl
   }
 
   @override
+  @Deprecated('Use element instead')
+  Element? get element2 => element;
+
+  @override
   bool get isAlwaysThrows => _isPackageMetaGetter(_alwaysThrowsVariableName);
 
   @override
@@ -1587,23 +1595,23 @@ class ElementAnnotationImpl
   bool get isConstantEvaluated => evaluationResult != null;
 
   bool get isDartInternalSince {
-    var element2 = this.element2;
-    if (element2 is ConstructorElement) {
-      return element2.enclosingElement.name == 'Since' &&
-          element2.library.uri.toString() == 'dart:_internal';
+    var element = this.element;
+    if (element is ConstructorElement) {
+      return element.enclosingElement.name == 'Since' &&
+          element.library.uri.toString() == 'dart:_internal';
     }
     return false;
   }
 
   @override
   bool get isDeprecated {
-    var element2 = this.element2;
-    if (element2 is ConstructorElement) {
-      return element2.library.isDartCore &&
-          element2.enclosingElement.name == _deprecatedClassName;
-    } else if (element2 is PropertyAccessorElement) {
-      return element2.library.isDartCore &&
-          element2.name == _deprecatedVariableName;
+    var element = this.element;
+    if (element is ConstructorElement) {
+      return element.library.isDartCore &&
+          element.enclosingElement.name == _deprecatedClassName;
+    } else if (element is PropertyAccessorElement) {
+      return element.library.isDartCore &&
+          element.name == _deprecatedVariableName;
     }
     return false;
   }
@@ -1754,16 +1762,16 @@ class ElementAnnotationImpl
   String toSource() => annotationAst.toSource();
 
   @override
-  String toString() => '@$element2';
+  String toString() => '@$element';
 
   bool _isConstructor({
     required String libraryName,
     required String className,
   }) {
-    var element2 = this.element2;
-    return element2 is ConstructorElement &&
-        element2.enclosingElement.name == className &&
-        element2.library.name == libraryName;
+    var element = this.element;
+    return element is ConstructorElement &&
+        element.enclosingElement.name == className &&
+        element.library.name == libraryName;
   }
 
   bool _isDartCoreGetter(String name) {
@@ -1783,11 +1791,11 @@ class ElementAnnotationImpl
       (libraryName != null) != (libraryUri != null),
       'Exactly one of libraryName/libraryUri should be provided',
     );
-    var element2 = this.element2;
-    return element2 is PropertyAccessorElement &&
-        element2.name == name &&
-        (libraryName == null || element2.library.name == libraryName) &&
-        (libraryUri == null || element2.library.uri == libraryUri);
+    var element = this.element;
+    return element is PropertyAccessorElement &&
+        element.name == name &&
+        (libraryName == null || element.library.name == libraryName) &&
+        (libraryUri == null || element.library.uri == libraryUri);
   }
 }
 
@@ -6189,7 +6197,7 @@ class LibraryExportImpl extends ElementDirectiveImpl implements LibraryExport {
   @override
   LibraryElementImpl? get exportedLibrary {
     if (uri case DirectiveUriWithLibraryImpl uri) {
-      return uri.library2;
+      return uri.library;
     }
     return null;
   }
@@ -6675,7 +6683,7 @@ class LibraryFragmentImpl extends _ExistingFragmentImpl
   bool shouldIgnoreUndefined({required String? prefix, required String name}) {
     for (var libraryFragment in withEnclosing) {
       for (var importElement in libraryFragment.libraryImports) {
-        if (importElement.prefix2?.element.name == prefix &&
+        if (importElement.prefix?.element.name == prefix &&
             importElement.importedLibrary?.isSynthetic != false) {
           var showCombinators =
               importElement.combinators
@@ -6735,7 +6743,7 @@ class LibraryFragmentImpl extends _ExistingFragmentImpl
   List<PrefixElementImpl> _buildLibraryImportPrefixes() {
     var prefixes = <PrefixElementImpl>{};
     for (var import in libraryImports) {
-      var prefix = import.prefix2?.element;
+      var prefix = import.prefix?.element;
       if (prefix != null) {
         prefixes.add(prefix);
       }
@@ -6755,7 +6763,7 @@ class LibraryImportImpl extends ElementDirectiveImpl implements LibraryImport {
   int importKeywordOffset;
 
   @override
-  final PrefixFragmentImpl? prefix2;
+  final PrefixFragmentImpl? prefix;
 
   Namespace? _namespace;
 
@@ -6764,13 +6772,13 @@ class LibraryImportImpl extends ElementDirectiveImpl implements LibraryImport {
     required this.isSynthetic,
     required this.combinators,
     required this.importKeywordOffset,
-    required this.prefix2,
+    required this.prefix,
   });
 
   @override
   LibraryElementImpl? get importedLibrary {
     if (uri case DirectiveUriWithLibraryImpl uri) {
-      return uri.library2;
+      return uri.library;
     }
     return null;
   }
@@ -6787,13 +6795,17 @@ class LibraryImportImpl extends ElementDirectiveImpl implements LibraryImport {
     if (uri is DirectiveUriWithLibraryImpl) {
       return _namespace ??= NamespaceBuilder()
           .createImportNamespaceForDirective(
-            importedLibrary: uri.library2,
+            importedLibrary: uri.library,
             combinators: combinators,
-            prefix: prefix2,
+            prefix: prefix,
           );
     }
     return Namespace.EMPTY;
   }
+
+  @Deprecated('Use prefix instead')
+  @override
+  PrefixFragment? get prefix2 => prefix;
 }
 
 /// The provider for the lazily created `loadLibrary` function.
@@ -7974,7 +7986,7 @@ class MultiplyDefinedElementImpl extends ElementImpl
   final String name;
 
   @override
-  final List<Element> conflictingElements2;
+  final List<Element> conflictingElements;
 
   @override
   late final MultiplyDefinedFragmentImpl firstFragment =
@@ -7983,7 +7995,7 @@ class MultiplyDefinedElementImpl extends ElementImpl
   MultiplyDefinedElementImpl(
     this.libraryFragment,
     this.name,
-    this.conflictingElements2,
+    this.conflictingElements,
   );
 
   @override
@@ -7995,6 +8007,10 @@ class MultiplyDefinedElementImpl extends ElementImpl
   @Deprecated('Use children instead')
   @override
   List<Element> get children2 => children;
+
+  @Deprecated('Use conflictingElements instead')
+  @override
+  List<Element> get conflictingElements2 => conflictingElements;
 
   @override
   String get displayName => name;
@@ -8055,7 +8071,7 @@ class MultiplyDefinedElementImpl extends ElementImpl
 
   @override
   String displayString({bool multiline = false, bool preferTypeAlias = false}) {
-    var elementsStr = conflictingElements2
+    var elementsStr = conflictingElements
         .map((e) {
           return e.displayString();
         })
@@ -8077,7 +8093,7 @@ class MultiplyDefinedElementImpl extends ElementImpl
 
   @override
   bool isAccessibleIn(LibraryElement library) {
-    for (var element in conflictingElements2) {
+    for (var element in conflictingElements) {
       if (element.isAccessibleIn(library)) {
         return true;
       }
@@ -8129,7 +8145,7 @@ class MultiplyDefinedElementImpl extends ElementImpl
     }
 
     buffer.write("[");
-    writeList(conflictingElements2);
+    writeList(conflictingElements);
     buffer.write("]");
     return buffer.toString();
   }
@@ -8510,7 +8526,7 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
   @override
   List<LibraryImportImpl> get imports {
     return firstFragment.enclosingFragment.libraryImports
-        .where((import) => import.prefix2?.element == this)
+        .where((import) => import.prefix?.element == this)
         .toList();
   }
 

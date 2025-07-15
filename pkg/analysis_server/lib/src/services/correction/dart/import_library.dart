@@ -123,7 +123,7 @@ class ImportLibrary extends MultiCorrectionProducer {
             case var exportedName?)
           exportedName,
     ];
-    var importPrefix = import.prefix2?.element;
+    var importPrefix = import.prefix?.element;
     var importCombinator = _ImportLibraryCombinator(
       uri,
       combinators,
@@ -255,7 +255,7 @@ class ImportLibrary extends MultiCorrectionProducer {
       if (!kinds.contains(element.kind)) {
         continue;
       }
-      var importPrefix = import.prefix2?.element;
+      var importPrefix = import.prefix?.element;
       // Maybe update a "show"/"hide" directive.
       var (
         combinatorProducer,

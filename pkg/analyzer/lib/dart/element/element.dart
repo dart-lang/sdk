@@ -524,6 +524,10 @@ abstract class DirectiveUri {}
 /// Clients may not extend, implement or mix-in this class.
 abstract class DirectiveUriWithLibrary extends DirectiveUriWithSource {
   /// The library referenced by the [source].
+  LibraryElement get library;
+
+  /// The library referenced by the [source].
+  @Deprecated('Use library instead')
   LibraryElement get library2;
 }
 
@@ -866,6 +870,17 @@ abstract class ElementAnnotation {
   ///
   /// In invalid code this element can be `null`, or a reference to any
   /// other element.
+  Element? get element;
+
+  /// Returns the element referenced by this annotation.
+  ///
+  /// In valid code this element can be a [GetterElement] of a constant
+  /// top-level variable, or a constant static field of a class; or a
+  /// constant [ConstructorElement].
+  ///
+  /// In invalid code this element can be `null`, or a reference to any
+  /// other element.
+  @Deprecated('Use element instead')
   Element? get element2;
 
   /// Whether the annotation marks the associated function as always throwing.
@@ -2984,6 +2999,12 @@ abstract class LibraryImport implements ElementDirective {
   /// The prefix fragment that was specified as part of the import directive.
   ///
   /// Returns `null` if there was no prefix specified.
+  PrefixFragment? get prefix;
+
+  /// The prefix fragment that was specified as part of the import directive.
+  ///
+  /// Returns `null` if there was no prefix specified.
+  @Deprecated('Use prefix instead')
   PrefixFragment? get prefix2;
 }
 
@@ -3308,6 +3329,10 @@ abstract class MixinFragment implements InterfaceFragment {
 /// Clients may not extend, implement or mix-in this class.
 abstract class MultiplyDefinedElement implements Element {
   /// The elements that were defined within the scope to have the same name.
+  List<Element> get conflictingElements;
+
+  /// The elements that were defined within the scope to have the same name.
+  @Deprecated('Use conflictingElements instead')
   List<Element> get conflictingElements2;
 
   @override

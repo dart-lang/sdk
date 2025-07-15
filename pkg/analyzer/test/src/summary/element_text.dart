@@ -150,7 +150,7 @@ abstract class _AbstractElementWriter {
 
   void _writeDirectiveUri(DirectiveUri uri) {
     if (uri is DirectiveUriWithLibraryImpl) {
-      _sink.write('${uri.library2.source.uri}');
+      _sink.write('${uri.library.source.uri}');
     } else if (uri is DirectiveUriWithUnit) {
       _sink.write('${uri.libraryFragment.source.uri}');
     } else if (uri is DirectiveUriWithSource) {
@@ -1324,7 +1324,7 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.writeIndentedLine(() {
       _writeDirectiveUri(e.uri);
       _sink.writeIf(e.isSynthetic, ' synthetic');
-      _writeImportElementPrefix(e.prefix2);
+      _writeImportElementPrefix(e.prefix);
     });
 
     _sink.withIndent(() {

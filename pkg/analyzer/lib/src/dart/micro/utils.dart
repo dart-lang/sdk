@@ -178,7 +178,7 @@ MockLibraryImportElement? _getMockImportElement(
       continue;
     }
     // required prefix
-    var prefixElement = importElement.prefix2?.element;
+    var prefixElement = importElement.prefix?.element;
     if (prefixElement == null) {
       continue;
     }

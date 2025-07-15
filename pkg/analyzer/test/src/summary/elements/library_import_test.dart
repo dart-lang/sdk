@@ -490,7 +490,7 @@ library
     var library = await buildLibrary('import "a.dart" as a; a.C c;');
 
     var prefixElement =
-        library.definingCompilationUnit.libraryImports[0].prefix2!;
+        library.definingCompilationUnit.libraryImports[0].prefix!;
     expect(prefixElement.nameOffset, 19);
 
     checkElementText(library, r'''

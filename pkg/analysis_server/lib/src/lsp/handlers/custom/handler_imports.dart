@@ -149,7 +149,7 @@ class ImportsHandler
 
       var isMatch =
           element is MultiplyDefinedElement
-              ? element.conflictingElements2.contains(importedElement)
+              ? element.conflictingElements.contains(importedElement)
               : element == importedElement;
 
       if (isMatch) {

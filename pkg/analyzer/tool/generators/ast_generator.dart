@@ -974,7 +974,7 @@ extension _DartTypeExtension on DartType {
 
 extension _ElementAnnotationExtension on ElementAnnotation {
   bool get isDoNotGenerate {
-    if (element2 case ConstructorElement constructorElement) {
+    if (element case ConstructorElement constructorElement) {
       var interfaceElement = constructorElement.enclosingElement;
       return interfaceElement.isDoNotGenerateExactly;
     }

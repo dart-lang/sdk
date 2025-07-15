@@ -92,7 +92,7 @@ class NamedTypeResolver with ScopeHelpers {
     if (importPrefix != null) {
       var prefixToken = importPrefix.name;
       var prefixName = prefixToken.lexeme;
-      var prefixElement = nameScope.lookup(prefixName).getter2;
+      var prefixElement = nameScope.lookup(prefixName).getter;
       importPrefix.element = prefixElement;
 
       if (prefixElement == null) {
@@ -311,7 +311,7 @@ class NamedTypeResolver with ScopeHelpers {
       scopeLookupResult: scopeLookupResult,
       nameToken: nameToken,
     );
-    return scopeLookupResult.getter2;
+    return scopeLookupResult.getter;
   }
 
   void _resolveToElement(

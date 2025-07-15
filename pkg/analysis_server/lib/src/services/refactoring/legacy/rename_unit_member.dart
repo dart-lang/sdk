@@ -214,7 +214,7 @@ class _BaseUnitMemberValidator {
     //  library fragment in which the reference occurs.
     for (var libraryImport in atLibrary.firstFragment.libraryImports) {
       // ignore if imported with prefix
-      if (libraryImport.prefix2 != null) {
+      if (libraryImport.prefix != null) {
         continue;
       }
       // check imported elements

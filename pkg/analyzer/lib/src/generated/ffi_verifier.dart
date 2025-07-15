@@ -2268,7 +2268,7 @@ extension on ElementAnnotation {
   }
 
   bool get isArray {
-    var element = element2;
+    var element = this.element;
     return element is ConstructorElement &&
         element.ffiClass != null &&
         element.enclosingElement.name == 'Array';
@@ -2293,7 +2293,7 @@ extension on ElementAnnotation {
   }
 
   bool get isPacked {
-    var element = element2;
+    var element = this.element;
     return element is ConstructorElement &&
         element.ffiClass != null &&
         element.enclosingElement.name == 'Packed';

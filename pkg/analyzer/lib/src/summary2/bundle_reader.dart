@@ -871,7 +871,7 @@ class LibraryReader {
       isSynthetic: _reader.readBool(),
       combinators: _reader.readTypedList(_readNamespaceCombinator),
       importKeywordOffset: -1,
-      prefix2: _readLibraryImportPrefixFragment(libraryFragment: containerUnit),
+      prefix: _readLibraryImportPrefixFragment(libraryFragment: containerUnit),
       uri: _readDirectiveUri(containerUnit: containerUnit),
     );
     return element;
@@ -1399,7 +1399,7 @@ class LibraryReader {
         import.metadata = reader._readMetadata(unitElement: unitElement);
         var uri = import.uri;
         if (uri is DirectiveUriWithLibraryImpl) {
-          uri.library2 = reader.libraryOfUri(uri.source.uri);
+          uri.library = reader.libraryOfUri(uri.source.uri);
         }
       }
 
@@ -1407,7 +1407,7 @@ class LibraryReader {
         export.metadata = reader._readMetadata(unitElement: unitElement);
         var uri = export.uri;
         if (uri is DirectiveUriWithLibraryImpl) {
-          uri.library2 = reader.libraryOfUri(uri.source.uri);
+          uri.library = reader.libraryOfUri(uri.source.uri);
         }
       }
 
@@ -1869,7 +1869,7 @@ class ResolutionReader {
       var ast = _readRequiredNode() as AnnotationImpl;
       return ElementAnnotationImpl(unitElement)
         ..annotationAst = ast
-        ..element2 = ast.element;
+        ..element = ast.element;
     });
 
     return MetadataImpl(annotations);

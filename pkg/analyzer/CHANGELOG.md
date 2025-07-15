@@ -178,6 +178,12 @@
 * Deprecate `LibraryFragment.isNonSubtypableClass2`, use `isNonSubtypableClass` instead.
 * Deprecate `TypeParameterizedFragment.typeParameters2`, use `typeParameters` instead.
 * Deprecate `Fragment.nameOffset2`, use `nameOffset` instead.
+* Deprecate `DirectiveUriWithLibrary.library2`, use `library` instead.
+* Deprecate `ElementAnnotation.element2`, use `element` instead.
+* Deprecate `LibraryImport.prefix2`, use `prefix` instead.
+* Deprecate `MultiplyDefinedElement.conflictingElements2`, use `conflictingElements` instead.
+* Deprecate `ScopeLookupResult.getter2`, use `getter` instead.
+* Deprecate `ScopeLookupResult.setter2`, use `setter` instead.
 
 ## 7.4.1
 * Restore `InstanceElement.augmented` getter.

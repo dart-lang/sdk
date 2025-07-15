@@ -966,7 +966,7 @@ class LibraryAnalyzer {
     required DiagnosticReporter diagnosticReporter,
   }) {
     directive.libraryImport = element;
-    directive.prefix?.element = element.prefix2?.element;
+    directive.prefix?.element = element.prefix?.element;
     _resolveUriConfigurations(
       configurationNodes: directive.configurations,
       configurationUris: state.uris.configurations,

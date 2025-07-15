@@ -690,7 +690,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     if (uri is DirectiveUriWithUnit && uri.source.exists()) {
       computer._addRegionForFragment(node.uri, uri.libraryFragment);
     } else if (uri is DirectiveUriWithLibrary && uri.source.exists()) {
-      computer._addRegionForElement(node.uri, uri.library2);
+      computer._addRegionForElement(node.uri, uri.library);
     }
   }
 }

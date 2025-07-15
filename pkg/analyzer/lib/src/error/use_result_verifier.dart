@@ -123,7 +123,7 @@ class UseResultVerifier {
   }
 
   String? _getUseResultMessage(ElementAnnotation annotation) {
-    if (annotation.element2 is GetterElement) {
+    if (annotation.element is GetterElement) {
       return null;
     }
     var constantValue = annotation.computeConstantValue();

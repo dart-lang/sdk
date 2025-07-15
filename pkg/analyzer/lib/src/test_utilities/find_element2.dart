@@ -305,7 +305,7 @@ class ImportFindElement extends _FindElementBase {
     return importedLibrary.firstFragment;
   }
 
-  PrefixElement? get prefix => import.prefix2?.element;
+  PrefixElement? get prefix => import.prefix?.element;
 }
 
 class PartFindElement extends _FindElementBase {

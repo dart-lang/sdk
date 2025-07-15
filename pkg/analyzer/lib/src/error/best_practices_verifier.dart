@@ -560,7 +560,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   void visitImportDirective(ImportDirective node) {
     _deprecatedVerifier.importDirective(node);
     var import = node.libraryImport;
-    if (import != null && import.prefix2?.isDeferred == true) {
+    if (import != null && import.prefix?.isDeferred == true) {
       _checkForLoadLibraryFunction(node, import);
     }
     _invalidAccessVerifier.verifyImport(node);
@@ -1198,7 +1198,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     LibraryImport importElement,
   ) {
     var importedLibrary = importElement.importedLibrary;
-    var prefix = importElement.prefix2?.element;
+    var prefix = importElement.prefix?.element;
     if (importedLibrary == null || prefix == null) {
       return false;
     }

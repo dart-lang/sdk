@@ -213,7 +213,7 @@ class AnnotationVerifier {
     var kinds = element.targetKinds;
     if (kinds.isNotEmpty) {
       if (!_isValidTarget(parent, kinds)) {
-        var invokedElement = element.element2!;
+        var invokedElement = element.element!;
         var name = invokedElement.name;
         if (invokedElement is ConstructorElement) {
           var className = invokedElement.enclosingElement.name;

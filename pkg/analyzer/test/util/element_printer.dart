@@ -30,7 +30,7 @@ class ElementPrinter {
     } else if (uri is DirectiveUriWithLibrary) {
       _sink.writeln('DirectiveUriWithLibrary');
       _sink.withIndent(() {
-        var uriStr = uri.library2.uri;
+        var uriStr = uri.library.uri;
         _sink.writelnWithIndent('uri: $uriStr');
       });
     } else if (uri is DirectiveUriWithUnit) {
@@ -121,7 +121,7 @@ class ElementPrinter {
       case MultiplyDefinedElementImpl multiElement:
         _sink.writeln('multiplyDefinedElement');
         _sink.withIndent(() {
-          for (var element in multiElement.conflictingElements2) {
+          for (var element in multiElement.conflictingElements) {
             _sink.writeIndent();
             writeElement2(element);
           }

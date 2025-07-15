@@ -47062,7 +47062,7 @@ class _ManualRequirementsUnit {
 
   InstanceElementImpl scopeInstanceElement(String name) {
     var lookupResult = libraryFragment.scope.lookup(name);
-    return lookupResult.getter2 as InstanceElementImpl;
+    return lookupResult.getter as InstanceElementImpl;
   }
 
   InterfaceElementImpl scopeInterfaceElement(String name) {

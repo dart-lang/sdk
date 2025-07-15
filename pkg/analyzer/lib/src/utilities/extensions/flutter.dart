@@ -330,12 +330,12 @@ extension ElementAnnotationExtension on ElementAnnotation {
   /// Whether the annotation marks the associated member as being a widget
   /// preview.
   bool get isWidgetPreview {
-    var element2 = this.element2;
-    if (element2 is! ConstructorElement) {
+    var element = this.element;
+    if (element is! ConstructorElement) {
       return false;
     }
-    return element2.enclosingElement.name == 'Preview' &&
-        element2.library.uri == _flutterWidgetPreviewLibraryUri;
+    return element.enclosingElement.name == 'Preview' &&
+        element.library.uri == _flutterWidgetPreviewLibraryUri;
   }
 }
 

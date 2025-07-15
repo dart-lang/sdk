@@ -173,7 +173,7 @@ class ConstantEvaluationEngine {
       }
     } else if (constant is ElementAnnotationImpl) {
       var constNode = constant.annotationAst;
-      var element = constant.element2;
+      var element = constant.element;
       if (element is PropertyAccessorElement) {
         // The annotation is a reference to a compile-time constant variable.
         // Just copy the evaluation result.
@@ -318,7 +318,7 @@ class ConstantEvaluationEngine {
       }
     } else if (constant is ElementAnnotationImpl) {
       Annotation constNode = constant.annotationAst;
-      var element = constant.element2;
+      var element = constant.element;
       if (element is PropertyAccessorElement) {
         // The annotation is a reference to a compile-time constant variable,
         // so it depends on the variable.

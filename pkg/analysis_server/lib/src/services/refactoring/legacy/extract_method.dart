@@ -1888,7 +1888,7 @@ extension on LibraryElement {
       // Ensure import.
       var importElement = _getImportElement(element);
       if (importElement != null) {
-        var prefix = importElement.prefix2?.element;
+        var prefix = importElement.prefix?.element;
         if (prefix != null) {
           sb.write(prefix.displayName);
           sb.write('.');
